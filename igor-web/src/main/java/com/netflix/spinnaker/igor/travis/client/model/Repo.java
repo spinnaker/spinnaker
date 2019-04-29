@@ -20,115 +20,121 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
-
-import java.time.Instant;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(strict = false)
 public class Repo {
-    private int id;
-    private String slug;
-    private String description;
-    @JsonProperty("last_build_id")
-    private int lastBuildId;
-    @JsonProperty("last_build_number")
-    private int lastBuildNumber;
-    @JsonProperty("last_build_state")
-    private String lastBuildState;
-    @JsonProperty("last_build_duration")
-    private int lastBuildDuration;
-    @JsonProperty("last_build_started_at")
-    private Instant lastBuildStartedAt;
-    @JsonProperty("last_build_finished_at")
-    private Instant lastBuildFinishedAt;
-    @JsonProperty("github_language")
-    private String githubLanguage;
+  private int id;
+  private String slug;
+  private String description;
 
-    public long timestamp() {
-        return lastBuildFinishedAt.toEpochMilli();
-    }
+  @JsonProperty("last_build_id")
+  private int lastBuildId;
 
-    public int getId() {
-        return id;
-    }
+  @JsonProperty("last_build_number")
+  private int lastBuildNumber;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  @JsonProperty("last_build_state")
+  private String lastBuildState;
 
-    public String getSlug() {
-        return slug;
-    }
+  @JsonProperty("last_build_duration")
+  private int lastBuildDuration;
 
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+  @JsonProperty("last_build_started_at")
+  private Instant lastBuildStartedAt;
 
-    public String getDescription() {
-        return description;
-    }
+  @JsonProperty("last_build_finished_at")
+  private Instant lastBuildFinishedAt;
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  @JsonProperty("github_language")
+  private String githubLanguage;
 
-    public int getLastBuildId() {
-        return lastBuildId;
-    }
+  public long timestamp() {
+    return lastBuildFinishedAt.toEpochMilli();
+  }
 
-    public void setLastBuildId(int lastBuildId) {
-        this.lastBuildId = lastBuildId;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getLastBuildNumber() {
-        return lastBuildNumber;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setLastBuildNumber(int lastBuildNumber) {
-        this.lastBuildNumber = lastBuildNumber;
-    }
+  public String getSlug() {
+    return slug;
+  }
 
-    public String getLastBuildState() {
-        return lastBuildState;
-    }
+  public void setSlug(String slug) {
+    this.slug = slug;
+  }
 
-    public void setLastBuildState(String lastBuildState) {
-        this.lastBuildState = lastBuildState;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public int getLastBuildDuration() {
-        return lastBuildDuration;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setLastBuildDuration(int lastBuildDuration) {
-        this.lastBuildDuration = lastBuildDuration;
-    }
+  public int getLastBuildId() {
+    return lastBuildId;
+  }
 
-    public Instant getLastBuildStartedAt() {
-        return lastBuildStartedAt;
-    }
+  public void setLastBuildId(int lastBuildId) {
+    this.lastBuildId = lastBuildId;
+  }
 
-    public void setLastBuildStartedAt(Instant lastBuildStartedAt) {
-        this.lastBuildStartedAt = lastBuildStartedAt;
-    }
+  public int getLastBuildNumber() {
+    return lastBuildNumber;
+  }
 
-    public Instant getLastBuildFinishedAt() {
-        return lastBuildFinishedAt;
-    }
+  public void setLastBuildNumber(int lastBuildNumber) {
+    this.lastBuildNumber = lastBuildNumber;
+  }
 
-    public void setLastBuildFinishedAt(Instant lastBuildFinishedAt) {
-        this.lastBuildFinishedAt = lastBuildFinishedAt;
-    }
+  public String getLastBuildState() {
+    return lastBuildState;
+  }
 
-    public String getGithubLanguage() {
-        return githubLanguage;
-    }
+  public void setLastBuildState(String lastBuildState) {
+    this.lastBuildState = lastBuildState;
+  }
 
-    public void setGithubLanguage(String githubLanguage) {
-        this.githubLanguage = githubLanguage;
-    }
+  public int getLastBuildDuration() {
+    return lastBuildDuration;
+  }
+
+  public void setLastBuildDuration(int lastBuildDuration) {
+    this.lastBuildDuration = lastBuildDuration;
+  }
+
+  public Instant getLastBuildStartedAt() {
+    return lastBuildStartedAt;
+  }
+
+  public void setLastBuildStartedAt(Instant lastBuildStartedAt) {
+    this.lastBuildStartedAt = lastBuildStartedAt;
+  }
+
+  public Instant getLastBuildFinishedAt() {
+    return lastBuildFinishedAt;
+  }
+
+  public void setLastBuildFinishedAt(Instant lastBuildFinishedAt) {
+    this.lastBuildFinishedAt = lastBuildFinishedAt;
+  }
+
+  public String getGithubLanguage() {
+    return githubLanguage;
+  }
+
+  public void setGithubLanguage(String githubLanguage) {
+    this.githubLanguage = githubLanguage;
+  }
 }

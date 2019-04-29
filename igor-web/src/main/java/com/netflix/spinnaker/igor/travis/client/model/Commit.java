@@ -20,105 +20,107 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import java.time.Instant;
 import org.apache.commons.lang.StringUtils;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
-
-import java.time.Instant;
 
 @Default
 @Root(name = "commits")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Commit {
-    private int id;
-    private String sha;
-    private String branch;
-    private String message;
-    @JsonProperty("author_name")
-    private String authorName;
-    @JsonProperty("compare_url")
-    private String compareUrl;
-    @JsonProperty("committed_at")
-    private Instant timestamp;
+  private int id;
+  private String sha;
+  private String branch;
+  private String message;
 
-    public GenericGitRevision getGenericGitRevision() {
-        return GenericGitRevision.builder()
-          .name(branch)
-          .branch(branch)
-          .sha1(sha)
-          .committer(authorName)
-          .compareUrl(compareUrl)
-          .message(message)
-          .timestamp(timestamp)
-          .build();
+  @JsonProperty("author_name")
+  private String authorName;
+
+  @JsonProperty("compare_url")
+  private String compareUrl;
+
+  @JsonProperty("committed_at")
+  private Instant timestamp;
+
+  public GenericGitRevision getGenericGitRevision() {
+    return GenericGitRevision.builder()
+        .name(branch)
+        .branch(branch)
+        .sha1(sha)
+        .committer(authorName)
+        .compareUrl(compareUrl)
+        .message(message)
+        .timestamp(timestamp)
+        .build();
+  }
+
+  public boolean isTag() {
+    return compareUrl != null
+        && StringUtils.substringAfterLast(compareUrl, "/compare/").matches(branch);
+  }
+
+  public String getBranchNameWithTagHandling() {
+    if (isTag()) {
+      return "tags";
     }
 
-    public boolean isTag() {
-        return compareUrl != null && StringUtils.substringAfterLast(compareUrl, "/compare/").matches(branch);
+    return branch;
+  }
 
-    }
+  public int getId() {
+    return id;
+  }
 
-    public String getBranchNameWithTagHandling() {
-        if (isTag()) {
-            return "tags";
-        }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-        return branch;
-    }
+  public String getSha() {
+    return sha;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public void setSha(String sha) {
+    this.sha = sha;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public String getBranch() {
+    return branch;
+  }
 
-    public String getSha() {
-        return sha;
-    }
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
 
-    public void setSha(String sha) {
-        this.sha = sha;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public String getBranch() {
-        return branch;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
+  public String getAuthorName() {
+    return authorName;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public void setAuthorName(String authorName) {
+    this.authorName = authorName;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public String getCompareUrl() {
+    return compareUrl;
+  }
 
-    public String getAuthorName() {
-        return authorName;
-    }
+  public void setCompareUrl(String compareUrl) {
+    this.compareUrl = compareUrl;
+  }
 
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
-    }
+  public Instant getTimestamp() {
+    return timestamp;
+  }
 
-    public String getCompareUrl() {
-        return compareUrl;
-    }
-
-    public void setCompareUrl(String compareUrl) {
-        this.compareUrl = compareUrl;
-    }
-
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
-    }
+  public void setTimestamp(Instant timestamp) {
+    this.timestamp = timestamp;
+  }
 }

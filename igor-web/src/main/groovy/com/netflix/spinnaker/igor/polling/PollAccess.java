@@ -17,11 +17,11 @@ package com.netflix.spinnaker.igor.polling;
 
 public interface PollAccess {
 
-    /**
-     * Poll entry point. Each poller should be capable of breaking its polling
-     * work into partitions and then call pollSingle for each.
-     */
-    void poll(boolean sendEvents);
+  /**
+   * Poll entry point. Each poller should be capable of breaking its polling work into partitions
+   * and then call pollSingle for each.
+   */
+  void poll(boolean sendEvents);
 
-    void pollSingle(PollContext ctx);
+  void pollSingle(PollContext ctx);
 }

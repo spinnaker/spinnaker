@@ -22,20 +22,22 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gcb.*;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Optional;
-
 @Configuration
 @ComponentScan("com.netflix.spinnaker.igor.gcb")
 @ConditionalOnProperty("gcb.enabled")
-@EnableConfigurationProperties({GoogleCloudBuildProperties.class, IgorConfigurationProperties.class})
+@EnableConfigurationProperties({
+  GoogleCloudBuildProperties.class,
+  IgorConfigurationProperties.class
+})
 public class GoogleCloudBuildConfig {
   @Bean
   HttpTransport httpTransport() throws IOException, GeneralSecurityException {
@@ -44,39 +46,36 @@ public class GoogleCloudBuildConfig {
 
   @Bean
   GoogleCloudBuildAccountRepository googleCloudBuildAccountRepository(
-    GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory,
-    GoogleCloudBuildProperties googleCloudBuildProperties
-  ) {
+      GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory,
+      GoogleCloudBuildProperties googleCloudBuildProperties) {
     GoogleCloudBuildAccountRepository credentials = new GoogleCloudBuildAccountRepository();
-    googleCloudBuildProperties.getAccounts().forEach(a -> {
-      GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(a);
-      credentials.registerAccount(a.getName(), account);
-    });
+    googleCloudBuildProperties
+        .getAccounts()
+        .forEach(
+            a -> {
+              GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(a);
+              credentials.registerAccount(a.getName(), account);
+            });
     return credentials;
   }
 
   @Bean
   GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory(
-    IgorConfigurationProperties igorConfigurationProperties,
-    RedisClientDelegate redisClientDelegate,
-    LockService lockService
-  ) {
+      IgorConfigurationProperties igorConfigurationProperties,
+      RedisClientDelegate redisClientDelegate,
+      LockService lockService) {
     return new GoogleCloudBuildCache.Factory(
-      lockService,
-      redisClientDelegate,
-      igorConfigurationProperties.getSpinnaker().getJedis().getPrefix()
-    );
+        lockService,
+        redisClientDelegate,
+        igorConfigurationProperties.getSpinnaker().getJedis().getPrefix());
   }
 
   @Bean
   GoogleCloudBuildClient.Factory googleCloudBuildClientFactory(
-    CloudBuildFactory cloudBuildFactory,
-    GoogleCloudBuildExecutor googleCloudBuildExecutor
-  ) {
+      CloudBuildFactory cloudBuildFactory, GoogleCloudBuildExecutor googleCloudBuildExecutor) {
     return new GoogleCloudBuildClient.Factory(
-      cloudBuildFactory,
-      googleCloudBuildExecutor,
-      Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown")
-    );
+        cloudBuildFactory,
+        googleCloudBuildExecutor,
+        Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown"));
   }
 }

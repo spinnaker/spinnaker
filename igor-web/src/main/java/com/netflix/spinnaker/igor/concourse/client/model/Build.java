@@ -22,15 +22,12 @@ import lombok.Setter;
 
 @Setter
 public class Build {
-  @Getter
-  private String id;
+  @Getter private String id;
   private String name; // the readable build number
 
-  @Getter
-  private long startTime; // milliseconds since Unix epoch
+  @Getter private long startTime; // milliseconds since Unix epoch
 
-  @Getter
-  private String status;
+  @Getter private String status;
 
   public int getNumber() {
     return Integer.parseInt(name);
@@ -41,16 +38,13 @@ public class Build {
   }
 
   public Result getResult() {
-    if("succeeded".equals(status)) {
+    if ("succeeded".equals(status)) {
       return Result.SUCCESS;
-    }
-    else if("failed".equals(status)) {
+    } else if ("failed".equals(status)) {
       return Result.FAILURE;
-    }
-    else if("started".equals(status)) {
+    } else if ("started".equals(status)) {
       return Result.BUILDING;
-    }
-    else if("aborted".equals(status)) {
+    } else if ("aborted".equals(status)) {
       return Result.ABORTED;
     }
     return Result.NOT_BUILT;

@@ -22,6 +22,7 @@ public interface JinjaTemplate {
   InputStream getAsStream();
 
   enum TemplateType {
-    STANDARD, CUSTOM;
+    STANDARD,
+    CUSTOM;
   }
 }

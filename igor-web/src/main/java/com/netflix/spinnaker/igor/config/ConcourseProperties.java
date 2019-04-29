@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import java.util.List;
+import javax.annotation.Nullable;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.Nullable;
-import java.util.List;
 
 @Data
 @ConfigurationProperties(prefix = "concourse")
@@ -32,28 +31,23 @@ public class ConcourseProperties {
   public static class Host {
     private String name;
 
-    /**
-     * Including scheme because the default docker-compose setup does not
-     * support https.
-     */
+    /** Including scheme because the default docker-compose setup does not support https. */
     private String url;
 
     private String username;
     private String password;
 
-    @Nullable
-    private List<String> teams;
+    @Nullable private List<String> teams;
 
     /**
-     * Events will only be created for builds containing resource(s) matching
-     * this pattern. Build properties will contain only metadata from matching resource(s).
+     * Events will only be created for builds containing resource(s) matching this pattern. Build
+     * properties will contain only metadata from matching resource(s).
      */
-    @Nullable
-    private String resourceFilterRegex;
+    @Nullable private String resourceFilterRegex;
 
     /**
-     * When retrieving build or build-related information like git revision information, never look past
-     * this number of recent builds.
+     * When retrieving build or build-related information like git revision information, never look
+     * past this number of recent builds.
      */
     private Integer buildLookbackLimit = 200;
 

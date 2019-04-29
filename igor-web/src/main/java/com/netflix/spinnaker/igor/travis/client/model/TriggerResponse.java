@@ -25,23 +25,24 @@ import org.simpleframework.xml.Default;
 @Default
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TriggerResponse {
-    @JsonProperty("remaining_requests")
-    private int remainingRequests;
-    private Request request;
+  @JsonProperty("remaining_requests")
+  private int remainingRequests;
 
-    public int getRemainingRequests() {
-        return remainingRequests;
-    }
+  private Request request;
 
-    public void setRemainingRequests(int remainingRequests) {
-        this.remainingRequests = remainingRequests;
-    }
+  public int getRemainingRequests() {
+    return remainingRequests;
+  }
 
-    public Request getRequest() {
-        return request;
-    }
+  public void setRemainingRequests(int remainingRequests) {
+    this.remainingRequests = remainingRequests;
+  }
 
-    public void setRequest(Request request) {
-        this.request = request;
-    }
+  public Request getRequest() {
+    return request;
+  }
+
+  public void setRequest(Request request) {
+    this.request = request;
+  }
 }

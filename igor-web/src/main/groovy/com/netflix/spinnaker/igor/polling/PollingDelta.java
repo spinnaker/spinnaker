@@ -18,5 +18,5 @@ package com.netflix.spinnaker.igor.polling;
 import java.util.List;
 
 public interface PollingDelta<I extends DeltaItem> {
-    List<I> getItems();
+  List<I> getItems();
 }

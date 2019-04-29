@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabClient;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,40 +31,40 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
-import javax.validation.Valid;
-
 @Configuration
 @ConditionalOnProperty("gitlab.base-url")
 @EnableConfigurationProperties(GitLabProperties.class)
 public class GitLabConfig {
-    private static final Logger log = LoggerFactory.getLogger(GitLabConfig.class);
+  private static final Logger log = LoggerFactory.getLogger(GitLabConfig.class);
 
-    @Bean
-    public GitLabMaster gitLabMasters(@Valid GitLabProperties gitLabProperties) {
-        log.info("bootstrapping {} as gitlab", gitLabProperties.getBaseUrl());
-        return new GitLabMaster(gitLabClient(gitLabProperties.getBaseUrl(), gitLabProperties.getPrivateToken()), gitLabProperties.getBaseUrl());
+  @Bean
+  public GitLabMaster gitLabMasters(@Valid GitLabProperties gitLabProperties) {
+    log.info("bootstrapping {} as gitlab", gitLabProperties.getBaseUrl());
+    return new GitLabMaster(
+        gitLabClient(gitLabProperties.getBaseUrl(), gitLabProperties.getPrivateToken()),
+        gitLabProperties.getBaseUrl());
+  }
+
+  public GitLabClient gitLabClient(String address, String privateToken) {
+    return new RestAdapter.Builder()
+        .setEndpoint(Endpoints.newFixedEndpoint(address))
+        .setRequestInterceptor(new PrivateTokenRequestInterceptor(privateToken))
+        .setClient(new OkClient())
+        .setConverter(new JacksonConverter())
+        .build()
+        .create(GitLabClient.class);
+  }
+
+  static class PrivateTokenRequestInterceptor implements RequestInterceptor {
+    private final String privateToken;
+
+    PrivateTokenRequestInterceptor(String privateToken) {
+      this.privateToken = privateToken;
     }
 
-    public GitLabClient gitLabClient(String address, String privateToken) {
-        return new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new PrivateTokenRequestInterceptor(privateToken))
-            .setClient(new OkClient())
-            .setConverter(new JacksonConverter())
-            .build()
-            .create(GitLabClient.class);
+    @Override
+    public void intercept(RequestInterceptor.RequestFacade request) {
+      request.addHeader("Private-Token", privateToken);
     }
-
-    static class PrivateTokenRequestInterceptor implements RequestInterceptor {
-        private final String privateToken;
-
-        PrivateTokenRequestInterceptor(String privateToken) {
-            this.privateToken = privateToken;
-        }
-
-        @Override
-        public void intercept(RequestInterceptor.RequestFacade request) {
-            request.addHeader("Private-Token", privateToken);
-        }
-    }
+  }
 }

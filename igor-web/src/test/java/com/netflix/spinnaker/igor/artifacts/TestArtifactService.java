@@ -20,7 +20,6 @@ package com.netflix.spinnaker.igor.artifacts;
 import com.netflix.spinnaker.igor.model.ArtifactServiceProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +32,7 @@ public class TestArtifactService implements ArtifactService {
 
   @Override
   public List<String> getArtifactVersions(String name) {
-    if (!name.equals("test")){
+    if (!name.equals("test")) {
       return Collections.emptyList();
     }
     List<String> versions = new ArrayList<>();
@@ -50,16 +49,15 @@ public class TestArtifactService implements ArtifactService {
       throw new NotFoundException("Artifact not found");
     }
     return new Artifact(
-      "deb",
-      false,
-      "test",
-      "v0.4.0",
-      "artifactory//test/v0.4.0",
-      "artifactory//test/v0.4.0",
-      Collections.emptyMap(),
-      "testAccount",
-      "jenkins//test/v0.4.0",
-      "1234"
-    );
+        "deb",
+        false,
+        "test",
+        "v0.4.0",
+        "artifactory//test/v0.4.0",
+        "artifactory//test/v0.4.0",
+        Collections.emptyMap(),
+        "testAccount",
+        "jenkins//test/v0.4.0",
+        "1234");
   }
 }

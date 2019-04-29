@@ -28,14 +28,14 @@ import org.simpleframework.xml.Root;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(strict = false)
 public class Jobs {
-    @ElementList(required = false, name = "job", inline = true)
-    private Job job;
+  @ElementList(required = false, name = "job", inline = true)
+  private Job job;
 
-    public Job getJob() {
-        return job;
-    }
+  public Job getJob() {
+    return job;
+  }
 
-    public void setJob(Job job) {
-        this.job = job;
-    }
+  public void setJob(Job job) {
+    this.job = job;
+  }
 }

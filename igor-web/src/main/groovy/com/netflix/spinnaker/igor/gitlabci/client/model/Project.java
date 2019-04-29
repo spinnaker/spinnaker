@@ -20,23 +20,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Project {
-    private int id;
-    @JsonProperty("path_with_namespace")
-    private String pathWithNamespace;
+  private int id;
 
-    public int getId() {
-        return id;
-    }
+  @JsonProperty("path_with_namespace")
+  private String pathWithNamespace;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public String getPathWithNamespace() {
-        return pathWithNamespace;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setPathWithNamespace(String pathWithNamespace) {
-        this.pathWithNamespace = pathWithNamespace;
-    }
+  public String getPathWithNamespace() {
+    return pathWithNamespace;
+  }
+
+  public void setPathWithNamespace(String pathWithNamespace) {
+    this.pathWithNamespace = pathWithNamespace;
+  }
 }

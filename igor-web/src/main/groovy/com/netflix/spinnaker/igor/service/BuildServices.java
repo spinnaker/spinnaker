@@ -17,39 +17,38 @@
 package com.netflix.spinnaker.igor.service;
 
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BuildServices {
-    private final Map<String, BuildOperations> buildServices = new HashMap<>();
+  private final Map<String, BuildOperations> buildServices = new HashMap<>();
 
-    public void addServices(Map<String, ? extends BuildOperations> services) {
-        buildServices.putAll(services);
-    }
+  public void addServices(Map<String, ? extends BuildOperations> services) {
+    buildServices.putAll(services);
+  }
 
-    public BuildOperations getService(String name) {
-        return buildServices.get(name);
-    }
+  public BuildOperations getService(String name) {
+    return buildServices.get(name);
+  }
 
-    public List<String> getServiceNames() {
-        return buildServices.keySet().stream().sorted().collect(Collectors.toList());
-    }
+  public List<String> getServiceNames() {
+    return buildServices.keySet().stream().sorted().collect(Collectors.toList());
+  }
 
-    public List<String> getServiceNames(BuildServiceProvider buildServiceProvider) {
-        return buildServices.entrySet().stream()
-            .filter(e -> e.getValue() != null)
-            .filter(e -> e.getValue().getBuildServiceProvider() == buildServiceProvider)
-            .map(Map.Entry::getKey)
-            .sorted()
-            .collect(Collectors.toList());
-    }
+  public List<String> getServiceNames(BuildServiceProvider buildServiceProvider) {
+    return buildServices.entrySet().stream()
+        .filter(e -> e.getValue() != null)
+        .filter(e -> e.getValue().getBuildServiceProvider() == buildServiceProvider)
+        .map(Map.Entry::getKey)
+        .sorted()
+        .collect(Collectors.toList());
+  }
 
-    public List<BuildService> getAllBuildServices() {
-        return buildServices.values().stream()
-            .map(BuildOperations::getView)
-            .collect(Collectors.toList());
-    }
+  public List<BuildService> getAllBuildServices() {
+    return buildServices.values().stream()
+        .map(BuildOperations::getView)
+        .collect(Collectors.toList());
+  }
 }

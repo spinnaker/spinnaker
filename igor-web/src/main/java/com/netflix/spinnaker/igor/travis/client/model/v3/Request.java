@@ -18,38 +18,37 @@
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.simpleframework.xml.Default;
-
 import java.util.List;
+import org.simpleframework.xml.Default;
 
 @Default
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Request {
-    private V3Repository repository;
-    private List<V3Build> builds;
-    private int id;
+  private V3Repository repository;
+  private List<V3Build> builds;
+  private int id;
 
-    public V3Repository getRepository() {
-        return repository;
-    }
+  public V3Repository getRepository() {
+    return repository;
+  }
 
-    public void setRepository(V3Repository repository) {
-        this.repository = repository;
-    }
+  public void setRepository(V3Repository repository) {
+    this.repository = repository;
+  }
 
-    public List<V3Build> getBuilds() {
-        return builds;
-    }
+  public List<V3Build> getBuilds() {
+    return builds;
+  }
 
-    public void setBuilds(List<V3Build> builds) {
-        this.builds = builds;
-    }
+  public void setBuilds(List<V3Build> builds) {
+    this.builds = builds;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 }

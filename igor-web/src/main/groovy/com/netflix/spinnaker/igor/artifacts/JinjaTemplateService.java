@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.igor.config.ArtifactTemplateProperties;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
 
 @Component
 public final class JinjaTemplateService {

@@ -19,16 +19,16 @@ package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
- * Controller for supplying version options and artifacts for a trigger that triggers from artifact events.
+ * Controller for supplying version options and artifacts for a trigger that triggers from artifact
+ * events.
  */
 @RestController
 @RequestMapping("/artifacts")
@@ -43,18 +43,16 @@ public class ArtifactController {
 
   @GetMapping("/{provider}/{name}")
   public List<String> getVersions(
-    @PathVariable("provider") String provider,
-    @PathVariable("name") String name
-  ) {
+      @PathVariable("provider") String provider, @PathVariable("name") String name) {
     ArtifactService artifactService = getService(provider);
     return artifactService.getArtifactVersions(name);
   }
 
   @GetMapping("/{provider}/{name}/{version:.+}")
   public Artifact getVersions(
-    @PathVariable("provider") String provider,
-    @PathVariable("name") String name,
-    @PathVariable("version") String version) {
+      @PathVariable("provider") String provider,
+      @PathVariable("name") String name,
+      @PathVariable("version") String version) {
     ArtifactService artifactService = getService(provider);
     return artifactService.getArtifact(name, version);
   }

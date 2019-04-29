@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -25,14 +27,11 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
+import java.io.IOException;
+import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 public class GoogleCloudBuildTestConfig {
   @Bean
@@ -55,9 +54,8 @@ public class GoogleCloudBuildTestConfig {
   @Bean
   @Primary
   CloudBuildFactory cloudBuildFactory(
-    HttpTransport httpTransport,
-    @Qualifier("stubCloudBuildService") WireMockServer wireMockServer
-  ) {
+      HttpTransport httpTransport,
+      @Qualifier("stubCloudBuildService") WireMockServer wireMockServer) {
     return new CloudBuildFactory(httpTransport, wireMockServer.baseUrl());
   }
 
@@ -72,12 +70,15 @@ public class GoogleCloudBuildTestConfig {
         }
         // Create a mock credential whose bearer token is always "test-token"
         try {
-          InputStream is = GoogleCloudBuildAccountFactory.class.getResourceAsStream("/gcb/gcb-test-account.json");
-          MockTokenServerTransport mockTransport = new MockTokenServerTransport("https://accounts.google.com/o/oauth2/auth");
-          mockTransport.addServiceAccount("test-account@spinnaker-gcb-test.iam.gserviceaccount.com", "test-token");
-          return GoogleCredential
-            .fromStream(is, mockTransport, JacksonFactory.getDefaultInstance())
-            .createScoped(CloudBuildScopes.all());
+          InputStream is =
+              GoogleCloudBuildAccountFactory.class.getResourceAsStream(
+                  "/gcb/gcb-test-account.json");
+          MockTokenServerTransport mockTransport =
+              new MockTokenServerTransport("https://accounts.google.com/o/oauth2/auth");
+          mockTransport.addServiceAccount(
+              "test-account@spinnaker-gcb-test.iam.gserviceaccount.com", "test-token");
+          return GoogleCredential.fromStream(is, mockTransport, JacksonFactory.getDefaultInstance())
+              .createScoped(CloudBuildScopes.all());
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

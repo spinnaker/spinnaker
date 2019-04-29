@@ -15,5 +15,4 @@
  */
 package com.netflix.spinnaker.igor.polling;
 
-public interface DeltaItem {
-}
+public interface DeltaItem {}

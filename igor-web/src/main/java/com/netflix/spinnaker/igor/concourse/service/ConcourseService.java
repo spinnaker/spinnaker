@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.igor.concourse.service;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
@@ -30,11 +37,6 @@ import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
-import lombok.extern.slf4j.Slf4j;
-import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-
-import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -46,13 +48,10 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 public class ConcourseService implements BuildOperations, BuildProperties {
@@ -60,13 +59,15 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   private final ConcourseClient client;
   private final Permissions permissions;
 
-  @Nullable
-  private final Pattern resourceFilter;
+  @Nullable private final Pattern resourceFilter;
 
   public ConcourseService(ConcourseProperties.Host host) {
     this.host = host;
     this.client = new ConcourseClient(host.getUrl(), host.getUsername(), host.getPassword());
-    this.resourceFilter = host.getResourceFilterRegex() == null ? null : Pattern.compile(host.getResourceFilterRegex());
+    this.resourceFilter =
+        host.getResourceFilterRegex() == null
+            ? null
+            : Pattern.compile(host.getResourceFilterRegex());
     this.permissions = host.getPermissions().build();
   }
 
@@ -92,22 +93,23 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   public Collection<Team> teams() {
     refreshTokenIfNecessary();
     return client.getTeamService().teams().stream()
-      .filter(team -> host.getTeams() == null || host.getTeams().contains(team.getName()))
-      .collect(toList());
+        .filter(team -> host.getTeams() == null || host.getTeams().contains(team.getName()))
+        .collect(toList());
   }
 
   public Collection<Pipeline> pipelines() {
     refreshTokenIfNecessary();
     return client.getPipelineService().pipelines().stream()
-      .filter(pipeline -> host.getTeams() == null || host.getTeams().contains(pipeline.getTeamName()))
-      .collect(toList());
+        .filter(
+            pipeline -> host.getTeams() == null || host.getTeams().contains(pipeline.getTeamName()))
+        .collect(toList());
   }
 
   public Collection<Job> getJobs() {
     refreshTokenIfNecessary();
     return client.getJobService().jobs().stream()
-      .filter(job -> host.getTeams() == null || host.getTeams().contains(job.getTeamName()))
-      .collect(toList());
+        .filter(job -> host.getTeams() == null || host.getTeams().contains(job.getTeamName()))
+        .collect(toList());
   }
 
   @Override
@@ -126,10 +128,10 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   @Override
   public GenericBuild getGenericBuild(String jobPath, int buildNumber) {
     return getBuilds(jobPath, null).stream()
-      .filter(build -> build.getNumber() == buildNumber)
-      .findAny()
-      .map(build -> getGenericBuild(jobPath, build, true))
-      .orElse(null);
+        .filter(build -> build.getNumber() == buildNumber)
+        .findAny()
+        .map(build -> getGenericBuild(jobPath, build, true))
+        .orElse(null);
   }
 
   public GenericBuild getGenericBuild(String jobPath, Build b, boolean fetchResources) {
@@ -142,8 +144,16 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     build.setResult(b.getResult());
     build.setName(job.getName());
     build.setFullDisplayName(job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName());
-    build.setUrl(host.getUrl() + "/teams/" + job.getTeamName() + "/pipelines/" + job.getPipelineName() + "/jobs/" +
-      job.getName() + "/builds/" + b.getNumber());
+    build.setUrl(
+        host.getUrl()
+            + "/teams/"
+            + job.getTeamName()
+            + "/pipelines/"
+            + job.getPipelineName()
+            + "/jobs/"
+            + job.getName()
+            + "/builds/"
+            + b.getNumber());
     build.setTimestamp(Long.toString(b.getStartTime() * 1000));
 
     if (!fetchResources) {
@@ -153,38 +163,51 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     Collection<Resource> resources = getResources(b.getId());
 
     // merge input and output metadata into one map for each resource
-    Map<String, Map<String, String>> mergedMetadataByResourceName = resources.stream()
-      .collect(
-        groupingBy(Resource::getName,
-          reducing(emptyMap(), Resource::getMetadata,
-            (m1, m2) -> {
-              Map<String, String> m1OrEmpty = m1 == null ? emptyMap() : m1;
-              Map<String, String> m2OrEmpty = m2 == null ? emptyMap() : m2;
-              return Stream.concat(m1OrEmpty.entrySet().stream(), m2OrEmpty.entrySet().stream())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-            }))
-      );
+    Map<String, Map<String, String>> mergedMetadataByResourceName =
+        resources.stream()
+            .collect(
+                groupingBy(
+                    Resource::getName,
+                    reducing(
+                        emptyMap(),
+                        Resource::getMetadata,
+                        (m1, m2) -> {
+                          Map<String, String> m1OrEmpty = m1 == null ? emptyMap() : m1;
+                          Map<String, String> m2OrEmpty = m2 == null ? emptyMap() : m2;
+                          return Stream.concat(
+                                  m1OrEmpty.entrySet().stream(), m2OrEmpty.entrySet().stream())
+                              .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        })));
 
     // extract git information from this particular named resource type
-    resources.stream().filter(r -> r.getType().equals("git"))
-      .map(Resource::getName)
-      .findAny()
-      .ifPresent(gitResourceName -> {
-        Map<String, String> git = mergedMetadataByResourceName.remove(gitResourceName);
-        if (git != null && !git.isEmpty()) {
-          String message = git.get("message");
-          String timestamp = git.get("committer_date");
-          build.setGenericGitRevisions(Collections.singletonList(GenericGitRevision.builder()
-            .committer(git.get("committer"))
-            .branch(git.get("branch"))
-            .name(git.get("branch"))
-            .message(message == null ? null : message.trim())
-            .sha1(git.get("commit"))
-            .timestamp(timestamp == null ? null : ZonedDateTime.parse(timestamp,
-              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z")).toInstant())
-            .build()));
-        }
-      });
+    resources.stream()
+        .filter(r -> r.getType().equals("git"))
+        .map(Resource::getName)
+        .findAny()
+        .ifPresent(
+            gitResourceName -> {
+              Map<String, String> git = mergedMetadataByResourceName.remove(gitResourceName);
+              if (git != null && !git.isEmpty()) {
+                String message = git.get("message");
+                String timestamp = git.get("committer_date");
+                build.setGenericGitRevisions(
+                    Collections.singletonList(
+                        GenericGitRevision.builder()
+                            .committer(git.get("committer"))
+                            .branch(git.get("branch"))
+                            .name(git.get("branch"))
+                            .message(message == null ? null : message.trim())
+                            .sha1(git.get("commit"))
+                            .timestamp(
+                                timestamp == null
+                                    ? null
+                                    : ZonedDateTime.parse(
+                                            timestamp,
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z"))
+                                        .toInstant())
+                            .build()));
+              }
+            });
 
     if (!mergedMetadataByResourceName.isEmpty()) {
       build.setProperties(mergedMetadataByResourceName);
@@ -194,13 +217,15 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   }
 
   private Collection<Resource> getResources(String buildId) {
-    Map<String, Resource> resources = client.getBuildService().plan(buildId)
-      .getResources()
-      .stream()
-      .filter(r -> resourceFilter == null
-        || "git".equals(r.getType()) // there is a place for Git revision history on GenericBuild
-        || resourceFilter.matcher(r.getType()).matches())
-      .collect(toMap(Resource::getId, Function.identity()));
+    Map<String, Resource> resources =
+        client.getBuildService().plan(buildId).getResources().stream()
+            .filter(
+                r ->
+                    resourceFilter == null
+                        || "git".equals(r.getType()) // there is a place for Git revision history on
+                        // GenericBuild
+                        || resourceFilter.matcher(r.getType()).matches())
+            .collect(toMap(Resource::getId, Function.identity()));
 
     if (!resources.isEmpty()) {
       setResourceMetadata(buildId, resources);
@@ -209,29 +234,30 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     return resources.values();
   }
 
-  /**
-   * Uses Concourse's build event stream to locate and populate resource metadata
-   */
+  /** Uses Concourse's build event stream to locate and populate resource metadata */
   private void setResourceMetadata(String buildId, Map<String, Resource> resources) {
     Flux<Event> events = client.getEventService().resourceEvents(buildId);
     CountDownLatch latch = new CountDownLatch(resources.size());
 
-    Disposable eventStream = events
-      .doOnNext(event -> {
-        log.debug("Event for build {}: {}", buildId, event);
-        Resource resource = resources.get(event.getResourceId());
-        if (resource != null) {
-          resource.setMetadata(event.getData().getMetadata());
-          latch.countDown();
-        }
-      })
-      .doOnComplete(() -> {
-        // if the event stream has ended, just count down the rest of the way
-        while (latch.getCount() > 0) {
-          latch.countDown();
-        }
-      })
-      .subscribe();
+    Disposable eventStream =
+        events
+            .doOnNext(
+                event -> {
+                  log.debug("Event for build {}: {}", buildId, event);
+                  Resource resource = resources.get(event.getResourceId());
+                  if (resource != null) {
+                    resource.setMetadata(event.getData().getMetadata());
+                    latch.countDown();
+                  }
+                })
+            .doOnComplete(
+                () -> {
+                  // if the event stream has ended, just count down the rest of the way
+                  while (latch.getCount() > 0) {
+                    latch.countDown();
+                  }
+                })
+            .subscribe();
 
     try {
       latch.await();
@@ -250,9 +276,9 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   @Override
   public List<GenericBuild> getBuilds(String jobPath) {
     return getBuilds(jobPath, null).stream()
-      .filter(Build::isSuccessful)
-      .map(build -> getGenericBuild(jobPath, build, false))
-      .collect(Collectors.toList());
+        .filter(Build::isSuccessful)
+        .map(build -> getGenericBuild(jobPath, build, false))
+        .collect(Collectors.toList());
   }
 
   public List<Build> getBuilds(String jobPath, @Nullable Long since) {
@@ -262,14 +288,20 @@ public class ConcourseService implements BuildOperations, BuildProperties {
       return emptyList();
     }
 
-    return client.getBuildService()
-      .builds(job.getTeamName(), job.getPipelineName(), job.getName(), host.getBuildLookbackLimit(), since);
+    return client
+        .getBuildService()
+        .builds(
+            job.getTeamName(),
+            job.getPipelineName(),
+            job.getName(),
+            host.getBuildLookbackLimit(),
+            since);
   }
 
   public List<String> getResourceNames(String team, String pipeline) {
     return client.getResourceService().resources(team, pipeline).stream()
-      .map(Resource::getName)
-      .collect(toList());
+        .map(Resource::getName)
+        .collect(toList());
   }
 
   private Job toJob(String jobPath) {
@@ -290,7 +322,8 @@ public class ConcourseService implements BuildOperations, BuildProperties {
    * This is necessary until this is resolved: https://github.com/concourse/concourse/issues/3558
    */
   private void refreshTokenIfNecessary() {
-    // returns a 401 on expired/invalid token, which because of retry logic causes the token to be refreshed.
+    // returns a 401 on expired/invalid token, which because of retry logic causes the token to be
+    // refreshed.
     client.getSkyService().userInfo();
   }
 }

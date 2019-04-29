@@ -22,175 +22,184 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.travis.client.model.Config;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
-
 import java.time.Instant;
 import java.util.List;
+import org.simpleframework.xml.Default;
+import org.simpleframework.xml.Root;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "builds")
 public class V3Build {
-    private V3Branch branch;
-    @JsonProperty("commit_id")
-    private int commitId;
-    private V3Commit commit;
-    private int duration;
-    @JsonProperty("event_type")
-    private String eventType;
-    private int id;
-    private V3Repository repository;
-    @JsonProperty("repository_id")
-    private int repositoryId;
-    private int number;
-    private TravisBuildState state;
-    @JsonProperty("finished_at")
-    private Instant finishedAt;
-    private List<V3Job> jobs;
-    private Config config;
+  private V3Branch branch;
 
-    public long getTimestamp() {
-        return finishedAt.toEpochMilli();
+  @JsonProperty("commit_id")
+  private int commitId;
+
+  private V3Commit commit;
+  private int duration;
+
+  @JsonProperty("event_type")
+  private String eventType;
+
+  private int id;
+  private V3Repository repository;
+
+  @JsonProperty("repository_id")
+  private int repositoryId;
+
+  private int number;
+  private TravisBuildState state;
+
+  @JsonProperty("finished_at")
+  private Instant finishedAt;
+
+  private List<V3Job> jobs;
+  private Config config;
+
+  public long getTimestamp() {
+    return finishedAt.toEpochMilli();
+  }
+
+  public String branchedRepoSlug() {
+    if (commit.isPullRequest()) {
+      return repository.getSlug() + "/pull_request_" + branch.getName();
     }
 
-    public String branchedRepoSlug() {
-        if (commit.isPullRequest()) {
-            return repository.getSlug() + "/pull_request_" + branch.getName();
-        }
-
-        if (commit.isTag()) {
-            return repository.getSlug() + "/tags";
-        }
-
-        return repository.getSlug() + "/" + branch.getName();
+    if (commit.isTag()) {
+      return repository.getSlug() + "/tags";
     }
 
-    public GenericGitRevision genericGitRevision() {
-        return GenericGitRevision.builder()
-          .name(branch.getName())
-          .branch(branch.getName())
-          .sha1(commit.getSha())
-          .build();
-    }
+    return repository.getSlug() + "/" + branch.getName();
+  }
 
-    public boolean spinnakerTriggered() {
-        return ("api".equals(eventType) && commit != null && commit.getMessage() != null
-            && (commit.getMessage().startsWith("Triggered from spinnaker")
+  public GenericGitRevision genericGitRevision() {
+    return GenericGitRevision.builder()
+        .name(branch.getName())
+        .branch(branch.getName())
+        .sha1(commit.getSha())
+        .build();
+  }
+
+  public boolean spinnakerTriggered() {
+    return ("api".equals(eventType)
+        && commit != null
+        && commit.getMessage() != null
+        && (commit.getMessage().startsWith("Triggered from spinnaker")
             || commit.getMessage().startsWith("Triggered from Spinnaker")));
+  }
+
+  public String toString() {
+    String tmpSlug = "unknown/repository";
+    if (repository != null) {
+      tmpSlug = repository.getSlug();
     }
 
-    public String toString() {
-        String tmpSlug = "unknown/repository";
-        if (repository != null) {
-            tmpSlug = repository.getSlug();
-        }
+    return "[" + tmpSlug + ":" + number + ":" + state + "]";
+  }
 
-        return "[" + tmpSlug + ":" + number + ":" + state + "]";
-    }
+  public V3Branch getBranch() {
+    return branch;
+  }
 
-    public V3Branch getBranch() {
-        return branch;
-    }
+  public void setBranch(V3Branch branch) {
+    this.branch = branch;
+  }
 
-    public void setBranch(V3Branch branch) {
-        this.branch = branch;
-    }
+  public int getCommitId() {
+    return commitId;
+  }
 
-    public int getCommitId() {
-        return commitId;
-    }
+  public void setCommitId(int commitId) {
+    this.commitId = commitId;
+  }
 
-    public void setCommitId(int commitId) {
-        this.commitId = commitId;
-    }
+  public V3Commit getCommit() {
+    return commit;
+  }
 
-    public V3Commit getCommit() {
-        return commit;
-    }
+  public void setCommit(V3Commit commit) {
+    this.commit = commit;
+  }
 
-    public void setCommit(V3Commit commit) {
-        this.commit = commit;
-    }
+  public int getDuration() {
+    return duration;
+  }
 
-    public int getDuration() {
-        return duration;
-    }
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
 
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
+  public String getEventType() {
+    return eventType;
+  }
 
-    public String getEventType() {
-        return eventType;
-    }
+  public void setEventType(String eventType) {
+    this.eventType = eventType;
+  }
 
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public V3Repository getRepository() {
+    return repository;
+  }
 
-    public V3Repository getRepository() {
-        return repository;
-    }
+  public void setRepository(V3Repository repository) {
+    this.repository = repository;
+  }
 
-    public void setRepository(V3Repository repository) {
-        this.repository = repository;
-    }
+  public int getRepositoryId() {
+    return repositoryId;
+  }
 
-    public int getRepositoryId() {
-        return repositoryId;
-    }
+  public void setRepositoryId(int repositoryId) {
+    this.repositoryId = repositoryId;
+  }
 
-    public void setRepositoryId(int repositoryId) {
-        this.repositoryId = repositoryId;
-    }
+  public int getNumber() {
+    return number;
+  }
 
-    public int getNumber() {
-        return number;
-    }
+  public void setNumber(int number) {
+    this.number = number;
+  }
 
-    public void setNumber(int number) {
-        this.number = number;
-    }
+  public TravisBuildState getState() {
+    return state;
+  }
 
-    public TravisBuildState getState() {
-        return state;
-    }
+  public void setState(TravisBuildState state) {
+    this.state = state;
+  }
 
-    public void setState(TravisBuildState state) {
-        this.state = state;
-    }
+  public Instant getFinishedAt() {
+    return finishedAt;
+  }
 
-    public Instant getFinishedAt() {
-        return finishedAt;
-    }
+  public void setFinishedAt(Instant finishedAt) {
+    this.finishedAt = finishedAt;
+  }
 
-    public void setFinishedAt(Instant finishedAt) {
-        this.finishedAt = finishedAt;
-    }
+  public List<V3Job> getJobs() {
+    return jobs;
+  }
 
-    public List<V3Job> getJobs() {
-        return jobs;
-    }
+  public void setJobs(List<V3Job> jobs) {
+    this.jobs = jobs;
+  }
 
-    public void setJobs(List<V3Job> jobs) {
-        this.jobs = jobs;
-    }
+  public Config getConfig() {
+    return config;
+  }
 
-    public Config getConfig() {
-        return config;
-    }
-
-    public void setConfig(Config config) {
-        this.config = config;
-    }
+  public void setConfig(Config config) {
+    this.config = config;
+  }
 }

@@ -18,24 +18,23 @@
 package com.netflix.spinnaker.igor.travis.client.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
-
-import java.util.List;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Root(strict = false)
 public class Accounts {
-    @ElementList(required = false, name = "accounts", inline = true)
-    private List<Account> accounts;
+  @ElementList(required = false, name = "accounts", inline = true)
+  private List<Account> accounts;
 
-    public List<Account> getAccounts() {
-        return accounts;
-    }
+  public List<Account> getAccounts() {
+    return accounts;
+  }
 
-    public void setAccounts(List<Account> accounts) {
-        this.accounts = accounts;
-    }
+  public void setAccounts(List<Account> accounts) {
+    this.accounts = accounts;
+  }
 }

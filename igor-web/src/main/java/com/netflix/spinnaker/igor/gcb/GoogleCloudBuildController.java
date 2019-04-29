@@ -17,14 +17,12 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.model.Build;
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import retrofit.http.Query;
-
-import java.util.List;
 
 @ConditionalOnProperty("gcb.enabled")
 @RestController
@@ -39,20 +37,27 @@ public class GoogleCloudBuildController {
     return googleCloudBuildAccountRepository.getAccounts();
   }
 
-  @RequestMapping(value = "/builds/create/{account}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-  Build createBuild(@PathVariable String account, @RequestBody String buildString)  {
+  @RequestMapping(
+      value = "/builds/create/{account}",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  Build createBuild(@PathVariable String account, @RequestBody String buildString) {
     Build build = googleCloudBuildParser.parse(buildString, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).createBuild(build);
   }
 
-  @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(
+      value = "/builds/{account}/{buildId}",
+      method = RequestMethod.PUT,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   void updateBuild(
-    @PathVariable String account,
-    @PathVariable String buildId,
-    @Query("status") String status,
-    @RequestBody String serializedBuild
-  ) {
-    googleCloudBuildAccountRepository.getGoogleCloudBuild(account).updateBuild(buildId, status, serializedBuild);
+      @PathVariable String account,
+      @PathVariable String buildId,
+      @Query("status") String status,
+      @RequestBody String serializedBuild) {
+    googleCloudBuildAccountRepository
+        .getGoogleCloudBuild(account)
+        .updateBuild(buildId, status, serializedBuild);
   }
 
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)

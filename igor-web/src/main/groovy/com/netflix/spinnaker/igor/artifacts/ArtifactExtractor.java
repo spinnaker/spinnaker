@@ -21,89 +21,88 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class ArtifactExtractor {
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final JinjaTemplateService jinjaTemplateService;
-    private final JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory;
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JinjaTemplateService jinjaTemplateService;
+  private final JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory;
 
-    public List<Artifact> extractArtifacts(GenericBuild build) {
-        final String messageString;
-        try {
-            messageString = objectMapper.writeValueAsString(build);
-        } catch (JsonProcessingException e) {
-            log.error("Error processing JSON: {}", e);
-            return Collections.emptyList();
-        }
-
-        return getArtifactTemplates(build)
-            .stream()
-            .flatMap(template -> processTemplate(template, messageString).stream())
-            .collect(Collectors.toList());
+  public List<Artifact> extractArtifacts(GenericBuild build) {
+    final String messageString;
+    try {
+      messageString = objectMapper.writeValueAsString(build);
+    } catch (JsonProcessingException e) {
+      log.error("Error processing JSON: {}", e);
+      return Collections.emptyList();
     }
 
-    private List<Artifact> processTemplate(JinjaTemplate template, String messageString) {
-        JinjaArtifactExtractor artifactExtractor = jinjaArtifactExtractorFactory.create(template.getAsStream());
-        return artifactExtractor.getArtifacts(messageString);
+    return getArtifactTemplates(build).stream()
+        .flatMap(template -> processTemplate(template, messageString).stream())
+        .collect(Collectors.toList());
+  }
+
+  private List<Artifact> processTemplate(JinjaTemplate template, String messageString) {
+    JinjaArtifactExtractor artifactExtractor =
+        jinjaArtifactExtractorFactory.create(template.getAsStream());
+    return artifactExtractor.getArtifacts(messageString);
+  }
+
+  private List<JinjaTemplate> getArtifactTemplates(GenericBuild build) {
+    List<JinjaTemplate> templates = new ArrayList<>();
+
+    JinjaTemplate templateFromProperty = getTemplateFromProperty(build);
+    if (templateFromProperty != null) {
+      templates.add(templateFromProperty);
+    }
+    return templates;
+  }
+
+  private JinjaTemplate getTemplateFromProperty(GenericBuild build) {
+    Map<String, ?> properties = build.getProperties();
+    if (properties == null) {
+      return null;
     }
 
-    private List<JinjaTemplate> getArtifactTemplates(GenericBuild build) {
-        List<JinjaTemplate> templates = new ArrayList<>();
-
-        JinjaTemplate templateFromProperty = getTemplateFromProperty(build);
-        if (templateFromProperty != null) {
-            templates.add(templateFromProperty);
-        }
-        return templates;
+    String messageFormat = (String) properties.get("messageFormat");
+    if (StringUtils.isEmpty(messageFormat)) {
+      return null;
     }
 
-    private JinjaTemplate getTemplateFromProperty(GenericBuild build) {
-        Map<String, ?> properties = build.getProperties();
-        if (properties == null) {
-            return null;
-        }
+    JinjaTemplate.TemplateType templateType = JinjaTemplate.TemplateType.STANDARD;
 
-        String messageFormat = (String) properties.get("messageFormat");
-        if (StringUtils.isEmpty(messageFormat)) {
-            return null;
-        }
-
-        JinjaTemplate.TemplateType templateType = JinjaTemplate.TemplateType.STANDARD;
-
-        Object customFormat = properties.get("customFormat");
-        if (parseCustomFormat(customFormat)) {
-            templateType = JinjaTemplate.TemplateType.CUSTOM;
-        }
-
-        return jinjaTemplateService.getTemplate(messageFormat, templateType);
+    Object customFormat = properties.get("customFormat");
+    if (parseCustomFormat(customFormat)) {
+      templateType = JinjaTemplate.TemplateType.CUSTOM;
     }
 
-    private boolean parseCustomFormat(Object customFormat) {
-        if (customFormat == null) {
-            return false;
-        }
+    return jinjaTemplateService.getTemplate(messageFormat, templateType);
+  }
 
-        if (customFormat instanceof Boolean) {
-            return (Boolean) customFormat;
-        }
-
-        if (customFormat instanceof String) {
-            return Boolean.parseBoolean((String) customFormat);
-        }
-
-        throw new RuntimeException("Unexpected customFormat in property file: " + customFormat);
+  private boolean parseCustomFormat(Object customFormat) {
+    if (customFormat == null) {
+      return false;
     }
+
+    if (customFormat instanceof Boolean) {
+      return (Boolean) customFormat;
+    }
+
+    if (customFormat instanceof String) {
+      return Boolean.parseBoolean((String) customFormat);
+    }
+
+    throw new RuntimeException("Unexpected customFormat in property file: " + customFormat);
+  }
 }

@@ -21,36 +21,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GitlabCiResultConverter {
-    private static Logger log = LoggerFactory.getLogger(GitlabCiPipelineUtis.class);
+  private static Logger log = LoggerFactory.getLogger(GitlabCiPipelineUtis.class);
 
-    public static Result getResultFromGitlabCiState(final PipelineStatus state) {
-        switch (state) {
-            case pending:
-                return Result.NOT_BUILT;
-            case running:
-                return Result.BUILDING;
-            case success:
-                return Result.SUCCESS;
-            case canceled:
-                return Result.ABORTED;
-            case failed:
-                return Result.FAILURE;
-            case skipped:
-                return Result.NOT_BUILT;
-            default:
-                log.info("could not convert " + String.valueOf(state));
-                throw new IllegalArgumentException("state: " + String.valueOf(state) + " is not known");
-        }
+  public static Result getResultFromGitlabCiState(final PipelineStatus state) {
+    switch (state) {
+      case pending:
+        return Result.NOT_BUILT;
+      case running:
+        return Result.BUILDING;
+      case success:
+        return Result.SUCCESS;
+      case canceled:
+        return Result.ABORTED;
+      case failed:
+        return Result.FAILURE;
+      case skipped:
+        return Result.NOT_BUILT;
+      default:
+        log.info("could not convert " + String.valueOf(state));
+        throw new IllegalArgumentException("state: " + String.valueOf(state) + " is not known");
     }
+  }
 
-    public static boolean running(PipelineStatus status) {
-        switch (status) {
-            case pending:
-                return true;
-            case running:
-                return true;
-            default:
-                return false;
-        }
+  public static boolean running(PipelineStatus status) {
+    switch (status) {
+      case pending:
+        return true;
+      case running:
+        return true;
+      default:
+        return false;
     }
+  }
 }

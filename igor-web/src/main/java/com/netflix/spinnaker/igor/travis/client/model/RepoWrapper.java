@@ -23,21 +23,21 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
 /**
- * Repos are represented in many ways in the travis api,
- * this is a helper to get one of the representations.
+ * Repos are represented in many ways in the travis api, this is a helper to get one of the
+ * representations.
  */
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Root(strict = false)
 public class RepoWrapper {
-    @Element(required = false, name = "repo")
-    private Repo repo;
+  @Element(required = false, name = "repo")
+  private Repo repo;
 
-    public Repo getRepo() {
-        return repo;
-    }
+  public Repo getRepo() {
+    return repo;
+  }
 
-    public void setRepo(Repo repo) {
-        this.repo = repo;
-    }
+  public void setRepo(Repo repo) {
+    this.repo = repo;
+  }
 }

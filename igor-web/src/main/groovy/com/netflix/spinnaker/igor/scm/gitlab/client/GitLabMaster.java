@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.igor.scm.gitlab.client;
 
-/**
- * Wrapper class for a collection of GitLab clients
- */
+/** Wrapper class for a collection of GitLab clients */
 public class GitLabMaster {
-    private final GitLabClient gitLabClient;
-    private final String baseUrl;
+  private final GitLabClient gitLabClient;
+  private final String baseUrl;
 
-    public GitLabMaster(GitLabClient gitLabClient, String baseUrl) {
-        this.gitLabClient = gitLabClient;
-        this.baseUrl = baseUrl;
-    }
+  public GitLabMaster(GitLabClient gitLabClient, String baseUrl) {
+    this.gitLabClient = gitLabClient;
+    this.baseUrl = baseUrl;
+  }
 
-    public GitLabClient getGitLabClient() {
-        return gitLabClient;
-    }
+  public GitLabClient getGitLabClient() {
+    return gitLabClient;
+  }
 
-    public String getBaseUrl() {
-        return baseUrl;
-    }
+  public String getBaseUrl() {
+    return baseUrl;
+  }
 }

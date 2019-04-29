@@ -22,18 +22,18 @@ import org.simpleframework.xml.Default;
 
 @Default
 public class GithubAuth {
-    @JsonProperty("github_token")
-    private String githubToken;
+  @JsonProperty("github_token")
+  private String githubToken;
 
-    public GithubAuth(String githubToken) {
-        this.githubToken = githubToken;
-    }
+  public GithubAuth(String githubToken) {
+    this.githubToken = githubToken;
+  }
 
-    public String getGithubToken() {
-        return githubToken;
-    }
+  public String getGithubToken() {
+    return githubToken;
+  }
 
-    public void setGithubToken(String githubToken) {
-        this.githubToken = githubToken;
-    }
+  public void setGithubToken(String githubToken) {
+    this.githubToken = githubToken;
+  }
 }

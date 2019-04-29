@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildAccountRepositoryTest {
@@ -71,5 +70,4 @@ public class GoogleCloudBuildAccountRepositoryTest {
     List<String> accountsAfter = repository.getAccounts();
     assertEquals(accountsAfter, Collections.singletonList("present"));
   }
-
 }

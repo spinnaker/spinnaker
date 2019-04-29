@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.UnknownHostException;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
 
 class ConcourseClientTest {
   @Test
   void connectException() {
     ConcourseClient client = new ConcourseClient("http://does.not.exist", "test", "test");
-    assertThatThrownBy(() -> client.getJobService().jobs()).hasRootCauseInstanceOf(UnknownHostException.class);
+    assertThatThrownBy(() -> client.getJobService().jobs())
+        .hasRootCauseInstanceOf(UnknownHostException.class);
   }
 }

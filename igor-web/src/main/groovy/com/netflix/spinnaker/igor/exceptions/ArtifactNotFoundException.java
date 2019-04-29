@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.igor.exceptions;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 @ResponseStatus(NOT_FOUND)
 public class ArtifactNotFoundException extends NotFoundException {
-    public ArtifactNotFoundException(String master, String job, Integer buildNumber, String fileName) {
-        super(String.format("Could not find build artifact matching requested filename '%s' on '%s/%s' build %s", fileName, master, job, buildNumber));
-    }
+  public ArtifactNotFoundException(
+      String master, String job, Integer buildNumber, String fileName) {
+    super(
+        String.format(
+            "Could not find build artifact matching requested filename '%s' on '%s/%s' build %s",
+            fileName, master, job, buildNumber));
+  }
 }

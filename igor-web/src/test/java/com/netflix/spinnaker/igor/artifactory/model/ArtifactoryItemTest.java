@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.igor.artifactory.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryItem.*;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class ArtifactoryItemTest {
   @Test
@@ -35,7 +34,8 @@ class ArtifactoryItemTest {
     Artifact matchableArtifact = artifact.toMatchableArtifact(ArtifactoryRepositoryType.Maven);
     assertThat(matchableArtifact).isNotNull();
     assertThat(matchableArtifact.getType()).isEqualTo("maven/file");
-    assertThat(matchableArtifact.getReference()).isEqualTo("io.pivotal.spinnaker:demo:0.1.0-dev.20+d9a14fb");
+    assertThat(matchableArtifact.getReference())
+        .isEqualTo("io.pivotal.spinnaker:demo:0.1.0-dev.20+d9a14fb");
     assertThat(matchableArtifact.getVersion()).isEqualTo("0.1.0-dev.20+d9a14fb");
     assertThat(matchableArtifact.getName()).isEqualTo("io.pivotal.spinnaker:demo");
   }
@@ -46,15 +46,27 @@ class ArtifactoryItemTest {
     artifact.setPath("io/pivotal/spinnaker/demo/0.1.0-dev.20+d9a14fb");
     artifact.setRepo("libs-demo-local");
 
-    final ArtifactoryBuild expectedBuild = new ArtifactoryBuild("2019-04-25T01:04:15.980Z",
-      "artifactory_build_info_maven", "3", "http://localhost:7080/job/artifactory_build_info_maven/3/");
+    final ArtifactoryBuild expectedBuild =
+        new ArtifactoryBuild(
+            "2019-04-25T01:04:15.980Z",
+            "artifactory_build_info_maven",
+            "3",
+            "http://localhost:7080/job/artifactory_build_info_maven/3/");
 
     final List<ArtifactoryBuild> builds = new ArrayList<>();
-    builds.add(new ArtifactoryBuild("2019-04-24T19:36:35.486Z", "artifactory_build_info_maven",
-      "1", "http://localhost:7080/job/artifactory_build_info_maven/1/"));
+    builds.add(
+        new ArtifactoryBuild(
+            "2019-04-24T19:36:35.486Z",
+            "artifactory_build_info_maven",
+            "1",
+            "http://localhost:7080/job/artifactory_build_info_maven/1/"));
     builds.add(expectedBuild);
-    builds.add(new ArtifactoryBuild("2019-04-25T00:56:26.723Z", "artifactory_build_info_maven",
-      "2", "http://localhost:7080/job/artifactory_build_info_maven/2/"));
+    builds.add(
+        new ArtifactoryBuild(
+            "2019-04-25T00:56:26.723Z",
+            "artifactory_build_info_maven",
+            "2",
+            "http://localhost:7080/job/artifactory_build_info_maven/2/"));
     final List<ArtifactoryModule> modules = new ArrayList<>();
     modules.add(new ArtifactoryModule(builds));
     final List<ArtifactoryArtifact> artifacts = new ArrayList<>();

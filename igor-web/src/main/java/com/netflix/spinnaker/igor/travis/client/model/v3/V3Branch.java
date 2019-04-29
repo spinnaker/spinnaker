@@ -27,13 +27,13 @@ import org.simpleframework.xml.Root;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "branch")
 public class V3Branch {
-    private String name;
+  private String name;
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 }

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.igor.travis.client;
 
 import com.netflix.spinnaker.igor.travis.service.TravisService;
-
 import java.util.Map;
 
 public class TravisMasters {

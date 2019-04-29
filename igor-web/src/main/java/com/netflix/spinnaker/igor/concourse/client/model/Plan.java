@@ -17,13 +17,12 @@
 package com.netflix.spinnaker.igor.concourse.client.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import lombok.Data;
-import lombok.Setter;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import lombok.Data;
+import lombok.Setter;
 
 @Data
 public class Plan {
@@ -39,14 +38,11 @@ public class Plan {
   public static class Op {
     private String id;
 
-    @Nullable
-    private ResourceShape get;
+    @Nullable private ResourceShape get;
 
-    @Nullable
-    private ResourceShape put;
+    @Nullable private ResourceShape put;
 
-    @Nullable
-    private OnSuccess onSuccess;
+    @Nullable private OnSuccess onSuccess;
 
     @Nullable
     public Resource getResource() {
@@ -76,8 +72,8 @@ public class Plan {
 
   public List<Resource> getResources() {
     return plan.getDoes().stream()
-      .map(Op::getResource)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+        .map(Op::getResource)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

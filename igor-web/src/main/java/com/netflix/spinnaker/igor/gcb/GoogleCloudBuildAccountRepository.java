@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Keeps track of all registered instances of GoogleCloudBuildAccount and returns the appropriate account when
- * it is requested by name.
+ * Keeps track of all registered instances of GoogleCloudBuildAccount and returns the appropriate
+ * account when it is requested by name.
  */
 public class GoogleCloudBuildAccountRepository {
   private final Map<String, GoogleCloudBuildAccount> accounts = new HashMap<>();
@@ -41,7 +40,8 @@ public class GoogleCloudBuildAccountRepository {
   public GoogleCloudBuildAccount getGoogleCloudBuild(String name) {
     GoogleCloudBuildAccount account = accounts.get(name);
     if (account == null) {
-      throw new NotFoundException(String.format("No Google Cloud Build account with name %s is configured", name));
+      throw new NotFoundException(
+          String.format("No Google Cloud Build account with name %s is configured", name));
     }
     return account;
   }

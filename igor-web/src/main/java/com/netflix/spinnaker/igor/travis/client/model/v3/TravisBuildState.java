@@ -22,36 +22,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum TravisBuildState {
-    created, started, passed, canceled, failed, errored;
+  created,
+  started,
+  passed,
+  canceled,
+  failed,
+  errored;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public Result getResult() {
-        switch (this) {
-            case created:
-                return Result.NOT_BUILT;
-            case started:
-                return Result.BUILDING;
-            case passed:
-                return Result.SUCCESS;
-            case canceled:
-                return Result.ABORTED;
-            case failed:
-            case errored:
-                return Result.FAILURE;
-            default:
-                log.info("could not convert {}", this);
-                throw new IllegalArgumentException("state: " + this + " is not known to TravisResultConverter.");
-        }
+  public Result getResult() {
+    switch (this) {
+      case created:
+        return Result.NOT_BUILT;
+      case started:
+        return Result.BUILDING;
+      case passed:
+        return Result.SUCCESS;
+      case canceled:
+        return Result.ABORTED;
+      case failed:
+      case errored:
+        return Result.FAILURE;
+      default:
+        log.info("could not convert {}", this);
+        throw new IllegalArgumentException(
+            "state: " + this + " is not known to TravisResultConverter.");
     }
+  }
 
-    public boolean isRunning() {
-        switch (this) {
-            case created:
-            case started:
-                return true;
-            default:
-                return false;
-        }
+  public boolean isRunning() {
+    switch (this) {
+      case created:
+      case started:
+        return true;
+      default:
+        return false;
     }
+  }
 }

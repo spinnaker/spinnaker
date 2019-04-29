@@ -18,12 +18,11 @@ package com.netflix.spinnaker.igor.artifactory.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.*;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
-import java.util.*;
 
 @Data
 public class ArtifactoryItem {
@@ -33,7 +32,7 @@ public class ArtifactoryItem {
 
   @Nullable
   public Artifact toMatchableArtifact(ArtifactoryRepositoryType repoType) {
-    switch(repoType) {
+    switch (repoType) {
       case Maven:
         String[] pathParts = path.split("/");
         String version = pathParts[pathParts.length - 1];
@@ -42,11 +41,13 @@ public class ArtifactoryItem {
         String[] groupParts = Arrays.copyOfRange(pathParts, 0, pathParts.length - 2);
         String group = String.join(".", groupParts);
 
-        final Artifact.ArtifactBuilder artifactBuilder = Artifact.builder().type("maven/file")
-          .reference(group + ":" + artifactId + ":" + version)
-          .name(group + ":" + artifactId)
-          .version(version)
-          .provenance(repo);
+        final Artifact.ArtifactBuilder artifactBuilder =
+            Artifact.builder()
+                .type("maven/file")
+                .reference(group + ":" + artifactId + ":" + version)
+                .name(group + ":" + artifactId)
+                .version(version)
+                .provenance(repo);
 
         if (artifacts != null && !artifacts.isEmpty()) {
           final ArtifactoryArtifact artifact = artifacts.get(0);
@@ -85,10 +86,16 @@ public class ArtifactoryItem {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class ArtifactoryBuild {
-    @JsonProperty("build.created") private String created;
-    @JsonProperty("build.name") private String name;
-    @JsonProperty("build.number") private String number;
-    @JsonProperty("build.url") private String url;
+    @JsonProperty("build.created")
+    private String created;
+
+    @JsonProperty("build.name")
+    private String name;
+
+    @JsonProperty("build.number")
+    private String number;
+
+    @JsonProperty("build.url")
+    private String url;
   }
 }
-

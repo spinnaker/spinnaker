@@ -23,36 +23,35 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 
 public class TravisBuildConverter {
-    public static GenericBuild genericBuild(Build build, String repoSlug, String baseUrl) {
-        GenericBuild genericBuild = new GenericBuild();
-        genericBuild.setBuilding(build.getState() == TravisBuildState.started);
-        genericBuild.setNumber(build.getNumber());
-        genericBuild.setDuration(build.getDuration());
-        genericBuild.setResult(build.getState().getResult());
-        genericBuild.setName(repoSlug);
-        genericBuild.setUrl(url(repoSlug, baseUrl, build.getId()));
-        if (build.getFinishedAt() != null) {
-            genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
-        }
-        return genericBuild;
+  public static GenericBuild genericBuild(Build build, String repoSlug, String baseUrl) {
+    GenericBuild genericBuild = new GenericBuild();
+    genericBuild.setBuilding(build.getState() == TravisBuildState.started);
+    genericBuild.setNumber(build.getNumber());
+    genericBuild.setDuration(build.getDuration());
+    genericBuild.setResult(build.getState().getResult());
+    genericBuild.setName(repoSlug);
+    genericBuild.setUrl(url(repoSlug, baseUrl, build.getId()));
+    if (build.getFinishedAt() != null) {
+      genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
     }
+    return genericBuild;
+  }
 
-    public static GenericBuild genericBuild(V3Build build, String baseUrl) {
-        GenericBuild genericBuild = new GenericBuild();
-        genericBuild.setBuilding(build.getState() == TravisBuildState.started);
-        genericBuild.setNumber(build.getNumber());
-        genericBuild.setDuration(build.getDuration());
-        genericBuild.setResult(build.getState().getResult());
-        genericBuild.setName(build.getRepository().getSlug());
-        genericBuild.setUrl(url(build.getRepository().getSlug(), baseUrl, build.getId()));
-        if (build.getFinishedAt() != null) {
-            genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
-        }
-        return genericBuild;
+  public static GenericBuild genericBuild(V3Build build, String baseUrl) {
+    GenericBuild genericBuild = new GenericBuild();
+    genericBuild.setBuilding(build.getState() == TravisBuildState.started);
+    genericBuild.setNumber(build.getNumber());
+    genericBuild.setDuration(build.getDuration());
+    genericBuild.setResult(build.getState().getResult());
+    genericBuild.setName(build.getRepository().getSlug());
+    genericBuild.setUrl(url(build.getRepository().getSlug(), baseUrl, build.getId()));
+    if (build.getFinishedAt() != null) {
+      genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
     }
+    return genericBuild;
+  }
 
-    public static String url(String repoSlug, String baseUrl, int id) {
-        return baseUrl + "/" + repoSlug + "/builds/" + id;
-    }
-
+  public static String url(String repoSlug, String baseUrl, int id) {
+    return baseUrl + "/" + repoSlug + "/builds/" + id;
+  }
 }

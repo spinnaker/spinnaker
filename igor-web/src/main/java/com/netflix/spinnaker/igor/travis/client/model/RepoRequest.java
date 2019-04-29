@@ -23,35 +23,35 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonRootName("request")
 public class RepoRequest {
-    private String branch;
-    private String message = "Triggered from Spinnaker";
-    private Config config;
+  private String branch;
+  private String message = "Triggered from Spinnaker";
+  private Config config;
 
-    public RepoRequest(String branch) {
-        this.branch = branch;
-    }
+  public RepoRequest(String branch) {
+    this.branch = branch;
+  }
 
-    public String getBranch() {
-        return branch;
-    }
+  public String getBranch() {
+    return branch;
+  }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public Config getConfig() {
-        return config;
-    }
+  public Config getConfig() {
+    return config;
+  }
 
-    public void setConfig(Config config) {
-        this.config = config;
-    }
+  public void setConfig(Config config) {
+    this.config = config;
+  }
 }

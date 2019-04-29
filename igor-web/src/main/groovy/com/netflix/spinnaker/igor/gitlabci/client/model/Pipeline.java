@@ -17,77 +17,77 @@ package com.netflix.spinnaker.igor.gitlabci.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Pipeline {
-    private int id;
-    private String sha;
-    private String ref;
-    private PipelineStatus status;
-    private boolean tag;
-    private int duration;
-    @JsonProperty("finished_at")
-    private Date finishedAt;
+  private int id;
+  private String sha;
+  private String ref;
+  private PipelineStatus status;
+  private boolean tag;
+  private int duration;
 
-    public int getId() {
-        return id;
-    }
+  @JsonProperty("finished_at")
+  private Date finishedAt;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public String getSha() {
-        return sha;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setSha(String sha) {
-        this.sha = sha;
-    }
+  public String getSha() {
+    return sha;
+  }
 
-    public String getRef() {
-        return ref;
-    }
+  public void setSha(String sha) {
+    this.sha = sha;
+  }
 
-    public void setRef(String ref) {
-        this.ref = ref;
-    }
+  public String getRef() {
+    return ref;
+  }
 
-    public PipelineStatus getStatus() {
-        return status;
-    }
+  public void setRef(String ref) {
+    this.ref = ref;
+  }
 
-    public void setStatus(PipelineStatus status) {
-        this.status = status;
-    }
+  public PipelineStatus getStatus() {
+    return status;
+  }
 
-    public boolean getTag() {
-        return tag;
-    }
+  public void setStatus(PipelineStatus status) {
+    this.status = status;
+  }
 
-    public boolean isTag() {
-        return tag;
-    }
+  public boolean getTag() {
+    return tag;
+  }
 
-    public void setTag(boolean tag) {
-        this.tag = tag;
-    }
+  public boolean isTag() {
+    return tag;
+  }
 
-    public int getDuration() {
-        return duration;
-    }
+  public void setTag(boolean tag) {
+    this.tag = tag;
+  }
 
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
+  public int getDuration() {
+    return duration;
+  }
 
-    public Date getFinishedAt() {
-        return finishedAt;
-    }
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
 
-    public void setFinishedAt(Date finishedAt) {
-        this.finishedAt = finishedAt;
-    }
+  public Date getFinishedAt() {
+    return finishedAt;
+  }
+
+  public void setFinishedAt(Date finishedAt) {
+    this.finishedAt = finishedAt;
+  }
 }

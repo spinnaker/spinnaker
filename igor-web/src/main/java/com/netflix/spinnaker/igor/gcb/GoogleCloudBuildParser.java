@@ -18,18 +18,17 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 /**
- * ObjectMapper does not properly handle deserializing Google Cloud Build objects
- * such as a Build. In order to work around this, use the Google Cloud recommended
- * parser when we need to deserialize these objects.  This class encapsulates that
- * parser so that we can localize the workaround to one place.
+ * ObjectMapper does not properly handle deserializing Google Cloud Build objects such as a Build.
+ * In order to work around this, use the Google Cloud recommended parser when we need to deserialize
+ * these objects. This class encapsulates that parser so that we can localize the workaround to one
+ * place.
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")

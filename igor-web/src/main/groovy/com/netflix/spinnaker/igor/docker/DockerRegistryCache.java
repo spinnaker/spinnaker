@@ -15,67 +15,73 @@
  */
 package com.netflix.spinnaker.igor.docker;
 
+import static java.lang.String.format;
+
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import static java.lang.String.format;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class DockerRegistryCache {
 
-    final static String ID = "dockerRegistry";
+  static final String ID = "dockerRegistry";
 
-    // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as an "empty" placeholder.
-    private final static String EMPTY_DIGEST = "~";
+  // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as
+  // an "empty" placeholder.
+  private static final String EMPTY_DIGEST = "~";
 
-    private final RedisClientDelegate redisClientDelegate;
-    private final IgorConfigurationProperties igorConfigurationProperties;
+  private final RedisClientDelegate redisClientDelegate;
+  private final IgorConfigurationProperties igorConfigurationProperties;
 
-    @Autowired
-    public DockerRegistryCache(RedisClientDelegate redisClientDelegate,
-                               IgorConfigurationProperties igorConfigurationProperties) {
-        this.redisClientDelegate = redisClientDelegate;
-        this.igorConfigurationProperties = igorConfigurationProperties;
-    }
+  @Autowired
+  public DockerRegistryCache(
+      RedisClientDelegate redisClientDelegate,
+      IgorConfigurationProperties igorConfigurationProperties) {
+    this.redisClientDelegate = redisClientDelegate;
+    this.igorConfigurationProperties = igorConfigurationProperties;
+  }
 
-    public Set<String> getImages(String account) {
-        Set<String> result = new HashSet<>();
-        redisClientDelegate.withKeyScan(makeIndexPattern(prefix(), account), 1000, page -> {
-            result.addAll(page.getResults());
+  public Set<String> getImages(String account) {
+    Set<String> result = new HashSet<>();
+    redisClientDelegate.withKeyScan(
+        makeIndexPattern(prefix(), account),
+        1000,
+        page -> {
+          result.addAll(page.getResults());
         });
-        return result;
-    }
+    return result;
+  }
 
-    public String getLastDigest(String account, String repository, String tag) {
-        String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
-        return redisClientDelegate.withCommandsClient(c -> {
-            Map<String, String> res = c.hgetAll(key);
-            if (res.get("digest").equals(EMPTY_DIGEST)) {
-                return null;
-            }
-            return res.get("digest");
+  public String getLastDigest(String account, String repository, String tag) {
+    String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
+    return redisClientDelegate.withCommandsClient(
+        c -> {
+          Map<String, String> res = c.hgetAll(key);
+          if (res.get("digest").equals(EMPTY_DIGEST)) {
+            return null;
+          }
+          return res.get("digest");
         });
-    }
+  }
 
-    public void setLastDigest(String account, String repository, String tag, String digest) {
-        String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
-        String d = digest == null ? EMPTY_DIGEST : digest;
-        redisClientDelegate.withCommandsClient(c -> {
-            c.hset(key, "digest", d);
+  public void setLastDigest(String account, String repository, String tag, String digest) {
+    String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
+    String d = digest == null ? EMPTY_DIGEST : digest;
+    redisClientDelegate.withCommandsClient(
+        c -> {
+          c.hset(key, "digest", d);
         });
-    }
+  }
 
-    static String makeIndexPattern(String prefix, String account) {
-        return format("%s:%s:v2:%s:*", prefix, ID, account);
-    }
+  static String makeIndexPattern(String prefix, String account) {
+    return format("%s:%s:v2:%s:*", prefix, ID, account);
+  }
 
-    private String prefix() {
-        return igorConfigurationProperties.getSpinnaker().getJedis().getPrefix();
-    }
+  private String prefix() {
+    return igorConfigurationProperties.getSpinnaker().getJedis().getPrefix();
+  }
 }

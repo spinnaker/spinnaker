@@ -16,30 +16,32 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import static org.mockito.Mockito.*;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.*;
-
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildAccountFactoryTest {
   private GoogleCredentialService googleCredentialService = mock(GoogleCredentialService.class);
-  private GoogleCloudBuildClient.Factory googleCloudBuildClientFactory = mock(GoogleCloudBuildClient.Factory.class);
-  private GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory = mock(GoogleCloudBuildCache.Factory.class);
+  private GoogleCloudBuildClient.Factory googleCloudBuildClientFactory =
+      mock(GoogleCloudBuildClient.Factory.class);
+  private GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory =
+      mock(GoogleCloudBuildCache.Factory.class);
   private GoogleCloudBuildParser googleCloudBuildParser = new GoogleCloudBuildParser();
 
   private GoogleCredential googleCredential = mock(GoogleCredential.class);
   private GoogleCloudBuildClient googleCloudBuildClient = mock(GoogleCloudBuildClient.class);
 
-  private GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory = new GoogleCloudBuildAccountFactory(
-    googleCredentialService,
-    googleCloudBuildClientFactory,
-    googleCloudBuildCacheFactory,
-    googleCloudBuildParser
-  );
+  private GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory =
+      new GoogleCloudBuildAccountFactory(
+          googleCredentialService,
+          googleCloudBuildClientFactory,
+          googleCloudBuildCacheFactory,
+          googleCloudBuildParser);
 
   @Test
   public void applicationDefaultCredentials() {
@@ -47,7 +49,8 @@ public class GoogleCloudBuildAccountFactoryTest {
     accountConfig.setJsonKey("");
 
     when(googleCredentialService.getApplicationDefault()).thenReturn(googleCredential);
-    when(googleCloudBuildClientFactory.create(eq(googleCredential), any(String.class))).thenReturn(googleCloudBuildClient);
+    when(googleCloudBuildClientFactory.create(eq(googleCredential), any(String.class)))
+        .thenReturn(googleCloudBuildClient);
 
     GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
 
@@ -62,7 +65,8 @@ public class GoogleCloudBuildAccountFactoryTest {
     accountConfig.setJsonKey("/path/to/file");
 
     when(googleCredentialService.getFromKey("/path/to/file")).thenReturn(googleCredential);
-    when(googleCloudBuildClientFactory.create(eq(googleCredential), any(String.class))).thenReturn(googleCloudBuildClient);
+    when(googleCloudBuildClientFactory.create(eq(googleCredential), any(String.class)))
+        .thenReturn(googleCloudBuildClient);
 
     GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
 

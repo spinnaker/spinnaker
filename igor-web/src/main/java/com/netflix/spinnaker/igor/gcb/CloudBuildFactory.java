@@ -27,9 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-/**
- * Factory for calling CloudBuild client library code to create CloudBuild objects
- */
+/** Factory for calling CloudBuild client library code to create CloudBuild objects */
 @Component
 @ConditionalOnProperty("gcb.enabled")
 @RequiredArgsConstructor
@@ -50,13 +48,14 @@ public class CloudBuildFactory {
 
   public CloudBuild getCloudBuild(GoogleCredential credential, String applicationName) {
     HttpRequestInitializer requestInitializer = getRequestInitializer(credential);
-    CloudBuild.Builder builder = new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
-      .setApplicationName(applicationName);
+    CloudBuild.Builder builder =
+        new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
+            .setApplicationName(applicationName);
 
     if (overrideRootUrl != null) {
       builder.setRootUrl(overrideRootUrl);
     }
-    return  builder.build();
+    return builder.build();
   }
 
   private HttpRequestInitializer getRequestInitializer(GoogleCredential credential) {

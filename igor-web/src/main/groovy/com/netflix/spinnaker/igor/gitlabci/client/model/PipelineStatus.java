@@ -16,5 +16,10 @@
 package com.netflix.spinnaker.igor.gitlabci.client.model;
 
 public enum PipelineStatus {
-    running, pending, success, failed, canceled, skipped
+  running,
+  pending,
+  success,
+  failed,
+  canceled,
+  skipped
 }

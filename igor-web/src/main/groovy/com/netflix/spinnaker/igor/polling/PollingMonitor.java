@@ -19,13 +19,13 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.springframework.context.ApplicationListener;
 
 public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {
-    void onApplicationEvent(RemoteStatusChangedEvent event);
+  void onApplicationEvent(RemoteStatusChangedEvent event);
 
-    String getName();
+  String getName();
 
-    boolean isInService();
+  boolean isInService();
 
-    Long getLastPoll();
+  Long getLastPoll();
 
-    int getPollInterval();
+  int getPollInterval();
 }

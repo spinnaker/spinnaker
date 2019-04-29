@@ -21,117 +21,123 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
-
 import java.time.Instant;
 import java.util.List;
+import org.simpleframework.xml.Default;
+import org.simpleframework.xml.Root;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "builds")
 public class Build {
-    @JsonProperty("commit_id")
-    private int commitId;
-    private int duration;
-    private int id;
-    @JsonProperty("repository_id")
-    private int repositoryId;
-    private int number;
-    private TravisBuildState state;
-    @JsonProperty("finished_at")
-    private Instant finishedAt;
-    @JsonProperty("pull_request")
-    private Boolean pullRequest;
-    @JsonProperty(value = "job_ids")
-    private List<Integer> job_ids;
-    private Config config;
+  @JsonProperty("commit_id")
+  private int commitId;
 
-    public long getTimestamp() {
-        if (finishedAt == null) {
-            return 0;
-        }
-        return finishedAt.toEpochMilli();
-    }
+  private int duration;
+  private int id;
 
-    public int getCommitId() {
-        return commitId;
-    }
+  @JsonProperty("repository_id")
+  private int repositoryId;
 
-    public void setCommitId(int commitId) {
-        this.commitId = commitId;
-    }
+  private int number;
+  private TravisBuildState state;
 
-    public int getDuration() {
-        return duration;
-    }
+  @JsonProperty("finished_at")
+  private Instant finishedAt;
 
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
+  @JsonProperty("pull_request")
+  private Boolean pullRequest;
 
-    public int getId() {
-        return id;
-    }
+  @JsonProperty(value = "job_ids")
+  private List<Integer> job_ids;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  private Config config;
 
-    public int getRepositoryId() {
-        return repositoryId;
+  public long getTimestamp() {
+    if (finishedAt == null) {
+      return 0;
     }
+    return finishedAt.toEpochMilli();
+  }
 
-    public void setRepositoryId(int repositoryId) {
-        this.repositoryId = repositoryId;
-    }
+  public int getCommitId() {
+    return commitId;
+  }
 
-    public int getNumber() {
-        return number;
-    }
+  public void setCommitId(int commitId) {
+    this.commitId = commitId;
+  }
 
-    public void setNumber(int number) {
-        this.number = number;
-    }
+  public int getDuration() {
+    return duration;
+  }
 
-    public TravisBuildState getState() {
-        return state;
-    }
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
 
-    public void setState(TravisBuildState state) {
-        this.state = state;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public Instant getFinishedAt() {
-        return finishedAt;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setFinishedAt(Instant finishedAt) {
-        this.finishedAt = finishedAt;
-    }
+  public int getRepositoryId() {
+    return repositoryId;
+  }
 
-    public Boolean getPullRequest() {
-        return pullRequest;
-    }
+  public void setRepositoryId(int repositoryId) {
+    this.repositoryId = repositoryId;
+  }
 
-    public void setPullRequest(Boolean pullRequest) {
-        this.pullRequest = pullRequest;
-    }
+  public int getNumber() {
+    return number;
+  }
 
-    public List<Integer> getJob_ids() {
-        return job_ids;
-    }
+  public void setNumber(int number) {
+    this.number = number;
+  }
 
-    public void setJob_ids(List<Integer> job_ids) {
-        this.job_ids = job_ids;
-    }
+  public TravisBuildState getState() {
+    return state;
+  }
 
-    public Config getConfig() {
-        return config;
-    }
+  public void setState(TravisBuildState state) {
+    this.state = state;
+  }
 
-    public void setConfig(Config config) {
-        this.config = config;
-    }
+  public Instant getFinishedAt() {
+    return finishedAt;
+  }
+
+  public void setFinishedAt(Instant finishedAt) {
+    this.finishedAt = finishedAt;
+  }
+
+  public Boolean getPullRequest() {
+    return pullRequest;
+  }
+
+  public void setPullRequest(Boolean pullRequest) {
+    this.pullRequest = pullRequest;
+  }
+
+  public List<Integer> getJob_ids() {
+    return job_ids;
+  }
+
+  public void setJob_ids(List<Integer> job_ids) {
+    this.job_ids = job_ids;
+  }
+
+  public Config getConfig() {
+    return config;
+  }
+
+  public void setConfig(Config config) {
+    this.config = config;
+  }
 }

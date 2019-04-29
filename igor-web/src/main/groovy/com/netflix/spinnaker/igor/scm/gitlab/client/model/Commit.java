@@ -19,40 +19,40 @@ package com.netflix.spinnaker.igor.scm.gitlab.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Commit {
-    private final String id;
-    private final String authorName;
-    private final Date authoredDate;
-    private final String message;
+  private final String id;
+  private final String authorName;
+  private final Date authoredDate;
+  private final String message;
 
-    @JsonCreator
-    public Commit(@JsonProperty("id") String id,
-                  @JsonProperty("author_name") String authorName,
-                  @JsonProperty("authored_date") Date authoredDate,
-                  @JsonProperty("message") String message) {
-        this.id = id;
-        this.authorName = authorName;
-        this.authoredDate = authoredDate;
-        this.message = message;
-    }
+  @JsonCreator
+  public Commit(
+      @JsonProperty("id") String id,
+      @JsonProperty("author_name") String authorName,
+      @JsonProperty("authored_date") Date authoredDate,
+      @JsonProperty("message") String message) {
+    this.id = id;
+    this.authorName = authorName;
+    this.authoredDate = authoredDate;
+    this.message = message;
+  }
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public String getAuthorName() {
-        return authorName;
-    }
+  public String getAuthorName() {
+    return authorName;
+  }
 
-    public Date getAuthoredDate() {
-        return authoredDate;
-    }
+  public Date getAuthoredDate() {
+    return authoredDate;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 }

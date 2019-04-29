@@ -22,12 +22,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
-import okio.Buffer;
-import okio.BufferedSource;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
@@ -39,26 +33,34 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import okio.Buffer;
+import okio.BufferedSource;
 
 public class OkHttpClientBuilder {
-  private static TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-    @Override
-    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-    }
+  private static TrustManager[] trustAllCerts =
+      new TrustManager[] {
+        new X509TrustManager() {
+          @Override
+          public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
 
-    @Override
-    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-    }
+          @Override
+          public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
 
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-      return new X509Certificate[0];
-    }
-  }};
+          @Override
+          public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+          }
+        }
+      };
 
   public static OkHttpClient retryingClient(Supplier<Token> refreshToken) {
     OkHttpClient okHttpClient = new OkHttpClient();
-    okHttpClient.interceptors().add(chain -> OkHttpClientBuilder.createRetryInterceptor(chain, refreshToken));
+    okHttpClient
+        .interceptors()
+        .add(chain -> OkHttpClientBuilder.createRetryInterceptor(chain, refreshToken));
     okHttpClient.setHostnameVerifier((s, sslSession) -> true);
     okHttpClient.setSslSocketFactory(getSslContext().getSocketFactory());
     okHttpClient.setConnectTimeout(15, TimeUnit.SECONDS);
@@ -79,100 +81,117 @@ public class OkHttpClientBuilder {
 
   public static okhttp3.OkHttpClient retryingClient3(Supplier<Token> refreshToken) {
     return new okhttp3.OkHttpClient.Builder()
-      .addInterceptor(chain -> OkHttpClientBuilder.createRetryInterceptor3(chain, refreshToken))
-      .hostnameVerifier((s, sslSession) -> true)
-      .sslSocketFactory(getSslContext().getSocketFactory(), (X509TrustManager) trustAllCerts[0])
-      .connectTimeout(Duration.ofSeconds(15))
-      .readTimeout(Duration.ofSeconds(15))
-      .build();
+        .addInterceptor(chain -> OkHttpClientBuilder.createRetryInterceptor3(chain, refreshToken))
+        .hostnameVerifier((s, sslSession) -> true)
+        .sslSocketFactory(getSslContext().getSocketFactory(), (X509TrustManager) trustAllCerts[0])
+        .connectTimeout(Duration.ofSeconds(15))
+        .readTimeout(Duration.ofSeconds(15))
+        .build();
   }
 
-  private static Response createRetryInterceptor(Interceptor.Chain chain, Supplier<Token> refreshToken) {
-    Retry retry = Retry.of("concourse.api.call", RetryConfig.custom()
-      .retryExceptions(RetryableApiException.class)
-      .build());
+  private static Response createRetryInterceptor(
+      Interceptor.Chain chain, Supplier<Token> refreshToken) {
+    Retry retry =
+        Retry.of(
+            "concourse.api.call",
+            RetryConfig.custom().retryExceptions(RetryableApiException.class).build());
 
     AtomicReference<Response> lastResponse = new AtomicReference<>();
     try {
-      return retry.executeCallable(() -> {
-        Response response = chain.proceed(chain.request());
-        lastResponse.set(response);
+      return retry.executeCallable(
+          () -> {
+            Response response = chain.proceed(chain.request());
+            lastResponse.set(response);
 
-        switch (response.code()) {
-          case 401:
-            String body = null;
-            if(response.body() != null) {
-              BufferedSource source = response.body().source();
-              source.request(Long.MAX_VALUE); // request the entire body
-              Buffer buffer = source.buffer();
-              body = buffer.clone().readString(Charset.forName("UTF-8"));
+            switch (response.code()) {
+              case 401:
+                String body = null;
+                if (response.body() != null) {
+                  BufferedSource source = response.body().source();
+                  source.request(Long.MAX_VALUE); // request the entire body
+                  Buffer buffer = source.buffer();
+                  body = buffer.clone().readString(Charset.forName("UTF-8"));
+                }
+                if (body == null || !body.contains("Bad credentials")) {
+                  response =
+                      chain.proceed(
+                          chain
+                              .request()
+                              .newBuilder()
+                              .header(
+                                  "Authorization", "bearer " + refreshToken.get().getAccessToken())
+                              .build());
+                  lastResponse.set(response);
+                }
+                break;
+              case 502:
+              case 503:
+              case 504:
+                // after retries fail, the response body for these status codes will get wrapped up
+                // into a ConcourseApiException
+                throw new RetryableApiException();
             }
-            if (body == null || !body.contains("Bad credentials")) {
-              response = chain.proceed(chain.request().newBuilder()
-                .header("Authorization", "bearer " + refreshToken.get().getAccessToken())
-                .build());
-              lastResponse.set(response);
-            }
-            break;
-          case 502:
-          case 503:
-          case 504:
-            // after retries fail, the response body for these status codes will get wrapped up into a ConcourseApiException
-            throw new RetryableApiException();
-        }
 
-        return response;
-      });
-    } catch(IOException e) {
-      throw new UncheckedIOException(e);
-    } catch(Exception e) {
-      return lastResponse.get();
-    }
-  }
-
-  private static okhttp3.Response createRetryInterceptor3(okhttp3.Interceptor.Chain chain, Supplier<Token> refreshToken) {
-    Retry retry = Retry.of("concourse.api.call", RetryConfig.custom()
-      .retryExceptions(RetryableApiException.class)
-      .build());
-
-    AtomicReference<okhttp3.Response> lastResponse = new AtomicReference<>();
-    try {
-      return retry.executeCallable(() -> {
-        okhttp3.Response response = chain.proceed(chain.request());
-        lastResponse.set(response);
-
-        switch (response.code()) {
-          case 401:
-            String body = null;
-            if(response.body() != null) {
-              BufferedSource source = response.body().source();
-              source.request(Long.MAX_VALUE); // request the entire body
-              Buffer buffer = source.buffer();
-              body = buffer.clone().readString(Charset.forName("UTF-8"));
-            }
-            if (body == null || !body.contains("Bad credentials")) {
-              response = chain.proceed(chain.request().newBuilder()
-                .header("Authorization", "bearer " + refreshToken.get().getAccessToken())
-                .build());
-              lastResponse.set(response);
-            }
-            break;
-          case 502:
-          case 503:
-          case 504:
-            // after retries fail, the response body for these status codes will get wrapped up into a ConcourseApiException
-            throw new RetryableApiException();
-        }
-
-        return response;
-      });
-    } catch(IOException e) {
+            return response;
+          });
+    } catch (IOException e) {
       throw new UncheckedIOException(e);
     } catch (Exception e) {
       return lastResponse.get();
     }
   }
 
-  private static class RetryableApiException extends RuntimeException {
+  private static okhttp3.Response createRetryInterceptor3(
+      okhttp3.Interceptor.Chain chain, Supplier<Token> refreshToken) {
+    Retry retry =
+        Retry.of(
+            "concourse.api.call",
+            RetryConfig.custom().retryExceptions(RetryableApiException.class).build());
+
+    AtomicReference<okhttp3.Response> lastResponse = new AtomicReference<>();
+    try {
+      return retry.executeCallable(
+          () -> {
+            okhttp3.Response response = chain.proceed(chain.request());
+            lastResponse.set(response);
+
+            switch (response.code()) {
+              case 401:
+                String body = null;
+                if (response.body() != null) {
+                  BufferedSource source = response.body().source();
+                  source.request(Long.MAX_VALUE); // request the entire body
+                  Buffer buffer = source.buffer();
+                  body = buffer.clone().readString(Charset.forName("UTF-8"));
+                }
+                if (body == null || !body.contains("Bad credentials")) {
+                  response =
+                      chain.proceed(
+                          chain
+                              .request()
+                              .newBuilder()
+                              .header(
+                                  "Authorization", "bearer " + refreshToken.get().getAccessToken())
+                              .build());
+                  lastResponse.set(response);
+                }
+                break;
+              case 502:
+              case 503:
+              case 504:
+                // after retries fail, the response body for these status codes will get wrapped up
+                // into a ConcourseApiException
+                throw new RetryableApiException();
+            }
+
+            return response;
+          });
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (Exception e) {
+      return lastResponse.get();
+    }
   }
+
+  private static class RetryableApiException extends RuntimeException {}
 }

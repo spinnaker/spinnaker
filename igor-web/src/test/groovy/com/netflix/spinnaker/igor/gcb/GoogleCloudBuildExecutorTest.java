@@ -16,21 +16,23 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.api.client.json.GenericJson;
 import com.google.api.services.cloudbuild.v1.CloudBuildRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildExecutorTest {
   private GoogleCloudBuildExecutor executor = new GoogleCloudBuildExecutor();
+
   @SuppressWarnings("unchecked")
-  private CloudBuildRequest<GenericJson> request = (CloudBuildRequest<GenericJson>) mock(CloudBuildRequest.class);
+  private CloudBuildRequest<GenericJson> request =
+      (CloudBuildRequest<GenericJson>) mock(CloudBuildRequest.class);
 
   @Test
   public void executesRequest() throws Exception {

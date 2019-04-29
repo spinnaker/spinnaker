@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @ToString
 @Data
@@ -39,17 +38,15 @@ public class Event {
   @ToString
   @Setter
   public static class Data {
-    @Getter
-    @Nullable
-    Origin origin;
+    @Getter @Nullable Origin origin;
 
-    @Nullable
-    private List<Map<String, String>> metadata;
+    @Nullable private List<Map<String, String>> metadata;
 
     @Nullable
     public Map<String, String> getMetadata() {
-      return metadata == null ? null :
-        metadata.stream().collect(Collectors.toMap(m -> m.get("name"), m -> m.get("value")));
+      return metadata == null
+          ? null
+          : metadata.stream().collect(Collectors.toMap(m -> m.get("name"), m -> m.get("value")));
     }
   }
 
@@ -57,7 +54,6 @@ public class Event {
   public static class Origin {
     String id;
 
-    @Nullable
-    String source;
+    @Nullable String source;
   }
 }

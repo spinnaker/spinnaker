@@ -20,40 +20,40 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("locking")
 public class LockManagerConfigProperties {
-    private Long maximumLockDurationMillis;
-    private Long leaseDurationMillis = 30000L;
-    private Long heartbeatRateMillis = 5000L;
-    private boolean enabled;
+  private Long maximumLockDurationMillis;
+  private Long leaseDurationMillis = 30000L;
+  private Long heartbeatRateMillis = 5000L;
+  private boolean enabled;
 
-    public Long getMaximumLockDurationMillis() {
-        return maximumLockDurationMillis;
-    }
+  public Long getMaximumLockDurationMillis() {
+    return maximumLockDurationMillis;
+  }
 
-    public void setMaximumLockDurationMillis(Long maximumLockDurationMillis) {
-        this.maximumLockDurationMillis = maximumLockDurationMillis;
-    }
+  public void setMaximumLockDurationMillis(Long maximumLockDurationMillis) {
+    this.maximumLockDurationMillis = maximumLockDurationMillis;
+  }
 
-    public Long getHeartbeatRateMillis() {
-        return heartbeatRateMillis;
-    }
+  public Long getHeartbeatRateMillis() {
+    return heartbeatRateMillis;
+  }
 
-    public void setHeartbeatRateMillis(Long heartbeatRateMillis) {
-        this.heartbeatRateMillis = heartbeatRateMillis;
-    }
+  public void setHeartbeatRateMillis(Long heartbeatRateMillis) {
+    this.heartbeatRateMillis = heartbeatRateMillis;
+  }
 
-    public Long getLeaseDurationMillis() {
-        return leaseDurationMillis;
-    }
+  public Long getLeaseDurationMillis() {
+    return leaseDurationMillis;
+  }
 
-    public void setLeaseDurationMillis(Long leaseDurationMillis) {
-        this.leaseDurationMillis = leaseDurationMillis;
-    }
+  public void setLeaseDurationMillis(Long leaseDurationMillis) {
+    this.leaseDurationMillis = leaseDurationMillis;
+  }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 }

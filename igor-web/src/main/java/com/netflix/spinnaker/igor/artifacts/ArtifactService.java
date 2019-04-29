@@ -19,29 +19,23 @@ package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.igor.model.ArtifactServiceProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
-import javax.annotation.Nonnull;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
- * An abstract service for anything that provides artifacts.
- * This is used for manual triggers of artifact driven events.
- * You'll need to implement a list of artifact versions for a given name,
+ * An abstract service for anything that provides artifacts. This is used for manual triggers of
+ * artifact driven events. You'll need to implement a list of artifact versions for a given name,
  * and retrieving a specific artifact by name and version.
  */
 public interface ArtifactService {
   @Nonnull
   ArtifactServiceProvider artifactServiceProvider();
 
-  /**
-   * Used to populate the manual trigger dropdown with options
-   */
+  /** Used to populate the manual trigger dropdown with options */
   @Nonnull
   List<String> getArtifactVersions(@Nonnull String name);
 
-  /**
-   * Used to fetch a specific artifact for decorating a trigger
-   */
+  /** Used to fetch a specific artifact for decorating a trigger */
   @Nonnull
   Artifact getArtifact(@Nonnull String name, @Nonnull String version);
 }

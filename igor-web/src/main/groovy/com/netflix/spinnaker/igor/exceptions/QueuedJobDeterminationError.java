@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.exceptions;
 
 public class QueuedJobDeterminationError extends RuntimeException {
-    public QueuedJobDeterminationError(String msg) {
-        super(msg);
-    }
+  public QueuedJobDeterminationError(String msg) {
+    super(msg);
+  }
 }

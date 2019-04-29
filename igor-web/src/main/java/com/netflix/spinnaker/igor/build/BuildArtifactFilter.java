@@ -17,85 +17,81 @@
 package com.netflix.spinnaker.igor.build;
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BuildArtifactFilter {
-    public static final String MAX_ARTIFACTS_PROP = "BuildArtifactFilter.maxArtifacts";
-    public static final String PREFERRED_ARTIFACTS_PROP = "BuildArtifactFilter.preferredArtifacts";
+  public static final String MAX_ARTIFACTS_PROP = "BuildArtifactFilter.maxArtifacts";
+  public static final String PREFERRED_ARTIFACTS_PROP = "BuildArtifactFilter.preferredArtifacts";
 
-    private static final int MAX_ARTIFACTS_DEFAULT = 20;
-    private static final String PREFERRED_ARTIFACTS_DEFAULT =
-        String.join(",", "deb", "rpm", "properties", "yml", "json", "xml", "html", "txt", "nupkg");
+  private static final int MAX_ARTIFACTS_DEFAULT = 20;
+  private static final String PREFERRED_ARTIFACTS_DEFAULT =
+      String.join(",", "deb", "rpm", "properties", "yml", "json", "xml", "html", "txt", "nupkg");
 
-    private final Environment environment;
+  private final Environment environment;
 
-    @Autowired
-    public BuildArtifactFilter(Environment environment) {
-        this.environment = environment;
+  @Autowired
+  public BuildArtifactFilter(Environment environment) {
+    this.environment = environment;
+  }
+
+  public List<GenericArtifact> filterArtifacts(List<GenericArtifact> artifacts) {
+    if (artifacts == null || artifacts.size() == 0) {
+      return artifacts;
     }
 
-    public List<GenericArtifact> filterArtifacts(List<GenericArtifact> artifacts) {
-        if (artifacts == null || artifacts.size() == 0) {
-            return artifacts;
-        }
-
-        final int maxArtifacts = getMaxArtifacts();
-        final List<String> preferred = getPreferredArtifacts();
-        if (artifacts.size() <= maxArtifacts) {
-            return artifacts;
-        }
-
-        Comparator<GenericArtifact> comparator = Comparator.comparing(artifact -> {
-            String extension =  getExtension(artifact);
-            return getPriority(extension, preferred);
-        });
-
-        return artifacts
-            .stream()
-            .sorted(comparator)
-            .limit(maxArtifacts)
-            .collect(Collectors.toList());
+    final int maxArtifacts = getMaxArtifacts();
+    final List<String> preferred = getPreferredArtifacts();
+    if (artifacts.size() <= maxArtifacts) {
+      return artifacts;
     }
 
-    private int getMaxArtifacts() {
-        return environment.getProperty(MAX_ARTIFACTS_PROP, Integer.class, MAX_ARTIFACTS_DEFAULT);
+    Comparator<GenericArtifact> comparator =
+        Comparator.comparing(
+            artifact -> {
+              String extension = getExtension(artifact);
+              return getPriority(extension, preferred);
+            });
+
+    return artifacts.stream().sorted(comparator).limit(maxArtifacts).collect(Collectors.toList());
+  }
+
+  private int getMaxArtifacts() {
+    return environment.getProperty(MAX_ARTIFACTS_PROP, Integer.class, MAX_ARTIFACTS_DEFAULT);
+  }
+
+  private List<String> getPreferredArtifacts() {
+    return Arrays.asList(
+        environment
+            .getProperty(PREFERRED_ARTIFACTS_PROP, String.class, PREFERRED_ARTIFACTS_DEFAULT)
+            .split(","));
+  }
+
+  private static String getExtension(GenericArtifact artifact) {
+    String filename = artifact.getFileName();
+    if (filename == null) {
+      return null;
     }
 
-    private List<String> getPreferredArtifacts() {
-        return Arrays.asList(
-            environment
-                .getProperty(PREFERRED_ARTIFACTS_PROP, String.class, PREFERRED_ARTIFACTS_DEFAULT)
-                .split(",")
-        );
+    int index = filename.lastIndexOf(".");
+    if (index == -1) {
+      return null;
     }
 
-    private static String getExtension(GenericArtifact artifact) {
-        String filename = artifact.getFileName();
-        if (filename == null) {
-            return null;
-        }
+    return filename.substring(index + 1).toLowerCase();
+  }
 
-        int index = filename.lastIndexOf(".");
-        if (index == -1) {
-            return null;
-        }
-
-        return filename.substring(index + 1).toLowerCase();
+  private static int getPriority(String extension, List<String> preferred) {
+    int priority = preferred.indexOf(extension);
+    if (priority == -1) {
+      return preferred.size();
     }
-
-    private static int getPriority(String extension, List<String> preferred) {
-        int priority = preferred.indexOf(extension);
-        if (priority == -1) {
-            return preferred.size();
-        }
-        return priority;
-    }
+    return priority;
+  }
 }

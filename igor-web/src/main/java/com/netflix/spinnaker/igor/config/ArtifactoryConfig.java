@@ -23,5 +23,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty("artifactory.enabled")
 @EnableConfigurationProperties(ArtifactoryProperties.class)
-public class ArtifactoryConfig {
-}
+public class ArtifactoryConfig {}

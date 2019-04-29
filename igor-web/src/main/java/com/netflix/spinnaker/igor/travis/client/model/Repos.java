@@ -18,24 +18,23 @@
 package com.netflix.spinnaker.igor.travis.client.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
-
-import java.util.List;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Root(strict = false)
 public class Repos {
-    @ElementList(required = false, name = "repos", inline = true)
-    private List<Repo> repos;
+  @ElementList(required = false, name = "repos", inline = true)
+  private List<Repo> repos;
 
-    public List<Repo> getRepos() {
-        return repos;
-    }
+  public List<Repo> getRepos() {
+    return repos;
+  }
 
-    public void setRepos(List<Repo> repos) {
-        this.repos = repos;
-    }
+  public void setRepos(List<Repo> repos) {
+    this.repos = repos;
+  }
 }

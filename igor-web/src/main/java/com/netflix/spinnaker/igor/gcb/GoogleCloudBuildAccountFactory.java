@@ -23,9 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-/**
- * Creates GoogleCloudBuildAccounts
- */
+/** Creates GoogleCloudBuildAccounts */
 @Component
 @ConditionalOnProperty("gcb.enabled")
 @RequiredArgsConstructor
@@ -39,10 +37,9 @@ public class GoogleCloudBuildAccountFactory {
     GoogleCredential credential = getCredential(account);
 
     return new GoogleCloudBuildAccount(
-      googleCloudBuildClientFactory.create(credential, account.getProject()),
-      googleCloudBuildCacheFactory.create(account.getName()),
-      googleCloudBuildParser
-    );
+        googleCloudBuildClientFactory.create(credential, account.getProject()),
+        googleCloudBuildCacheFactory.create(account.getName()),
+        googleCloudBuildParser);
   }
 
   private GoogleCredential getCredential(GoogleCloudBuildProperties.Account account) {

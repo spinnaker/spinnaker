@@ -21,8 +21,8 @@ import com.google.api.services.cloudbuild.v1.model.Operation;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Handles getting and updating build information for a single account. Delegates operations to either the
- * GoogleCloudBuildCache or GoogleCloudBuildClient.
+ * Handles getting and updating build information for a single account. Delegates operations to
+ * either the GoogleCloudBuildCache or GoogleCloudBuildClient.
  */
 @RequiredArgsConstructor
 public class GoogleCloudBuildAccount {
@@ -33,8 +33,12 @@ public class GoogleCloudBuildAccount {
   @SuppressWarnings("unchecked")
   public Build createBuild(Build buildRequest) {
     Operation operation = client.createBuild(buildRequest);
-    Build buildResponse = googleCloudBuildParser.convert(operation.getMetadata().get("build"), Build.class);
-    this.updateBuild(buildResponse.getId(), buildResponse.getStatus(), googleCloudBuildParser.serialize(buildResponse));
+    Build buildResponse =
+        googleCloudBuildParser.convert(operation.getMetadata().get("build"), Build.class);
+    this.updateBuild(
+        buildResponse.getId(),
+        buildResponse.getStatus(),
+        googleCloudBuildParser.serialize(buildResponse));
     return buildResponse;
   }
 

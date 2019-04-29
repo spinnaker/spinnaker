@@ -20,5 +20,4 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import org.simpleframework.xml.Default;
 
 @Default
-public class EmptyObject {
-}
+public class EmptyObject {}

@@ -26,60 +26,59 @@ import org.simpleframework.xml.Root;
 @Root(name = "commits")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class V3Commit {
-    private int id;
-    private String sha;
-    private String ref;
-    private String message;
-    @JsonProperty("compare_url")
-    private String compareUrl;
+  private int id;
+  private String sha;
+  private String ref;
+  private String message;
 
-    public boolean isTag() {
-        return ref != null && ref.split("/")[1].equals("tags");
+  @JsonProperty("compare_url")
+  private String compareUrl;
 
-    }
+  public boolean isTag() {
+    return ref != null && ref.split("/")[1].equals("tags");
+  }
 
-    public boolean isPullRequest() {
-        return ref != null && ref.split("/")[1].equals("pull");
+  public boolean isPullRequest() {
+    return ref != null && ref.split("/")[1].equals("pull");
+  }
 
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public String getSha() {
+    return sha;
+  }
 
-    public String getSha() {
-        return sha;
-    }
+  public void setSha(String sha) {
+    this.sha = sha;
+  }
 
-    public void setSha(String sha) {
-        this.sha = sha;
-    }
+  public String getRef() {
+    return ref;
+  }
 
-    public String getRef() {
-        return ref;
-    }
+  public void setRef(String ref) {
+    this.ref = ref;
+  }
 
-    public void setRef(String ref) {
-        this.ref = ref;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public String getCompareUrl() {
+    return compareUrl;
+  }
 
-    public String getCompareUrl() {
-        return compareUrl;
-    }
-
-    public void setCompareUrl(String compareUrl) {
-        this.compareUrl = compareUrl;
-    }
+  public void setCompareUrl(String compareUrl) {
+    this.compareUrl = compareUrl;
+  }
 }

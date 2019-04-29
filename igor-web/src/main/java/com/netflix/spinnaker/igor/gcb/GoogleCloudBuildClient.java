@@ -24,10 +24,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Generates authenticated requests to the Google Cloud Build API for a single configured account, delegating to
- * GoogleCloudBuildExecutor to execute these requests.
+ * Generates authenticated requests to the Google Cloud Build API for a single configured account,
+ * delegating to GoogleCloudBuildExecutor to execute these requests.
  */
-@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class GoogleCloudBuildClient {
   private final String projectId;
   private final CloudBuild cloudBuild;

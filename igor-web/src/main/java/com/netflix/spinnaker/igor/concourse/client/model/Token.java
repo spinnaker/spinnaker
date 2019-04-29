@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
-import lombok.Data;
-
 import java.time.ZonedDateTime;
+import lombok.Data;
 
 @Data
 public class Token {

@@ -18,10 +18,8 @@ package com.netflix.spinnaker.igor.config.client;
 import com.netflix.spinnaker.igor.config.JenkinsProperties;
 import retrofit.RequestInterceptor;
 
-/**
- * Abstracts away the logic for providing a Retrofit RequestInterceptor for Jenkins services.
- */
+/** Abstracts away the logic for providing a Retrofit RequestInterceptor for Jenkins services. */
 public interface JenkinsRetrofitRequestInterceptorProvider {
 
-    RequestInterceptor provide(JenkinsProperties.JenkinsHost host);
+  RequestInterceptor provide(JenkinsProperties.JenkinsHost host);
 }

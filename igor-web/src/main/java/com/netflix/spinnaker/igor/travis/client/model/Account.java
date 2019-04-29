@@ -28,54 +28,55 @@ import org.simpleframework.xml.Root;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "accounts")
 public class Account {
-    @JsonProperty("repos_count")
-    private int reposCount;
-    private String name;
-    private String type;
-    private int id;
-    private String login;
+  @JsonProperty("repos_count")
+  private int reposCount;
 
-    public boolean isUser() {
-        return "user".equals(type);
-    }
+  private String name;
+  private String type;
+  private int id;
+  private String login;
 
-    public int getReposCount() {
-        return reposCount;
-    }
+  public boolean isUser() {
+    return "user".equals(type);
+  }
 
-    public void setReposCount(int reposCount) {
-        this.reposCount = reposCount;
-    }
+  public int getReposCount() {
+    return reposCount;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public void setReposCount(int reposCount) {
+    this.reposCount = reposCount;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getType() {
-        return type;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+  public String getType() {
+    return type;
+  }
 
-    public int getId() {
-        return id;
-    }
+  public void setType(String type) {
+    this.type = type;
+  }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public String getLogin() {
-        return login;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
+  public String getLogin() {
+    return login;
+  }
+
+  public void setLogin(String login) {
+    this.login = login;
+  }
 }

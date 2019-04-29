@@ -19,13 +19,12 @@ package com.netflix.spinnaker.igor.service;
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
-
 import java.util.List;
 import java.util.Map;
 
 /**
- * Interface representing a Build Service (CI) host, the permissions needed to access it, and build operations on the
- * host
+ * Interface representing a Build Service (CI) host, the permissions needed to access it, and build
+ * operations on the host
  */
 public interface BuildOperations extends BuildService {
   /**

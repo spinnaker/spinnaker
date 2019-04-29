@@ -26,7 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = {Main.class})
 @ContextConfiguration(classes = {RedisConfig.class})
 public class MainTest {
-    @Test
-    public void startupTest() {
-    }
+  @Test
+  public void startupTest() {}
 }

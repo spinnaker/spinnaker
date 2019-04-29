@@ -16,12 +16,8 @@
 
 package com.netflix.spinnaker.igor.artifactory.model;
 
-import lombok.Data;
-
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.Data;
 
 @Data
 public class ArtifactorySearch {
@@ -30,28 +26,18 @@ public class ArtifactorySearch {
   private String baseUrl;
   private String repo;
 
-  /**
-   * One of username/password or an access token is required.
-   */
-  @Nullable
-  private String username;
+  /** One of username/password or an access token is required. */
+  @Nullable private String username;
 
-  @Nullable
-  private String password;
+  @Nullable private String password;
 
-  /**
-   * One of username/password or an access token is required.
-   */
-  @Nullable
-  private String accessToken;
+  /** One of username/password or an access token is required. */
+  @Nullable private String accessToken;
 
   private boolean ignoreSslIssues = false;
 
-  /**
-   * Filter published artifact searches to just this group id.
-   */
-  @Nullable
-  private String groupId;
+  /** Filter published artifact searches to just this group id. */
+  @Nullable private String groupId;
 
   public String getPartitionName() {
     return baseUrl + "/" + repo;

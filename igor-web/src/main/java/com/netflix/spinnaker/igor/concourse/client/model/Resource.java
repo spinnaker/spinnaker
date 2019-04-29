@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.igor.concourse.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
 
 @Data
 @EqualsAndHashCode(of = "id")
@@ -32,9 +30,7 @@ public class Resource {
   private String name;
   private String type;
 
-  @JsonIgnore
-  @Setter
-  private Map<String, String> metadata = new HashMap<>(); // comes from events
+  @JsonIgnore @Setter private Map<String, String> metadata = new HashMap<>(); // comes from events
 
   public Resource() {}
 

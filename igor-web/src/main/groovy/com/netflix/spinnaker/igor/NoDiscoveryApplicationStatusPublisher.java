@@ -24,31 +24,33 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-public class NoDiscoveryApplicationStatusPublisher implements ApplicationListener<ContextRefreshedEvent> {
+public class NoDiscoveryApplicationStatusPublisher
+    implements ApplicationListener<ContextRefreshedEvent> {
 
-    private static final Logger log = LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
 
-    private final ApplicationEventPublisher publisher;
+  private final ApplicationEventPublisher publisher;
 
-    private static InstanceStatus instanceStatus = InstanceStatus.UNKNOWN;
+  private static InstanceStatus instanceStatus = InstanceStatus.UNKNOWN;
 
-    public NoDiscoveryApplicationStatusPublisher(ApplicationEventPublisher publisher) {
-        this.publisher = publisher;
-    }
+  public NoDiscoveryApplicationStatusPublisher(ApplicationEventPublisher publisher) {
+    this.publisher = publisher;
+  }
 
-    @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        log.warn("No discovery client is available, assuming application is up");
-        setInstanceStatus(InstanceStatus.UP);
-    }
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event) {
+    log.warn("No discovery client is available, assuming application is up");
+    setInstanceStatus(InstanceStatus.UP);
+  }
 
-    private void setInstanceStatus(InstanceStatus current) {
-        InstanceStatus previous = instanceStatus;
-        instanceStatus = current;
-        publisher.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(previous, current)));
-    }
+  private void setInstanceStatus(InstanceStatus current) {
+    InstanceStatus previous = instanceStatus;
+    instanceStatus = current;
+    publisher.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(previous, current)));
+  }
 
-    public void setInstanceEnabled(boolean enabled) {
-        setInstanceStatus(enabled ? InstanceStatus.UP : InstanceStatus.OUT_OF_SERVICE);
-    }
+  public void setInstanceEnabled(boolean enabled) {
+    setInstanceStatus(enabled ? InstanceStatus.UP : InstanceStatus.OUT_OF_SERVICE);
+  }
 }

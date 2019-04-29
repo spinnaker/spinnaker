@@ -3,11 +3,11 @@
 
 Igor provides a single point of integration with Jenkins, Travis and Git repositories ( BitBucket, Stash, and Github ) within Spinnaker.
 
-Igor keeps track of the credentials for multiple Jenkins and/or Travis hosts and sends events to [echo](http://www.github.com/spinnaker/echo) whenever build information has changed. 
+Igor keeps track of the credentials for multiple Jenkins and/or Travis hosts and sends events to [echo](http://www.github.com/spinnaker/echo) whenever build information has changed.
 
 ## Configuring Jenkins Masters
 
-In your configuration block ( either in igor.yml, igor-local.yml, spinnaker.yml or spinnaker-local.yml ), you can define multiple masters blocks by using the list format. 
+In your configuration block ( either in igor.yml, igor-local.yml, spinnaker.yml or spinnaker-local.yml ), you can define multiple masters blocks by using the list format.
 
 You can obtain a jenkins api token by navigating to `http://your.jenkins.server/me/configure`. ( where me is your username ).
 
@@ -27,7 +27,7 @@ jenkins:
       username: spindoctor
 ```
 
-Currently Jenkins is used within Spinnaker to trigger builds and provide artifact information for the bake stages. 
+Currently Jenkins is used within Spinnaker to trigger builds and provide artifact information for the bake stages.
 
 ## Configuring Travis Masters
 
@@ -80,7 +80,7 @@ gitlab:
   commitDisplayLength: 8
 ```
 
-Currently git credentials are used in Spinnaker pipelines to retrieve commit changes across different build versions. 
+Currently git credentials are used in Spinnaker pipelines to retrieve commit changes across different build versions.
 
 ## Docker Registries
 

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.igor.model.ArtifactServiceProvider;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +40,12 @@ public class ArtifactServices {
 
   public List<String> getServiceNames(ArtifactServiceProvider artifactServiceProvider) {
     return artifactServices.entrySet().stream()
-      .filter(e -> e.getValue() != null && e.getValue().artifactServiceProvider() == artifactServiceProvider)
-      .map(Map.Entry::getKey)
-      .sorted()
-      .collect(Collectors.toList());
+        .filter(
+            e ->
+                e.getValue() != null
+                    && e.getValue().artifactServiceProvider() == artifactServiceProvider)
+        .map(Map.Entry::getKey)
+        .sorted()
+        .collect(Collectors.toList());
   }
-
 }

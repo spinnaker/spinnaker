@@ -18,16 +18,15 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 /**
- * Factory for calling Google API code to create a GoogleCredential, either from application default credentials or
- * from a supplied path to a JSON key.
+ * Factory for calling Google API code to create a GoogleCredential, either from application default
+ * credentials or from a supplied path to a JSON key.
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
@@ -53,7 +52,8 @@ public class GoogleCredentialService {
     try {
       return new FileInputStream(jsonPath);
     } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to read credential file: %s", jsonPath), e);
+      throw new IllegalArgumentException(
+          String.format("Unable to read credential file: %s", jsonPath), e);
     }
   }
 

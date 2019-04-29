@@ -1,11 +1,10 @@
 package com.netflix.spinnaker.igor.build.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.time.Instant;
 
 @Getter
 @EqualsAndHashCode(of = "sha1")

@@ -20,26 +20,29 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 
 /**
- * Interface representing a Build Service host (CI) and the permissions needed to access it. Most implementations should
- * implement the {@link BuildOperations} interface instead.
+ * Interface representing a Build Service host (CI) and the permissions needed to access it. Most
+ * implementations should implement the {@link BuildOperations} interface instead.
  */
 public interface BuildService {
   /**
    * Get the name of the build service host
+   *
    * @return The name of the build service
    */
   String getName();
 
   /**
    * Get the type of the build service
+   *
    * @return The type of the build service
    */
   BuildServiceProvider getBuildServiceProvider();
 
   /**
-   * Get the permissions of the build service. Read permissions are needed to be able to interact with the build service
-   * host and use it as a trigger in Spinnaker. Write permissions are needed to trigger CI builds/jobs from a Spinnaker
-   * pipeline.
+   * Get the permissions of the build service. Read permissions are needed to be able to interact
+   * with the build service host and use it as a trigger in Spinnaker. Write permissions are needed
+   * to trigger CI builds/jobs from a Spinnaker pipeline.
+   *
    * @return The permissions needed to access this build service host
    */
   Permissions getPermissions();

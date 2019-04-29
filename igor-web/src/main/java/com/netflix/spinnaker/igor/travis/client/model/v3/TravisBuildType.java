@@ -18,5 +18,8 @@
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 public enum TravisBuildType {
-    branch, unknown, tag, pull_request;
+  branch,
+  unknown,
+  tag,
+  pull_request;
 }

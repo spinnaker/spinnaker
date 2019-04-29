@@ -30,36 +30,38 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Service
 @ConditionalOnProperty("concourse.enabled")
 @Slf4j
-public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMonitor.JobDelta, ConcourseBuildMonitor.JobPollingDelta> {
+public class ConcourseBuildMonitor
+    extends CommonPollingMonitor<
+        ConcourseBuildMonitor.JobDelta, ConcourseBuildMonitor.JobPollingDelta> {
   private final BuildServices buildServices;
   private final ConcourseCache cache;
   private final ConcourseProperties concourseProperties;
   private final Optional<EchoService> echoService;
 
-  public ConcourseBuildMonitor(IgorConfigurationProperties properties,
-                               Registry registry,
-                               Optional<DiscoveryClient> discoveryClient,
-                               Optional<LockService> lockService,
-                               Optional<EchoService> echoService,
-                               BuildServices buildServices,
-                               ConcourseCache cache,
-                               ConcourseProperties concourseProperties) {
+  public ConcourseBuildMonitor(
+      IgorConfigurationProperties properties,
+      Registry registry,
+      Optional<DiscoveryClient> discoveryClient,
+      Optional<LockService> lockService,
+      Optional<EchoService> echoService,
+      BuildServices buildServices,
+      ConcourseCache cache,
+      ConcourseProperties concourseProperties) {
     super(properties, registry, discoveryClient, lockService);
     this.buildServices = buildServices;
     this.cache = cache;
@@ -68,21 +70,26 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
   }
 
   @Override
-  protected void initialize() {
-  }
+  protected void initialize() {}
 
   @Override
   protected JobPollingDelta generateDelta(PollContext ctx) {
-    ConcourseProperties.Host host = concourseProperties.getMasters().stream()
-      .filter(h -> h.getName().equals(ctx.partitionName))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("Unable to find concourse host with name '" + ctx.partitionName + "'"));
+    ConcourseProperties.Host host =
+        concourseProperties.getMasters().stream()
+            .filter(h -> h.getName().equals(ctx.partitionName))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "Unable to find concourse host with name '" + ctx.partitionName + "'"));
 
     ConcourseService concourseService = getService(host);
-    return new JobPollingDelta(host.getName(), concourseService.getJobs().stream()
-      .map(job -> jobDelta(host, job))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList()));
+    return new JobPollingDelta(
+        host.getName(),
+        concourseService.getJobs().stream()
+            .map(job -> jobDelta(host, job))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
   }
 
   @Nullable
@@ -92,9 +99,10 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
 
     final Long lastPollTs = cache.getLastPollCycleTimestamp(host, job);
 
-    List<Build> builds = concourseService.getBuilds(jobPath, lastPollTs).stream()
-      .filter(Build::isSuccessful)
-      .collect(Collectors.toList());
+    List<Build> builds =
+        concourseService.getBuilds(jobPath, lastPollTs).stream()
+            .filter(Build::isSuccessful)
+            .collect(Collectors.toList());
 
     if (builds.isEmpty()) {
       return null;
@@ -115,9 +123,10 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
       builds = onlyInLookBackWindow(builds);
     }
 
-    List<GenericBuild> genericBuilds = builds.stream()
-      .map(build -> concourseService.getGenericBuild(jobPath, build, false))
-      .collect(Collectors.toList());
+    List<GenericBuild> genericBuilds =
+        builds.stream()
+            .map(build -> concourseService.getGenericBuild(jobPath, build, false))
+            .collect(Collectors.toList());
 
     return new JobDelta(host, job, cursor, lowerBound, upperBound, genericBuilds);
   }
@@ -127,22 +136,26 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
   }
 
   private List<Build> onlyInLookBackWindow(List<Build> builds) {
-    long lookbackDate = System.currentTimeMillis() - (getPollInterval() +
-      (igorProperties.getSpinnaker().getBuild().getLookBackWindowMins() * 60) * 1000);
+    long lookbackDate =
+        System.currentTimeMillis()
+            - (getPollInterval()
+                + (igorProperties.getSpinnaker().getBuild().getLookBackWindowMins() * 60) * 1000);
     return builds.stream()
-      .filter(b -> b.getStartTime() > lookbackDate)
-      .collect(Collectors.toList());
+        .filter(b -> b.getStartTime() > lookbackDate)
+        .collect(Collectors.toList());
   }
 
   @Override
   protected void commitDelta(JobPollingDelta delta, boolean sendEvents) {
     for (JobDelta jobDelta : delta.items) {
       for (GenericBuild build : jobDelta.getBuilds()) {
-        boolean eventPosted = cache.getEventPosted(jobDelta.getHost(), jobDelta.getJob(),
-          jobDelta.getCursor(), build.getNumber());
+        boolean eventPosted =
+            cache.getEventPosted(
+                jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
         if (!eventPosted && sendEvents) {
           sendEventForBuild(jobDelta.getHost(), jobDelta.getJob(), build);
-          cache.setEventPosted(jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
+          cache.setEventPosted(
+              jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
         }
       }
       cache.setLastPollCycleTimestamp(jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor());
@@ -153,7 +166,9 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
     if (echoService.isPresent()) {
       log.info("({}) pushing event for : {}", host.getName(), build.getFullDisplayName());
 
-      GenericProject project = new GenericProject(job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName(), build);
+      GenericProject project =
+          new GenericProject(
+              job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName(), build);
 
       GenericBuildContent content = new GenericBuildContent();
       content.setProject(project);
@@ -167,7 +182,9 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());
-      registry.counter(missedNotificationId.withTag("monitor", getClass().getSimpleName())).increment();
+      registry
+          .counter(missedNotificationId.withTag("monitor", getClass().getSimpleName()))
+          .increment();
     }
   }
 

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.igor.artifactory;
 
+import static java.util.Collections.emptyList;
+
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
@@ -27,6 +29,12 @@ import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.history.model.ArtifactoryEvent;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jfrog.artifactory.client.Artifactory;
@@ -37,30 +45,24 @@ import org.jfrog.artifactory.client.impl.ArtifactoryRequestImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Collections.emptyList;
-
 @Service
 @ConditionalOnProperty("artifactory.enabled")
 @Slf4j
-public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBuildMonitor.ArtifactDelta, ArtifactoryBuildMonitor.ArtifactPollingDelta> {
+public class ArtifactoryBuildMonitor
+    extends CommonPollingMonitor<
+        ArtifactoryBuildMonitor.ArtifactDelta, ArtifactoryBuildMonitor.ArtifactPollingDelta> {
   private final ArtifactoryCache cache;
   private final ArtifactoryProperties artifactoryProperties;
   private final Optional<EchoService> echoService;
 
-  public ArtifactoryBuildMonitor(IgorConfigurationProperties properties,
-                                 Registry registry,
-                                 Optional<DiscoveryClient> discoveryClient,
-                                 Optional<LockService> lockService,
-                                 Optional<EchoService> echoService,
-                                 ArtifactoryCache cache,
-                                 ArtifactoryProperties artifactoryProperties) {
+  public ArtifactoryBuildMonitor(
+      IgorConfigurationProperties properties,
+      Registry registry,
+      Optional<DiscoveryClient> discoveryClient,
+      Optional<LockService> lockService,
+      Optional<EchoService> echoService,
+      ArtifactoryCache cache,
+      ArtifactoryProperties artifactoryProperties) {
     super(properties, registry, discoveryClient, lockService);
     this.cache = cache;
     this.artifactoryProperties = artifactoryProperties;
@@ -73,8 +75,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
   }
 
   @Override
-  protected void initialize() {
-  }
+  protected void initialize() {}
 
   @Override
   public void poll(boolean sendEvents) {
@@ -86,65 +87,87 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
   @Override
   protected ArtifactPollingDelta generateDelta(PollContext ctx) {
     return artifactoryProperties.getSearches().stream()
-      .filter(host -> host.getPartitionName().equals(ctx.partitionName))
-      .findAny()
-      .map(search -> {
-        Artifactory client = ArtifactoryClientBuilder.create()
-          .setUsername(search.getUsername())
-          .setPassword(search.getPassword())
-          .setAccessToken(search.getAccessToken())
-          .setUrl(search.getBaseUrl())
-          .setIgnoreSSLIssues(search.isIgnoreSslIssues())
-          .build();
+        .filter(host -> host.getPartitionName().equals(ctx.partitionName))
+        .findAny()
+        .map(
+            search -> {
+              Artifactory client =
+                  ArtifactoryClientBuilder.create()
+                      .setUsername(search.getUsername())
+                      .setPassword(search.getPassword())
+                      .setAccessToken(search.getAccessToken())
+                      .setUrl(search.getBaseUrl())
+                      .setIgnoreSSLIssues(search.isIgnoreSslIssues())
+                      .build();
 
-        int lookBackWindowMins = igorProperties.getSpinnaker().getBuild().getLookBackWindowMins();
-        long lookbackFromCurrent = System.currentTimeMillis() - (getPollInterval() * 1000 + (lookBackWindowMins * 60 * 1000));
-        String modified = "\"modified\":{\"$last\":\"" + lookBackWindowMins + "minutes\"}";
+              int lookBackWindowMins =
+                  igorProperties.getSpinnaker().getBuild().getLookBackWindowMins();
+              long lookbackFromCurrent =
+                  System.currentTimeMillis()
+                      - (getPollInterval() * 1000 + (lookBackWindowMins * 60 * 1000));
+              String modified = "\"modified\":{\"$last\":\"" + lookBackWindowMins + "minutes\"}";
 
-        Long cursor = cache.getLastPollCycleTimestamp(search);
-        if (cursor == null) {
-          if (!igorProperties.getSpinnaker().getBuild().isHandleFirstBuilds()) {
-            return ArtifactPollingDelta.EMPTY;
-          }
-        } else if (cursor > lookbackFromCurrent || igorProperties.getSpinnaker().getBuild().isProcessBuildsOlderThanLookBackWindow()) {
-          modified = "\"modified\":{\"$gt\":\"" + Instant.ofEpochMilli(cursor) + "\"}";
-        }
-        cache.setLastPollCycleTimestamp(search, System.currentTimeMillis());
+              Long cursor = cache.getLastPollCycleTimestamp(search);
+              if (cursor == null) {
+                if (!igorProperties.getSpinnaker().getBuild().isHandleFirstBuilds()) {
+                  return ArtifactPollingDelta.EMPTY;
+                }
+              } else if (cursor > lookbackFromCurrent
+                  || igorProperties
+                      .getSpinnaker()
+                      .getBuild()
+                      .isProcessBuildsOlderThanLookBackWindow()) {
+                modified = "\"modified\":{\"$gt\":\"" + Instant.ofEpochMilli(cursor) + "\"}";
+              }
+              cache.setLastPollCycleTimestamp(search, System.currentTimeMillis());
 
-        String aqlQuery = "items.find({" +
-          "\"repo\":\"" + search.getRepo() + "\"," +
-          modified +
-            "," +
-          "\"path\":{\"$match\":\"" +
-            (search.getGroupId() == null ? "" : search.getGroupId().replace('.', '/') + "/") +
-            "*\"}," +
-            "\"name\": {\"$match\":\"" +
-            "*.pom\"}" +
-          "}).include(\"path\",\"repo\",\"name\", \"artifact.module.build\")";
+              String aqlQuery =
+                  "items.find({"
+                      + "\"repo\":\""
+                      + search.getRepo()
+                      + "\","
+                      + modified
+                      + ","
+                      + "\"path\":{\"$match\":\""
+                      + (search.getGroupId() == null
+                          ? ""
+                          : search.getGroupId().replace('.', '/') + "/")
+                      + "*\"},"
+                      + "\"name\": {\"$match\":\""
+                      + "*.pom\"}"
+                      + "}).include(\"path\",\"repo\",\"name\", \"artifact.module.build\")";
 
-        ArtifactoryRequest aqlRequest = new ArtifactoryRequestImpl()
-          .method(ArtifactoryRequest.Method.POST)
-          .apiUrl("api/search/aql")
-          .requestType(ArtifactoryRequest.ContentType.TEXT)
-          .responseType(ArtifactoryRequest.ContentType.JSON)
-          .requestBody(aqlQuery);
+              ArtifactoryRequest aqlRequest =
+                  new ArtifactoryRequestImpl()
+                      .method(ArtifactoryRequest.Method.POST)
+                      .apiUrl("api/search/aql")
+                      .requestType(ArtifactoryRequest.ContentType.TEXT)
+                      .responseType(ArtifactoryRequest.ContentType.JSON)
+                      .requestBody(aqlQuery);
 
-        try {
-          ArtifactoryResponse aqlResponse = client.restCall(aqlRequest);
-          if (aqlResponse.isSuccessResponse()) {
-            List<ArtifactoryItem> results = aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
-            return new ArtifactPollingDelta(search.getName(), search.getPartitionName(), Collections.singletonList(
-              new ArtifactDelta(System.currentTimeMillis(), search.getRepoType(), results)));
-          }
+              try {
+                ArtifactoryResponse aqlResponse = client.restCall(aqlRequest);
+                if (aqlResponse.isSuccessResponse()) {
+                  List<ArtifactoryItem> results =
+                      aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
+                  return new ArtifactPollingDelta(
+                      search.getName(),
+                      search.getPartitionName(),
+                      Collections.singletonList(
+                          new ArtifactDelta(
+                              System.currentTimeMillis(), search.getRepoType(), results)));
+                }
 
-          log.warn("Unable to query Artifactory for artifacts (HTTP {}): {}", aqlResponse.getStatusLine().getStatusCode(),
-            aqlResponse.getRawBody());
-        } catch (IOException e) {
-          log.warn("Unable to query Artifactory for artifacts", e);
-        }
-        return ArtifactPollingDelta.EMPTY;
-      })
-      .orElse(ArtifactPollingDelta.EMPTY);
+                log.warn(
+                    "Unable to query Artifactory for artifacts (HTTP {}): {}",
+                    aqlResponse.getStatusLine().getStatusCode(),
+                    aqlResponse.getRawBody());
+              } catch (IOException e) {
+                log.warn("Unable to query Artifactory for artifacts", e);
+              }
+              return ArtifactPollingDelta.EMPTY;
+            })
+        .orElse(ArtifactPollingDelta.EMPTY);
   }
 
   @Override
@@ -159,14 +182,21 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
     }
   }
 
-  private void postEvent(ArtifactoryRepositoryType repoType, ArtifactoryItem artifact, String name) {
+  private void postEvent(
+      ArtifactoryRepositoryType repoType, ArtifactoryItem artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
-      registry.counter(missedNotificationId.withTag("monitor", ArtifactoryBuildMonitor.class.getSimpleName())).increment();
+      registry
+          .counter(
+              missedNotificationId.withTag(
+                  "monitor", ArtifactoryBuildMonitor.class.getSimpleName()))
+          .increment();
     } else {
       Artifact matchableArtifact = artifact.toMatchableArtifact(repoType);
-      if(matchableArtifact != null) {
-        echoService.get().postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, matchableArtifact)));
+      if (matchableArtifact != null) {
+        echoService
+            .get()
+            .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, matchableArtifact)));
       }
     }
   }
@@ -177,8 +207,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
 
     private final String name;
 
-    @Nullable
-    private final String repo;
+    @Nullable private final String repo;
 
     private final List<ArtifactDelta> items;
   }

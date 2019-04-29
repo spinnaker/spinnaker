@@ -19,15 +19,14 @@ package com.netflix.spinnaker.igor.scm.gitlab.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CompareCommitsResponse {
-    public final List<Commit> commits;
+  public final List<Commit> commits;
 
-    @JsonCreator
-    public CompareCommitsResponse(@JsonProperty("commits") List<Commit> commits) {
-        this.commits = commits;
-    }
+  @JsonCreator
+  public CompareCommitsResponse(@JsonProperty("commits") List<Commit> commits) {
+    this.commits = commits;
+  }
 }

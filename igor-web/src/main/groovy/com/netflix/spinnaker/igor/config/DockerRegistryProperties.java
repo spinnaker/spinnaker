@@ -21,22 +21,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "docker-registry")
 public class DockerRegistryProperties {
-    private boolean enabled;
-    private Integer itemUpperThreshold;
+  private boolean enabled;
+  private Integer itemUpperThreshold;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public Integer getItemUpperThreshold() {
-        return itemUpperThreshold;
-    }
+  public Integer getItemUpperThreshold() {
+    return itemUpperThreshold;
+  }
 
-    public void setItemUpperThreshold(Integer itemUpperThreshold) {
-        this.itemUpperThreshold = itemUpperThreshold;
-    }
+  public void setItemUpperThreshold(Integer itemUpperThreshold) {
+    this.itemUpperThreshold = itemUpperThreshold;
+  }
 }

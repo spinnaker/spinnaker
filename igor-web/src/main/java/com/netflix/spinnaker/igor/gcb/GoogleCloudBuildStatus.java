@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.igor.gcb;
 
 /**
- * An enum of possible statuses of a GCB build. One of the primary purposes of this enum is to handle ordering of
- * statuses to allow us to order build notifications.
+ * An enum of possible statuses of a GCB build. One of the primary purposes of this enum is to
+ * handle ordering of statuses to allow us to order build notifications.
  */
 public enum GoogleCloudBuildStatus {
   STATUS_UNKNOWN(StatusType.UNKNOWN),

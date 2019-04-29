@@ -20,21 +20,20 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.cloudbuild.v1.CloudBuildRequest;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 /**
- * Executes requests to the Google Cloud Build API, catching appropriate error conditions and translating them
- * into appropriate exceptions.
+ * Executes requests to the Google Cloud Build API, catching appropriate error conditions and
+ * translating them into appropriate exceptions.
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
 @Slf4j
 public class GoogleCloudBuildExecutor {
-  //TODO(ezimanyi): Consider adding retry logic here
+  // TODO(ezimanyi): Consider adding retry logic here
   public <T> T execute(RequestFactory<T> requestFactory) {
     try {
       CloudBuildRequest<T> request = requestFactory.get();

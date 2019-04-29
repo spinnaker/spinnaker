@@ -19,7 +19,7 @@ package com.netflix.spinnaker.igor.exceptions;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 
 public class BuildJobError extends InvalidRequestException {
-    public BuildJobError(String message) {
-        super(message);
-    }
+  public BuildJobError(String message) {
+    super(message);
+  }
 }

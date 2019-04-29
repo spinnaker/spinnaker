@@ -28,33 +28,35 @@ import org.simpleframework.xml.Root;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "job")
 public class Job {
-    private int id;
-    @JsonProperty("log_id")
-    private int logId;
-    @JsonProperty("repository_slug")
-    private String repositorySlug;
+  private int id;
 
-    public int getId() {
-        return id;
-    }
+  @JsonProperty("log_id")
+  private int logId;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+  @JsonProperty("repository_slug")
+  private String repositorySlug;
 
-    public int getLogId() {
-        return logId;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void setLogId(int logId) {
-        this.logId = logId;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public String getRepositorySlug() {
-        return repositorySlug;
-    }
+  public int getLogId() {
+    return logId;
+  }
 
-    public void setRepositorySlug(String repositorySlug) {
-        this.repositorySlug = repositorySlug;
-    }
+  public void setLogId(int logId) {
+    this.logId = logId;
+  }
+
+  public String getRepositorySlug() {
+    return repositorySlug;
+  }
+
+  public void setRepositorySlug(String repositorySlug) {
+    this.repositorySlug = repositorySlug;
+  }
 }

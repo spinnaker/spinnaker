@@ -17,6 +17,11 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.igor.artifacts.CustomJinjaTemplate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.validation.Valid;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -24,28 +29,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "artifacts")
 @Validated
 public class ArtifactTemplateProperties {
-  @Valid
-  private List<CustomTemplateConfig> templates = new ArrayList<>();
+  @Valid private List<CustomTemplateConfig> templates = new ArrayList<>();
 
   @Data
   @NoArgsConstructor
   public static class CustomTemplateConfig {
-    @NotEmpty
-    private String name;
+    @NotEmpty private String name;
 
-    @NotEmpty
-    private String templatePath;
+    @NotEmpty private String templatePath;
 
     CustomJinjaTemplate toCustomTemplate() {
       return new CustomJinjaTemplate(templatePath);
@@ -53,10 +49,9 @@ public class ArtifactTemplateProperties {
   }
 
   public Map<String, CustomJinjaTemplate> getCustomArtifactTemplates() {
-    return templates
-      .stream()
-      .collect(
-        Collectors.toMap(CustomTemplateConfig::getName, CustomTemplateConfig::toCustomTemplate)
-      );
+    return templates.stream()
+        .collect(
+            Collectors.toMap(
+                CustomTemplateConfig::getName, CustomTemplateConfig::toCustomTemplate));
   }
 }

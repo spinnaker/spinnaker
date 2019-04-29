@@ -18,18 +18,17 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import java.time.Duration;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
-import java.util.Map;
-
 /**
- * Cache to keep track of the status of Google Cloud builds. In general, this cache will be updated as echo
- * receives PubSub build notifications and sends them to igor.
+ * Cache to keep track of the status of Google Cloud builds. In general, this cache will be updated
+ * as echo receives PubSub build notifications and sends them to igor.
  */
-@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class GoogleCloudBuildCache {
   private static final int inProgressTtlSeconds = 60 * 10;
@@ -56,23 +55,25 @@ public class GoogleCloudBuildCache {
 
   public String getBuild(String buildId) {
     String key = new GoogleCloudBuildKey(keyPrefix, buildId).toString();
-    return redisClientDelegate.withCommandsClient(c -> {
-      Map<String, String> res = c.hgetAll(key);
-      return res.get("build");
-    });
+    return redisClientDelegate.withCommandsClient(
+        c -> {
+          Map<String, String> res = c.hgetAll(key);
+          return res.get("build");
+        });
   }
 
   private void internalUpdateBuild(String buildId, String status, String build) {
     String key = new GoogleCloudBuildKey(keyPrefix, buildId).toString();
-    redisClientDelegate.withCommandsClient(c -> {
-      String oldStatus = c.hget(key, "status");
-      if (allowUpdate(oldStatus, status)) {
-        int ttlSeconds = getTtlSeconds(status);
-        c.hset(key, "status", status);
-        c.hset(key, "build", build);
-        c.expire(key, ttlSeconds);
-      }
-    });
+    redisClientDelegate.withCommandsClient(
+        c -> {
+          String oldStatus = c.hget(key, "status");
+          if (allowUpdate(oldStatus, status)) {
+            int ttlSeconds = getTtlSeconds(status);
+            c.hset(key, "status", status);
+            c.hset(key, "build", build);
+            c.expire(key, ttlSeconds);
+          }
+        });
   }
 
   private int getTtlSeconds(String statusString) {
@@ -103,7 +104,8 @@ public class GoogleCloudBuildCache {
       GoogleCloudBuildStatus newStatus = GoogleCloudBuildStatus.valueOf(newStatusString);
       return newStatus.greaterThanOrEqualTo(oldStatus);
     } catch (IllegalArgumentException e) {
-      // If one of the statuses is not recognized, allow the update (assuming that the later message is newer). This is
+      // If one of the statuses is not recognized, allow the update (assuming that the later message
+      // is newer). This is
       // to be robust against GCB adding statuses in the future.
       return true;
     }
@@ -111,9 +113,12 @@ public class GoogleCloudBuildCache {
 
   public void updateBuild(String buildId, String status, String build) {
     String lockName = String.format("%s.%s", lockPrefix, buildId);
-    lockService.acquire(lockName, Duration.ofSeconds(10), () -> {
-      internalUpdateBuild(buildId, status, build);
-    });
+    lockService.acquire(
+        lockName,
+        Duration.ofSeconds(10),
+        () -> {
+          internalUpdateBuild(buildId, status, build);
+        });
   }
 
   @RequiredArgsConstructor

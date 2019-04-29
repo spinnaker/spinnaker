@@ -26,6 +26,14 @@ import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,70 +46,108 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 /**
- * Converts the list of Travis Configuration properties a collection of clients to access the Travis hosts
+ * Converts the list of Travis Configuration properties a collection of clients to access the Travis
+ * hosts
  */
 @Configuration
 @ConditionalOnProperty("travis.enabled")
 @EnableConfigurationProperties(com.netflix.spinnaker.igor.config.TravisProperties.class)
 public class TravisConfig {
-    private Logger log = LoggerFactory.getLogger(getClass());
+  private Logger log = LoggerFactory.getLogger(getClass());
 
-    @Bean
-    public Map<String, TravisService> travisMasters(BuildServices buildServices, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, Optional<ArtifactDecorator> artifactDecorator) {
-        log.info("creating travisMasters");
+  @Bean
+  public Map<String, TravisService> travisMasters(
+      BuildServices buildServices,
+      TravisCache travisCache,
+      IgorConfigurationProperties igorConfigurationProperties,
+      @Valid TravisProperties travisProperties,
+      ObjectMapper objectMapper,
+      Optional<ArtifactDecorator> artifactDecorator) {
+    log.info("creating travisMasters");
 
-        Map<String, TravisService> travisMasters = (travisProperties == null ? new ArrayList<TravisProperties.TravisHost>() : travisProperties.getMasters()).stream()
-            .map(host -> {
-                String travisName = "travis-" + host.getName();
-                log.info("bootstrapping {} as {}", host.getAddress(), travisName);
+    Map<String, TravisService> travisMasters =
+        (travisProperties == null
+                ? new ArrayList<TravisProperties.TravisHost>()
+                : travisProperties.getMasters())
+            .stream()
+                .map(
+                    host -> {
+                      String travisName = "travis-" + host.getName();
+                      log.info("bootstrapping {} as {}", host.getAddress(), travisName);
 
-                TravisClient client = travisClient(host.getAddress(), igorConfigurationProperties.getClient().getTimeout(), objectMapper);
-                return travisService(travisName, host.getBaseUrl(), host.getGithubToken(), host.getNumberOfRepositories(), client, travisCache, artifactDecorator, (travisProperties == null ? null : travisProperties.getRegexes()), travisProperties.getBuildMessageKey(), host.getPermissions().build());
-            })
-            .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
+                      TravisClient client =
+                          travisClient(
+                              host.getAddress(),
+                              igorConfigurationProperties.getClient().getTimeout(),
+                              objectMapper);
+                      return travisService(
+                          travisName,
+                          host.getBaseUrl(),
+                          host.getGithubToken(),
+                          host.getNumberOfRepositories(),
+                          client,
+                          travisCache,
+                          artifactDecorator,
+                          (travisProperties == null ? null : travisProperties.getRegexes()),
+                          travisProperties.getBuildMessageKey(),
+                          host.getPermissions().build());
+                    })
+                .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 
-        buildServices.addServices(travisMasters);
-        return travisMasters;
+    buildServices.addServices(travisMasters);
+    return travisMasters;
+  }
+
+  private static TravisService travisService(
+      String travisHostId,
+      String baseUrl,
+      String githubToken,
+      int numberOfRepositories,
+      TravisClient travisClient,
+      TravisCache travisCache,
+      Optional<ArtifactDecorator> artifactDecorator,
+      Collection<String> artifactRexeges,
+      String buildMessageKey,
+      Permissions permissions) {
+    return new TravisService(
+        travisHostId,
+        baseUrl,
+        githubToken,
+        numberOfRepositories,
+        travisClient,
+        travisCache,
+        artifactDecorator,
+        artifactRexeges,
+        buildMessageKey,
+        permissions);
+  }
+
+  public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {
+    OkHttpClient client = new OkHttpClient();
+    client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
+
+    // Need this code because without FULL log level, fetching logs will fail. Ref
+    // https://github.com/square/retrofit/issues/953.
+    RestAdapter.Log fooLog = message -> {};
+
+    return new RestAdapter.Builder()
+        .setEndpoint(Endpoints.newFixedEndpoint(address))
+        .setRequestInterceptor(new TravisHeader())
+        .setClient(new OkClient(client))
+        .setLog(fooLog)
+        .setLogLevel(RestAdapter.LogLevel.FULL)
+        .setConverter(new JacksonConverter(objectMapper))
+        .build()
+        .create(TravisClient.class);
+  }
+
+  public static class TravisHeader implements RequestInterceptor {
+    @Override
+    public void intercept(RequestFacade request) {
+      request.addHeader("Accept", "application/vnd.travis-ci.2+json");
+      request.addHeader("User-Agent", "Travis-Igor");
+      request.addHeader("Content-Type", "application/json");
     }
-
-    private static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges, String buildMessageKey, Permissions permissions) {
-        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges, buildMessageKey, permissions);
-    }
-
-    public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {
-        OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
-
-        //Need this code because without FULL log level, fetching logs will fail. Ref https://github.com/square/retrofit/issues/953.
-        RestAdapter.Log fooLog = message -> { };
-
-        return new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new TravisHeader())
-            .setClient(new OkClient(client))
-            .setLog(fooLog)
-            .setLogLevel(RestAdapter.LogLevel.FULL)
-            .setConverter(new JacksonConverter(objectMapper))
-            .build()
-            .create(TravisClient.class);
-    }
-
-    public static class TravisHeader implements RequestInterceptor {
-        @Override
-        public void intercept(RequestFacade request) {
-            request.addHeader("Accept", "application/vnd.travis-ci.2+json");
-            request.addHeader("User-Agent", "Travis-Igor");
-            request.addHeader("Content-Type", "application/json");
-        }
-    }
+  }
 }

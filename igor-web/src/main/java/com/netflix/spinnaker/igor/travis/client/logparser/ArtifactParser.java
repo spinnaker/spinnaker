@@ -18,9 +18,6 @@
 package com.netflix.spinnaker.igor.travis.client.logparser;
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,33 +25,40 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArtifactParser {
 
-    private static final Logger log = LoggerFactory.getLogger(ArtifactParser.class);
+  private static final Logger log = LoggerFactory.getLogger(ArtifactParser.class);
 
-    private static final List<String> DEFAULT_REGEXES = Collections.unmodifiableList(Arrays.asList(
-        "Uploading artifact: https?:\\/\\/.+\\/(.+\\.(deb|rpm)).*$",
-        "Successfully pushed (.+\\.(deb|rpm)) to .*"));
+  private static final List<String> DEFAULT_REGEXES =
+      Collections.unmodifiableList(
+          Arrays.asList(
+              "Uploading artifact: https?:\\/\\/.+\\/(.+\\.(deb|rpm)).*$",
+              "Successfully pushed (.+\\.(deb|rpm)) to .*"));
 
-    /**
-     * Parse the build log using the given regular expressions.  If they are
-     * null, or empty, then DEFAULT_REGEXES will be used, matching on artifacts
-     * uploading from the `art` CLI tool.
-     */
-    public static List<GenericArtifact> getArtifactsFromLog(String buildLog, Collection<String> regexes) {
-        final List<Pattern> finalRegexes = (regexes == null || regexes.isEmpty() ? DEFAULT_REGEXES : regexes).stream()
-            .map(Pattern::compile)
-            .collect(Collectors.toList());
-        return Arrays.stream(buildLog.split("\n"))
-            .flatMap(line -> finalRegexes.stream()
-                .map(regex -> regex.matcher(line))
-                .filter(Matcher::find)
-                .map(match -> match.group(1))
-                .peek(match -> log.debug("Found artifact: " + match))
-                .distinct()
-                .map(match -> new GenericArtifact(match, match, match))
-                .collect(Collectors.toList()).stream())
-            .collect(Collectors.toList());
-    }
+  /**
+   * Parse the build log using the given regular expressions. If they are null, or empty, then
+   * DEFAULT_REGEXES will be used, matching on artifacts uploading from the `art` CLI tool.
+   */
+  public static List<GenericArtifact> getArtifactsFromLog(
+      String buildLog, Collection<String> regexes) {
+    final List<Pattern> finalRegexes =
+        (regexes == null || regexes.isEmpty() ? DEFAULT_REGEXES : regexes)
+            .stream().map(Pattern::compile).collect(Collectors.toList());
+    return Arrays.stream(buildLog.split("\n"))
+        .flatMap(
+            line ->
+                finalRegexes.stream()
+                    .map(regex -> regex.matcher(line))
+                    .filter(Matcher::find)
+                    .map(match -> match.group(1))
+                    .peek(match -> log.debug("Found artifact: " + match))
+                    .distinct()
+                    .map(match -> new GenericArtifact(match, match, match))
+                    .collect(Collectors.toList())
+                    .stream())
+        .collect(Collectors.toList());
+  }
 }

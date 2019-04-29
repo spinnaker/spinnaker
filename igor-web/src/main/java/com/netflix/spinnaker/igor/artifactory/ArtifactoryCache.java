@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class ArtifactoryCache {
-  private final static String ID = "artifactory:publish:queue";
+  private static final String ID = "artifactory:publish:queue";
 
   private static final String POLL_STAMP = "lastPollCycleTimestamp";
 
@@ -34,16 +34,18 @@ public class ArtifactoryCache {
 
   public void setLastPollCycleTimestamp(ArtifactorySearch search, long timestamp) {
     String key = makeKey(search);
-    redisClientDelegate.withCommandsClient(c -> {
-      c.hset(key, POLL_STAMP, Long.toString(timestamp));
-    });
+    redisClientDelegate.withCommandsClient(
+        c -> {
+          c.hset(key, POLL_STAMP, Long.toString(timestamp));
+        });
   }
 
   public Long getLastPollCycleTimestamp(ArtifactorySearch search) {
-    return redisClientDelegate.withCommandsClient(c -> {
-      String ts = c.hget(makeKey(search), POLL_STAMP);
-      return ts == null ? null : Long.parseLong(ts);
-    });
+    return redisClientDelegate.withCommandsClient(
+        c -> {
+          String ts = c.hget(makeKey(search), POLL_STAMP);
+          return ts == null ? null : Long.parseLong(ts);
+        });
   }
 
   private String makeKey(ArtifactorySearch search) {

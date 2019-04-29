@@ -17,11 +17,11 @@ package com.netflix.spinnaker.igor.exceptions;
 
 public class UnhandledDownstreamServiceErrorException extends RuntimeException {
 
-    public UnhandledDownstreamServiceErrorException(String message) {
-        super(message);
-    }
+  public UnhandledDownstreamServiceErrorException(String message) {
+    super(message);
+  }
 
-    public UnhandledDownstreamServiceErrorException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public UnhandledDownstreamServiceErrorException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

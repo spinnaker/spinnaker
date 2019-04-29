@@ -20,8 +20,8 @@ import com.squareup.okhttp.OkHttpClient;
 
 public class DefaultJenkinsOkHttpClientProvider implements JenkinsOkHttpClientProvider {
 
-    @Override
-    public OkHttpClient provide(JenkinsProperties.JenkinsHost host) {
-        return new OkHttpClient();
-    }
+  @Override
+  public OkHttpClient provide(JenkinsProperties.JenkinsHost host) {
+    return new OkHttpClient();
+  }
 }
