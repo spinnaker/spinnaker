@@ -27,9 +27,11 @@ class HikariDataSourceFactory(
   override fun build(poolName: String, connectionPoolProperties: ConnectionPoolProperties): DataSource =
     HikariDataSource(hikariConfig(poolName, metricsTrackerFactory, connectionPoolProperties))
 
-  private fun hikariConfig(poolName: String,
-                           metricsTrackerFactory: MetricsTrackerFactory,
-                           connectionPool: ConnectionPoolProperties): HikariConfig =
+  private fun hikariConfig(
+    poolName: String,
+    metricsTrackerFactory: MetricsTrackerFactory,
+    connectionPool: ConnectionPoolProperties
+  ): HikariConfig =
     HikariConfig().apply {
       this.poolName = poolName
       jdbcUrl = connectionPool.jdbcUrl
@@ -46,5 +48,4 @@ class HikariDataSourceFactory(
       }
       setMetricsTrackerFactory(metricsTrackerFactory)
     }
-
 }

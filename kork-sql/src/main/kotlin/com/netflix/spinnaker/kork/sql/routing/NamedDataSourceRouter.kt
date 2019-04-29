@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.sql.routing
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
-import java.io.Closeable
 
 class NamedDataSourceRouter : AbstractRoutingDataSource() {
   override fun determineCurrentLookupKey(): Any? =

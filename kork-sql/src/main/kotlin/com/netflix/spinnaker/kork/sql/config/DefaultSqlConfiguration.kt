@@ -64,7 +64,7 @@ class DefaultSqlConfiguration {
     System.setProperty("org.jooq.no-logo", "true")
 
     forceInetAddressCachePolicy()
-    Security.setProperty("networkaddress.cache.ttl", "0");
+    Security.setProperty("networkaddress.cache.ttl", "0")
   }
 
   @Bean
@@ -136,7 +136,7 @@ class DefaultSqlConfiguration {
   @Bean
   @ConditionalOnMissingBean(DataSourceConnectionProvider::class)
   fun dataSourceConnectionProvider(dataSource: DataSource): DataSourceConnectionProvider =
-    object: DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
+    object : DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
       // Use READ COMMITTED if possible
       override fun acquire(): Connection = super.acquire().apply {
         if (metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
@@ -147,8 +147,10 @@ class DefaultSqlConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(DefaultConfiguration::class)
-  fun jooqConfiguration(connectionProvider: DataSourceConnectionProvider,
-                        properties: SqlProperties): DefaultConfiguration =
+  fun jooqConfiguration(
+    connectionProvider: DataSourceConnectionProvider,
+    properties: SqlProperties
+  ): DefaultConfiguration =
     DefaultConfiguration().apply {
       set(*DefaultExecuteListenerProvider.providers(
         JooqToSpringExceptionTransformer(),
@@ -165,14 +167,18 @@ class DefaultSqlConfiguration {
     DefaultDSLContext(jooqConfiguration)
 
   @Bean
-  fun sqlHealthProvider(jooq: DSLContext,
-                        registry: Registry,
-                        @Value("\${sql.readOnly:false}") readOnly: Boolean): SqlHealthProvider =
+  fun sqlHealthProvider(
+    jooq: DSLContext,
+    registry: Registry,
+    @Value("\${sql.readOnly:false}") readOnly: Boolean
+  ): SqlHealthProvider =
     SqlHealthProvider(jooq, registry, readOnly)
 
   @Bean("dbHealthIndicator")
-  fun dbHealthIndicator(sqlHealthProvider: SqlHealthProvider,
-                        sqlProperties: SqlProperties) =
+  fun dbHealthIndicator(
+    sqlHealthProvider: SqlHealthProvider,
+    sqlProperties: SqlProperties
+  ) =
     SqlHealthIndicator(sqlHealthProvider, sqlProperties.getDefaultConnectionPoolProperties().dialect)
 }
 

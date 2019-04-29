@@ -95,7 +95,6 @@ internal object SqlHealthProviderSpec : Spek({
           expectThat(subject.enabled).isEqualTo(true)
         }
       }
-
     }
   }
 })

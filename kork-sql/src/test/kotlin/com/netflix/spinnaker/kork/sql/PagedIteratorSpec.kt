@@ -136,10 +136,10 @@ internal object PagedIteratorSpec : Spek({
         whenever(nextPage(eq(pageSize), anyOrNull())) doAnswer {
           val (_, cursor) = it.arguments
           when (cursor) {
-            null    -> listOf("ONE", "TWO", "THREE")
+            null -> listOf("ONE", "TWO", "THREE")
             "THREE" -> listOf("FOUR", "FIVE", "SIX")
-            "SIX"   -> listOf("SEVEN")
-            else    -> emptyList()
+            "SIX" -> listOf("SEVEN")
+            else -> emptyList()
           }
         }
       }
@@ -165,7 +165,6 @@ internal object PagedIteratorSpec : Spek({
       }
     }
   }
-
 })
 
 private inline fun <reified T> AbstractAssert<*, *>.isInstanceOf() =
