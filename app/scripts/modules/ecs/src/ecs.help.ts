@@ -45,6 +45,8 @@ const helpContents: { [key: string]: string } = {
     '<p>The container\'s logging driver.  This directly maps to the <a href="https://docs.docker.com/config/containers/logging/configure/#configure-the-default-logging-driver"><b>--log-driver</b> Docker flag.</a></p>',
   'ecs.logOptions':
     '<p>A map of log options.  This directly maps with the <a href="https://docs.docker.com/config/containers/logging/log_tags/"><b>--log-opt</b> Docker flag  </a></p>',
+  'ecs.tags':
+    '<p>The tags to apply to the task definition and the service',
   'ecs.environmentVariables':
     '<p>The environment variable(s) your container are deployed with. SERVER_GROUP, CLOUD_STACK and CLOUD_DETAIL environment variables are used during deployment to identify the task and cannot be set here.</p>',
 };
