@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gradle.codestyle
 
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.JavaExtension
+import com.diffplug.gradle.spotless.KotlinExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -51,6 +52,20 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           }
         })
 
+        if (hasKotlin(project)) {
+          spotless.extension.kotlin(new Action<KotlinExtension>() {
+            @Override
+            void execute(KotlinExtension kotlinExtension) {
+              kotlinExtension.ktlint("0.31.0").userData([
+                indent_size: '2',
+                continuation_indent_size: '2'
+              ])
+              kotlinExtension.trimTrailingWhitespace()
+              kotlinExtension.endWithNewline()
+            }
+          })
+        }
+
         spotless.extension.format(
           'misc',
           new Action<FormatExtension>() {
@@ -65,5 +80,15 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
         )
       }
     }
+  }
+
+  private boolean hasKotlin(Project project) {
+    Class kotlin
+    try {
+      kotlin = Class.forName("org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin")
+    } catch (ClassNotFoundException e) {
+      return false
+    }
+    return !project.plugins.withType(kotlin).empty
   }
 }
