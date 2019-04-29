@@ -1,11 +1,13 @@
 import * as React from 'react';
 import Select, { Option, ReactSelectProps } from 'react-select';
 
-import { OmitControlledInputPropsFrom, StringsAsOptions, TetheredSelect } from 'core/presentation';
 import { noop } from 'core/utils';
 
+import { StringsAsOptions } from './StringsAsOptions';
+import { TetheredSelect } from '../../TetheredSelect';
+
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
-import { IFormInputProps } from '../interface';
+import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
 interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
   stringOptions?: string[];
