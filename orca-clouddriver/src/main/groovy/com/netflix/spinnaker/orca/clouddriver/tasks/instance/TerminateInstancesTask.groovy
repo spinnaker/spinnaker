@@ -76,6 +76,6 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
       ctx["kato.last.task.id"] = taskId
       ctx["kato.task.id"] = taskId // TODO retire this.
     }
-    new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ctx).build()
   }
 }

@@ -68,7 +68,7 @@ class CloudFoundryMonitorKatoServicesTaskTest {
     expectedContext.put("kato.task.firstNotFoundRetry", -1L);
     expectedContext.put("kato.task.notFoundRetryCount", 0);
     expectedContext.put("kato.tasks", Collections.singletonList(katoTaskMapBuilder.build()));
-    TaskResult expected = new TaskResult(expectedStatus, expectedContext);
+    TaskResult expected = TaskResult.builder(expectedStatus).context(expectedContext).build();
 
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", cloudProvider);

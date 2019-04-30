@@ -35,9 +35,9 @@ class CheckForRemainingTerminationsTask implements Task {
       return TaskResult.SUCCEEDED
     }
 
-    return new TaskResult(ExecutionStatus.REDIRECT, [
+    return TaskResult.builder(ExecutionStatus.REDIRECT).context([
       skipRemainingWait: false,
       startTime: Instant.EPOCH
-    ])
+    ]).build()
   }
 }

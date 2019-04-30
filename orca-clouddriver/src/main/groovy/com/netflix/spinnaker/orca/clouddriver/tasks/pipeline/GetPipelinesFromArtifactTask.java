@@ -108,8 +108,7 @@ public class GetPipelinesFromArtifactTask implements Task {
       }).filter(pipeline -> !pipeline.isEmpty());
     }).collect(Collectors.toList());
     final SavePipelinesData output = new SavePipelinesData(null, newAndUpdatedPipelines);
-    return new TaskResult(ExecutionStatus.SUCCEEDED,
-      objectMapper.convertValue(output, new TypeReference<Map<String, Object>>() {}));
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(objectMapper.convertValue(output, new TypeReference<Map<String, Object>>() {})).build();
   }
 
   private String getPipelinesArtifactContent(Artifact artifact) {

@@ -71,7 +71,7 @@ class JarDiffsTask implements DiffTask {
     def retriesRemaining = stage.context.jarDiffsRetriesRemaining != null ? stage.context.jarDiffsRetriesRemaining : MAX_RETRIES
     if (retriesRemaining <= 0) {
       log.info("retries exceeded")
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [jarDiffsRetriesRemaining: retriesRemaining])
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([jarDiffsRetriesRemaining: retriesRemaining]).build()
     }
 
     try {
@@ -92,7 +92,7 @@ class JarDiffsTask implements DiffTask {
 
       if (!targetInstances || !sourceInstances) {
         log.debug("No instances found (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg})")
-        return new TaskResult(ExecutionStatus.SUCCEEDED)
+        return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       }
 
       // get jar json info
@@ -104,11 +104,11 @@ class JarDiffsTask implements DiffTask {
       LibraryDiffs jarDiffs = libraryDiffTool.calculateLibraryDiffs(sourceJarList, targetJarList)
 
       // add the diffs to the context
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: jarDiffs])
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([jarDiffs: jarDiffs]).build()
     } catch (Exception e) {
       // return success so we don't break pipelines
       log.error("error while fetching jar diffs, retrying", e)
-      return new TaskResult(ExecutionStatus.RUNNING, [jarDiffsRetriesRemaining: --retriesRemaining])
+      return TaskResult.builder(ExecutionStatus.RUNNING).context([jarDiffsRetriesRemaining: --retriesRemaining]).build()
     }
   }
 

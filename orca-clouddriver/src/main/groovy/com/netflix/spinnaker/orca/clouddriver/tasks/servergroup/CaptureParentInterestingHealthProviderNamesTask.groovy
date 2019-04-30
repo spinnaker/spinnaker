@@ -33,9 +33,9 @@ class CaptureParentInterestingHealthProviderNamesTask implements Task, CloudProv
     def interestingHealthProviderNames = parentStage?.context?.interestingHealthProviderNames as List<String>
 
     if (interestingHealthProviderNames != null) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [interestingHealthProviderNames: interestingHealthProviderNames]);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([interestingHealthProviderNames: interestingHealthProviderNames]).build();
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED)
+    return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
 }

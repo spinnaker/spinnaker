@@ -70,7 +70,7 @@ class MonitorKatoTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
     if (!taskId) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED)
+      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     }
 
     Task katoTask
@@ -101,7 +101,7 @@ class MonitorKatoTask implements RetryableTask {
 
         registry.counter("monitorKatoTask.taskNotFound.retry").increment()
         ctx['kato.task.notFoundRetryCount'] = ((stage.context."kato.task.notFoundRetryCount" as Integer) ?: 0) + 1
-        return new TaskResult(ExecutionStatus.RUNNING, ctx)
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(ctx).build()
       } else {
         throw re
       }
@@ -152,7 +152,7 @@ class MonitorKatoTask implements RetryableTask {
 
     }
 
-    new TaskResult(status, outputs)
+    TaskResult.builder(status).context(outputs).build()
   }
 
   private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, boolean katoResultExpected) {

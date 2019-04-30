@@ -52,7 +52,7 @@ class DeleteProjectStage implements StageDefinitionBuilder {
         "notification.type": "deleteproject"
       ]
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
     }
   }
 }

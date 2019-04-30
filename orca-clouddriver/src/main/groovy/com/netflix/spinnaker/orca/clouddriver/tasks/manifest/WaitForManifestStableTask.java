@@ -83,7 +83,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           manifest = oortService.getManifest(account, location, name);
         } catch (RetrofitError e) {
           log.warn("Unable to read manifest {}", identifier, e);
-          return new TaskResult(ExecutionStatus.RUNNING, new HashMap<>(), new HashMap<>());
+          return TaskResult.builder(ExecutionStatus.RUNNING).context(new HashMap<>()).outputs(new HashMap<>()).build();
         } catch (Exception e) {
           throw new RuntimeException("Execution '" + stage.getExecution().getId() + "' failed with unexpected reason: " + e.getMessage(), e);
         }
@@ -137,11 +137,11 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     Map<String, Object> context = builder.build();
 
     if (!anyUnknown && anyFailed) {
-      return new TaskResult(ExecutionStatus.TERMINAL, context);
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
     } else if (allStable) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, context, new HashMap<>());
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).outputs(new HashMap<>()).build();
     } else {
-      return new TaskResult(ExecutionStatus.RUNNING, context, new HashMap<>());
+      return TaskResult.builder(ExecutionStatus.RUNNING).context(context).outputs(new HashMap<>()).build();
     }
   }
 

@@ -59,7 +59,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
       getServerGroup(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
     }
     task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
-      2 * execute(_) >> new TaskResult(ExecutionStatus.SUCCEEDED)
+      2 * execute(_) >> TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       0 * _
     }
     task.oortHelper = Mock(OortHelper) {

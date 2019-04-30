@@ -47,7 +47,7 @@ public class GetBuildArtifactsTask extends RetryableIgorTask<CIStageDefinition> 
       stageDefinition.getBuildNumber(), stageDefinition.getPropertyFile(), stageDefinition.getMaster(), stageDefinition.getJob()
     );
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.emptyMap()).outputs(outputs).build();
   }
 
   @Override

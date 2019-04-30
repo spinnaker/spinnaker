@@ -165,7 +165,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   static class CompleteParallelDeployTask implements Task {
     TaskResult execute(Stage stage) {
       log.info("Completed Parallel Deploy")
-      new TaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
+      TaskResult.SUCCEEDED
     }
   }
 }

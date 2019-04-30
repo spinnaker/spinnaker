@@ -87,7 +87,7 @@ class UpsertAppEngineLoadBalancersTask extends AbstractCloudProviderAwareTask im
         ]
       }
     ]
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   String resolveTargetServerGroupName(Map loadBalancer, Map allocationDescription) {

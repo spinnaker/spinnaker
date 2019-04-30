@@ -144,15 +144,15 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
       try {
         scheduledTime = getTimeInWindow(stage, now);
       } catch (Exception e) {
-        return new TaskResult(TERMINAL, Collections.singletonMap("failureReason", "Exception occurred while calculating time window: " + e.getMessage()));
+        return TaskResult.builder(TERMINAL).context(Collections.singletonMap("failureReason", "Exception occurred while calculating time window: " + e.getMessage())).build();
       }
       if (now.equals(scheduledTime) || now.isAfter(scheduledTime)) {
-        return new TaskResult(SUCCEEDED);
+        return TaskResult.SUCCEEDED;
       } else if (parseBoolean(stage.getContext().getOrDefault("skipRemainingWait", "false").toString())) {
-        return new TaskResult(SUCCEEDED);
+        return TaskResult.SUCCEEDED;
       } else {
         stage.setScheduledTime(scheduledTime.toEpochMilli());
-        return new TaskResult(RUNNING);
+        return TaskResult.RUNNING;
       }
     }
 

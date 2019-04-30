@@ -39,7 +39,7 @@ public class SavePipelinesCompleteTask implements Task {
     if (savePipelineResults.getPipelinesFailedToSave().isEmpty()) {
       return TaskResult.SUCCEEDED;
     }
-    return new TaskResult(ExecutionStatus.TERMINAL);
+    return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
   }
 
   private void logResults(List<PipelineReferenceData> savePipelineSuccesses, String s) {

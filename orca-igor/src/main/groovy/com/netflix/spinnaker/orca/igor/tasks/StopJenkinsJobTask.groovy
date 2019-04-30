@@ -45,6 +45,6 @@ class StopJenkinsJobTask implements Task {
 
     buildService.stop(master, job, queuedBuild, buildNumber)
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [:])
+    TaskResult.SUCCEEDED
   }
 }

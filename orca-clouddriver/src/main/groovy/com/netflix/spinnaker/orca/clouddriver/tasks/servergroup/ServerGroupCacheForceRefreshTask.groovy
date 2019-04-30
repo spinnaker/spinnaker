@@ -83,7 +83,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       )
 
       registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
-      return new TaskResult(SUCCEEDED, ["shortCircuit": true])
+      return TaskResult.builder(SUCCEEDED).context(["shortCircuit": true]).build()
     }
 
     def account = getCredentials(stage)
@@ -104,7 +104,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
     }
 
-    return new TaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))
+    return TaskResult.builder(allAreComplete ? SUCCEEDED : RUNNING).context(convertAndStripNullValues(stageData)).build()
   }
 
   /**
@@ -159,7 +159,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       stageData.reset()
     }
 
-    return Optional.of(new TaskResult(status, convertAndStripNullValues(stageData)))
+    return Optional.of(TaskResult.builder(status).context(convertAndStripNullValues(stageData)).build())
   }
 
   /**

@@ -71,7 +71,7 @@ public class CheckPipelineResultsTask implements Task {
 
     final Map<String, ?> output = objectMapper.
       convertValue(savePipelineResults, new TypeReference<Map<String, Object>>() {});
-    return new TaskResult(ExecutionStatus.SUCCEEDED, output);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(output).build();
   }
 
 }

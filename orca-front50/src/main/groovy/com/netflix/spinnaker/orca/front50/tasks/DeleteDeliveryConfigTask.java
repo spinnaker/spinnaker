@@ -45,7 +45,7 @@ public class DeleteDeliveryConfigTask implements Task {
 
     if (!config.isPresent()) {
       log.debug("Config {} does not exist, considering deletion successful.", stageData.deliveryConfigId);
-      return new TaskResult(ExecutionStatus.SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
 
     try {
@@ -56,7 +56,7 @@ public class DeleteDeliveryConfigTask implements Task {
 
     front50Service.deleteDeliveryConfig(config.get().getApplication(), stageData.deliveryConfigId);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED);
+    return TaskResult.SUCCEEDED;
   }
 
   public Optional<DeliveryConfig> getDeliveryConfig(String id) {

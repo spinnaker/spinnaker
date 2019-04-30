@@ -82,7 +82,7 @@ public class EvaluateConditionTask implements RetryableTask {
   public TaskResult execute(@Nonnull Stage stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
     if (ctx.getStatus() == Status.SKIPPED) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", Status.SKIPPED));
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", Status.SKIPPED)).build();
     }
 
     Duration backoff = Duration.ofMillis(conditionsConfigurationProperties.getBackoffWaitMs());
@@ -92,10 +92,9 @@ public class EvaluateConditionTask implements RetryableTask {
       recordDeployPause(ctx);
       log.debug("Deployment to {} has been conditionally paused (executionId: {})",
         ctx.getCluster(), stage.getExecution().getId());
-      return new TaskResult(
-        ExecutionStatus.RUNNING,
-        Collections.singletonMap("status", Status.WAITING)
-      );
+      return TaskResult.builder(ExecutionStatus.RUNNING)
+        .context(Collections.singletonMap("status", Status.WAITING))
+        .build();
     }
 
     try {
@@ -113,17 +112,14 @@ public class EvaluateConditionTask implements RetryableTask {
         recordDeployPause(ctx);
         log.debug("Deployment to {} has been conditionally paused (executionId: {}). Conditions: {}",
           ctx.getCluster(), stage.getExecution().getId(), conditions);
-        return new TaskResult(
-          ExecutionStatus.RUNNING,
-          Collections.singletonMap("status", status),
-          Collections.singletonMap("conditions", conditions)
-        );
+
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(Collections.singletonMap("status", status)).outputs(Collections.singletonMap("conditions", conditions)).build();
       }
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", status));
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", status)).build();
     } catch (Exception e) {
       log.error("Error occurred while fetching for conditions to eval.", e);
-      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", Status.ERROR));
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", Status.ERROR)).build();
     }
   }
 

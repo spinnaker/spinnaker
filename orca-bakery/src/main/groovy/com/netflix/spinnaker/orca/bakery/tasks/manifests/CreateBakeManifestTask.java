@@ -123,7 +123,7 @@ public class CreateBakeManifestTask implements RetryableTask {
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
   @Data

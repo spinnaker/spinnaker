@@ -48,19 +48,19 @@ public class WaitTask implements RetryableTask {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     if (context.getWaitTime() == null) {
-      return new TaskResult(SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
 
     Instant now = clock.instant();
 
     if (context.isSkipRemainingWait()) {
-      return new TaskResult(SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     } else if (context.getStartTime() == null || context.getStartTime() == Instant.EPOCH) {
-      return new TaskResult(RUNNING, singletonMap("startTime", now));
+      return TaskResult.builder(RUNNING).context(singletonMap("startTime", now)).build();
     } else if (context.getStartTime().plus(context.getWaitDuration()).isBefore(now)) {
-      return new TaskResult(SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     } else {
-      return new TaskResult(RUNNING);
+      return TaskResult.RUNNING;
     }
   }
 

@@ -52,14 +52,14 @@ class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implement
     TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
                      .toBlocking()
                      .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "notification.type"   : "destroyservergroup",
         "deploy.account.name" : context.credentials,
         "kato.last.task.id"   : taskId,
         "asgName"             : context.serverGroupName,  // TODO: Retire asgName
         "serverGroupName"     : context.serverGroupName,
         "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [context.serverGroupName]] }
-    ])
+    ]).build()
   }
 
   Map convert(Stage stage) {

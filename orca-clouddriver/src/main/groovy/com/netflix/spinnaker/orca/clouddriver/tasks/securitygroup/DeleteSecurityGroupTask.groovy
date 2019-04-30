@@ -50,6 +50,6 @@ class DeleteSecurityGroupTask extends AbstractCloudProviderAwareTask implements 
     if (stage.context.vpcId) {
       outputs["delete.vpcId"] = stage.context.vpcId
     }
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 }

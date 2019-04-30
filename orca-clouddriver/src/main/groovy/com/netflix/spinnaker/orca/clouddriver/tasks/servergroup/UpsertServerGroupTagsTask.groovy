@@ -48,11 +48,11 @@ class UpsertServerGroupTagsTask extends AbstractCloudProviderAwareTask implement
       }
     }
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "notification.type"   : "upsertservergrouptags",
         "deploy.account.name" : getCredentials(stage),
         "kato.last.task.id"   : taskId,
         "deploy.server.groups": deployServerGroups,
-    ])
+    ]).build()
   }
 }

@@ -105,7 +105,7 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     if (!pipeline.containsKey("roles")) {
       log.debug("Skipping managed service accounts since roles field is not present.");
-      return new TaskResult(ExecutionStatus.SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
 
     List<String> roles = (List<String>) pipeline.get("roles");
@@ -123,14 +123,13 @@ public class SaveServiceAccountTask implements RetryableTask {
     String serviceAccountName = generateSvcAcctName(pipeline);
     if (!pipelineRolesChanged(serviceAccountName, roles)) {
       log.debug("Skipping managed service account creation/updatimg since roles have not changed.");
-      return new TaskResult(
-        ExecutionStatus.SUCCEEDED, ImmutableMap.of("pipeline.serviceAccount", serviceAccountName));
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ImmutableMap.of("pipeline.serviceAccount", serviceAccountName)).build();
     }
 
     if (!isUserAuthorized(user, roles)) {
       // TODO: Push this to the output result so Deck can show it.
       log.warn("User {} is not authorized with all roles for pipeline", user);
-      return new TaskResult(ExecutionStatus.TERMINAL);
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
     }
 
     ServiceAccount svcAcct = new ServiceAccount();
@@ -142,12 +141,12 @@ public class SaveServiceAccountTask implements RetryableTask {
     Response response = front50Service.saveServiceAccount(svcAcct);
 
     if (response.getStatus() != HttpStatus.OK.value()) {
-      return new TaskResult(ExecutionStatus.TERMINAL);
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
     }
 
     outputs.put("pipeline.serviceAccount", svcAcct.getName());
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
   private String generateSvcAcctName(Map<String, Object> pipeline) {

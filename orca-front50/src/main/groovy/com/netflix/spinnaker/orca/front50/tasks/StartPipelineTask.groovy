@@ -95,7 +95,7 @@ class StartPipelineTask implements Task {
       getUser(stage.execution)
     )
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([executionId: pipeline.id, executionName: pipelineConfig.name]).build()
   }
 
   // There are currently two sources-of-truth for the user:

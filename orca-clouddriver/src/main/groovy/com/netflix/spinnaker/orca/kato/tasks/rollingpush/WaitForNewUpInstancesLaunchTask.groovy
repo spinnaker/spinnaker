@@ -66,8 +66,8 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
     int expectedNewInstances = (stage.context.instanceIds as List).size()
     if (newUpInstanceIds.size() >= expectedNewInstances) {
       knownInstanceIds.addAll(newUpInstanceIds)
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [knownInstanceIds: knownInstanceIds.toList()])
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([knownInstanceIds: knownInstanceIds.toList()]).build()
     }
-    return new TaskResult(ExecutionStatus.RUNNING)
+    return TaskResult.ofStatus(ExecutionStatus.RUNNING)
   }
 }

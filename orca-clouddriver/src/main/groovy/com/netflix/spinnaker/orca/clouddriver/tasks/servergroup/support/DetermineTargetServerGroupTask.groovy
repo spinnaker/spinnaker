@@ -33,9 +33,9 @@ class DetermineTargetServerGroupTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       targetReferences: getTargetServerGroups(stage)
-    ])
+    ]).build()
   }
 
   List<TargetServerGroup> getTargetServerGroups(Stage stage) {

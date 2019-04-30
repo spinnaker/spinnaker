@@ -68,7 +68,7 @@ public class DeleteSnapshotTask extends AbstractCloudProviderAwareTask implement
     outputs.put("delete.region", deleteSnapshotRequest.getRegion());
     outputs.put("delete.account.name", deleteSnapshotRequest.getCredentials());
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
   @Override

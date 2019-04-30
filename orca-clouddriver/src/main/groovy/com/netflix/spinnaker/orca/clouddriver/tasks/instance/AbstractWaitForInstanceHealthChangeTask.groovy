@@ -37,7 +37,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
   @Override
   TaskResult execute(Stage stage) {
     if (stage.context.interestingHealthProviderNames != null && ((List)stage.context.interestingHealthProviderNames).isEmpty()) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED)
+      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     }
 
     String region = stage.context.region as String
@@ -46,7 +46,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
 
     def instanceIds = getInstanceIds(stage)
     if (!instanceIds) {
-      return new TaskResult(ExecutionStatus.TERMINAL)
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     }
 
     def stillRunning = instanceIds.find {
@@ -54,7 +54,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements OverridableTim
       return !hasSucceeded(instance, healthProviderTypesToCheck)
     }
 
-    return new TaskResult(stillRunning ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED)
+    return TaskResult.ofStatus(stillRunning ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED)
   }
 
   protected List<String> getInstanceIds(Stage stage) {

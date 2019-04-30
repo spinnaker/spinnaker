@@ -90,7 +90,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
 
       Map outputs = processNotifications(stage, stageData, notificationState)
 
-      return new TaskResult(executionStatus, outputs)
+      return TaskResult.builder(executionStatus).context(outputs).build()
     }
 
     Map processNotifications(Stage stage, StageData stageData, String notificationState) {

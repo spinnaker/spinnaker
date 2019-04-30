@@ -77,7 +77,7 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
       }
     }
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   private List<Map<String, Object>> getDescriptions(Stage stage, Map operation) {

@@ -35,14 +35,14 @@ class TerminateInstanceAndDecrementAsgTask implements Task {
     def taskId = kato.requestOperations([[terminateInstanceAndDecrementAsgDescription: stage.context]])
       .toBlocking()
       .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"     : "terminateinstanceanddecrementasg",
       "terminate.account.name": stage.context.credentials,
       "terminate.region"      : stage.context.region,
       "kato.last.task.id"     : taskId,
       "kato.task.id"          : taskId, // TODO retire this.
       "terminate.instance.ids": [stage.context.instance],
-    ])
+    ]).build()
   }
 
 }

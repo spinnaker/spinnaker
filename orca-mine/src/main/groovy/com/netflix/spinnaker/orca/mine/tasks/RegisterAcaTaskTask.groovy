@@ -59,7 +59,7 @@ class RegisterAcaTaskTask implements Task {
       stageTimeoutMs: getMonitorTimeout(canary),
     ]
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   Map buildCanary(String app, Stage stage) {

@@ -89,7 +89,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
       and("has no context updates outputs") {
-        val taskResult = TaskResult(SUCCEEDED)
+        val taskResult = TaskResult.SUCCEEDED
 
         beforeGroup {
           whenever(task.execute(any())) doReturn taskResult
@@ -119,7 +119,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       and("has context updates") {
         val stageOutputs = mapOf("foo" to "covfefe")
-        val taskResult = TaskResult(SUCCEEDED, stageOutputs, emptyMap<String, Any>())
+        val taskResult = TaskResult.builder(SUCCEEDED).context(stageOutputs).build()
 
         beforeGroup {
           whenever(task.execute(any())) doReturn taskResult
@@ -141,7 +141,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       and("has outputs") {
         val outputs = mapOf("foo" to "covfefe")
-        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
+        val taskResult = TaskResult.builder(SUCCEEDED).outputs(outputs).build()
 
         beforeGroup {
           whenever(task.execute(any())) doReturn taskResult
@@ -166,7 +166,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           "foo" to "covfefe",
           "stageTimeoutMs" to Long.MAX_VALUE
         )
-        val taskResult = TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
+        val taskResult = TaskResult.builder(SUCCEEDED).outputs(outputs).build()
 
         beforeGroup {
           whenever(task.execute(any())) doReturn taskResult
@@ -201,7 +201,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
       }
       val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-      val taskResult = TaskResult(RUNNING)
+      val taskResult = TaskResult.RUNNING
       val taskBackoffMs = 30_000L
 
       beforeGroup {
@@ -234,7 +234,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
         }
         val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-        val taskResult = TaskResult(taskStatus)
+        val taskResult = TaskResult.ofStatus(taskStatus)
 
         and("no overrides are in place") {
           beforeGroup {

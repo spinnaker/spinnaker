@@ -56,7 +56,7 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
     if (!stage.context.buildNumber) {
       log.error("failed to get build number for job ${job} from master ${master}")
-      return new TaskResult(ExecutionStatus.TERMINAL)
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     }
 
     def buildNumber = (int) stage.context.buildNumber
@@ -65,7 +65,7 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
       Map outputs = [:]
       String result = build.result
       if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
-        return new TaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([buildInfo: build]).build()
       }
 
       outputs.buildInfo = build
@@ -75,14 +75,14 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
         if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
           status = ExecutionStatus.SUCCEEDED
         }
-        return new TaskResult(status, outputs, outputs)
+        return TaskResult.builder(status).context(outputs).outputs(outputs).build()
       } else {
-        return new TaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([buildInfo: build]).build()
       }
     } catch (RetrofitError e) {
       if ([503, 500, 404].contains(e.response?.status)) {
         log.warn("Http ${e.response.status} received from `igor`, retrying...")
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       throw e

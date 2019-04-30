@@ -75,7 +75,7 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
     }, 6, 5000, false) // retry for up to 30 seconds
     if (!operation) {
       // nothing to do but succeed
-      return new TaskResult(ExecutionStatus.SUCCEEDED)
+      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     }
 
     def taskId = kato.requestOperations(cloudProvider, [[(serverGroupAction): operation]])
@@ -97,11 +97,7 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
       ]
     }
 
-    new TaskResult(
-      ExecutionStatus.SUCCEEDED,
-      stageOutputs + getAdditionalContext(stage, operation),
-      getAdditionalOutputs(stage, operation)
-    )
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs + getAdditionalContext(stage, operation)).outputs(getAdditionalOutputs(stage, operation)).build()
   }
 
   Map convert(Stage stage) {

@@ -113,7 +113,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
         .put("kato.last.task.id", taskId)
         .build();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, context);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).build();
   }
 
 }

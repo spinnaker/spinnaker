@@ -125,7 +125,7 @@ public class SavePipelineTask implements RetryableTask {
         status = ExecutionStatus.TERMINAL;
       }
     }
-    return new TaskResult(status, outputs);
+    return TaskResult.builder(status).context(outputs).build();
   }
 
   @Override

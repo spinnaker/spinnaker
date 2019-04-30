@@ -85,7 +85,7 @@ class RegisterCanaryTask implements Task {
       outputs.account = deployStage.context.deployedClusterPairs[0].canaryCluster.accountName
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   Map buildCanary(String app, Stage stage) {

@@ -46,18 +46,18 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
     try {
       List<Map> tagOperations = buildTagOperations(stage)
       if (!tagOperations) {
-        return new TaskResult(ExecutionStatus.SKIPPED)
+        return TaskResult.ofStatus(ExecutionStatus.SKIPPED)
       }
       TaskId taskId = kato.requestOperations(tagOperations).toBlocking().first()
-      return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {
         {
           put("notification.type", "upsertentitytags")
           put("kato.last.task.id", taskId)
         }
-      })
+      }).build()
     } catch (Exception e) {
       log.error("Failed to tag deployed server groups (stageId: ${stage.id}, executionId: ${stage.execution.id})", e)
-      return new TaskResult(ExecutionStatus.FAILED_CONTINUE)
+      return TaskResult.ofStatus(ExecutionStatus.FAILED_CONTINUE)
     }
   }
 

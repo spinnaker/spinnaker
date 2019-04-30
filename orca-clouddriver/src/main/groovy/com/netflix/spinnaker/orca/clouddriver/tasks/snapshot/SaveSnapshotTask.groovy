@@ -44,7 +44,7 @@ class SaveSnapshotTask extends AbstractCloudProviderAwareTask implements Task {
       "snapshot.application" : stage.context.applicationName,
       "snapshot.account.name": account
     ]
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
 }

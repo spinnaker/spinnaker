@@ -44,7 +44,7 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
     Execution childPipeline = executionRepository.retrieve(PIPELINE, pipelineId)
 
     if (childPipeline.status == ExecutionStatus.SUCCEEDED) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status], childPipeline.getContext())
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([status: childPipeline.status]).outputs(childPipeline.getContext()).build()
     }
 
     if (childPipeline.status.halt) {
@@ -85,13 +85,13 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
         ]
       }
 
-      return new TaskResult(ExecutionStatus.TERMINAL, [
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context([
         status   : childPipeline.status,
         exception: exceptionDetails
-      ])
+      ]).build()
     }
 
-    return new TaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
+    return TaskResult.builder(ExecutionStatus.RUNNING).context([status: childPipeline.status]).build()
   }
 
   private static String buildExceptionMessage(String pipelineName, String message, Stage stage) {

@@ -52,6 +52,6 @@ public class EvaluateVariablesTask implements Task {
       outputs.put(v.getKey(), v.getValue());
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, stage.mapTo(Map.class), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stage.mapTo(Map.class)).outputs(outputs).build();
   }
 }

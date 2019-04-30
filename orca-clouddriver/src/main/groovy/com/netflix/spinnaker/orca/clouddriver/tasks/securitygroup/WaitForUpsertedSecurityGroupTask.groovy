@@ -50,6 +50,6 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask, CloudProviderAw
       }
     }
 
-    return new TaskResult(status)
+    return TaskResult.ofStatus(status)
   }
 }

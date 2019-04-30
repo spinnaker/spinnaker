@@ -48,7 +48,7 @@ public class MonitorGoogleCloudBuildTask extends RetryableIgorTask<GoogleCloudBu
       stageDefinition.getAccount(),
       stageDefinition.getBuildInfo().getId()
     );
-    return new TaskResult(build.getStatus().getExecutionStatus());
+    return TaskResult.ofStatus(build.getStatus().getExecutionStatus());
   }
 
   @Override

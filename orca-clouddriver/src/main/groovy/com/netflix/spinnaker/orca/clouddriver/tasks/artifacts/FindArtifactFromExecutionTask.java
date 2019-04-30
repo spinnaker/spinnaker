@@ -62,13 +62,13 @@ public class FindArtifactFromExecutionTask implements Task {
 
     if (match == null) {
       outputs.put("exception", "No artifact matching " + expectedArtifact + " found among " + priorArtifacts);
-      return new TaskResult(ExecutionStatus.TERMINAL, new HashMap<>(), outputs);
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(new HashMap<>()).outputs(outputs).build();
     }
 
     outputs.put("resolvedExpectedArtifacts", Collections.singletonList(expectedArtifact));
     outputs.put("artifacts", Collections.singletonList(match));
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
   @Data

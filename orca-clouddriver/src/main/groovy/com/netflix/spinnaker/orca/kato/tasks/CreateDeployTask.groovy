@@ -69,7 +69,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
       outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   private Map deployOperationFromContext(String cloudProvider, Stage stage) {

@@ -76,6 +76,6 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
       creator.getAdditionalOutputs(stage, ops)
     )
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 }

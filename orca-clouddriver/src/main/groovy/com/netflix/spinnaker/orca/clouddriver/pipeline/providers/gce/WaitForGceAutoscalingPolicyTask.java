@@ -52,8 +52,8 @@ public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
       .getAutoscalingPolicy()
       .get("mode");
     return AutoscalingMode.valueOf(autoscalingMode) == data.getMode() ?
-      new TaskResult(ExecutionStatus.SUCCEEDED) :
-      new TaskResult(ExecutionStatus.RUNNING);
+      TaskResult.SUCCEEDED :
+      TaskResult.RUNNING;
   }
 
   private TargetServerGroup getTargetGroupForLocation(StageData data, String location) {

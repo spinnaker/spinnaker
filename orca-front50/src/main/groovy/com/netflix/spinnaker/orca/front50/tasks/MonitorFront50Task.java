@@ -117,7 +117,7 @@ public class MonitorFront50Task implements RetryableTask {
       );
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED);
+    return TaskResult.SUCCEEDED;
   }
 
   private TaskResult monitor(Function<String, Optional<Map<String,Object>>> getObjectFunction, String id, Long startTime) {

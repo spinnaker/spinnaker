@@ -42,10 +42,10 @@ abstract class AbstractDiscoveryTask implements Task {
     def taskId = kato.requestOperations([["${action}": stage.context]])
       .toBlocking()
       .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"           : getAction().toLowerCase(),
       "kato.last.task.id"           : taskId,
       interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["Discovery"])
-    ])
+    ]).build()
   }
 }

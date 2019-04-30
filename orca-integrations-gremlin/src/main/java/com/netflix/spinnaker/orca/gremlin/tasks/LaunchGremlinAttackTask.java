@@ -53,6 +53,6 @@ public class LaunchGremlinAttackTask implements Task {
     final String createdGuid = gremlinService.create(apiKey, newAttack);
     final Map<String, Object> responseMap = new HashMap<>();
     responseMap.put(GUID_KEY, createdGuid);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, responseMap);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(responseMap).build();
   }
 }

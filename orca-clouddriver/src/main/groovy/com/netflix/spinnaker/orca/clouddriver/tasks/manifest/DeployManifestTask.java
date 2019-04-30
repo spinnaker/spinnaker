@@ -182,6 +182,6 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
         .put("deploy.account.name", credentials)
         .build();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 }

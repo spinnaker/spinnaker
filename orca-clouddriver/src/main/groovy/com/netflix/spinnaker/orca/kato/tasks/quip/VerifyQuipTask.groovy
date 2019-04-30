@@ -57,7 +57,7 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     } else {
       throw new RuntimeException("one or more of these parameters is missing : cluster || region || account || healthProviders")
     }
-    return new TaskResult(executionStatus, stageOutputs, [:])
+    return TaskResult.builder(executionStatus).context(stageOutputs).build()
   }
 
   private boolean checkInstancesForQuip(Map instances) {

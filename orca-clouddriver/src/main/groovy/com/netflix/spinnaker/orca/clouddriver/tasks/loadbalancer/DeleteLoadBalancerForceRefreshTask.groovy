@@ -45,6 +45,6 @@ class DeleteLoadBalancerForceRefreshTask extends AbstractCloudProviderAwareTask 
       def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true]
       cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
-    new TaskResult(ExecutionStatus.SUCCEEDED)
+    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
 }

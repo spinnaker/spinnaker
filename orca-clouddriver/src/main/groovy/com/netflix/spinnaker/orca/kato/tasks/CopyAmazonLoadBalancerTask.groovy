@@ -105,7 +105,7 @@ class CopyAmazonLoadBalancerTask implements Task {
       }
     ]
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   @VisibleForTesting

@@ -69,11 +69,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
     stageOutputs.put("amiDetails", imageDetails);
     stageOutputs.put("artifacts", artifacts);
 
-    return new TaskResult(
-      ExecutionStatus.SUCCEEDED,
-      stageOutputs,
-      Collections.singletonMap("deploymentDetails", imageDetails)
-    );
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).outputs(Collections.singletonMap("deploymentDetails", imageDetails)).build();
 
   }
 

@@ -37,10 +37,10 @@ class DeleteScalingPolicyTask extends AbstractCloudProviderAwareTask implements 
         .toBlocking()
         .first()
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "deploy.account.name" : stage.context.credentials,
         "kato.last.task.id"   : taskId,
         "deploy.server.groups": [(stage.context.region): [stage.context.serverGroupName]]
-    ])
+    ]).build()
   }
 }

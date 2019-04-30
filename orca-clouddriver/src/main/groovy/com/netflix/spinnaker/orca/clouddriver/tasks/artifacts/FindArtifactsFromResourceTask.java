@@ -62,7 +62,7 @@ public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTas
         + stageData.location);
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
   public static class StageData {

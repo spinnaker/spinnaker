@@ -55,6 +55,6 @@ public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAw
     
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED);
+    return TaskResult.SUCCEEDED;
   }
 }

@@ -93,11 +93,7 @@ public class PlanTemplateDependentsTask implements RetryableTask {
       context.put("pipelineTemplate.dependentErrors", errorResponses);
     }
 
-    return new TaskResult(
-      errorResponses.isEmpty() ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL,
-      context,
-      Collections.emptyMap()
-    );
+    return TaskResult.builder(errorResponses.isEmpty() ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL).context(context).outputs(Collections.emptyMap()).build();
   }
 
   @Override

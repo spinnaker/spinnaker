@@ -45,6 +45,6 @@ class DestroyJobTask extends AbstractCloudProviderAwareTask implements Task {
         "delete.region"      : stage.context.region,
         "delete.account.name": account
     ]
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 }

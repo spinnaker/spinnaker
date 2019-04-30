@@ -57,7 +57,7 @@ class RunKayentaCanaryTask(
       CanaryExecutionRequest(scopes, context.scoreThresholds)
     )["canaryExecutionId"] as String
 
-    return TaskResult(SUCCEEDED, singletonMap("canaryPipelineExecutionId", canaryPipelineExecutionId))
+    return TaskResult.builder(SUCCEEDED).context("canaryPipelineExecutionId", canaryPipelineExecutionId).build()
   }
 }
 

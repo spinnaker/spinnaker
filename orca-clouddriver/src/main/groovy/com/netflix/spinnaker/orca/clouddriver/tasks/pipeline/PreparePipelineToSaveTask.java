@@ -46,7 +46,7 @@ public class PreparePipelineToSaveTask implements Task {
     final SavePipelinesData input = stage.mapTo(SavePipelinesData.class);
     if (input.getPipelinesToSave() == null || input.getPipelinesToSave().isEmpty()) {
       log.info("There are no pipelines to save.");
-      return new TaskResult(ExecutionStatus.TERMINAL);
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
     }
     final Map pipelineData = input.getPipelinesToSave().get(0);
     final String pipelineString;
@@ -60,7 +60,7 @@ public class PreparePipelineToSaveTask implements Task {
     final SavePipelinesData outputSavePipelinesData = new SavePipelinesData(encodedPipeline, remainingPipelinesToSave);
     final Map output = objectMapper.convertValue(outputSavePipelinesData, new TypeReference<Map<String, Object>>() {});
     output.put("isExistingPipeline", pipelineData.get("id") != null);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, output);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(output).build();
   }
 
 }

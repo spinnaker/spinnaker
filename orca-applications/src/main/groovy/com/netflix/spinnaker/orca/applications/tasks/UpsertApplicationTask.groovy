@@ -63,7 +63,7 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
     }
 
     outputs.newState = application ?: [:]
-    return new TaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build()
   }
 
   @Override

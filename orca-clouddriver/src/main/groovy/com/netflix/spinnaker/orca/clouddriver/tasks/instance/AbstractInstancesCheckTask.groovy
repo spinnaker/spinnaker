@@ -95,14 +95,14 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     Map<String, List<String>> serverGroupsByRegion = getServerGroups(stage)
 
     if (!serverGroupsByRegion || !serverGroupsByRegion?.values()?.flatten()) {
-      return new TaskResult(ExecutionStatus.TERMINAL)
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     }
 
     try {
       Moniker moniker = MonikerHelper.monikerFromStage(stage)
       def serverGroups = fetchServerGroups(account, getCloudProvider(stage), serverGroupsByRegion, moniker)
       if (!serverGroups) {
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       Map<String, Boolean> seenServerGroup = serverGroupsByRegion.values().flatten().collectEntries { [(it): false] }
@@ -139,7 +139,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
             }
           }
           newContext.currentInstanceCount = serverGroup.instances?.size() ?: 0
-          return new TaskResult(ExecutionStatus.RUNNING, newContext)
+          return TaskResult.builder(ExecutionStatus.RUNNING).context(newContext).build()
         }
       }
 
@@ -156,24 +156,24 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
             throw e
           }
           log.info "Waiting for server group to show up, ignoring error: $e.message"
-          return new TaskResult(ExecutionStatus.RUNNING)
+          return TaskResult.ofStatus(ExecutionStatus.RUNNING)
         } else {
           throw e
         }
       }
 
       if (seenServerGroup.values().contains(false)) {
-        new TaskResult(ExecutionStatus.RUNNING)
+        TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else {
-        new TaskResult(ExecutionStatus.SUCCEEDED)
+        TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       }
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
       if (e.response?.status == 404) {
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else if (e.response?.status >= 500) {
         log.error("Unexpected retrofit error (${retrofitErrorResponse})")
-        return new TaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([lastRetrofitException: retrofitErrorResponse]).build()
       }
 
       throw e

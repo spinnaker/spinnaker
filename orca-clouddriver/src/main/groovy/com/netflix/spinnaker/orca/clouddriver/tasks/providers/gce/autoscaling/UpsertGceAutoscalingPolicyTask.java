@@ -93,6 +93,6 @@ public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTa
       .first();
     stageOutputs.put("kato.last.task.id", taskId);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build();
   }
 }

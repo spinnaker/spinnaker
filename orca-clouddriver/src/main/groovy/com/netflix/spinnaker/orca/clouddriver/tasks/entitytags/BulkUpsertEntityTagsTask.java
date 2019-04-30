@@ -46,10 +46,10 @@ public class BulkUpsertEntityTagsTask implements RetryableTask {
       }})
     ).toBlocking().first();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {{
       put("notification.type", "bulkupsertentitytags");
       put("kato.last.task.id", taskId);
-    }});
+    }}).build();
   }
 
   @Override

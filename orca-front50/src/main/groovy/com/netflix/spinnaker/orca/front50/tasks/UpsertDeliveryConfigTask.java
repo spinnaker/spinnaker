@@ -55,7 +55,7 @@ public class UpsertDeliveryConfigTask implements Task {
     outputs.put("application", deliveryConfig.getApplication());
     outputs.put("deliveryConfig", savedConfig);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
   private boolean configExists(String id) {

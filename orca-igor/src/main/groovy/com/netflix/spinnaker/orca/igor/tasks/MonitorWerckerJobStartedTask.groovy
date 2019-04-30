@@ -41,16 +41,16 @@ class MonitorWerckerJobStartedTask implements OverridableTimeoutRetryableTask {
       Map outputs = [:]
       if ("not_built".equals(build?.result) || build?.number == null) {
         //The build has not yet started, so the job started monitoring task needs to be re-run
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       } else {
         //The build has started, so the job started monitoring task is completed
-        return new TaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([buildNumber: build.number]).build()
       }
 
     } catch (RetrofitError e) {
       if ([503, 500, 404].contains(e.response?.status)) {
         log.warn("Http ${e.response.status} received from `igor`, retrying...")
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       throw e

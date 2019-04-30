@@ -71,6 +71,6 @@ class ResolveQuipVersionTask implements RetryableTask {
       objectMapper)
     String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage(allowMissingPackageInstallation)?.packageVersion
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, [version: version], [version:version])
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([version: version]).outputs([version:version]).build()
   }
 }

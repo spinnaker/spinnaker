@@ -92,7 +92,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
       remainingInstances: remainingInstances,
       version: version
     ]
-    return new TaskResult(remainingInstances ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED, stageOutputs)
+    return TaskResult.builder(remainingInstances ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED).context(stageOutputs).build()
   }
 
   String getAppVersion(InstanceService instanceService, String packageName) {

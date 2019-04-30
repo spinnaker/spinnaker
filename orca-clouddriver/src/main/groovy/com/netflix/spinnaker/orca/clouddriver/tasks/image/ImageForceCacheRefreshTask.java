@@ -49,7 +49,7 @@ public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask i
 //      )
 //    }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED);
+    return TaskResult.SUCCEEDED;
   }
 
   @Override

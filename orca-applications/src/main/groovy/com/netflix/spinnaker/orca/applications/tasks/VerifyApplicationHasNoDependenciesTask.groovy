@@ -61,7 +61,7 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
     } catch (RetrofitError e) {
       if (!e.response) {
         def exception = [operation: stage.tasks[-1].name, reason: e.message]
-        return new TaskResult(ExecutionStatus.TERMINAL, [exception: exception])
+        return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: exception]).build()
       } else if (e.response && e.response.status && e.response.status != 404) {
         def resp = e.response
         def exception = [statusCode: resp.status, operation: stage.tasks[-1].name, url: resp.url, reason: resp.reason]
@@ -70,22 +70,22 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
         } catch (ignored) {
         }
 
-        return new TaskResult(ExecutionStatus.TERMINAL, [exception: exception])
+        return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: exception]).build()
       }
     }
 
     if (!existingDependencyTypes) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED)
+      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     }
 
-    return new TaskResult(ExecutionStatus.TERMINAL, [exception: [
+    return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: [
         details: [
             error: "Application has outstanding dependencies",
             errors: existingDependencyTypes.collect {
               "Application is associated with one or more ${it}" as String
             }
         ]
-    ]])
+    ]]).build()
   }
 
   protected Map getOortResult(String applicationName) {

@@ -122,7 +122,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
 
     if (stillRemaining) {
       log.info "Pipeline ${stage.execution?.id} still has ${stillRemaining.collect { it.region + "->" + it.name }}"
-      return new TaskResult(ExecutionStatus.RUNNING, [remainingDeployServerGroups: stillRemaining])
+      return TaskResult.builder(ExecutionStatus.RUNNING).context([remainingDeployServerGroups: stillRemaining]).build()
     }
 
     log.info "Pipeline ${stage.execution?.id} no server groups remain"

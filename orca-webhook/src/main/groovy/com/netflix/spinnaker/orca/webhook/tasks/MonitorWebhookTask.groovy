@@ -83,7 +83,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     } catch (IllegalArgumentException e) {
       if (e.cause instanceof UnknownHostException) {
         log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${statusEndpoint}, will retry.", e)
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       throw e
@@ -91,7 +91,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       def statusCode = e.getStatusCode()
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
         log.warn("error getting webhook status from ${statusEndpoint}, will retry", e)
-        return new TaskResult(ExecutionStatus.RUNNING)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       throw e
@@ -114,11 +114,11 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       result = JsonPath.read(response.body, statusJsonPath)
     } catch (PathNotFoundException e) {
       responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "status", statusJsonPath)]
-      return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
     }
     if (!(result instanceof String || result instanceof Number || result instanceof Boolean)) {
       responsePayload.webhook.monitor << [error: "The json path '${statusJsonPath}' did not resolve to a single value", resolvedValue: result]
-      return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
     }
 
     if (progressJsonPath) {
@@ -127,11 +127,11 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         progress = JsonPath.read(response.body, progressJsonPath)
       } catch (PathNotFoundException e) {
         responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "progress", statusJsonPath)]
-        return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
+        return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
       }
       if (!(progress instanceof String)) {
         responsePayload.webhook.monitor << [error: "The json path '${progressJsonPath}' did not resolve to a String value", resolvedValue: progress]
-        return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
+        return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
       }
       if (progress) {
         responsePayload << [progressMessage: progress] // TODO: deprecated
@@ -145,12 +145,12 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       def status = result == 100 ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
       responsePayload << [percentComplete: result] // TODO: deprecated
       responsePayload.webhook.monitor << [percentComplete: result]
-      return new TaskResult(status, responsePayload)
+      return TaskResult.builder(status).context(responsePayload).build()
     } else if (statusMap.containsKey(result.toString().toUpperCase())) {
-      return new TaskResult(statusMap[result.toString().toUpperCase()], responsePayload)
+      return TaskResult.builder(statusMap[result.toString().toUpperCase()]).context(responsePayload).build()
     }
 
-    return new TaskResult(ExecutionStatus.RUNNING, response ? responsePayload : [:])
+    return TaskResult.builder(ExecutionStatus.RUNNING).context(response ? responsePayload : [:]).build()
   }
 
   private static Map<String, ExecutionStatus> createStatusMap(String successStatuses, String canceledStatuses, String terminalStatuses) {

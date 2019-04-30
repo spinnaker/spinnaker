@@ -54,7 +54,7 @@ class MonitorKayentaCanaryTask(
 
       return if (canaryScore <= context.scoreThresholds.marginal) {
         val resultStatus = if (stage.context["continuePipeline"] == true) FAILED_CONTINUE else TERMINAL
-        TaskResult(resultStatus, mapOf(
+        TaskResult.builder(resultStatus).context(mapOf(
           "canaryPipelineStatus" to SUCCEEDED,
           "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
           "lastUpdatedIso" to canaryResults.endTimeIso,
@@ -62,16 +62,16 @@ class MonitorKayentaCanaryTask(
           "canaryScore" to canaryScore,
           "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
           "warnings" to warnings
-        ))
+        )).build()
       } else {
-        TaskResult(SUCCEEDED, mapOf(
+        TaskResult.builder(SUCCEEDED).context(mapOf(
           "canaryPipelineStatus" to SUCCEEDED,
           "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
           "lastUpdatedIso" to canaryResults.endTimeIso,
           "durationString" to canaryResults.result.canaryDuration.toString(),
           "canaryScore" to canaryScore,
           "warnings" to warnings
-        ))
+        )).build()
       }
     }
 
@@ -85,10 +85,10 @@ class MonitorKayentaCanaryTask(
       }
 
       // Indicates a failure of some sort.
-      return TaskResult(TERMINAL, stageOutputs)
+      return TaskResult.builder(TERMINAL).context(stageOutputs).build()
     }
 
-    return TaskResult(RUNNING, mapOf("canaryPipelineStatus" to canaryResults.executionStatus))
+    return TaskResult.builder(RUNNING).context(mapOf("canaryPipelineStatus" to canaryResults.executionStatus)).build()
   }
 
   fun getResultWarnings(context: MonitorKayentaCanaryContext, canaryResults: CanaryResults): List<String> {

@@ -46,7 +46,7 @@ class RestoreSnapshotTask extends AbstractCloudProviderAwareTask implements Task
       "restore.snapshot"    : stage.context.snapshotTimestamp,
       "restore.account.name": account
     ]
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
 }

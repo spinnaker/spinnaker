@@ -42,11 +42,11 @@ class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task
                      .toBlocking()
                      .first()
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"           : "rebootinstances",
       "reboot.account.name"         : account,
       "kato.last.task.id"           : taskId,
       interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["Discovery"])
-    ])
+    ]).build()
   }
 }

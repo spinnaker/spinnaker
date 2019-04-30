@@ -93,7 +93,7 @@ class RetryableIgorTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.tryExecute(jobRequest) >> new TaskResult(ExecutionStatus.TERMINAL )
+    1 * task.tryExecute(jobRequest) >> TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     jobRequest.getConsecutiveErrors() >> 0
     result.status == ExecutionStatus.TERMINAL
   }

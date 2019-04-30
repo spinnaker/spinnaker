@@ -72,16 +72,15 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
           kato.requestOperations(cloudProvider, result.operations).toBlocking().first(),
         10, 5, false);
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, ImmutableMap.<String, Object>builder()
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ImmutableMap.<String, Object>builder()
         .put("notification.type", "upsertimagetags")
         .put("kato.last.task.id", taskId)
         .putAll(result.extraOutput)
-        .build()
-      );
+        .build()).build();
     } catch (ImageTagger.ImageNotFound e) {
       if (e.shouldRetry) {
         log.error(String.format("Retrying... (reason: %s, executionId: %s, stageId: %s)", e.getMessage(), stage.getExecution().getId(), stage.getId()));
-        return new TaskResult(ExecutionStatus.RUNNING);
+        return TaskResult.RUNNING;
       }
 
       throw e;

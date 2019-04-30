@@ -47,10 +47,10 @@ public class UpsertEntityTagsTask extends AbstractCloudProviderAwareTask impleme
       }})
     ).toBlocking().first();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {{
       put("notification.type", "upsertentitytags");
       put("kato.last.task.id", taskId);
-    }});
+    }}).build();
   }
 
   @Override

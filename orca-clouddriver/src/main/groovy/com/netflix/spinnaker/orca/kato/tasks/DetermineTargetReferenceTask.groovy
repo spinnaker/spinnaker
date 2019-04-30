@@ -33,8 +33,8 @@ class DetermineTargetReferenceTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       targetReferences: targetReferenceSupport.getTargetAsgReferences(stage)
-    ])
+    ]).build()
   }
 }

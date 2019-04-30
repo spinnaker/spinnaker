@@ -77,6 +77,6 @@ class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProvider
       ctx['kato.last.task.id'] = taskId
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ctx).build()
   }
 }

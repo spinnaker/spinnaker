@@ -72,6 +72,6 @@ class CaptureSourceServerGroupCapacityTask implements Task {
       }
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build()
   }
 }

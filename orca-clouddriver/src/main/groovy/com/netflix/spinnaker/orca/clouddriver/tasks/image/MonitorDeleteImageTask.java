@@ -74,10 +74,10 @@ public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask imple
 
     outputs.put("delete.image.ids", deleteResult);
     if (deleteResult.containsAll(deleteImageRequest.getImageIds())) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
     }
 
-    return new TaskResult(ExecutionStatus.RUNNING, outputs);
+    return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build();
   }
 
   @Override

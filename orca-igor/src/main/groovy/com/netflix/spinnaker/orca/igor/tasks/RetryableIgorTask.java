@@ -22,14 +22,13 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import retrofit.RetrofitError;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -55,7 +54,7 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition> impl
       return resetErrorCount(result);
     } catch (RetrofitError e) {
       if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(e)) {
-        return new TaskResult(ExecutionStatus.RUNNING, errorContext(errors + 1));
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(errorContext(errors + 1)).build();
       }
       throw e;
     }
@@ -70,7 +69,7 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition> impl
       .putAll(result.getContext())
       .put("consecutiveErrors", 0)
       .build();
-    return new TaskResult(result.getStatus(), newContext, result.getOutputs());
+    return TaskResult.builder(result.getStatus()).context(newContext).outputs(result.getOutputs()).build();
   }
 
   private Map<String, Integer> errorContext(int errors) {

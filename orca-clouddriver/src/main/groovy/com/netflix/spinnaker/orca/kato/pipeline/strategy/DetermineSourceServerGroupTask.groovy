@@ -78,7 +78,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
         // to avoid later stages trying to dynamically resolve the source and actually get the newly deployed server group
         stageOutputs.source = [:]
       }
-      return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build()
     } catch (ex) {
       log.warn("${getClass().simpleName} failed with $ex.message on attempt ${stage.context.attempt ?: 1}")
       lastException = ex
@@ -103,14 +103,14 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       if (!stage.context.capacity) {
         throw new IllegalStateException("Could not find source server group to copy capacity from, and no capacity specified.")
       }
-      return new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ctx).build()
     }
 
     if (ctx.consecutiveNotFound >= MIN_CONSECUTIVE_404 && useSourceCapacity(stage, null) || ctx.attempt > MAX_ATTEMPTS) {
       throw new IllegalStateException(lastException.getMessage(), lastException)
     }
 
-    return new TaskResult(ExecutionStatus.RUNNING, ctx)
+    return TaskResult.builder(ExecutionStatus.RUNNING).context(ctx).build()
   }
 
   Boolean useSourceCapacity(Stage stage, StageData.Source source) {

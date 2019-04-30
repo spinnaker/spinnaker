@@ -47,10 +47,8 @@ class DeleteIntentTask
 
     val outputs = mapOf("intent.id" to intentId)
 
-    return TaskResult(
-      if (response.status == HttpStatus.NO_CONTENT.value()) ExecutionStatus.SUCCEEDED else ExecutionStatus.TERMINAL,
-      outputs
-    )
+    val executionStatus = if (response.status == HttpStatus.NO_CONTENT.value()) ExecutionStatus.SUCCEEDED else ExecutionStatus.TERMINAL
+    return TaskResult.builder(executionStatus).context(outputs).build()
   }
 
   override fun getBackoffPeriod() = TimeUnit.SECONDS.toMillis(15)

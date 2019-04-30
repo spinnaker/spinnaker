@@ -51,7 +51,7 @@ public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAw
     String region = stage.mapTo("/service.region", String.class);
     String serviceInstanceName = stage.mapTo("/service.instance.name", String.class);
 
-    return new TaskResult(oortStatusToTaskStatus(oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
+    return TaskResult.ofStatus(oortStatusToTaskStatus(oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
   }
 
   abstract protected ExecutionStatus oortStatusToTaskStatus(Map m);

@@ -74,7 +74,7 @@ public class DeleteImageTask extends AbstractCloudProviderAwareTask implements R
     outputs.put("delete.region", deleteImageRequest.getRegion());
     outputs.put("delete.account.name", deleteImageRequest.getCredentials());
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
   private void validateInputs(DeleteImageStage.DeleteImageRequest createIssueRequest) {

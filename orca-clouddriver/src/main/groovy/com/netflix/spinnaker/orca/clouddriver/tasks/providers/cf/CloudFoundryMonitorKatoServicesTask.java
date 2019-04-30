@@ -107,7 +107,7 @@ public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAw
     katoTasks.add(katoTaskMapBuilder.build());
     builder.put("kato.tasks", katoTasks);
 
-    return new TaskResult(status, builder.build());
+    return TaskResult.builder(status).context(builder.build()).build();
   }
 
   private static ExecutionStatus katoStatusToTaskStatus(Task katoTask) {

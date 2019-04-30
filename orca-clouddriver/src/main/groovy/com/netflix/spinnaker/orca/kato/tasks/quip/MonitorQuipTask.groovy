@@ -41,7 +41,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
    */
   @Override
   TaskResult execute(Stage stage) {
-    def result = new TaskResult(ExecutionStatus.SUCCEEDED)
+    def result = TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
 
     //we skipped instances that were up to date
     if (!stage.context.instances) {
@@ -64,12 +64,12 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
         } else if(status == "Failed") {
           throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         } else if(status == "Running") {
-          result = new TaskResult(ExecutionStatus.RUNNING)
+          result = TaskResult.ofStatus(ExecutionStatus.RUNNING)
         } else {
           throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         }
       } catch(RetrofitError e) {
-        result = new TaskResult(ExecutionStatus.RUNNING)
+        result = TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
     }
     return result

@@ -52,7 +52,7 @@ class DetermineTerminationCandidatesTask implements Task {
     }
     int totalRelaunches = getNumberOfRelaunches(stage.context.termination, terminationInstancePool.size())
     def terminationInstanceIds = terminationInstancePool.take(totalRelaunches)
-    new TaskResult(ExecutionStatus.SUCCEEDED, [terminationInstanceIds: terminationInstanceIds, knownInstanceIds: knownInstanceIds, skipRemainingWait: true, waitTime: stage.context.termination?.waitTime ?: 0 ])
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([terminationInstanceIds: terminationInstanceIds, knownInstanceIds: knownInstanceIds, skipRemainingWait: true, waitTime: stage.context.termination?.waitTime ?: 0 ]).build()
   }
 
   int getNumberOfRelaunches(Map termination, int totalAsgSize) {

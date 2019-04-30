@@ -43,7 +43,7 @@ public class MonitorGremlinAttackTask implements OverridableTimeoutRetryableTask
 
     for (final AttackStatus status : statuses) {
       if (status.getEndTime() == null) {
-        return new TaskResult(ExecutionStatus.RUNNING, ctx);
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(ctx).build();
       }
       if (isFailure(status.getStageLifecycle())) {
         foundFailedAttack = true;
@@ -55,7 +55,7 @@ public class MonitorGremlinAttackTask implements OverridableTimeoutRetryableTask
     if (foundFailedAttack) {
       throw new RuntimeException("Gremlin run failed (" + failureType + ") with output : " + failureOutput);
     } else {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, ctx);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ctx).build();
     }
   }
 

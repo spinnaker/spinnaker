@@ -77,7 +77,7 @@ class MonitorBakeTaskSpec extends Specification {
       )
     }
     task.createBakeTask = Mock(CreateBakeTask) {
-      1 * execute(_) >> { return new TaskResult(ExecutionStatus.SUCCEEDED, [stage: 1], [global: 2]) }
+      1 * execute(_) >> { return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([stage: 1]).outputs([global: 2]).build() }
     }
 
     when:

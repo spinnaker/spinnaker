@@ -84,9 +84,9 @@ abstract class AbstractScalingProcessTask implements Task {
       stageOutputs."kato.last.task.id" = taskId
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).outputs([
       ("scalingProcesses.${asgName}" as String): stageContext.processes
-    ])
+    ]).build()
   }
 
   static class StageData {

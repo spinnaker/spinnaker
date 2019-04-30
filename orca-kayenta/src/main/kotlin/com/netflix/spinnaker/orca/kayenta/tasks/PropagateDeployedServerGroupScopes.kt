@@ -47,9 +47,9 @@ class PropagateDeployedServerGroupScopes : Task {
       scope
     }
 
-    return TaskResult(ExecutionStatus.SUCCEEDED, emptyMap<String, Any>(), mapOf(
-      "deployedServerGroups" to scopes
-    ))
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+      .outputs(mapOf("deployedServerGroups" to scopes))
+      .build()
   }
 }
 

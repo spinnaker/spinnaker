@@ -47,7 +47,7 @@ public class ClouddriverClearAltTablespaceTask implements Task {
         result.getOrDefault("tables", emptyList())
       );
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, result);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(result).build();
     } catch (RetrofitError e) {
       Map<String, Object> output = new HashMap<>();
       List<String> errors = new ArrayList<>();
@@ -60,7 +60,7 @@ public class ClouddriverClearAltTablespaceTask implements Task {
         errors.add(e.getMessage());
       }
       output.put("errors", errors);
-      return new TaskResult(ExecutionStatus.TERMINAL, output);
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(output).build();
     }
   }
 }

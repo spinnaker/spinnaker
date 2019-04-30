@@ -56,6 +56,6 @@ public abstract class AbstractCloudFoundryServiceTask implements CloudProviderAw
       .put("service.region",  Optional.ofNullable(stage.getContext().get("region")).orElse(""))
       .put("service.account", account)
       .build();
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 }

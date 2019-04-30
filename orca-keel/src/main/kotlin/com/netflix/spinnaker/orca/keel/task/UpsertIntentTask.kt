@@ -78,10 +78,8 @@ class UpsertIntentTask
       throw e
     }
 
-    return TaskResult(
-      if (response.status == HttpStatus.ACCEPTED.value()) ExecutionStatus.SUCCEEDED else ExecutionStatus.TERMINAL,
-      outputs
-    )
+    val executionStatus = if (response.status == HttpStatus.ACCEPTED.value()) ExecutionStatus.SUCCEEDED else ExecutionStatus.TERMINAL
+    return TaskResult.builder(executionStatus).context(outputs).build()
   }
 
   override fun getBackoffPeriod() =  TimeUnit.SECONDS.toMillis(15)

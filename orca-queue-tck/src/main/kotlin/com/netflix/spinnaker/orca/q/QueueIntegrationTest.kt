@@ -142,7 +142,7 @@ class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(any())) doReturn TaskResult(RUNNING) doReturn TaskResult.SUCCEEDED
+    whenever(dummyTask.execute(any())) doReturn TaskResult.RUNNING doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
 
@@ -264,7 +264,7 @@ class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.execute(any())) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(any())) doReturn TaskResult.ofStatus(TERMINAL)
 
     context.runToCompletion(pipeline, runner::start, repository)
 
@@ -304,7 +304,7 @@ class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -352,7 +352,7 @@ class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -407,7 +407,7 @@ class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId == "2a1" })) doReturn TaskResult.ofStatus(TERMINAL)
     whenever(dummyTask.execute(argThat { refId != "2a1" })) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
@@ -445,7 +445,7 @@ class QueueIntegrationTest {
     repository.store(childPipeline)
     repository.store(parentPipeline)
 
-    whenever(dummyTask.execute(argThat { refId == "1" })) doReturn TaskResult(CANCELED)
+    whenever(dummyTask.execute(argThat { refId == "1" })) doReturn TaskResult.ofStatus(CANCELED)
     context.runParentToCompletion(parentPipeline, childPipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, parentPipeline.id).apply {
@@ -481,7 +481,7 @@ class QueueIntegrationTest {
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.execute(argThat { refId == "2" })) doReturn TaskResult(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId == "2" })) doReturn TaskResult.ofStatus(TERMINAL)
 
     context.runToCompletion(pipeline, runner::start, repository)
 
@@ -602,7 +602,7 @@ class QueueIntegrationTest {
     repository.store(pipeline)
 
     whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
+    whenever(dummyTask.execute(any())) doReturn TaskResult.builder(SUCCEEDED).context(mapOf("output" to "foo")).build()
 
     context.runToCompletion(pipeline, runner::start, repository)
 
@@ -695,7 +695,7 @@ class QueueIntegrationTest {
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as Stage
       if (stage.refId == "1") {
-        TaskResult(SUCCEEDED, emptyMap<String, Any?>(), mapOf("foo" to false))
+        TaskResult.builder(SUCCEEDED).outputs(mapOf("foo" to false)).build()
       } else {
         TaskResult.SUCCEEDED
       }
@@ -752,7 +752,7 @@ class QueueIntegrationTest {
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as Stage
       if (stage.refId == "1") {
-        TaskResult(SUCCEEDED, emptyMap<String, Any?>(), mapOf("foo" to false))
+        TaskResult.builder(SUCCEEDED).outputs(mapOf("foo" to false)).build()
       } else {
         TaskResult.SUCCEEDED
       }
@@ -789,7 +789,7 @@ class QueueIntegrationTest {
     whenever(dummyTask.execute(any())) doAnswer {
       val stage = it.arguments.first() as Stage
       if (stage.refId == "1") {
-        TaskResult(TERMINAL)
+        TaskResult.ofStatus(TERMINAL)
       } else {
         TaskResult.SUCCEEDED
       }

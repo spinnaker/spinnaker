@@ -75,10 +75,10 @@ public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTe
     outputs.put("pipelineTemplate.id", pipelineTemplate.getId());
 
     if (response.getStatus() == HttpStatus.OK.value()) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
     }
 
-    return new TaskResult(ExecutionStatus.TERMINAL, outputs);
+    return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build();
   }
 
   @Override

@@ -68,6 +68,6 @@ public class BindProducedArtifactsTask implements Task {
     outputs.put("artifacts", resolvedArtifacts);
     outputs.put("resolvedExpectedArtifacts", expectedArtifacts);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 }

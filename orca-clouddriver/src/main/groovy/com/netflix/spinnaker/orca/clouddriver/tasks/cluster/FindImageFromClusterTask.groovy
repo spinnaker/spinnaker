@@ -183,7 +183,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     if (!locationsWithMissingImageIds.isEmpty()) {
       // signifies that at least one summary was missing image details, let's retry until we see image details
       log.warn("One or more locations are missing image details (locations: ${locationsWithMissingImageIds*.value}, cluster: ${config.cluster}, account: ${account}, executionId: ${stage.execution.id})")
-      return new TaskResult(ExecutionStatus.RUNNING)
+      return TaskResult.ofStatus(ExecutionStatus.RUNNING)
     }
 
     if (missingLocations) {
@@ -292,12 +292,12 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       return artifact
     }.flatten()
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, [
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       amiDetails: deploymentDetails,
       artifacts: artifacts
-    ], [
+    ]).outputs([
       deploymentDetails: deploymentDetails
-    ])
+    ]).build()
   }
 
   private void resolveFromBaseImageName(

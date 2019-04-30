@@ -28,9 +28,9 @@ public class CheckForRemainingPipelinesTask implements Task {
   public TaskResult execute(Stage stage) {
     final SavePipelinesData savePipelines = stage.mapTo(SavePipelinesData.class);
     if (savePipelines.getPipelinesToSave() == null || savePipelines.getPipelinesToSave().isEmpty()) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
-    return new TaskResult(ExecutionStatus.REDIRECT);
+    return TaskResult.ofStatus(ExecutionStatus.REDIRECT);
   }
 
 }

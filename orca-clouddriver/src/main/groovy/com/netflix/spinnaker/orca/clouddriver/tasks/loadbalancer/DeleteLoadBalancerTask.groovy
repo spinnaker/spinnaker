@@ -48,6 +48,6 @@ class DeleteLoadBalancerTask extends AbstractCloudProviderAwareTask implements T
         "delete.regions"     : stage.context.regions?.join(',') ?: [],
         "delete.account.name": account
     ]
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 }

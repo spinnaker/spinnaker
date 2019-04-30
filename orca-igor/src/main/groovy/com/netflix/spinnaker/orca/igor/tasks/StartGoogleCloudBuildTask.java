@@ -40,6 +40,6 @@ public class StartGoogleCloudBuildTask implements Task {
     GoogleCloudBuild result = igorService.createGoogleCloudBuild(stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
     Map<String, Object> context = stage.getContext();
     context.put("buildInfo", result);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, context);
+    return TaskResult.SUCCEEDED;
   }
 }

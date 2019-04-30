@@ -55,6 +55,6 @@ class CompletedBakeTask implements Task {
       results.imageName = bake.imageName ?: bake.amiName
     }
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, results)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(results).build()
   }
 }

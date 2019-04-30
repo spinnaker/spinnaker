@@ -74,7 +74,7 @@ class CopySecurityGroupTask implements Task {
         ]
       }
     ]
-    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
   static class StageData {

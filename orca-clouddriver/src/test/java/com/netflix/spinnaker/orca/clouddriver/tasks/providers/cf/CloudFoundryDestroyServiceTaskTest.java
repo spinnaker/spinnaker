@@ -59,7 +59,7 @@ class CloudFoundryDestroyServiceTaskTest {
       .put("service.region", region)
       .put("service.account", credentials)
       .build();
-    TaskResult expected = new TaskResult(ExecutionStatus.SUCCEEDED, expectedContext);
+    TaskResult expected = TaskResult.builder(ExecutionStatus.SUCCEEDED).context(expectedContext).build();
 
     TaskResult result = task.execute(new Stage(
       new Execution(PIPELINE, "orca"),

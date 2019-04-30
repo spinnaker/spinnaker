@@ -53,7 +53,7 @@ public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition>
     }
     HashMap<String, Object> outputs = new HashMap<>(properties);
     outputs.put("propertyFileContents", properties);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
   @Override

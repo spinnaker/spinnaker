@@ -58,7 +58,7 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
       .put("service.region",  stage.getContext().get("region"))
       .put("service.account", account)
       .build();
-    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
   @NotNull

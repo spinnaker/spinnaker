@@ -127,7 +127,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
           stageData.serverGroup,
           e
         );
-        return new TaskResult(ExecutionStatus.RUNNING);
+        return TaskResult.RUNNING;
       }
     }
 
@@ -147,7 +147,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
         stageData.cloudProvider,
         e
       );
-      return new TaskResult(ExecutionStatus.RUNNING);
+      return TaskResult.RUNNING;
     }
 
     List<ServerGroup> serverGroups = objectMapper.convertValue(
@@ -228,14 +228,10 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       }
     }
 
-    return new TaskResult(
-      ExecutionStatus.SUCCEEDED,
-      Collections.singletonMap("imagesToRestore", imagesToRestore),
-      ImmutableMap.<String, Object>builder()
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("imagesToRestore", imagesToRestore)).outputs(ImmutableMap.<String, Object>builder()
         .put("rollbackTypes", rollbackTypes)
         .put("rollbackContexts", rollbackContexts)
-        .build()
-    );
+        .build()).build();
   }
 
   private Map<String, Object> fetchCluster(String application,

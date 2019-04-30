@@ -125,7 +125,7 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
       .collect(Collectors.toList()));
 
     result.put("deploy.server.groups", regionToServerGroupNames);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, result);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(result).build();
   }
 
   protected Location getLocation(Map operation) {

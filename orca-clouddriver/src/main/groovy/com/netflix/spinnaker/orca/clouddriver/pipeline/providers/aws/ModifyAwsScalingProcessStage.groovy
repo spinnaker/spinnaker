@@ -109,7 +109,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
         isComplete = suspendedProcesses?.intersect(stageData.processes) == stageData.processes
       }
 
-      return isComplete ? new TaskResult(ExecutionStatus.SUCCEEDED) : new TaskResult(ExecutionStatus.RUNNING)
+      return isComplete ? TaskResult.ofStatus(ExecutionStatus.SUCCEEDED) : TaskResult.ofStatus(ExecutionStatus.RUNNING)
     }
 
     @CompileDynamic

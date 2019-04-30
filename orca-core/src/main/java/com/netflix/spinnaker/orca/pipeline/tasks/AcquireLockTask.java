@@ -53,7 +53,7 @@ public class AcquireLockTask implements Task {
     LockContext lock = stage.mapTo("/lock", LockContext.LockContextBuilder.class).withStage(stage).build();
     try {
       lockManager.acquireLock(lock.getLockName(), lock.getLockValue(), lock.getLockHolder(), lockingConfigurationProperties.getTtlSeconds());
-      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("lock", lock));
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("lock", lock)).build();
     } catch (LockFailureException lfe) {
       Map<String, Object> resultContext = new HashMap<>();
       ExceptionHandler.Response exResult = new DefaultExceptionHandler().handle("acquireLock", lfe);
@@ -74,7 +74,7 @@ public class AcquireLockTask implements Task {
       // stages halfway through so the pipeline will proceed for any downstream join
       // points.
       resultContext.put("completeOtherBranchesThenFail", true);
-      return new TaskResult(ExecutionStatus.STOPPED, resultContext);
+      return TaskResult.builder(ExecutionStatus.STOPPED).context(resultContext).build();
     }
   }
 }

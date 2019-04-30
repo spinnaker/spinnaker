@@ -68,14 +68,14 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
 
     if (!context.refreshState.seenPendingCacheUpdates && context.refreshState.attempt >= MAX_CHECK_FOR_PENDING) {
       log.info("Failed to see pending cache updates in {} attempts, short circuiting", MAX_CHECK_FOR_PENDING)
-      return new TaskResult(ExecutionStatus.SUCCEEDED, getOutput(context))
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
     }
 
     checkPending(stage, context)
     if (context.refreshState.allAreComplete) {
-      return new TaskResult(ExecutionStatus.SUCCEEDED, getOutput(context))
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
     }
-    new TaskResult(ExecutionStatus.RUNNING, getOutput(context))
+    TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
   }
 
   @Override
@@ -140,9 +140,9 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
     context.refreshState.hasRequested = true
     if (requestStatuses.every { it } || context.refreshState.refreshIds.isEmpty()) {
       context.refreshState.allAreComplete = true
-      return new TaskResult(ExecutionStatus.SUCCEEDED, getOutput(context))
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(getOutput(context)).build()
     } else {
-      return new TaskResult(ExecutionStatus.RUNNING, getOutput(context))
+      return TaskResult.builder(ExecutionStatus.RUNNING).context(getOutput(context)).build()
     }
   }
 

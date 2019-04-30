@@ -122,6 +122,6 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       }
     }
 
-    new TaskResult(status, outputs, outputs)
+    TaskResult.builder(status).context(outputs).outputs(outputs).build()
   }
 }

@@ -42,7 +42,7 @@ class DestroyJobForceCacheRefreshTask extends AbstractCloudProviderAwareTask imp
 
     def model = [jobName: name, region: region, account: account, evict: true]
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
-    new TaskResult(ExecutionStatus.SUCCEEDED)
+    TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
 }
 

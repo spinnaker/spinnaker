@@ -34,7 +34,7 @@ class DryRunTask(
       stage.execution.also { execution ->
         log.info("Dry run of ${execution.application} ${execution.name} ${execution.id} stage ${stage.type} ${stage.refId} outputting $outputs")
       }
-      TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
+      TaskResult.builder(SUCCEEDED).outputs(outputs).build()
     }
 
   private fun Stage.generateOutputs(): Map<String, Any> =

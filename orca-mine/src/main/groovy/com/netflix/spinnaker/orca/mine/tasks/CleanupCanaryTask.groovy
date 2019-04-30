@@ -47,7 +47,7 @@ class CleanupCanaryTask extends AbstractCloudProviderAwareTask implements Task {
     log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
     String cloudProvider = ops && !ops.empty ? ops.first()?.values().first()?.cloudProvider : getCloudProvider(stage) ?: 'aws'
     def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
-    return new TaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(['kato.last.task.id': taskId]).build()
   }
 
   static class Canary {

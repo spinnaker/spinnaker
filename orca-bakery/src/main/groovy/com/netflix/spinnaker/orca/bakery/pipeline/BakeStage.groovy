@@ -126,7 +126,7 @@ class BakeStage implements StageDefinitionBuilder {
           return deploymentDetails
         }
       ]
-      new TaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
+      TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(globalContext).build()
     }
   }
 

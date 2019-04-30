@@ -44,7 +44,7 @@ public class GetGoogleCloudBuildArtifactsTask extends RetryableIgorTask<GoogleCl
       stageDefinition.getBuildInfo().getId()
     );
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }
 
   @Override

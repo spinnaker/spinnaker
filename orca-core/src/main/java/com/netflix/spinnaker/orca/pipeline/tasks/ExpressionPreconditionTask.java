@@ -65,7 +65,7 @@ public class ExpressionPreconditionTask implements PreconditionTask {
 
     Map<String, Object> context = (Map<String, Object>) stage.getContext().get("context");
     context.put("expressionResult", expression);
-    return new TaskResult(status, singletonMap("context", context));
+    return TaskResult.builder(status).context(singletonMap("context", context)).build();
   }
 
   private static void ensureEvaluationSummaryIncluded(Map<String, Object> result, Stage stage, String expression) {

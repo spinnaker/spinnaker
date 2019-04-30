@@ -60,12 +60,12 @@ class GetCommitsTask implements DiffTask {
     // is igor not configured or have we exceeded configured retries
     if (!buildService || retriesRemaining == 0) {
       log.info("igor is not configured or retries exceeded : buildService : ${buildService}, retries : ${retriesRemaining}")
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: [], getCommitsRetriesRemaining: retriesRemaining]).build()
     }
 
     if (!front50Service) {
       log.warn("Front50 is not configured. Fix this by setting front50.enabled: true")
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: [], getCommitsRetriesRemaining: retriesRemaining]).build()
     }
 
     Map repoInfo = [:]
@@ -90,7 +90,7 @@ class GetCommitsTask implements DiffTask {
 
       if (!ancestorAmi) {
         log.info "could not determine ancestor ami, this may be a new cluster with no ancestor asg"
-        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
       }
 
       //figure out the new asg/ami/commit
@@ -121,26 +121,26 @@ class GetCommitsTask implements DiffTask {
         outputs << [buildInfo: [ancestor: sourceInfo.build, target: targetInfo.build]]
       }
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
     } catch (RetrofitError e) {
       if (e.kind == RetrofitError.Kind.UNEXPECTED) {
         // give up on internal errors
         log.error("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]")
-        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
       } else if (e.response?.status == 404) {
         // just give up on 404
         log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
-        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
       } else { // retry on other status codes
         log.error("retrofit error (${e.message}) for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying")
-        return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
       }
     } catch (Exception f) { // retry on everything else
       log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", f)
-      return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+      return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
     } catch (Throwable g) {
       log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", g)
-      return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+      return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
     }
   }
 

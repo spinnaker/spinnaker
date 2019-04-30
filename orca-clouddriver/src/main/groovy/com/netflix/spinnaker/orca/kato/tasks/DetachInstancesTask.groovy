@@ -61,12 +61,12 @@ class DetachInstancesTask implements RetryableTask, CloudProviderAware {
       .toBlocking()
       .first()
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"     : "detachinstances",
       "kato.last.task.id"     : taskId,
       "terminate.instance.ids": stage.context.instanceIds,
       "terminate.account.name": getCredentials(stage),
       "terminate.region"      : stage.context.region
-    ])
+    ]).build()
   }
 }

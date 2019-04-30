@@ -46,7 +46,7 @@ abstract class AbstractAsgTask implements Task {
     def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
                      .toBlocking()
                      .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"                             : getAsgAction().toLowerCase(),
       "kato.last.task.id"                             : taskId,
       "deploy.account.name"                           : operation.credentials,
@@ -56,7 +56,7 @@ abstract class AbstractAsgTask implements Task {
       "deploy.server.groups"                          : (operation.regions as Collection<String>).collectEntries {
         [(it): [operation.asgName]]
       }
-    ])
+    ]).build()
   }
 
   Map convert(Stage stage) {

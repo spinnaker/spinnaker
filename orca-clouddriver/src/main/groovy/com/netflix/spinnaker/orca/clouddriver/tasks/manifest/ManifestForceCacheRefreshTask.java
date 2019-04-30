@@ -101,7 +101,7 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
       log.info("{}: Force cache refresh never finished processing... assuming the cache is in sync and continuing...", stage.getExecution().getId());
       registry.timer(durationTimerId.withTags("success", "true", "outcome", "autoSucceed"))
         .record(duration, TimeUnit.MILLISECONDS);
-      return new TaskResult(SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
 
     String cloudProvider = getCloudProvider(stage);
@@ -115,10 +115,10 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     if (allManifestsProcessed(stageData)) {
       registry.timer(durationTimerId.withTags("success", "true", "outcome", "complete"))
         .record(duration, TimeUnit.MILLISECONDS);
-      return new TaskResult(SUCCEEDED, toContext(stageData));
+      return TaskResult.builder(SUCCEEDED).context(toContext(stageData)).build();
     }
 
-    return new TaskResult(RUNNING, toContext(stageData));
+    return TaskResult.builder(RUNNING).context(toContext(stageData)).build();
   }
 
   /**

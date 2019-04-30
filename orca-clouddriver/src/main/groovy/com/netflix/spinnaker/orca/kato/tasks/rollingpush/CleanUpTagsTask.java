@@ -94,7 +94,7 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
 
       log.info("found tags to delete {}", tagsToDelete);
       if (tagsToDelete.isEmpty()) {
-        return new TaskResult(SUCCEEDED);
+        return TaskResult.SUCCEEDED;
       }
 
       // All IDs should be the same; use the first one
@@ -105,10 +105,10 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
         operations(entityId, tagsToDelete)
       ).toBlocking().first();
 
-      return new TaskResult(SUCCEEDED, new HashMap<String, Object>() {{
+      return TaskResult.builder(SUCCEEDED).context(new HashMap<String, Object>() {{
         put("notification.type", "deleteentitytags");
         put("kato.last.task.id", taskId);
-      }});
+      }}).build();
     } catch (Exception e) {
       log.error(
         "Failed to clean up tags for stage {} of {} {}",
@@ -117,7 +117,7 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
         stage.getExecution().getId(),
         e
       );
-      return new TaskResult(SUCCEEDED);
+      return TaskResult.SUCCEEDED;
     }
   }
 
