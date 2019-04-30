@@ -20,18 +20,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
-import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.integrations.IntegrationsConfigWrapper;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class GateProfileFactory extends SpringProfileFactory {
 
@@ -50,8 +48,6 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
       DeploymentConfiguration deploymentConfiguration,
       SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    StringResource configTemplate = new StringResource(profile.getBaseContents());
-    Features features = deploymentConfiguration.getFeatures();
 
     Security security = deploymentConfiguration.getSecurity();
     List<String> requiredFiles = backupRequiredFiles(security.getApiSecurity(), deploymentConfiguration.getName());
@@ -59,12 +55,13 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
     requiredFiles.addAll(backupRequiredFiles(security.getAuthz(), deploymentConfiguration.getName()));
     GateConfig gateConfig = getGateConfig(endpoints.getServiceSettings(Type.GATE), security);
     gateConfig.getCors().setAllowedOriginsPattern(security.getApiSecurity());
-    Map<String, Object> bindings = new HashMap<>();
-    bindings.put("features.gremlin", Boolean.toString(features.getGremlin() != null ? features.getGremlin() : false));
+    IntegrationsConfigWrapper integrationsConfig = new IntegrationsConfigWrapper(deploymentConfiguration.getFeatures());
 
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, gateConfig))
-        .appendContents(configTemplate.setBindings(bindings).toString())
-        .setRequiredFiles(requiredFiles);
+            .appendContents(yamlToString(deploymentConfiguration.getName(), profile, integrationsConfig))
+            .appendContents(profile.getBaseContents())
+            .setRequiredFiles(requiredFiles);
+
   }
 
   protected abstract GateConfig getGateConfig(ServiceSettings gate, Security security);
