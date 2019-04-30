@@ -60,4 +60,8 @@ public interface IgorService {
       @Path("buildId") String buildId,
       @Query("status") String status,
       @Body TypedInput build);
+
+  @PUT("/gcb/artifacts/extract/{account}")
+  List<Artifact> extractGoogleCloudBuildArtifacts(
+      @Path("account") String account, @Body TypedInput build);
 }

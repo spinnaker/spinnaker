@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.pubsub.GoogleCloudBuildEventCreator;
 import com.netflix.spinnaker.echo.pubsub.PubsubEventCreator;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
+import com.netflix.spinnaker.echo.pubsub.google.GoogleCloudBuildArtifactExtractor;
 import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class GoogleCloudBuildConfig {
   private final GoogleCloudBuildEventCreator googleCloudBuildEventCreator;
   @Valid private final GoogleCloudBuildProperties googleCloudBuildProperties;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
+  private final GoogleCloudBuildArtifactExtractor.Factory googleCloudBuildArtifactExtractorFactory;
 
   @PostConstruct
   void googleCloudBuildSubscribers() {
@@ -69,11 +71,11 @@ public class GoogleCloudBuildConfig {
                   account.getSubscriptionName(),
                   account.getProject());
 
-              Optional<MessageArtifactTranslator> messageArtifactTranslator =
-                  Optional.ofNullable(subscription.readTemplatePath())
-                      .map(messageArtifactTranslatorFactory::createJinja);
+              MessageArtifactTranslator messageArtifactTranslator =
+                  messageArtifactTranslatorFactory.create(
+                      googleCloudBuildArtifactExtractorFactory.create(account.getName()));
               PubsubEventCreator pubsubEventCreator =
-                  new PubsubEventCreator(messageArtifactTranslator);
+                  new PubsubEventCreator(Optional.of(messageArtifactTranslator));
 
               PubsubMessageHandler pubsubMessageHandler =
                   pubsubMessageHandlerFactory.create(
