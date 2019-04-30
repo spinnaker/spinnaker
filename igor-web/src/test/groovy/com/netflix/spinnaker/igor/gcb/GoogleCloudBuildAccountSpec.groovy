@@ -22,8 +22,10 @@ import com.google.api.services.cloudbuild.v1.model.BuildOptions
 import com.google.api.services.cloudbuild.v1.model.BuildStep
 import com.google.api.services.cloudbuild.v1.model.Operation
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GoogleCloudBuildAccountSpec extends Specification {
+  private static final String TAG = "started-by.spinnaker.io"
   GoogleCloudBuildClient client = Mock(GoogleCloudBuildClient)
   GoogleCloudBuildCache cache = Mock(GoogleCloudBuildCache)
   GoogleCloudBuildParser parser = new GoogleCloudBuildParser()
@@ -32,18 +34,59 @@ class GoogleCloudBuildAccountSpec extends Specification {
 
   static ObjectMapper objectMapper = new ObjectMapper()
 
-  def "createBuild creates a build"() {
+  def "createBuild creates a build and returns the result"() {
     given:
-    def build = getBuild("")
-    def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY"))
+    def inputBuild = getBuild("")
+    def startedBuild = getBuild("").setTags([TAG])
+    def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY")).setTags([TAG])
 
     when:
-    def result = googleCloudBuildAccount.createBuild(build)
+    def result = googleCloudBuildAccount.createBuild(inputBuild)
 
     then:
-    1 * client.createBuild(build) >> createBuildOperation(queuedBuild)
+    1 * client.createBuild(startedBuild) >> createBuildOperation(queuedBuild)
     result == queuedBuild
   }
+
+  @Unroll
+  def "createBuild appends its tag to existing tags"() {
+    given:
+    def inputBuild = getBuild("").setTags(inputTags)
+    def startedBuild = getBuild("").setTags(finalTags)
+    def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY")).setTags(finalTags)
+
+    when:
+    def result = googleCloudBuildAccount.createBuild(inputBuild)
+
+    then:
+    1 * client.createBuild(startedBuild) >> createBuildOperation(queuedBuild)
+
+    where:
+    inputTags         | finalTags
+    null              | [TAG]
+    []                | [TAG]
+    ["my-tag"]        | ["my-tag", TAG]
+    [TAG]             | [TAG]
+    [TAG, "my-tag"]   | [TAG, "my-tag"]
+  }
+
+
+  def "createBuild does not duplicate an existing tag"() {
+    given:
+    def inputBuild = getBuild("").setTags([TAG])
+    def startedBuild = getBuild("").setTags([TAG])
+    def queuedBuild = getBuild()
+      .setStatus("QUEUED")
+      .setOptions(new BuildOptions().setLogging("LEGACY")).setTags([TAG])
+
+    when:
+    def result = googleCloudBuildAccount.createBuild(inputBuild)
+
+    then:
+    1 * client.createBuild(startedBuild) >> createBuildOperation(queuedBuild)
+    result == queuedBuild
+  }
+
 
   def "updateBuild forwards the build to the cache"() {
     given:

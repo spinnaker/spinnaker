@@ -19,7 +19,9 @@ package com.netflix.spinnaker.igor.gcb;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -28,12 +30,15 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class GoogleCloudBuildAccount {
+  private static final String BUILD_TAG = "started-by.spinnaker.io";
+
   private final GoogleCloudBuildClient client;
   private final GoogleCloudBuildCache cache;
   private final GoogleCloudBuildParser googleCloudBuildParser;
   private final GoogleCloudBuildArtifactFetcher googleCloudBuildArtifactFetcher;
 
   public Build createBuild(Build buildRequest) {
+    appendTags(buildRequest);
     Operation operation = client.createBuild(buildRequest);
     Build buildResponse =
         googleCloudBuildParser.convert(operation.getMetadata().get("build"), Build.class);
@@ -42,6 +47,14 @@ public class GoogleCloudBuildAccount {
         buildResponse.getStatus(),
         googleCloudBuildParser.serialize(buildResponse));
     return buildResponse;
+  }
+
+  private void appendTags(Build build) {
+    List<String> tags = Optional.ofNullable(build.getTags()).orElse(new ArrayList<>());
+    if (!tags.contains(BUILD_TAG)) {
+      tags.add(BUILD_TAG);
+    }
+    build.setTags(tags);
   }
 
   public void updateBuild(String buildId, String status, String serializedBuild) {

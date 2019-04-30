@@ -84,12 +84,13 @@ public class GoogleCloudBuildTest {
   @Test
   public void presentAccountTest() throws Exception {
     String buildRequest = objectMapper.writeValueAsString(buildRequest());
+    String taggedBuild = objectMapper.writeValueAsString(taggedBuild());
     String buildResponse = objectMapper.writeValueAsString(buildResponse());
     String operationResponse = objectMapper.writeValueAsString(operationResponse());
     stubCloudBuildService.stubFor(
         WireMock.post(urlEqualTo("/v1/projects/spinnaker-gcb-test/builds"))
             .withHeader("Authorization", equalTo("Bearer test-token"))
-            .withRequestBody(equalToJson(buildRequest))
+            .withRequestBody(equalToJson(taggedBuild))
             .willReturn(aResponse().withStatus(200).withBody(operationResponse)));
 
     mockMvc
@@ -230,8 +231,12 @@ public class GoogleCloudBuildTest {
     return new Build().setSteps(Collections.singletonList(buildStep)).setOptions(buildOptions);
   }
 
+  private Build taggedBuild() {
+    return buildRequest().setTags(Collections.singletonList("started-by.spinnaker.io"));
+  }
+
   private Build buildResponse() {
-    Build build = buildRequest();
+    Build build = taggedBuild();
     build.setId("9f7a39db-b605-437f-aac1-f1ec3b798105");
     build.setStatus("QUEUED");
     build.setProjectId("spinnaker-gcb-test");
