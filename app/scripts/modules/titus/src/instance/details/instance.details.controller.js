@@ -33,6 +33,7 @@ module.exports = angular
     'app',
     'moniker',
     'environment',
+    'overrides',
     function(
       $scope,
       $q,
@@ -44,6 +45,7 @@ module.exports = angular
       app,
       moniker,
       environment,
+      overrides,
     ) {
       // needed for standalone instances
       $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
@@ -122,6 +124,9 @@ module.exports = angular
               $scope.instance.externalIpAddress = $scope.instance.placement.host;
               getBastionAddressForAccount(accountDetails, region);
               $scope.instance.titusUiEndpoint = this.titusUiEndpoint;
+              if (overrides.instanceDetailsLoaded) {
+                overrides.instanceDetailsLoaded();
+              }
             }, autoClose);
         }
 
