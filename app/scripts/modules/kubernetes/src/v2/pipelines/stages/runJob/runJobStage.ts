@@ -27,6 +27,7 @@ module(KUBERNETES_V2_RUN_JOB_STAGE, [])
       component: KubernetesV2RunJobStageConfig,
       executionDetailsSections: [ExecutionDetailsTasks, RunJobExecutionDetails],
       defaultTimeoutMs: 30 * 60 * 1000,
+      producesArtifacts: true,
       validators: [
         {
           type: 'custom',
