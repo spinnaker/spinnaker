@@ -16,37 +16,19 @@
 
 package com.netflix.spinnaker.okhttp;
 
-import static com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor.recordTimer;
-
 import com.netflix.spectator.api.Registry;
 import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import java.io.IOException;
 
-public class OkHttpMetricsInterceptor implements com.squareup.okhttp.Interceptor {
-  private final Registry registry;
-
+public class OkHttpMetricsInterceptor extends MetricsInterceptor
+    implements com.squareup.okhttp.Interceptor {
   public OkHttpMetricsInterceptor(Registry registry) {
-    this.registry = registry;
+    super(registry);
   }
 
   @Override
   public Response intercept(Interceptor.Chain chain) throws IOException {
-    long start = System.nanoTime();
-    boolean wasSuccessful = false;
-    int statusCode = -1;
-
-    Request request = chain.request();
-
-    try {
-      Response response = chain.proceed(request);
-      wasSuccessful = true;
-      statusCode = response.code();
-
-      return response;
-    } finally {
-      recordTimer(registry, request.url(), System.nanoTime() - start, statusCode, wasSuccessful);
-    }
+    return (Response) doIntercept(chain);
   }
 }

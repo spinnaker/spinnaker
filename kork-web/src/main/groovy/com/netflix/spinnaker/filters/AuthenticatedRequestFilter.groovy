@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.filters
 
+
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
@@ -69,9 +70,7 @@ class AuthenticatedRequestFilter implements Filter {
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def spinnakerUser = null
     def spinnakerAccounts = null
-    def spinnakerUserOrigin = null
-    def spinnakerRequestId = null
-    def spinnakerExecutionId = null
+    HashMap<String, String> otherSpinnakerHeaders = new HashMap<>()
 
     try {
       def session = ((HttpServletRequest) request).getSession(false)
@@ -90,17 +89,28 @@ class AuthenticatedRequestFilter implements Filter {
 
     if (extractSpinnakerHeaders) {
       def httpServletRequest = (HttpServletRequest) request
-      spinnakerUser = spinnakerUser ?: httpServletRequest.getHeader(SPINNAKER_USER)
-      spinnakerAccounts = spinnakerAccounts ?: httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
-      spinnakerUserOrigin = httpServletRequest.getHeader(SPINNAKER_USER_ORIGIN)
-      spinnakerRequestId = httpServletRequest.getHeader(SPINNAKER_REQUEST_ID)
-      spinnakerExecutionId = httpServletRequest.getHeader(SPINNAKER_EXECUTION_ID)
+      spinnakerUser = spinnakerUser ?: httpServletRequest.getHeader(Header.USER.getHeader())
+      spinnakerAccounts = spinnakerAccounts ?: httpServletRequest.getHeader(Header.ACCOUNTS.getHeader())
+
+      Enumeration<String> headers = httpServletRequest.getHeaderNames()
+
+      for (header in headers) {
+        if (header.startsWith(Header.XSpinnakerPrefix)) {
+          otherSpinnakerHeaders.put(header, httpServletRequest.getHeader(header))
+        }
+      }
     }
     if (extractSpinnakerUserOriginHeader) {
-      spinnakerUserOrigin = "deck".equalsIgnoreCase(((HttpServletRequest) request).getHeader("X-RateLimit-App")) ? "deck" : "api"
+      otherSpinnakerHeaders.put(
+        Header.USER_ORIGIN.getHeader(),
+        "deck".equalsIgnoreCase(((HttpServletRequest) request).getHeader("X-RateLimit-App")) ? "deck" : "api"
+      )
     }
     if (forceNewSpinnakerRequestId) {
-      spinnakerRequestId = UUID.randomUUID().toString()
+      otherSpinnakerHeaders.put(
+        Header.REQUEST_ID.getHeader(),
+        UUID.randomUUID().toString()
+      )
     }
 
     // only extract from the x509 certificate if `spinnakerUser` has not been supplied as a header
@@ -116,19 +126,13 @@ class AuthenticatedRequestFilter implements Filter {
 
     try {
       if (spinnakerUser) {
-        MDC.put(SPINNAKER_USER, spinnakerUser)
+        MDC.put(Header.USER.getHeader(), spinnakerUser)
       }
       if (spinnakerAccounts) {
-        MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
+        MDC.put(Header.ACCOUNTS.getHeader(), spinnakerAccounts)
       }
-      if (spinnakerUserOrigin) {
-        MDC.put(SPINNAKER_USER_ORIGIN, spinnakerUserOrigin)
-      }
-      if (spinnakerRequestId) {
-        MDC.put(SPINNAKER_REQUEST_ID, spinnakerRequestId)
-      }
-      if (spinnakerExecutionId) {
-        MDC.put(SPINNAKER_EXECUTION_ID, spinnakerExecutionId)
+      for (header in otherSpinnakerHeaders) {
+        MDC.put(header.key, header.value)
       }
 
       chain.doFilter(request, response)

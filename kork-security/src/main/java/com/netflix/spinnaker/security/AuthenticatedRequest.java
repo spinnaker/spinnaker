@@ -29,11 +29,64 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.CollectionUtils;
 
 public class AuthenticatedRequest {
-  public static final String SPINNAKER_USER = "X-SPINNAKER-USER";
-  public static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS";
-  public static final String SPINNAKER_USER_ORIGIN = "X-SPINNAKER-USER-ORIGIN";
-  public static final String SPINNAKER_REQUEST_ID = "X-SPINNAKER-REQUEST-ID";
-  public static final String SPINNAKER_EXECUTION_ID = "X-SPINNAKER-EXECUTION-ID";
+  /**
+   * Known X-SPINNAKER headers, but any X-SPINNAKER-* key in the MDC will be automatically
+   * propagated to the HTTP headers.
+   *
+   * <p>Use makeCustomerHeader() to add customer headers
+   */
+  public enum Header {
+    USER("X-SPINNAKER-USER", true),
+    ACCOUNTS("X-SPINNAKER-ACCOUNTS", true),
+    USER_ORIGIN("X-SPINNAKER-USER-ORIGIN", false),
+    REQUEST_ID("X-SPINNAKER-REQUEST-ID", false),
+    EXECUTION_ID("X-SPINNAKER-EXECUTION-ID", false),
+    APPLICATION("X-SPINNAKER-APPLICATION", false);
+
+    private String header;
+    private boolean isRequired;
+
+    Header(String header, boolean isRequired) {
+      this.header = header;
+      this.isRequired = isRequired;
+    }
+
+    public String getHeader() {
+      return header;
+    }
+
+    public boolean isRequired() {
+      return isRequired;
+    }
+
+    public static String XSpinnakerPrefix = "X-SPINNAKER-";
+    public static String XSpinnakerAnonymous = XSpinnakerPrefix + "ANONYMOUS";
+
+    public static String makeCustomHeader(String header) {
+      return XSpinnakerPrefix + header.toUpperCase();
+    }
+  }
+
+  /**
+   * Allow a given HTTP call to be anonymous. Normally, all requests to Spinnaker services should be
+   * authenticated (i.e. include USER & ACCOUNTS HTTP headers). However, in specific cases it is
+   * necessary to make an anonymous call. If an anonymous call is made that is not wrapped in this
+   * method, it will result in a log message and a metric being logged (indicating a potential bug).
+   * Use this method to avoid the log and metric. To make an anonymous call wrap it in this
+   * function, e.g.
+   *
+   * <p>AuthenticatedRequest.allowAnonymous(() -> { // do HTTP call here });
+   */
+  public static <V> V allowAnonymous(Callable<V> closure) throws Exception {
+    String originalValue = MDC.get(Header.XSpinnakerAnonymous);
+    MDC.put(Header.XSpinnakerAnonymous, "anonymous");
+
+    try {
+      return closure.call();
+    } finally {
+      setOrRemoveMdc(Header.XSpinnakerAnonymous, originalValue);
+    }
+  }
 
   public static <V> Callable<V> propagate(Callable<V> closure) {
     return propagate(closure, true, principal());
@@ -55,43 +108,20 @@ public class AuthenticatedRequest {
     String executionId = getSpinnakerExecutionId().orElse(null);
     String requestId = getSpinnakerRequestId().orElse(null);
     String spinnakerAccounts = getSpinnakerAccounts(principal).orElse(null);
+    String spinnakerApp = getSpinnakerApplication().orElse(null);
 
     return () -> {
-      String originalSpinnakerUser = MDC.get(SPINNAKER_USER);
-      String originalSpinnakerUserOrigin = MDC.get(SPINNAKER_USER_ORIGIN);
-      String originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS);
-      String originalSpinnakerRequestId = MDC.get(SPINNAKER_REQUEST_ID);
-      String originalSpinnakerExecutionId = MDC.get(SPINNAKER_EXECUTION_ID);
+      // Deal with (set/reset) known X-SPINNAKER headers, all others will just stick around
+      Map originalMdc = MDC.getCopyOfContextMap();
+
       try {
-        if (spinnakerUser != null) {
-          MDC.put(SPINNAKER_USER, spinnakerUser);
-        } else {
-          MDC.remove(SPINNAKER_USER);
-        }
+        setOrRemoveMdc(Header.USER.getHeader(), spinnakerUser);
+        setOrRemoveMdc(Header.USER_ORIGIN.getHeader(), userOrigin);
+        setOrRemoveMdc(Header.ACCOUNTS.getHeader(), spinnakerAccounts);
+        setOrRemoveMdc(Header.REQUEST_ID.getHeader(), executionId);
+        setOrRemoveMdc(Header.EXECUTION_ID.getHeader(), requestId);
+        setOrRemoveMdc(Header.APPLICATION.getHeader(), spinnakerApp);
 
-        if (userOrigin != null) {
-          MDC.put(SPINNAKER_USER_ORIGIN, userOrigin);
-        } else {
-          MDC.remove(SPINNAKER_USER_ORIGIN);
-        }
-
-        if (spinnakerAccounts != null) {
-          MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts);
-        } else {
-          MDC.remove(SPINNAKER_ACCOUNTS);
-        }
-
-        if (executionId != null) {
-          MDC.put(SPINNAKER_EXECUTION_ID, executionId);
-        } else {
-          MDC.remove(SPINNAKER_EXECUTION_ID);
-        }
-
-        if (requestId != null) {
-          MDC.put(SPINNAKER_REQUEST_ID, requestId);
-        } else {
-          MDC.remove(SPINNAKER_REQUEST_ID);
-        }
         return closure.call();
       } finally {
         MDC.clear();
@@ -103,38 +133,43 @@ public class AuthenticatedRequest {
         } catch (Exception ignored) {
         }
 
-        if (restoreOriginalContext) {
-          if (originalSpinnakerUser != null) {
-            MDC.put(SPINNAKER_USER, originalSpinnakerUser);
-          }
-
-          if (originalSpinnakerUserOrigin != null) {
-            MDC.put(SPINNAKER_USER_ORIGIN, originalSpinnakerUserOrigin);
-          }
-
-          if (originalSpinnakerAccounts != null) {
-            MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts);
-          }
-
-          if (originalSpinnakerRequestId != null) {
-            MDC.put(SPINNAKER_REQUEST_ID, originalSpinnakerRequestId);
-          }
-
-          if (originalSpinnakerExecutionId != null) {
-            MDC.put(SPINNAKER_EXECUTION_ID, originalSpinnakerExecutionId);
-          }
+        if (restoreOriginalContext && originalMdc != null) {
+          MDC.setContextMap(originalMdc);
         }
       }
     };
   }
 
+  private static void setOrRemoveMdc(String key, String value) {
+    if (value != null) {
+      MDC.put(key, value);
+    } else {
+      MDC.remove(key);
+    }
+  }
+
   public static Map<String, Optional<String>> getAuthenticationHeaders() {
     Map<String, Optional<String>> headers = new HashMap<>();
-    headers.put(SPINNAKER_USER, getSpinnakerUser());
-    headers.put(SPINNAKER_ACCOUNTS, getSpinnakerAccounts());
-    headers.put(SPINNAKER_USER_ORIGIN, getSpinnakerUserOrigin());
-    headers.put(SPINNAKER_REQUEST_ID, getSpinnakerRequestId());
-    headers.put(SPINNAKER_EXECUTION_ID, getSpinnakerExecutionId());
+    headers.put(Header.USER.getHeader(), getSpinnakerUser());
+    headers.put(Header.ACCOUNTS.getHeader(), getSpinnakerAccounts());
+
+    // Copy all headers that look like X-SPINNAKER*
+    Map<String, String> allMdcEntries = MDC.getCopyOfContextMap();
+
+    for (Map.Entry<String, String> mdcEntry : allMdcEntries.entrySet()) {
+      String header = mdcEntry.getKey();
+
+      boolean isSpinnakerHeader =
+          header.toLowerCase().startsWith(Header.XSpinnakerPrefix.toLowerCase());
+      boolean isSpinnakerAuthHeader =
+          Header.USER.getHeader().equalsIgnoreCase(header)
+              || Header.ACCOUNTS.getHeader().equalsIgnoreCase(header);
+
+      if (isSpinnakerHeader && !isSpinnakerAuthHeader) {
+        headers.put(header, Optional.of(mdcEntry.getValue()));
+      }
+    }
+
     return headers;
   }
 
@@ -143,7 +178,7 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerUser(Object principal) {
-    Object spinnakerUser = MDC.get(SPINNAKER_USER);
+    Object spinnakerUser = MDC.get(Header.USER.getHeader());
 
     if (principal != null && principal instanceof User) {
       spinnakerUser = ((User) principal).getUsername();
@@ -157,17 +192,13 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerAccounts(Object principal) {
-    Object spinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS);
+    Object spinnakerAccounts = MDC.get(Header.ACCOUNTS.getHeader());
 
     if (principal instanceof User && !CollectionUtils.isEmpty(((User) principal).allowedAccounts)) {
       spinnakerAccounts = String.join(",", ((User) principal).getAllowedAccounts());
     }
 
     return Optional.ofNullable((String) spinnakerAccounts);
-  }
-
-  public static Optional<String> getSpinnakerUserOrigin() {
-    return Optional.ofNullable(MDC.get(SPINNAKER_USER_ORIGIN));
   }
 
   /**
@@ -182,15 +213,23 @@ public class AuthenticatedRequest {
    */
   public static Optional<String> getSpinnakerRequestId() {
     return Optional.of(
-        Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID))
+        Optional.ofNullable(MDC.get(Header.REQUEST_ID.getHeader()))
             .orElse(
                 getSpinnakerExecutionId()
                     .map(id -> format("%s:%s", id, UUID.randomUUID().toString()))
                     .orElse(UUID.randomUUID().toString())));
   }
 
+  public static Optional<String> getSpinnakerUserOrigin() {
+    return Optional.ofNullable(MDC.get(Header.USER_ORIGIN.getHeader()));
+  }
+
   public static Optional<String> getSpinnakerExecutionId() {
-    return Optional.ofNullable(MDC.get(SPINNAKER_EXECUTION_ID));
+    return Optional.ofNullable(MDC.get(Header.EXECUTION_ID.getHeader()));
+  }
+
+  private static Optional<String> getSpinnakerApplication() {
+    return Optional.ofNullable(MDC.get(Header.APPLICATION.getHeader()));
   }
 
   /** @return the Spring Security principal or null if there is no authority. */
