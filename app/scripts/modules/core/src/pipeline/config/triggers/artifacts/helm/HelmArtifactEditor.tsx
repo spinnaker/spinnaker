@@ -24,6 +24,10 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
       clonedArtifact.type = TYPE;
       props.onChange(clonedArtifact);
     }
+    this.state = {
+      names: [],
+      versions: [],
+    };
     ArtifactService.getArtifactNames(TYPE, this.props.account.name).then(names => {
       this.setState({ names });
     });
