@@ -27,8 +27,16 @@ const helpContents: { [key: string]: string } = {
   'ecs.dockerimage': 'Docker image for your container, such as nginx:latest',
   'ecs.dockerimagecredentials':
     '<p>The AWS Secrets Manager secret that contains private registry credentials.</p><p>Define credentials only for private registries other than Amazon ECR.</p>',
+  'ecs.placementConstraints':
+    '<p>Rules for task placement.  See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html" target="_blank">AWS documentation</a> for more details. </p>',
+  'ecs.placementConstraintType':
+    '<p>To ensure that each task in a particular group is running on a different container instance, use distinctInstance. To restrict the selection to a group of valid candidates, use memberOf. </p>',
+  'ecs.placementConstraintExpression':
+    '<p>A cluster query language expression to apply to memberOf constraints.  See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-query-language.html" target="_blank">AWS documentation</a> for more details.</p>',
   'ecs.placementStrategy':
     '<p>The strategy the container scheduler will be using.  See <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html" target="_blank">AWS documentation</a> for more details. </p><p>You should at least balance across availability zones</p><p>Custom placement strategies have not been implemented yet.</p>',
+  'ecs.platformVersion':
+    '<p>Defaults to the latest platform version.</p>',
   'ecs.capacity.copySourceScalingPoliciesAndActions':
     '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',

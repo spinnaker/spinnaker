@@ -63,7 +63,22 @@
 
   <div class="form-group">
     <div class="col-md-5 sm-label-right">
-      <b>Placement strategy</b> <help-field key="ecs.placementStrategy"></help-field>
+      Fargate platform version
+      <help-field key="ecs.platformVersion"></help-field>
+    </div>
+    <div class="col-md-3">
+      <input
+        type="text"
+        class="form-control input-sm"
+        name="platformVersion"
+        ng-model="$ctrl.command.platformVersion"
+      />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      <b>Placement Strategy</b> <help-field key="ecs.placementStrategy"></help-field>
     </div>
     <div class="col-md-7">
       <ui-select ng-model="$ctrl.command.placementStrategyName" class="form-control input-sm">
@@ -76,6 +91,56 @@
       </ui-select>
       <!-- TODO - implement handling of custom placement strategies and constraints -->
     </div>
+  </div>
+
+  <div class="form-group">
+    <div class="sm-label-left">
+      <b>Placement Constraints</b>
+      <help-field key="ecs.placementConstraints"></help-field>
+    </div>
+    <form name="ecsPlacementConstraints">
+      <table class="table table-condensed packed tags">
+        <thead>
+          <tr>
+            <th style="width: 25%">Type <help-field key="ecs.placementConstraintType"></help-field></th>
+            <th style="width: 68%">Expression <help-field key="ecs.placementConstraintExpression"></help-field></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="constraint in $ctrl.command.placementConstraints">
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="constraint.type"
+                ng-options="type for type in ['distinctInstance', 'memberOf']"
+              />
+            </td>
+            <td>
+              <input type="text" class="form-control input-sm no-spel" ng-model="constraint.expression"/>
+            </td>
+            <td>
+              <div class="form-control-static">
+                <a class="btn-link sm-label" ng-click="$ctrl.command.placementConstraints.splice($index, 1)">
+                  <span class="glyphicon glyphicon-trash"></span>
+                  <span class="sr-only">Remove</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">
+              <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.command.placementConstraints.push({})">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+                Add New Placement Constraint
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </form>
   </div>
 
   <div class="form-group">

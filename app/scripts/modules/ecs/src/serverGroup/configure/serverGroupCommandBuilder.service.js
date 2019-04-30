@@ -139,6 +139,7 @@ module.exports = angular
               subnetType: '',
               securityGroups: [],
               healthCheckGracePeriodSeconds: '',
+              placementConstraints: [],
               placementStrategyName: '',
               placementStrategySequence: [],
               ecsClusterName: '',
