@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.model.CIStageDefinition
+import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -26,13 +26,13 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class RetryableIgorTaskSpec extends Specification {
-  CIStageDefinition jobRequest = Stub(CIStageDefinition)
-  Stage stage = Mock(Stage) {
-    mapTo(CIStageDefinition.class) >> jobRequest
-  }
+  RetryableStageDefinition jobRequest = Stub(RetryableStageDefinition)
+  Stage stage = Mock(Stage)
 
   @Subject
-  RetryableIgorTask task = Spy(RetryableIgorTask)
+  RetryableIgorTask task = Spy(RetryableIgorTask) {
+    mapStage(stage) >> jobRequest
+  }
 
   def "should delegate to subclass"() {
     given:
@@ -52,6 +52,17 @@ class RetryableIgorTaskSpec extends Specification {
 
     then:
     1 * task.tryExecute(jobRequest) >> { throw stubRetrofitError(500) }
+    jobRequest.getConsecutiveErrors() >> 0
+    result.status == ExecutionStatus.RUNNING
+    result.context.get("consecutiveErrors") == 1
+  }
+
+  def "should return RUNNING status when a network error is thrown"() {
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * task.tryExecute(jobRequest) >> { throw stubRetrofitNetworkError() }
     jobRequest.getConsecutiveErrors() >> 0
     result.status == ExecutionStatus.RUNNING
     result.context.get("consecutiveErrors") == 1
@@ -100,7 +111,14 @@ class RetryableIgorTaskSpec extends Specification {
 
   def stubRetrofitError(int statusCode) {
     return Stub(RetrofitError) {
+      getKind() >> RetrofitError.Kind.HTTP
       getResponse() >> new Response("", statusCode, "", Collections.emptyList(), null)
+    }
+  }
+
+  def stubRetrofitNetworkError() {
+    return Stub(RetrofitError) {
+      getKind() >> RetrofitError.Kind.NETWORK
     }
   }
 }

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
+import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Slf4j
-public abstract class RetryableIgorTask implements RetryableTask {
+public abstract class RetryableIgorTask<T extends RetryableStageDefinition> implements RetryableTask {
   public long getBackoffPeriod() {
     return TimeUnit.SECONDS.toMillis(5);
   }
@@ -48,22 +48,22 @@ public abstract class RetryableIgorTask implements RetryableTask {
 
   @Override
   public @Nonnull TaskResult execute(@Nonnull Stage stage) {
-    CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
+    T stageDefinition = mapStage(stage);
     int errors = stageDefinition.getConsecutiveErrors();
     try {
       TaskResult result = tryExecute(stageDefinition);
       return resetErrorCount(result);
     } catch (RetrofitError e) {
-      int status = e.getResponse().getStatus();
-      if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(status)) {
-        log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
+      if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(e)) {
         return new TaskResult(ExecutionStatus.RUNNING, errorContext(errors + 1));
       }
       throw e;
     }
   }
 
-  abstract protected @Nonnull TaskResult tryExecute(@Nonnull CIStageDefinition stageDefinition);
+  abstract protected @Nonnull TaskResult tryExecute(@Nonnull T stageDefinition);
+
+  abstract protected @Nonnull T mapStage(@Nonnull Stage stage);
 
   private TaskResult resetErrorCount(TaskResult result) {
     Map<String, Object> newContext = ImmutableMap.<String, Object>builder()
@@ -77,7 +77,17 @@ public abstract class RetryableIgorTask implements RetryableTask {
     return Collections.singletonMap("consecutiveErrors", errors);
   }
 
-  private boolean isRetryable(int statusCode) {
-    return statusCode == 500 || statusCode == 503;
+  private boolean isRetryable(RetrofitError retrofitError) {
+    if (retrofitError.getKind() == RetrofitError.Kind.NETWORK) {
+      log.warn("Failed to communicate with igor, retrying...");
+      return true;
+    }
+
+    int status = retrofitError.getResponse().getStatus();
+    if (status == 500 || status == 503) {
+      log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
+      return true;
+    }
+    return false;
   }
 }

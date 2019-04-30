@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public class CIStageDefinition {
+public class CIStageDefinition implements RetryableStageDefinition {
   private final String master;
   private final String job;
   private final String propertyFile;

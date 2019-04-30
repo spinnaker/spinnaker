@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.BuildService;
 import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +33,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GetBuildPropertiesTask extends RetryableIgorTask {
+public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition> {
   private final BuildService buildService;
 
   @Override
@@ -53,5 +54,10 @@ public class GetBuildPropertiesTask extends RetryableIgorTask {
     HashMap<String, Object> outputs = new HashMap<>(properties);
     outputs.put("propertyFileContents", properties);
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
+  }
+
+  @Override
+  protected @Nonnull CIStageDefinition mapStage(@Nonnull Stage stage) {
+    return stage.mapTo(CIStageDefinition.class);
   }
 }
