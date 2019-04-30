@@ -16,7 +16,7 @@
 
 buildscript {
     ext {
-      korkVersion = "5.0.0"
+      korkVersion = "5.2.0"
       fiatVersion = "1.0.0"
     }
     repositories {

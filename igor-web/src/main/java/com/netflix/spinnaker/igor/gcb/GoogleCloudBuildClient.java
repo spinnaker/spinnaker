@@ -20,6 +20,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.google.api.services.storage.Storage;
+import java.io.IOException;
+import java.io.InputStream;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class GoogleCloudBuildClient {
   private final String projectId;
   private final CloudBuild cloudBuild;
+  private final Storage cloudStorage;
   private final GoogleCloudBuildExecutor executor;
 
   @RequiredArgsConstructor
@@ -41,7 +45,8 @@ public class GoogleCloudBuildClient {
 
     public GoogleCloudBuildClient create(GoogleCredential credential, String projectId) {
       CloudBuild cloudBuild = cloudBuildFactory.getCloudBuild(credential, applicationName);
-      return new GoogleCloudBuildClient(projectId, cloudBuild, executor);
+      Storage cloudStorage = cloudBuildFactory.getCloudStorage(credential, applicationName);
+      return new GoogleCloudBuildClient(projectId, cloudBuild, cloudStorage, executor);
     }
   }
 
@@ -51,5 +56,9 @@ public class GoogleCloudBuildClient {
 
   public Build getBuild(String buildId) {
     return executor.execute(() -> cloudBuild.projects().builds().get(projectId, buildId));
+  }
+
+  public InputStream fetchStorageObject(String bucket, String object) throws IOException {
+    return cloudStorage.objects().get(bucket, object).executeMediaAsInputStream();
   }
 }

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -29,8 +31,8 @@ public class GoogleCloudBuildAccount {
   private final GoogleCloudBuildClient client;
   private final GoogleCloudBuildCache cache;
   private final GoogleCloudBuildParser googleCloudBuildParser;
+  private final GoogleCloudBuildArtifactFetcher googleCloudBuildArtifactFetcher;
 
-  @SuppressWarnings("unchecked")
   public Build createBuild(Build buildRequest) {
     Operation operation = client.createBuild(buildRequest);
     Build buildResponse =
@@ -54,5 +56,14 @@ public class GoogleCloudBuildAccount {
       this.updateBuild(buildId, build.getStatus(), buildString);
     }
     return googleCloudBuildParser.parse(buildString, Build.class);
+  }
+
+  public List<Artifact> getArtifacts(String buildId) {
+    Build build = getBuild(buildId);
+    return googleCloudBuildArtifactFetcher.getArtifacts(build);
+  }
+
+  public List<Artifact> extractArtifacts(Build build) {
+    return googleCloudBuildArtifactFetcher.getArtifacts(build);
   }
 }

@@ -22,6 +22,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuild;
+import com.google.api.services.storage.Storage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,6 +51,18 @@ public class CloudBuildFactory {
     HttpRequestInitializer requestInitializer = getRequestInitializer(credential);
     CloudBuild.Builder builder =
         new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
+            .setApplicationName(applicationName);
+
+    if (overrideRootUrl != null) {
+      builder.setRootUrl(overrideRootUrl);
+    }
+    return builder.build();
+  }
+
+  public Storage getCloudStorage(GoogleCredential credential, String applicationName) {
+    HttpRequestInitializer requestInitializer = getRequestInitializer(credential);
+    Storage.Builder builder =
+        new Storage.Builder(httpTransport, jsonFactory, requestInitializer)
             .setApplicationName(applicationName);
 
     if (overrideRootUrl != null) {

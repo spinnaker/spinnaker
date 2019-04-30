@@ -56,6 +56,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-web"
 
     implementation "com.google.apis:google-api-services-cloudbuild"
+    implementation "com.google.apis:google-api-services-storage"
     implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-artifacts"
     implementation "com.netflix.spinnaker.kork:kork-stackdriver"

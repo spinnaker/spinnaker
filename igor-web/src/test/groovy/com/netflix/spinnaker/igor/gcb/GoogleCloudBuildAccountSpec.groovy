@@ -27,7 +27,8 @@ class GoogleCloudBuildAccountSpec extends Specification {
   GoogleCloudBuildClient client = Mock(GoogleCloudBuildClient)
   GoogleCloudBuildCache cache = Mock(GoogleCloudBuildCache)
   GoogleCloudBuildParser parser = new GoogleCloudBuildParser()
-  GoogleCloudBuildAccount googleCloudBuildAccount = new GoogleCloudBuildAccount(client, cache, parser)
+  GoogleCloudBuildArtifactFetcher artifactFetcher = new GoogleCloudBuildArtifactFetcher(client)
+  GoogleCloudBuildAccount googleCloudBuildAccount = new GoogleCloudBuildAccount(client, cache, parser, artifactFetcher)
 
   static ObjectMapper objectMapper = new ObjectMapper()
 

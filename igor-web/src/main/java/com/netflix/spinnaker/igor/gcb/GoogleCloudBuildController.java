@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.model.Build;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -63,5 +64,20 @@ public class GoogleCloudBuildController {
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
   Build getBuild(@PathVariable String account, @PathVariable String buildId) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getBuild(buildId);
+  }
+
+  @RequestMapping(value = "/builds/{account}/{buildId}/artifacts", method = RequestMethod.GET)
+  List<Artifact> getArtifacts(@PathVariable String account, @PathVariable String buildId) {
+    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getArtifacts(buildId);
+  }
+
+  @RequestMapping(
+      value = "/artifacts/extract/{account}",
+      method = RequestMethod.PUT,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  List<Artifact> extractArtifacts(
+      @PathVariable String account, @RequestBody String serializedBuild) {
+    Build build = googleCloudBuildParser.parse(serializedBuild, Build.class);
+    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).extractArtifacts(build);
   }
 }
