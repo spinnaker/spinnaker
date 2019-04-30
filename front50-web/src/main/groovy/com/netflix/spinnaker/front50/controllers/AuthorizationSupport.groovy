@@ -68,6 +68,6 @@ class AuthorizationSupport {
     return permissionEvaluator.hasPermission(auth,
                                              application,
                                              'APPLICATION',
-                                             'WRITE')
+                                             'EXECUTE')
   }
 }
