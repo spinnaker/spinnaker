@@ -113,7 +113,6 @@ describe('<AccountRegionClusterSelector />', () => {
         cluster = value.cluster;
       },
       component: {
-        cluster: 'app-stack-detailOne',
         credentials: 'account-name-one',
         regions: ['region-one'],
       },
@@ -131,7 +130,6 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
-    expect(component.state().cluster).toBe('app-stack-detailOne');
 
     const accountSelectComponent = component.find('Select[name="credentials"] .Select-control input');
     accountSelectComponent.simulate('mouseDown');
@@ -312,6 +310,54 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(moniker).toEqual(expectedMoniker);
   });
 
+  it('the cluster value is updated in the component when cluster is changed to freeform value', () => {
+    let cluster = '';
+    let moniker: IMoniker = { app: '' };
+    const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
+      accounts: [
+        {
+          accountId: 'account-id-two',
+          name: 'account-name-two',
+          requiredGroupMembership: [],
+          type: 'account-type',
+        },
+        {
+          accountId: 'account-id-one',
+          name: 'account-name-one',
+          requiredGroupMembership: [],
+          type: 'account-type',
+        },
+      ],
+      application,
+      cloudProvider: 'cloud-provider',
+      clusterField: 'newCluster',
+      onComponentUpdate: (value: any) => {
+        cluster = value.newCluster;
+        moniker = value.moniker;
+      },
+      component: {
+        cluster: 'app-stack-detailOne',
+        credentials: 'account-name-one',
+        regions: ['region-one'],
+      },
+    };
+
+    const component = mount<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
+    $scope.$digest();
+
+    const clusterSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
+    clusterSelectComponent.simulate('mouseDown');
+    clusterSelectComponent.simulate('change', { target: { value: 'app-stack-freeform' } });
+    clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
+    $scope.$digest();
+
+    expect(cluster).toBe('app-stack-freeform');
+    expect(moniker).toBeUndefined();
+    expect(component.state().clusters).toContain('app-stack-freeform');
+  });
+
   it('initialize with form names', () => {
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
@@ -337,6 +383,6 @@ describe('<AccountRegionClusterSelector />', () => {
 
     expect(component.find('Select[name="form.credentials"]').length).toBe(1, 'select for account not found');
     expect(component.find('Select[name="form.regions"]').length).toBe(1, 'select for regions not found');
-    expect(component.find('Select[name="form.cluster"]').length).toBe(1, 'select for cluster not found');
+    expect(component.find('StageConfigField [name="form.cluster"]').length).toBe(1, 'select for cluster not found');
   });
 });

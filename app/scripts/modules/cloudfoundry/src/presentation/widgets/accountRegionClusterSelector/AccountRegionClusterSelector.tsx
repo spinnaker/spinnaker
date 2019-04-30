@@ -4,7 +4,7 @@ import { Observable, Subject } from 'rxjs';
 
 import { first, isNil, uniq } from 'lodash';
 
-import Select, { Option } from 'react-select';
+import Select, { Option, Creatable } from 'react-select';
 
 import {
   Application,
@@ -87,6 +87,11 @@ export class AccountRegionClusterSelector extends React.Component<
       .subscribe(() => {
         const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(credentials, regions);
         const clusters = AppListExtractor.getClusters([application], clusterFilter);
+
+        const clusterField = this.props.component[this.state.clusterField];
+        if (clusterField && !clusters.includes(clusterField)) {
+          clusters.push(clusterField);
+        }
         this.setState({ clusters });
       });
   };
@@ -140,6 +145,12 @@ export class AccountRegionClusterSelector extends React.Component<
       // clusters don't contain sequences, so null it out.
       clusterMoniker.sequence = null;
       moniker = clusterMoniker;
+    }
+
+    if (option.className) {
+      const clusters = this.state.clusters;
+      clusters.push(clusterName);
+      this.setState(clusters);
     }
 
     this.props.onComponentUpdate &&
@@ -208,7 +219,7 @@ export class AccountRegionClusterSelector extends React.Component<
           </StageConfigField>
         )}
         <StageConfigField label="Cluster" helpKey={'pipeline.config.findAmi.cluster'}>
-          <Select
+          <Creatable
             name={componentName ? `${componentName}.${clusterField}` : `${clusterField}`}
             options={
               clusters &&
