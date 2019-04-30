@@ -16,44 +16,39 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.IgorService;
-import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MonitorGoogleCloudBuildTask extends RetryableIgorTask<GoogleCloudBuildStageDefinition> implements OverridableTimeoutRetryableTask {
-  @Getter
-  protected long backoffPeriod = 10000;
-  @Getter
-  protected long timeout = TimeUnit.HOURS.toMillis(2);
-
+public class GetGoogleCloudBuildArtifactsTask extends RetryableIgorTask<GoogleCloudBuildStageDefinition> {
   private final IgorService igorService;
 
   @Override
-  @Nonnull
-  public TaskResult tryExecute(@Nonnull GoogleCloudBuildStageDefinition stageDefinition) {
-    GoogleCloudBuild build = igorService.getGoogleCloudBuild(
+  public @Nonnull TaskResult tryExecute(@Nonnull GoogleCloudBuildStageDefinition stageDefinition) {
+    List<Artifact> artifacts = igorService.getGoogleCloudBuildArtifacts(
       stageDefinition.getAccount(),
       stageDefinition.getBuildInfo().getId()
     );
-    return new TaskResult(build.getStatus().getExecutionStatus());
+    Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
   }
 
   @Override
-  @Nonnull
-  protected GoogleCloudBuildStageDefinition mapStage(@Nonnull Stage stage) {
+  public @Nonnull GoogleCloudBuildStageDefinition mapStage(@Nonnull Stage stage) {
     return stage.mapTo(GoogleCloudBuildStageDefinition.class);
   }
 }

@@ -79,4 +79,9 @@ public interface IgorService {
   GoogleCloudBuild getGoogleCloudBuild(
     @Path("account") String account,
     @Path("buildId") String buildId);
+
+  @GET("/gcb/builds/{account}/{buildId}/artifacts")
+  List<Artifact> getGoogleCloudBuildArtifacts(
+    @Path("account") String account,
+    @Path("buildId") String buildId);
 }

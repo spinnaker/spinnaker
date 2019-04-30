@@ -16,30 +16,32 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
-import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
-class MonitorGoogleCloudBuildTaskSpec extends Specification {
+class GetGoogleCloudBuildArtifactsTaskSpec extends Specification {
   def ACCOUNT = "my-account"
-  def BUILD_ID = "0cc67a01-714f-49c7-aaf3-d09b5ec1a18a"
+  def BUILD_ID = "f2526c98-0c20-48ff-9f1f-736503937084"
 
   Execution execution = Mock(Execution)
   IgorService igorService = Mock(IgorService)
 
   @Subject
-  MonitorGoogleCloudBuildTask task = new MonitorGoogleCloudBuildTask(igorService)
+  GetGoogleCloudBuildArtifactsTask task = new GetGoogleCloudBuildArtifactsTask(igorService)
 
-  @Unroll
-  def "task returns #executionStatus when build returns #buildStatus"() {
+  def "fetches artifacts from igor and returns success"() {
     given:
+    def artifacts = [
+      Artifact.builder().reference("abc").build(),
+      Artifact.builder().reference("def").build()
+    ]
     def stage = new Stage(execution, "googleCloudBuild", [
       account: ACCOUNT,
       buildInfo: [
@@ -51,23 +53,10 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getGoogleCloudBuild(ACCOUNT, BUILD_ID) >> GoogleCloudBuild.builder()
-      .id(BUILD_ID)
-      .status(GoogleCloudBuild.Status.valueOf(buildStatus))
-      .build()
+    1 * igorService.getGoogleCloudBuildArtifacts(ACCOUNT, BUILD_ID) >> artifacts
     0 * igorService._
-    result.getStatus() == executionStatus
-
-    where:
-    buildStatus      | executionStatus
-    "STATUS_UNKNOWN" | ExecutionStatus.RUNNING
-    "QUEUED"         | ExecutionStatus.RUNNING
-    "WORKING"        | ExecutionStatus.RUNNING
-    "SUCCESS"        | ExecutionStatus.SUCCEEDED
-    "FAILURE"        | ExecutionStatus.TERMINAL
-    "INTERNAL_ERROR" | ExecutionStatus.TERMINAL
-    "TIMEOUT"        | ExecutionStatus.TERMINAL
-    "CANCELLED"      | ExecutionStatus.TERMINAL
+    result.getStatus() == ExecutionStatus.SUCCEEDED
+    result.getOutputs().get("artifacts") == artifacts
   }
 
   def "task returns RUNNING when communcation with igor fails"() {
@@ -83,7 +72,7 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getGoogleCloudBuild(ACCOUNT, BUILD_ID) >> { throw stubRetrofitError() }
+    1 * igorService.getGoogleCloudBuildArtifacts(ACCOUNT, BUILD_ID) >> { throw stubRetrofitError() }
     0 * igorService._
     result.getStatus() == ExecutionStatus.RUNNING
   }

@@ -20,22 +20,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
-public class GoogleCloudBuildStageDefinition {
+public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition {
   private final String account;
   private final GoogleCloudBuild buildInfo;
   private final Map<String, Object> buildDefinition;
+  private final int consecutiveErrors;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public GoogleCloudBuildStageDefinition(
     @JsonProperty("account") String account,
     @JsonProperty("buildInfo") GoogleCloudBuild build,
-    @JsonProperty("buildDefinition") Map<String, Object> buildDefinition
+    @JsonProperty("buildDefinition") Map<String, Object> buildDefinition,
+    @JsonProperty("consecutiveErrors") Integer consecutiveErrors
   ) {
     this.account = account;
     this.buildInfo = build;
     this.buildDefinition = buildDefinition;
+    this.consecutiveErrors = Optional.ofNullable(consecutiveErrors).orElse(0);
   }
 }
