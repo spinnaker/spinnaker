@@ -19,15 +19,16 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformatio
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CloudFormationForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new CloudFormationForceCacheRefreshTask()
-  def stage = stage()
 
   void "should force cache refresh cloud formations via mort"() {
-    setup:
+    given:
+    def stage = stage()
     task.cacheService = Mock(CloudDriverCacheService)
 
     when:
@@ -35,5 +36,31 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate('aws', CloudFormationForceCacheRefreshTask.REFRESH_TYPE, Collections.emptyMap())
+  }
+
+  @Unroll
+  void "should add scoping data if available"() {
+    given:      
+    task.cacheService = Mock(CloudDriverCacheService)
+    
+    and:
+    def stage = stage()
+    stage.context.put("credentials", credentials)
+    stage.context.put("regions", regions)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.cacheService.forceCacheUpdate('aws', CloudFormationForceCacheRefreshTask.REFRESH_TYPE, expectedData)
+
+    where:
+    credentials   | regions       || expectedData
+    null          | null          || [:]
+    "credentials" | null          || [credentials: "credentials"]
+    null          | ["eu-west-1"] || [region: ["eu-west-1"]]
+    "credentials" | ["eu-west-1"] || [credentials: "credentials", region: ["eu-west-1"]]
+
+
   }
 }
