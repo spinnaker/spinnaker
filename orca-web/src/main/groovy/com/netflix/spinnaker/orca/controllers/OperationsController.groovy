@@ -413,7 +413,7 @@ class OperationsController {
     for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
       it.supports(config, ExecutionPreprocessor.Type.ORCHESTRATION)
     }) {
-      config = preprocessor.process(pipeline)
+      config = preprocessor.process(config)
     }
 
     def json = objectMapper.writeValueAsString(config)
