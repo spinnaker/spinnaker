@@ -62,14 +62,20 @@ class ImageHandler(
       cloudDriver.images("aws", resource.spec.artifactName)
         .await()
         .firstOrNull()
-        ?.let {
-          // TODO: this is pretty crude to say the least
-          val tags = it.tagsByImageId.values.first()!!
-          Image(
-            tags.getValue("base_ami_version")!!,
-            tags.getValue("appversion")!!,
-            it.amis.keys
-          )
+        ?.let { namedImage ->
+          val tags = namedImage
+            .tagsByImageId
+            .values
+            .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
+          if (tags != null) {
+            Image(
+              tags.getValue("base_ami_version")!!,
+              tags.getValue("appversion")!!,
+              namedImage.amis.keys
+            )
+          } else {
+            null
+          }
         }
     }
 
