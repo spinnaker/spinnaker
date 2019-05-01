@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.q.audit
 
+import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.ExecutionLevel
 import com.netflix.spinnaker.orca.q.StageLevel
 import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
-import com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.stereotype.Component
@@ -45,19 +46,30 @@ class ExecutionTrackingMessageHandlerPostProcessor : BeanPostProcessor {
       try {
         when(message) {
           is TaskLevel -> {
-            MDC.put(SPINNAKER_EXECUTION_ID, "${message.executionId}:${message.stageId}:${message.taskId}")
+            MDC.put(
+              AuthenticatedRequest.Header.EXECUTION_ID.header,
+              "${message.executionId}:${message.stageId}:${message.taskId}")
           }
           is StageLevel -> {
-            MDC.put(SPINNAKER_EXECUTION_ID, "${message.executionId}:${message.stageId}")
+            MDC.put(
+              AuthenticatedRequest.Header.EXECUTION_ID.header,
+              "${message.executionId}:${message.stageId}")
           }
           is ExecutionLevel -> {
-            MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+            MDC.put(
+              AuthenticatedRequest.Header.EXECUTION_ID.header,
+              message.executionId)
           }
+        }
+
+        if (message is ApplicationAware) {
+          MDC.put(AuthenticatedRequest.Header.APPLICATION.header, message.application)
         }
 
         delegate.invoke(message)
       } finally {
-        MDC.remove(SPINNAKER_EXECUTION_ID)
+        MDC.remove(AuthenticatedRequest.Header.EXECUTION_ID.header)
+        MDC.remove(AuthenticatedRequest.Header.APPLICATION.header)
       }
     }
   }
