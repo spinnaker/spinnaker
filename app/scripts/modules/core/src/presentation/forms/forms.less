@@ -32,7 +32,6 @@
 .sp-formGroup {
   border: 1px solid var(--color-titanium);
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 2px 0 0 var(--color-titanium);
   max-width: @form-max-width;
   margin-bottom: 16px;
@@ -48,14 +47,19 @@
     display: flex;
   }
 
-  &.groupHeader {
-    background-color: rgba(0, 0, 0, 0.025);
-    border-bottom: 1px dotted var(--color-concrete);
-    padding-bottom: 0;
-    margin-bottom: 7px;
-    padding-top: 8px;
+  .help-contents {
+    font-style: italic;
   }
 }
+
+.groupHeader {
+  background-color: rgba(0, 0, 0, 0.025);
+  border-bottom: 1px dotted var(--color-concrete);
+  padding-bottom: 0;
+  margin-bottom: 7px;
+  padding-top: 8px;
+}
+
 .sp-formItem__left {
   display: flex;
 
@@ -75,7 +79,6 @@
   margin-left: 8px;
   margin-bottom: 4px;
   flex: 1 1 100%;
-  font-weight: 600;
   font-size: 13px;
   font-weight: 700;
 
