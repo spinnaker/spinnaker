@@ -258,6 +258,9 @@ public class Applications {
 
     Map<String, String> environmentVars = applicationEnv == null || applicationEnv.getEnvironmentJson() == null ? emptyMap() : applicationEnv.getEnvironmentJson();
 
+    final CloudFoundryBuildInfo buildInfo = getBuildInfoFromEnvVars(environmentVars);
+    Arrays.asList(BuildEnvVar.values()).forEach(envVar -> environmentVars.remove(envVar.envVarName));
+
     String healthCheckType = null;
     String healthCheckHttpEndpoint = null;
     if (process != null && process.getHealthCheck() != null) {
@@ -296,6 +299,16 @@ public class Applications {
       .instances(instances)
       .state(state)
       .env(environmentVars)
+      .ciBuild(buildInfo)
+      .build();
+  }
+
+  private CloudFoundryBuildInfo getBuildInfoFromEnvVars(Map<String, String> environmentVars) {
+    return CloudFoundryBuildInfo.builder()
+      .jobName(environmentVars.get(BuildEnvVar.JobName.envVarName))
+      .jobNumber(environmentVars.get(BuildEnvVar.JobNumber.envVarName))
+      .jobUrl(environmentVars.get(BuildEnvVar.JobUrl.envVarName))
+      .version(environmentVars.get(BuildEnvVar.Version.envVarName))
       .build();
   }
 

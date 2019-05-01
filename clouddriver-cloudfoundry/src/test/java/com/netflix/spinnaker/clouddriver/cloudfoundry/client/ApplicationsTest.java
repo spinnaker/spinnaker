@@ -331,6 +331,7 @@ class ApplicationsTest {
       .name(serverGroupName)
       .appsManagerUri("some-apps-man-uri/organizations/org-id/spaces/space-guid/applications/server-group-guid")
       .metricsUri("some-metrics-uri/apps/server-group-guid")
+      .ciBuild(CloudFoundryBuildInfo.builder().build())
       .build();
 
     CloudFoundryServerGroup serverGroup = apps.findServerGroupByNameAndSpaceId(serverGroupName, spaceId);
