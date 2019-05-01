@@ -40,6 +40,10 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
   @Unroll
   def "task returns #executionStatus when build returns #buildStatus"() {
     given:
+    def igorResponse = GoogleCloudBuild.builder()
+      .id(BUILD_ID)
+      .status(GoogleCloudBuild.Status.valueOf(buildStatus))
+      .build()
     def stage = new Stage(execution, "googleCloudBuild", [
       account: ACCOUNT,
       buildInfo: [
@@ -51,12 +55,10 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getGoogleCloudBuild(ACCOUNT, BUILD_ID) >> GoogleCloudBuild.builder()
-      .id(BUILD_ID)
-      .status(GoogleCloudBuild.Status.valueOf(buildStatus))
-      .build()
+    1 * igorService.getGoogleCloudBuild(ACCOUNT, BUILD_ID) >>igorResponse
     0 * igorService._
     result.getStatus() == executionStatus
+    result.getContext().buildInfo == igorResponse
 
     where:
     buildStatus      | executionStatus

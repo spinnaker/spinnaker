@@ -28,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -48,7 +50,9 @@ public class MonitorGoogleCloudBuildTask extends RetryableIgorTask<GoogleCloudBu
       stageDefinition.getAccount(),
       stageDefinition.getBuildInfo().getId()
     );
-    return TaskResult.ofStatus(build.getStatus().getExecutionStatus());
+    Map<String, Object> context = new HashMap<>();
+    context.put("buildInfo", build);
+    return TaskResult.builder(build.getStatus().getExecutionStatus()).context(context).build();
   }
 
   @Override

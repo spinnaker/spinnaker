@@ -37,14 +37,16 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
 
   def "starts a build"() {
     given:
+    def igorResponse = GoogleCloudBuild.builder()
+      .id("98edf783-162c-4047-9721-beca8bd2c275")
+      .build()
 
     when:
     def stage = new Stage(execution, "googleCloudBuild", [account: ACCOUNT, buildDefinition: BUILD])
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> GoogleCloudBuild.builder()
-      .id("98edf783-162c-4047-9721-beca8bd2c275")
-      .build();
+    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> igorResponse
+    result.context.buildInfo == igorResponse
   }
 }
