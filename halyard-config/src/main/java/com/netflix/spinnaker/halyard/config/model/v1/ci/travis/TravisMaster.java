@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.ci.travis;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class TravisMaster extends Master {
+public class TravisMaster extends CIAccount {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();

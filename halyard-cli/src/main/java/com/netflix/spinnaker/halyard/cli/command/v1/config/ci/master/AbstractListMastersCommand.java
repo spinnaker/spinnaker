@@ -22,8 +22,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractCiCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import lombok.Getter;
 
 import java.util.List;
@@ -49,12 +49,12 @@ abstract class AbstractListMastersCommand extends AbstractCiCommand {
   @Override
   protected void executeThis() {
     Ci ci = getCi();
-    List<Master> masters = ci.getMasters();
-    if (masters.isEmpty()) {
+    List<CIAccount> account = ci.getMasters();
+    if (account.isEmpty()) {
       AnsiUi.success("No configured masters for " + getCiName() + ".");
     } else {
       AnsiUi.success("Masters for " + getCiName() + ":");
-      masters.forEach(master -> AnsiUi.listItem(master.getName()));
+      account.forEach(master -> AnsiUi.listItem(master.getName()));
     }
   }
 }

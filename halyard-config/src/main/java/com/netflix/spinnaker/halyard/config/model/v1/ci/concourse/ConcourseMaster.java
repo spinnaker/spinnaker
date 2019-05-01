@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ConcourseMaster extends Master {
+public class ConcourseMaster extends CIAccount {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();

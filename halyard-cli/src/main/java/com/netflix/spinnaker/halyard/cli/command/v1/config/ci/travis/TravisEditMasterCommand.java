@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMaster> {
@@ -54,7 +54,7 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
   public Integer numberOfRepositories;
 
   @Override
-  protected Master editMaster(TravisMaster master) {
+  protected CIAccount editMaster(TravisMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
     master.setGithubToken(isSet(githubToken) ? githubToken : master.getGithubToken());
     master.setBaseUrl(isSet(baseUrl) ? baseUrl : master.getBaseUrl());

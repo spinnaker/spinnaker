@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractAddMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class TravisAddMasterCommand extends AbstractAddMasterCommand {
@@ -56,7 +56,7 @@ public class TravisAddMasterCommand extends AbstractAddMasterCommand {
   public Integer numberOfRepositories;
 
   @Override
-  protected Master buildMaster(String masterName) {
+  protected CIAccount buildMaster(String masterName) {
     TravisMaster master = (TravisMaster) new TravisMaster().setName(masterName);
     master.setAddress(address)
       .setBaseUrl(baseUrl)

@@ -42,7 +42,7 @@ public class ValidateService {
   @Autowired
   private ApplicationContext applicationContext;
 
-  ProblemSet validateMatchingFilter(NodeFilter filter) {
+  public ProblemSet validateMatchingFilter(NodeFilter filter) {
     DaemonTaskHandler.newStage("Running validation");
     Halconfig halconfig = parser.getHalconfig();
     ConfigProblemSetBuilder psBuilder = new ConfigProblemSetBuilder(applicationContext);

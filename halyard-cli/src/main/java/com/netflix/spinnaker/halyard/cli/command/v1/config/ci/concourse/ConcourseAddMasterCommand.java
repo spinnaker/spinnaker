@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractAddMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class ConcourseAddMasterCommand extends AbstractAddMasterCommand {
@@ -52,7 +52,7 @@ public class ConcourseAddMasterCommand extends AbstractAddMasterCommand {
 
 
   @Override
-  protected Master buildMaster(String masterName) {
+  protected CIAccount buildMaster(String masterName) {
     ConcourseMaster master = (ConcourseMaster) new ConcourseMaster().setName(masterName);
     master.setUrl(url)
         .setPassword(password)

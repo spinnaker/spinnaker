@@ -186,12 +186,12 @@ public class NodeFilter implements Cloneable {
   }
 
   public NodeFilter withAnyMaster() {
-    matchers.add(Node.thisNodeAcceptor(Master.class));
+    matchers.add(Node.thisNodeAcceptor(CIAccount.class));
     return this;
   }
 
   public NodeFilter setMaster(String name) {
-    matchers.add(Node.namedNodeAcceptor(Master.class, name));
+    matchers.add(Node.namedNodeAcceptor(CIAccount.class, name));
     return this;
   }
 

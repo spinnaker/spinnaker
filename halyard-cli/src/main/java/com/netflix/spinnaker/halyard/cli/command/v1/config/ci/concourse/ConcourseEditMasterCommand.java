@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
 
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class ConcourseEditMasterCommand extends AbstractEditMasterCommand<ConcourseMaster> {
@@ -49,7 +49,7 @@ public class ConcourseEditMasterCommand extends AbstractEditMasterCommand<Concou
   public String password;
 
   @Override
-  protected Master editMaster(ConcourseMaster master) {
+  protected CIAccount editMaster(ConcourseMaster master) {
     master.setUrl(isSet(url) ? url : master.getUrl());
     master.setUsername(isSet(username) ? username : master.getUsername());
     master.setPassword(isSet(password) ? password : master.getPassword());

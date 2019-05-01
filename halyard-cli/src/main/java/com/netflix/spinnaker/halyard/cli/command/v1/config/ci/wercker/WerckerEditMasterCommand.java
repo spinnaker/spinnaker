@@ -17,14 +17,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class WerckerEditMasterCommand extends AbstractEditMasterCommand<WerckerMaster> {
@@ -52,7 +49,7 @@ public class WerckerEditMasterCommand extends AbstractEditMasterCommand<WerckerM
   public String token;
 
   @Override
-  protected Master editMaster(WerckerMaster master) {
+  protected CIAccount editMaster(WerckerMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
     master.setUser(isSet(user) ? user : master.getUser());
     master.setToken(isSet(token) ? token : master.getToken());

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.ci.wercker;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class WerckerMaster extends Master {
+public class WerckerMaster extends CIAccount {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();

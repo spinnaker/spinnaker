@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Ci<T extends Master> extends Node implements Cloneable {
+public abstract class Ci<T extends CIAccount> extends Node implements Cloneable {
   boolean enabled;
   List<T> masters = new ArrayList<>();
 

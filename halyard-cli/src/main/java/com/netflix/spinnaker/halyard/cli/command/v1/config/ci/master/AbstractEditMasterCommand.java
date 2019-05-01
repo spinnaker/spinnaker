@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditMasterCommand<T extends Master> extends AbstractHasMasterCommand {
+public abstract class AbstractEditMasterCommand<T extends CIAccount> extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -77,7 +77,7 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
   )
   private List<String> writePermissions;
 
-  protected abstract Master editMaster(T master);
+  protected abstract CIAccount editMaster(T master);
 
   public String getShortDescription() {
     return "Edit a master for the " + getCiName() + " Continuous Integration service.";
@@ -89,25 +89,25 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
     String ciName = getCiName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Master master = new OperationHandler<Master>()
+    CIAccount account = new OperationHandler<CIAccount>()
         .setOperation(Daemon.getMaster(currentDeployment, ciName, masterName, !noValidate))
         .setFailureMesssage("Failed to get " + masterName + " under " + ciName + ".")
         .get();
 
-    int originalHash = master.hashCode();
+    int originalHash = account.hashCode();
 
-    master = editMaster((T) master);
+    account = editMaster((T) account);
 
-    updatePermissions(master.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
+    updatePermissions(account.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
         writePermissions, addWritePermission, removeWritePermission);
 
-    if (originalHash == master.hashCode()) {
+    if (originalHash == account.hashCode()) {
       AnsiUi.failure("No changes supplied.");
       return;
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setMaster(currentDeployment, ciName, masterName, !noValidate, master))
+        .setOperation(Daemon.setMaster(currentDeployment, ciName, masterName, !noValidate, account))
         .setSuccessMessage("Edited " + masterName + " for " + ciName + ".")
         .setFailureMesssage("Failed to edit " + masterName + " for " + ciName + ".")
         .get();

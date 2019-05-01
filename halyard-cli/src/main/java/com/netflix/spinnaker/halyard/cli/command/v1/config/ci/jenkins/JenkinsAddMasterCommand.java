@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractAddMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
@@ -57,7 +57,7 @@ public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
   public Boolean csrf;
 
   @Override
-  protected Master buildMaster(String masterName) {
+  protected CIAccount buildMaster(String masterName) {
     JenkinsMaster master = (JenkinsMaster) new JenkinsMaster().setName(masterName);
     master.setAddress(address)
         .setPassword(password)

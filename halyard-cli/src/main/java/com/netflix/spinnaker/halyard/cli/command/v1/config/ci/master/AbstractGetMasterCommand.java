@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import lombok.Getter;
 
 @Parameters(separators = "=")
@@ -38,7 +38,7 @@ abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
     String currentDeployment = getCurrentDeployment();
     String masterName = getMasterName();
     String ciName = getCiName();
-    new OperationHandler<Master>()
+    new OperationHandler<CIAccount>()
         .setOperation(Daemon.getMaster(currentDeployment, ciName, masterName, !noValidate))
         .setFailureMesssage("Failed to get " + masterName + " under " + ciName + ".")
         .setFormat(AnsiFormatUtils.Format.STRING)

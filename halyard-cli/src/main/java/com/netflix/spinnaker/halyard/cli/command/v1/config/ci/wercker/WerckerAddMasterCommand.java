@@ -17,14 +17,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractAddMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
 @Parameters(separators = "=")
 public class WerckerAddMasterCommand extends AbstractAddMasterCommand {
@@ -54,7 +51,7 @@ public class WerckerAddMasterCommand extends AbstractAddMasterCommand {
   public String token;
 
   @Override
-  protected Master buildMaster(String masterName) {
+  protected CIAccount buildMaster(String masterName) {
     WerckerMaster master = (WerckerMaster) new WerckerMaster().setName(masterName);
     master.setAddress(address)
         .setToken(token)

@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Master extends Node implements Cloneable {
+public abstract class CIAccount extends Node implements Cloneable {
   String name;
   Permissions.Builder permissions = new Permissions.Builder();
 

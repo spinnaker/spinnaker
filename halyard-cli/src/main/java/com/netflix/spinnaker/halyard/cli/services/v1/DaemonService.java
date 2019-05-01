@@ -702,7 +702,7 @@ public interface DaemonService {
       @Body Notification notification);
 
   @GET("/v1/config/deployments/{deploymentName}/ci/{ciName}/")
-  DaemonTask<Halconfig, Object> getCi(
+  DaemonTask<Halconfig, Ci> getCi(
       @Path("deploymentName") String deploymentName,
       @Path("ciName") String ciName,
       @Query("validate") boolean validate);
@@ -719,10 +719,10 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Path("ciName") String ciName,
       @Query("validate") boolean validate,
-      @Body Master master);
+      @Body CIAccount account);
 
   @GET("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/{masterName}/")
-  DaemonTask<Halconfig, Object> getMaster(
+  DaemonTask<Halconfig, CIAccount> getMaster(
       @Path("deploymentName") String deploymentName,
       @Path("ciName") String ciName,
       @Path("masterName") String masterName,
@@ -734,7 +734,7 @@ public interface DaemonService {
       @Path("ciName") String ciName,
       @Path("masterName") String masterName,
       @Query("validate") boolean validate,
-      @Body Master master);
+      @Body CIAccount account);
 
   @DELETE("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/{masterName}/")
   DaemonTask<Halconfig, Void> deleteMaster(
