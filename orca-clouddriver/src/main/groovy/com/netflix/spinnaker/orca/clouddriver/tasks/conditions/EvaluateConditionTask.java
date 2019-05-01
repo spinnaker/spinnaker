@@ -81,6 +81,12 @@ public class EvaluateConditionTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
+    if (conditionsConfigurationProperties.isSkipWait()) {
+      log.debug("Un-pausing deployment to {} (execution: {}) based on configuration",
+        ctx.getCluster(), stage.getExecution());
+      ctx.setStatus(Status.SKIPPED);
+    }
+
     if (ctx.getStatus() == Status.SKIPPED) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", Status.SKIPPED)).build();
     }

@@ -78,4 +78,8 @@ public class ConditionConfigurationProperties {
   public void setActiveConditions(List<String> activeConditions) {
     this.activeConditions = activeConditions;
   }
+
+  public boolean isSkipWait() {
+    return configService.getConfig(Boolean.class, "tasks.evaluateCondition.skipWait", false);
+  }
 }

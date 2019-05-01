@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties
@@ -35,12 +34,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class EvaluateConditionTaskSpec extends Specification {
   def conditionSupplier = Mock(ConditionSupplier)
-  def configService = Stub(DynamicConfigService) {
-    getConfig(_ as Class, _ as String, _ as Object) >> { type, name, defaultValue -> return defaultValue }
-    isEnabled(_ as String, _ as Boolean) >> { flag, defaultValue -> return defaultValue }
-  }
-
-  def conditionsConfigurationProperties = new ConditionConfigurationProperties(configService)
+  def conditionsConfigurationProperties = Mock(ConditionConfigurationProperties)
   def clock = new MutableClock()
 
   @Subject
@@ -65,7 +59,7 @@ class EvaluateConditionTaskSpec extends Specification {
     }
 
     and:
-    conditionsConfigurationProperties.setBackoffWaitMs(5)
+    conditionsConfigurationProperties.getBackoffWaitMs() >> 5
 
     when:
     def result = task.execute(stage)
@@ -75,7 +69,6 @@ class EvaluateConditionTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
 
     when:
-    conditionsConfigurationProperties.setBackoffWaitMs(5)
     clock.incrementBy(Duration.ofMillis(5))
 
     and:
@@ -103,10 +96,22 @@ class EvaluateConditionTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     0 * conditionSupplier.getConditions(_, _, _)
+
+    when:
+    stage.context.status = WAITING
+    1 * conditionsConfigurationProperties.isSkipWait() >> true
+
+    and:
+    result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context.status == SKIPPED
+    0 * conditionSupplier.getConditions(_, _, _)
   }
 
   @Unroll
-  def "should wait for conditions when enabled"() {
+  def "should wait for conditions reflecting wait status"() {
     given:
     def stage = stage {
       refId = "1"
@@ -121,8 +126,7 @@ class EvaluateConditionTaskSpec extends Specification {
     }
 
     and:
-    conditionsConfigurationProperties.setEnabled(true)
-    conditionsConfigurationProperties.setBackoffWaitMs(4)
+    conditionsConfigurationProperties.getBackoffWaitMs() >> 4
     clock.incrementBy(Duration.ofMillis(5))
 
     when:
