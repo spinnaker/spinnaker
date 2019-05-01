@@ -89,4 +89,14 @@ class AuthenticatedRequestSpec extends Specification {
             'X-SPINNAKER-ACCOUNTS': Optional.empty(),
             'X-SPINNAKER-CLOUDPROVIDER': Optional.of("aws")]
   }
+
+  void "should not fail when no headers are set"() {
+    when:
+    MDC.clear()
+
+    then:
+    AuthenticatedRequest.getAuthenticationHeaders() == [
+            'X-SPINNAKER-USER': Optional.empty(),
+            'X-SPINNAKER-ACCOUNTS': Optional.empty()]
+  }
 }

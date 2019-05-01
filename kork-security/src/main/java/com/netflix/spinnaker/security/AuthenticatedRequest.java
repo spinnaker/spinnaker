@@ -156,17 +156,19 @@ public class AuthenticatedRequest {
     // Copy all headers that look like X-SPINNAKER*
     Map<String, String> allMdcEntries = MDC.getCopyOfContextMap();
 
-    for (Map.Entry<String, String> mdcEntry : allMdcEntries.entrySet()) {
-      String header = mdcEntry.getKey();
+    if (allMdcEntries != null) {
+      for (Map.Entry<String, String> mdcEntry : allMdcEntries.entrySet()) {
+        String header = mdcEntry.getKey();
 
-      boolean isSpinnakerHeader =
-          header.toLowerCase().startsWith(Header.XSpinnakerPrefix.toLowerCase());
-      boolean isSpinnakerAuthHeader =
-          Header.USER.getHeader().equalsIgnoreCase(header)
-              || Header.ACCOUNTS.getHeader().equalsIgnoreCase(header);
+        boolean isSpinnakerHeader =
+            header.toLowerCase().startsWith(Header.XSpinnakerPrefix.toLowerCase());
+        boolean isSpinnakerAuthHeader =
+            Header.USER.getHeader().equalsIgnoreCase(header)
+                || Header.ACCOUNTS.getHeader().equalsIgnoreCase(header);
 
-      if (isSpinnakerHeader && !isSpinnakerAuthHeader) {
-        headers.put(header, Optional.of(mdcEntry.getValue()));
+        if (isSpinnakerHeader && !isSpinnakerAuthHeader) {
+          headers.put(header, Optional.of(mdcEntry.getValue()));
+        }
       }
     }
 
