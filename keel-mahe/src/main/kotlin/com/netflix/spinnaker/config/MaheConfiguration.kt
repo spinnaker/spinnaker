@@ -14,7 +14,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
-@ConditionalOnProperty("\${mahe.enabled}")
+@ConditionalOnProperty("mahe.enabled")
 class MaheConfiguration {
   @Bean
   fun maheEndpoint(@Value("\${mahe.base-url}") maheBaseUrl: String): HttpUrl =

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.bakery.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.ami.BaseImageCache
+import com.netflix.spinnaker.keel.ami.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Resource
@@ -26,12 +27,12 @@ import org.slf4j.LoggerFactory
 
 class ImageHandler(
   override val objectMapper: ObjectMapper,
-  override val normalizers: List<ResourceNormalizer<*>>,
-  private val cloudDriver: CloudDriverService,
   private val artifactRepository: ArtifactRepository,
   private val baseImageCache: BaseImageCache,
+  private val cloudDriver: CloudDriverService,
   private val orcaService: OrcaService,
-  private val igorService: ArtifactService
+  private val igorService: ArtifactService,
+  override val normalizers: List<ResourceNormalizer<*>>
 ) : ResolvableResourceHandler<ImageSpec, Image> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("bakery")
@@ -46,22 +47,39 @@ class ImageHandler(
 
   override fun desired(resource: Resource<ImageSpec>): Image =
     with(resource.spec) {
+      val artifact = DeliveryArtifact(artifactName, DEB)
       val latestVersion = artifactRepository
-        .versions(DeliveryArtifact(artifactName, DEB))
-        .first()
-      Image(
-        baseAmiVersion = baseImageCache.getBaseImage(baseOs, baseLabel),
-        // TODO: there must be a canonical way of composing this
-        appVersion = latestVersion,
-        regions = regions
-      )
+        .versions(artifact)
+        .firstOrNull() ?: throw NoKnownArtifactVersions(artifact)
+      val baseImage = baseImageCache.getBaseImage(baseOs, baseLabel)
+      runBlocking {
+        val baseAmi = cloudDriver.namedImages(baseImage, "test")
+          .await()
+          .lastOrNull()
+          ?.let { namedImage ->
+            val tags = namedImage
+              .tagsByImageId
+              .values
+              .first { it?.containsKey("base_ami_version") ?: false }
+            if (tags != null) {
+              tags.getValue("base_ami_version")!!
+            } else {
+              null
+            }
+          } ?: throw BaseAmiNotFound(baseImage)
+        Image(
+          baseAmiVersion = baseAmi,
+          appVersion = latestVersion,
+          regions = regions
+        )
+      }
     }
 
   override fun current(resource: Resource<ImageSpec>): Image? =
     runBlocking {
-      cloudDriver.images("aws", resource.spec.artifactName)
+      cloudDriver.namedImages(resource.spec.artifactName, "test")
         .await()
-        .firstOrNull()
+        .lastOrNull()
         ?.let { namedImage ->
           val tags = namedImage
             .tagsByImageId
@@ -70,7 +88,7 @@ class ImageHandler(
           if (tags != null) {
             Image(
               tags.getValue("base_ami_version")!!,
-              tags.getValue("appversion")!!,
+              tags.getValue("appversion")!!.substringBefore('/'),
               namedImage.amis.keys
             )
           } else {
@@ -85,7 +103,7 @@ class ImageHandler(
   ): List<TaskRef> {
     val taskRef = runBlocking {
       val (_, application, version) = resourceDiff.desired.appVersion.let { appVersion ->
-        Regex("([\\w_]+)-(.+?)/.*")
+        Regex("([\\w_]+)-(.+)")
           .find(appVersion)
           ?.groupValues
           ?: throw IllegalStateException("Could not parse app version $appVersion")
@@ -139,3 +157,5 @@ data class Image(
   val appVersion: String,
   val regions: Set<String>
 )
+
+class BaseAmiNotFound(baseImage: String) : RuntimeException("Could not find a base AMI for base image $baseImage")

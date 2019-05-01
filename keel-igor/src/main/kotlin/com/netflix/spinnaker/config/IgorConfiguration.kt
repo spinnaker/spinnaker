@@ -14,7 +14,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
-@ConditionalOnProperty("\${igor.enabled}")
+@ConditionalOnProperty("igor.enabled")
 class IgorConfiguration {
   @Bean
   fun igorEndpoint(@Value("\${igor.base-url}") igorBaseUrl: String): HttpUrl =

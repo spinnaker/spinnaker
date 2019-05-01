@@ -15,6 +15,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
 internal class BaseImageCacheTests : JUnit5Minutests {
@@ -25,6 +26,14 @@ internal class BaseImageCacheTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
+
+    context("asking for an unknown base image") {
+      test("throws an exception") {
+        expectThrows<UnknownBaseImage> {
+          subject.getBaseImage("xenial", RELEASE)
+        }
+      }
+    }
 
     context("refreshing the cache") {
       before {

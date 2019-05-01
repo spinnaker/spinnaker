@@ -25,7 +25,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.sync.Lock
 import com.netflix.spinnaker.keel.sync.NoOpLock
@@ -104,8 +104,8 @@ class KeelApplication {
   fun lock(): Lock = NoOpLock
 
   @Bean
-  @ConditionalOnMissingBean(ResourceHandler::class)
-  fun noResourcePlugins(): List<ResourceHandler<*>> = emptyList()
+  @ConditionalOnMissingBean(ResolvableResourceHandler::class)
+  fun noResourcePlugins(): List<ResolvableResourceHandler<*, *>> = emptyList()
 
   @Bean
   fun csrfDisable() = @Order(Ordered.HIGHEST_PRECEDENCE) object : WebSecurityConfigurerAdapter() {

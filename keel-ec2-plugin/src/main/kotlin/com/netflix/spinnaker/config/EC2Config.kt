@@ -70,7 +70,7 @@ class EC2Config {
     )
 
   @Bean
-  fun imageHandler(
+  fun namedImageHandler(
     cloudDriverService: CloudDriverService,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>,

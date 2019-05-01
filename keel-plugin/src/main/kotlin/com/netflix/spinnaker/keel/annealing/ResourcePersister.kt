@@ -9,20 +9,18 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import de.danielbechler.diff.ObjectDifferBuilder
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
 class ResourcePersister(
   private val resourceRepository: ResourceRepository,
-  private val handlers: List<ResourceHandler<*>>,
+  private val handlers: List<ResolvableResourceHandler<*, *>>,
   private val queue: ResourceCheckQueue,
-  private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
   private val differ = ObjectDifferBuilder.buildDefault()

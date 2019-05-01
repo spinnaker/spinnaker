@@ -93,7 +93,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
         test("a new artifact version is stored") {
           verify {
-            repository.store(artifact, "fnord-0.156.0-h58.f67fe09/fnord-release/58")
+            repository.store(artifact, "fnord-0.156.0-h58.f67fe09")
           }
         }
 

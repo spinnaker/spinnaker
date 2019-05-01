@@ -10,6 +10,7 @@ dependencies {
   api(project(":keel-eureka"))
   api(project(":keel-artifact"))
 
+  implementation(project(":keel-bakery-plugin"))
   implementation(project(":keel-ec2-plugin"))
   implementation(project(":keel-deliveryconfig-plugin"))
 

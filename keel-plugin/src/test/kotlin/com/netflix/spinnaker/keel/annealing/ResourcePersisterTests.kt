@@ -38,7 +38,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(),
     val handler: ResourceHandler<String> = StringResourceHandler(),
     val clock: Clock = Clock.systemDefaultZone(),
-    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), queue, publisher, clock),
+    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), queue, clock),
     var resource: Resource<T>? = null
   )
 

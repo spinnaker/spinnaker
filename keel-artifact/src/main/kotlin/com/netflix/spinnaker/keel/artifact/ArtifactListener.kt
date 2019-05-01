@@ -22,7 +22,7 @@ class ArtifactListener(
       val artifact = DeliveryArtifact(it.name, ArtifactType.valueOf(it.type))
       // TODO: should be able to construct this with Frigga or something, apparently, also it might
       //  make sense to have a method that does this on the Kork class rather than here
-      val version = "${it.name}-${it.version}/${it.provenance.substringAfter("/jobs/")}"
+      val version = "${it.name}-${it.version}"
       if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
         log.info("Registering version {} of {} {}", version, artifact.name, artifact.type)
         artifactRepository.store(artifact, version)
