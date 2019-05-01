@@ -105,9 +105,9 @@ class ImageHandler(
       log.info("baking new image for {}", resource.spec.artifactName)
       orcaService.orchestrate(
         OrchestrationRequest(
-          name = "Bake image for ${resource.spec.artifactName}",
+          name = "Bake ${resourceDiff.desired.appVersion}",
           application = "keel", // TODO: revisit if/when we have a way to tie resources to applications
-          description = "Bake image for ${resource.spec.artifactName}",
+          description = "Bake ${resourceDiff.desired.appVersion}",
           job = listOf(
             Job(
               "bake",
