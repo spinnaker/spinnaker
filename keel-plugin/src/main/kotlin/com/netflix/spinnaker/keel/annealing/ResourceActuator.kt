@@ -11,15 +11,15 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
-import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
-import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResolvedResource
-import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
@@ -40,13 +40,14 @@ class ResourceActuator(
   fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
     log.debug("Checking resource {}", name)
 
-    val plugin = handlers.supporting(apiVersion, kind)
-    val type = plugin.supportedKind.second
-    val resource = resourceRepository.get(name, type)
-
-    val (desired, current) = plugin.resolve(resource)
-    val diff = differ.compare(current, desired)
     try {
+      val plugin = handlers.supporting(apiVersion, kind)
+      val type = plugin.supportedKind.second
+      val resource = resourceRepository.get(name, type)
+
+      val (desired, current) = plugin.resolve(resource)
+      val diff = differ.compare(current, desired)
+
       when (current) {
         null -> {
           with(resource) {
@@ -87,12 +88,9 @@ class ResourceActuator(
           }
         }
       }
-    } catch (e: ResourceConflict) {
-      log.error(
-        "Resource {} current state could not be determined due to \"{}\"",
-        resource.metadata.name,
-        e.message
-      )
+    } catch (e: Exception) {
+      log.error("Resource check for {} failed due to \"{}\"", name, e.message)
+      publisher.publishEvent(ResourceChecked(apiVersion, kind, name, Error))
     }
   }
 

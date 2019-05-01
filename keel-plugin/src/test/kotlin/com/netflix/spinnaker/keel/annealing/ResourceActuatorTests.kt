@@ -11,13 +11,13 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.TaskRef
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
-import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
-import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
