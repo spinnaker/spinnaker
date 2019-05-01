@@ -82,10 +82,6 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
 
     jobStatus.setLogs(logs.toString());
 
-    if (ImmutableList.of(JobState.Failed, JobState.Succeeded).contains(jobStatus.getJobState())) {
-      credentials.delete(jobManifest.getKind(), jobManifest.getNamespace(), jobManifest.getName(), new KubernetesSelectorList(), new V1DeleteOptions());
-    }
-
     return jobStatus;
   }
 
