@@ -18,10 +18,23 @@
 package com.netflix.spinnaker.halyard.config.model.v1.ci.wercker;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class WerckerCi extends Ci<WerckerMaster> {
+  protected List<WerckerMaster> masters = new ArrayList<>();
+
   @Override
   public String getNodeName() {
     return "wercker";
+  }
+
+  public List<WerckerMaster> getAccounts() {
+    return masters;
   }
 }

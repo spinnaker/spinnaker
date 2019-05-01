@@ -25,18 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/jenkins")
 public class JenkinsController extends CiController<JenkinsMaster, JenkinsCi> {
-    private final JenkinsService jenkinsService;
-
-    protected JenkinsService getCiService() {
-        return jenkinsService;
-    }
-
-    protected JenkinsMaster convertToAccount(Object object) {
-        return objectMapper.convertValue(object, JenkinsMaster.class);
-    }
-
-    public JenkinsController(CiController.Members members, JenkinsService jenkinsService) {
-        super(members);
-        this.jenkinsService = jenkinsService;
-    }
+  public JenkinsController(CiController.Members members, JenkinsService jenkinsService) {
+    super(members, jenkinsService);
+  }
 }

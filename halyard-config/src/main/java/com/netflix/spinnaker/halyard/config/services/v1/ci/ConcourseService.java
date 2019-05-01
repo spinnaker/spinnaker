@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.services.v1.ci;
 
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
 import com.netflix.spinnaker.halyard.config.services.v1.ValidateService;
@@ -27,19 +28,24 @@ import java.util.List;
 
 @Component
 public class ConcourseService extends CiService<ConcourseMaster, ConcourseCi> {
-    public ConcourseService(LookupService lookupService, ValidateService validateService) {
-        super(lookupService, validateService);
-    }
+  public ConcourseService(CiService.Members members) {
+    super(members);
+  }
 
-    public String ciName() {
-        return "concourse";
-    }
+  public String ciName() {
+    return "concourse";
+  }
 
-    protected List<ConcourseCi> getMatchingCiNodes(NodeFilter filter) {
-        return lookupService.getMatchingNodesOfType(filter, ConcourseCi.class);
-    }
+  protected List<ConcourseCi> getMatchingCiNodes(NodeFilter filter) {
+    return lookupService.getMatchingNodesOfType(filter, ConcourseCi.class);
+  }
 
-    protected List<ConcourseMaster> getMatchingAccountNodes(NodeFilter filter) {
-        return lookupService.getMatchingNodesOfType(filter, ConcourseMaster.class);
-    }
+  protected List<ConcourseMaster> getMatchingAccountNodes(NodeFilter filter) {
+    return lookupService.getMatchingNodesOfType(filter, ConcourseMaster.class);
+  }
+
+  @Override
+  public ConcourseMaster convertToAccount(Object object) {
+    return objectMapper.convertValue(object, ConcourseMaster.class);
+  }
 }

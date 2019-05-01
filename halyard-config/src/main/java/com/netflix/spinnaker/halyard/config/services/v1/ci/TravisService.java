@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1.ci;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
@@ -27,19 +28,24 @@ import java.util.List;
 
 @Component
 public class TravisService extends CiService<TravisMaster, TravisCi> {
-    public TravisService(LookupService lookupService, ValidateService validateService) {
-        super(lookupService, validateService);
-    }
+  public TravisService(CiService.Members members) {
+    super(members);
+  }
 
-    public String ciName() {
-        return "travis";
-    }
+  public String ciName() {
+    return "travis";
+  }
 
-    protected List<TravisCi> getMatchingCiNodes(NodeFilter filter) {
-        return lookupService.getMatchingNodesOfType(filter, TravisCi.class);
-    }
+  protected List<TravisCi> getMatchingCiNodes(NodeFilter filter) {
+    return lookupService.getMatchingNodesOfType(filter, TravisCi.class);
+  }
 
-    protected List<TravisMaster> getMatchingAccountNodes(NodeFilter filter) {
-        return lookupService.getMatchingNodesOfType(filter, TravisMaster.class);
-    }
+  protected List<TravisMaster> getMatchingAccountNodes(NodeFilter filter) {
+    return lookupService.getMatchingNodesOfType(filter, TravisMaster.class);
+  }
+
+  @Override
+  public TravisMaster convertToAccount(Object object) {
+    return objectMapper.convertValue(object, TravisMaster.class);
+  }
 }

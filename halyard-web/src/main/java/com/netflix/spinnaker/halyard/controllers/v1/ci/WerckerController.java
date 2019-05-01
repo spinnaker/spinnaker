@@ -25,18 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/wercker")
 public class WerckerController extends CiController<WerckerMaster, WerckerCi> {
-    private final WerckerService werckerService;
-
-    protected WerckerService getCiService() {
-        return werckerService;
-    }
-
-    protected WerckerMaster convertToAccount(Object object) {
-        return objectMapper.convertValue(object, WerckerMaster.class);
-    }
-
-    public WerckerController(CiController.Members members, WerckerService werckerService) {
-        super(members);
-        this.werckerService = werckerService;
-    }
+  public WerckerController(CiController.Members members, WerckerService werckerService) {
+    super(members, werckerService);
+  }
 }

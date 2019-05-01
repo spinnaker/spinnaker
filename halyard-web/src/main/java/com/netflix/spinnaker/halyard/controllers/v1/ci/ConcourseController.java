@@ -25,18 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/concourse")
 public class ConcourseController extends CiController<ConcourseMaster, ConcourseCi> {
-    private final ConcourseService concourseService;
-
-    protected ConcourseService getCiService() {
-        return concourseService;
-    }
-
-    protected ConcourseMaster convertToAccount(Object object) {
-        return objectMapper.convertValue(object, ConcourseMaster.class);
-    }
-
-    public ConcourseController(CiController.Members members, ConcourseService concourseService) {
-        super(members);
-        this.concourseService = concourseService;
-    }
+  public ConcourseController(CiController.Members members, ConcourseService concourseService) {
+    super(members, concourseService);
+  }
 }

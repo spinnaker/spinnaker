@@ -25,18 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/travis")
 public class TravisController extends CiController<TravisMaster, TravisCi> {
-    private final TravisService travisService;
-
-    protected TravisService getCiService() {
-        return travisService;
-    }
-
-    protected TravisMaster convertToAccount(Object object) {
-        return objectMapper.convertValue(object, TravisMaster.class);
-    }
-
-    public TravisController(CiController.Members members, TravisService travisService) {
-        super(members);
-        this.travisService = travisService;
-    }
+  public TravisController(CiController.Members members, TravisService travisService) {
+    super(members, travisService);
+  }
 }

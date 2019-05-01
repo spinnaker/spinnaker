@@ -49,7 +49,7 @@ abstract class AbstractListMastersCommand extends AbstractCiCommand {
   @Override
   protected void executeThis() {
     Ci ci = getCi();
-    List<CIAccount> account = ci.getMasters();
+    List<CIAccount> account = ci.getAccounts();
     if (account.isEmpty()) {
       AnsiUi.success("No configured masters for " + getCiName() + ".");
     } else {

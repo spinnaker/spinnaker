@@ -53,12 +53,6 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
-  public NodeFilter withAnyCi() {
-    matchers.add(Node.thisNodeAcceptor(Cis.class));
-    matchers.add(Node.thisNodeAcceptor(Ci.class));
-    return this;
-  }
-
   public NodeFilter setCi(String name) {
     matchers.add(Node.thisNodeAcceptor(Cis.class));
     matchers.add(Node.namedNodeAcceptor(Ci.class, name));

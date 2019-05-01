@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1.ci;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -38,10 +40,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
   protected final LookupService lookupService;
+  protected final ObjectMapper objectMapper;
   private final ValidateService validateService;
 
+  @Component
+  @RequiredArgsConstructor
+  public static class Members {
+    private final LookupService lookupService;
+    private final ValidateService validateService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+  }
+
+  public CiService(Members members) {
+    this.lookupService = members.lookupService;
+    this.validateService = members.validateService;
+    this.objectMapper = members.objectMapper;
+  }
+
+  public abstract T convertToAccount(Object object);
+
   protected abstract List<T> getMatchingAccountNodes(NodeFilter filter);
+
   protected abstract List<U> getMatchingCiNodes(NodeFilter filter);
+
   public abstract String ciName();
 
   public U getCi(String deploymentName) {
@@ -61,20 +82,6 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
     }
   }
 
-  public List<U> getAllCis(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyCi();
-
-    List<U> matching = getMatchingCiNodes(filter);
-
-    if (matching.size() == 0) {
-      throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No cis could be found")
-              .build());
-    } else {
-      return matching;
-    }
-  }
-
   public void setEnabled(String deploymentName, boolean enabled) {
     Ci ci = getCi(deploymentName);
     ci.setEnabled(enabled);
@@ -89,15 +96,6 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
     return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateAllCis(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyCi()
-        .withAnyAccount();
-
-    return validateService.validateMatchingFilter(filter);
-  }
-
   public List<T> getAllMasters(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyMaster();
 
@@ -105,7 +103,7 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
 
     if (matchingAccounts.size() == 0) {
       throw new ConfigNotFoundException(
-              new ConfigProblemBuilder(Severity.FATAL, "No masters could be found").build());
+          new ConfigProblemBuilder(Severity.FATAL, "No masters could be found").build());
     } else {
       return matchingAccounts;
     }
@@ -117,14 +115,14 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
     switch (matchingAccounts.size()) {
       case 0:
         throw new ConfigNotFoundException(new ConfigProblemBuilder(
-                Severity.FATAL, String.format("No master with name '%s' was found", masterName))
-                .setRemediation("Check if this master was defined in another Continuous Integration service, or create a new one").build());
+            Severity.FATAL, String.format("No master with name '%s' was found", masterName))
+            .setRemediation("Check if this master was defined in another Continuous Integration service, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
         throw new IllegalConfigException(new ConfigProblemBuilder(
-                Severity.FATAL, String.format("No master with name '%s' was found", masterName))
-                .setRemediation(String.format("Manually delete/rename duplicate masters with name '%s' in your halconfig file", masterName)).build());
+            Severity.FATAL, String.format("No master with name '%s' was found", masterName))
+            .setRemediation(String.format("Manually delete/rename duplicate masters with name '%s' in your halconfig file", masterName)).build());
     }
   }
 
@@ -133,18 +131,13 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
     return getMaster(filter, masterName);
   }
 
-  public T getAnyCiMaster(String deploymentName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyCi().setMaster(masterName);
-    return getMaster(filter, masterName);
-  }
-
   public void setMaster(String deploymentName, String masterName, T newAccount) {
     U ci = getCi(deploymentName);
 
-    for (int i = 0; i < ci.getMasters().size(); i++) {
-      T account = ci.getMasters().get(i);
+    for (int i = 0; i < ci.getAccounts().size(); i++) {
+      T account = ci.getAccounts().get(i);
       if (account.getNodeName().equals(masterName)) {
-        ci.getMasters().set(i, newAccount);
+        ci.getAccounts().set(i, newAccount);
         return;
       }
     }
@@ -154,18 +147,18 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
 
   public void deleteMaster(String deploymentName, String masterName) {
     U ci = getCi(deploymentName);
-    boolean removed = ci.getMasters().removeIf(master -> master.getName().equals(masterName));
+    boolean removed = ci.getAccounts().removeIf(master -> master.getName().equals(masterName));
 
     if (!removed) {
       throw new HalException(
-              new ConfigProblemBuilder(Severity.FATAL, String.format("Master '%s' wasn't found", masterName))
-                      .build());
+          new ConfigProblemBuilder(Severity.FATAL, String.format("Master '%s' wasn't found", masterName))
+              .build());
     }
   }
 
   public void addMaster(String deploymentName, T newAccount) {
     U ci = getCi(deploymentName);
-    ci.getMasters().add(newAccount);
+    ci.getAccounts().add(newAccount);
   }
 
   public ProblemSet validateMaster(String deploymentName, String masterName) {

@@ -17,10 +17,23 @@
 package com.netflix.spinnaker.halyard.config.model.v1.ci.concourse;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class ConcourseCi extends Ci<ConcourseMaster> {
+  protected List<ConcourseMaster> masters = new ArrayList<>();
+
   @Override
   public String getNodeName() {
     return "concourse";
+  }
+
+  public List<ConcourseMaster> getAccounts() {
+    return masters;
   }
 }
