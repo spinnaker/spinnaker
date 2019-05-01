@@ -71,11 +71,11 @@ class DefaultApplicationProviderSpec extends Specification {
     then:
     CollectionUtils.disjunction(
         new HashSet(restrictedApplicationNames + unrestrictedApplicationNames),
-        expectedApplicatioNames
+        expectedApplicationNames
     ).isEmpty()
 
     where:
-    allowAccessToUnknownApplications | role       || expectedApplicatioNames
+    allowAccessToUnknownApplications | role       || expectedApplicationNames
     false                            | "role"     || ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
     false                            | "bad_role" || ["onlyKnownToFront50", "onlyKnownToClouddriver"]
     true                             | "role"     || ["app1"]
@@ -91,7 +91,9 @@ class DefaultApplicationProviderSpec extends Specification {
 
     when:
     app.setPermissions(makePerms(givenPermissions))
-    provider = new DefaultApplicationProvider(front50Service, clouddriverService, false, Authorization.READ)
+    provider = new DefaultApplicationProvider(
+        front50Service, clouddriverService, allowAccessToUnknownApplications, Authorization.READ
+    )
     def resultApps = provider.getAll()
 
     then:
@@ -102,10 +104,11 @@ class DefaultApplicationProviderSpec extends Specification {
     makePerms(expectedPermissions) == resultApps.permissions[0]
 
     where:
-    givenPermissions                ||  expectedPermissions
-    [:]                             ||  [:]
-    [(R): ['r']]                    ||  [(R): ['r'], (W): [], (E): ['r']]
-    [(R): ['r'], (E): ['foo']]      ||  [(R): ['r'], (W): [], (E): ['foo']]
+    givenPermissions           | allowAccessToUnknownApplications || expectedPermissions
+    [:]                        | false                            || [:]
+    [(R): ['r']]               | false                            || [(R): ['r'], (W): [], (E): ['r']]
+    [(R): ['r'], (E): ['foo']] | false                            || [(R): ['r'], (W): [], (E): ['foo']]
+    [(R): ['r']]               | true                             || [(R): ['r'], (W): [], (E): ['r']]
   }
 
   @Unroll

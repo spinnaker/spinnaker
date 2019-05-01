@@ -78,18 +78,23 @@ public class DefaultApplicationProvider extends BaseProvider<Application>
           .filter(app -> !appByName.containsKey(app.getName()))
           .forEach(app -> appByName.put(app.getName(), app));
 
+      Set<Application> applications;
+
       if (allowAccessToUnknownApplications) {
         // no need to include applications w/o explicit permissions if we're allowing access to
         // unknown applications by default
-        return appByName.values().stream()
-            .filter(a -> !a.getPermissions().isEmpty())
-            .collect(Collectors.toSet());
+        applications =
+            appByName.values().stream()
+                .filter(a -> !a.getPermissions().isEmpty())
+                .collect(Collectors.toSet());
+      } else {
+        applications = new HashSet<>(appByName.values());
       }
 
       // Fallback authorization for legacy applications that are missing EXECUTE permissions
-      appByName.values().forEach(this::ensureExecutePermission);
+      applications.forEach(this::ensureExecutePermission);
 
-      return new HashSet<>(appByName.values());
+      return applications;
     } catch (Exception e) {
       throw new ProviderException(this.getClass(), e);
     }
