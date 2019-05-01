@@ -126,7 +126,7 @@ class AuthConfig {
     void onLogoutSuccess(HttpServletRequest request,
                          HttpServletResponse response,
                          Authentication authentication) throws IOException, ServletException {
-      def username = (authentication.getPrincipal() as User)?.username
+      def username = (authentication?.getPrincipal() as User)?.username
       if (username) {
         permissionService.logout(username)
       }
