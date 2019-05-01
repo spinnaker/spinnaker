@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
@@ -68,6 +66,15 @@ public class EchoProfileFactory extends SpringProfileFactory {
       profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
     }
 
+    Cis cis = deploymentConfiguration.getCi();
+    if (cis != null) {
+      GoogleCloudBuild gcb = cis.getGcb();
+      if (gcb != null) {
+        files.addAll(backupRequiredFiles(gcb, deploymentConfiguration.getName()));
+        profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new GCBWrapper(gcb)));
+      }
+    }
+
     profile.appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }
@@ -87,6 +94,15 @@ public class EchoProfileFactory extends SpringProfileFactory {
 
     ArtifactWrapper(Artifacts artifacts) {
       this.artifacts = artifacts;
+    }
+  }
+
+  @Data
+  private static class GCBWrapper {
+    private GoogleCloudBuild gcb;
+
+    GCBWrapper(GoogleCloudBuild gcb) {
+      this.gcb = gcb;
     }
   }
 }
