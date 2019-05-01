@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.gate.interceptors;
 
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.slf4j.MDC;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_REQUEST_ID;
 
 /**
  * Return value of SPINNAKER_REQUEST_ID (set via com.netflix.spinnaker.filters.AuthenticatedRequestFilter)
@@ -31,9 +30,9 @@ import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_REQU
 public class RequestIdInterceptor extends HandlerInterceptorAdapter {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    String requestId = MDC.get(SPINNAKER_REQUEST_ID);
+    String requestId = MDC.get(AuthenticatedRequest.Header.REQUEST_ID.getHeader());
     if (requestId != null) {
-      response.setHeader(SPINNAKER_REQUEST_ID, requestId);
+      response.setHeader(AuthenticatedRequest.Header.REQUEST_ID.getHeader(), requestId);
     }
     return true;
   }
