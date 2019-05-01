@@ -3,6 +3,7 @@ import { ExecutionDetailsTasks } from 'core/pipeline';
 import { Registry } from 'core/registry';
 
 import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
+import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
 
 Registry.pipeline.registerStage({
   label: 'Google Cloud Build',
@@ -10,6 +11,6 @@ Registry.pipeline.registerStage({
   key: 'googleCloudBuild',
   producesArtifacts: true,
   component: GoogleCloudBuildStageConfig,
-  executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
+  executionDetailsSections: [GoogleCloudBuildExecutionDetails, ExecutionDetailsTasks, ExecutionArtifactTab],
   validators: [{ type: 'requiredField', fieldName: 'account' }],
 });
