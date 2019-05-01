@@ -177,6 +177,16 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     authorizationFailure.set(
         hasPermission ? null : new AuthorizationFailure(a, r, resourceName.toString()));
 
+    if (permission != null && permission.isLegacyFallback() && hasPermission) {
+      // log any access that was granted as part of a legacy fallback.
+      if (a == Authorization.READ) {
+        // purposely logging at 'debug' as 'READ' will be sufficiently more verbose
+        log.debug("Legacy fallback granted {} access (type: {}, resource: {})", a, r, resourceName);
+      } else {
+        log.warn("Legacy fallback granted {} access (type: {}, resource: {})", a, r, resourceName);
+      }
+    }
+
     return hasPermission;
   }
 
