@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
@@ -43,8 +44,7 @@ class ResourceActuator(
     val type = plugin.supportedKind.second
     val resource = resourceRepository.get(name, type)
 
-    val desired = plugin.desired(resource)
-    val current = plugin.current(resource)
+    val (desired, current) = plugin.resolve(resource)
     val diff = differ.compare(current, desired)
     try {
       when (current) {
@@ -102,12 +102,10 @@ class ResourceActuator(
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.desired(resource: Resource<*>): R =
-    desired(resource as Resource<S>)
-
-  @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.current(resource: Resource<*>): R? =
-    current(resource as Resource<S>)
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.resolve(
+    resource: Resource<*>
+  ): ResolvedResource<R> =
+    resolve(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
   private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(

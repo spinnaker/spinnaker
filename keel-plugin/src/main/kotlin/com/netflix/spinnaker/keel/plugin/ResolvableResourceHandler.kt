@@ -94,21 +94,15 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   }
 
   /**
-   * Resolve the resource spec into the desired state. This may involve looking up referenced
-   * resources, etc.
+   * Resolve the resource spec into the desired and current states. This may involve looking up
+   * referenced resources, etc.
+   *
+   * The value returned by this method is used as the basis of the diff in order to decide whether
+   * to call [create]/[update]/[upsert].
    *
    * Implementations of this method should not actuate any changes.
    */
-  fun desired(resource: Resource<S>): R
-
-  /**
-   * Return the current _actual_ representation of what [resource] looks like in the cloud.
-   * The entire desired state is passed so that implementations can use whatever identifying
-   * information they need to look up the resource.
-   *
-   * Implementations of this method should not actuate any changes.
-   */
-  fun current(resource: Resource<S>): R?
+  fun resolve(resource: Resource<S>): ResolvedResource<R>
 
   /**
    * Create a resource so that it matches the desired state represented by [resource].

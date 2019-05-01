@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import kotlinx.coroutines.runBlocking
@@ -45,57 +46,49 @@ class ImageHandler(
   override fun generateName(spec: ImageSpec): ResourceName =
     ResourceName("bakery:image:${spec.artifactName}")
 
-  override fun desired(resource: Resource<ImageSpec>): Image =
-    with(resource.spec) {
-      val artifact = DeliveryArtifact(artifactName, DEB)
+  override fun resolve(resource: Resource<ImageSpec>): ResolvedResource<Image> =
+    with(resource) {
+      val artifact = DeliveryArtifact(spec.artifactName, DEB)
       val latestVersion = artifactRepository
         .versions(artifact)
         .firstOrNull() ?: throw NoKnownArtifactVersions(artifact)
-      val baseImage = baseImageCache.getBaseImage(baseOs, baseLabel)
       runBlocking {
-        val baseAmi = cloudDriver.namedImages(baseImage, "test")
-          .await()
-          .lastOrNull()
-          ?.let { namedImage ->
-            val tags = namedImage
-              .tagsByImageId
-              .values
-              .first { it?.containsKey("base_ami_version") ?: false }
-            if (tags != null) {
-              tags.getValue("base_ami_version")!!
-            } else {
-              null
-            }
-          } ?: throw BaseAmiNotFound(baseImage)
-        Image(
-          baseAmiVersion = baseAmi,
-          appVersion = latestVersion,
-          regions = regions
+        ResolvedResource(
+          desired = desired(resource.spec, latestVersion),
+          current = current(resource.spec, latestVersion)
         )
       }
     }
 
-  override fun current(resource: Resource<ImageSpec>): Image? =
-    runBlocking {
-      cloudDriver.namedImages(resource.spec.artifactName, "test")
-        .await()
-        .lastOrNull()
-        ?.let { namedImage ->
-          val tags = namedImage
-            .tagsByImageId
-            .values
-            .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-          if (tags != null) {
-            Image(
-              tags.getValue("base_ami_version")!!,
-              tags.getValue("appversion")!!.substringBefore('/'),
-              namedImage.amis.keys
-            )
-          } else {
-            null
-          }
+  private suspend fun desired(spec: ImageSpec, version: String): Image {
+    val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
+    val baseAmi = findBaseAmi(baseImage)
+    return Image(
+      baseAmiVersion = baseAmi,
+      appVersion = version,
+      regions = spec.regions
+    )
+  }
+
+  private suspend fun current(spec: ImageSpec, version: String): Image? =
+    cloudDriver.namedImages(version, "test")
+      .await()
+      .lastOrNull()
+      ?.let { namedImage ->
+        val tags = namedImage
+          .tagsByImageId
+          .values
+          .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
+        if (tags == null) {
+          null
+        } else {
+          Image(
+            tags.getValue("base_ami_version")!!,
+            tags.getValue("appversion")!!.substringBefore('/'),
+            namedImage.amis.keys
+          )
         }
-    }
+      }
 
   override fun upsert(
     resource: Resource<ImageSpec>,
@@ -144,6 +137,23 @@ class ImageHandler(
 
   override fun delete(resource: Resource<ImageSpec>) {
     TODO("not implemented")
+  }
+
+  private suspend fun findBaseAmi(baseImage: String): String {
+    return cloudDriver.namedImages(baseImage, "test")
+      .await()
+      .lastOrNull()
+      ?.let { namedImage ->
+        val tags = namedImage
+          .tagsByImageId
+          .values
+          .first { it?.containsKey("base_ami_version") ?: false }
+        if (tags != null) {
+          tags.getValue("base_ami_version")!!
+        } else {
+          null
+        }
+      } ?: throw BaseAmiNotFound(baseImage)
   }
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }

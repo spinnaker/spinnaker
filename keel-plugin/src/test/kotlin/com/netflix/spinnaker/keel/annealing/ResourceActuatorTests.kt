@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -81,8 +82,12 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state matches the desired state") {
         before {
-          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
-          every { plugin1.current(resource) } returns DummyResource(resource.spec.state)
+          every {
+            plugin1.resolve(resource)
+          } returns ResolvedResource(
+            desired = DummyResource(resource.spec.state),
+            current = DummyResource(resource.spec.state)
+          )
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -96,8 +101,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("only the relevant plugin is queried") {
-          verify(exactly = 0) { plugin2.desired(any()) }
-          verify(exactly = 0) { plugin2.current(any()) }
+          verify(exactly = 0) { plugin2.resolve(any()) }
         }
 
         test("nothing is added to the resource history") {
@@ -113,8 +117,12 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is missing") {
         before {
-          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
-          every { plugin1.current(resource) } returns null as DummyResource?
+          every {
+            plugin1.resolve(resource)
+          } returns ResolvedResource(
+            desired = DummyResource(resource.spec.state),
+            current = null
+          )
           every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
@@ -141,8 +149,12 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
-          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
-          every { plugin1.current(resource) } returns DummyResource("some other state that does not match")
+          every {
+            plugin1.resolve(resource)
+          } returns ResolvedResource(
+            DummyResource(resource.spec.state),
+            DummyResource("some other state that does not match")
+          )
           every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {

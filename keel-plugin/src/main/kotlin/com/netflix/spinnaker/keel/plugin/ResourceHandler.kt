@@ -21,9 +21,20 @@ import com.netflix.spinnaker.keel.api.Resource
 interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
 
   /**
-   * This method is a no-op when the model and resolved types are the same.
+   * Don't override this method, just implement [current]. If you need to do any resolution of the
+   * desired value you should implement [ResolvableResourceHandler] instead of this interface.
    */
-  override fun desired(resource: Resource<T>): T = resource.spec
+  override fun resolve(resource: Resource<T>): ResolvedResource<T> =
+    ResolvedResource(resource.spec, current(resource))
+
+  /**
+   * Return the current _actual_ representation of what [resource] looks like in the cloud.
+   * The entire desired state is passed so that implementations can use whatever identifying
+   * information they need to look up the resource.
+   *
+   * Implementations of this method should not actuate any changes.
+   */
+  fun current(resource: Resource<T>): T?
 }
 
 /**
