@@ -26,7 +26,8 @@ module.exports = angular
 
       this.initialize = () => {
         this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
-        const isV2PipelineConfig = PipelineTemplateV2Service.isV2PipelineConfig(this.pipelineConfig);
+        const isV2PipelineConfig =
+          this.pipelineConfig && PipelineTemplateV2Service.isV2PipelineConfig(this.pipelineConfig);
 
         if (this.pipelineConfig && isV2PipelineConfig && !SETTINGS.feature.managedPipelineTemplatesV2UI) {
           return $state.go('home.applications.application.pipelines.executions', null, { location: 'replace' });
