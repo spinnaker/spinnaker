@@ -1,15 +1,15 @@
 package com.netflix.spinnaker.keel.bakery.resource
 
 import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.keel.ami.BaseImageCache
-import com.netflix.spinnaker.keel.ami.NoKnownArtifactVersions
-import com.netflix.spinnaker.keel.ami.UnknownBaseImage
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.bakery.BaseImageCache
+import com.netflix.spinnaker.keel.bakery.NoKnownArtifactVersions
+import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.bakery.api.StoreType.EBS

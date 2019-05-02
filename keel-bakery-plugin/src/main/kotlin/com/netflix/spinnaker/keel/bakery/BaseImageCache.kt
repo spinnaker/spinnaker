@@ -1,9 +1,8 @@
-package com.netflix.spinnaker.keel.ami
+package com.netflix.spinnaker.keel.bakery
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel
 import com.netflix.spinnaker.keel.mahe.DynamicPropertyService
 import kotlinx.coroutines.GlobalScope
@@ -55,7 +54,3 @@ class BaseImageCache(
     val BASE_LABEL_NAMES = BaseLabel.values().map { it.name }
   }
 }
-
-class UnknownBaseImage(os: String, label: BaseLabel) : RuntimeException("Could not identify base image for os $os and label $label")
-
-class NoKnownArtifactVersions(artifact: DeliveryArtifact) : RuntimeException("No versions for ${artifact.type} artifact ${artifact.name} are known")

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ami
+package com.netflix.spinnaker.keel.bakery
 
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.CANDIDATE
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.PREVIOUS
