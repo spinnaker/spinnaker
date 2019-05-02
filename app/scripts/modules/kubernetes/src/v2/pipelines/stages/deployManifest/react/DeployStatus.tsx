@@ -6,7 +6,9 @@ import {
   StageFailureMessage,
   IManifest,
 } from '@spinnaker/core';
-import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
+
+import { KubernetesManifestService, IStageManifest } from 'kubernetes/v2/manifest/manifest.service';
+
 import { ManifestStatus } from './ManifestStatus';
 
 // from https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/
@@ -35,15 +37,6 @@ export interface IManifestSubscription {
   manifest: IManifest;
 }
 
-interface IStageManifest {
-  kind: string;
-  apiVersion: string;
-  metadata: {
-    namespace: string;
-    name: string;
-  };
-}
-
 export interface IDeployStatusState {
   subscriptions: IManifestSubscription[];
   manifestIds: string[];
@@ -67,11 +60,11 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
 
   public componentDidUpdate(_prevProps: IExecutionDetailsSectionProps, prevState: IDeployStatusState) {
     const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], []).filter(m => !!m);
-    const manifestIds = manifests.map(m => this.manifestIdentifier(m)).sort();
+    const manifestIds = manifests.map(m => KubernetesManifestService.manifestIdentifier(m)).sort();
     if (prevState.manifestIds.join('') !== manifestIds.join('')) {
       this.unsubscribeAll();
       const subscriptions = manifests.map(manifest => {
-        const id = this.manifestIdentifier(manifest);
+        const id = KubernetesManifestService.manifestIdentifier(manifest);
         return {
           id,
           unsubscribe: this.subscribeToManifestUpdates(id, manifest),
@@ -101,18 +94,6 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
 
   private unsubscribeAll() {
     this.state.subscriptions.forEach(({ unsubscribe }) => unsubscribe());
-  }
-
-  private manifestIdentifier(manifest: IStageManifest) {
-    const kind = manifest.kind.toLowerCase();
-    // manifest.metadata.namespace doesn't exist if it's a namespace being deployed
-    const namespace = (manifest.metadata.namespace || '_').toLowerCase();
-    const name = manifest.metadata.name.toLowerCase();
-    const apiVersion = (manifest.apiVersion || '_').toLowerCase();
-    // assuming this identifier is opaque and not parsed anywhere. Including the
-    // apiVersion will prevent collisions with CRD kinds without having any visible
-    // effect elsewhere
-    return `${namespace} ${kind} ${apiVersion} ${name}`;
   }
 
   private apiGroup(manifest: IStageManifest): string {
@@ -160,7 +141,8 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
             <div className="col-md-12">
               <div className="well alert alert-info">
                 {manifests.map(manifest => {
-                  const uid = manifest.manifest.metadata.uid || this.manifestIdentifier(manifest.manifest);
+                  const uid =
+                    manifest.manifest.metadata.uid || KubernetesManifestService.manifestIdentifier(manifest.manifest);
                   return <ManifestStatus key={uid} manifest={manifest} stage={stage} />;
                 })}
               </div>

@@ -95,7 +95,7 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
           <a onClick={this.onClick} className="clickable">
             {this.props.linkName}
           </a>
-          <Modal show={showModal} onHide={this.close}>
+          <Modal show={showModal} onHide={this.close} dialogClassName="modal-lg modal-fullscreen">
             <Modal.Header closeButton={true}>
               <Modal.Title>Console Output: {this.podName()} </Modal.Title>
             </Modal.Header>
