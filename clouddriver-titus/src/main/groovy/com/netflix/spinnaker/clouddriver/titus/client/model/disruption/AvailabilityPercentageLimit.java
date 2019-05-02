@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AvailabilityPercentageLimit {
-  float percentageOfHealthyContainers;
-
-  public float getPercentageOfHealthyContainers() {
-    return percentageOfHealthyContainers;
-  }
-
-  public void setPercentageOfHealthyContainers(float percentageOfHealthyContainers) {
-    this.percentageOfHealthyContainers = percentageOfHealthyContainers;
-  }
+  double percentageOfHealthyContainers;
 }

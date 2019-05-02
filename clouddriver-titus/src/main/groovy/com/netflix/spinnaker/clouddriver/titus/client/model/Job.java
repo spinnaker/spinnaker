@@ -16,10 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.*;
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.ContainerHealthProvider;
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.TimeWindow;
 import com.netflix.titus.grpc.protogen.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.netflix.titus.grpc.protogen.JobDisruptionBudget.PolicyCase.*;
+import static com.netflix.titus.grpc.protogen.JobDisruptionBudget.RateCase.*;
 
 public class Job {
 
@@ -62,6 +68,7 @@ public class Job {
   private List<String> softConstraints;
   private Efs efs;
   private MigrationPolicy migrationPolicy;
+  private DisruptionBudget disruptionBudget;
   private String jobState;
 
   public Job() {
@@ -98,6 +105,7 @@ public class Job {
       }
     }
 
+    addDisruptionBudget(grpcJob);
     labels = grpcJob.getJobDescriptor().getAttributesMap();
     containerAttributes = grpcJob.getJobDescriptor().getContainer().getAttributesMap();
     user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
@@ -146,6 +154,68 @@ public class Job {
       }
     }
 
+  }
+
+  private void addDisruptionBudget(com.netflix.titus.grpc.protogen.Job grpcJob) {
+    JobDisruptionBudget budget = grpcJob.getJobDescriptor().getDisruptionBudget();
+    disruptionBudget = new DisruptionBudget();
+    if (budget.getContainerHealthProvidersList() != null) {
+      disruptionBudget.setContainerHealthProviders(
+        budget.getContainerHealthProvidersList().stream()
+          .map(c -> new ContainerHealthProvider(c.getName()))
+          .collect(Collectors.toList())
+      );
+    }
+    if (RATEUNLIMITED.equals(budget.getRateCase())) {
+      disruptionBudget.setRateUnlimited(new RateUnlimited());
+    }
+    if (RATEPERCENTAGEPERHOUR.equals(budget.getRateCase())) {
+      disruptionBudget.setRatePercentagePerHour(
+        new RatePercentagePerHour(budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour())
+      );
+    }
+    if (RATEPERINTERVAL.equals(budget.getRateCase())) {
+      disruptionBudget.setRatePerInterval(
+        new RatePerInterval(budget.getRatePerInterval().getIntervalMs(), budget.getRatePerInterval().getLimitPerInterval())
+      );
+    }
+    if (RATEPERCENTAGEPERINTERVAL.equals(budget.getRateCase())) {
+      disruptionBudget.setRatePercentagePerInterval(
+        new RatePercentagePerInterval(budget.getRatePercentagePerInterval().getIntervalMs(), budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
+      );
+    }
+
+    if (SELFMANAGED.equals(budget.getPolicyCase())) {
+      disruptionBudget.setSelfManaged(
+        new SelfManaged(budget.getSelfManaged().getRelocationTimeMs())
+      );
+    }
+    if (AVAILABILITYPERCENTAGELIMIT.equals(budget.getPolicyCase())) {
+      disruptionBudget.setAvailabilityPercentageLimit(
+        new AvailabilityPercentageLimit(budget.getAvailabilityPercentageLimit().getPercentageOfHealthyContainers())
+      );
+    }
+    if (UNHEALTHYTASKSLIMIT.equals(budget.getPolicyCase())) {
+      disruptionBudget.setUnhealthyTasksLimit(
+        new UnhealthyTasksLimit(budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers())
+      );
+    }
+    if (RELOCATIONLIMIT.equals(budget.getPolicyCase())) {
+      disruptionBudget.setRelocationLimit(
+        new RelocationLimit(budget.getRelocationLimit().getLimit())
+      );
+    }
+    if (budget.getTimeWindowsList() != null) {
+      disruptionBudget.setTimeWindows(
+        budget.getTimeWindowsList().stream()
+          .map(w -> new TimeWindow(
+            w.getDaysList().stream().map(Enum::name).collect(Collectors.toList()),
+            w.getHourlyTimeWindowsList().stream().map(t -> new HourlyTimeWindow(t.getStartHour(), t.getEndHour())).collect(Collectors.toList()),
+            w.getTimeZone()
+          ))
+          .collect(Collectors.toList())
+      );
+    }
   }
 
   public String getId() {
@@ -443,5 +513,13 @@ public class Job {
   public void setDigest(String digest) { this.digest = digest; }
 
   public String getDigest() { return digest; }
+
+  public DisruptionBudget getDisruptionBudget() {
+    return disruptionBudget;
+  }
+
+  public void setDisruptionBudget(DisruptionBudget disruptionBudget) {
+    this.disruptionBudget = disruptionBudget;
+  }
 
 }

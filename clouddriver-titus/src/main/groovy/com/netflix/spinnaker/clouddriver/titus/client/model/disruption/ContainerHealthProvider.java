@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ContainerHealthProvider {
   String name;
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
 }

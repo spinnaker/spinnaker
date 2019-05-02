@@ -15,20 +15,14 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RatePerInterval {
-
-  int intervalMs;
+  long intervalMs;
   int limitPerInterval;
-
-  public int getIntervalMs() { return intervalMs; }
-
-  public void setIntervalMs(int intervalMs) {
-    this.intervalMs = intervalMs;
-  }
-
-  public void setLimitPerInterval(int limitPerInterval) {
-    this.limitPerInterval = limitPerInterval;
-  }
-
-  public int getLimitPerInterval() { return limitPerInterval; }
 }

@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SelfManaged {
-  int relocationTimeMs;
-
-  public int getRelocationTimeMs() {
-    return relocationTimeMs;
-  }
-
-  public void setRelocationTimeMs(int relocationTimeMs) {
-    this.relocationTimeMs = relocationTimeMs;
-  }
+  long relocationTimeMs;
 }

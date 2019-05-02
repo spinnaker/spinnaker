@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RelocationLimit {
   int limit;
-
-  public int getLimit() {
-    return limit;
-  }
-
-  public void setLimit(int limit) {
-    this.limit = limit;
-  }
 }

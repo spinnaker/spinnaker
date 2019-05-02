@@ -15,21 +15,14 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RatePercentagePerInterval {
-
-  int intervalMs;
-
-  float percentageLimitPerInterval;
-
-  public int getIntervalMs() { return intervalMs; }
-
-  public void setIntervalMs(int intervalMs) {
-    this.intervalMs = intervalMs;
-  }
-
-  public float getPercentageLimitPerInterval() { return percentageLimitPerInterval; }
-
-  public void setPercentageLimitPerInterval(float percentageLimitPerInterval) {
-    this.percentageLimitPerInterval = percentageLimitPerInterval;
-  }
+  long intervalMs;
+  double percentageLimitPerInterval;
 }

@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UnhealthyTasksLimit {
   int limitOfUnhealthyContainers;
-
-  public int getLimitOfUnhealthyContainers() {
-    return limitOfUnhealthyContainers;
-  }
-
-  public void setLimitOfUnhealthyContainers(int limitOfUnhealthyContainers) {
-    this.limitOfUnhealthyContainers = limitOfUnhealthyContainers;
-  }
 }

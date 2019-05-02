@@ -16,5 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.Data;
+
+@Data
 public class RateUnlimited {
 }

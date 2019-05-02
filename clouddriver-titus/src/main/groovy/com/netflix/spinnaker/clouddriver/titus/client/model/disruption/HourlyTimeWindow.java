@@ -16,23 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model.disruption;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class HourlyTimeWindow {
   int startHour;
   int endHour;
-
-  public int getStartHour() {
-    return startHour;
-  }
-
-  public void setStartHour(int startHour) {
-    this.startHour = startHour;
-  }
-
-  public int getEndHour() {
-    return endHour;
-  }
-
-  public void setEndHour(int endHour) {
-    this.endHour = endHour;
-  }
 }
