@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import * as classNames from 'classnames';
-import {
-  IManifest,
-  IManifestEvent,
-  InstanceReader,
-  IInstanceConsoleOutput,
-  IInstanceMultiOutputLog,
-} from '@spinnaker/core';
+
+import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from 'core/instance/InstanceReader';
+
+import { IManifestEvent, IManifest } from 'core/domain/IManifest';
+
 import { get, trim, bindAll } from 'lodash';
 
 // IJobManifestPodLogs is the data needed to get logs
