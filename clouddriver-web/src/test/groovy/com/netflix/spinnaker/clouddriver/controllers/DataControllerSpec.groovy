@@ -35,7 +35,7 @@ class DataControllerSpec extends Specification {
   def dataController = new DataController(dataProviders: [dataProvider])
 
   void setup() {
-    MDC.remove(AuthenticatedRequest.SPINNAKER_ACCOUNTS)
+    MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
   }
 
 
@@ -47,7 +47,7 @@ class DataControllerSpec extends Specification {
     thrown(AccessDeniedException)
 
     when:
-    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "restricted")
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
     dataController.getStaticData("restricted", [:])
 
     then:
@@ -65,7 +65,7 @@ class DataControllerSpec extends Specification {
     thrown(AccessDeniedException)
 
     when:
-    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "restricted")
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
     dataController.getAdhocData("groupId", "restricted", httpServletRequest)
 
     then:

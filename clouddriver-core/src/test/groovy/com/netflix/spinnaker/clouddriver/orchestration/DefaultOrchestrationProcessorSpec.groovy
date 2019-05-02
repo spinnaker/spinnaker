@@ -115,16 +115,16 @@ class DefaultOrchestrationProcessorSpec extends Specification {
   void "should clear MDC thread local"() {
     given:
     MDC.put("myKey", "myValue")
-    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "myAccounts")
-    MDC.put(AuthenticatedRequest.SPINNAKER_USER, "myUser")
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "myAccounts")
+    MDC.put(AuthenticatedRequest.Header.USER.header, "myUser")
 
     when:
     DefaultOrchestrationProcessor.resetMDC()
 
     then:
     MDC.get("myKey") == "myValue"
-    MDC.get(AuthenticatedRequest.SPINNAKER_ACCOUNTS) == null
-    MDC.get(AuthenticatedRequest.SPINNAKER_USER) == null
+    MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == null
+    MDC.get(AuthenticatedRequest.Header.USER.header) == null
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {
