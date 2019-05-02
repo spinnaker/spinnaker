@@ -31,4 +31,4 @@ val LockAttemptFailed = LockAttempt(false)
 data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType
-)
+) : TelemetryEvent()

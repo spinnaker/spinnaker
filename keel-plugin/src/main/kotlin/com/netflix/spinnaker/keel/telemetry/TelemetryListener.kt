@@ -38,8 +38,8 @@ class TelemetryListener(
     spectator.counter(
       ARTIFACT_UPDATED_COUNTER_ID,
       listOf(
-        BasicTag("name", event.name),
-        BasicTag("type", event.type.name)
+        BasicTag("artifactName", event.name),
+        BasicTag("artifactType", event.type.name)
       )
     ).safeIncrement()
   }
