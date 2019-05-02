@@ -64,7 +64,16 @@ class BuildDebianCommand(GradleCommandProcessor):
       args.append('-x test')
 
     if (os.path.isfile(os.path.join(repository.git_dir, "gradle", "init-publish.gradle"))):
-      args.append('-I gradle/init-publish.gradle')
+      # This was prior to spinnaker-gradle-project.6.0.0
+      args.extend(['--I gradle/init-publish.gradle', '-Prelease.useLastTag=true'])
+    elif repository.name == 'spinnaker-monitoring':
+      args.append('-Prelease.useLastTag=true')
+    else:
+      # This is at or after spinnaker-gradle-project.6.0.0
+      version = self.scm.lookup_source_info(repository).to_build_version()
+      args.extend(['-PenablePublishing=true',
+                   '-Prelease.disableGitChecks=true',
+                   '-Prelease.version=%s' % version])
 
     args.extend(self.gradle.get_debian_args('trusty,xenial,bionic'))
 
