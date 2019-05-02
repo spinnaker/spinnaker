@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.*;
 import lombok.Data;
 
@@ -28,6 +29,8 @@ public class DisruptionBudget implements Serializable {
   UnhealthyTasksLimit unhealthyTasksLimit;
   RelocationLimit relocationLimit;
   RatePercentagePerHour ratePercentagePerHour;
+
+  @JsonSerialize
   RateUnlimited rateUnlimited;
   List<TimeWindow> timeWindows;
   List<ContainerHealthProvider> containerHealthProviders;
