@@ -69,13 +69,13 @@ public class AuthenticatedRequest {
 
   /**
    * Allow a given HTTP call to be anonymous. Normally, all requests to Spinnaker services should be
-   * authenticated (i.e. include USER & ACCOUNTS HTTP headers). However, in specific cases it is
+   * authenticated (i.e. include USER &amp; ACCOUNTS HTTP headers). However, in specific cases it is
    * necessary to make an anonymous call. If an anonymous call is made that is not wrapped in this
    * method, it will result in a log message and a metric being logged (indicating a potential bug).
    * Use this method to avoid the log and metric. To make an anonymous call wrap it in this
    * function, e.g.
    *
-   * <p>AuthenticatedRequest.allowAnonymous(() -> { // do HTTP call here });
+   * <pre><code>AuthenticatedRequest.allowAnonymous(() -&gt; { // do HTTP call here });</code></pre>
    */
   public static <V> V allowAnonymous(Callable<V> closure) throws Exception {
     String originalValue = MDC.get(Header.XSpinnakerAnonymous);
