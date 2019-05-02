@@ -311,7 +311,6 @@ class GradleRunner(object):
     args = [
         '--stacktrace',
         '--info',
-        '-Prelease.useLastTag=true',
     ]
 
     if options.maven_custom_init_file:
