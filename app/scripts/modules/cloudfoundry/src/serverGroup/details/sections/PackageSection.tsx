@@ -16,6 +16,32 @@ export class PackageSection extends React.Component<ICloudFoundryServerGroupDeta
         {serverGroup.droplet && serverGroup.droplet.sourcePackage && (
           <CollapsibleSection heading="Package" defaultExpanded={true}>
             <dl className="dl-horizontal dl-flex">
+              {serverGroup.ciBuild && serverGroup.ciBuild.version && (
+                <div>
+                  <dt>Version</dt>
+                  <dd>{serverGroup.ciBuild.version}</dd>
+                </div>
+              )}
+              {serverGroup.ciBuild && serverGroup.ciBuild.jobName && (
+                <div>
+                  <dt>Job</dt>
+                  <dd>{serverGroup.ciBuild.jobName}</dd>
+                </div>
+              )}
+              {serverGroup.ciBuild && serverGroup.ciBuild.jobNumber && (
+                <div>
+                  <dt>Build</dt>
+                  {serverGroup.ciBuild.jobUrl ? (
+                    <dd>
+                      <a target="_blank" href={serverGroup.ciBuild.jobUrl}>
+                        {serverGroup.ciBuild.jobNumber}
+                      </a>
+                    </dd>
+                  ) : (
+                    <dd>{serverGroup.ciBuild.jobNumber}</dd>
+                  )}
+                </div>
+              )}
               <dt>Checksum</dt>
               <dd>{serverGroup.droplet.sourcePackage.checksum}</dd>
             </dl>
