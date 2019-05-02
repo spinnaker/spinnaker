@@ -113,6 +113,7 @@ class StageData {
     String serverGroupName
     Boolean useSourceCapacity
     Boolean preferSourceCapacity
+    String clusterName
   }
 
   static class PipelineBeforeCleanup {

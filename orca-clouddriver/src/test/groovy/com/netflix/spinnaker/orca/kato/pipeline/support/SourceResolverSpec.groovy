@@ -139,6 +139,55 @@ class SourceResolverSpec extends Specification {
     source?.asgName == 'app-test-v009'
   }
 
+  void "should populate deploy stage 'source' with targeted server group if source contains the location of the target"() {
+    given:
+    OortService oort = Mock(OortService)
+    ObjectMapper mapper = new ObjectMapper()
+    RetrySupport retrySupport = Spy(RetrySupport) {
+      _ * sleep(_) >> { /* do nothing */ }
+    }
+
+    SourceResolver resolver = new SourceResolver(
+      oortService: oort,
+      mapper: mapper,
+      resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper, retrySupport: retrySupport)
+    )
+
+    when:
+    def stage = new Stage(
+      Execution.newPipeline("orca"),
+      "test",
+      [
+        cloudProvider: "cloudfoundry",
+        application: "app",
+        credentials: "test1",
+        region: "org > space",
+        source: [clusterName: "app-test", account: "test2", region: "org2 > space2"],
+        target: "current_asg_dynamic",
+      ]
+    )
+    def source = resolver.getSource(stage)
+
+    then:
+    1 * oort.getTargetServerGroup(
+      'app',
+      'test2',
+      'app-test',
+      'cloudfoundry',
+      'org2 > space2',
+      'current_asg_dynamic') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString('''\
+    {
+      "name": "app-test-v009",
+      "region": "org2 > space2",
+      "createdTime": 1
+    }'''.stripIndent()))
+
+    source?.account == 'test2'
+    source?.region == 'org2 > space2'
+    source?.serverGroupName == 'app-test-v009'
+    source?.asgName == 'app-test-v009'
+  }
+
   void "should ignore target if source is explicitly specified"() {
     given:
     SourceResolver resolver = new SourceResolver(mapper: new ObjectMapper())

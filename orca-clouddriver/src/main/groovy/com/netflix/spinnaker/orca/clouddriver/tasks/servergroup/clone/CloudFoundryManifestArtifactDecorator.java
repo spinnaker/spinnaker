@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -50,30 +51,25 @@ public class CloudFoundryManifestArtifactDecorator implements CloneDescriptionDe
       .name(op.getSource().getAsgName())
       .build());
     operation.put("manifest", op.getManifest().toArtifact(artifactResolver, stage));
-    operation.put("credentials", op.getDestination().getAccount());
-    operation.put("region", op.getDestination().getRegion());
+    operation.put("credentials", Optional.ofNullable(op.getAccount()).orElse(op.getCredentials()));
+    operation.put("region", op.getRegion());
 
     operation.remove("source");
-    operation.remove("destination");
   }
 
   @Data
   private static class CloudFoundryCloneServerGroupOperation {
+    private String account;
+    private String credentials;
+    private String region;
     private Manifest manifest;
     private Source source;
-    private Destination destination;
 
     @Data
     static class Source {
       String account;
       String region;
       String asgName;
-    }
-
-    @Data
-    static class Destination {
-      String account;
-      String region;
     }
   }
 }
