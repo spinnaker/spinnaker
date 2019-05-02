@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
+import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import dev.minutest.junit.JUnit5Minutests
@@ -33,16 +34,17 @@ import java.time.Clock
 
 internal object ResourceActuatorTests : JUnit5Minutests {
 
-  val resourceRepository = InMemoryResourceRepository()
-  val plugin1 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
-  val plugin2 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
-  val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+  class Fixture {
+    val resourceRepository = InMemoryResourceRepository()
+    val plugin1 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+    val plugin2 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+    val subject = ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher, Clock.systemDefaultZone())
+  }
 
-  fun tests() = rootContext<ResourceActuator> {
+  fun tests() = rootContext<Fixture> {
 
-    fixture {
-      ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher, Clock.systemDefaultZone())
-    }
+    fixture { Fixture() }
 
     before {
       every { plugin1.name } returns "plugin1"
@@ -90,7 +92,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           )
 
           with(resource) {
-            checkResource(metadata.name, apiVersion, kind)
+            subject.checkResource(metadata.name, apiVersion, kind)
           }
         }
 
@@ -126,7 +128,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
-            checkResource(metadata.name, apiVersion, kind)
+            subject.checkResource(metadata.name, apiVersion, kind)
           }
         }
 
@@ -158,7 +160,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
-            checkResource(metadata.name, apiVersion, kind)
+            subject.checkResource(metadata.name, apiVersion, kind)
           }
         }
 
@@ -176,6 +178,63 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
         test("a telemetry event is published") {
           verify { publisher.publishEvent(ResourceChecked(resource, Diff)) }
+        }
+      }
+
+      context("plugin throws an exception on resource resolution") {
+        before {
+          every {
+            plugin1.resolve(resource)
+          } throws RuntimeException("o noes")
+
+          with(resource) {
+            subject.checkResource(metadata.name, apiVersion, kind)
+          }
+        }
+
+        test("the resource is not updated") {
+          verify(exactly = 0) { plugin1.update(any(), any()) }
+        }
+
+        // TODO: do we want to track the error in the resource history?
+        test("the resource state is not affected") {
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            hasSize(1)
+            first().isA<ResourceCreated>()
+          }
+        }
+
+        test("a telemetry event is published") {
+          verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
+        }
+      }
+
+      context("plugin throws an exception on resource update") {
+        before {
+          every {
+            plugin1.resolve(resource)
+          } returns ResolvedResource(
+            DummyResource(resource.spec.state),
+            DummyResource("some other state that does not match")
+          )
+          every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
+
+          with(resource) {
+            subject.checkResource(metadata.name, apiVersion, kind)
+          }
+        }
+
+        // TODO: do we want to track the error in the resource history?
+        test("detection of the delta is tracked in resource history") {
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            hasSize(2)
+            first().isA<ResourceDeltaDetected>()
+            second().isA<ResourceCreated>()
+          }
+        }
+
+        test("a telemetry event is published") {
+          verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
         }
       }
     }
