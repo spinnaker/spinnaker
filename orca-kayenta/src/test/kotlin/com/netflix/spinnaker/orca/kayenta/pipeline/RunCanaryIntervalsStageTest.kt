@@ -335,7 +335,6 @@ object RunCanaryIntervalsStageTest : Spek({
           .allMatch { it == attributes }
       }
     }
-
   }
 })
 
@@ -379,4 +378,3 @@ val Int.minutesInSeconds: Int
 
 val Long.minutesInSeconds: Long
   get() = Duration.ofMinutes(this).seconds
-

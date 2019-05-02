@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.ext.mapTo
@@ -44,6 +45,18 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
     .disable(WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
 
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+  }
+
+  private fun getDeployDetails(stage: Stage) : DeployedServerGroupContext? {
+    val deployedServerGroupsStage = stage.parent?.execution?.stages?.find {
+      it.type == DeployCanaryServerGroupsStage.STAGE_TYPE && it.parentStageId == stage.parentStageId
+    }
+    if (deployedServerGroupsStage == null) {
+      return null
+    }
+    val deployedServerGroups = deployedServerGroupsStage.outputs["deployedServerGroups"] as List<*>
+    val data = deployedServerGroups.first() as Map<String, String>
+    return DeployedServerGroupContext.from(data)
   }
 
   override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
@@ -89,7 +102,7 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
         canaryConfig.configurationAccountName,
         canaryConfig.storageAccountName,
         canaryConfig.canaryConfigId,
-        buildRequestScopes(canaryConfig, i, canaryAnalysisInterval),
+        buildRequestScopes(canaryConfig, getDeployDetails(parent), i, canaryAnalysisInterval),
         canaryConfig.scoreThresholds
       )
 
@@ -104,6 +117,7 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
 
   private fun buildRequestScopes(
     config: KayentaCanaryContext,
+    deploymentDetails: DeployedServerGroupContext?,
     interval: Int,
     intervalDuration: Duration
   ): Map<String, CanaryScopes> {
@@ -127,22 +141,55 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
         start = end.minus(config.lookback)
       }
 
-      val controlScope = CanaryScope(
-        scope.controlScope,
-        scope.controlLocation,
+      val controlExtendedScopeParams = mutableMapOf<String, String?>()
+      controlExtendedScopeParams.putAll(scope.extendedScopeParams)
+      var controlLocation = scope.controlLocation
+      var controlScope = scope.controlScope
+      if (deploymentDetails != null) {
+        if (!controlExtendedScopeParams.containsKey("dataset")) {
+          controlExtendedScopeParams["dataset"] = "regional"
+        }
+        controlLocation = deploymentDetails.controlLocation
+        controlScope = deploymentDetails.controlScope
+        controlExtendedScopeParams["type"] = "asg"
+        if (deploymentDetails.controlAccountId != null) {
+          controlExtendedScopeParams["accountId"] = deploymentDetails.controlAccountId
+        }
+      }
+
+      val experimentExtendedScopeParams = mutableMapOf<String, String?>()
+      experimentExtendedScopeParams.putAll(scope.extendedScopeParams)
+      var experimentLocation = scope.experimentLocation
+      var experimentScope = scope.experimentScope
+      if (deploymentDetails != null) {
+        if (!experimentExtendedScopeParams.containsKey("dataset")) {
+          experimentExtendedScopeParams["dataset"] = "regional"
+        }
+        experimentLocation = deploymentDetails.experimentLocation
+        experimentScope = deploymentDetails.experimentScope
+        experimentExtendedScopeParams["type"] = "asg"
+        if (deploymentDetails.experimentAccountId != null) {
+          experimentExtendedScopeParams["accountId"] = deploymentDetails.experimentAccountId
+        }
+      }
+
+      val controlScopeData = CanaryScope(
+        controlScope,
+        controlLocation,
         start,
         end,
         config.step.seconds,
-        scope.extendedScopeParams
+        controlExtendedScopeParams
       )
-      val experimentScope = controlScope.copy(
-        scope = scope.experimentScope,
-        location = scope.experimentLocation
+      val experimentScopeData = controlScopeData.copy(
+        scope = experimentScope,
+        location = experimentLocation,
+        extendedScopeParams = experimentExtendedScopeParams
       )
 
       requestScopes[scope.scopeName] = CanaryScopes(
-        controlScope = controlScope,
-        experimentScope = experimentScope
+        controlScope = controlScopeData,
+        experimentScope = experimentScopeData
       )
     }
     return requestScopes
@@ -164,3 +211,25 @@ private val KayentaCanaryContext.startTime: Instant?
 
 private val KayentaCanaryContext.step: Duration
   get() = Duration.ofSeconds(scopes.first().step)
+
+data class DeployedServerGroupContext @JsonCreator constructor(
+        val controlLocation: String,
+        val controlScope: String,
+        val controlAccountId: String?,
+        val experimentLocation: String,
+        val experimentScope: String,
+        val experimentAccountId: String?
+) {
+  companion object {
+    fun from(data: Map<String, String>) : DeployedServerGroupContext {
+      return DeployedServerGroupContext(
+              data["controlLocation"].orEmpty(),
+              data["controlScope"].orEmpty(),
+              data["controlAccountId"],
+              data["experimentLocation"].orEmpty(),
+              data["experimentScope"].orEmpty(),
+              data["experimentAccountId"]
+      )
+    }
+  }
+}

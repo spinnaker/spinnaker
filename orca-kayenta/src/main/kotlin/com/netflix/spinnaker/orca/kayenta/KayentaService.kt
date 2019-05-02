@@ -67,7 +67,7 @@ data class CanaryScope(
   val start: Instant,
   val end: Instant,
   val step: Long = 60, // TODO: would be nice to use a Duration
-  val extendedScopeParams: Map<String, String> = emptyMap()
+  val extendedScopeParams: Map<String, String?> = emptyMap()
 )
 
 data class Thresholds(

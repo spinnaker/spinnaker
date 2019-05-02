@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.kayenta.pipeline.DeployCanaryServerGroupsStage.Companion.DEPLOY_CONTROL_SERVER_GROUPS
 import com.netflix.spinnaker.orca.kayenta.pipeline.DeployCanaryServerGroupsStage.Companion.DEPLOY_EXPERIMENT_SERVER_GROUPS
@@ -28,22 +29,34 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class PropagateDeployedServerGroupScopes : Task {
+class PropagateDeployedServerGroupScopes(
+  private val mortService: MortService
+) : Task {
+
+  private fun findAccountId(accountName: String): String? {
+    val details = mortService.getAccountDetails(accountName)
+    val accountId = details["accountId"] as String?
+    return accountId
+  }
 
   override fun execute(stage: Stage): TaskResult {
     val serverGroupPairs =
       stage.childrenOf(DEPLOY_CONTROL_SERVER_GROUPS) zip stage.childrenOf(DEPLOY_EXPERIMENT_SERVER_GROUPS)
 
     val scopes = serverGroupPairs.map { (control, experiment) ->
-      val scope = mutableMapOf<String, Any>()
-      control.mapTo<DeployServerGroupContext>().deployServerGroups.entries.first().let { (location, serverGroups) ->
+      val scope = mutableMapOf<String, Any?>()
+      val controlContext = control.mapTo<DeployServerGroupContext>()
+      controlContext.deployServerGroups.entries.first().let { (location, serverGroups) ->
         scope["controlLocation"] = location
         scope["controlScope"] = serverGroups.first()
       }
-      experiment.mapTo<DeployServerGroupContext>().deployServerGroups.entries.first().let { (location, serverGroups) ->
+      scope["controlAccountId"] = findAccountId(controlContext.accountName)
+      val experimentContext = experiment.mapTo<DeployServerGroupContext>()
+      experimentContext.deployServerGroups.entries.first().let { (location, serverGroups) ->
         scope["experimentLocation"] = location
         scope["experimentScope"] = serverGroups.first()
       }
+      scope["experimentAccountId"] = findAccountId(experimentContext.accountName)
       scope
     }
 
@@ -52,6 +65,7 @@ class PropagateDeployedServerGroupScopes : Task {
       .build()
   }
 }
+
 
 private fun Stage.childrenOf(name: String): List<Stage> {
   val stage = execution.stages.find {
@@ -66,5 +80,6 @@ private fun Stage.childrenOf(name: String): List<Stage> {
 
 
 data class DeployServerGroupContext @JsonCreator constructor(
-  @param:JsonProperty("deploy.server.groups") val deployServerGroups: Map<String, List<String>>
+  @param:JsonProperty("deploy.server.groups") val deployServerGroups: Map<String, List<String>>,
+  @param:JsonProperty("deploy.account.name") val accountName: String
 )
