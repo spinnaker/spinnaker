@@ -71,12 +71,12 @@ class MetricsInterceptor {
       Object response;
 
       if (chain != null) {
-        method = request.method() + ":" + request.url();
+        method = request.method();
         url = request.url();
         response = chain.proceed(request);
         statusCode = ((Response) response).code();
       } else {
-        method = request3.method() + ":" + request3.url();
+        method = request3.method();
         url = request3.url().url();
         response = chain3.proceed(request3);
         statusCode = ((okhttp3.Response) response).code();
