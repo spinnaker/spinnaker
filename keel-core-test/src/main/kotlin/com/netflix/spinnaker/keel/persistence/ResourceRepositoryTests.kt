@@ -77,6 +77,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           subject.eventHistory(randomUID())
         }
       }
+
+      test("deleting a non-existent resource throws an exception") {
+        expectThrows<NoSuchResourceName> {
+          subject.delete(ResourceName("whatever"))
+        }
+      }
     }
 
     context("a resource exists") {

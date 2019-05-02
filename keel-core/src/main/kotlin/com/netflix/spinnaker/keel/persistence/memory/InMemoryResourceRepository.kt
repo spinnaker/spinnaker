@@ -71,6 +71,7 @@ class InMemoryResourceRepository(
         resources.remove(it)
         events.remove(it)
       }
+      ?: throw NoSuchResourceName(name)
   }
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =

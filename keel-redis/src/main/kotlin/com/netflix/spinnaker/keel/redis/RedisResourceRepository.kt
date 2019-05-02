@@ -82,7 +82,10 @@ class RedisResourceRepository(
 
   override fun delete(name: ResourceName) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
-      val uid = redis.hget(NAME_TO_UID_HASH, name.value).let(ULID::parseULID)
+      val uid = redis
+        .hget(NAME_TO_UID_HASH, name.value)
+        ?.let(ULID::parseULID)
+        ?: throw NoSuchResourceName(name)
       redis.del(uid.key)
       redis.srem(INDEX_SET, uid.toString())
       redis.hdel(NAME_TO_UID_HASH, name.value)
