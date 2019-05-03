@@ -24,6 +24,7 @@ import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.Http11NioProtocol
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.web.embedded.tomcat.SslConnectorCustomizer
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
 import org.springframework.boot.web.server.WebServerFactory
@@ -86,9 +87,8 @@ class TomcatConfiguration {
         apiConnector.port = tomcatConfigurationProperties.apiPort
 
         def ssl = tomcatContainerCustomizerUtil.copySslConfigurationWithClientAuth(tomcat)
-        Http11NioProtocol handler = apiConnector.getProtocolHandler() as Http11NioProtocol
-        // TODO(rz): no more:
-        tomcat.configureSsl(handler, ssl)
+        def sslCustomizer = new SslConnectorCustomizer(ssl, tomcat.getSslStoreProvider())
+        sslCustomizer.customize(apiConnector)
         tomcatContainerCustomizerUtil.applySSLSettings(apiConnector)
         tomcat.addAdditionalTomcatConnectors(apiConnector)
       }
