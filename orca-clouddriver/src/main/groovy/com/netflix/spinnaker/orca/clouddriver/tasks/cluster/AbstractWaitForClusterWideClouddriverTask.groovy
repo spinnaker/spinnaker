@@ -26,12 +26,14 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import groovy.transform.ToString
-import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
-@Slf4j
 abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+  private Logger log = LoggerFactory.getLogger(getClass())
+
   @Override
   public long getBackoffPeriod() { 10000 }
 
@@ -69,7 +71,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       isMatch
     })
 
-    log.info("${this.getClass().getSimpleName()}: Server groups matching $deployServerGroup : $matchingServerGroups")
+    log.info("Server groups matching $deployServerGroup : $matchingServerGroups")
     isServerGroupOperationInProgress(stage, interestingHealthProviderNames, matchingServerGroups)
   }
 
@@ -116,7 +118,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     }
 
     def serverGroups = cluster.get().serverGroups.collect { new TargetServerGroup(it) }
-    log.info "Pipeline ${stage.execution?.id}:${this.getClass().getSimpleName()} looking for server groups: $remainingDeployServerGroups found: $serverGroups"
+    log.info "Pipeline ${stage.execution?.id} looking for server groups: $remainingDeployServerGroups found: $serverGroups"
 
     if (!serverGroups) {
       return emptyClusterResult(stage, clusterSelection, cluster.get())
@@ -126,11 +128,11 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(stage, serverGroups, healthProviderTypesToCheck))
 
     if (stillRemaining) {
-      log.info "Pipeline ${stage.execution?.id}:${this.getClass().getSimpleName()} still has $stillRemaining"
+      log.info "Pipeline ${stage.execution?.id} still has $stillRemaining"
       return TaskResult.builder(ExecutionStatus.RUNNING).context([remainingDeployServerGroups: stillRemaining]).build()
     }
 
-    log.info "Pipeline ${stage.execution?.id}:${this.getClass().getSimpleName()} no server groups remain"
+    log.info "Pipeline ${stage.execution?.id} no server groups remain"
     return TaskResult.SUCCEEDED
   }
 }
