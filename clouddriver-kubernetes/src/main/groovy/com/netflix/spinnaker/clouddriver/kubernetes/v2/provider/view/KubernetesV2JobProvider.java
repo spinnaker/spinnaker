@@ -67,21 +67,6 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     KubernetesManifest jobManifest = ((KubernetesV2Manifest) manifests.get(0)).getManifest();
     V1Job job = KubernetesCacheDataConverter.getResource(jobManifest, V1Job.class);
     KubernetesV2JobStatus jobStatus = new KubernetesV2JobStatus(job, account);
-
-    StringBuilder logs = new StringBuilder();
-    job.getSpec().getTemplate().getSpec().getContainers().stream()
-      .forEach(c -> {
-        logs.append("=====" + c.getName() + "=======");
-        try {
-          logs.append(credentials.jobLogs(location, job.getMetadata().getName()));
-        } catch (Exception e) {
-          logs.append(e.getMessage());
-        }
-        logs.append("\n\n");
-      });
-
-    jobStatus.setLogs(logs.toString());
-
     return jobStatus;
   }
 
