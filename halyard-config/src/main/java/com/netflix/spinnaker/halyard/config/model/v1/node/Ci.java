@@ -27,10 +27,10 @@ import java.util.stream.Collectors;
 public abstract class Ci<T extends CIAccount> extends Node implements Cloneable {
   boolean enabled;
 
-  public abstract List<T> getAccounts();
+  public abstract List<T> listAccounts();
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(getAccounts().stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(listAccounts().stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 }

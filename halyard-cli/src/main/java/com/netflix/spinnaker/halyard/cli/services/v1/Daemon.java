@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.CiType;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
@@ -490,7 +491,10 @@ public class Daemon {
   }
 
   public static Supplier<CIAccount> getMaster(String deploymentName, String ciName, String masterName, boolean validate) {
-    return () -> ResponseUnwrapper.get(getService().getMaster(deploymentName, ciName, masterName, validate));
+    return () -> {
+      Object rawMaster = ResponseUnwrapper.get(getService().getMaster(deploymentName, ciName, masterName, validate));
+      return getObjectMapper().convertValue(rawMaster, CiType.getCiType(ciName).accountClass);
+    };
   }
 
   public static Supplier<Void> addMaster(String deploymentName, String ciName, boolean validate, CIAccount account) {
@@ -515,7 +519,10 @@ public class Daemon {
   }
 
   public static Supplier<Ci> getCi(String deploymentName, String ciName, boolean validate) {
-    return () -> ResponseUnwrapper.get(getService().getCi(deploymentName, ciName, validate));
+    return () -> {
+      Object ci = ResponseUnwrapper.get(getService().getCi(deploymentName, ciName, validate));
+      return getObjectMapper().convertValue(ci, CiType.getCiType(ciName).ciClass);
+    };
   }
 
   public static Supplier<Void> setCiEnableDisable(String deploymentName, String ciName, boolean validate, boolean enable) {

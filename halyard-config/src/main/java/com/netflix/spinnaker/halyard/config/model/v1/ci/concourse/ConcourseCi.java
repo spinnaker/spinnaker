@@ -33,7 +33,7 @@ public class ConcourseCi extends Ci<ConcourseMaster> {
     return "concourse";
   }
 
-  public List<ConcourseMaster> getAccounts() {
+  public List<ConcourseMaster> listAccounts() {
     return masters;
   }
 }

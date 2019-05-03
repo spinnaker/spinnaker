@@ -29,6 +29,10 @@ public class GoogleCloudBuild extends Ci<GoogleCloudBuildAccount> {
   private boolean enabled;
   private List<GoogleCloudBuildAccount> accounts = new ArrayList<>();
 
+  public List<GoogleCloudBuildAccount> listAccounts() {
+    return accounts;
+  }
+
   @Override
   public String getNodeName() {
     return "gcb";

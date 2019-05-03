@@ -33,7 +33,7 @@ public class TravisCi extends Ci<TravisMaster> {
     return "travis";
   }
 
-  public List<TravisMaster> getAccounts() {
+  public List<TravisMaster> listAccounts() {
     return masters;
   }
 }

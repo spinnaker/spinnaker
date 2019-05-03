@@ -34,7 +34,7 @@ public class JenkinsCi extends Ci<JenkinsMaster> {
     return "jenkins";
   }
 
-  public List<JenkinsMaster> getAccounts() {
+  public List<JenkinsMaster> listAccounts() {
     return masters;
   }
 }

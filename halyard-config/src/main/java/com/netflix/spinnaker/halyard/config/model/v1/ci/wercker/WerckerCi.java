@@ -34,7 +34,7 @@ public class WerckerCi extends Ci<WerckerMaster> {
     return "wercker";
   }
 
-  public List<WerckerMaster> getAccounts() {
+  public List<WerckerMaster> listAccounts() {
     return masters;
   }
 }
