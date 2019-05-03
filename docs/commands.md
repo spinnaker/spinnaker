@@ -167,6 +167,14 @@
  * [**hal config ci concourse master edit**](#hal-config-ci-concourse-master-edit)
  * [**hal config ci concourse master get**](#hal-config-ci-concourse-master-get)
  * [**hal config ci concourse master list**](#hal-config-ci-concourse-master-list)
+ * [**hal config ci gcb**](#hal-config-ci-gcb)
+ * [**hal config ci gcb account**](#hal-config-ci-gcb-account)
+ * [**hal config ci gcb account add**](#hal-config-ci-gcb-account-add)
+ * [**hal config ci gcb account delete**](#hal-config-ci-gcb-account-delete)
+ * [**hal config ci gcb account edit**](#hal-config-ci-gcb-account-edit)
+ * [**hal config ci gcb account list**](#hal-config-ci-gcb-account-list)
+ * [**hal config ci gcb disable**](#hal-config-ci-gcb-disable)
+ * [**hal config ci gcb enable**](#hal-config-ci-gcb-enable)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
  * [**hal config ci jenkins enable**](#hal-config-ci-jenkins-enable)
@@ -3247,6 +3255,7 @@ hal config ci [subcommands]
 
 #### Subcommands
  * `concourse`: Manage and view Spinnaker configuration for the concourse ci
+ * `gcb`: Manage and view Spinnaker configuration for Google Cloud Build
  * `jenkins`: Manage and view Spinnaker configuration for the jenkins ci
  * `travis`: Manage and view Spinnaker configuration for the travis ci
  * `wercker`: Manage and view Spinnaker configuration for the wercker ci
@@ -3408,6 +3417,145 @@ List the master names for concourse.
 #### Usage
 ```
 hal config ci concourse master list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci gcb
+
+Manage and view Spinnaker configuration for Google Cloud Build
+
+#### Usage
+```
+hal config ci gcb [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the Google Cloud Build service account.
+ * `disable`: Set the gcb ci as disabled
+ * `enable`: Set the gcb ci as enabled
+
+---
+## hal config ci gcb account
+
+Manage and view Spinnaker configuration for the Google Cloud Build service account.
+
+#### Usage
+```
+hal config ci gcb account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a Google Cloud Build account
+ * `delete`: Delete a Google Cloud Build account.
+ * `edit`: Add a Google Cloud Build account
+ * `list`: List the Google Cloud Build accounts.
+
+---
+## hal config ci gcb account add
+
+Add a Google Cloud Build account
+
+#### Usage
+```
+hal config ci gcb account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--jsonKey`: The path to a JSON service account that Spinnaker will use as credentials
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: (*Required*) The name of the GCP in which to trigger and monitor builds
+ * `--subscriptionName`: The name of the PubSub subscription on which to listen for build changes
+
+
+---
+## hal config ci gcb account delete
+
+Delete a Google Cloud Build account.
+
+#### Usage
+```
+hal config ci gcb account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci gcb account edit
+
+Add a Google Cloud Build account
+
+#### Usage
+```
+hal config ci gcb account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--jsonKey`: The path to a JSON service account that Spinnaker will use as credentials
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The name of the GCP in which to trigger and monitor builds
+ * `--subscriptionName`: The name of the PubSub subscription on which to listen for build changes
+
+
+---
+## hal config ci gcb account list
+
+List the Google Cloud Build accounts.
+
+#### Usage
+```
+hal config ci gcb account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci gcb disable
+
+Set the gcb ci as disabled
+
+#### Usage
+```
+hal config ci gcb disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci gcb enable
+
+Set the gcb ci as enabled
+
+#### Usage
+```
+hal config ci gcb enable [parameters]
 ```
 
 #### Parameters

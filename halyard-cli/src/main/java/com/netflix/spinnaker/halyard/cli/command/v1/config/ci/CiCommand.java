@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.concourse.ConcourseCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb.GoogleCloudBuildCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins.JenkinsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.travis.TravisCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker.WerckerCommand;
@@ -42,6 +43,7 @@ public class CiCommand extends NestableCommand {
 
   public CiCommand() {
     registerSubcommand(new ConcourseCommand());
+    registerSubcommand(new GoogleCloudBuildCommand());
     registerSubcommand(new JenkinsCommand());
     registerSubcommand(new TravisCommand());
     registerSubcommand(new WerckerCommand());
