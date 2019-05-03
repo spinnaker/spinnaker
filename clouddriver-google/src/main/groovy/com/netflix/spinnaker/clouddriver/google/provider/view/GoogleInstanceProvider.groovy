@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.iam.v1.model.ServiceAccount
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -145,7 +146,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, St
         account,
         securityGroups,
         instance.tags.items as Set<String>,
-        instance.serviceAccounts as Set<String>,
+        instance.serviceAccounts as Set<ServiceAccount>,
         instance.networkName)
 
     instance

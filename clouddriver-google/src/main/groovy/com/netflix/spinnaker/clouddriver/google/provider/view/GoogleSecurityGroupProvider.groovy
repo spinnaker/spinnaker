@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.iam.v1.model.ServiceAccount
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -194,7 +195,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   static List<String> getMatchingSecurityGroupNames(String account,
                                                     Set<GoogleSecurityGroup> securityGroups,
                                                     Set<String> tags,
-                                                    Set<String> serviceAccounts,
+                                                    Set<ServiceAccount> serviceAccounts,
                                                     String networkName) {
     tags = tags ?: [] as Set
     serviceAccounts = serviceAccounts ?: [] as Set
@@ -212,8 +213,10 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
 
       boolean hasTargetServiceAccounts = securityGroup.targetServiceAccounts
       def targetServiceAccountsInCommon = []
-      if (hasTargetServiceAccounts) {
-        targetServiceAccountsInCommon = (securityGroup.targetServiceAccounts).intersect(serviceAccounts)
+
+      serviceAccounts.each { serviceAccount ->
+        if (serviceAccount.email in securityGroup.targetServiceAccounts)
+        targetServiceAccountsInCommon.add(serviceAccount.email)
       }
 
       // Firewall rules can apply to all instances, in which case neither tags nor service accounts are present.
