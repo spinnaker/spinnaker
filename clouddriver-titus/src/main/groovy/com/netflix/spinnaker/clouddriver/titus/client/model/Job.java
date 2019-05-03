@@ -167,7 +167,7 @@ public class Job {
       );
     }
     if (RATEUNLIMITED.equals(budget.getRateCase())) {
-      disruptionBudget.setRateUnlimited(new RateUnlimited());
+      disruptionBudget.setRateUnlimited(true);
     }
     if (RATEPERCENTAGEPERHOUR.equals(budget.getRateCase())) {
       disruptionBudget.setRatePercentagePerHour(
