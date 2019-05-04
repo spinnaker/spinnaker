@@ -77,12 +77,16 @@ public class AuthenticatedRequest {
    *
    * <pre><code>AuthenticatedRequest.allowAnonymous(() -&gt; { // do HTTP call here });</code></pre>
    */
-  public static <V> V allowAnonymous(Callable<V> closure) throws Exception {
+  public static <V> V allowAnonymous(Callable<V> closure) {
     String originalValue = MDC.get(Header.XSpinnakerAnonymous);
     MDC.put(Header.XSpinnakerAnonymous, "anonymous");
 
     try {
       return closure.call();
+    } catch (RuntimeException re) {
+      throw re;
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     } finally {
       setOrRemoveMdc(Header.XSpinnakerAnonymous, originalValue);
     }
