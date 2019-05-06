@@ -76,6 +76,7 @@ module.exports = angular
         ),
         networking: overrideRegistry.getTemplate('ecs.serverGroup.networking', require('./networking/networking.html')),
         logging: overrideRegistry.getTemplate('ecs.serverGroup.logging', require('./logging/logging.html')),
+        serviceDiscovery: overrideRegistry.getTemplate('ecs.serverGroup.serviceDiscovery', require('./serviceDiscovery/serviceDiscovery.html')),
         advancedSettings: overrideRegistry.getTemplate(
           'ecs.serverGroup.advancedSettings',
           require('./advancedSettings/advancedSettings.html'),

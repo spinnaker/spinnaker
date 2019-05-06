@@ -37,6 +37,8 @@ import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
 import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
 import { SecretReader } from '../../secrets/secret.read.service';
 import { ISecretDescriptor } from '../../secrets/ISecret';
+import { ServiceDiscoveryReader } from '../../serviceDiscovery/serviceDiscovery.read.service';
+import { IServiceDiscoveryRegistryDescriptor } from '../../serviceDiscovery/IServiceDiscovery';
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroup?: string;
@@ -67,6 +69,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   subnetTypes: string[];
   securityGroupNames: string[];
   secrets: string[];
+  serviceDiscoveryRegistries: IServiceDiscoveryRegistryDescriptor[];
   images: IEcsDockerImage[];
 }
 
@@ -80,6 +83,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   // subnetTypes: string;
   // securityGroups: string[]
   secrets: ISecretDescriptor[];
+  serviceDiscoveryRegistries: IServiceDiscoveryRegistryDescriptor[];
   images: IEcsDockerImage[];
 }
 
@@ -200,6 +204,7 @@ export class EcsServerGroupConfigurationService {
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         launchTypes: this.$q.when(clone(this.launchTypes)),
         secrets: this.secretReader.listSecrets(),
+        serviceDiscoveryRegistries: ServiceDiscoveryReader.listServiceDiscoveryRegistries(),
         images: imagesPromise,
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
@@ -215,6 +220,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableEcsClusters(cmd);
         this.configureAvailableSecrets(cmd);
+        this.configureAvailableServiceDiscoveryRegistries(cmd);
         this.configureAvailableImages(cmd);
         this.configureAvailableRegions(cmd);
         this.configureLoadBalancerOptions(cmd);
@@ -336,6 +342,31 @@ export class EcsServerGroupConfigurationService {
         region: command.region,
       })
       .map('name')
+      .value();
+  }
+
+  public buildServiceRegistryDisplayName(registry: IServiceDiscoveryRegistryDescriptor): string {
+    return `${registry.name} (${registry.id})`;
+  }
+
+  public mapServiceRegistry(registry: IServiceDiscoveryRegistryDescriptor): IServiceDiscoveryRegistryDescriptor {
+    return {
+      account: registry.account,
+      region: registry.region,
+      name: registry.name,
+      id: registry.id,
+      arn: registry.arn,
+      displayName: this.buildServiceRegistryDisplayName(registry),
+    };
+  }
+
+  public configureAvailableServiceDiscoveryRegistries(command: IEcsServerGroupCommand): void {
+    command.backingData.filtered.serviceDiscoveryRegistries = chain(command.backingData.serviceDiscoveryRegistries)
+      .filter({
+        account: command.credentials,
+        region: command.region,
+      })
+      .map(registry => this.mapServiceRegistry(registry))
       .value();
   }
 
@@ -484,6 +515,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
         this.configureAvailableSecrets(command);
+        this.configureAvailableServiceDiscoveryRegistries(command);
       }
 
       return result;
@@ -508,6 +540,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
         this.configureAvailableSecrets(command);
+        this.configureAvailableServiceDiscoveryRegistries(command);
         this.configureAvailableRegions(command);
 
         if (!some(backingData.filtered.regions, { name: command.region })) {

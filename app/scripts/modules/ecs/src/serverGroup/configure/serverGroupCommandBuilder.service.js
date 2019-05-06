@@ -142,6 +142,7 @@ module.exports = angular
               placementConstraints: [],
               placementStrategyName: '',
               placementStrategySequence: [],
+              serviceDiscoveryAssociations: [],
               ecsClusterName: '',
               targetGroup: '',
               copySourceScalingPoliciesAndActions: true,

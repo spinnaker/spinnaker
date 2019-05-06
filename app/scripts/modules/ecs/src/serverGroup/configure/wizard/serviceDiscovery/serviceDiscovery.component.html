@@ -1,0 +1,58 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="sm-label-left">
+      <b>Service registries (optional)</b>
+      <help-field key="ecs.serviceDiscovery"></help-field>
+    </div>
+    <form name="ecsServiceDiscovery">
+      <table class="table table-condensed packed tags">
+        <thead>
+          <tr>
+            <th style="width: 75%">Registry <help-field key="ecs.serviceDiscoveryRegistry"></help-field></th>
+            <th style="width: 18%">Port <help-field key="ecs.serviceDiscoveryContainerPort"></help-field></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="serviceDiscoveryAssoc in $ctrl.command.serviceDiscoveryAssociations">
+            <td>
+              <ui-select ng-model="serviceDiscoveryAssoc.registry" class="form-control input-sm">
+                <ui-select-match placeholder="Select...">{{ $select.selected.displayName }}</ui-select-match>
+                <ui-select-choices repeat="serviceDiscoveryRegistry in $ctrl.command.backingData.filtered.serviceDiscoveryRegistries">
+                  <span ng-bind-html="serviceDiscoveryRegistry.displayName | highlight: $select.search"></span>
+                </ui-select-choices>
+              </ui-select>
+            </td>
+            <td>
+              <input
+                type="number"
+                class="form-control input-sm no-spel"
+                ng-pattern="basicSettingsCtrl.detailPattern"
+                name="containerPort"
+                ng-model="serviceDiscoveryAssoc.containerPort"
+              />
+            </td>
+            <td>
+              <div class="form-control-static">
+                <a class="btn-link sm-label" ng-click="$ctrl.command.serviceDiscoveryAssociations.splice($index, 1)">
+                  <span class="glyphicon glyphicon-trash"></span>
+                  <span class="sr-only">Remove</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">
+              <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.command.serviceDiscoveryAssociations.push({})">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+                Add New Service Registry
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </form>
+  </div>
+</div>

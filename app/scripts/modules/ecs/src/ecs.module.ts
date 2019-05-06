@@ -42,6 +42,7 @@ angular
     ECS_NETWORKING_SECTION,
     ECS_CLUSTER_READ_SERVICE,
     ECS_SECRET_READ_SERVICE,
+    require('./serverGroup/configure/wizard/serviceDiscovery/serviceDiscovery.component').name,
     METRIC_ALARM_READ_SERVICE,
     PLACEMENT_STRATEGY_SERVICE,
     COMMON_MODULE,
