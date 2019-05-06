@@ -113,19 +113,13 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     credentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
-    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
-        .name("name")
-        .dockerRegistries(dockerRegistries)
-        .spectatorRegistry(spectatorRegistry)
-        .credentials(credentials)
-        .build()
+    namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
+      getCredentials() >> credentials
+    }
 
-    sourceNamedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
-        .name("name")
-        .dockerRegistries(dockerRegistries)
-        .spectatorRegistry(spectatorRegistry)
-        .credentials(credentials)
-        .build()
+    sourceNamedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
+      getCredentials() >> credentials
+    }
 
     objectMetadata.setLabels(LABELS)
     podTemplateSpec.setMetadata(objectMetadata)

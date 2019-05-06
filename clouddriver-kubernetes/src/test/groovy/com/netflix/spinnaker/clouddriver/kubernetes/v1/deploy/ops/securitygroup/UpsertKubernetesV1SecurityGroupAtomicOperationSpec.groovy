@@ -61,12 +61,9 @@ class UpsertKubernetesV1SecurityGroupAtomicOperationSpec extends Specification {
     dockerRegistries = [dockerRegistry]
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
     credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock)
-    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
-        .name("accountName")
-        .credentials(credentials)
-        .dockerRegistries(dockerRegistries)
-        .spectatorRegistry(spectatorRegistry)
-        .build()
+    namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
+      getCredentials() >> credentials
+    }
 
     testTLS = [new KubernetesIngressTlS([TLS_HOST], TLS_SECRET)].asList()
     resultTLS = [new IngressTLS([TLS_HOST], TLS_SECRET)].asList()

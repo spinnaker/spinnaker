@@ -18,9 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -31,9 +29,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.moniker.Namer;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -42,153 +37,69 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.clouddriver.security.ProviderVersion.v1;
-
+@Getter
 public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> implements AccountCredentials<C> {
-  final private String cloudProvider = "kubernetes";
-  final private String name;
-  final private ProviderVersion providerVersion;
-  final private String environment;
-  final private String accountType;
-  final private String context;
-  final private String cluster;
-  final private String user;
-  final private String userAgent;
-  final private String kubeconfigFile;
-  final private String kubectlExecutable;
-  final private Boolean serviceAccount;
-  final private Boolean metrics;
-  private List<String> namespaces;
-  private List<String> omitNamespaces;
-  private String skin;
-  final private int cacheThreads;
-  private C credentials;
+  private final String cloudProvider = "kubernetes";
+  private final String name;
+  private final ProviderVersion providerVersion;
+  private final String environment;
+  private final String accountType;
+  private final String skin;
+  private final int cacheThreads;
+  private final C credentials;
   private final List<String> requiredGroupMembership;
   private final Permissions permissions;
-  private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
-  private final Registry spectatorRegistry;
-  private final AccountCredentialsRepository accountCredentialsRepository;
-  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
-  private final Boolean onlySpinnakerManaged;
-  private final Boolean liveManifestCalls;
   private final Long cacheIntervalSeconds;
-  KubernetesNamedAccountCredentials(String name,
-                                    ProviderVersion providerVersion,
-                                    AccountCredentialsRepository accountCredentialsRepository,
-                                    String userAgent,
-                                    String environment,
-                                    String accountType,
-                                    String context,
-                                    String cluster,
-                                    String user,
-                                    String kubeconfigFile,
-                                    String kubectlExecutable,
-                                    Boolean serviceAccount,
-                                    Boolean metrics,
-                                    List<String> namespaces,
-                                    List<String> omitNamespaces,
-                                    String skin,
-                                    int cacheThreads,
-                                    List<LinkedDockerRegistryConfiguration> dockerRegistries,
-                                    List<String> requiredGroupMembership,
-                                    Permissions permissions,
-                                    Registry spectatorRegistry,
-                                    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-                                    C credentials,
-                                    Boolean onlySpinnakerManaged,
-                                    Boolean liveManifestCalls,
-                                    Long cacheIntervalSeconds) {
-    this.name = name;
-    this.providerVersion = providerVersion;
-    this.environment = environment;
-    this.accountType = accountType;
-    this.context = context;
-    this.cluster = cluster;
-    this.user = user;
-    this.userAgent = userAgent;
-    this.kubeconfigFile = kubeconfigFile;
-    this.kubectlExecutable = kubectlExecutable;
-    this.serviceAccount = serviceAccount;
-    this.metrics = metrics;
-    this.namespaces = namespaces;
-    this.omitNamespaces = omitNamespaces;
-    this.skin = skin;
-    this.cacheThreads = cacheThreads;
-    this.requiredGroupMembership = requiredGroupMembership;
-    this.permissions = permissions;
-    this.dockerRegistries = dockerRegistries;
-    this.accountCredentialsRepository = accountCredentialsRepository;
-    this.spectatorRegistry = spectatorRegistry;
-    this.credentials = credentials;
+  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
+
+  public KubernetesNamedAccountCredentials(
+    KubernetesConfigurationProperties.ManagedAccount managedAccount,
+    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+    CredentialFactory factory
+  ) {
+    this.name = managedAccount.getName();
+    this.providerVersion = managedAccount.getProviderVersion();
+    this.environment = Optional.ofNullable(managedAccount.getEnvironment()).orElse(managedAccount.getName());
+    this.accountType = Optional.ofNullable(managedAccount.getAccountType()).orElse(managedAccount.getName());
+    this.skin = Optional.ofNullable(managedAccount.getSkin()).orElse(managedAccount.getProviderVersion().toString());
+    this.cacheThreads = managedAccount.getCacheThreads();
+    this.cacheIntervalSeconds = managedAccount.getCacheIntervalSeconds();
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
-    this.onlySpinnakerManaged = onlySpinnakerManaged;
-    this.liveManifestCalls = liveManifestCalls;
-    this.cacheIntervalSeconds = cacheIntervalSeconds;
+
+    Permissions permissions = managedAccount.getPermissions().build();
+    if (permissions.isRestricted()) {
+      this.permissions = permissions;
+      this.requiredGroupMembership = Collections.emptyList();
+    } else {
+      this.permissions = null;
+      this.requiredGroupMembership = Optional.ofNullable(managedAccount.getRequiredGroupMembership()).map(Collections::unmodifiableList).orElse(Collections.emptyList());
+    }
+
+    switch (managedAccount.getProviderVersion()) {
+      case v1:
+        this.credentials = (C) factory.buildV1Credentials(managedAccount);
+        break;
+      case v2:
+        this.credentials = (C) factory.buildV2Credentials(managedAccount);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown provider type: " + managedAccount.getProviderVersion());
+    }
   }
 
   public List<String> getNamespaces() {
     return credentials.getDeclaredNamespaces();
   }
 
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public ProviderVersion getProviderVersion() {
-    return providerVersion;
-  }
-
-  @Override
-  public String getSkin() {
-    return skin != null ? skin : getProviderVersion().toString();
-  }
-
-  @Override
-  public String getEnvironment() {
-    return environment;
-  }
-
-  @Override
-  public String getAccountType() {
-    return accountType;
-  }
-
-  @Override
-  public C getCredentials() {
-    return credentials;
-  }
-
-  public String getKubectlExecutable() {
-    return kubectlExecutable;
-  }
-
-  @Override
-  public String getCloudProvider() {
-    return cloudProvider;
-  }
-
-  public int getCacheThreads() {
-    return cacheThreads;
-  }
-
-  public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
-    return dockerRegistries;
-  }
-
-  public Permissions getPermissions() {
-    return permissions;
-  }
-
-  public Long getCacheIntervalSeconds() {
-    return cacheIntervalSeconds;
-  }
-
   public Map<String, String> getSpinnakerKindMap() {
     if (kubernetesSpinnakerKindMap == null) {
-      return new HashMap<String, String>();
+      return Collections.emptyMap();
     }
     Map<String, String> kindMap = new HashMap<>(kubernetesSpinnakerKindMap.kubernetesToSpinnakerKindStringMap());
     C creds = getCredentials();
@@ -200,333 +111,96 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return kindMap;
   }
 
-  @Override
-  public List<String> getRequiredGroupMembership() {
-    return requiredGroupMembership;
-  }
+  @Component
+  @RequiredArgsConstructor
+  public static class CredentialFactory {
+    private final String userAgent;
+    private final Registry spectatorRegistry;
+    private final NamerRegistry namerRegistry;
+    private final AccountCredentialsRepository accountCredentialsRepository;
+    private final KubectlJobExecutor jobExecutor;
 
-  public Boolean getOnlySpinnakerManaged() { return onlySpinnakerManaged; }
-
-  static class Builder<C extends KubernetesCredentials> {
-    String name;
-    ProviderVersion providerVersion;
-    String environment;
-    String accountType;
-    String context;
-    String cluster;
-    String oAuthServiceAccount;
-    List<String> oAuthScopes;
-    String user;
-    String userAgent;
-    String kubeconfigFile;
-    String kubeconfigContents;
-    String kubectlExecutable;
-    Integer kubectlRequestTimeoutSeconds;
-    Boolean serviceAccount;
-    Boolean metrics;
-    Boolean configureImagePullSecrets;
-    List<String> namespaces;
-    List<String> omitNamespaces;
-    String skin;
-    int cacheThreads;
-    C credentials;
-    List<String> requiredGroupMembership;
-    Permissions permissions;
-    List<LinkedDockerRegistryConfiguration> dockerRegistries;
-    Registry spectatorRegistry;
-    AccountCredentialsRepository accountCredentialsRepository;
-    KubectlJobExecutor jobExecutor;
-    Namer namer;
-    List<CustomKubernetesResource> customResources;
-    List<KubernetesCachingPolicy> cachingPolicies;
-    List<String> kinds;
-    List<String> omitKinds;
-    boolean debug;
-    boolean checkPermissionsOnStartup;
-    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
-    Boolean onlySpinnakerManaged;
-    Boolean liveManifestCalls;
-    Long cacheIntervalSeconds;
-
-    Builder kubernetesSpinnakerKindMap(KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
-      this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
-      return this;
+    public KubernetesV1Credentials buildV1Credentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+      validateAccount(managedAccount);
+      return new KubernetesV1Credentials(
+        managedAccount.getName(),
+        getKubeconfigFile(managedAccount),
+        managedAccount.getContext(),
+        managedAccount.getCluster(),
+        managedAccount.getUser(),
+        userAgent,
+        managedAccount.getServiceAccount(),
+        managedAccount.getConfigureImagePullSecrets(),
+        managedAccount.getNamespaces(),
+        managedAccount.getOmitNamespaces(),
+        managedAccount.getDockerRegistries(),
+        spectatorRegistry,
+        accountCredentialsRepository
+      );
     }
 
-    Builder name(String name) {
-      this.name = name;
-      return this;
+    public KubernetesV2Credentials buildV2Credentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+      validateAccount(managedAccount);
+      NamerRegistry.lookup()
+        .withProvider(KubernetesCloudProvider.getID())
+        .withAccount(managedAccount.getName())
+        .setNamer(KubernetesManifest.class, namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
+      return new KubernetesV2Credentials.Builder()
+        .accountName(managedAccount.getName())
+        .kubeconfigFile(getKubeconfigFile(managedAccount))
+        .kubectlExecutable(managedAccount.getKubectlExecutable())
+        .kubectlRequestTimeoutSeconds(managedAccount.getKubectlRequestTimeoutSeconds())
+        .context(managedAccount.getContext())
+        .oAuthServiceAccount(managedAccount.getoAuthServiceAccount())
+        .oAuthScopes(managedAccount.getoAuthScopes())
+        .serviceAccount(managedAccount.getServiceAccount())
+        .userAgent(userAgent)
+        .namespaces(managedAccount.getNamespaces())
+        .omitNamespaces(managedAccount.getOmitNamespaces())
+        .registry(spectatorRegistry)
+        .customResources(managedAccount.getCustomResources())
+        .cachingPolicies(managedAccount.getCachingPolicies())
+        .kinds(managedAccount.getKinds())
+        .omitKinds(managedAccount.getOmitKinds())
+        .metrics(managedAccount.getMetrics())
+        .debug(managedAccount.getDebug())
+        .checkPermissionsOnStartup(managedAccount.getCheckPermissionsOnStartup())
+        .jobExecutor(jobExecutor)
+        .onlySpinnakerManaged(managedAccount.getOnlySpinnakerManaged())
+        .liveManifestCalls(managedAccount.getLiveManifestCalls())
+        .build();
     }
 
-    Builder providerVersion(ProviderVersion providerVersion) {
-      this.providerVersion = providerVersion;
-      return this;
-    }
-
-    Builder environment(String environment) {
-      this.environment = environment;
-      return this;
-    }
-
-    Builder accountType(String accountType) {
-      this.accountType = accountType;
-      return this;
-    }
-
-    Builder context(String context) {
-      this.context = context;
-      return this;
-    }
-
-    Builder cluster(String cluster) {
-      this.cluster = cluster;
-      return this;
-    }
-
-    Builder oAuthServiceAccount(String oAuthServiceAccount) {
-      this.oAuthServiceAccount = oAuthServiceAccount;
-      return this;
-    }
-
-    Builder oAuthScopes(List<String> oAuthScopes) {
-      this.oAuthScopes = oAuthScopes;
-      return this;
-    }
-
-    Builder user(String user) {
-      this.user = user;
-      return this;
-    }
-
-    Builder userAgent(String userAgent) {
-      this.userAgent = userAgent;
-      return this;
-    }
-
-    Builder kubeconfigFile(String kubeconfigFile) {
-      this.kubeconfigFile = kubeconfigFile;
-      return this;
-    }
-
-    Builder kubeconfigContents(String kubeconfigContents) {
-      this.kubeconfigContents = kubeconfigContents;
-      return this;
-    }
-
-    Builder kubectlExecutable(String kubectlExecutable) {
-      this.kubectlExecutable = kubectlExecutable;
-      return this;
-    }
-
-    Builder kubectlRequestTimeoutSeconds(Integer kubectlRequestTimeoutSeconds) {
-      this.kubectlRequestTimeoutSeconds = kubectlRequestTimeoutSeconds;
-      return this;
-    }
-
-    Builder serviceAccount(Boolean serviceAccount) {
-      this.serviceAccount = serviceAccount;
-      return this;
-    }
-
-    Builder metrics(Boolean metrics) {
-      this.metrics = metrics;
-      return this;
-    }
-
-    Builder configureImagePullSecrets(Boolean configureImagePullSecrets) {
-      this.configureImagePullSecrets = configureImagePullSecrets;
-      return this;
-    }
-
-    Builder requiredGroupMembership(List<String> requiredGroupMembership) {
-      this.requiredGroupMembership = requiredGroupMembership;
-      return this;
-    }
-
-    Builder permissions(Permissions permissions) {
-      if (permissions.isRestricted()) {
-        this.requiredGroupMembership = Collections.emptyList();
-        this.permissions = permissions;
-      }
-      return this;
-    }
-
-    Builder dockerRegistries(List<LinkedDockerRegistryConfiguration> dockerRegistries) {
-      this.dockerRegistries = dockerRegistries;
-      return this;
-    }
-
-    Builder namespaces(List<String> namespaces) {
-      this.namespaces = namespaces;
-      return this;
-    }
-
-    Builder omitNamespaces(List<String> omitNamespaces) {
-      this.omitNamespaces = omitNamespaces;
-      return this;
-    }
-
-    Builder skin(String skin) {
-      this.skin = skin;
-      return this;
-    }
-
-    Builder cacheThreads(int cacheThreads) {
-      this.cacheThreads = cacheThreads;
-      return this;
-    }
-
-    Builder credentials(C credentials) {
-      this.credentials = credentials;
-      return this;
-    }
-
-    Builder spectatorRegistry(Registry spectatorRegistry) {
-      this.spectatorRegistry = spectatorRegistry;
-      return this;
-    }
-
-    Builder accountCredentialsRepository(AccountCredentialsRepository accountCredentialsRepository) {
-      this.accountCredentialsRepository = accountCredentialsRepository;
-      return this;
-    }
-
-    Builder jobExecutor(KubectlJobExecutor jobExecutor) {
-      this.jobExecutor = jobExecutor;
-      return this;
-    }
-
-    Builder debug(boolean debug) {
-      this.debug = debug;
-      return this;
-    }
-
-    Builder checkPermissionsOnStartup(boolean checkPermissionsOnStartup) {
-      this.checkPermissionsOnStartup = checkPermissionsOnStartup;
-      return this;
-    }
-
-    Builder namer(Namer namer) {
-      this.namer = namer;
-      return this;
-    }
-
-    Builder cachingPolicies(List<KubernetesCachingPolicy> cachingPolicies) {
-      this.cachingPolicies = cachingPolicies;
-      return this;
-    }
-
-    Builder customResources(List<CustomKubernetesResource> customResources) {
-      this.customResources = customResources;
-      return this;
-    }
-
-    Builder kinds(List<String> kinds) {
-      this.kinds = kinds;
-      return this;
-    }
-
-    Builder omitKinds(List<String> omitKinds) {
-      this.omitKinds = omitKinds;
-      return this;
-    }
-
-    Builder onlySpinnakerManaged(Boolean onlySpinnakerManaged) {
-      this.onlySpinnakerManaged = onlySpinnakerManaged;
-      return this;
-    }
-
-    Builder liveManifestCalls(boolean liveManifestCalls) {
-      this.liveManifestCalls = liveManifestCalls;
-      return this;
-    }
-
-    Builder cacheIntervalSeconds(Long cacheIntervalSeconds) {
-      this.cacheIntervalSeconds = cacheIntervalSeconds;
-      return this;
-    }
-
-    private C buildCredentials() {
-      switch (providerVersion) {
-        case v1:
-          return (C) new KubernetesV1Credentials(
-              name,
-              kubeconfigFile,
-              context,
-              cluster,
-              user,
-              userAgent,
-              serviceAccount,
-              configureImagePullSecrets,
-              namespaces,
-              omitNamespaces,
-              dockerRegistries,
-              spectatorRegistry,
-              accountCredentialsRepository
-          );
-        case v2:
-          NamerRegistry.lookup()
-              .withProvider(KubernetesCloudProvider.getID())
-              .withAccount(name)
-              .setNamer(KubernetesManifest.class, namer);
-          return (C) new KubernetesV2Credentials.Builder()
-              .accountName(name)
-              .kubeconfigFile(kubeconfigFile)
-              .kubectlExecutable(kubectlExecutable)
-              .kubectlRequestTimeoutSeconds(kubectlRequestTimeoutSeconds)
-              .context(context)
-              .oAuthServiceAccount(oAuthServiceAccount)
-              .oAuthScopes(oAuthScopes)
-              .serviceAccount(serviceAccount)
-              .userAgent(userAgent)
-              .namespaces(namespaces)
-              .omitNamespaces(omitNamespaces)
-              .registry(spectatorRegistry)
-              .customResources(customResources)
-              .cachingPolicies(cachingPolicies)
-              .kinds(kinds)
-              .omitKinds(omitKinds)
-              .metrics(metrics)
-              .debug(debug)
-              .checkPermissionsOnStartup(checkPermissionsOnStartup)
-              .jobExecutor(jobExecutor)
-              .onlySpinnakerManaged(onlySpinnakerManaged)
-              .liveManifestCalls(liveManifestCalls)
-              .build();
-        default:
-          throw new IllegalArgumentException("Unknown provider type: " + providerVersion);
-      }
-    }
-
-    KubernetesNamedAccountCredentials build() {
-      if (StringUtils.isEmpty(name)) {
-        throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
-      }
-
-      if ((omitNamespaces != null && !omitNamespaces.isEmpty()) && (namespaces != null && !namespaces.isEmpty())) {
+    private void validateAccount(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+      if (
+        managedAccount.getOmitNamespaces() != null
+          && !managedAccount.getOmitNamespaces().isEmpty()
+          && managedAccount.getNamespaces() != null
+          && !managedAccount.getNamespaces().isEmpty()
+        ) {
         throw new IllegalArgumentException("At most one of 'namespaces' and 'omitNamespaces' can be specified");
       }
 
-      if ((omitKinds != null && !omitKinds.isEmpty()) && (kinds != null && !kinds.isEmpty())) {
+      if (
+        managedAccount.getOmitKinds() != null
+          && !managedAccount.getOmitKinds().isEmpty()
+          && managedAccount.getKinds() != null
+          && !managedAccount.getKinds().isEmpty()
+        ) {
         throw new IllegalArgumentException("At most one of 'kinds' and 'omitKinds' can be specified");
       }
+    }
 
-      if (cacheThreads == 0) {
-        cacheThreads = 1;
-      }
-
-      if (providerVersion == null) {
-        providerVersion = v1;
-      }
-
-      if (StringUtils.isEmpty(kubeconfigFile)){
-        if (StringUtils.isEmpty(kubeconfigContents)) {
+    private String getKubeconfigFile(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+      String kubeconfigFile = managedAccount.getKubeconfigFile();
+      if (StringUtils.isEmpty(kubeconfigFile)) {
+        if (StringUtils.isEmpty(managedAccount.getKubeconfigContents())) {
           kubeconfigFile = System.getProperty("user.home") + "/.kube/config";
         } else {
           try {
             File temp = File.createTempFile("kube", "config");
             BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
-            writer.write(kubeconfigContents);
+            writer.write(managedAccount.getKubeconfigContents());
             writer.close();
             kubeconfigFile = temp.getAbsolutePath();
           } catch (IOException e) {
@@ -534,58 +208,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           }
         }
       }
-
-      if (requiredGroupMembership != null && !requiredGroupMembership.isEmpty()) {
-        requiredGroupMembership = Collections.unmodifiableList(requiredGroupMembership);
-      } else {
-        requiredGroupMembership = Collections.emptyList();
-      }
-
-      if (configureImagePullSecrets == null) {
-        configureImagePullSecrets = true;
-      }
-
-      if (serviceAccount == null) {
-        serviceAccount = false;
-      }
-
-      if (metrics == null) {
-        // on by default
-        metrics = true;
-      }
-
-      if (credentials == null) {
-        credentials = buildCredentials();
-      }
-
-      return new KubernetesNamedAccountCredentials(
-          name,
-          providerVersion,
-          accountCredentialsRepository,
-          userAgent,
-          environment,
-          accountType,
-          context,
-          cluster,
-          user,
-          kubeconfigFile,
-          kubectlExecutable,
-          serviceAccount,
-          metrics,
-          namespaces,
-          omitNamespaces,
-          skin,
-          cacheThreads,
-          dockerRegistries,
-          requiredGroupMembership,
-          permissions,
-          spectatorRegistry,
-          kubernetesSpinnakerKindMap,
-          credentials,
-          onlySpinnakerManaged,
-          liveManifestCalls,
-          cacheIntervalSeconds
-      );
+      return kubeconfigFile;
     }
   }
 }

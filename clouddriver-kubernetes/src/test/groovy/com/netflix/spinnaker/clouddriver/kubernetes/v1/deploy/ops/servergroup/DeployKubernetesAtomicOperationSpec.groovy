@@ -133,12 +133,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     credentials = new KubernetesV1Credentials(apiMock, [NAMESPACE], [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock,)
-    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
-        .name("name")
-        .dockerRegistries(dockerRegistries)
-        .credentials(credentials)
-        .spectatorRegistry(spectatorRegistry)
-        .build()
+    namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
+      getCredentials() >> credentials
+    }
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
 

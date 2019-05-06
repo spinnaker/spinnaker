@@ -69,12 +69,10 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock)
-    namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
-        .name(VALID_ACCOUNT)
-        .dockerRegistries(dockerRegistries)
-        .spectatorRegistry(spectatorRegistry)
-        .credentials(credentials)
-        .build()
+    namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
+      getName() >> VALID_ACCOUNT
+      getCredentials() >> credentials
+    }
     credentialsRepo.save(VALID_ACCOUNT, namedAccountCredentials)
     validator.accountCredentialsProvider = credentialsProvider
 

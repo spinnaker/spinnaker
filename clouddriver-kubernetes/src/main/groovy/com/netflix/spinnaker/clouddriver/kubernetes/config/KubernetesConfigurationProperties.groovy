@@ -23,10 +23,12 @@ import groovy.transform.ToString
 
 @ToString(includeNames = true)
 class KubernetesConfigurationProperties {
+  private static final Integer DEFAULT_CACHE_THREADS = 1
+
   @ToString(includeNames = true)
   static class ManagedAccount {
     String name
-    ProviderVersion providerVersion
+    ProviderVersion providerVersion = ProviderVersion.v1
     String environment
     String accountType
     String context
@@ -37,26 +39,26 @@ class KubernetesConfigurationProperties {
     String kubeconfigFile
     String kubeconfigContents
     String kubectlExecutable
-    Integer kubectlRequestTimeoutSeconds;
-    Boolean serviceAccount
-    Boolean configureImagePullSecrets
+    Integer kubectlRequestTimeoutSeconds
+    boolean serviceAccount = false
+    boolean configureImagePullSecrets = true
     List<String> namespaces
     List<String> omitNamespaces
     String skin
-    Integer cacheThreads
+    int cacheThreads = DEFAULT_CACHE_THREADS
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership
     Permissions.Builder permissions = new Permissions.Builder()
     String namingStrategy = "kubernetesAnnotations"
-    Boolean debug = false
-    Boolean metrics = true
-    Boolean checkPermissionsOnStartup = true
+    boolean debug = false
+    boolean metrics = true
+    boolean checkPermissionsOnStartup = true
     List<CustomKubernetesResource> customResources;
     List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds
     List<String> omitKinds
-    Boolean onlySpinnakerManaged
-    Boolean liveManifestCalls
+    boolean onlySpinnakerManaged = false
+    boolean liveManifestCalls = false
     Long cacheIntervalSeconds
   }
 
