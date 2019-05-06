@@ -251,6 +251,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       .withCluster(description.getEcsClusterName())
       .withLoadBalancers(loadBalancers)
       .withTaskDefinition(taskDefinitionArn)
+      .withPlacementConstraints(description.getPlacementConstraints())
       .withPlacementStrategy(description.getPlacementStrategySequence())
       .withDeploymentConfiguration(deploymentConfiguration);
 
@@ -280,6 +281,10 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
     if (!StringUtils.isEmpty(description.getLaunchType())) {
       request.withLaunchType(description.getLaunchType());
+    }
+
+    if (!StringUtils.isEmpty(description.getPlatformVersion())) {
+      request.withPlatformVersion(description.getPlatformVersion());
     }
 
     if (description.getHealthCheckGracePeriodSeconds() != null) {
