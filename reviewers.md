@@ -3,11 +3,11 @@
 * clareliguori
 * dotdotdotpaul
 * imosquera
-* Jammy-Louie
+* jammy-louie
 * jmelchio
+* kathrynlewis
 * kevinawoo
-* stuart-pollock
-* mybayern1974
 * michaeljqzq
+* mybayern1974
 * ncknt
-* KathrynLewis
+* stuart-pollock
