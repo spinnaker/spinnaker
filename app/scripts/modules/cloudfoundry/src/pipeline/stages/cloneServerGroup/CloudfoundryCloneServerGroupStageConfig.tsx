@@ -3,7 +3,7 @@ import * as React from 'react';
 import { IStageConfigProps, StageConstants } from '@spinnaker/core';
 
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
-import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
+import { CloudFoundryServerGroupCommandBuilder } from 'cloudfoundry/serverGroup/configure';
 
 export interface ICloudfoundryCloneServerGroupStageConfigState {
   buttonText: string;
@@ -47,16 +47,13 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
   private addCluster = () => {
     const { application, stage, pipeline } = this.props;
     const title = 'Clone Cluster';
-    CloudFoundryReactInjector.cfServerGroupCommandBuilder
-      .buildCloneServerGroupCommandFromPipeline(stage, pipeline)
-      .then((command: any) => {
-        return CloudFoundryCreateServerGroupModal.show({
-          application,
-          command,
-          isSourceConstant: false,
-          title,
-        });
-      })
+    const command = CloudFoundryServerGroupCommandBuilder.buildCloneServerGroupCommandFromPipeline(stage, pipeline);
+    CloudFoundryCreateServerGroupModal.show({
+      application,
+      command,
+      isSourceConstant: false,
+      title,
+    })
       .then(this.handleResult)
       .catch(() => {});
   };
@@ -82,7 +79,7 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
               <tr>
                 <td>{stage.source ? stage.source.account : ''}</td>
                 <td>{stage.source ? stage.source.region : ''}</td>
-                <td>{stage.source ? stage.source.targetCluster : ''}</td>
+                <td>{stage.source ? stage.source.clusterName : ''}</td>
                 <td>{stage.source ? cloneTargets.filter(t => t.val === stage.source.target).map(t => t.label) : ''}</td>
               </tr>
             </tbody>

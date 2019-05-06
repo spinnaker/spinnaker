@@ -1,4 +1,4 @@
-import { IServerGroupCommand, IArtifact } from '@spinnaker/core';
+import { IServerGroupCommand, IArtifact, IPipeline, IStage } from '@spinnaker/core';
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
@@ -19,6 +19,14 @@ export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupComma
   startApplication: boolean;
 }
 
+export interface IViewState {
+  mode?: string;
+  pipeline?: IPipeline;
+  requiresTemplateSelection?: boolean;
+  stage?: IStage;
+  submitButtonLabel?: string;
+}
+
 export interface ICloudFoundryArtifact {
   // one of these two are required
   artifact?: IArtifact;
@@ -36,7 +44,7 @@ export interface ICloudFoundrySource {
   asgName: string;
   region: string;
   account: string;
-  targetCluster?: string;
+  clusterName?: string;
 }
 
 export interface ICloudFoundryManifestDirectSource {

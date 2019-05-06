@@ -71,7 +71,7 @@ export class CloudFoundryServerGroupCloneSettings
           accounts={accounts}
           application={application}
           cloudProvider={'cloudfoundry'}
-          clusterField={'targetCluster'}
+          clusterField={'clusterName'}
           credentialsField={'account'}
           formik={formik}
         />

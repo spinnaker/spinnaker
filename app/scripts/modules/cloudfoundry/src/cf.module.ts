@@ -15,7 +15,7 @@ import {
   cfServerGroupDetailsGetter,
   CloudFoundryCreateServerGroupModal,
   CloudFoundryServerGroupActions,
-  CloudFoundryServerGroupCommandBuilder,
+  CloudFoundryServerGroupCommandBuilderShim,
   CloudFoundryServerGroupTransformer,
   EvironmentVariablesSection,
   HealthCheckSection,
@@ -71,7 +71,7 @@ CloudProviderRegistry.registerProvider('cloudfoundry', {
       EvironmentVariablesSection,
     ],
     CloneServerGroupModal: CloudFoundryCreateServerGroupModal,
-    commandBuilder: CloudFoundryServerGroupCommandBuilder,
+    commandBuilder: CloudFoundryServerGroupCommandBuilderShim,
     scalingActivitiesEnabled: false, // FIXME enable?
   },
   instance: {

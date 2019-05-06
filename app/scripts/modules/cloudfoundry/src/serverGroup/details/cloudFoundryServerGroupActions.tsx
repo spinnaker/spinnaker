@@ -15,13 +15,12 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
-import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
 import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
 import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
 import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';
 import { CloudFoundryUnmapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryUnmapLoadBalancersModal';
+import { CloudFoundryServerGroupCommandBuilder } from '../configure';
 
 export interface ICloudFoundryServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: ICloudFoundryServerGroup;
@@ -277,18 +276,15 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    CloudFoundryReactInjector.cfServerGroupCommandBuilder
-      .buildServerGroupCommandFromExisting(app, serverGroup)
-      .then((command: ICloudFoundryCreateServerGroupCommand) => {
-        const title = `Clone ${serverGroup.name}`;
-        CloudFoundryCreateServerGroupModal.show({
-          application: app,
-          command,
-          isSourceConstant: true,
-          serverGroup,
-          title,
-        });
-      });
+    const command = CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup);
+    const title = `Clone ${serverGroup.name}`;
+    CloudFoundryCreateServerGroupModal.show({
+      application: app,
+      command,
+      isSourceConstant: true,
+      serverGroup,
+      title,
+    });
   };
 
   public render(): JSX.Element {

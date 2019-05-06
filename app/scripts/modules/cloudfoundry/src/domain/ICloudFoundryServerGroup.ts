@@ -5,13 +5,13 @@ import { ICloudFoundryInstance } from 'cloudfoundry/domain/ICloudFoundryInstance
 
 export interface ICloudFoundryServerGroup extends IServerGroup {
   appsManagerUri?: string;
-  metricsUri?: string;
-  memory: number;
   diskQuota: number;
   healthCheckType: string;
   healthCheckHttpEndpoint: string;
   state: 'STARTED' | 'STOPPED';
   instances: ICloudFoundryInstance[];
+  metricsUri?: string;
+  memory: number;
   space: ICloudFoundrySpace;
   droplet?: ICloudFoundryDroplet;
   serviceInstances: ICloudFoundryServiceInstance[];
