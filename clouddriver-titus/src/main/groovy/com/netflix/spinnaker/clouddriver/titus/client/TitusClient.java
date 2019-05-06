@@ -64,6 +64,12 @@ public interface TitusClient {
   public Task getTask(String taskId);
 
   /**
+   *
+   * @param jobDisruptionBudgetUpdateRequest
+   */
+  public void updateDisruptionBudget(JobDisruptionBudgetUpdateRequest jobDisruptionBudgetUpdateRequest);
+
+  /**
    * @param resizeJobRequest
    */
   public void resizeJob(ResizeJobRequest resizeJobRequest);

@@ -180,6 +180,16 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   @Override
+  public void updateDisruptionBudget(JobDisruptionBudgetUpdateRequest request) {
+    JobDisruptionBudget disruptionBudget =  DisruptionBudgetHelper.convertJobDisruptionBudget(request.getDisruptionBudget());
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).updateJobDisruptionBudget(JobDisruptionBudgetUpdate.newBuilder()
+      .setDisruptionBudget(disruptionBudget)
+      .setJobId(request.getJobId()
+      ).build()
+    );
+  }
+
+  @Override
   public void resizeJob(ResizeJobRequest resizeJobRequest) {
     TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).updateJobCapacity(JobCapacityUpdate.newBuilder()
       .setJobId(resizeJobRequest.getJobId())

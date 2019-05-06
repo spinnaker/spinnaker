@@ -38,6 +38,7 @@ public final class AtomicOperations {
   public static final String START_SERVER_GROUP = "startServerGroup";
   public static final String STOP_SERVER_GROUP = "stopServerGroup";
   public static final String SET_STATEFUL_DISK = "setStatefulDisk";
+  public static final String UPSERT_DISRUPTION_BUDGET = "upsertDisruptionBudget";
 
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances";
