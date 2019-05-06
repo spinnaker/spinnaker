@@ -41,6 +41,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Integer reservedMemory;
 
   Map<String, String> environmentVariables;
+  Map<String, String> tags;
 
   String dockerImageAddress;
   String dockerImageCredentialsSecret;

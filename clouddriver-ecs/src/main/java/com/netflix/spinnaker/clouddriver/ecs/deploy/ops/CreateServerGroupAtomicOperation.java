@@ -255,6 +255,17 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       .withPlacementStrategy(description.getPlacementStrategySequence())
       .withDeploymentConfiguration(deploymentConfiguration);
 
+    if (description.getTags() != null && !description.getTags().isEmpty()) {
+      Collection<Tag> taskDefTags = new LinkedList<>();
+      for (Map.Entry<String, String> entry : description.getTags().entrySet()) {
+        taskDefTags.add(new Tag().withKey(entry.getKey()).withValue(entry.getValue()));
+      }
+      request
+        .withTags(taskDefTags)
+        .withEnableECSManagedTags(true)
+        .withPropagateTags("SERVICE");
+    }
+
     if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
       request.withRole(ecsServiceRole);
     }
