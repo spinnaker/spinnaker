@@ -283,10 +283,11 @@
           <p>
             More details about how to create these expressions can be found
             <a
-              href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html"
+              href="http://www.quartz-scheduler.org/documentation/2.3.1-SNAPSHOT/tutorials/tutorial-lesson-06.html"
               target="_blank"
               >here</a
-            >.
+            >
+            and <a href="https://www.freeformatter.com/cron-expression-generator-quartz.html" target="_blank">here</a>.
           </p>
         </div>
       </div>
@@ -297,6 +298,7 @@
       </div>
       <div class="row slide-in" ng-if="validation.messages.error">
         <div class="col-md-12 error-message">
+          <p>This trigger will NEVER fire.</p>
           {{validation.messages.error}}
         </div>
       </div>
