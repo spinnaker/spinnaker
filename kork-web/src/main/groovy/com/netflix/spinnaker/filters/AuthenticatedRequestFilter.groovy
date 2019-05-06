@@ -95,8 +95,10 @@ class AuthenticatedRequestFilter implements Filter {
       Enumeration<String> headers = httpServletRequest.getHeaderNames()
 
       for (header in headers) {
-        if (header.startsWith(Header.XSpinnakerPrefix)) {
-          otherSpinnakerHeaders.put(header, httpServletRequest.getHeader(header))
+        String headerUpper = header.toUpperCase()
+
+        if (headerUpper.startsWith(Header.XSpinnakerPrefix)) {
+          otherSpinnakerHeaders.put(headerUpper, httpServletRequest.getHeader(header))
         }
       }
     }
