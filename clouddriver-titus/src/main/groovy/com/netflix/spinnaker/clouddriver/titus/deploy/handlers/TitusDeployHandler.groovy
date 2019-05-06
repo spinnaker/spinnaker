@@ -37,8 +37,14 @@ import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
+import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.AvailabilityPercentageLimit
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.ContainerHealthProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.HourlyTimeWindow
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.RatePercentagePerInterval
+import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.TimeWindow
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.TitusServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
@@ -175,6 +181,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         if (description.disruptionBudget == null) {
           //migrationPolicy should only be used when the disruptionBudget has not been specified
           description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
+        }
+        if (description.disruptionBudget == null && description.migrationPolicy == null) {
+          description.disruptionBudget = getDefaultDisruptionBudget()
         }
         description.jobType = description.jobType ?: "service"
         if (!description.hardConstraints) description.hardConstraints = []
@@ -412,6 +421,21 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       logger.error("Deploy failed", t)
       throw t
     }
+  }
+
+  private DisruptionBudget getDefaultDisruptionBudget() {
+    DisruptionBudget budget = new DisruptionBudget()
+    budget.availabilityPercentageLimit = new AvailabilityPercentageLimit(95)
+    budget.ratePercentagePerInterval = new RatePercentagePerInterval(60000, 5)
+    budget.timeWindows = [
+            new TimeWindow(
+              ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              [ new HourlyTimeWindow(10, 16) ],
+              "PST"
+            )
+    ]
+    budget.containerHealthProviders = [ new ContainerHealthProvider("eureka") ]
+    return budget
   }
 
   private String resolveJobName(TitusDeployDescription description, SubmitJobRequest submitJobRequest, Task task, TitusClient titusClient) {
