@@ -352,6 +352,9 @@ interface ClouddriverService {
   @GET('/ecs/secrets')
   List<Map> getAllEcsSecrets()
 
+  @GET('/ecs/serviceDiscoveryRegistries')
+  List<Map> getAllEcsServiceDiscoveryRegistries()
+
   @GET('/manifests/{account}/{location}/{name}')
   Map getManifest(@Path(value = 'account') String account,
                   @Path(value = 'location') String location,
