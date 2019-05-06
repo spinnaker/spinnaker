@@ -144,6 +144,22 @@
       </ul>
       <div ng-if="!securityGroup.sourceTags.length">None</div>
     </collapsible-section>
+    <collapsible-section heading="Target Service Accounts ({{securityGroup.targetServiceAccounts.length || 0}})">
+      <ul ng-if="securityGroup.targetServiceAccounts.length">
+        <li ng-repeat="serviceAccount in securityGroup.targetServiceAccounts">
+          {{serviceAccount}}
+        </li>
+      </ul>
+      <div ng-if="!securityGroup.targetServiceAccounts.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Source Service Accounts ({{securityGroup.sourceServiceAccounts.length || 0}})">
+      <ul ng-if="securityGroup.sourceServiceAccounts.length">
+        <li ng-repeat="serviceAccount in securityGroup.sourceServiceAccounts">
+          {{serviceAccount}}
+        </li>
+      </ul>
+      <div ng-if="!securityGroup.sourceServiceAccounts.length">None</div>
+    </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
         <li ng-if="securityGroup.logsLink">

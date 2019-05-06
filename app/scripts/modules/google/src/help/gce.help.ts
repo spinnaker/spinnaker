@@ -77,6 +77,10 @@ const helpContents: { [key: string]: string } = {
   'gce.securityGroup.sourceTags':
     'Traffic is only allowed from sources that match one of these tags, or one of the source CIDR ranges below.',
   'gce.securityGroup.targetTags': 'Traffic is only allowed if the target instance has one of these tags.',
+  'gce.securityGroup.targetServiceAccounts':
+    'Traffic is allowed if the target instance has one of these service accounts.',
+  'gce.securityGroup.sourceServiceAccounts':
+    'Traffic is allowed if the source instance has one of these service accounts.',
   'gce.serverGroup.associatePublicIpAddress.providerField':
     'Check if new GCE server groups in this application should be assigned a public IP address by default.',
   'gce.serverGroup.resizeWithAutoscalingPolicy': `

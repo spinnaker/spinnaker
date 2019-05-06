@@ -89,6 +89,20 @@ module.exports = angular
                 $scope.securityGroup.sourceTags = sourceTags.substring(1, sourceTags.length - 1).split(', ');
               }
 
+              // These come back from the global firewall endpoint as '[account-a@project.iam.gserviceaccount.com, account-b@project.iam.gserviceaccount.com]'
+              if (typeof $scope.securityGroup.targetServiceAccounts === 'string') {
+                let targetServiceAccounts = $scope.securityGroup.targetServiceAccounts;
+                $scope.securityGroup.targetServiceAccounts = targetServiceAccounts
+                  .substring(1, targetServiceAccounts.length - 1)
+                  .split(', ');
+              }
+              if (typeof $scope.securityGroup.sourceServiceAccounts === 'string') {
+                let sourceServiceAccounts = $scope.securityGroup.sourceServiceAccounts;
+                $scope.securityGroup.sourceServiceAccounts = sourceServiceAccounts
+                  .substring(1, sourceServiceAccounts.length - 1)
+                  .split(', ');
+              }
+
               $scope.securityGroup.sourceRanges = _.chain($scope.securityGroup.ipRangeRules)
                 .map(rule => {
                   return rule.range.ip && rule.range.cidr ? rule.range.ip + rule.range.cidr : null;
