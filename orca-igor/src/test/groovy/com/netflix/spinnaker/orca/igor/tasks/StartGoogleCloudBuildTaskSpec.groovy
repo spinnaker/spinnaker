@@ -18,10 +18,12 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,9 +33,11 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
 
   Execution execution = Mock(Execution)
   IgorService igorService = Mock(IgorService)
+  OortService oortService = Mock(OortService)
+  ArtifactResolver artifactResolver = Mock(ArtifactResolver)
 
   @Subject
-  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService)
+  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService, oortService, artifactResolver)
 
   def "starts a build"() {
     given:
