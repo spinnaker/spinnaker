@@ -48,6 +48,8 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
+import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
 import com.amazonaws.services.shield.AWSShield;
 import com.amazonaws.services.shield.AWSShieldClientBuilder;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -451,5 +453,9 @@ public class AmazonClientProvider {
 
   public AWSSecretsManager getAmazonSecretsManager(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     return proxyHandlerBuilder.getProxyHandler(AWSSecretsManager.class, AWSSecretsManagerClientBuilder.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AWSServiceDiscovery getAmazonServiceDiscovery(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return proxyHandlerBuilder.getProxyHandler(AWSServiceDiscovery.class, AWSServiceDiscoveryClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 }

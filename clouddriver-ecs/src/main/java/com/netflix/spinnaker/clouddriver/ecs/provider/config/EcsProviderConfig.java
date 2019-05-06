@@ -85,6 +85,7 @@ public class EcsProviderConfig {
             newAgents.add(new EcsCloudMetricAlarmCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
             newAgents.add(new ScalableTargetsCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
             newAgents.add(new SecretCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
+            newAgents.add(new ServiceDiscoveryCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
           }
         }
       }

@@ -35,7 +35,8 @@ public class Keys implements KeyParser {
     TASK_DEFINITIONS,
     ALARMS,
     SCALABLE_TARGETS,
-    SECRETS;
+    SECRETS,
+    SERVICE_DISCOVERY_REGISTRIES;
 
     public final String ns;
 
@@ -124,6 +125,9 @@ public class Keys implements KeyParser {
       case SECRETS:
         result.put("secretName", parts[4]);
         break;
+      case SERVICE_DISCOVERY_REGISTRIES:
+        result.put("serviceId", parts[4]);
+        break;
       case SCALABLE_TARGETS:
         result.put("resource", parts[4]);
         break;
@@ -177,6 +181,10 @@ public class Keys implements KeyParser {
 
   public static String getSecretKey(String account, String region, String secretName) {
     return buildKey(Namespace.SECRETS.ns, account, region, secretName);
+  }
+
+  public static String getServiceDiscoveryRegistryKey(String account, String region, String registryId) {
+    return buildKey(Namespace.SERVICE_DISCOVERY_REGISTRIES.ns, account, region, registryId);
   }
 
   private static String buildKey(String namespace,String account, String region, String identifier){

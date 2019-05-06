@@ -67,6 +67,8 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Map<String, String> logOptions;
   Map<String, String> dockerLabels;
 
+  List<ServiceDiscoveryAssociation> serviceDiscoveryAssociations;
+
   @Override
   public String getRegion() {
     //CreateServerGroupDescription does not contain a region. Instead it has AvailabilityZones
@@ -80,5 +82,21 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
     String region;
     String asgName;
     Boolean useSourceCapacity;
+  }
+
+  @Data
+  @EqualsAndHashCode(callSuper = false)
+  public static class ServiceDiscoveryAssociation {
+    ServiceRegistry registry;
+    Integer containerPort;
+    String containerName;
+  }
+
+  @Data
+  @EqualsAndHashCode(callSuper = false)
+  public static class ServiceRegistry {
+    String arn;
+    String name;
+    String id;
   }
 }
