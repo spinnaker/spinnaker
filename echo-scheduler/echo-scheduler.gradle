@@ -15,9 +15,6 @@
  */
 
 dependencies {
-  // NOTE: Quartz 2.3.0 had a breaking change that doesn't recognize certain CRON expression (which pipelines use today)
-  // If you upgrade it to 2.3.0 you will probably have to write a Front50 migrator
-  implementation "org.quartz-scheduler:quartz:2.2.1"
   implementation project(':echo-core')
   implementation project(':echo-model')
   implementation project(':echo-pipelinetriggers')
@@ -34,4 +31,5 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-sql"
 
   implementation "org.springframework:spring-context-support"
+  implementation "org.quartz-scheduler:quartz"
 }
