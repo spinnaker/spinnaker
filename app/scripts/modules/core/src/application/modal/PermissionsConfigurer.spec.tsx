@@ -37,13 +37,14 @@ describe('PermissionsConfigurer', () => {
 
     expect(permissions).toEqual({
       READ: ['groupA', 'groupB'],
+      EXECUTE: ['groupA', 'groupB'],
       WRITE: ['groupA', 'groupB'],
     });
   });
 
   it(`populates the 'roleOptions' list with a user's roles minus the roles already used in the permissions object`, () => {
     const component = createComponent({
-      permissions: { READ: ['groupA', 'groupB'], WRITE: ['groupB'] },
+      permissions: { READ: ['groupA', 'groupB'], EXECUTE: ['groupB'], WRITE: ['groupB'] },
       requiredGroupMembership: null,
       onPermissionsChange: () => null,
     });
