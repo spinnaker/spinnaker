@@ -271,8 +271,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
     String instancePort
     String loadBalancerPort
+    String sessionAffinity
     switch (view.loadBalancerType) {
       case GoogleLoadBalancerType.NETWORK:
+        GoogleNetworkLoadBalancer.View nlbView = view as GoogleNetworkLoadBalancer.View
+        sessionAffinity = nlbView.sessionAffinity
         instancePort = Utils.derivePortOrPortRange(view.portRange)
         loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
         break
@@ -303,6 +306,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,
                                    ipAddress: view.ipAddress,
+                                   sessionAffinity: sessionAffinity,
                                    healthCheck: (view.hasProperty("healthCheck") && view.healthCheck) ? view.healthCheck : null,
                                    backendServiceHealthChecks: backendServiceHealthChecks ?: null,
                                    listenerDescriptions: [[
@@ -367,6 +371,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     String loadBalancerName
     GoogleLoadBalancerType loadBalancerType
     GoogleHealthCheck.View healthCheck
+    String sessionAffinity
     Map<String, GoogleHealthCheck.View> backendServiceHealthChecks = [:]
     // TODO(ttomsu): Bizarre nesting of data. Necessary?
     List<Map<String, ListenerDescription>> listenerDescriptions = []
