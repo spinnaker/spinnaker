@@ -7,3 +7,7 @@
 * jmelchio
 * kevinawoo
 * stuart-pollock
+* mybayern1974
+* michaeljqzq
+* ncknt
+* KathrynLewis
