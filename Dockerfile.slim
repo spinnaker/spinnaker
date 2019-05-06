@@ -2,8 +2,6 @@ FROM openjdk:8-jdk-alpine
 
 MAINTAINER delivery-engineering@netflix.com
 
-COPY ./clouddriver-web/build/install/clouddriver /opt/clouddriver
-
 RUN apk --no-cache add --update bash wget unzip 'python2>2.7.9' && \
   wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
   unzip -qq google-cloud-sdk.zip -d /opt && \
@@ -35,4 +33,7 @@ RUN adduser -D -S spinnaker
 USER spinnaker
 
 WORKDIR /home/spinnaker
+
+COPY ./clouddriver-web/build/install/clouddriver /opt/clouddriver
+
 CMD ["/opt/clouddriver/bin/clouddriver"]
