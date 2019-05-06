@@ -164,9 +164,9 @@ export class API {
   private static init(urls: string[]) {
     const config: IRequestConfig = {
       method: '',
-      url: SETTINGS.gateUrl,
+      url: this.baseUrl,
     };
-    urls.forEach((url: string) => (config.url = `${config.url}/${url}`));
+    urls.forEach((url: string) => (config.url = `${config.url}/${url.toString().replace(/^\/+/, '')}`));
 
     return this.baseReturn(config);
   }
@@ -180,6 +180,6 @@ export class API {
   }
 
   public static get baseUrl(): string {
-    return SETTINGS.gateUrl;
+    return SETTINGS.gateUrl.replace(/\/+$/, '');
   }
 }
