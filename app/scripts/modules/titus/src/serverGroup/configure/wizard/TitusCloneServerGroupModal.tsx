@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { get } from 'lodash';
+import { get, isEqual } from 'lodash';
 
 import {
   Application,
@@ -17,8 +17,9 @@ import {
 } from '@spinnaker/core';
 
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
+import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
 
-import { ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
+import { ITitusServerGroupCommand, defaultJobDisruptionBudget } from '../serverGroupConfiguration.service';
 import { TitusReactInjector } from '../../../reactShims';
 
 import { ServerGroupBasicSettings, ServerGroupResources, ServerGroupParameters } from './pages';
@@ -136,11 +137,20 @@ export class TitusCloneServerGroupModal extends React.Component<
 
   private submit = (command: ITitusServerGroupCommand): void => {
     const forPipelineConfig = command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline';
+    // never persist the default budget
+    let toSubmit = command;
+    // TODO: see if this is needed
+    if (command.disruptionBudget.timeWindows && !command.disruptionBudget.timeWindows.length) {
+      delete command.disruptionBudget.timeWindows;
+    }
+    if (isEqual(defaultJobDisruptionBudget, command.disruptionBudget)) {
+      toSubmit = { ...command, disruptionBudget: undefined };
+    }
     if (forPipelineConfig) {
-      this.props.closeModal && this.props.closeModal(command);
+      this.props.closeModal && this.props.closeModal(toSubmit);
     } else {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        ReactInjector.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
       );
     }
   };
@@ -250,6 +260,13 @@ export class TitusCloneServerGroupModal extends React.Component<
               order={nextIdx()}
               note={this.getSecurityGroupNote(formik.values)}
               render={({ innerRef }) => <ServerGroupSecurityGroups ref={innerRef} formik={formik as any} />}
+            />
+
+            <WizardPage
+              label="Job Disruption Budget"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <JobDisruptionBudget ref={innerRef} formik={formik} />}
             />
 
             <WizardPage

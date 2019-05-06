@@ -84,6 +84,7 @@ module.exports = angular
 
         var command = {
           application: application.name,
+          disruptionBudget: serverGroup.disruptionBudget,
           strategy: '',
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,

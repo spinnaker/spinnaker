@@ -39,9 +39,48 @@ export interface ITitusServerGroupCommandViewState extends IServerGroupCommandVi
   dirty: IAmazonServerGroupCommandDirty;
 }
 
+export interface IJobTimeWindow {
+  days: string[];
+  hourlyTimeWindows: Array<{ startHour: number; endHour: number }>;
+  timeZone: string;
+}
+
+export interface IJobDisruptionBudget {
+  // policy options
+  availabilityPercentageLimit?: { percentageOfHealthyContainers: number }; // default
+  unhealthyTasksLimit?: { limitOfUnhealthyContainers: number };
+  selfManaged?: { relocationTimeMs: number };
+  relocationLimit?: { limit: number };
+
+  rateUnlimited?: boolean;
+  timeWindows: IJobTimeWindow[];
+  containerHealthProviders: Array<{ name: string }>;
+  ratePerInterval?: { intervalMs: number; limitPerInterval: number };
+  ratePercentagePerInterval?: { intervalMs: number; percentageLimitPerInterval: number };
+}
+
+export const defaultJobDisruptionBudget: IJobDisruptionBudget = {
+  availabilityPercentageLimit: {
+    percentageOfHealthyContainers: 95,
+  },
+  ratePercentagePerInterval: {
+    intervalMs: 600000,
+    percentageLimitPerInterval: 5,
+  },
+  containerHealthProviders: [{ name: 'eureka' }],
+  timeWindows: [
+    {
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      hourlyTimeWindows: [{ startHour: 10, endHour: 16 }],
+      timeZone: 'PST',
+    },
+  ],
+};
+
 export type Constraint = 'ExclusiveHost' | 'UniqueHost' | 'ZoneBalance';
 export interface ITitusServerGroupCommand extends IServerGroupCommand {
   cluster?: ICluster;
+  disruptionBudget?: IJobDisruptionBudget;
   deferredInitialization?: boolean;
   registry: string;
   imageId: string;
