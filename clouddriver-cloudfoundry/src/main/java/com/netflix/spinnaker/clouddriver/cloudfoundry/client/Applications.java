@@ -159,7 +159,6 @@ public class Applications {
         instances = emptySet();
         break;
       case STARTED:
-      default:
         try {
           instances = safelyCall(() -> api.instances(appId))
             .orElse(emptyMap())
@@ -195,10 +194,16 @@ public class Applications {
             log.debug("Unable to retrieve instances for application '" + application.getName() + "': " +
               IOUtils.toString(e.getResponse().getBody().in(), Charset.defaultCharset()));
           } catch (IOException e1) {
-            log.debug("Unable to retrieve instances for application '" + application.getName());
+            log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
           }
           instances = emptySet();
+        } catch (Exception ex) {
+          log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
+          instances = emptySet();
         }
+        break;
+      default:
+        instances = emptySet();
     }
 
     CloudFoundryDroplet droplet = null;
@@ -239,7 +244,7 @@ public class Applications {
             .build()
         )
         .orElse(null);
-    } catch (RetrofitError ignored) {
+    } catch (Exception ex) {
       log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
     }
 
