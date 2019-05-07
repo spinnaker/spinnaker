@@ -64,13 +64,9 @@ export class BakeManifestConfigCtrl implements IController {
       Object.assign(stage, defaultSelection);
     }
     this.ensureTemplateArtifact();
-    stage.inputArtifacts = stage.inputArtifacts.map((a: IArtifactAccountPair) => this.defaultInputArtifact(a));
     AccountService.getArtifactAccounts().then(accounts => {
       this.artifactAccounts = accounts;
-      stage.inputArtifacts.forEach((a: InputArtifact) => {
-        a.delegate.setAccounts(accounts);
-        a.controller.updateAccounts(a.delegate.getSelectedExpectedArtifact());
-      });
+      stage.inputArtifacts = stage.inputArtifacts.map((a: IArtifactAccountPair) => this.defaultInputArtifact(a));
     });
   }
 
@@ -120,6 +116,8 @@ export class BakeManifestConfigCtrl implements IController {
   public canShowAccountSelect(artifact: InputArtifact): boolean {
     return (
       artifact &&
+      artifact.delegate &&
+      artifact.controller &&
       !artifact.delegate.requestingNew &&
       (artifact.controller.accountsForArtifact.length > 1 && artifact.delegate.getSelectedExpectedArtifact() != null)
     );
