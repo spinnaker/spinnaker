@@ -16,7 +16,8 @@ package auth
 
 import (
 	"github.com/spinnaker/spin/config/auth/basic"
-	"github.com/spinnaker/spin/config/auth/iap"
+	gsa "github.com/spinnaker/spin/config/auth/googleserviceaccount"
+	config "github.com/spinnaker/spin/config/auth/iap"
 	"github.com/spinnaker/spin/config/auth/oauth2"
 	"github.com/spinnaker/spin/config/auth/x509"
 )
@@ -28,4 +29,6 @@ type AuthConfig struct {
 	OAuth2  *oauth2.OAuth2Config `yaml:"oauth2,omitempty"`
 	Basic   *basic.BasicConfig   `yaml:"basic,omitempty"`
 	Iap     *config.IapConfig    `yaml:"iap,omitempty"`
+
+	GoogleServiceAccount *gsa.GoogleServiceAccountConfig `yaml:"google_service_account,omitempty"`
 }
