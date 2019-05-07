@@ -39,6 +39,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
   import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
   import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+  import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
   import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
   import com.netflix.spinnaker.kork.artifacts.model.Artifact
   import spock.lang.Shared
@@ -92,14 +93,18 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
-      def soughtImage = new Image(name: IMAGE_NAME)
+      GoogleNamedAccountCredentials credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME)
+        .compute(compute)
+        .credentials(new FakeGoogleCredentials(PROJECT_NAME))
+        .build();
+    def soughtImage = new Image(name: IMAGE_NAME)
       def imageList = new ImageList(
         selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
         items: [soughtImage]
       )
 
     when:
-      def sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
+      def sourceImage = GCEUtil.queryImage(IMAGE_NAME, credentials, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
@@ -124,7 +129,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
-      def credentials = new GoogleNamedAccountCredentials.Builder().compute(compute).imageProjects([IMAGE_PROJECT_NAME]).build()
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).imageProjects([IMAGE_PROJECT_NAME]).build()
       def soughtImage = new Image(name: IMAGE_NAME)
       def imageList = new ImageList(
         selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
@@ -132,7 +137,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       )
 
     when:
-      def sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, credentials, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
+      def sourceImage = GCEUtil.queryImage(IMAGE_NAME, credentials, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
@@ -157,10 +162,14 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
+      GoogleNamedAccountCredentials credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME)
+        .compute(compute)
+        .credentials(new FakeGoogleCredentials(PROJECT_NAME))
+        .build();
       def emptyImageList = new ImageList()
 
     when:
-      GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
+      GCEUtil.queryImage(IMAGE_NAME, credentials, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
@@ -247,10 +256,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy
                          executor)
 
     then:
-    1 * GCEUtil.queryImage(PROJECT_NAME,
-                           IMAGE_NAME,
+    1 * GCEUtil.queryImage(IMAGE_NAME,
                            credentials,
-                           compute,
                            taskMock,
                            PHASE,
                            GOOGLE_APPLICATION_NAME,

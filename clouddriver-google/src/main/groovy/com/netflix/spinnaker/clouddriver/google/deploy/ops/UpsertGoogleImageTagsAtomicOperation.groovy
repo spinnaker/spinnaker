@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleImageTagsDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -62,10 +61,8 @@ class UpsertGoogleImageTagsAtomicOperation extends GoogleAtomicOperation<Void> {
     def project = credentials.project
     def imageName = description.imageName
     def tags = description.tags
-    def image = GCEUtil.queryImage(project,
-                                   imageName,
+    def image = GCEUtil.queryImage(imageName,
                                    credentials,
-                                   compute,
                                    task,
                                    BASE_PHASE,
                                    clouddriverUserAgentApplicationName,

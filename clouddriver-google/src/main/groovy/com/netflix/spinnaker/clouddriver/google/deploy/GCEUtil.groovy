@@ -83,10 +83,8 @@ class GCEUtil {
     }
   }
 
-  static Image queryImage(String projectName,
-                          String imageName,
+  static Image queryImage(String imageName,
                           GoogleNamedAccountCredentials credentials,
-                          Compute compute,
                           Task task,
                           String phase,
                           String clouddriverUserAgentApplicationName,
@@ -95,10 +93,10 @@ class GCEUtil {
     task.updateStatus phase, "Looking up image $imageName..."
 
     def filter = "name eq $imageName"
-    def imageProjects = [projectName] + credentials?.imageProjects + baseImageProjects - null
+    def imageProjects = [credentials.project] + credentials?.imageProjects + baseImageProjects - null
     def sourceImage = null
 
-    def imageListBatch = new GoogleBatchRequest(compute, clouddriverUserAgentApplicationName)
+    def imageListBatch = new GoogleBatchRequest(credentials.compute, clouddriverUserAgentApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -114,7 +112,7 @@ class GCEUtil {
     }
 
     imageProjects.each { imageProject ->
-      def imagesList = compute.images().list(imageProject)
+      def imagesList = credentials.compute.images().list(imageProject)
       imagesList.setFilter(filter)
       imageListBatch.queue(imagesList, imageListCallback)
     }
@@ -176,10 +174,8 @@ class GCEUtil {
         executor
       )
     } else {
-      return queryImage(description.credentials.project,
-        description.image,
+      return queryImage(description.image,
         description.credentials,
-        description.credentials.compute,
         task,
         phase,
         clouddriverUserAgentApplicationName,
@@ -799,10 +795,8 @@ class GCEUtil {
         sourceImage =
           disk.is(firstPersistentDisk)
           ? bootImage
-          : queryImage(credentials.project,
-                       disk.sourceImage,
+          : queryImage(disk.sourceImage,
                        credentials,
-                       credentials.compute,
                        task,
                        phase,
                        clouddriverUserAgentApplicationName,
