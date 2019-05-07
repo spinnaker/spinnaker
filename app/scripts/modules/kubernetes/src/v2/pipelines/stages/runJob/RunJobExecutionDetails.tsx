@@ -28,6 +28,7 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
 
     const { manifest } = context;
     const deployedName = this.extractDeployedJobName(manifest, get(context, ['deploy.jobs']));
+    const externalLink = get<string>(stage, ['context', 'execution', 'logs']);
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -51,6 +52,7 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
                   deployedName={deployedName}
                   account={this.props.stage.context.account}
                   application={this.props.application}
+                  externalLink={externalLink}
                 />
               </dd>
             </dl>

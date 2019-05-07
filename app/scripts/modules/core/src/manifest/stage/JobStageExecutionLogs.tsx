@@ -5,7 +5,7 @@ import { IStageManifest, ManifestService } from '../ManifestService';
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { IManifest } from 'core/domain/IManifest';
 
-import { get } from 'lodash';
+import { get, template, isEmpty } from 'lodash';
 import { Application } from 'core/application';
 
 interface IJobStageExecutionLogsProps {
@@ -13,6 +13,7 @@ interface IJobStageExecutionLogsProps {
   deployedName: string;
   account: string;
   application: Application;
+  externalLink: string;
 }
 
 interface IJobStageExecutionLogsState {
@@ -30,7 +31,7 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
     this.componentDidUpdate(this.props, this.state);
   }
 
-  public componentWillMount() {
+  public componentWillUnmount() {
     this.unsubscribe();
   }
 
@@ -84,13 +85,34 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
     };
   }
 
+  private renderExternalLink(link: string, manifest: IManifest): string {
+    if (!link.includes('{{')) {
+      return link;
+    }
+    // use {{ }} syntax to align with the annotation driven UI which this
+    // derives from
+    return template(link, { interpolate: /{{([\s\S]+?)}}/g })({ ...manifest });
+  }
+
   public render() {
     const { manifest } = this.state.subscription;
+    const { externalLink } = this.props;
+
+    // prefer links to external logging platforms
+    if (!isEmpty(manifest) && externalLink) {
+      return (
+        <a target="_blank" href={this.renderExternalLink(externalLink, manifest)}>
+          Console Output (External)
+        </a>
+      );
+    }
+
     let event: any = null;
     if (manifest && manifest.events) {
       event = manifest.events.find((e: any) => e.message.startsWith('Created pod'));
     }
-    if (!manifest || !event) {
+
+    if (isEmpty(manifest) && isEmpty(event)) {
       return <div>No Console Output</div>;
     }
 

@@ -21,6 +21,7 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
       const namespace = get(manifest, ['metadata', 'namespace']);
       const deployedJobs = get(this.props.stage, ['context', 'deploy.jobs']);
       const deployedName = get(deployedJobs, namespace, [])[0] || '';
+      const externalLink = get<string>(this.props.stage, ['context', 'execution', 'logs']);
       return (
         <div className="well">
           <JobStageExecutionLogs
@@ -28,6 +29,7 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
             deployedName={deployedName}
             account={this.props.stage.context.account}
             application={this.props.application}
+            externalLink={externalLink}
           />
         </div>
       );
