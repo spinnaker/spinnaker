@@ -72,6 +72,15 @@ const helpContents: { [key: string]: string } = {
       initiated the cooldown is calculated as part of the desired capacity for the next scale out. The intention is to
       continuously (but not excessively) scale out.</p>
   `,
+  'titus.disruptionbudget.description': `
+    <p>
+      The Job Disruption Budget is part of the job descriptor, and defines the behavior of how containers of the
+      job can be relocated.{' '}
+      <a href="http://manuals.test.netflix.net/view/titus-docs/mkdocs/master/disruption_budget/" target="_blank">
+        Read the full documentation
+      </a>
+    </p>
+  `,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

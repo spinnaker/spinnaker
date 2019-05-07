@@ -183,6 +183,12 @@
         ></config-bin-link>
       </div>
     </collapsible-section>
+    <collapsible-section heading="Job Disruption Budget">
+      <titus-disruption-budget-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-disruption-budget-section>
+    </collapsible-section>
     <collapsible-section heading="Job Attributes">
       <div ng-if="!serverGroup.labels">No job attributes associated with this server group</div>
       <dl ng-if="labels">

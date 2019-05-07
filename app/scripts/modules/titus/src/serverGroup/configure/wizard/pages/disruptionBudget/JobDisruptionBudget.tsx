@@ -43,6 +43,16 @@ export interface IFieldOptionComponentProps {
   isDisabled: boolean;
 }
 
+export const DisruptionBudgetDescription = () => (
+  <p>
+    The Job Disruption Budget is part of the job descriptor, and defines the behavior of how containers of the job can
+    be relocated.{' '}
+    <a href="http://manuals.test.netflix.net/view/titus-docs/mkdocs/master/disruption_budget/" target="_blank">
+      Read the full documentation
+    </a>
+  </p>
+);
+
 export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetProps, IJobDisruptionBudgetState> {
   private timeWindowOptions: IFieldOption[] = [
     {
@@ -141,13 +151,7 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     return (
       <LayoutProvider value={ResponsiveFieldLayout}>
         <div className="form-horizontal sp-margin-l-xaxis">
-          <p>
-            The Job Disruption Budget is part of the job descriptor, and defines the behavior of how containers of the
-            job can be relocated.{' '}
-            <a href="http://manuals.test.netflix.net/view/titus-docs/mkdocs/master/disruption_budget/" target="_blank">
-              Read the full documentation
-            </a>
-          </p>
+          <DisruptionBudgetDescription />
 
           <FormikFormField
             name="usingDefault"

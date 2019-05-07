@@ -15,6 +15,8 @@ import {
 
 import { TitusReactInjector } from 'titus/reactShims';
 
+import { DISRUPTION_BUDGET_DETAILS_SECTION } from './DisruptionBudgetSection';
+
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
@@ -25,6 +27,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder').name,
     CONFIRMATION_MODAL_SERVICE,
+    DISRUPTION_BUDGET_DETAILS_SECTION,
     SERVER_GROUP_WRITER,
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
