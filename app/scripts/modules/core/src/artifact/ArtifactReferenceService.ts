@@ -1,5 +1,5 @@
 import { IStage } from 'core/domain';
-import { get, noop } from 'lodash';
+import { get, noop, set } from 'lodash';
 import { Registry } from 'core/registry';
 
 export class ArtifactReferenceService {
@@ -12,10 +12,11 @@ export class ArtifactReferenceService {
   }
 
   public static removeArtifactFromField(field: string, obj: { [key: string]: string | string[] }, artifactId: string) {
-    if (Array.isArray(obj[field])) {
-      obj[field] = (obj[field] as string[]).filter((a: string) => a !== artifactId);
-    } else if (obj[field] === artifactId) {
-      delete obj[field];
+    const reference = get(obj, field);
+    if (Array.isArray(reference)) {
+      set(obj, field, reference.filter((a: string) => a !== artifactId));
+    } else if (reference === artifactId) {
+      set(obj, field, null);
     }
   }
 

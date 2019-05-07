@@ -23,22 +23,29 @@ describe('ArtifactReferenceService', () => {
       registerTestStage(['foo']);
       const stages = [stage({ type: 'testStage', foo: 'bar' })];
       ArtifactReferenceService.removeReferenceFromStages('bar', stages);
-      expect(stages[0].foo).toBe(undefined);
+      expect(stages[0].foo).toBe(null);
     });
 
     it('deletes multiple references from a stage if registered to do so', () => {
       registerTestStage(['deployedManifest', 'requiredArtifactIds']);
       const stages = [stage({ type: 'testStage', deployedManifest: 'foo', requiredArtifactIds: 'foo' })];
       ArtifactReferenceService.removeReferenceFromStages('foo', stages);
-      expect(stages[0].deployedManifest).toBe(undefined);
-      expect(stages[0].requiredArtifactIds).toBe(undefined);
+      expect(stages[0].deployedManifest).toBe(null);
+      expect(stages[0].requiredArtifactIds).toBe(null);
+    });
+
+    it('handles nested references', () => {
+      registerTestStage(['foo.bar']);
+      const stages = [stage({ type: 'testStage', foo: { bar: 'baz' } })];
+      ArtifactReferenceService.removeReferenceFromStages('baz', stages);
+      expect(stages[0].foo.bar).toBe(null);
     });
 
     it('doesnt delete reference from stage if reference doesnt match', () => {
       registerTestStage(['foo']);
       const stages = [stage({ type: 'testStage', foo: 'ref1' }), stage({ type: 'testStage', foo: 'ref2' })];
       ArtifactReferenceService.removeReferenceFromStages('ref1', stages);
-      expect(stages[0].foo).toBe(undefined);
+      expect(stages[0].foo).toBe(null);
       expect(stages[1].foo).toBe('ref2');
     });
 

@@ -6,6 +6,7 @@ import * as ReactDOM from 'react-dom';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { TRIGGER_ARTIFACT_CONSTRAINT_SELECTOR_REACT } from './artifacts';
+import { ArtifactReferenceService } from '../../../artifact';
 
 const angular = require('angular');
 
@@ -19,6 +20,7 @@ const removeUnusedExpectedArtifacts = function(pipeline) {
         delete pipeline.expectedArtifacts;
       }
     }
+    ArtifactReferenceService.removeReferenceFromStages(artifact.id, pipeline.stages);
   });
 };
 
