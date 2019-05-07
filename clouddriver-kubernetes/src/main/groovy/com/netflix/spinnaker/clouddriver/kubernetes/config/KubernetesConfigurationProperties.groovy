@@ -42,21 +42,21 @@ class KubernetesConfigurationProperties {
     Integer kubectlRequestTimeoutSeconds
     boolean serviceAccount = false
     boolean configureImagePullSecrets = true
-    List<String> namespaces
-    List<String> omitNamespaces
+    List<String> namespaces = new ArrayList<>()
+    List<String> omitNamespaces = new ArrayList<>()
     String skin
     int cacheThreads = DEFAULT_CACHE_THREADS
     List<LinkedDockerRegistryConfiguration> dockerRegistries
-    List<String> requiredGroupMembership
+    List<String> requiredGroupMembership = new ArrayList<>()
     Permissions.Builder permissions = new Permissions.Builder()
     String namingStrategy = "kubernetesAnnotations"
     boolean debug = false
     boolean metrics = true
     boolean checkPermissionsOnStartup = true
-    List<CustomKubernetesResource> customResources;
-    List<KubernetesCachingPolicy> cachingPolicies;
-    List<String> kinds
-    List<String> omitKinds
+    List<CustomKubernetesResource> customResources = new ArrayList<>()
+    List<KubernetesCachingPolicy> cachingPolicies = new ArrayList<>()
+    List<String> kinds = new ArrayList<>()
+    List<String> omitKinds = new ArrayList<>()
     boolean onlySpinnakerManaged = false
     boolean liveManifestCalls = false
     Long cacheIntervalSeconds

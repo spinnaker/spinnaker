@@ -97,7 +97,7 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
     credentials.getCredentials() instanceof KubernetesV2Credentials
     KubernetesV2Credentials accountCredentials = (KubernetesV2Credentials) credentials.getCredentials()
     accountCredentials.isServiceAccount() == false
-    accountCredentials.getOnlySpinnakerManaged() == false
+    accountCredentials.isOnlySpinnakerManaged() == false
     accountCredentials.isDebug() == false
     accountCredentials.isMetrics() == true
     accountCredentials.isLiveManifestCalls() == false
