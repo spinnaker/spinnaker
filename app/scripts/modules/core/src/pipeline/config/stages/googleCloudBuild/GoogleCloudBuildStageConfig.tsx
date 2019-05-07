@@ -1,69 +1,63 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
+import { cloneDeep } from 'lodash';
 
-import { IgorService, IStageConfigProps, StageConfigField, YamlEditor, yamlDocumentsToString } from '@spinnaker/core';
+import { FormikStageConfig, IgorService, IStage, IStageConfigProps } from '@spinnaker/core';
 
-export interface IGoogleCloudBuildStageConfigState {
+import { GoogleCloudBuildStageForm, buildDefinitionSources } from './GoogleCloudBuildStageForm';
+import { validate } from './googleCloudBuildValidators';
+
+interface IGoogleCloudBuildStageConfigState {
   googleCloudBuildAccounts: string[];
-  rawBuildDefinitionYaml: string;
 }
 
 export class GoogleCloudBuildStageConfig extends React.Component<IStageConfigProps, IGoogleCloudBuildStageConfigState> {
+  private stage: IStage;
+  private destroy$ = new Subject();
+
   public constructor(props: IStageConfigProps) {
     super(props);
     this.state = {
       googleCloudBuildAccounts: [],
-      rawBuildDefinitionYaml: props.stage.buildDefinition ? yamlDocumentsToString([props.stage.buildDefinition]) : '',
     };
+    const { stage: initialStageConfig } = props;
+    const stage = cloneDeep(initialStageConfig);
+    if (initialStageConfig.isNew) {
+      stage.application = props.application.name;
+      stage.buildDefinitionSource = buildDefinitionSources.TEXT;
+    }
+    // Intentionally initializing the stage config only once in the constructor
+    // The stage config is then completely owned within FormikStageConfig's Formik state
+    this.stage = stage;
   }
 
   public componentDidMount = (): void => {
-    if (this.props.stage.isNew) {
-      this.props.updateStageField({ application: this.props.application.name });
-    }
     this.fetchGoogleCloudBuildAccounts();
   };
 
-  private onYamlChange = (rawYaml: string, yamlDocs: any): void => {
-    this.setState({ rawBuildDefinitionYaml: rawYaml });
-    const buildDefinition = Array.isArray(yamlDocs) && yamlDocs.length > 0 ? yamlDocs[0] : null;
-    this.props.updateStageField({ buildDefinition });
-  };
-
-  private onAccountChange = (accountOption: Option) => {
-    this.props.updateStageField({ account: accountOption.value });
-  };
-
-  private getAccountOptions = (): Option[] => {
-    return this.state.googleCloudBuildAccounts.map(account => ({
-      label: account,
-      value: account,
-    }));
-  };
-
   private fetchGoogleCloudBuildAccounts = () => {
-    IgorService.getGcbAccounts().then((googleCloudBuildAccounts: string[]) => {
-      this.setState({
-        googleCloudBuildAccounts,
+    Observable.fromPromise(IgorService.getGcbAccounts())
+      .takeUntil(this.destroy$)
+      .subscribe((googleCloudBuildAccounts: string[]) => {
+        this.setState({ googleCloudBuildAccounts });
       });
-    });
   };
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   public render() {
     return (
-      <div>
-        <StageConfigField label="Account">
-          <Select
-            clearable={false}
-            onChange={this.onAccountChange}
-            options={this.getAccountOptions()}
-            value={this.props.stage.account}
-          />
-        </StageConfigField>
-        <StageConfigField label="Build Config">
-          <YamlEditor value={this.state.rawBuildDefinitionYaml} onChange={this.onYamlChange} />
-        </StageConfigField>
-      </div>
+      <FormikStageConfig
+        {...this.props}
+        stage={this.stage}
+        onChange={this.props.updateStage}
+        validate={validate}
+        render={props => (
+          <GoogleCloudBuildStageForm {...props} googleCloudBuildAccounts={this.state.googleCloudBuildAccounts} />
+        )}
+      />
     );
   }
 }

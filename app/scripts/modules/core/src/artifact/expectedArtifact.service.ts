@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import { PipelineConfigService } from 'core/pipeline';
 import { Registry } from 'core/registry';
 import {
@@ -38,7 +39,7 @@ export class ExpectedArtifactService {
     // is that we don't want to include an empty string in the artifact list, so omit any falsey values.
     return (stageContext: IExecutionContext) =>
       fields
-        .map(field => stageContext[field])
+        .map((field): string => get(stageContext, field))
         .filter(v => v)
         .reduce((array, value) => array.concat(value), []);
   }

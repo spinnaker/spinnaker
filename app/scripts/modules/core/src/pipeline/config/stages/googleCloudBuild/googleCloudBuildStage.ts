@@ -1,9 +1,14 @@
-import { ExecutionArtifactTab } from 'core/artifact';
-import { ExecutionDetailsTasks } from 'core/pipeline';
-import { Registry } from 'core/registry';
+import {
+  ArtifactReferenceService,
+  ExecutionArtifactTab,
+  ExecutionDetailsTasks,
+  ExpectedArtifactService,
+  Registry,
+} from '@spinnaker/core';
 
 import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
 import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';
+import { validate } from './googleCloudBuildValidators';
 
 Registry.pipeline.registerStage({
   label: 'Google Cloud Build',
@@ -12,5 +17,7 @@ Registry.pipeline.registerStage({
   producesArtifacts: true,
   component: GoogleCloudBuildStageConfig,
   executionDetailsSections: [GoogleCloudBuildExecutionDetails, ExecutionDetailsTasks, ExecutionArtifactTab],
-  validators: [{ type: 'requiredField', fieldName: 'account' }],
+  validateFn: validate,
+  artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['buildDefinitionArtifact.artifactId']),
+  artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['buildDefinitionArtifact.artifactId']),
 });
