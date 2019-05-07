@@ -32,6 +32,7 @@ import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1Job;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Component;
 
@@ -40,8 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatus> {
+
   @Getter
   private String platform = "kubernetes";
   private AccountCredentialsProvider accountCredentialsProvider;
@@ -53,8 +56,33 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   }
 
   public KubernetesV2JobStatus collectJob(String account, String location, String id) {
+    V1Job job = getKubernetesJob(account, location, id);
+    KubernetesV2JobStatus jobStatus = new KubernetesV2JobStatus(job, account);
+    return jobStatus;
+  }
 
+  public Map<String, Object> getFileContents(String account, String location, String id, String filename) {
     KubernetesV2Credentials credentials = (KubernetesV2Credentials) accountCredentialsProvider.getCredentials(account).getCredentials();
+    Map props = null;
+    try {
+      V1Job job = getKubernetesJob(account, location, id);
+      String logContents = credentials.jobLogs(location, job.getMetadata().getName());
+      props = PropertyParser.extractPropertiesFromLog(logContents);
+    } catch(Exception e) {
+      log.error("Couldn't parse properties for account {} at {}", account, location);
+    }
+
+    return props;
+  }
+
+  public void cancelJob(String account, String location, String id) {
+    throw new NotImplementedException("cancelJob is not implemented for the V2 Kubrenetes provider");
+  }
+
+
+  private V1Job getKubernetesJob(String account, String location, String id) {
+    KubernetesV2Credentials credentials = (KubernetesV2Credentials) accountCredentialsProvider.getCredentials(account).getCredentials();
+
     List<Manifest> manifests = manifestProviderList.stream()
       .map(p -> p.getManifest(account, location, id))
       .filter( m -> m != null)
@@ -65,20 +93,8 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     }
 
     KubernetesManifest jobManifest = ((KubernetesV2Manifest) manifests.get(0)).getManifest();
-    V1Job job = KubernetesCacheDataConverter.getResource(jobManifest, V1Job.class);
-    KubernetesV2JobStatus jobStatus = new KubernetesV2JobStatus(job, account);
-    return jobStatus;
+    return KubernetesCacheDataConverter.getResource(jobManifest, V1Job.class);
   }
-
-  public Map<String, Object> getFileContents(String account, String location, String id, String filename) {
-    return new HashMap<>();
-  }
-
-  public void cancelJob(String account, String location, String id) {
-    throw new NotImplementedException("cancelJob is not implemented for the V2 Kubrenetes provider");
-  }
-
-
 
 
 }

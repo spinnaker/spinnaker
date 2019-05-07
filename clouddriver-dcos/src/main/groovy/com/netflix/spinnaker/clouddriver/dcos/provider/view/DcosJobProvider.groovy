@@ -74,7 +74,7 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
     // map), we want to protect against non-DCOS credentials and return an empty map so that we don't break the
     // job endpoint by throwing an exception (which will return a 500 to the caller).
     if (!(credentials instanceof DcosAccountCredentials)) {
-      return [:]
+      return null
     }
 
     def dcosClient = dcosClientProvider.getDcosClient(credentials, location)
@@ -106,7 +106,7 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
       def file = dcosClient.getAgentSandboxFileAsString(jobTask.getSlave_id(), filePath)
 
       if (!file.isPresent()) {
-        return [:]
+        return null
       }
 
       final contents = file.get()
@@ -122,7 +122,7 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
     } catch (DCOSException e) {
       if (e.status == 404) {
         LOGGER.warn("File [${fileName}] does not exist for job [${location}.${id}].")
-        return [:]
+        return null
       } else {
         throw e
       }

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.titus.model.TitusJobStatus
 import groovy.util.logging.Slf4j
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -85,13 +86,15 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
       try {
         amazonS3DataProvider.getAdhocData("titus", "${s3.accountName}:${s3.region}:${s3.bucket}", "${s3.key}/${fileName}", outputStream)
       } catch (Exception e) {
-        throw new RuntimeException("Could not load ${fileName} for task ${job.tasks.last().id}")
+        log.warn("File [${fileName}] does not exist for job [${job.task.last().id}].")
+        return null
       }
       fileContents = new ByteArrayInputStream(outputStream.toByteArray())
     } else {
       Map files = titusClient.logsDownload(job.tasks.last().id)
       if (!files.containsKey(fileName)) {
-        throw new RuntimeException("File ${fileName} not found for task ${job.tasks.last().id}")
+        log.warn("File [${fileName}] does not exist for job [${job.task.last().id}].")
+        return null
       }
       fileContents = client.newCall(new Request.Builder().url(files.get(fileName) as String).build()).execute().body().byteStream()
     }
