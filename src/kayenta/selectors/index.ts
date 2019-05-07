@@ -10,11 +10,13 @@ export const runSelector = (state: ICanaryState): ICanaryExecutionStatusResult =
 
 export const judgeResultSelector = createSelector(runSelector, run => run.result.judgeResult);
 
-export const configIdSelector = createSelector(runSelector, run => (run.config ? run.config.id : run.result.config.id));
+export const configIdSelector = createSelector(runSelector, run => run.config.id);
 
 export const metricResultsSelector = createSelector(runSelector, run => run.result.judgeResult.results);
 
-export const serializedCanaryConfigSelector = createSelector(runSelector, run => run.config || run.result.config);
+export const canaryExecutionRequestSelector = createSelector(runSelector, run => run.canaryExecutionRequest);
+
+export const serializedCanaryConfigSelector = createSelector(runSelector, run => run.config);
 
 export const serializedGroupWeightsSelector = createSelector(
   serializedCanaryConfigSelector,

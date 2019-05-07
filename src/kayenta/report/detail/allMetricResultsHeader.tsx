@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { ICanaryJudgeScore, ICanaryClassifierThresholdsConfig } from 'kayenta/domain';
+import { ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
 import { mapGroupToColor } from './colors';
 
 import HeaderArrow from './headerArrow';
@@ -9,7 +9,7 @@ export interface IAllMetricResultsHeader {
   onClick: () => void;
   className: string;
   score: ICanaryJudgeScore;
-  scoreThresholds: ICanaryClassifierThresholdsConfig;
+  scoreThresholds: ICanaryScoreThresholds;
 }
 
 /*

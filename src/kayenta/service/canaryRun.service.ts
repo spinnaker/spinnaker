@@ -19,7 +19,7 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
     .useCache()
     .get()
     .then((run: ICanaryExecutionStatusResult) => {
-      const config = run.config || run.result.config;
+      const { config } = run;
       config.id = configId;
       run.id = canaryExecutionId;
       run.result.judgeResult.results = sortBy(run.result.judgeResult.results, 'name');

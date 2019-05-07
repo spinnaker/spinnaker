@@ -43,7 +43,6 @@ export class KayentaStageController implements IComponentController {
   public state = {
     useLookback: false,
     backingDataLoading: false,
-    detailsLoading: false,
     lifetimeHoursUpdatedToDuration: false,
     lifetime: { hours: 0, minutes: 0 },
     showAdvancedSettings: false,
@@ -253,14 +252,11 @@ export class KayentaStageController implements IComponentController {
     }
     const id = this.stage.canaryConfig.canaryConfigId;
 
-    this.state.detailsLoading = true;
     try {
       return getCanaryConfigById(id);
     } catch (e) {
       this.$log.warn(`Could not load canary config with id ${id}: `, e);
       return null;
-    } finally {
-      this.state.detailsLoading = false;
     }
   };
 

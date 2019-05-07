@@ -28,18 +28,14 @@ const Label = ({ label, extraClass }: { label: string; extraClass?: string }) =>
 
 // TODO(dpeach): this only supports canary runs with a single scope.
 const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadataGroup[] => {
-  const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
+  const request = run.canaryExecutionRequest;
   const scopes = Object.values(request.scopes);
   if (scopes.length > 1) {
     return null;
   }
 
   const {
-    controlScope: {
-      step,
-      location: controlLocation,
-      scope: controlScope,
-    },
+    controlScope: { step, location: controlLocation, scope: controlScope },
     experimentScope: {
       // Since baseline starttime may be offset in canaries from Orca,
       // Choose the experiment start and end to represent
@@ -119,7 +115,7 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
 const ReportMetadata = ({ run }: IReportMetadata) => {
   const {
     thresholds: { marginal, pass },
-  } = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
+  } = run.canaryExecutionRequest;
 
   const metadataGroups = buildScopeMetadataEntries(run) || [];
   metadataGroups.push({

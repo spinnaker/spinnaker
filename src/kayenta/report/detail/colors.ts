@@ -1,7 +1,10 @@
-import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
-import { ScoreClassificationLabel } from 'kayenta/domain/ScoreClassificationLabel';
-import { ICanaryJudgeGroupScore } from 'kayenta/domain/ICanaryJudgeResult';
-import { ICanaryJudgeScore, ICanaryClassifierThresholdsConfig } from '../../domain';
+import {
+  MetricClassificationLabel,
+  ScoreClassificationLabel,
+  ICanaryJudgeScore,
+  ICanaryJudgeGroupScore,
+  ICanaryScoreThresholds,
+} from 'kayenta/domain';
 
 // Standard Spinnaker styleguide colors.
 const GREEN = 'var(--color-success)';
@@ -29,7 +32,7 @@ export const mapScoreClassificationToColor = (classification: ScoreClassificatio
 
 export const mapGroupToColor = (
   group: ICanaryJudgeGroupScore | ICanaryJudgeScore,
-  scoreThresholds: ICanaryClassifierThresholdsConfig,
+  scoreThresholds: ICanaryScoreThresholds,
 ): string => {
   if (typeof group.score !== 'number') {
     return YELLOW; // Some kind of error.

@@ -44,7 +44,7 @@ const resolveReportUrl = (state: ICanaryState): string => {
 
 const resolveMetricListUrl = (state: ICanaryState): string => {
   const status = runSelector(state);
-  const metricSetPairListId = status.metricSetPairListId || status.result.metricSetPairListId;
+  const { metricSetPairListId } = status;
   let url = `${SETTINGS.gateUrl}/v2/canaries/metricSetPairList/${metricSetPairListId}`;
   const storageAccountName = status.storageAccountName || CanarySettings.storageAccountName;
   if (storageAccountName) {

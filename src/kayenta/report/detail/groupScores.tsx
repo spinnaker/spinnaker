@@ -2,13 +2,12 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { connect, Dispatch } from 'react-redux';
 
-import { ICanaryJudgeGroupScore } from 'kayenta/domain/ICanaryJudgeResult';
-import { ICanaryClassifierThresholdsConfig } from '../../domain';
-import ClickableHeader from './clickableHeader';
+import { ICanaryJudgeGroupScore, ICanaryScoreThresholds, IGroupWeights } from 'kayenta/domain';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers/index';
-import { IGroupWeights } from 'kayenta/domain/ICanaryConfig';
-import { serializedGroupWeightsSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
+import { ICanaryState } from 'kayenta/reducers';
+import { serializedGroupWeightsSelector, canaryExecutionRequestSelector } from 'kayenta/selectors';
+
+import ClickableHeader from './clickableHeader';
 import { mapGroupToColor } from './colors';
 
 export interface IGroupScoresOwnProps {
@@ -18,7 +17,7 @@ export interface IGroupScoresOwnProps {
 
 interface IGroupScoresStateProps {
   groupWeights: IGroupWeights;
-  scoreThresholds: ICanaryClassifierThresholdsConfig;
+  scoreThresholds: ICanaryScoreThresholds;
   selectedGroup: string;
 }
 
@@ -56,7 +55,7 @@ const GroupScores = ({
 const mapStateToProps = (state: ICanaryState): IGroupScoresStateProps => ({
   selectedGroup: state.selectedRun.selectedGroup,
   groupWeights: serializedGroupWeightsSelector(state),
-  scoreThresholds: serializedCanaryConfigSelector(state).classifier.scoreThresholds,
+  scoreThresholds: canaryExecutionRequestSelector(state).thresholds,
 });
 
 const mapDispatchToProps = (

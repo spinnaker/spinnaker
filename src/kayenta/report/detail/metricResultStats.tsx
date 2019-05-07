@@ -76,7 +76,7 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
       label: 'start',
       getContent: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
       hide: () => {
-        const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
+        const request = run.canaryExecutionRequest;
         const configuredControlStart = request.scopes[metricConfig.scopeName].controlScope.start;
         const actualControlStart = metricSetPair.scopes.control.startTimeIso;
 

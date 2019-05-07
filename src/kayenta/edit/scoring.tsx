@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import TitledSubsection from 'kayenta/layout/titledSubsection';
 import GroupWeights from './groupWeights';
 import JudgeSelect, { JudgeSelectRenderState } from './judgeSelect';
-import ScoreThresholds from './scoreThresholds';
 import { ICanaryState } from '../reducers/index';
 import FormList from '../layout/formList';
 
@@ -15,9 +14,6 @@ interface IScoringStateProps {
 function Scoring({ renderJudgeSelect }: IScoringStateProps) {
   return (
     <FormList>
-      <TitledSubsection title="Thresholds">
-        <ScoreThresholds />
-      </TitledSubsection>
       {renderJudgeSelect && (
         <TitledSubsection title="Judge">
           <JudgeSelect />

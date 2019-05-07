@@ -59,7 +59,6 @@ export const removeMetric = createAction<{ id: string }>(Actions.REMOVE_METRIC);
 export const addMetric = createAction<{ metric: ICanaryMetricConfig }>(Actions.ADD_METRIC);
 export const updateConfigName = createAction<{ name: string }>(Actions.UPDATE_CONFIG_NAME);
 export const updateConfigDescription = createAction<{ description: string }>(Actions.UPDATE_CONFIG_DESCRIPTION);
-export const updateScoreThresholds = createAction<{ marginal: number; pass: number }>(Actions.UPDATE_SCORE_THRESHOLDS);
 export const saveConfigFailure = createAction<{ error: Error }>(Actions.SAVE_CONFIG_FAILURE);
 export const deleteConfigFailure = createAction<{ error: Error }>(Actions.DELETE_CONFIG_FAILURE);
 export const updateConfigSummaries = createAction<{ configSummaries: ICanaryConfigSummary[] }>(

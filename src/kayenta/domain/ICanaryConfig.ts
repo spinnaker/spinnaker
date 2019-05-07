@@ -41,12 +41,6 @@ export interface IGroupWeights {
 
 export interface ICanaryClassifierConfig {
   groupWeights: IGroupWeights;
-  scoreThresholds: ICanaryClassifierThresholdsConfig;
-}
-
-export interface ICanaryClassifierThresholdsConfig {
-  pass: number;
-  marginal: number;
 }
 
 export interface ICanaryMetricEffectSizeConfig {

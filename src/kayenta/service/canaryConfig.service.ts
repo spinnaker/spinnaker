@@ -60,16 +60,15 @@ export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
 // living on different parts of the store. Before, e.g., updating the config, we should
 // reconstitute it into a single object that reflects the user's changes.
 export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
-  if (state.selectedConfig.config) {
-    const configState = state.selectedConfig;
+  const { selectedConfig } = state;
+  if (selectedConfig.config) {
     return {
-      ...configState.config,
-      judge: configState.judge.judgeConfig,
-      metrics: configState.metricList.map(metric => omit(metric, 'id')),
+      ...selectedConfig.config,
+      judge: selectedConfig.judge.judgeConfig,
+      metrics: selectedConfig.metricList.map(metric => omit(metric, 'id')),
       classifier: {
-        ...configState.config.classifier,
-        scoreThresholds: configState.thresholds,
-        groupWeights: configState.group.groupWeights,
+        ...selectedConfig.config.classifier,
+        groupWeights: selectedConfig.group.groupWeights,
       },
     };
   } else {
@@ -95,10 +94,6 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     templates: {},
     classifier: {
       groupWeights: {} as { [key: string]: number },
-      scoreThresholds: {
-        pass: 75,
-        marginal: 50,
-      },
     },
     judge: {
       name: CanarySettings.defaultJudge,

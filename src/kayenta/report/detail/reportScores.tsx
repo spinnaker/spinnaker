@@ -3,20 +3,20 @@ import { connect, Dispatch } from 'react-redux';
 import { sortBy } from 'lodash';
 import * as classNames from 'classnames';
 
-import { ICanaryState } from 'kayenta/reducers/index';
-import { ICanaryJudgeGroupScore, ICanaryJudgeScore } from 'kayenta/domain/ICanaryJudgeResult';
-import { ICanaryClassifierThresholdsConfig } from '../../domain';
+import { ICanaryJudgeGroupScore, ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
+import { judgeResultSelector, serializedGroupWeightsSelector } from 'kayenta/selectors';
+
 import AllMetricResultsHeader from './allMetricResultsHeader';
 import GroupScores from './groupScores';
-import * as Creators from 'kayenta/actions/creators';
-import { judgeResultSelector, serializedGroupWeightsSelector } from '../../selectors/index';
 
 import './reportScores.less';
 
 interface IReportScoresStateProps {
   groups: ICanaryJudgeGroupScore[];
   score: ICanaryJudgeScore;
-  scoreThresholds: ICanaryClassifierThresholdsConfig;
+  scoreThresholds: ICanaryScoreThresholds;
   selectedGroup: string;
 }
 
@@ -52,9 +52,7 @@ const mapStateToProps = (state: ICanaryState): IReportScoresStateProps => ({
     [(group: ICanaryJudgeGroupScore) => -serializedGroupWeightsSelector(state)[group.name], 'name'],
   ),
   score: judgeResultSelector(state).score,
-  scoreThresholds: state.selectedRun.run.canaryExecutionRequest
-    ? state.selectedRun.run.canaryExecutionRequest.thresholds
-    : state.selectedRun.run.result.canaryExecutionRequest.thresholds,
+  scoreThresholds: state.selectedRun.run.canaryExecutionRequest.thresholds,
   selectedGroup: state.selectedRun.selectedGroup,
 });
 

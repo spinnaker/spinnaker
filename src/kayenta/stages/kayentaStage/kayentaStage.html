@@ -420,12 +420,7 @@
   </kayenta-stage-config-section>
 
   <kayenta-stage-config-section title="Scoring Thresholds">
-    <div ng-if="kayentaCanaryStageCtrl.state.detailsLoading" class="col-md-3 col-md-offset-4">
-      <h3><span us-spinner="{radius:3, width:1, length: 4}"></span></h3>
-    </div>
-
-    <kayenta-canary-scores ng-if="!kayentaCanaryStageCtrl.state.detailsLoading"
-                           on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
+    <kayenta-canary-scores on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
                            successful-help-field-id="'pipeline.config.canary.passingScore'"
                            successful-label="'Pass'"
                            successful-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"

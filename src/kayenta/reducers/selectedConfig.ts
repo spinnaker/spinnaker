@@ -3,7 +3,6 @@ import { combineActions, handleActions } from 'redux-actions';
 import { get, set, unset, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
 
 import * as Actions from '../actions';
-import { ICanaryClassifierThresholdsConfig } from '../domain';
 import { IJudge } from '../domain/IJudge';
 import { IGroupWeights, ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { CanarySettings } from '../canary.settings';
@@ -52,7 +51,6 @@ export interface ISelectedConfigState {
   isInSyncWithServer: boolean;
   metricList: ICanaryMetricConfig[];
   editingMetric: ICanaryMetricConfig;
-  thresholds: ICanaryClassifierThresholdsConfig;
   judge: IJudgeState;
   group: IGroupState;
   load: ILoadState;
@@ -269,26 +267,6 @@ const judge = combineReducers<IJudgeState>({
   ),
   renderState: handleActions({}, JudgeSelectRenderState.None),
 });
-
-const thresholds = handleActions(
-  {
-    [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
-      if (has(action, 'payload.config.classifier.scoreThresholds')) {
-        return action.payload.config.classifier.scoreThresholds;
-      } else {
-        return {
-          pass: null,
-          marginal: null,
-        };
-      }
-    },
-    [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
-      pass: action.payload.pass,
-      marginal: action.payload.marginal,
-    }),
-  },
-  null,
-);
 
 const changeMetricGroup = combineReducers<IChangeMetricGroupState>({
   toGroup: handleActions(
@@ -532,7 +510,6 @@ const combined = combineReducers<ISelectedConfigState>({
       metric,
     ),
   group,
-  thresholds,
   changeMetricGroup,
   isInSyncWithServer,
   validationErrors: () => null,

@@ -41,7 +41,6 @@ export const UPDATE_STACKDRIVER_METRIC_QUERY_FIELD = 'update_stackdriver_metric_
 export const UPDATE_STACKDRIVER_GROUP_BY_FIELDS = 'update_stackdriver_group_by_fields';
 export const UPDATE_JUDGES = 'update_judges';
 export const SELECT_JUDGE_NAME = 'select_judge_name';
-export const UPDATE_SCORE_THRESHOLDS = 'update_score_thresholds';
 export const UPDATE_GROUP_WEIGHT = 'update_group_weight';
 export const SET_CONFIG_JSON_MODAL_TAB_STATE = 'set_config_json_modal_tab_state';
 export const UPDATE_ATLAS_QUERY = 'update_atlas_query';
