@@ -29,26 +29,18 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.stereotype.Component;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Component
 public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
 
-  @Autowired
   private SecretSessionManager secretSessionManager;
 
-  @Setter
   private String halyardVersion;
 
-  @Setter
   private Registry registry;
 
-  @Setter
   TaskScheduler taskScheduler;
 
   private int connectTimeoutSec = 45;

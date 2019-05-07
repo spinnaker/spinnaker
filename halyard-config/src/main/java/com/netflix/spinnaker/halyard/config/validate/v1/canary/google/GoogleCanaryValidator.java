@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryS
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import lombok.Setter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +31,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegration> {
+
+  @Setter
+  private SecretSessionManager secretSessionManager;
 
   @Setter
   private String halyardVersion;
@@ -44,6 +48,7 @@ public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegrat
   public void validate(ConfigProblemSetBuilder p, GoogleCanaryServiceIntegration n) {
     GoogleCanaryAccountValidator googleCanaryAccountValidator =
         new GoogleCanaryAccountValidator()
+            .setSecretSessionManager(secretSessionManager)
             .setHalyardVersion(halyardVersion)
             .setRegistry(registry)
             .setTaskScheduler(taskScheduler);

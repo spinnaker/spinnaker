@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.config.validate.v1.canary.aws.AwsCanaryVali
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.google.GoogleCanaryValidator;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus.PrometheusCanaryValidator;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,9 @@ import java.util.Set;
 
 @Component
 public class CanaryValidator extends Validator<Canary> {
+
+  @Autowired
+  private SecretSessionManager secretSessionManager;
 
   @Autowired
   private String halyardVersion;
@@ -71,6 +75,7 @@ public class CanaryValidator extends Validator<Canary> {
         GoogleCanaryServiceIntegration googleCanaryServiceIntegration = (GoogleCanaryServiceIntegration)s;
 
         new GoogleCanaryValidator()
+            .setSecretSessionManager(secretSessionManager)
             .setHalyardVersion(halyardVersion)
             .setRegistry(registry)
             .setTaskScheduler(taskScheduler)
