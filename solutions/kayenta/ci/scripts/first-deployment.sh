@@ -7,7 +7,7 @@ gcloud config set project $GOOGLE_CLOUD_PROJECT
 gcloud config set compute/zone us-central1-f
 gcloud container clusters get-credentials kayenta-tutorial
 
-curl --fail -LO https://storage.googleapis.com/spinnaker-artifacts/spin/$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)/linux/amd64/spin
+curl --fail -LO https://storage.googleapis.com/spinnaker-artifacts/spin/1.6.0/linux/amd64/spin
 chmod +x spin
 mv spin /usr/local/bin/spin
 apt-get -y install jq bc
