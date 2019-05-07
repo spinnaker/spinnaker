@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { CopyToClipboard, IManifest } from '@spinnaker/core';
+import { dump } from 'js-yaml';
+
+import { CopyToClipboard, IManifest, ManifestYaml } from '@spinnaker/core';
+
 import { DeployManifestStatusPills } from './DeployStatusPills';
 import { ManifestDetailsLink } from './ManifestDetailsLink';
 import { ManifestEvents } from './ManifestEvents';
-import { ManifestYaml } from './ManifestYaml';
 
 import './ManifestStatus.less';
 
@@ -30,7 +32,11 @@ export class ManifestStatus extends React.Component<IManifestStatusProps> {
         </dd>
       </dl>,
       <div className="manifest-support-links" key="manifest-support-links">
-        <ManifestYaml manifest={manifest} linkName="YAML" />
+        <ManifestYaml
+          linkName="YAML"
+          manifestText={dump(manifest.manifest)}
+          modalTitle={manifest.manifest.metadata.name}
+        />
         <ManifestDetailsLink linkName="Details" manifest={manifest} accountId={account} />
       </div>,
       <div className="manifest-events pad-left" key="manifest-events">

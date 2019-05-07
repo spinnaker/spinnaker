@@ -8,6 +8,7 @@ import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
+import { BakeManifestDetailsTab } from './BakeManifestDetailsTab';
 
 export const BAKE_MANIFEST_STAGE = 'spinnaker.core.pipeline.stage.bakeManifestStage';
 
@@ -23,7 +24,7 @@ module(BAKE_MANIFEST_STAGE, [])
         producesArtifacts: true,
         cloudProvider: 'kubernetes',
         controllerAs: 'ctrl',
-        executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
+        executionDetailsSections: [BakeManifestDetailsTab, ExecutionDetailsTasks, ExecutionArtifactTab],
         artifactExtractor: (fields: string[]) =>
           ExpectedArtifactService.accumulateArtifacts<IArtifact>(['inputArtifacts'])(fields).map(
             (a: IArtifact) => a.id,
