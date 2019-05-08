@@ -78,7 +78,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
   public TopApplicationExecutionCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
                                                                 ExecutionRepository executionRepository,
                                                                 Registry registry,
-                                                                @Value("${pollers.top-application-execution-cleanup.interval-ms.intervalMs:3600000}") long pollingIntervalMs,
+                                                                @Value("${pollers.top-application-execution-cleanup.interval-ms:3600000}") long pollingIntervalMs,
                                                                 @Value("${pollers.top-application-execution-cleanup.threshold:2500}") int threshold) {
     super(clusterLock);
     this.executionRepository = executionRepository;
