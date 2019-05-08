@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
@@ -68,7 +69,7 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     }
 
     def status = convertStatus(execution)
-    def allPipelines = front50Service.getAllPipelines()
+    def allPipelines = AuthenticatedRequest.allowAnonymous({front50Service.getAllPipelines()})
     if (executionPreprocessors) {
       // Resolve templated pipelines if enabled.
       allPipelines = allPipelines.collect { pipeline ->

@@ -146,36 +146,40 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   }
 
   private List<EphemeralServerGroupTag> fetchEphemeralServerGroupTags() {
-    List<EntityTags> allEntityTags = retrySupport.retry(() -> objectMapper.convertValue(
-      oortService.getEntityTags(ImmutableMap.<String, String>builder()
-        .put("tag:" + TTL_TAG, "*")
-        .put("entityType", "servergroup")
-        .build()
-      ),
-      new TypeReference<List<EntityTags>>() {
-      }
-    ), 15, 2000, false);
+    try {
+      List<EntityTags> allEntityTags = AuthenticatedRequest.allowAnonymous(() -> retrySupport.retry(() -> objectMapper.convertValue(
+        oortService.getEntityTags(ImmutableMap.<String, String>builder()
+          .put("tag:" + TTL_TAG, "*")
+          .put("entityType", "servergroup")
+          .build()
+        ),
+        new TypeReference<List<EntityTags>>() {
+        }
+      ), 15, 2000, false));
 
-    return allEntityTags.stream()
-      .map(e -> e.tags.stream()
-        .filter(t -> TTL_TAG.equalsIgnoreCase(t.name))
-        .map(t -> {
-          EphemeralServerGroupTag ephemeralServerGroupTag = objectMapper.convertValue(t.value, EphemeralServerGroupTag.class);
-          ephemeralServerGroupTag.id = e.id;
-          ephemeralServerGroupTag.account = e.entityRef.account;
-          ephemeralServerGroupTag.location = e.entityRef.region;
-          ephemeralServerGroupTag.application = e.entityRef.application;
-          ephemeralServerGroupTag.serverGroup = e.entityRef.entityId;
-          ephemeralServerGroupTag.cloudProvider = e.entityRef.cloudProvider;
+      return allEntityTags.stream()
+        .map(e -> e.tags.stream()
+          .filter(t -> TTL_TAG.equalsIgnoreCase(t.name))
+          .map(t -> {
+            EphemeralServerGroupTag ephemeralServerGroupTag = objectMapper.convertValue(t.value, EphemeralServerGroupTag.class);
+            ephemeralServerGroupTag.id = e.id;
+            ephemeralServerGroupTag.account = e.entityRef.account;
+            ephemeralServerGroupTag.location = e.entityRef.region;
+            ephemeralServerGroupTag.application = e.entityRef.application;
+            ephemeralServerGroupTag.serverGroup = e.entityRef.entityId;
+            ephemeralServerGroupTag.cloudProvider = e.entityRef.cloudProvider;
 
-          return ephemeralServerGroupTag;
-        })
-        .findFirst()
-        .orElse(null)
-      )
-      .filter(Objects::nonNull)
-      .filter(t -> t.expiry.isBefore(ZonedDateTime.now(ZoneOffset.UTC)))
-      .collect(Collectors.toList());
+            return ephemeralServerGroupTag;
+          })
+          .findFirst()
+          .orElse(null)
+        )
+        .filter(Objects::nonNull)
+        .filter(t -> t.expiry.isBefore(ZonedDateTime.now(ZoneOffset.UTC)))
+        .collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   private Map<String, Object> buildCleanupOperation(EphemeralServerGroupTag ephemeralServerGroupTag,
