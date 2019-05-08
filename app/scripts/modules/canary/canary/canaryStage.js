@@ -7,6 +7,7 @@ import {
   AccountService,
   AuthenticationService,
   CloudProviderRegistry,
+  ProviderSelectionService,
   AppListExtractor,
   NameUtils,
   Registry,
@@ -184,10 +185,9 @@ module.exports = angular
     '$scope',
     '$uibModal',
     'stage',
-    'providerSelectionService',
     'serverGroupCommandBuilder',
     'awsServerGroupTransformer',
-    function($scope, $uibModal, stage, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
+    function($scope, $uibModal, stage, serverGroupCommandBuilder, awsServerGroupTransformer) {
       $scope.isExpression = function(value) {
         return isString(value) && value.includes('${');
       };
@@ -417,7 +417,7 @@ module.exports = angular
 
       this.addClusterPair = function() {
         $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
-        providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
+        ProviderSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
           const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
 
           const handleResult = function(command) {

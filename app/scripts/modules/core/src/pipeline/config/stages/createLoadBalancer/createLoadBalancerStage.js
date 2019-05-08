@@ -1,6 +1,6 @@
 'use strict';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
@@ -27,14 +27,13 @@ module.exports = angular
   .controller('createLoadBalancerStageCtrl', [
     '$scope',
     '$uibModal',
-    'providerSelectionService',
-    function($scope, $uibModal, providerSelectionService) {
+    function($scope, $uibModal) {
       function initializeCommand() {
         $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
       }
 
       this.addLoadBalancer = function() {
-        providerSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
+        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
           let config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
           $uibModal
             .open({
@@ -56,7 +55,7 @@ module.exports = angular
       };
 
       this.editLoadBalancer = function(loadBalancer, index) {
-        providerSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
+        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
           let config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
           $uibModal
             .open({

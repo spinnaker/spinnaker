@@ -24,7 +24,7 @@ function fakeAccount(provider: string): IAccountDetails {
   };
 }
 
-describe('providerSelectionService: API', () => {
+describe('ProviderSelectionService: API', () => {
   // required to ensure registry provider is available
   let $q: IQService, $scope: IScope;
 
