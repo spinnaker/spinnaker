@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,7 @@ public class AmazonImageProvider implements ImageProvider {
         .map(imageCache -> imageCache.getRelationships().get(SERVER_GROUPS.toString()))
         .flatMap(Collection::stream)
         .map(this::getServerGroupData)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
     image.setServerGroups(serverGroupList);
