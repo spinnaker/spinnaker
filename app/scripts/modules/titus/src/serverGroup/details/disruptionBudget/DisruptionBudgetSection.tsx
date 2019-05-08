@@ -5,7 +5,7 @@ import { react2angular } from 'react2angular';
 import * as prettyMilliseconds from 'pretty-ms';
 
 import { IServerGroupDetailsSectionProps, HelpField } from '@spinnaker/core';
-import { TitusReactInjector } from 'titus';
+import { TitusReactInjector } from 'titus/reactShims';
 
 import { defaultJobDisruptionBudget, ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
 import { policyOptions } from '../../configure/wizard/pages/disruptionBudget/PolicyOptions';
