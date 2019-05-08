@@ -53,8 +53,7 @@ allprojects {
 subprojects {
   apply plugin: "java-library"
 
-  def useLocalMaven = korkVersion.endsWith("-SNAPSHOT")
-  if (useLocalMaven) {
+  if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
     logger.info("Enabling mavenLocal")
     repositories {
       mavenLocal()
