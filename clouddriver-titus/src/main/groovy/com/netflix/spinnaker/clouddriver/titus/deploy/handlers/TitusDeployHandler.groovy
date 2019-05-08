@@ -178,13 +178,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         if (description.inService == null) {
           description.inService = sourceJob.inService
         }
-        if (description.disruptionBudget == null) {
-          //migrationPolicy should only be used when the disruptionBudget has not been specified
-          description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
-        }
-        if (description.disruptionBudget == null && description.migrationPolicy == null) {
-          description.disruptionBudget = getDefaultDisruptionBudget()
-        }
+        configureDisruptionBudget(description, sourceJob)
         description.jobType = description.jobType ?: "service"
         if (!description.hardConstraints) description.hardConstraints = []
         if (!description.softConstraints) description.softConstraints = []
@@ -208,6 +202,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
         task.updateStatus BASE_PHASE, "Finished Getting Source ASG Name Details... ${System.currentTimeMillis()}"
 
+      }
+      if (!description.source.asgName) {
+        configureDisruptionBudget(description, null)
       }
 
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}... ${System.currentTimeMillis()}"
@@ -420,6 +417,17 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       task.fail()
       logger.error("Deploy failed", t)
       throw t
+    }
+  }
+
+  private void configureDisruptionBudget(TitusDeployDescription description, Job sourceJob) {
+    if (description.disruptionBudget == null) {
+      //migrationPolicy should only be used when the disruptionBudget has not been specified
+      description.migrationPolicy = description.migrationPolicy ?: sourceJob?.migrationPolicy
+    }
+    // "systemDefault" should be treated as "no migrationPolicy"
+    if (description.disruptionBudget == null && (description.migrationPolicy == null || "systemDefault" == description.migrationPolicy.type)) {
+      description.disruptionBudget = getDefaultDisruptionBudget()
     }
   }
 
