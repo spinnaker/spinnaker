@@ -109,10 +109,10 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/kayenta@0.0.74":
-  version "0.0.74"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.74.tgz#8253f3f53618614010b51feb1661589f5891f301"
-  integrity sha512-6eArZT/gdO9MrCZlCj0+L/pQYP9VSCt9LDUG08RO07lgpbQIm3Piu+ZvInHIl8vodtAfagBIOKLSar+uX1RLfA==
+"@spinnaker/kayenta@0.0.75":
+  version "0.0.75"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.75.tgz#e5549a16b01b55bee5ff2c616a9092ddffdf66de"
+  integrity sha512-ywlhkN7XkOs45+KaWgzGyZd96bmjCYEbhu77xo694ErFZc3cv/9nm6KlPjyMbmvHaTjfsc7vCg9v4LFqQiYQQw==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@types/plotly.js" "^1.28.12"
@@ -11965,17 +11965,7 @@ react@^0.14.8:
     envify "^3.0.0"
     fbjs "^0.6.1"
 
-"react@^15.6.2 || ^16.0":
-  version "16.6.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.6.0.tgz#b34761cfaf3e30f5508bc732fb4736730b7da246"
-  integrity sha512-zJPnx/jKtuOEXCbQ9BKaxDMxR0001/hzxXwYxG8septeyYGfsgAei6NgfbVgOhbY1WOP2o3VPs/E9HaN+9hV3Q==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.2"
-    scheduler "^0.10.0"
-
-react@~16.8.0:
+"react@^15.6.2 || ^16.0", react@~16.8.0:
   version "16.8.6"
   resolved "https://registry.yarnpkg.com/react/-/react-16.8.6.tgz#ad6c3a9614fd3a4e9ef51117f54d888da01f2bbe"
   integrity sha512-pC0uMkhLaHm11ZSJULfOBqV4tIZkx87ZLvbbQYunNixAAvjnC+snJCg0XQXn9VIsttVsbZP/H/ewzgsd5fxKXw==
@@ -12881,14 +12871,6 @@ sax@~1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.2.tgz#fd8631a23bc7826bef5d871bdb87378c95647828"
   integrity sha1-/YYxojvHgmvvXYcb24c3jJVkeCg=
-
-scheduler@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.10.0.tgz#7988de90fe7edccc774ea175a783e69c40c521e1"
-  integrity sha512-+TSTVTCBAA3h8Anei3haDc1IRwMeDmtI/y/o3iBe3Mjl2vwYF9DtPDt929HyRmV/e7au7CLu8sc4C4W0VOs29w==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
 
 scheduler@^0.13.6:
   version "0.13.6"
