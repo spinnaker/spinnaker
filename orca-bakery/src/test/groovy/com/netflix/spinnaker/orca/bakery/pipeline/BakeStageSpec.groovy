@@ -16,15 +16,20 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import java.time.Clock
+import java.time.Instant
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
-import groovy.time.TimeCategory
 import spock.lang.Specification
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import static java.time.Clock.systemUTC
+import static java.time.Instant.EPOCH
+import static java.time.Instant.now
+import static java.time.ZoneOffset.UTC
+import static java.time.temporal.ChronoUnit.*
 
 class BakeStageSpec extends Specification {
   @Unroll
@@ -43,15 +48,10 @@ class BakeStageSpec extends Specification {
     }
 
     def bakeStage = new Stage(pipeline, "bake", "Bake!", bakeStageContext + [refId: "1"])
-    def builder = Spy(BakeStage, {
-      (0..1) * now() >> {
-        use([TimeCategory]) {
-          return new Date(0) + 1.hour + 15.minutes + 12.seconds
-        }
-      }
-    })
-
-    builder.regionCollector = new RegionCollector()
+    def builder = new BakeStage(
+      clock: Clock.fixed(EPOCH.plus(1, HOURS).plus(15, MINUTES).plus(12, SECONDS), UTC),
+      regionCollector: new RegionCollector()
+    )
 
     when:
     def parallelContexts = builder.parallelContexts(bakeStage)

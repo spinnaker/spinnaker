@@ -3,16 +3,17 @@ test {
 }
 
 dependencies {
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-  testAnnotationProcessor spinnaker.dependency("lombok")
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+  testCompileOnly("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
 
-  implementation project(":orca-clouddriver")
-  implementation project(":orca-core")
+  implementation(project(":orca-clouddriver"))
+  implementation(project(":orca-core"))
 
-  testImplementation spinnaker.dependency("junitJupiterApi")
-  testImplementation spinnaker.dependency("assertj")
-  testImplementation "org.mockito:mockito-core:2.25.0"
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.mockito:mockito-core:2.25.0")
 
-  testRuntime spinnaker.dependency("junitJupiterEngine")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
 }

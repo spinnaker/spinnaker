@@ -17,6 +17,6 @@
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  compile project(":orca-core")
-  compile project(":orca-retrofit")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
 }

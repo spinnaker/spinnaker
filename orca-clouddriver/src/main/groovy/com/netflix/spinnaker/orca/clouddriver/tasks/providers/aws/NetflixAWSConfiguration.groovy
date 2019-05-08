@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class NetflixAWSConfiguration {
 
-  @Value('${tasks.useWaitForAllNetflixAWSInstancesDownTask:false}')
+  @Value('${tasks.use-wait-for-all-netflix-aws-instances-down-task:false}')
   boolean useWaitForAllNetflixAWSInstancesDownTask
 
   @Bean

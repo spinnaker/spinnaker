@@ -33,7 +33,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/v2/pipelineTemplates")
-@ConditionalOnExpression("${pipelineTemplates.enabled:true}")
+@ConditionalOnExpression("${pipeline-templates.enabled:true}")
 @Slf4j
 public class V2PipelineTemplateController {
 

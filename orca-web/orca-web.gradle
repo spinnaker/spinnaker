@@ -28,53 +28,57 @@ run {
 mainClassName = 'com.netflix.spinnaker.orca.Main'
 
 dependencies {
-  spinnaker.group("bootWeb")
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("net.logstash.logback:logstash-logback-encoder")
 
-  compile project(":orca-redis")
-  compile project(":orca-bakery")
-  compile project(":orca-clouddriver")
-  compile project(":orca-front50")
-  compile project(":orca-applications")
-  compile project(":orca-flex")
-  compile project(":orca-dry-run")
-  compile project(":orca-echo")
-  compile project(":orca-kayenta")
-  compile project(":orca-mine")
-  compile project(":orca-igor")
-  compile project(":orca-webhook")
-  compile project(":orca-eureka")
-  compile project(":orca-queue-redis")
-  compile project(":orca-pipelinetemplate")
-  compile project(":orca-keel")
-  compile project(":orca-qos")
-  compile project(":orca-migration")
-  compile project(":orca-sql")
-  compile project(":orca-sql-mysql")
-  compile project(":orca-integrations-cloudfoundry")
-  compile project(":orca-integrations-gremlin")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-redis"))
+  implementation(project(":orca-bakery"))
+  implementation(project(":orca-clouddriver"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-applications"))
+  implementation(project(":orca-flex"))
+  implementation(project(":orca-dry-run"))
+  implementation(project(":orca-echo"))
+  implementation(project(":orca-extensionpoint"))
+  implementation(project(":orca-kayenta"))
+  implementation(project(":orca-mine"))
+  implementation(project(":orca-igor"))
+  implementation(project(":orca-webhook"))
+  implementation(project(":orca-eureka"))
+  implementation(project(":orca-queue-redis"))
+  implementation(project(":orca-pipelinetemplate"))
+  implementation(project(":orca-keel"))
+  implementation(project(":orca-qos"))
+  implementation(project(":orca-migration"))
+  implementation(project(":orca-sql"))
+  implementation(project(":orca-sql-mysql"))
+  implementation(project(":orca-integrations-cloudfoundry"))
+  implementation(project(":orca-integrations-gremlin"))
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+  implementation("com.netflix.spinnaker.kork:kork-stackdriver")
+  implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
 
-  runtime spinnaker.dependency("kork")
-  compile spinnaker.dependency('korkExceptions')
-  compile spinnaker.dependency("korkStackdriver")
-  compile spinnaker.dependency("korkWeb")
-  compile spinnaker.dependency("logstashEncoder")
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
 
-  spinnaker.group('test')
-  testCompile project(":orca-test-groovy")
-  testCompile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"
-
+  runtimeOnly("com.netflix.spinnaker.kork:kork-core")
+  runtimeOnly("com.netflix.spinnaker.kork:kork-secrets-aws")
   //this brings in the jetty GzipFilter which boot will autoconfigure
-  runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
-}
+  runtimeOnly("org.eclipse.jetty:jetty-servlets:9.2.11.v20150529")
 
-// SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
-configurations.all {
-  resolutionStrategy {
-    eachDependency {
-      if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-        it.useVersion spinnaker.version('jackson')
-      }
-    }
-  }
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.spockframework:spock-core")
+  testImplementation("org.spockframework:spock-spring")
+  testImplementation("org.springframework:spring-test")
+  testImplementation("cglib:cglib-nodep")
+  testImplementation("org.objenesis:objenesis")
+  testImplementation("junit:junit")
+  testImplementation("org.hamcrest:hamcrest-core:1.3")
+  testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
 }

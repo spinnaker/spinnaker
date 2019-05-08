@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnBean(ConditionSupplier.class)
-@ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
+@ConditionalOnExpression("${tasks.evaluate-condition.enabled:false}")
 public class EvaluateConditionTask implements RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(EvaluateConditionTask.class);
   private final ConditionConfigurationProperties conditionsConfigurationProperties;

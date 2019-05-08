@@ -15,6 +15,7 @@
  */
 
 dependencies {
-  compile project(":orca-core")
-  compile spinnaker.dependency("spectatorApi")
+  implementation(project(":orca-core"))
+  implementation("com.netflix.spectator:spectator-api")
+  implementation("org.springframework:spring-context")
 }

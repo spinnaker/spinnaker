@@ -44,7 +44,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
   final long backoffPeriod = 10000
 
-  @Value('${tasks.findImageFromClusterTimeoutMillis:600000}')
+  @Value('${tasks.find-image-from-cluster-timeout-millis:600000}')
   long timeout
 
   static enum SelectionStrategy {
@@ -69,7 +69,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     FAIL
   }
 
-  @Value('${findImage.defaultResolveMissingLocations:false}')
+  @Value('${find-image.default-resolve-missing-locations:false}')
   boolean defaultResolveMissingLocations = false
 
   @Value('${default.bake.account:default}')
@@ -160,7 +160,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         return [(location): summaries]
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
-          final Map reason
+          Map reason
           try {
             reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
           } catch (Exception ignored) {

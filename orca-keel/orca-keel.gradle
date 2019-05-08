@@ -17,6 +17,7 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
-  compile project(":orca-retrofit")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
 }

@@ -169,6 +169,12 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ])
 
+    and:
+    // OMFG. See https://github.com/spockframework/spock/issues/994
+    def containsFirstServerGroup = { it.resizeServerGroup.asgName == 'foo--cfieber-canary-v000' }
+    def containsSecondServerGroup = { it.resizeServerGroup.asgName == 'foo--cfieber-baseline-v000' }
+    def hasValidCapacity = { it.resizeServerGroup.capacity == [min: 3, max: 3, desired: 3] }
+
     when:
     TaskResult result = task.execute(stage)
 
@@ -176,9 +182,9 @@ class MonitorCanaryTaskSpec extends Specification {
     1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
     1 * katoService.requestOperations('aws', { ops ->
       ops.size() == 2 &&
-      ops.find { it.resizeServerGroup.asgName == 'foo--cfieber-canary-v000' } &&
-      ops.find { it.resizeServerGroup.asgName == 'foo--cfieber-baseline-v000' } &&
-      ops.every { it.resizeServerGroup.capacity == [min:3, max: 3, desired: 3]}
+      ops.find(containsFirstServerGroup) &&
+      ops.find(containsSecondServerGroup) &&
+      ops.every(hasValidCapacity)
       }) >> rx.Observable.just(new TaskId('blah'))
   }
 
@@ -232,6 +238,10 @@ class MonitorCanaryTaskSpec extends Specification {
                              ]
     ]])
 
+    and:
+    // OMFG. See https://github.com/spockframework/spock/issues/994
+    def containsFirstServerGroup = { it.disableServerGroup.asgName == 'foo--cfieber-canary-v000' }
+    def containsSecondServerGroup = { it.disableServerGroup.asgName == 'foo--cfieber-baseline-v000' }
 
     when:
     TaskResult result = task.execute(stage)
@@ -240,8 +250,9 @@ class MonitorCanaryTaskSpec extends Specification {
     1 * mineService.getCanary(canaryConf.id) >> canaryConf
     1 * katoService.requestOperations('aws', { ops ->
       ops.size() == 2 &&
-      ops.find { it.disableServerGroup.asgName == 'foo--cfieber-canary-v000' }
-      ops.find { it.disableServerGroup.asgName == 'foo--cfieber-baseline-v000' } }) >> rx.Observable.just(new TaskId('blah'))
+      ops.find(containsFirstServerGroup)
+      ops.find(containsSecondServerGroup)
+    }) >> rx.Observable.just(new TaskId('blah'))
   }
 
 }

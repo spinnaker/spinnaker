@@ -49,7 +49,7 @@ import static java.lang.String.format;
 
 @Slf4j
 @Component
-@ConditionalOnExpression(value = "${pollers.restorePinnedServerGroups.enabled:false}")
+@ConditionalOnExpression(value = "${pollers.restore-pinned-server-groups.enabled:false}")
 public class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   private static final Logger log = LoggerFactory.getLogger(RestorePinnedServerGroupsPoller.class);
 

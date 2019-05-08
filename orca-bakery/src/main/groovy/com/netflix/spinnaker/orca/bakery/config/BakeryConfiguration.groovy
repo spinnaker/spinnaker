@@ -55,7 +55,7 @@ class BakeryConfiguration {
   @Autowired LogLevel retrofitLogLevel
 
   @Bean
-  Endpoint bakeryEndpoint(@Value('${bakery.baseUrl}') String bakeryBaseUrl) {
+  Endpoint bakeryEndpoint(@Value('${bakery.base-url}') String bakeryBaseUrl) {
     newFixedEndpoint(bakeryBaseUrl)
   }
 

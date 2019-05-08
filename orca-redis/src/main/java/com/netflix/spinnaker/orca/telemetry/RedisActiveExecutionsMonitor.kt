@@ -51,15 +51,15 @@ import java.util.concurrent.atomic.AtomicLong
  * TODO rz - Add cloudProviders, accounts as tags
  */
 @Component
-@ConditionalOnProperty("monitor.activeExecutions.redis", matchIfMissing = true)
+@ConditionalOnProperty("monitor.active-executions.redis", matchIfMissing = true)
 class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
   redisClientSelector: RedisClientSelector,
   private val objectMapper: ObjectMapper,
   private val registry: Registry,
-  @Value("\${monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
-  @Value("\${monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
-  @Value("\${monitor.activeExecutions.key:monitor.activeExecutions}") val redisKey: String
+  @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
+  @Value("\${monitor.active-executions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
+  @Value("\${monitor.active-executions.key:monitor.active-executions}") val redisKey: String
 ) : ApplicationListener<ExecutionEvent> {
 
   private val log = LoggerFactory.getLogger(javaClass)

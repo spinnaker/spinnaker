@@ -48,7 +48,7 @@ class IgorConfiguration {
 
   @Bean
   Endpoint igorEndpoint(
-    @Value('${igor.baseUrl}') String igorBaseUrl) {
+    @Value('${igor.base-url}') String igorBaseUrl) {
     newFixedEndpoint(igorBaseUrl)
   }
 

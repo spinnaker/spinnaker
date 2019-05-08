@@ -44,7 +44,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
   @Autowired
   List<ImageFinder> imageFinders;
 
-  @Value("${tasks.findImageFromTagsTimeoutMillis:600000}")
+  @Value("${tasks.find-image-from-tags-timeout-millis:600000}")
   private Long findImageFromTagsTimeoutMillis;
 
   @Override

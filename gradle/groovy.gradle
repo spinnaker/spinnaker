@@ -21,7 +21,9 @@
 apply plugin: "groovy"
 
 dependencies {
-  compile spinnaker.dependency("groovy")
-  spinnaker.group("spockBase")
-  testCompile spinnaker.dependency("groovy")
+  implementation("org.codehaus.groovy:groovy-all")
+  testImplementation("org.spockframework:spock-core")
+  testImplementation("cglib:cglib-nodep")
+  testImplementation("org.objenesis:objenesis")
+  testImplementation("org.codehaus.groovy:groovy-all")
 }

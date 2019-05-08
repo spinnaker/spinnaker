@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import java.nio.charset.Charset
+import java.time.Clock
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
@@ -42,25 +48,14 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-
-import java.nio.charset.Charset
-import java.time.Clock
-import java.time.ZoneOffset
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
-
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.*
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import static java.time.temporal.ChronoUnit.DAYS
 
 @Slf4j
 @RestController
@@ -89,10 +84,10 @@ class TaskController {
   @Autowired
   StageDefinitionBuilderFactory stageDefinitionBuilderFactory
 
-  @Value('${tasks.daysOfExecutionHistory:14}')
+  @Value('${tasks.days-of-execution-history:14}')
   int daysOfExecutionHistory
 
-  @Value('${tasks.numberOfOldPipelineExecutionsToInclude:2}')
+  @Value('${tasks.number-of-old-pipeline-executions-to-include:2}')
   int numberOfOldPipelineExecutionsToInclude
 
   Clock clock = Clock.systemUTC()
@@ -630,7 +625,7 @@ class TaskController {
 
   private List<Execution> filterPipelinesByHistoryCutoff(List<Execution> pipelines, int limit) {
     // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
-    def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
+    def cutoffTime = clock.instant().minus(daysOfExecutionHistory, DAYS).toEpochMilli()
 
     def pipelinesSatisfyingCutoff = []
     pipelines.groupBy {

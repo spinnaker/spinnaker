@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@ConfigurationProperties("tasks.evaluateCondition")
+@ConfigurationProperties("tasks.evaluate-condition")
 public class ConditionConfigurationProperties {
   private final DynamicConfigService configService;
   private boolean enabled = false;

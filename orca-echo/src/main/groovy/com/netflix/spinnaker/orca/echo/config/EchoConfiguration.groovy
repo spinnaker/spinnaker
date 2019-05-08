@@ -56,7 +56,7 @@ class EchoConfiguration {
 
   @Bean
   Endpoint echoEndpoint(
-    @Value('${echo.baseUrl}') String echoBaseUrl) {
+    @Value('${echo.base-url}') String echoBaseUrl) {
     newFixedEndpoint(echoBaseUrl)
   }
 

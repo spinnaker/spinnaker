@@ -23,25 +23,29 @@ test {
 }
 
 dependencies {
-  compile spinnaker.dependency('frigga')
-  compileOnly spinnaker.dependency('lombok')
-  annotationProcessor spinnaker.dependency("lombok")
-  compile project(":orca-retrofit")
-  compile project(":orca-front50")
-  compile project(":orca-bakery")
-  compile project(":orca-core")
-  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
-  compile 'io.kubernetes:client-java:1.0.0-beta1'
+  implementation("com.netflix.frigga:frigga")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-bakery"))
+  implementation("com.netflix.spinnaker.moniker:moniker")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("io.kubernetes:client-java:1.0.0-beta1")
+  implementation("javax.validation:validation-api")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
 
-  testCompile project(":orca-test")
-  testCompile project(":orca-test-groovy")
-  testCompile "com.github.tomakehurst:wiremock:2.15.0"
-  testCompile spinnaker.dependency('springTest')
-  testCompile spinnaker.dependency("junitJupiterApi")
-  testCompile spinnaker.dependency("assertj")
-  testCompile "org.mockito:mockito-core:2.25.0"
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
 
-  testRuntime spinnaker.dependency("junitJupiterEngine")
-  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
+  testImplementation(project(":orca-test"))
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+  testImplementation("org.springframework:spring-test")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.mockito:mockito-core:2.25.0")
+  testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }

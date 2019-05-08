@@ -35,7 +35,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
   @Autowired
   List<ImageTagger> imageTaggers;
 
-  @Value("${tasks.waitForUpsertedImageTagsTimeoutMillis:600000}")
+  @Value("${tasks.wait-for-upserted-image-tags-timeout-millis:600000}")
   private Long waitForUpsertedImageTagsTimeoutMillis;
 
   @Override

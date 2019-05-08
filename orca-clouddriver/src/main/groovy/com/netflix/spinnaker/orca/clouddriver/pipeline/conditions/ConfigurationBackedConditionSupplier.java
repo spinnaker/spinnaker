@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * Aimed to be used for testing or as a pause-all deployments mechanism
  */
 @Component
-@ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
+@ConditionalOnExpression("${tasks.evaluate-condition.enabled:false}")
 public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
 

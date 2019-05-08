@@ -63,7 +63,7 @@ class Front50Configuration {
 
   @Bean
   Endpoint front50Endpoint(
-    @Value('${front50.baseUrl}') String front50BaseUrl) {
+    @Value('${front50.base-url}') String front50BaseUrl) {
     newFixedEndpoint(front50BaseUrl)
   }
 

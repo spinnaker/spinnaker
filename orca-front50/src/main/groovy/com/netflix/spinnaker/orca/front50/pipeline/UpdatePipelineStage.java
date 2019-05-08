@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UpdatePipelineStage implements StageDefinitionBuilder {
-  @Value("${tasks.useManagedServiceAccounts:false}")
+  @Value("${tasks.use-managed-service-accounts:false}")
   boolean useManagedServiceAccounts;
 
   @Override

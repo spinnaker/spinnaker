@@ -27,12 +27,13 @@ import dev.minutest.rootContext
 import org.jooq.DSLContext
 import org.jooq.DeleteWhereStep
 import org.jooq.Table
-import strikt.api.expect
-import strikt.assertions.isEqualTo
+import strikt.api.expectThat
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 
 class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
 
-  override val tests = rootContext<Unit> {
+  fun tests() = rootContext<Unit> {
 
     val dslContext = mock<DSLContext>()
     val query = mock<DeleteWhereStep<*>>()
@@ -52,7 +53,7 @@ class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
         subject.performWrite()
         subject.performWrite()
 
-        expect(subject.enabled).isEqualTo(false)
+        expectThat(subject.enabled).isFalse()
       }
     }
 
@@ -67,7 +68,7 @@ class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
         subject.performWrite()
         subject.performWrite()
 
-        expect(subject.enabled).isEqualTo(true)
+        expectThat(subject.enabled).isTrue()
       }
     }
   }

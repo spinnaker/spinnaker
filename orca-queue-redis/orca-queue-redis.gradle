@@ -22,11 +22,18 @@ repositories {
 }
 
 dependencies {
-  compile project(":orca-redis")
-  compile project(":orca-queue")
-  compile "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
+  implementation(project(":orca-core"))
+  implementation(project(":orca-queue"))
+  implementation(project(":orca-redis"))
+  implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-  testCompile project(":orca-test-redis")
-  testCompile project(":orca-queue-tck")
+  testImplementation(project(":orca-queue-tck"))
+  testImplementation(project(":orca-test-kotlin"))
+  testImplementation(project(":orca-test-redis"))
+  testImplementation("org.springframework:spring-test")
+  testImplementation("org.springframework.boot:spring-boot-test")
+  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
+
+  testImplementation("com.netflix.spinnaker.kork:kork-core")
 }

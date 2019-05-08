@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -30,11 +29,7 @@ public class BuildService {
   private final IgorService igorService;
 
   private String encode(String uri) {
-    try {
       return UriUtils.encodeFragment(uri, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public String build(String master, String jobName, Map<String, String> queryParams) {

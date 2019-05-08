@@ -41,8 +41,7 @@ public class JedisConfiguration {
 
   @Bean("QueryByApp")
   public ThreadPoolTaskExecutor queryByApp(
-    @Value("${threadPool.executionRepository:150}") int threadPoolSize
-  ) {
+      @Value("${thread-pool.execution-repository:150}") int threadPoolSize) {
     return newFixedThreadPool(threadPoolSize);
   }
 

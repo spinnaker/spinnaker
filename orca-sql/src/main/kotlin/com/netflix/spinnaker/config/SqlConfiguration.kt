@@ -93,7 +93,7 @@ class SqlConfiguration {
   @Bean(destroyMethod = "close") fun dsl(jooqConfiguration: DefaultConfiguration): DSLContext =
     DefaultDSLContext(jooqConfiguration)
 
-  @ConditionalOnProperty("executionRepository.sql.enabled")
+  @ConditionalOnProperty("execution-repository.sql.enabled")
   @Bean fun sqlExecutionRepository(dsl: DSLContext,
                                    mapper: ObjectMapper,
                                    registry: Registry,

@@ -44,7 +44,7 @@ import retrofit.client.OkClient
 @Component
 @Import(RetrofitConfiguration)
 @ConditionalOnBean(ComparableLooseVersion)
-@ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
+@ConditionalOnProperty(value = "jar-diffs.enabled", matchIfMissing = false)
 class JarDiffsTask implements DiffTask {
 
   private static final int MAX_RETRIES = 10

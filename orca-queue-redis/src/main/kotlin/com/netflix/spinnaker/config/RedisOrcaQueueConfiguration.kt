@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PRO
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService.NOOP
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -85,4 +87,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
   ) =
     RedisPendingExecutionService(jedisPool, mapper)
 
+  @Bean
+  @ConditionalOnMissingBean(DynamicConfigService::class)
+  internal fun springTransientConfigService(): DynamicConfigService = NOOP
 }

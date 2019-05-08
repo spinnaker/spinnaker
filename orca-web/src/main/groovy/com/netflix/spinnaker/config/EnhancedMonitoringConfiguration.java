@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
 @EnableConfigurationProperties(EnhancedMonitoringConfigurationProperties.class)
-@ConditionalOnExpression(value = "${pollers.enhancedMonitoring.enabled:false}")
+@ConditionalOnExpression(value = "${pollers.enhanced-monitoring.enabled:false}")
 public class EnhancedMonitoringConfiguration {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -69,7 +69,7 @@ public class EnhancedMonitoringConfiguration {
     }
   }
 
-  @Scheduled(fixedDelayString = "${pollers.enhancedMonitoring.intervalMs:60000}")
+  @Scheduled(fixedDelayString = "${pollers.enhanced-monitoring.interval-ms:60000}")
   void refresh() {
     log.info("Refreshing Running Orchestration Counts ({})", orchestrationCountPerApplication);
 

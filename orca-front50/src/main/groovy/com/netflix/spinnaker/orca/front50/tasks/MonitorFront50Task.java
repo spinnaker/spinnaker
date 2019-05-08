@@ -52,8 +52,8 @@ public class MonitorFront50Task implements RetryableTask {
   @Autowired
   public MonitorFront50Task(Optional<Front50Service> front50Service,
                             ObjectMapper objectMapper,
-                            @Value("${tasks.monitorFront50Task.successThreshold:0}") int successThreshold,
-                            @Value("${tasks.monitorFront50Task.gracePeriodMs:5000}") int gracePeriodMs) {
+                            @Value("${tasks.monitor-front50-task.success-threshold:0}") int successThreshold,
+                            @Value("${tasks.monitor-front50-task.grace-period-ms:5000}") int gracePeriodMs) {
     this.front50Service = front50Service.orElse(null);
     this.objectMapper = objectMapper;
     this.successThreshold = successThreshold;

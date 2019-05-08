@@ -21,77 +21,24 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2"
-    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
-    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0"
+    if (Boolean.valueOf(enablePublishing)) {
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0"
+    }
+    classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.31"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:1.3.31"
   }
 }
 
 allprojects {
   apply plugin: "spinnaker.base-project"
-  apply plugin: "java"
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: "spinnaker.project"
+  }
   group = "com.netflix.spinnaker.orca"
 
   ext {
-    spinnakerDependenciesVersion = '1.44.1'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
-
-  test {
-    testLogging {
-      exceptionFormat = 'full'
-    }
-  }
-
-  configurations.all {
-    exclude group: "javax.servlet", module: "servlet-api"
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.slf4j", module: "slf4j-simple"
-    resolutionStrategy {
-      force "org.antlr:antlr-runtime:3.5.2"
-      eachDependency {
-        if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-          it.useVersion spinnaker.version('jackson')
-        }
-        if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
-          it.useTarget group: "io.reactivex", name: "rxjava", version: spinnaker.version("rxJava")
-        }
-        if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
-          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
-        }
-        if (it.requested.group == "cglib" || it.requested.name == "cglib") {
-          it.useTarget group: "cglib", name: "cglib", version: "3.1"
-        }
-        if (it.requested.group == "antlr") {
-          it.useTarget group: "org.antlr", name: it.requested.name, version: "3.5.2"
-        }
-        if (it.requested.group == "org.apache.xbean") {
-          it.useVersion "4.1"
-        }
-      }
-    }
+    korkVersion = "5.2.3"
   }
 
   tasks.withType(JavaExec) {
@@ -100,7 +47,35 @@ allprojects {
     }
   }
 }
+
 subprojects {
+  apply plugin: "java-library"
+
+  def useLocalMaven = korkVersion.endsWith("-SNAPSHOT")
+  if (useLocalMaven) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  dependencies {
+    implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+    annotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+    testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+    implementation("org.slf4j:slf4j-api")
+  }
+
+  configurations.all {
+    exclude group: "javax.servlet", module: "servlet-api"
+  }
+
+  test {
+    testLogging {
+      exceptionFormat = "full"
+    }
+  }
+
   def licenseExtension = project.extensions.findByName('license')
   if (licenseExtension != null) {
     licenseExtension.exclude "**/*.json"

@@ -2,32 +2,36 @@ apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile project(":orca-extensionpoint")
-  compile project(":orca-core")
-  compile project(":orca-front50")
-  compile project(":orca-clouddriver")
+  implementation(project(":orca-extensionpoint"))
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-clouddriver"))
 
-  compile('com.hubspot.jinjava:jinjava:2.2.3') {
+  implementation("com.hubspot.jinjava:jinjava:2.2.3") {
     force = true
   }
 
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
-  compile('com.jayway.jsonpath:json-path:2.2.0')
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("com.jayway.jsonpath:json-path:2.2.0")
+  implementation("org.slf4j:slf4j-api")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
+  implementation("org.springframework:spring-context")
+  implementation("org.springframework:spring-web")
+  implementation("com.fasterxml.jackson.core:jackson-databind")
+  implementation("com.netflix.spectator:spectator-api")
+  implementation("com.netflix.frigga:frigga")
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+  implementation("com.squareup.okhttp3:okhttp")
+  implementation("javax.validation:validation-api")
+  implementation("com.netflix.servo:servo-core:0.12.21")
 
-  compile spinnaker.dependency("slf4jApi")
-  compile spinnaker.dependency("bootAutoConfigure")
-  compile spinnaker.dependency("springContext")
-  compile spinnaker.dependency("jacksonDatabind")
-  compile spinnaker.dependency("spectatorApi")
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency('korkExceptions')
-  compile spinnaker.dependency("okHttp3")
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
 
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-
-  testCompile spinnaker.dependency("slf4jSimple")
-  testCompile 'org.spockframework:spock-unitils:1.1-groovy-2.4-rc-2'
-  testCompile 'org.codehaus.groovy:groovy-json:2.4.11'
+  testImplementation("org.slf4j:slf4j-simple")
+  testImplementation("org.spockframework:spock-unitils")
+  testImplementation("org.codehaus.groovy:groovy-json")
+  testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
 }

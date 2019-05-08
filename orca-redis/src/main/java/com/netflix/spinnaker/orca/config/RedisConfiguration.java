@@ -62,13 +62,13 @@ public class RedisConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "executionRepository.redis.enabled", matchIfMissing = true)
+  @ConditionalOnProperty(value = "execution-repository.redis.enabled", matchIfMissing = true)
   public ExecutionRepository redisExecutionRepository(Registry registry,
                                                       RedisClientSelector redisClientSelector,
                                                       @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
                                                       @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
-                                                      @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize,
-                                                      @Value("${keiko.queue.redis.queueName:}") String bufferedPrefix) {
+                                                      @Value("${chunk-size.execution-repository:75}") Integer threadPoolChunkSize,
+                                                      @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
     return new RedisInstrumentedExecutionRepository(
       new RedisExecutionRepository(
         registry,

@@ -36,15 +36,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 
 @Component
-@ConditionalOnExpression("\${pollers.topApplicationExecutionCleanup.enabled:false} && !\${executionRepository.redis.enabled:false}")
+@ConditionalOnExpression("\${pollers.top-application-execution-cleanup.enabled:false} && !\${execution-repository.redis.enabled:false}")
 class TopApplicationExecutionCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
   private val registry: Registry,
   private val retrySupport: RetrySupport,
-  @Value("\${pollers.topApplicationExecutionCleanup.intervalMs:3600000}") private val pollingIntervalMs: Long,
-  @Value("\${pollers.topApplicationExecutionCleanup.threshold:2000}") private val threshold: Int,
-  @Value("\${pollers.topApplicationExecutionCleanup.chunkSize:1}") private val chunkSize: Int
+  @Value("\${pollers.top-application-execution-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
+  @Value("\${pollers.top-application-execution-cleanup.threshold:2000}") private val threshold: Int,
+  @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(TopApplicationExecutionCleanupPollingNotificationAgent::class.java)

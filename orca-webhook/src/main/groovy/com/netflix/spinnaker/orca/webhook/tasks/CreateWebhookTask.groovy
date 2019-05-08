@@ -110,7 +110,7 @@ class CreateWebhookTask implements RetryableTask {
         return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
       }
 
-      String errorMessage = "Error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url} with status code ${statusCode}."
+      String errorMessage = "Error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url} with status code ${statusCode.value()}."
       outputs.webhook << [error: errorMessage]
 
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
@@ -138,8 +138,7 @@ class CreateWebhookTask implements RetryableTask {
             break
           case WebhookProperties.StatusUrlResolution.webhookResponse:
             try {
-              JsonPath path = JsonPath.compile(stageData.statusUrlJsonPath as String)
-              statusUrl = new JsonContext().parse(response.body).read(path)
+              statusUrl = JsonPath.compile(stageData.statusUrlJsonPath as String).read(response.body)
             } catch (PathNotFoundException e) {
               outputs.webhook << [error: e.message]
               return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()

@@ -18,9 +18,10 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
-  compile project(":orca-core")
-  compile project(":orca-front50")
-  compile project(":orca-queue")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-queue"))
+  implementation("net.logstash.logback:logstash-logback-encoder")
 
-  testCompile project(":orca-test-kotlin")
+  testImplementation(project(":orca-test-kotlin"))
 }

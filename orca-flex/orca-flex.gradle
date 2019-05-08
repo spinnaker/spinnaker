@@ -17,7 +17,9 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile spinnaker.dependency('frigga')
-  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
-  compile project(":orca-retrofit")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
+  implementation("org.springframework:spring-context")
+  implementation("com.netflix.frigga:frigga")
+  implementation("com.netflix.spinnaker.moniker:moniker")
 }

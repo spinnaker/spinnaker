@@ -43,7 +43,7 @@ class MonitorKatoTask implements RetryableTask {
    *
    * Allows for replication lag if reading tasks from a read-replica of the clouddriver main redis.
    */
-  @Value('${tasks.monitorKatoTask.taskNotFoundTimeoutMs:120000}')
+  @Value('${tasks.monitor-kato-task.task-not-found-timeout-ms:120000}')
   long taskNotFoundTimeoutMs
 
   private final Clock clock

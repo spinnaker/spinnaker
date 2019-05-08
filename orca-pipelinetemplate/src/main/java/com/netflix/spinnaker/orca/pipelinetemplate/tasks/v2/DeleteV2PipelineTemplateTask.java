@@ -50,7 +50,7 @@ public class DeleteV2PipelineTemplateTask implements RetryableTask {
     String tag = (String) stage.getContext().get("tag");
     String digest = (String) stage.getContext().get("digest");
 
-    Response _ = front50Service.deleteV2PipelineTemplate(templateId, tag, digest);
+    front50Service.deleteV2PipelineTemplate(templateId, tag, digest);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipelinetemplate");

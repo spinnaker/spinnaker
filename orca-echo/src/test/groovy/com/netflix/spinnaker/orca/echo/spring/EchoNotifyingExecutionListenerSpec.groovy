@@ -136,8 +136,8 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
     then:
     pipeline.notifications.size() == 2
-    pipeline.notifications.when == [["pipeline.started", "pipeline.completed"], ["pipeline.failed"]]
-    pipeline.notifications.extraField == ["extra", null]
+    pipeline.notifications.when.containsAll(["pipeline.started", "pipeline.completed"], ["pipeline.failed"])
+    pipeline.notifications.extraField.containsAll("extra", null)
     1 * front50Service.getApplicationNotifications("myapp") >> notifications
     1 * echoService.recordEvent(_)
     0 * _
@@ -218,7 +218,8 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
     echoListener.beforeExecution(null, pipeline)
 
     then:
-    pipeline.notifications == [notification1, notification2]
+    pipeline.notifications.size() == 2
+    pipeline.notifications.containsAll(notification1, notification2)
 
     1 * front50Service.getApplicationNotifications("myapp") >> notifications
     1 * echoService.recordEvent(_)

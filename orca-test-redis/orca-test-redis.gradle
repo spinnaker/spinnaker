@@ -1,6 +1,6 @@
 dependencies {
-  compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency('korkJedis')
-  compile project(":orca-test")
-  compile spinnaker.dependency("korkJedisTest")
+  implementation("redis.clients:jedis")
+  implementation("com.netflix.spinnaker.kork:kork-jedis")
+  implementation(project(":orca-test"))
+  implementation("com.netflix.spinnaker.kork:kork-jedis-test")
 }

@@ -39,10 +39,10 @@ import rx.Observable
  */
 @Primary
 @Component
-@ConditionalOnExpression("\${executionRepository.dual.enabled:false}")
+@ConditionalOnExpression("\${execution-repository.dual.enabled:false}")
 class DualExecutionRepository(
-  @Value("\${executionRepository.dual.primaryClass}") private val primaryClass: String,
-  @Value("\${executionRepository.dual.previousClass}") private val previousClass: String,
+  @Value("\${execution-repository.dual.primary-class}") private val primaryClass: String,
+  @Value("\${execution-repository.dual.previous-class}") private val previousClass: String,
   allRepositories: List<ExecutionRepository>
 ) : ExecutionRepository {
 

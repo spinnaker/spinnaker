@@ -93,7 +93,7 @@ class QueueIntegrationTest {
   @Autowired
   lateinit var context: ConfigurableApplicationContext
 
-  @Value("\${tasks.executionWindow.timezone:America/Los_Angeles}")
+  @Value("\${tasks.execution-window.timezone:America/Los_Angeles}")
   lateinit var timeZoneId: String
   private val timeZone by lazy { ZoneId.of(timeZoneId) }
 

@@ -1,5 +1,5 @@
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  compile "com.google.code.findbugs:jsr305:3.0.2"
+  implementation("com.google.code.findbugs:jsr305")
 }

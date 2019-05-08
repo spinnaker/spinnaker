@@ -42,7 +42,7 @@ class ActiveExecutionsBufferStateSupplier(
 
   private var state: BufferState = INACTIVE
 
-  @Scheduled(fixedDelayString = "\${pollers.qos.updateStateIntervalMs:5000}")
+  @Scheduled(fixedDelayString = "\${pollers.qos.update-state-interval-ms:5000}")
   private fun updateCurrentState() {
     if (!enabled()) {
       state = INACTIVE

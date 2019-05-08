@@ -36,7 +36,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-@ConditionalOnProperty(value = 'flex.baseUrl')
+@ConditionalOnProperty(value = "flex.base-url")
 @ComponentScan([
   "com.netflix.spinnaker.orca.flex.pipeline",
   "com.netflix.spinnaker.orca.flex.tasks"
@@ -49,7 +49,7 @@ class FlexConfiguration {
 
   @Bean
   Endpoint flexEndpoint(
-    @Value('${flex.baseUrl}') String flexBaseUrl) {
+    @Value('${flex.base-url}') String flexBaseUrl) {
     newFixedEndpoint(flexBaseUrl)
   }
 

@@ -17,15 +17,18 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile project(":orca-core")
-  compile project(":orca-queue")
-  compile project(":orca-retrofit")
-  compile project(":orca-igor")
-  compile project(":orca-front50")
-  compile project(":orca-dry-run")
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('bootAutoConfigure')
-  testCompile "com.squareup.retrofit:retrofit-mock:${spinnaker.version('retrofit')}"
+  implementation(project(":orca-core"))
+  implementation(project(":orca-queue"))
+  implementation(project(":orca-retrofit"))
+  implementation(project(":orca-igor"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-dry-run"))
+  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
+  implementation("javax.validation:validation-api")
+  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+
+  testImplementation("com.squareup.retrofit:retrofit-mock")
 }
 
 tasks.withType(Javadoc) {

@@ -40,10 +40,10 @@ class ResolveQuipVersionTask implements RetryableTask {
   @Autowired(required = false)
   BakeryService bakeryService
 
-  @Value('${bakery.roscoApisEnabled:false}')
+  @Value('${bakery.rosco-apis-enabled:false}')
   boolean roscoApisEnabled
 
-  @Value('${bakery.allowMissingPackageInstallation:false}')
+  @Value('${bakery.allow-missing-package-installation:false}')
   boolean allowMissingPackageInstallation
 
   @Autowired

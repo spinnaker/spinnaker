@@ -28,11 +28,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 @Component
-@ConditionalOnProperty("monitor.activeExecutions.redis", havingValue = "false")
+@ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")
 class SqlActiveExecutionsMonitor(
   private val executionRepository: ExecutionStatisticsRepository,
   registry: Registry,
-  @Value("\${monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
+  @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)

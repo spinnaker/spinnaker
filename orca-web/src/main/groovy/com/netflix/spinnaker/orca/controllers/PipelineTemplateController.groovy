@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-@ConditionalOnExpression("\${pipelineTemplates.enabled:true}")
+@ConditionalOnExpression("\${pipeline-templates.enabled:true}")
 @RestController
 @Slf4j
 class PipelineTemplateController {

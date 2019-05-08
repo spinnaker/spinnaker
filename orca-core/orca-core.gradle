@@ -24,40 +24,41 @@ test {
 }
 
 dependencies {
-  compile project(":orca-extensionpoint")
-  compile spinnaker.dependency('guava')
-  compile spinnaker.dependency('slf4jApi')
-  testRuntime spinnaker.dependency('slf4jSimple')
+  api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
+  api("com.netflix.spinnaker.kork:kork-artifacts")
+  api("com.netflix.spinnaker.kork:kork-security")
+  api("com.netflix.spinnaker.kork:kork-exceptions")
+  api("io.reactivex:rxjava")
 
-  spinnaker.group('jackson')
+  implementation(project(":orca-extensionpoint"))
+  implementation("com.google.guava:guava")
+  implementation("org.slf4j:slf4j-api")
+  implementation("com.fasterxml.jackson.core:jackson-annotations")
+  implementation("com.fasterxml.jackson.core:jackson-core")
+  implementation("com.fasterxml.jackson.core:jackson-databind")
+  implementation("com.netflix.eureka:eureka-client")
+  implementation("cglib:cglib-nodep")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
+  implementation("com.netflix.spectator:spectator-api")
+  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("org.springframework.security:spring-security-web")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("org.apache.commons:commons-lang3")
+  implementation("javax.servlet:javax.servlet-api:4.0.1")
+  implementation("com.jayway.jsonpath:json-path:2.2.0")
 
-  compile spinnaker.dependency('eurekaClient')
-  compile spinnaker.dependency('cglib')
-  compile spinnaker.dependency('jacksonGuava')
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('korkSecurity')
-  compile spinnaker.dependency('spectatorApi')
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkExceptions')
-  compile spinnaker.dependency('korkArtifacts')
-  compile spinnaker.dependency("logstashEncoder")
-  compile spinnaker.dependency("springSecurityWeb")
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version('jackson')}"
-  compile "org.apache.commons:commons-lang3:3.7"
-  compile "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.1.1"
-  compile "javax.servlet:javax.servlet-api:4.0.1"
-  compile('com.jayway.jsonpath:json-path:2.2.0')
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
 
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  testImplementation(project(":orca-test"))
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.assertj:assertj-core")
 
-  testCompile project(":orca-test")
-  testCompile project(":orca-test-groovy")
-  testCompile spinnaker.dependency("junitJupiterApi")
-  testCompile spinnaker.dependency("assertj")
-
-  testRuntime spinnaker.dependency("junitJupiterEngine")
-  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
+  testRuntimeOnly("org.slf4j:slf4j-simple")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 }

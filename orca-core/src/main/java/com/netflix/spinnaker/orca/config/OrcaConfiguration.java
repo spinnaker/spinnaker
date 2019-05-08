@@ -112,13 +112,13 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "jarDiffs.enabled", matchIfMissing = false)
+  @ConditionalOnProperty(value = "jar-diffs.enabled", matchIfMissing = false)
   public ComparableLooseVersion comparableLooseVersion() {
     return new DefaultComparableLooseVersion();
   }
 
   @Bean
-  @ConfigurationProperties("userConfiguredUrlRestrictions")
+  @ConfigurationProperties("user-configured-url-restrictions")
   public UserConfiguredUrlRestrictions.Builder userConfiguredUrlRestrictionProperties() {
     return new UserConfiguredUrlRestrictions.Builder();
   }
@@ -131,7 +131,7 @@ public class OrcaConfiguration {
   @Bean
   public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
                                                                    Optional<List<ExpressionFunctionProvider>> expressionFunctionProviders,
-                                                                   @Value("${spelEvaluator:v2}") String spelEvaluator) {
+                                                                   @Value("${spel-evaluator:v2}") String spelEvaluator) {
     return new ContextFunctionConfiguration(
       userConfiguredUrlRestrictions,
       expressionFunctionProviders.orElse(Collections.emptyList()),

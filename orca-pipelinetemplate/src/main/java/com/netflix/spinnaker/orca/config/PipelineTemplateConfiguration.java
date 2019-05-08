@@ -38,7 +38,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.List;
 import java.util.Optional;
 
-@ConditionalOnExpression("${pipelineTemplates.enabled:true}")
+@ConditionalOnExpression("${pipeline-templates.enabled:true}")
 @ComponentScan(
   basePackageClasses = PipelineTemplateModule.class,
   basePackages = {

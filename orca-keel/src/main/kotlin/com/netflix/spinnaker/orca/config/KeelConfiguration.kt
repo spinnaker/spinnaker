@@ -41,7 +41,7 @@ import retrofit.converter.JacksonConverter
   ]
 )
 class KeelConfiguration {
-  @Bean fun keelEndpoint(@Value("\${keel.baseUrl}") keelBaseUrl: String): Endpoint {
+  @Bean fun keelEndpoint(@Value("\${keel.base-url}") keelBaseUrl: String): Endpoint {
     return Endpoints.newFixedEndpoint(keelBaseUrl)
   }
 

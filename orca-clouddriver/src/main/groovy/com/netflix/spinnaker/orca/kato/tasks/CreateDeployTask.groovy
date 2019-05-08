@@ -48,7 +48,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
   @Value('${default.bake.account:default}')
   String defaultBakeAccount
 
-  @Value('${default.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_SECURITY_GROUPS}}')
+  @Value('${default.security-groups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_SECURITY_GROUPS}}')
   List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
 
   @Override

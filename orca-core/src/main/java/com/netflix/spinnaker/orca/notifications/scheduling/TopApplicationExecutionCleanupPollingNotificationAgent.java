@@ -48,7 +48,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
 
 @Component
-@ConditionalOnExpression("${pollers.topApplicationExecutionCleanup.enabled:false} && !${executionRepository.sql.enabled:false}")
+@ConditionalOnExpression("${pollers.top-application-execution-cleanup.enabled:false} && !${execution-repository.sql.enabled:false}")
 public class TopApplicationExecutionCleanupPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -78,8 +78,8 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
   public TopApplicationExecutionCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
                                                                 ExecutionRepository executionRepository,
                                                                 Registry registry,
-                                                                @Value("${pollers.topApplicationExecutionCleanup.intervalMs:3600000}") long pollingIntervalMs,
-                                                                @Value("${pollers.topApplicationExecutionCleanup.threshold:2500}") int threshold) {
+                                                                @Value("${pollers.top-application-execution-cleanup.interval-ms.intervalMs:3600000}") long pollingIntervalMs,
+                                                                @Value("${pollers.top-application-execution-cleanup.threshold:2500}") int threshold) {
     super(clusterLock);
     this.executionRepository = executionRepository;
     this.registry = registry;

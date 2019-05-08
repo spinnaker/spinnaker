@@ -47,7 +47,8 @@ class KayentaConfiguration {
 
   @Bean
   fun kayentaEndpoint(
-    @Value("\${kayenta.baseUrl}") kayentaBaseUrl: String): Endpoint {
+    @Value("\${kayenta.base-url}") kayentaBaseUrl: String
+  ): Endpoint {
     return newFixedEndpoint(kayentaBaseUrl)
   }
 

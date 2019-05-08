@@ -67,7 +67,7 @@ class DefaultExecutionPromoter(
       }
     }
 
-  @Scheduled(fixedDelayString = "\${pollers.qos.promoteIntervalMs:5000}")
+  @Scheduled(fixedDelayString = "\${pollers.qos.promote-interval-ms:5000}")
   fun promote() {
     if (!discoveryActivated.get()) {
       return

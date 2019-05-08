@@ -17,7 +17,10 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile project(':orca-retrofit')
-  compile project(':orca-clouddriver')
-  testCompile project(":orca-test-groovy")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-retrofit"))
+  implementation(project(":orca-clouddriver"))
+  testImplementation(project(":orca-test-groovy"))
+  implementation("org.springframework:spring-context")
+  implementation("com.netflix.frigga:frigga")
 }
