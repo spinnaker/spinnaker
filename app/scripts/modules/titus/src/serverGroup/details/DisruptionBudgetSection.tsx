@@ -2,8 +2,9 @@ import * as React from 'react';
 import { isEqual, cloneDeep } from 'lodash';
 const angular = require('angular');
 import { react2angular } from 'react2angular';
+import * as prettyMilliseconds from 'pretty-ms';
 
-import { IServerGroupDetailsSectionProps, duration, HelpField } from '@spinnaker/core';
+import { IServerGroupDetailsSectionProps, HelpField } from '@spinnaker/core';
 
 import { defaultJobDisruptionBudget, IJobDisruptionBudget } from '../configure/serverGroupConfiguration.service';
 import { policyOptions } from '../configure/wizard/pages/disruptionBudget/PolicyOptions';
@@ -81,7 +82,7 @@ export class DisruptionBudgetSection extends React.Component<IServerGroupDetails
   private ParentheticalDuration = ({ durationMs }: { durationMs: number }) => (
     <span>
       {durationMs} ms
-      {durationMs > 1000 && ` (${duration(durationMs)})`}
+      {durationMs > 1000 && ` (${prettyMilliseconds(durationMs)})`}
     </span>
   );
 

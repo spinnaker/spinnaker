@@ -70,6 +70,7 @@
     "memoize-one": "^4.0.2",
     "n3-charts": "^2.0.18",
     "ngimport": "^0.6.0",
+    "pretty-ms": "^5.0.0",
     "prop-types": "15.6.1",
     "react": "~16.8.0",
     "react-ace": "^6.1.4",
