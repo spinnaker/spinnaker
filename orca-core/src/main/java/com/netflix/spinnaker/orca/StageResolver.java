@@ -54,11 +54,11 @@ public class StageResolver {
   }
 
   /**
-   * Fetch a {@code StageDefinitionBuilder} by {@param type} or {@param typeAlias}.
+   * Fetch a {@code StageDefinitionBuilder} by {@code type} or {@code typeAlias}.
    *
    * @param type      StageDefinitionBuilder type
    * @param typeAlias StageDefinitionBuilder alias (optional)
-   * @return the StageDefinitionBuilder matching {@param type} or {@param typeAlias}
+   * @return the StageDefinitionBuilder matching {@code type} or {@code typeAlias}
    * @throws NoSuchStageDefinitionBuilderException if StageDefinitionBuilder does not exist
    */
   @Nonnull

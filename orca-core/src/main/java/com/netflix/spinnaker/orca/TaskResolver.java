@@ -67,10 +67,10 @@ public class TaskResolver {
   }
 
   /**
-   * Fetch a {@code Task} by {@param taskTypeIdentifier}.
+   * Fetch a {@code Task} by {@code taskTypeIdentifier}.
    *
    * @param taskTypeIdentifier Task identifier (class name or alias)
-   * @return the Task matching {@param taskTypeIdentifier}
+   * @return the Task matching {@code taskTypeIdentifier}
    * @throws NoSuchTaskException if Task does not exist
    */
   @Nonnull
