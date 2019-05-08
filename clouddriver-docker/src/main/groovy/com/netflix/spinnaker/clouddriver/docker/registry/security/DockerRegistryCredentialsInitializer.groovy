@@ -90,6 +90,7 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
           .paginateSize(managedAccount.paginateSize)
           .trackDigests(managedAccount.trackDigests)
           .sortTagsByDate(managedAccount.sortTagsByDate)
+          .insecureRegistry(managedAccount.insecureRegistry)
           .repositories(managedAccount.repositories)
           .skip(managedAccount.skip)
           .dockerOkClientProvider(dockerOkClientProvider)

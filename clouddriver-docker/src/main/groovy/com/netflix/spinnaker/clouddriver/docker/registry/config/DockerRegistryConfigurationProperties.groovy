@@ -51,6 +51,7 @@ class DockerRegistryConfigurationProperties {
     boolean trackDigests
     // Sort tags by creation date.
     boolean sortTagsByDate
+    boolean insecureRegistry
     // List of all repositories to index. Can be of the form <user>/<repo>,
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories
