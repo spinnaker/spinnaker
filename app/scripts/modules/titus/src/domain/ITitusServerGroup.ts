@@ -1,9 +1,10 @@
 import { IAccountDetails, IServerGroup } from '@spinnaker/core';
 import { IScalingPolicyView } from '@spinnaker/amazon';
-import { IJobDisruptionBudget } from '../serverGroup/configure/serverGroupConfiguration.service';
+import { IJobDisruptionBudget } from './IJobDisruptionBudget';
 import { ITitusPolicy } from './ITitusScalingPolicy';
 
 export interface ITitusServerGroup extends IServerGroup {
+  id?: string;
   disruptionBudget?: IJobDisruptionBudget;
   migrationPolicy?: { type: string };
   image?: ITitusImage;

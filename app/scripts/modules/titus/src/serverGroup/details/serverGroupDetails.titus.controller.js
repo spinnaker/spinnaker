@@ -15,7 +15,7 @@ import {
 
 import { TitusReactInjector } from 'titus/reactShims';
 
-import { DISRUPTION_BUDGET_DETAILS_SECTION } from './DisruptionBudgetSection';
+import { DISRUPTION_BUDGET_DETAILS_SECTION } from './disruptionBudget/DisruptionBudgetSection';
 
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 

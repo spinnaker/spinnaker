@@ -14,11 +14,9 @@ import {
 
 import { WindowPicker } from './WindowPicker';
 
-import {
-  ITitusServerGroupCommand,
-  defaultJobDisruptionBudget,
-  IJobDisruptionBudget,
-} from '../../../serverGroupConfiguration.service';
+import { ITitusServerGroupCommand, defaultJobDisruptionBudget } from '../../../serverGroupConfiguration.service';
+
+import { IJobDisruptionBudget } from 'titus/domain';
 
 import { rateOptions } from './RateOptions';
 

@@ -4,7 +4,8 @@ import { get } from 'lodash';
 
 import { FormikFormField, ChecklistInput, NumberInput, HelpField, ReactSelectInput } from '@spinnaker/core';
 
-import { IJobTimeWindow, ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
+import { IJobTimeWindow } from 'titus/domain';
 
 export interface IWindowPickerProps {
   formik: FormikProps<ITitusServerGroupCommand>;

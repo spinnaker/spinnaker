@@ -27,6 +27,8 @@ import {
   VpcReader,
 } from '@spinnaker/amazon';
 
+import { IJobDisruptionBudget } from 'titus/domain';
+
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];
   vpcs: IVpc[];
@@ -37,26 +39,6 @@ export interface ITitusServerGroupCommandViewState extends IServerGroupCommandVi
   regionChangedStream: Subject<{}>;
   groupsRemovedStream: Subject<{}>;
   dirty: IAmazonServerGroupCommandDirty;
-}
-
-export interface IJobTimeWindow {
-  days: string[];
-  hourlyTimeWindows: Array<{ startHour: number; endHour: number }>;
-  timeZone: string;
-}
-
-export interface IJobDisruptionBudget {
-  // policy options
-  availabilityPercentageLimit?: { percentageOfHealthyContainers: number }; // default
-  unhealthyTasksLimit?: { limitOfUnhealthyContainers: number };
-  selfManaged?: { relocationTimeMs: number };
-  relocationLimit?: { limit: number };
-
-  rateUnlimited?: boolean;
-  timeWindows: IJobTimeWindow[];
-  containerHealthProviders: Array<{ name: string }>;
-  ratePerInterval?: { intervalMs: number; limitPerInterval: number };
-  ratePercentagePerInterval?: { intervalMs: number; percentageLimitPerInterval: number };
 }
 
 export const defaultJobDisruptionBudget: IJobDisruptionBudget = {
