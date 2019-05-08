@@ -1,11 +1,11 @@
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
 import { mock, IQService, IScope, IRootScopeService } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
 
 import { AccountService, IAccountDetails } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { PROVIDER_SELECTION_SERVICE, ProviderSelectionService } from './providerSelection.service';
+import { ProviderSelectionModal } from 'core/cloudProvider/providerSelection/ProviderSelectionModal';
+import { ProviderSelectionService } from './ProviderSelectionService';
 import { SETTINGS } from 'core/config/settings';
 
 function fakeAccount(provider: string): IAccountDetails {
@@ -25,36 +25,21 @@ function fakeAccount(provider: string): IAccountDetails {
 }
 
 describe('providerSelectionService: API', () => {
-  beforeEach(mock.module(PROVIDER_SELECTION_SERVICE, require('angular-ui-bootstrap')));
-
   // required to ensure registry provider is available
-  let $q: IQService, $scope: IScope, $modal: IModalService, providerService: ProviderSelectionService;
+  let $q: IQService, $scope: IScope;
 
   beforeEach(
-    mock.inject(
-      (
-        _$q_: IQService,
-        $rootScope: IRootScopeService,
-        _$uibModal_: IModalService,
-        _providerSelectionService_: ProviderSelectionService,
-      ) => {
-        $q = _$q_;
-        $scope = $rootScope.$new();
-        $modal = _$uibModal_;
-        providerService = _providerSelectionService_;
-      },
-    ),
+    mock.inject((_$q_: IQService, $rootScope: IRootScopeService) => {
+      $q = _$q_;
+      $scope = $rootScope.$new();
+    }),
   );
 
   let hasValue: boolean, accounts: IAccountDetails[];
   beforeEach(() => {
     spyOn(AccountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
     spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
-    spyOn($modal, 'open').and.callFake(() => {
-      return {
-        result: $q.when('modalProvider'),
-      };
-    });
+    spyOn(ProviderSelectionModal, 'show').and.returnValue($q.when('modalProvider'));
   });
 
   beforeEach(() => {
@@ -88,7 +73,7 @@ describe('providerSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -98,7 +83,7 @@ describe('providerSelectionService: API', () => {
   it('should use "aws" as the default provider if the requested provider cannot be found and there is no default set', () => {
     let provider = '';
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -110,7 +95,7 @@ describe('providerSelectionService: API', () => {
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
     CloudProviderRegistry.registerProvider('testProvider', config);
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -123,7 +108,7 @@ describe('providerSelectionService: API', () => {
     accounts = [fakeAccount('testProvider')];
     config.securityGroup.useProvider = 'titus';
     CloudProviderRegistry.registerProvider('testProvider', config);
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -137,7 +122,7 @@ describe('providerSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('aws', { securityGroup: {} } as any);
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
 
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -152,7 +137,7 @@ describe('providerSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
     CloudProviderRegistry.registerProvider('testProvider', config);
 
-    providerService.selectProvider(application, 'securityGroup').then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup').then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -169,7 +154,7 @@ describe('providerSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    providerService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
       provider = _provider;
     });
     $scope.$digest();
@@ -186,7 +171,7 @@ describe('providerSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('kubernetes', config);
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    providerService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(_provider => {
       provider = _provider;
     });
     $scope.$digest();

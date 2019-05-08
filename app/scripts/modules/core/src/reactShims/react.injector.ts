@@ -13,7 +13,6 @@ import { InstanceTypeService, InstanceWriter } from 'core/instance';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { PageTitleService } from 'core/pageTitle';
-import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
 import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
@@ -56,7 +55,6 @@ export class CoreReactInject extends ReactInject {
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
-  public get providerSelectionService() { return this.$injector.get('providerSelectionService') as ProviderSelectionService; }
   public get providerServiceDelegate() { return this.$injector.get('providerServiceDelegate') as ProviderServiceDelegate; }
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }

@@ -5,8 +5,6 @@ const angular = require('angular');
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
-import './providerSelection.modal.less';
-
 module.exports = angular
   .module('spinnaker.providerSelection.directive', [])
   .directive('providerSelector', [

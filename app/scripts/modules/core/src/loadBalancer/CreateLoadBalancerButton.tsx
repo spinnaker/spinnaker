@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { Application } from 'core/application';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from 'core/loadBalancer';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
@@ -28,9 +28,9 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
   }
 
   private createLoadBalancer = (): void => {
-    const { providerSelectionService, skinSelectionService } = ReactInjector;
+    const { skinSelectionService } = ReactInjector;
     const { app } = this.props;
-    providerSelectionService.selectProvider(app, 'loadBalancer').then(selectedProvider => {
+    ProviderSelectionService.selectProvider(app, 'loadBalancer').then(selectedProvider => {
       skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
 

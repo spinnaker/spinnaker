@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
+import { noop } from 'core/utils';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { INSIGHT_FILTER_COMPONENT } from 'core/insight/insightFilter.component';
 import { ClusterState } from 'core/state';
-import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 
 import { CLUSTER_FILTER } from './filter/clusterFilter.component';
@@ -18,7 +18,6 @@ module.exports = angular
   .module('spinnaker.core.cluster.allClusters.controller', [
     CLUSTER_FILTER,
     require('../account/account.module').name,
-    PROVIDER_SELECTION_SERVICE,
     SKIN_SELECTION_SERVICE,
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     FILTER_TAGS_COMPONENT,
@@ -31,7 +30,6 @@ module.exports = angular
     'app',
     '$uibModal',
     '$timeout',
-    'providerSelectionService',
     'insightFilterStateModel',
     'serverGroupCommandBuilder',
     'skinSelectionService',
@@ -40,7 +38,6 @@ module.exports = angular
       app,
       $uibModal,
       $timeout,
-      providerSelectionService,
       insightFilterStateModel,
       serverGroupCommandBuilder,
       skinSelectionService,
@@ -117,40 +114,42 @@ module.exports = angular
       };
 
       this.createServerGroup = function createServerGroup() {
-        providerSelectionService.selectProvider(app, 'serverGroup').then(function(provider) {
-          skinSelectionService.selectSkin(provider).then(function(selected) {
-            serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null, selected).then(command => {
-              let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selected);
-              const title = 'Create New Server Group';
-              const serverGroup = null;
-              if (providerConfig.CloneServerGroupModal) {
-                // React
-                providerConfig.CloneServerGroupModal.show({
-                  title,
-                  application: app,
-                  serverGroup,
-                  command,
-                  provider,
-                  isNew: true,
-                });
-              } else {
-                // angular
-                $uibModal.open({
-                  templateUrl: providerConfig.cloneServerGroupTemplateUrl,
-                  controller: `${providerConfig.cloneServerGroupController} as ctrl`,
-                  size: 'lg',
-                  resolve: {
-                    title: () => title,
-                    application: () => app,
-                    serverGroup: () => serverGroup,
-                    serverGroupCommand: () => command,
-                    provider: () => provider,
-                  },
-                });
-              }
+        ProviderSelectionService.selectProvider(app, 'serverGroup')
+          .then(function(provider) {
+            skinSelectionService.selectSkin(provider).then(function(selected) {
+              serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null, selected).then(command => {
+                let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selected);
+                const title = 'Create New Server Group';
+                const serverGroup = null;
+                if (providerConfig.CloneServerGroupModal) {
+                  // React
+                  providerConfig.CloneServerGroupModal.show({
+                    title,
+                    application: app,
+                    serverGroup,
+                    command,
+                    provider,
+                    isNew: true,
+                  });
+                } else {
+                  // angular
+                  $uibModal.open({
+                    templateUrl: providerConfig.cloneServerGroupTemplateUrl,
+                    controller: `${providerConfig.cloneServerGroupController} as ctrl`,
+                    size: 'lg',
+                    resolve: {
+                      title: () => title,
+                      application: () => app,
+                      serverGroup: () => serverGroup,
+                      serverGroupCommand: () => command,
+                      provider: () => provider,
+                    },
+                  });
+                }
+              });
             });
-          });
-        });
+          })
+          .catch(noop);
       };
 
       this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
