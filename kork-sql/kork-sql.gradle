@@ -8,7 +8,9 @@ dependencies {
   api project(":kork-security")
   api "org.springframework:spring-jdbc"
   api "org.springframework:spring-tx"
-  api "org.jooq:jooq"
+  api("org.jooq:jooq:3.9.6"){
+    force = true
+  }
   api "org.liquibase:liquibase-core"
   api "com.zaxxer:HikariCP"
 
