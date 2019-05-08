@@ -42,14 +42,14 @@ import retrofit.converter.JacksonConverter
 class TwilioConfig {
 
     @Bean
-    Endpoint twilioEndpoint(@Value('twilio.base-url') String twilioBaseUrl) {
+    Endpoint twilioEndpoint(@Value('${twilio.base-url}') String twilioBaseUrl) {
         newFixedEndpoint(twilioBaseUrl)
     }
 
     @Bean
     TwilioService twilioService(
-            @Value('twilio.account') String username,
-            @Value('twilio.token') String password,
+            @Value('${twilio.account}') String username,
+            @Value('${twilio.token}') String password,
             Endpoint twilioEndpoint,
             Client retrofitClient,
             RestAdapter.LogLevel retrofitLogLevel) {
