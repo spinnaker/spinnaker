@@ -1,6 +1,7 @@
 'use strict';
 
 const angular = require('angular');
+import { groupBy } from 'lodash';
 
 import { VpcReader } from '../vpc/VpcReader';
 
@@ -20,7 +21,28 @@ module.exports = angular
       };
     }
 
+    function compress(securityGroups) {
+      const grouped = groupBy(securityGroups, 'vpcId');
+      Object.keys(grouped).forEach(vpcId => {
+        grouped[vpcId] = grouped[vpcId].map(g => [g.name, g.id]);
+      });
+      return grouped;
+    }
+
+    function decompress(groupedGroups) {
+      const flattened = [];
+      Object.keys(groupedGroups).forEach(vpcId => {
+        groupedGroups[vpcId].forEach(g => {
+          flattened.push({ name: g[0], id: g[1], vpcId });
+        });
+      });
+      return flattened;
+    }
+
     return {
-      normalizeSecurityGroup: normalizeSecurityGroup,
+      normalizeSecurityGroup,
+      compress,
+      decompress,
+      supportsCompression: true,
     };
   });

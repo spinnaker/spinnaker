@@ -17,7 +17,7 @@ export interface IInfrastructureCacheConfig {
 
 export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
   securityGroups: {
-    version: 2, // increment to force refresh of cache on next page load - can be added to any cache
+    version: 3, // increment to force refresh of cache on next page load - can be added to any cache
   },
   healthChecks: {
     version: 2,

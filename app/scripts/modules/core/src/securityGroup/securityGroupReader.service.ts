@@ -279,30 +279,63 @@ export class SecurityGroupReader {
   ) {}
 
   public getAllSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
-    // Because these are cached in local storage, we unfortunately need to remove the moniker, as it triples the size
-    // of the object being stored, which blows out our LS quota for a sufficiently large footprint
     const cache = InfrastructureCaches.get('securityGroups');
     const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
-      return this.$q.resolve(cached);
+      return this.$q.resolve(this.decompress(cached));
     }
     return API.one('securityGroups')
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
-        Object.keys(groupsByAccount).forEach(account => {
-          Object.keys(groupsByAccount[account]).forEach(provider => {
-            Object.keys(groupsByAccount[account][provider]).forEach(region => {
-              groupsByAccount[account][provider][region].forEach(group => {
-                delete group.moniker;
-              });
-            });
-          });
-        });
         if (cache) {
-          cache.put('allGroups', groupsByAccount);
+          cache.put('allGroups', this.compress(groupsByAccount));
         }
         return groupsByAccount;
       });
+  }
+
+  private compress(data: ISecurityGroupsByAccountSourceData): any {
+    const compressed: any = {};
+    Object.keys(data).forEach(account => {
+      compressed[account] = {};
+      Object.keys(data[account]).forEach(provider => {
+        compressed[account][provider] = {};
+        Object.keys(data[account][provider]).forEach(region => {
+          // Because these are cached in local storage, we unfortunately need to remove the moniker, as it triples the size
+          // of the object being stored, which blows out our LS quota for a sufficiently large footprint
+          data[account][provider][region].forEach(group => delete group.moniker);
+        });
+        if (this.providerServiceDelegate.hasDelegate(provider, 'securityGroup.transformer')) {
+          const service: any = this.providerServiceDelegate.getDelegate(provider, 'securityGroup.transformer');
+          if (service.supportsCompression) {
+            Object.keys(data[account][provider]).forEach(region => {
+              compressed[account][provider][region] = service.compress(data[account][provider][region]);
+            });
+          } else {
+            compressed[account][provider] = data[account][provider];
+          }
+        } else {
+          compressed[account][provider] = data[account][provider];
+        }
+      });
+    });
+    return compressed;
+  }
+
+  private decompress(data: any): ISecurityGroupsByAccountSourceData {
+    Object.keys(data).forEach(account => {
+      Object.keys(data[account]).forEach(provider => {
+        if (this.providerServiceDelegate.hasDelegate(provider, 'securityGroup.transformer')) {
+          const service: any = this.providerServiceDelegate.getDelegate(provider, 'securityGroup.transformer');
+          if (service && service.supportsCompression) {
+            Object.keys(data[account][provider]).forEach(region => {
+              data[account][provider][region] = service.decompress(data[account][provider][region]);
+            });
+          }
+        }
+      });
+    });
+    return data;
   }
 
   public getApplicationSecurityGroup(
