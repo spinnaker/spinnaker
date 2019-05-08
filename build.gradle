@@ -39,6 +39,8 @@ allprojects {
 
   ext {
     korkVersion = "5.2.3"
+    keikoVersion = "2.10.1"
+    fiatVersion = "1.0.4"
   }
 
   tasks.withType(JavaExec) {
