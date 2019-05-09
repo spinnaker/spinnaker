@@ -37,7 +37,6 @@ public class DefaultNodeIdentity implements NodeIdentity {
     public static final String UNKNOWN_HOST = "UnknownHost";
     private static final long REFRESH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
 
-    @SuppressWarnings("PMD.EmptyCatchBlock")
     private static String getHostName(String validationHost, int validationPort) {
         final Enumeration<NetworkInterface> interfaces;
         try {

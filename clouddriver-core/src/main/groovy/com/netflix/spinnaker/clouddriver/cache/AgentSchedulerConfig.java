@@ -37,7 +37,7 @@ import java.net.URI;
 import java.time.Clock;
 
 @Configuration
-@ConditionalOnProperty(value = "caching.writeEnabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "caching.write-enabled", matchIfMissing = true)
 public class AgentSchedulerConfig {
 
   @Bean

@@ -89,8 +89,8 @@ class SqlCacheConfiguration {
                    sqlProperties: SqlProperties,
                    cacheMetrics: SqlCacheMetrics,
                    dynamicConfigService: DynamicConfigService,
-                   @Value("\${sql.cache.asyncPoolSize:0}") poolSize: Int,
-                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?): NamedCacheFactory {
+                   @Value("\${sql.cache.async-pool-size:0}") poolSize: Int,
+                   @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?): NamedCacheFactory {
     if (tableNamespace != null && !tableNamespace.matches("""^\w+$""".toRegex())) {
       throw IllegalArgumentException("tableNamespace can only contain characters [a-z, A-Z, 0-9, _]")
     }
@@ -137,22 +137,22 @@ class SqlCacheConfiguration {
   }
 
   @Bean
-  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlTableMetricsAgent(jooq: DSLContext,
                            registry: Registry,
                            clock: Clock,
-                           @Value("\${sql.tableNamespace:#{null}}") namespace: String?): SqlTableMetricsAgent =
+                           @Value("\${sql.table-namespace:#{null}}") namespace: String?): SqlTableMetricsAgent =
     SqlTableMetricsAgent(jooq, registry, clock, namespace)
 
   @Bean
-  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlCleanupStaleOnDemandCachesAgent(applicationContext: ApplicationContext,
                                          registry: Registry,
                                          clock: Clock): SqlCleanupStaleOnDemandCachesAgent =
     SqlCleanupStaleOnDemandCachesAgent(applicationContext, registry, clock)
 
   @Bean
-  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlAgentProvider(sqlTableMetricsAgent: SqlTableMetricsAgent,
                        sqlCleanupStaleOnDemandCachesAgent: SqlCleanupStaleOnDemandCachesAgent): SqlProvider =
     SqlProvider(mutableListOf(sqlTableMetricsAgent, sqlCleanupStaleOnDemandCachesAgent))

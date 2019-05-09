@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.data.task
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
@@ -131,11 +132,14 @@ class DefaultTaskStatus implements Status {
     new DefaultTaskStatus(phase, status, state)
   }
 
-  Boolean isComplete() { state.completed }
+  @JsonProperty
+  public Boolean isComplete() { state.isCompleted() }
 
-  Boolean isCompleted() { state.completed }
+  @JsonProperty
+  public Boolean isCompleted() { state.isCompleted() }
 
-  Boolean isFailed() { state.failed }
+  @JsonProperty
+  public Boolean isFailed() { state.isFailed() }
 
   DefaultTaskStatus update(String phase, String status) {
     ensureUpdateable()

@@ -31,7 +31,7 @@ import static com.netflix.spinnaker.clouddriver.config.DualTaskRepositoryConfigu
 import static java.lang.String.format;
 
 @Configuration
-@ConditionalOnProperty("dualTaskRepository.enabled")
+@ConditionalOnProperty("dual-task-repository.enabled")
 @EnableConfigurationProperties(Properties.class)
 public class DualTaskRepositoryConfiguration {
 
@@ -65,7 +65,7 @@ public class DualTaskRepositoryConfiguration {
       )));
   }
 
-  @ConfigurationProperties("dualTaskRepository")
+  @ConfigurationProperties("dual-task-repository")
   public static class Properties {
     /**
      * The primary TaskRepository class.

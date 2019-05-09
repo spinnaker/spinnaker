@@ -217,7 +217,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
       1 * apiMock.getService(NAMESPACE, VALID_NAME1) >> existingServiceMock
       1 * apiMock.replaceService(NAMESPACE, VALID_NAME1, { service ->
         service.metadata.name == description.name
-        service.spec.externalIPs[0] = VALID_IP1
+        service.spec.externalIPs[0] == VALID_IP1
       }) >> resultServiceMock
       resultServiceMock.getMetadata() >> [name: '', namespace: '']
   }

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import com.amazonaws.services.ec2.model.Vpc
-import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.VPCS
@@ -37,12 +38,12 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
   private final Cache cacheView
-  private final AmazonObjectMapper objectMapper
+  private final ObjectMapper amazonObjectMapper
 
   @Autowired
-  AmazonVpcProvider(Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
+  AmazonVpcProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper) {
     this.cacheView = cacheView
-    this.objectMapper = amazonObjectMapper
+    this.amazonObjectMapper = amazonObjectMapper
   }
 
   @Override
@@ -57,7 +58,7 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
 
   AmazonVpc fromCacheData(CacheData cacheData) {
     def parts = Keys.parse(cacheData.id)
-    def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
+    def vpc = amazonObjectMapper.convertValue(cacheData.attributes, Vpc)
     def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
     new AmazonVpc(
       cloudProvider: AmazonCloudProvider.ID,

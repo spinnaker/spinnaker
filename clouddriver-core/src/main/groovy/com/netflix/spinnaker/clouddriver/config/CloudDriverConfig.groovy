@@ -136,7 +136,7 @@ class CloudDriverConfig {
   }
 
   @Bean
-  @ConfigurationProperties('serviceLimits')
+  @ConfigurationProperties('service-limits')
   ServiceLimitConfigurationBuilder serviceLimitConfigProperties() {
     return new ServiceLimitConfigurationBuilder()
   }

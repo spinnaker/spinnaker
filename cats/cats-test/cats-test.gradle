@@ -1,7 +1,16 @@
 tasks.compileGroovy.enabled = true
 
 dependencies {
-  compile project(":cats:cats-core")
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('spock')
+  implementation project(":cats:cats-core")
+  implementation "org.codehaus.groovy:groovy-all"
+
+  implementation "org.springframework.boot:spring-boot-starter-test"
+  implementation "org.spockframework:spock-core"
+  implementation "org.spockframework:spock-spring"
+  implementation "cglib:cglib-nodep"
+  implementation "org.objenesis:objenesis"
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 }

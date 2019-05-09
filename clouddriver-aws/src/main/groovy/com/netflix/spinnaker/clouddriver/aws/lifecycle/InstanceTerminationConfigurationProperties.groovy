@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties("aws.lifecycleSubscribers.instanceTermination")
+@ConfigurationProperties("aws.lifecycle-subscribers.instance-termination")
 class InstanceTerminationConfigurationProperties {
   String accountName
   String queueARN

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationProvider;
 import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -42,7 +43,7 @@ public class AmazonCloudFormationProvider implements CloudFormationProvider<Clou
   private final ObjectMapper objectMapper;
 
   @Autowired
-  public AmazonCloudFormationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  public AmazonCloudFormationProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.cacheView = cacheView;
     this.objectMapper = objectMapper;
   }

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.dynamodbv2.xspec.M
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.SuspendAsgProcessesDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -23,6 +24,9 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType.Launch
+import static com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType.Terminate
 
 class SuspendAsgProcessesAtomicOperationSpec extends Specification {
 
@@ -60,9 +64,9 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.suspendProcesses("asg1", [Launch, Terminate])
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.suspendProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [
@@ -97,7 +101,7 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1')
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.suspendProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [
@@ -131,11 +135,11 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] }) >> {
+    then: 1 * mockAsgService.suspendProcesses("asg1", [Launch, Terminate]) >> {
       throw new Exception('Uh oh!')
     }
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.suspendProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [

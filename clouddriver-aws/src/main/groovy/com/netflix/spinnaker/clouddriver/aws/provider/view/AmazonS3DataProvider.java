@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +78,7 @@ public class AmazonS3DataProvider implements DataProvider {
       });
 
   @Autowired
-  public AmazonS3DataProvider(ObjectMapper objectMapper,
+  public AmazonS3DataProvider(@Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
                               AmazonClientProvider amazonClientProvider,
                               AccountCredentialsRepository accountCredentialsRepository,
                               AmazonS3StaticDataProviderConfiguration configuration) {

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
@@ -31,6 +32,7 @@ class AmazonReservationReportProvider implements ReservationReportProvider {
   Cache cacheView
 
   @Autowired
+  @Qualifier("amazonObjectMapper")
   ObjectMapper objectMapper
 
   @Override

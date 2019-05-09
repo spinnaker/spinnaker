@@ -6,9 +6,12 @@ repositories {
 }
 
 dependencies {
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency("okHttp3")
-//  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.2"
-//  compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.30.2"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  
+  testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
+  testImplementation "io.strikt:strikt-core"
+  testImplementation "org.springframework:spring-test"
 }

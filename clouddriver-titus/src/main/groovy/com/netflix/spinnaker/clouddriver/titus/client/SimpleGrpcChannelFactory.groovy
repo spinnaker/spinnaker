@@ -24,6 +24,6 @@ import io.grpc.ManagedChannelBuilder
 class SimpleGrpcChannelFactory implements GrpcChannelFactory {
   @Override
   ManagedChannel build(TitusRegion titusRegion, String environment, String eurekaName, long defaultConnectTimeOut, Registry registry) {
-    return ManagedChannelBuilder.forAddress(titusRegion.url, titusRegion.port).usePlaintext(true).build();
+    return ManagedChannelBuilder.forAddress(titusRegion.url, titusRegion.port).build()
   }
 }

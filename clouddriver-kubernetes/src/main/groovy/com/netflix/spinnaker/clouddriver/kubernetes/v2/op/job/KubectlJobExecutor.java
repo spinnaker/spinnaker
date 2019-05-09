@@ -50,7 +50,7 @@ public class KubectlJobExecutor {
   @Value("${kubernetes.kubectl.executable:kubectl}")
   String executable;
 
-  @Value("${kubernetes.oAuth.executable:oauth2l}")
+  @Value("${kubernetes.o-auth.executable:oauth2l}")
   String oAuthExecutable;
 
   private final static String NO_RESOURCE_TYPE_ERROR = "doesn't have a resource type";

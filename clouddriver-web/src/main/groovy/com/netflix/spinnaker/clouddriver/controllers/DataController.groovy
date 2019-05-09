@@ -35,8 +35,17 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("/v1/data")
 class DataController {
-  @Autowired(required = false)
-  List<DataProvider> dataProviders = []
+
+  List<DataProvider> dataProviders
+
+  @Autowired
+  DataController(Optional<List<DataProvider>> dataProviders) {
+    if (dataProviders.present) {
+      this.dataProviders = dataProviders.get()
+    } else {
+      this.dataProviders = []
+    }
+  }
 
   @RequestMapping(value = "/static/{id}", method = RequestMethod.GET)
   Object getStaticData(@PathVariable("id") String id, @RequestParam Map<String, String> filters) {

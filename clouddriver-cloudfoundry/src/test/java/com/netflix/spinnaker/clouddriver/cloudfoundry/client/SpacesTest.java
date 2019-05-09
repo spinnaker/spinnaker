@@ -37,7 +37,7 @@ class SpacesTest {
 
     assertThat(actual.getName()).isEqualTo(serviceInstanceName);
     assertThat(actual.getId()).isEqualTo(serviceInstanceId);
-    verify(spaceService).getServiceInstancesById(eq(spaceId), anyInt(), eq(Collections.singletonList("name:" + serviceInstanceName)));
+    verify(spaceService).getServiceInstancesById(eq(spaceId), any(), eq(Collections.singletonList("name:" + serviceInstanceName)));
   }
 
   @Test

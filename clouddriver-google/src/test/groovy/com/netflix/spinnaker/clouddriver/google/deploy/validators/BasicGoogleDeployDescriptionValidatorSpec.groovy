@@ -204,14 +204,20 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     setup:
       def description = new BasicGoogleDeployDescription(capacity: [min: min, max: max, desired: desired])
       def errors = Mock(Errors)
+      def matchingCalls = 0
 
     when:
       validator.validate([], description, errors)
 
     then:
-      numErrors * errors.rejectValue(
-        { return it.startsWith("capacity.") },
-        { return it.startsWith("basicGoogleDeployDescription.capacity") })
+      errors.rejectValue(_,_) >> { arguments ->
+        String field = arguments.get(0)
+        String errorCode = arguments.get(1)
+        if (field.startsWith("capacity.") && errorCode.startsWith("basicGoogleDeployDescription.capacity")) {
+          matchingCalls += 1
+        }
+      }
+    numErrors == matchingCalls
 
     where:
       min  | max  | desired | numErrors

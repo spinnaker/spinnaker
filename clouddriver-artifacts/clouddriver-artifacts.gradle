@@ -60,35 +60,36 @@ tasks.clean.dependsOn('cleanSdk')
 tasks.compileJava.dependsOn('unpackSdk')
 
 dependencies {
-  compile project(":clouddriver-core")
+  implementation project(":clouddriver-core")
 
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("commonsLang")
-  compile spinnaker.dependency("korkArtifacts")
-  compile spinnaker.dependency("korkExceptions")
-  compile spinnaker.dependency("lombok")
-  compile spinnaker.dependency("okHttp")
-
-  compile spinnaker.dependency("googleStorage")
-  compile spinnaker.dependency("awsS3")
-  compile "org.apache.commons:commons-compress:1.14"
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.7"
-  compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.7'
-  compile "org.apache.ivy:ivy:2.4.0"
-
-  compile 'org.eclipse.aether:aether-api:1.1.0'
-  compile 'org.eclipse.aether:aether-impl:1.1.0'
-  compile 'org.apache.maven:maven-aether-provider:3.3.9'
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  compileOnly "org.apache.commons:commons-lang3"
   
-  compile fileTree(sdkLocation)
-
-  testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-  testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-  testCompile 'org.assertj:assertj-core:3.8.0'
-  testCompile 'org.junit-pioneer:junit-pioneer:latest.release'
-
-  testCompile 'ru.lanwen.wiremock:wiremock-junit5:1.2.0'
-  testCompile 'com.github.tomakehurst:wiremock:latest.release'
+  implementation "com.amazonaws:aws-java-sdk-s3"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.google.apis:google-api-services-storage:v1-rev141-1.25.0"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.sun.jersey:jersey-client:1.9.1"
+  implementation "org.apache.commons:commons-compress:1.14"
+  implementation "org.apache.ivy:ivy:2.4.0"
+  implementation "org.apache.maven:maven-aether-provider:3.3.9"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.eclipse.aether:aether-api:1.1.0"
+  implementation "org.eclipse.aether:aether-impl:1.1.0"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  
+  implementation fileTree(sdkLocation)
+  
+  testImplementation "com.github.tomakehurst:wiremock:latest.release"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

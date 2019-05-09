@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.config
 
-import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,7 +48,7 @@ class AwsInfrastructureProviderConfig {
   @DependsOn('netflixAmazonCredentials')
   AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider,
                                                       AccountCredentialsRepository accountCredentialsRepository,
-                                                      AmazonObjectMapper amazonObjectMapper,
+                                                      @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper,
                                                       Registry registry,
                                                       EddaTimeoutConfig eddaTimeoutConfig) {
     def awsInfrastructureProvider =
@@ -82,7 +83,7 @@ class AwsInfrastructureProviderConfig {
   AwsInfrastructureProviderSynchronizer synchronizeAwsInfrastructureProvider(AwsInfrastructureProvider awsInfrastructureProvider,
                                                                              AmazonClientProvider amazonClientProvider,
                                                                              AccountCredentialsRepository accountCredentialsRepository,
-                                                                             AmazonObjectMapper amazonObjectMapper,
+                                                                             @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper,
                                                                              Registry registry,
                                                                              EddaTimeoutConfig eddaTimeoutConfig) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider)

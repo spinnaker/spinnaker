@@ -5,6 +5,24 @@ repositories {
 }
 
 dependencies {
-  compile project(":clouddriver-aws")
-  compile project(":clouddriver-elasticsearch")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-aws")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-elasticsearch")
+  implementation project(":clouddriver-eureka")
+  implementation project(":clouddriver-security")
+
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation("io.searchbox:jest:2.0.3") {
+    force = true
+  }
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation("org.elasticsearch:elasticsearch:2.4.1") {
+    force = true
+  }
+  implementation "org.springframework.boot:spring-boot-starter-web"
 }

@@ -1,5 +1,22 @@
 dependencies {
-  compile project(":clouddriver-core")
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":cats:cats-core")
+
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.apache.commons:commons-compress:1.14"
+  implementation "commons-io:commons-io:2.6"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

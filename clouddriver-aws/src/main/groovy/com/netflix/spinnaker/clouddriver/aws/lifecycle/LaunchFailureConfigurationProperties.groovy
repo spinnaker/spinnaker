@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties("aws.lifecycleSubscribers.launchFailure")
+@ConfigurationProperties("aws.lifecycle-subscribers.launch-failure")
 class LaunchFailureConfigurationProperties {
   String accountName
   String topicARN

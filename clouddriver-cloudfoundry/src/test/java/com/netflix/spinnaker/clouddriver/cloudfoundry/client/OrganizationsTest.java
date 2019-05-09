@@ -24,8 +24,8 @@ class OrganizationsTest {
   {
     OrganizationService organizationService = mock(OrganizationService.class);
     organizations = new Organizations(organizationService);
-    when(organizationService.all(anyInt(), any())).thenReturn(generateOrganizationPage());
-    when(organizationService.getSpaceByName(anyString(), anyInt(), any())).thenReturn(generateSpacePage());
+    when(organizationService.all(any(), any())).thenReturn(generateOrganizationPage());
+    when(organizationService.getSpaceByName(anyString(), any(), any())).thenReturn(generateSpacePage());
   }
 
   @Test

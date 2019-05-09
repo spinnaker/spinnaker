@@ -46,7 +46,6 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState;
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.titus.grpc.protogen.*;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +65,6 @@ import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*;
 import static java.util.Collections.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-@Slf4j
 public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
   private static final TypeReference<Map<String, Object>> ANY_MAP = new TypeReference<Map<String, Object>>() {

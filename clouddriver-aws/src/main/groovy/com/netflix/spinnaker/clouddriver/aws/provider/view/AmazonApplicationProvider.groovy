@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
@@ -38,7 +39,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
   private final ObjectMapper objectMapper
 
   @Autowired
-  AmazonApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  AmazonApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

@@ -47,10 +47,10 @@ class EurekaProviderConfiguration {
     new EurekaAccountConfigurationProperties()
   }
 
-  @Value('${eureka.pollIntervalMillis:15000}')
+  @Value('${eureka.poll-interval-millis:15000}')
   Long pollIntervalMillis
 
-  @Value('${eureka.timeoutMillis:300000}')
+  @Value('${eureka.timeout-millis:300000}')
   Long timeoutMillis
 
   @Bean

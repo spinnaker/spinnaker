@@ -237,7 +237,7 @@ class ApplicationsTest {
   @ValueSource(strings = {"myapp-v999", "myapp"})
   void getTakenServerGroups(String existingApp) {
 
-    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
+    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
       .thenReturn(Page.singleton(getApplication(existingApp), "123"));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
@@ -250,7 +250,7 @@ class ApplicationsTest {
   void getTakenServerGroupsWhenNoPriorVersionExists(String similarAppName) {
     com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = getApplication(similarAppName);
 
-    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
+    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
       .thenReturn(Page.singleton(application, "123"));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
@@ -260,7 +260,7 @@ class ApplicationsTest {
 
   @Test
   void getLatestServerGroupCapiDoesntCorrectlyOrderResults() {
-    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
+    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
       .thenReturn(Page.asPage(getApplication("myapp-prod-v046"), getApplication("myapp-v003"), getApplication("myapp")));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps

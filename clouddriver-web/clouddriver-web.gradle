@@ -24,27 +24,41 @@ repositories {
 }
 
 dependencies {
-  compile project(':clouddriver-core')
-  compile project(':clouddriver-security')
-  compile project(':clouddriver-artifacts')
-  compile project(':clouddriver-sql-mysql')
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":clouddriver-sql-mysql")
 
-  runtime spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency('korkStackdriver')
-  compile spinnaker.dependency('korkSwagger')
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootDataRest')
-  testCompile spinnaker.dependency('bootTest')
-  //this brings in the jetty GzipFilter which boot will autoconfigure
-  runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
+  
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  testCompile project(':clouddriver-elasticsearch')
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+  implementation "com.netflix.spinnaker.kork:kork-stackdriver"
+  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-json"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  
+  testImplementation project(":clouddriver-elasticsearch")
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.spockframework:spock-core"
 
   // Add each included cloud provider project as a runtime dependency
   gradle.includedCloudProviderProjects.each {
-    runtime project(":${it}")
+    implementation project(":${it}")
   }
 }
 

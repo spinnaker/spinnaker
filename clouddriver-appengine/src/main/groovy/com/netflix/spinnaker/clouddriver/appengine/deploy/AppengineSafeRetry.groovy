@@ -25,16 +25,16 @@ import org.springframework.stereotype.Component
 
 @Component
 class AppengineSafeRetry extends GoogleCommonSafeRetry {
-  @Value('${appengine.safeRetryMaxWaitIntervalMs:60000}')
+  @Value('${appengine.safe-retry-max-wait-interval-ms:60000}')
   Long maxWaitInterval
 
-  @Value('${appengine.safeRetryRetryIntervalBaseSec:2}')
+  @Value('${appengine.safe-retry-retry-interval-base-sec:2}')
   Long retryIntervalBase
 
-  @Value('${appengine.safeRetryJitterMultiplier:1000}')
+  @Value('${appengine.safe-retry-jitter-multiplier:1000}')
   Long jitterMultiplier
 
-  @Value('${appengine.safeRetryMaxRetries:10}')
+  @Value('${appengine.safe-retry-max-retries:10}')
   Long maxRetries
 
   public Object doRetry(Closure operation,

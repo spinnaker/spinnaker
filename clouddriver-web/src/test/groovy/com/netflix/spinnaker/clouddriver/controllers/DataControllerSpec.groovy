@@ -20,19 +20,28 @@ import com.netflix.spinnaker.clouddriver.model.DataProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.security.access.AccessDeniedException
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest
 
 class DataControllerSpec extends Specification {
-  def dataProvider = Mock(DataProvider) {
-    supportsIdentifier(_, _) >> { return true }
-    getAccountForIdentifier(_, _) >> { _, id -> return id }
-  }
+
+  @Shared
+  Optional<List<DataProvider>> dataProviders
 
   @Subject
-  def dataController = new DataController(dataProviders: [dataProvider])
+  def dataController = new DataController(dataProviders)
+
+  void setupSpec() {
+    DataProvider dataProvider = Mock(DataProvider) {
+      supportsIdentifier(_ as DataProvider.IdentifierType, _ as String) >> { return true }
+      getAccountForIdentifier(_ as DataProvider.IdentifierType, _ as String) >> { _, id -> return id }
+    }
+
+    dataProviders = Optional.of([dataProvider])
+  }
 
   void setup() {
     MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
@@ -54,7 +63,7 @@ class DataControllerSpec extends Specification {
     notThrown(AccessDeniedException)
   }
 
-  def "should verify access to account when fetching adhoc data"() {
+  def "should deny when fetching adhoc data with no accounts"() {
     given:
     def httpServletRequest = Mock(HttpServletRequest)
 
@@ -63,14 +72,28 @@ class DataControllerSpec extends Specification {
 
     then:
     thrown(AccessDeniedException)
+  }
+
+  def "should allow access to account when fetching adhoc data with correct account"() {
+    given:
+    def httpServletRequest = Mock(HttpServletRequest)
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
 
     when:
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
     dataController.getAdhocData("groupId", "restricted", httpServletRequest)
 
     then:
-    1 * httpServletRequest.getAttribute(_) >> { return "pattern" }
-    1 * httpServletRequest.getServletPath() >> { return "/servlet/path" }
+    httpServletRequest.getAttribute(_ as String) >> { return "pattern" }
+    httpServletRequest.getServletPath() >> { return "/servlet/path" }
     notThrown(AccessDeniedException)
+  }
+
+  // If the wrong slf4j is on the classpath, this fails. So leaving this test in here for sanity.
+  def "mdc works"() {
+    given:
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
+
+    expect:
+    MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == "restricted"
   }
 }

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AppengineJobExecutor {
-  @Value('${appengine.jobSleepMs:1000}')
+  @Value('${appengine.job-sleep-ms:1000}')
   Long sleepMs
 
   @Autowired

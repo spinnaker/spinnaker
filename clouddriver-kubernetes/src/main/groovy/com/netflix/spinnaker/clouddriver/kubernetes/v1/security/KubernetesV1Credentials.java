@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.security;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.netflix.servo.util.VisibleForTesting;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
@@ -94,7 +94,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   }
 
   @VisibleForTesting
-  private KubernetesV1Credentials(
+  protected KubernetesV1Credentials(
       KubernetesApiAdaptor apiAdaptor,
       List<String> namespaces,
       List<String> omitNamespaces,

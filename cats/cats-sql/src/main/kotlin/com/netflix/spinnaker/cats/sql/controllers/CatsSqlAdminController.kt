@@ -32,7 +32,7 @@ class CatsSqlAdminController(private val fiat: FiatPermissionEvaluator,
 
   @PutMapping(path = ["/truncate/{namespace}"])
   fun truncateTables(@PathVariable("namespace") truncateNamespace: String,
-                     @Value("\${sql.tableNamespace:#{null}}") currentNamespace: String?): CleanTablesResult {
+                     @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?): CleanTablesResult {
 
     validatePermissions()
     validateParams(currentNamespace, truncateNamespace)
@@ -65,7 +65,7 @@ class CatsSqlAdminController(private val fiat: FiatPermissionEvaluator,
 
   @PutMapping(path = ["/drop/{namespace}"])
   fun dropTables(@PathVariable("namespace") dropNamespace: String,
-                 @Value("\${sql.tableNamespace:#{null}}") currentNamespace: String?): CleanTablesResult {
+                 @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?): CleanTablesResult {
 
     validatePermissions()
     validateParams(currentNamespace, dropNamespace)

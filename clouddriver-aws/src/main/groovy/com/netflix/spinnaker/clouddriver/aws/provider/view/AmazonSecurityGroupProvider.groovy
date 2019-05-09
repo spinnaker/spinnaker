@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
@@ -52,7 +53,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   @Autowired
   AmazonSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider,
                               Cache cacheView,
-                              ObjectMapper objectMapper) {
+                              @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.accountCredentialsProvider = accountCredentialsProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper

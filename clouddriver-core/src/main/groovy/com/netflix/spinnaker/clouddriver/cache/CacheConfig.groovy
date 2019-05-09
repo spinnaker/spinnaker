@@ -53,13 +53,13 @@ class CacheConfig {
 
   @Bean
   @ConditionalOnMissingBean(AgentScheduler)
-  @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
+  @ConditionalOnProperty(value = 'caching.write-enabled', matchIfMissing = true)
   AgentScheduler agentScheduler() {
     new DefaultAgentScheduler(60, TimeUnit.SECONDS)
   }
 
   @Bean
-  @ConditionalOnProperty(value = 'caching.writeEnabled', havingValue = 'false')
+  @ConditionalOnProperty(value = 'caching.write-enabled', havingValue = 'false')
   @ConditionalOnMissingBean(AgentScheduler)
   AgentScheduler noopAgentScheduler() {
     new AgentScheduler() {

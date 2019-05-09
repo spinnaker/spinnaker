@@ -18,7 +18,7 @@ package com.netflix.spinnaker.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("elasticSearch")
+@ConfigurationProperties("elastic-search")
 public class ElasticSearchConfigProperties {
   private String activeIndex;
   private String connection;

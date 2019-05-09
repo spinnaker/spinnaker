@@ -1,12 +1,22 @@
 dependencies {
-  spinnaker.group('jackson')
+  implementation project(":cats:cats-core")
 
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('slf4j')
-  compile project(':cats:cats-core')
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.fasterxml.jackson.core:jackson-core"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.slf4j:jcl-over-slf4j"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.google.guava:guava:27.1-jre"
 
-  compile spinnaker.dependency('fiat')
-  compile spinnaker.dependency('frigga')
+  testImplementation project(":cats:cats-test")
 
-  testCompile project(':cats:cats-test')
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
 }

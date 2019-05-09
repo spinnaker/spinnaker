@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.oracle.model.OracleInstance
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.oracle.bmc.core.model.Instance
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang.NotImplementedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -58,7 +57,7 @@ class OracleInstanceProvider implements InstanceProvider<OracleInstance, String>
   @Override
   String getConsoleOutput(String account, String region, String id) {
     // TODO: Add this when we actually need it in Deck
-    throw new NotImplementedException()
+    throw new UnsupportedOperationException()
   }
 
   private Set<OracleInstance> loadInstances(Collection<String> identifiers) {

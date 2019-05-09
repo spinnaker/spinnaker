@@ -40,10 +40,10 @@ import javax.inject.Provider
 @Configuration
 class TitusCachingProviderConfig {
 
-  @Value('${titus.pollIntervalMillis:30000}')
+  @Value('${titus.poll-interval-millis:30000}')
   Long pollIntervalMillis
 
-  @Value('${titus.timeoutMillis:300000}')
+  @Value('${titus.timeout-millis:300000}')
   Long timeoutMillis
 
   @Bean

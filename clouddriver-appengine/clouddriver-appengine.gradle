@@ -1,15 +1,31 @@
 dependencies {
-  compile project(":clouddriver-artifacts")
-  compile project(":clouddriver-core")
-  compile project(":clouddriver-google-common")
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("korkArtifacts")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-google-common")
+  implementation project(":clouddriver-security")
 
-  // TODO(dpeach): move to spinnaker/spinnaker-dependencies.
-  compile "com.google.apis:google-api-services-appengine:v1-rev92-1.25.0"
-  compile "org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r"
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  compile spinnaker.dependency("googleStorage")
+  implementation "com.google.apis:google-api-services-appengine:v1-rev92-1.25.0"
+  implementation "com.google.apis:google-api-services-storage"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

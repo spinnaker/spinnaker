@@ -17,13 +17,20 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile project(':clouddriver-core')
-  compile project(':cats:cats-core')
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-core")
 
-  compile spinnaker.dependency("korkSql")
-  compile spinnaker.dependency("ulid")
-  compile spinnaker.dependency("resilience4jRetry")
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
+  implementation "io.github.resilience4j:resilience4j-retry"
+  implementation("org.jooq:jooq:3.9.6") {
+    force = true
 
-  testCompile project(":clouddriver-core-tck")
-  testCompile spinnaker.dependency("korkSqlTest")
+  }
+
+  testImplementation project(":clouddriver-core-tck")
+
+  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
 }

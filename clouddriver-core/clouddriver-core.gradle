@@ -1,26 +1,42 @@
 dependencies {
-  spinnaker.group('retrofitDefault')
+  implementation project(":cats:cats-core")
+  implementation project(":cats:cats-dynomite")
+  implementation project(":cats:cats-redis")
+  implementation project(":clouddriver-security")
 
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootDataRest')
-  compile spinnaker.dependency("commonsExec")
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkArtifacts')
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency('eurekaClient')
-  compile spinnaker.dependency("jedis")
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency("lombok")
-  compile spinnaker.dependency('logstashEncoder')
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  compile project(':cats:cats-core')
-  compile project(':cats:cats-redis')
-  compile project(':cats:cats-dynomite')
-  compile project(':clouddriver-security')
-  testCompile project(':cats:cats-test')
-  testCompile spinnaker.dependency('korkJedisTest')
-  testCompile project(":clouddriver-core-tck")
+  compileOnly "net.logstash.logback:logstash-logback-encoder"
+  implementation "com.netflix.eureka:eureka-client"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-dynomite"
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "io.reactivex:rxjava"
+  implementation "net.jodah:failsafe:1.0.4"
+  implementation "org.apache.commons:commons-exec"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "redis.clients:jedis"
 
-  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
+  testImplementation project(":cats:cats-test")
+  testImplementation project(":clouddriver-core-tck")
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
 }

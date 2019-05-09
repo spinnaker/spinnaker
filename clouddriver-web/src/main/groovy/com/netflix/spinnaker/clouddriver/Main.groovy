@@ -16,16 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
+import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchJestHealthIndicatorAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration
+import org.springframework.boot.autoconfigure.elasticsearch.jest.JestAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.web.support.SpringBootServletInitializer
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.scheduling.annotation.EnableScheduling
 import sun.net.InetAddressCachePolicy
 
@@ -41,9 +49,13 @@ import java.security.Security
   'com.netflix.spinnaker.clouddriver.config'
 ])
 @EnableAutoConfiguration(exclude = [
-    BatchAutoConfiguration,
-    GroovyTemplateAutoConfiguration,
-    DataSourceAutoConfiguration
+  BatchAutoConfiguration,
+  GroovyTemplateAutoConfiguration,
+  GsonAutoConfiguration,
+  DataSourceAutoConfiguration,
+  ElasticsearchAutoConfiguration,
+  ElasticSearchJestHealthIndicatorAutoConfiguration,
+  JestAutoConfiguration
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
@@ -65,11 +77,18 @@ class Main extends SpringBootServletInitializer {
      */
     InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
     Security.setProperty('networkaddress.cache.ttl', '0')
+    System.setProperty("spring.main.allow-bean-definition-overriding", "true")
   }
 
   static void main(String... args) {
     launchArgs = args
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
+  }
+
+  @Bean
+  @Primary
+  ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
+    return builder.createXmlMapper(false).build()
   }
 
   @Override

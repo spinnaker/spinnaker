@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -47,7 +49,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     getLastModified() >> 12345L
   }
   ProviderCache providerCache = Mock(ProviderCache)
-  AmazonObjectMapper mapper = new AmazonObjectMapper()
+  ObjectMapper mapper = new AmazonObjectMapperConfigurer().createConfigured()
   EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(

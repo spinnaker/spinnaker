@@ -109,8 +109,8 @@ class RoutesTest {
     routeMappingPage.setTotalPages(1);
 
     when(spaces.findById("space-guid")).thenReturn(space);
-    when(routeService.all(anyInt(), any())).thenReturn(routePage);
-    when(routeService.routeMappings(anyString(), anyInt())).thenReturn(routeMappingPage);
+    when(routeService.all(any(), any())).thenReturn(routePage);
+    when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
 
     Routes routes = new Routes("pws", routeService, null, domains, spaces);
 

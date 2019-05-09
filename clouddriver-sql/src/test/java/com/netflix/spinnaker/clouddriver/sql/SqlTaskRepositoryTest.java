@@ -33,10 +33,10 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
   @Override
   protected TaskRepository createTaskRepository() {
-    database = SqlTestUtil.initDatabase();
+    database = SqlTestUtil.initDatabase("jdbc:h2:mem:test" + System.currentTimeMillis());
 
     RetryProperties retry = new RetryProperties(0, 0);
-    SqlRetryProperties properties = new SqlRetryProperties();
+    SqlRetryProperties properties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10));
     properties.setReads(retry);
     properties.setTransactions(retry);
 

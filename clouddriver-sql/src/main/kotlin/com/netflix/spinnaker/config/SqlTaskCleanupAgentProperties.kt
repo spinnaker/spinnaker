@@ -18,7 +18,7 @@ package com.netflix.spinnaker.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.concurrent.TimeUnit
 
-@ConfigurationProperties("sql.agent.taskCleanup")
+@ConfigurationProperties("sql.agent.task-cleanup")
 data class SqlTaskCleanupAgentProperties(
   var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(60),
   var batchSize: Int = 100

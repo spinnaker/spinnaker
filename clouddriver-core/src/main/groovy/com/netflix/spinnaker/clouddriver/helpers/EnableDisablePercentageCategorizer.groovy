@@ -29,7 +29,7 @@ class EnableDisablePercentageCategorizer<T> {
    *
    * @note modified + unmodified should be the total list of instances managed by one server group
    */
-  static List<T> getInstancesToModify(List<T> modified, List<T> unmodified, int desiredPercentage) {
+  static <T> List<T> getInstancesToModify(List<T> modified, List<T> unmodified, int desiredPercentage) {
     if (desiredPercentage < 0 || desiredPercentage > 100) {
       throw new RuntimeException("Desired target percentage must be between 0 and 100 inclusive")
     }

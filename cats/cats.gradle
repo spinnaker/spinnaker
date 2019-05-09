@@ -1,22 +1,7 @@
 tasks.findByName('bintrayUpload')?.enabled = false
 
 subprojects {
-  apply plugin: 'findbugs'
-  apply plugin: 'pmd'
-
   dependencies {
-    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.3'
-    testCompile 'cglib:cglib-nodep:3.2.0'
-    testCompile 'org.objenesis:objenesis:2.1'
-    pmd 'net.sourceforge.pmd:pmd:5.1.3'
-  }
-
-  tasks.compileGroovy.enabled = false
-  tasks.findbugsTest.enabled = false
-  tasks.pmdTest.enabled = false
-
-  findbugs {
-    ignoreFailures = true
+    implementation "org.codehaus.groovy:groovy-all"
   }
 }

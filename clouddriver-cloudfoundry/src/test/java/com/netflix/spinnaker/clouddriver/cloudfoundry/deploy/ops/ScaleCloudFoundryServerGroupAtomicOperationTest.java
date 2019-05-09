@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCl
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import groovy.lang.Closure;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +52,8 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.RUNNING);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
+      .thenReturn(ProcessStats.State.RUNNING);
 
     ScaleCloudFoundryServerGroupAtomicOperation op = new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
 
@@ -65,7 +67,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.CRASHED);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.CRASHED);
 
     ScaleCloudFoundryServerGroupAtomicOperation op = new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
 
@@ -85,7 +87,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.DOWN);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.DOWN);
 
     ScaleCloudFoundryServerGroupAtomicOperation op = new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
 

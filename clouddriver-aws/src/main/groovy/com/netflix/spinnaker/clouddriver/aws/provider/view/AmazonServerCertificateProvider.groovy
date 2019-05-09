@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCertificate
 import com.netflix.spinnaker.clouddriver.model.CertificateProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CERTIFICATES
@@ -34,7 +35,7 @@ class AmazonCertificateProvider implements CertificateProvider<AmazonCertificate
   private final ObjectMapper objectMapper
 
   @Autowired
-  AmazonCertificateProvider(Cache cacheView, ObjectMapper objectMapper) {
+  AmazonCertificateProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }

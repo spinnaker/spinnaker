@@ -14,11 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 buildscript {
   ext {
+    korkVersion = "5.2.6"
+    fiatVersion = "1.0.4"
     kotlinVersion = "1.3.10"
     junitPlatformVersion = "1.0.2"
   }
+
   repositories {
     jcenter()
     maven { url "https://spinnaker.bintray.com/gradle" }
@@ -26,95 +30,65 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.1'
-    classpath "org.junit.platform:junit-platform-gradle-plugin:${junitPlatformVersion}"
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0'
+    if (Boolean.valueOf(enablePublishing)) {
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0"
+    }
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
+    classpath "org.junit.platform:junit-platform-gradle-plugin:${junitPlatformVersion}"
+
   }
 }
 
 allprojects {
   group = "com.netflix.spinnaker.clouddriver"
   apply plugin: 'spinnaker.base-project'
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: 'spinnaker.project'
+  }
+  apply plugin: 'java-library'
   apply plugin: 'groovy'
+  apply plugin: 'nebula.kotlin'
 
-  ext {
-    spinnakerDependenciesVersion = '1.44.1'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
+  sourceSets.main.java.srcDirs = []
+  sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
+  dependencies {
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor "org.projectlombok:lombok"
   }
 
   test {
     testLogging {
       exceptionFormat = 'full'
-    }
-    if (project.hasProperty('slowTest')) {
-      long slow = 250
-      try {
-        slow = Long.parseLong(project.property('slowTest'))
-      } catch (Exception ex) {
-      }
-      afterTest { desc, result ->
-        long duration = result.getEndTime() - result.getStartTime()
-        if (duration > slow) {
-          logger.warn("test exceeded $slow ms: $desc.className :: $desc.name ($duration milliseconds)")
+      if (project.hasProperty('slowTest')) {
+        long slow = 250
+        try {
+          slow = Long.parseLong(project.property('slowTest'))
+        } catch (Exception ex) {
+        }
+        afterTest { desc, result ->
+          long duration = result.getEndTime() - result.getStartTime()
+          if (duration > slow) {
+            logger.warn("test exceeded $slow ms: $desc.className :: $desc.name ($duration milliseconds)")
+          }
         }
       }
+      minHeapSize = "512m"
+      maxHeapSize = "512m"
     }
-    minHeapSize = "512m"
-    maxHeapSize = "512m"
   }
 }
 
 subprojects { project ->
-
-  configurations {
-    all {
-      exclude group: 'javax.servlet', module: 'servlet-api'
-      exclude group: 'javax.ws.rs', module: 'jsr311-api'
-      resolutionStrategy {
-        force 'org.antlr:antlr-runtime:3.5.2'
-        eachDependency {
-          if (it.requested.group == 'asm' || it.requested.group == 'org.ow2.asm') {
-            it.useTarget group: 'org.ow2.asm', name: 'asm-all', version: '5.0.3'
-          }
-          if (it.requested.group == 'junit') {
-            it.useTarget group: 'junit', name: 'junit', version: '4.12'
-          }
-          if (it.requested.group == 'cglib' || it.requested.name == 'cglib') {
-            it.useTarget group: 'cglib', name: 'cglib', version: '3.2.0'
-          }
-          if (it.requested.group == 'antlr') {
-            it.useTarget group: 'org.antlr', name: it.requested.name, version: '3.5.2'
-          }
-          if (it.requested.group == 'org.apache.xbean') {
-            it.useVersion '4.3'
-          }
-          if (it.requested.group == 'ch.qos.logback') {
-            it.useVersion '1.2.3'
-          }
-        }
-      }
+  if ([korkVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
     }
   }
 
@@ -122,18 +96,6 @@ subprojects { project ->
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7102'
     }
-  }
-
-  dependencies {
-    compile spinnaker.dependency('groovy')
-    spinnaker.group('test')
-  }
-
-  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-  project.plugins.withType(JavaBasePlugin) {
-    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-    convention.sourceCompatibility = JavaVersion.VERSION_1_8
-    convention.targetCompatibility = JavaVersion.VERSION_1_8
   }
 }
 

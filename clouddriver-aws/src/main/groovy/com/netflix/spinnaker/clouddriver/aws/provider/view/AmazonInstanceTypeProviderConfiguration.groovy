@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 
 @Component
-@ConfigurationProperties('aws.instanceTypes')
+@ConfigurationProperties('aws.instance-types')
 @Canonical
 class AmazonInstanceTypeProviderConfiguration {
   @Canonical

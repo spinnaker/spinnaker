@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup;
 import com.netflix.spinnaker.clouddriver.model.Image;
 import com.netflix.spinnaker.clouddriver.model.ImageProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class AmazonImageProvider implements ImageProvider {
   private final ObjectMapper objectMapper;
 
   @Autowired
-  AmazonImageProvider(Cache cacheView, AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider, ObjectMapper objectMapper) {
+  AmazonImageProvider(Cache cacheView, AwsConfiguration.AmazonServerGroupProvider amazonServerGroupProvider, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.cacheView = cacheView;
     this.amazonServerGroupProvider = amazonServerGroupProvider;
     this.objectMapper = objectMapper;

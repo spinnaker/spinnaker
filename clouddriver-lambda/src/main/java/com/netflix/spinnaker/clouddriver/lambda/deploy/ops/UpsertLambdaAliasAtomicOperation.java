@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionAliasDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.amazonaws.services.lambda.model.AliasConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 

@@ -27,7 +27,7 @@ import java.util.List;
 @Component("bulkUpsertEntityTagsDescriptionValidator")
 public class BulkUpsertEntityTagsDescriptionValidator extends DescriptionValidator<BulkUpsertEntityTagsDescription> {
 
-  @Value("${entityTags.maxConcurrentBulkTags:1000}")
+  @Value("${entity-tags.max-concurrent-bulk-tags:1000}")
   Integer maxConcurrentBulkTags;
 
   @Override

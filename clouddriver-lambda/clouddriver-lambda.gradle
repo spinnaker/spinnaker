@@ -1,7 +1,25 @@
 dependencies {
-  compile project(":clouddriver-aws")
-  compile spinnaker.dependency('lombok')
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-aws")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
 
-  spinnaker.group('amazon')
-  spinnaker.group('retrofitDefault')
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
 }

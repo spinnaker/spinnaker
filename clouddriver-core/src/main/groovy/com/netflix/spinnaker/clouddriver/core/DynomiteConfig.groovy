@@ -53,12 +53,12 @@ class DynomiteConfig {
   }
 
   @Bean
-  @ConfigurationProperties("dynomite.connectionPool")
+  @ConfigurationProperties("dynomite.connection-pool")
   ConnectionPoolConfigurationImpl connectionPoolConfiguration(DynomiteConfigurationProperties dynomiteConfigurationProperties) {
     new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName).withHashtag("{}")
   }
 
-  @Bean(destroyMethod = "stopClient")
+  @Bean(destroyMethod = "stop-client")
   DynoJedisClient dynoJedisClient(DynomiteConfigurationProperties dynomiteConfigurationProperties, ConnectionPoolConfigurationImpl connectionPoolConfiguration, Optional<DiscoveryClient> discoveryClient) {
     def builder = new DynoJedisClient.Builder()
       .withApplicationName(dynomiteConfigurationProperties.applicationName)
@@ -80,13 +80,13 @@ class DynomiteConfig {
   }
 
   @Bean
-  @ConditionalOnProperty("redis.connectionPrevious")
+  @ConditionalOnProperty("redis.connection-previous")
   JedisClientDelegate redisClientDelegatePrevious(JedisPool jedisPoolPrevious) {
     return new JedisClientDelegate(jedisPoolPrevious)
   }
 
   @Bean
-  @ConditionalOnProperty("redis.connectionPrevious")
+  @ConditionalOnProperty("redis.connection-previous")
   JedisPool jedisPoolPrevious(RedisConfigurationProperties redisConfigurationProperties) {
     return createPool(null, redisConfigurationProperties.connectionPrevious, 1000)
   }

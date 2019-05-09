@@ -22,7 +22,6 @@ import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.ListRolesResult;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -204,7 +203,7 @@ public class IamRoleCachingAgent implements CachingAgent, CustomScheduledAgent {
   }
 
   private Set<IamTrustRelationship> getTrustedEntities(String urlEncodedPolicyDocument) {
-    Set<IamTrustRelationship> trustedEntities = Sets.newHashSet();
+    Set<IamTrustRelationship> trustedEntities = new HashSet<>();
 
     String decodedPolicyDocument = URLDecoder.decode(urlEncodedPolicyDocument);
 

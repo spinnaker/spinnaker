@@ -2,6 +2,8 @@ server:
   port: 7002
   ssl:
     enabled: false
+  compression:
+    enabled: true
 
 redis:
   connection: redis://localhost:6379

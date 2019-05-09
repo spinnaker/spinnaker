@@ -58,7 +58,7 @@ class DynomiteCacheConfig {
   }
 
   @Bean
-  @ConfigurationProperties("dynomite.connectionPool")
+  @ConfigurationProperties("dynomite.connection-pool")
   ConnectionPoolConfigurationImpl connectionPoolConfiguration(DynomiteConfigurationProperties dynomiteConfigurationProperties) {
     new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName).withHashtag("{}")
   }

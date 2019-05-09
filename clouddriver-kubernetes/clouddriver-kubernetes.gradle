@@ -1,17 +1,31 @@
 dependencies {
-  spinnaker.group('kubernetes')
-  compile project(":clouddriver-artifacts")
-  compile project(":clouddriver-core")
-  compile project(":clouddriver-docker")
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('frigga')
-  compile spinnaker.dependency('korkArtifacts')
-  compile spinnaker.dependency('lombok')
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-docker")
+  implementation project(":clouddriver-security")
 
-  // TODO(lwander) move to spinnaker-dependencies when library stabilizes
-  compile 'io.kubernetes:client-java:1.0.0-beta1'
-  compile 'com.github.fge:json-patch:1.9'
-  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
-  compile 'com.jayway.jsonpath:json-path:2.3.0'
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "org.codehaus.groovy:groovy-all"
+
+  implementation "com.github.fge:json-patch:1.9"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "io.fabric8:kubernetes-client:4.0.0"
+  implementation "io.kubernetes:client-java:1.0.0-beta1"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation 'com.jayway.jsonpath:json-path:2.3.0'
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

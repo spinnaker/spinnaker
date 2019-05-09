@@ -26,6 +26,9 @@ import retrofit.http.Headers
 import retrofit.http.Path
 import retrofit.http.Query
 
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+
 @Slf4j
 class DockerBearerTokenService {
   Map<String, TokenService> realmToService
@@ -71,10 +74,10 @@ class DockerBearerTokenService {
       def errCode = process.waitFor()
       log.debug("Full command is: ${pb.command()}")
       if (errCode != 0) {
-        def err = IOUtils.toString(process.getErrorStream())
+        def err = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8)
         log.error("Password command returned a non 0 return code, stderr/stdout was: '${err}'")
       }
-      resolvedPassword = IOUtils.toString(process.getInputStream()).trim()
+      resolvedPassword = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8).trim()
       log.debug("resolvedPassword is ${resolvedPassword}")
     } else if (passwordFile) {
       resolvedPassword = new BufferedReader(new FileReader(passwordFile)).getText()
@@ -92,7 +95,7 @@ class DockerBearerTokenService {
       }
     }
 
-    def basicAuth = new String(Base64.encoder.encode(("${username}:${resolvedPassword}").bytes))
+    return new String(Base64.encoder.encode(("${username}:${resolvedPassword}").bytes))
   }
 
   String getBasicAuthHeader() {

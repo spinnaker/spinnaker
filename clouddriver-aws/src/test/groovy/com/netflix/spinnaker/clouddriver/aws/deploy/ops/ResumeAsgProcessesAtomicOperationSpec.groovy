@@ -26,6 +26,9 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType.Launch
+import static com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType.Terminate
+
 class ResumeAsgProcessesAtomicOperationSpec extends Specification {
 
   def mockAsgService = Mock(AsgService)
@@ -62,9 +65,9 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [
@@ -99,7 +102,7 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1')
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [
@@ -133,11 +136,11 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] }) >> {
+    then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate]) >> {
       throw new Exception('Uh oh!')
     }
     then: 1 * mockAsgService.getAutoScalingGroup('asg1') >> new AutoScalingGroup()
-    then: 1 * mockAsgService.resumeProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
+    then: 1 * mockAsgService.resumeProcesses("asg1", [Launch, Terminate])
 
     and:
     task.history*.status == [

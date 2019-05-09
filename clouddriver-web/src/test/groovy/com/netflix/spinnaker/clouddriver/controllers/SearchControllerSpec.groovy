@@ -24,9 +24,9 @@ import javax.servlet.http.HttpServletRequest
 
 class SearchControllerSpec extends Specification {
 
-  SearchController searchController
-  SearchProvider searchProviderA
-  SearchProvider searchProviderB
+  SearchProvider searchProviderA = Mock(SearchProvider)
+  SearchProvider searchProviderB = Mock(SearchProvider)
+  SearchController searchController = new SearchController(searchProviders: [searchProviderA, searchProviderB])
   HttpServletRequest request = Mock(HttpServletRequest)
   Enumeration enumeration = Mock(Enumeration)
 
@@ -41,9 +41,6 @@ class SearchControllerSpec extends Specification {
   }
 
   def setup() {
-    searchProviderA = Mock(SearchProvider)
-    searchProviderB = Mock(SearchProvider)
-    searchController = new SearchController(searchProviders: [searchProviderA, searchProviderB])
   }
 
   def 'query all search providers'() {

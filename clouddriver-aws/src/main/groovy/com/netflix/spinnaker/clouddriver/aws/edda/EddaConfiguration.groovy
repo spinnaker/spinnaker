@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.edda
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.converter.Converter
@@ -27,7 +29,7 @@ import retrofit.converter.JacksonConverter
 class EddaConfiguration {
   @Bean
   Converter eddaConverter() {
-    new JacksonConverter(new ObjectMapper()
+    new JacksonConverter(AmazonObjectMapperConfigurer.createConfigured()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES))
   }
 

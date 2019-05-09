@@ -53,7 +53,7 @@ class StopCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoundr
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.DOWN);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.DOWN);
 
     StopCloudFoundryServerGroupAtomicOperation op = new StopCloudFoundryServerGroupAtomicOperation(poller, desc);
 
@@ -67,7 +67,7 @@ class StopCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoundr
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.RUNNING);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.RUNNING);
 
     StopCloudFoundryServerGroupAtomicOperation op = new StopCloudFoundryServerGroupAtomicOperation(poller, desc);
 

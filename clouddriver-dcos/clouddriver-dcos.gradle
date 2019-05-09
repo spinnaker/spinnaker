@@ -1,6 +1,24 @@
 dependencies {
-  compile project(":clouddriver-core")
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile 'com.cerner.marathon:marathon-client:0.6.3'
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":cats:cats-core")
+
+  compileOnly "org.apache.commons:commons-lang3"
+  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "joda-time:joda-time:2.10.1"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation 'com.cerner.marathon:marathon-client:0.6.3'
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

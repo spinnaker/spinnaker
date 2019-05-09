@@ -18,24 +18,38 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Data
 public class ArtifactCredentialsFromString implements ArtifactCredentials {
 
   private final String name;
   private final List<String> types;
   private final String downloadContent;
 
+  public ArtifactCredentialsFromString(String name, List<String> types, String downloadContent) {
+    this.name = name;
+    this.types = types;
+    this.downloadContent = downloadContent;
+  }
+
   @Override
   public InputStream download(Artifact artifact) {
     return new ByteArrayInputStream(downloadContent.getBytes(StandardCharsets.UTF_8));
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public List<String> getTypes() {
+    return types;
+  }
+
+  public String getDownloadContent() {
+    return downloadContent;
+  }
 }

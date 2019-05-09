@@ -19,21 +19,17 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
-import com.amazonaws.services.ec2.model.DomainType
 import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Image
-import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
@@ -83,7 +79,7 @@ class ImageCachingAgentSpec extends Specification {
   def getAgent(boolean publicImages, boolean eddaEnabled) {
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> accountName
-      getAccountId() >> accountId
+      it.getAccountId() >> accountId
       getEddaEnabled() >> eddaEnabled
     }
     def dcs = Stub(DynamicConfigService) {

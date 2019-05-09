@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
@@ -78,6 +79,7 @@ public interface ServerGroup {
    *
    * @return true if the server group is disabled; false otherwise
    */
+  @JsonGetter
   Boolean isDisabled();
 
   /**

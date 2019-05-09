@@ -39,15 +39,15 @@ import java.time.Clock
 class SqlConfiguration {
 
   @Bean
-  @ConditionalOnProperty("sql.taskRepository.enabled")
+  @ConditionalOnProperty("sql.task-repository.enabled")
   fun sqlTaskRepository(jooq: DSLContext,
                         clock: Clock,
                         sqlProperties: SqlProperties): TaskRepository =
     SqlTaskRepository(jooq, ObjectMapper(), clock, sqlProperties.retries)
 
   @Bean
-  @ConditionalOnProperty("sql.taskRepository.enabled")
-  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  @ConditionalOnProperty("sql.task-repository.enabled")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlTaskCleanupAgent(jooq: DSLContext,
                           clock: Clock,
                           registry: Registry,
@@ -56,8 +56,8 @@ class SqlConfiguration {
     SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlProperties.retries)
 
   @Bean
-  @ConditionalOnProperty("sql.taskRepository.enabled")
-  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  @ConditionalOnProperty("sql.task-repository.enabled")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlProvider(sqlTaskCleanupAgent: SqlTaskCleanupAgent): SqlProvider =
     SqlProvider(mutableListOf(sqlTaskCleanupAgent))
 }

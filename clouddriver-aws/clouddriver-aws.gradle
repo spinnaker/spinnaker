@@ -1,20 +1,45 @@
 dependencies {
-  compile project(":clouddriver-core")
-  compile project(":clouddriver-eureka")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-eureka")
+  implementation project(":clouddriver-security")
 
-  spinnaker.group('amazon')
-  spinnaker.group('retrofitDefault')
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkExceptions')
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('frigga')
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('httpclient')
-  compile spinnaker.dependency('guava')
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.google.guava:guava"
+  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "io.reactivex:rxjava"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
+  implementation 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
+  implementation 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
 
-  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
-  compile 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
-  compile 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
+  testImplementation "com.netflix.spinnaker.kork:kork-exceptions"
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "com.natpryce:hamkrest"
+  testImplementation "junit:junit"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework:spring-test"
 }

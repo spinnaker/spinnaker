@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstanceType
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.INSTANCE_TYPES
@@ -34,7 +35,7 @@ class AmazonInstanceTypeProvider implements InstanceTypeProvider<AmazonInstanceT
   private final AmazonInstanceTypeProviderConfiguration amazonInstanceTypeProviderConfiguration
 
   @Autowired
-  AmazonInstanceTypeProvider(Cache cacheView, ObjectMapper objectMapper, AmazonInstanceTypeProviderConfiguration amazonInstanceTypeProviderConfiguration) {
+  AmazonInstanceTypeProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper, AmazonInstanceTypeProviderConfiguration amazonInstanceTypeProviderConfiguration) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
     this.amazonInstanceTypeProviderConfiguration = amazonInstanceTypeProviderConfiguration

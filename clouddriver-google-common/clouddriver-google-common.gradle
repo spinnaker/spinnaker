@@ -1,7 +1,18 @@
 dependencies {
-  spinnaker.group('fiat')
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  compile spinnaker.dependency('googleApiClient')
-  compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('spectatorApi')
+  implementation "com.google.api-client:google-api-client"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.security:spring-security-config"
+  implementation "org.springframework.security:spring-security-core"
+  implementation "org.springframework.security:spring-security-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
 }

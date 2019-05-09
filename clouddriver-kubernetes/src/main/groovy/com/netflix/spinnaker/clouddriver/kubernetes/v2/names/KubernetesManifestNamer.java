@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifest> {
-  @Value("${kubernetes.v2.applyAppLabels:true}")
+  @Value("${kubernetes.v2.apply-app-labels:true}")
   boolean applyAppLabels;
 
-  @Value("${kubernetes.v2.managedBySuffix:}")
+  @Value("${kubernetes.v2.managed-by-suffix:}")
   String managedBySuffix;
 
   @Override

@@ -115,7 +115,7 @@ abstract class AbstractAmazonLoadBalancerCachingAgent implements CachingAgent, O
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }

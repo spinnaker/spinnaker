@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.requestqueue;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("requestQueue")
+@ConfigurationProperties("request-queue")
 public class RequestQueueConfiguration {
   private boolean enabled = false;
   private long startWorkTimeoutMillis = RequestQueue.DEFAULT_START_WORK_TIMEOUT_MILLIS;

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +43,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   AmazonClientProvider amazonClientProvider;
 
   @Autowired
+  @Qualifier("amazonObjectMapper")
   private ObjectMapper objectMapper;
 
   private DeployCloudFormationDescription description;

@@ -172,7 +172,7 @@ class ServiceKeysTest {
       .setServiceInstanceGuid("service-instance-guid");
     String serviceKeyGuid = "service-key-guid";
     Page<ServiceKey> page = Page.singleton(serviceKey, serviceKeyGuid);
-    when(serviceKeyService.getServiceKey(anyInt(), any())).thenReturn(page);
+    when(serviceKeyService.getServiceKey(any(), any())).thenReturn(page);
     Resource<ServiceKey> expectedResource = new Resource<ServiceKey>()
       .setEntity(serviceKey)
       .setMetadata(new Resource.Metadata().setGuid(serviceKeyGuid));
@@ -181,7 +181,7 @@ class ServiceKeysTest {
 
     assertThat(serviceKeyResults.isPresent()).isTrue();
     assertThat(serviceKeyResults.get()).isEqualTo(expectedResource);
-    verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+    verify(serviceKeyService).getServiceKey(any(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
   }
 
   @Test
@@ -189,12 +189,12 @@ class ServiceKeysTest {
     Page<ServiceKey> page = new Page<ServiceKey>()
       .setTotalResults(0)
       .setTotalPages(1);
-    when(serviceKeyService.getServiceKey(anyInt(), any())).thenReturn(page);
+    when(serviceKeyService.getServiceKey(any(), any())).thenReturn(page);
 
     Optional<Resource<ServiceKey>> serviceKeyResults = serviceKeys.getServiceKey("service-instance-guid", "service-key");
 
     assertThat(serviceKeyResults.isPresent()).isFalse();
-    verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+    verify(serviceKeyService).getServiceKey(any(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
   }
 
   @Test
@@ -215,7 +215,7 @@ class ServiceKeysTest {
 
     assertThat(response).isEqualTo(expectedResponse);
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+    verify(serviceKeyService).getServiceKey(any(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
     verify(serviceKeyService).deleteServiceKey(serviceKeyId);
   }
 
@@ -225,7 +225,7 @@ class ServiceKeysTest {
       .name(serviceInstanceName)
       .id(serviceInstanceId)
       .build());
-    when(serviceKeyService.getServiceKey(anyInt(), any())).thenReturn(createEmptyServiceKeyPage());
+    when(serviceKeyService.getServiceKey(any(), any())).thenReturn(createEmptyServiceKeyPage());
     ServiceKeyResponse expectedResponse = (ServiceKeyResponse) new ServiceKeyResponse()
       .setServiceKeyName(serviceKeyName)
       .setType(DELETE_SERVICE_KEY)
@@ -236,7 +236,7 @@ class ServiceKeysTest {
 
     assertThat(response).isEqualTo(expectedResponse);
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+    verify(serviceKeyService).getServiceKey(any(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }
 
@@ -248,7 +248,7 @@ class ServiceKeysTest {
       CloudFoundryApiException.class,
       "Cloud Foundry API returned with error(s): Cannot find service 'service-instance' in region 'org > space'");
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceKeyService, never()).getServiceKey(anyInt(), any());
+    verify(serviceKeyService, never()).getServiceKey(any(), any());
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }
 

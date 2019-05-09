@@ -21,27 +21,50 @@ apply plugin: "groovy"
 tasks.compileGroovy.enabled = false
 
 dependencies {
-  spinnaker.group("spockBase")
-  testCompile spinnaker.dependency("groovy")
+  implementation project(":cats:cats-core")
+  implementation project(":cats:cats-redis")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":clouddriver-sql")
 
-  compile project(':cats:cats-core')
-  compile project(':cats:cats-redis')
-  compile project(":clouddriver-sql")
-  compile project(":clouddriver-core")
-  compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1")
-  compile("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1")
-  compile("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1")
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
 
-  testCompile "com.h2database:h2:1.4.197"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.h2database:h2:1.4.197"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
+  implementation "io.github.resilience4j:resilience4j-retry"
+  implementation "io.strikt:strikt-core"
+  implementation "io.vavr:vavr:0.10.0"
+  implementation "org.assertj:assertj-core"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1"
+  implementation("org.jooq:jooq:3.9.6"){
+    force = true
+  }
+  implementation "org.springframework.boot:spring-boot-starter-web"
 
-  testCompile "io.strikt:strikt-core:0.11.5"
-  testCompile "org.assertj:assertj-core:3.9.0"
-  testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version("jupiter")}"
-  testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+  testImplementation project(":cats:cats-test")
 
-  testCompile project(':cats:cats-test')
-  testCompile(spinnaker.dependency("korkSqlTest"))
-  testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version("jupiter")}"
-  testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit5")}"
-  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version("junitVintage")}"
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "com.nhaarman:mockito-kotlin"
+  testImplementation "junit:junit"
+  testImplementation "org.hamcrest:hamcrest-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "org.junit.platform:junit-platform-launcher"
+  testImplementation "org.junit.vintage:junit-vintage-engine"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

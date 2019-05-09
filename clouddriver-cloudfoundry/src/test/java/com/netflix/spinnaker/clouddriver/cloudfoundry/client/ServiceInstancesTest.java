@@ -61,10 +61,10 @@ class ServiceInstancesTest {
   private ServiceInstances serviceInstances = new ServiceInstances(serviceInstanceService, configService, orgs, spaces);
 
   {
-    when(serviceInstanceService.findService(any(), anyListOf(String.class)))
+    when(serviceInstanceService.findService(any(), any()))
       .thenReturn(Page.singleton(new Service().setLabel("service1"), "service-guid"));
 
-    when(serviceInstanceService.findServicePlans(any(), anyListOf(String.class)))
+    when(serviceInstanceService.findServicePlans(any(), any()))
       .thenReturn(Page.singleton(new ServicePlan().setName("ServicePlan1"), "plan-guid"));
   }
 
@@ -908,8 +908,8 @@ class ServiceInstancesTest {
     errorDescription.setCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
     when(destroyFailed.getBodyAs(any())).thenReturn(errorDescription);
 
-    when(serviceInstanceService.all(anyInt(), any())).thenReturn(createOsbServiceInstancePage());
-    when(serviceInstanceService.getBindingsForServiceInstance(anyString(), anyInt(), any())).thenReturn(serviceBindingPage);
+    when(serviceInstanceService.all(any(), any())).thenReturn(createOsbServiceInstancePage());
+    when(serviceInstanceService.getBindingsForServiceInstance(any(), any(), any())).thenReturn(serviceBindingPage);
     when(serviceInstanceService.destroyServiceInstance(any())).thenThrow(destroyFailed);
 
     assertThrows(
@@ -971,7 +971,7 @@ class ServiceInstancesTest {
     verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
     verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
-    verify(serviceInstanceService, times(1)).getBindingsForUserProvidedServiceInstance(any(), anyInt(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).getBindingsForUserProvidedServiceInstance(any(), any(), any());
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
   }
 
@@ -990,24 +990,26 @@ class ServiceInstancesTest {
 
     when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(new Page<>());
     when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createUserProvidedServiceInstancePage());
-    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(anyString(), anyInt(), any())).thenReturn(serviceBindingPage);
+    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(any(), any(), any())).thenReturn(serviceBindingPage);
     when(serviceInstanceService.destroyUserProvidedServiceInstance(any())).thenThrow(destroyFailed);
 
     assertThrows(
       () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
-      CloudFoundryApiException.class, "Cloud Foundry API returned with error(s): ");
+      CloudFoundryApiException.class,
+      "Cloud Foundry API returned with error(s): "
+    );
 
-    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).all(any(), anyList());
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-    verify(serviceInstanceService, times(1)).getBindingsForUserProvidedServiceInstance(any(), anyInt(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).getBindingsForUserProvidedServiceInstance(any(), any(), any());
     verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
   }
 
   @Test
   void destroyUserProvidedServiceInstanceShouldFailIfServiceBindingsExists() {
-    when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(createEmptyOsbServiceInstancePage());
-    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createUserProvidedServiceInstancePage());
+    when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
+    when(serviceInstanceService.allUserProvided(any(), any())).thenReturn(createUserProvidedServiceInstancePage());
     when(serviceInstanceService.getBindingsForUserProvidedServiceInstance("up-service-instance-guid", null, null))
       .thenReturn(Page.singleton(new ServiceBinding(), "up-service-instance-guid"));
 
@@ -1015,7 +1017,7 @@ class ServiceInstancesTest {
       () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
       CloudFoundryApiException.class, "Cloud Foundry API returned with error(s): Unable to destroy service instance while 1 service binding(s) exist");
 
-    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).all(any(), any());
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
     verify(serviceInstanceService, never()).destroyUserProvidedServiceInstance(any());
     verify(serviceInstanceService, never()).destroyServiceInstance(any());

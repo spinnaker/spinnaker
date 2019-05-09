@@ -266,7 +266,7 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
   void 'should detect whether entity tags have been modified'() {
     given:
     EntityTags currentTags = new EntityTags(
-      tags: buildTags(current)
+      tags: buildTags(cur)
     )
     EntityTags updatedTags = new EntityTags(
       tags: buildTags(updated)
@@ -278,7 +278,7 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     ) == expectedToBeModified
 
     where:
-    current                      | updated          | isPartial || expectedToBeModified
+    cur                          | updated          | isPartial || expectedToBeModified
     [foo: "bar"]                 | [foo: "bar"]     | false     || false
     [foo: "bar"]                 | [foo: "bar"]     | true      || false
     [foo: "bar"]                 | [foo: "not bar"] | false     || true

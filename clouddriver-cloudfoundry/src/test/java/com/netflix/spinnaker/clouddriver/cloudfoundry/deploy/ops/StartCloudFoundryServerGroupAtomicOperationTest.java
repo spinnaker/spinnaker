@@ -53,7 +53,7 @@ class StartCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.RUNNING);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.RUNNING);
 
     StartCloudFoundryServerGroupAtomicOperation op = new StartCloudFoundryServerGroupAtomicOperation(poller, desc);
 
@@ -67,7 +67,7 @@ class StartCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
     OperationPoller poller = mock(OperationPoller.class);
 
     //noinspection unchecked
-    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.CRASHED);
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any())).thenReturn(ProcessStats.State.CRASHED);
 
     StartCloudFoundryServerGroupAtomicOperation op = new StartCloudFoundryServerGroupAtomicOperation(poller, desc);
 

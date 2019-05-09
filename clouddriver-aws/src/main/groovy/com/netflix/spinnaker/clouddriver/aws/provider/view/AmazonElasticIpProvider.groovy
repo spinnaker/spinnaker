@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.ElasticIpProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonElasticIp
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.ELASTIC_IPS
@@ -35,7 +36,7 @@ class AmazonElasticIpProvider implements ElasticIpProvider<AmazonElasticIp> {
   private final ObjectMapper objectMapper
 
   @Autowired
-  AmazonElasticIpProvider(Cache cacheView, ObjectMapper objectMapper) {
+  AmazonElasticIpProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }

@@ -1,3 +1,13 @@
 dependencies {
-  compile project(":clouddriver-core")
+  implementation project(":clouddriver-core")
+
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
 }

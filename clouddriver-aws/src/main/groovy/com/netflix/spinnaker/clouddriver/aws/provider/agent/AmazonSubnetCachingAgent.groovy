@@ -16,26 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.netflix.spinnaker.cats.agent.AccountAware
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
-
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.awsobjectmapper.AmazonObjectMapper
-import com.netflix.spinnaker.cats.agent.AgentDataType
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import groovy.util.logging.Slf4j
+
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
 
 @Slf4j
 class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
@@ -43,7 +37,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
-  final AmazonObjectMapper objectMapper
+  final ObjectMapper amazonObjectMapper
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SUBNETS.ns)
@@ -52,11 +46,11 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
   AmazonSubnetCachingAgent(AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
-                           AmazonObjectMapper objectMapper) {
+                           ObjectMapper amazonObjectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper
+    this.amazonObjectMapper = amazonObjectMapper
   }
 
   @Override
@@ -86,7 +80,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
     def subnets = ec2.describeSubnets().subnets
 
     List<CacheData> data = subnets.collect { Subnet subnet ->
-      Map<String, Object> attributes = objectMapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
+      Map<String, Object> attributes = amazonObjectMapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
       attributes.putIfAbsent("accountId", account.accountId)
       new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account.name),
         attributes,

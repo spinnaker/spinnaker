@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("caching.search.inMemory")
+@ConfigurationProperties("caching.search.in-memory")
 public class CatsInMemorySearchProperties {
   private boolean enabled = false;
   private int refreshIntervalSeconds = 30;

@@ -1,12 +1,12 @@
 #!/bin/bash
 # This script will build the project.
 
-GRADLE="./gradlew -I gradle/init-publish.gradle --no-daemon --max-workers=1"
+GRADLE="./gradlew -PenablePublishing=true --no-daemon --max-workers=1"
 export GRADLE_OPTS="-Xmx1g -Xms1g"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   echo -e "Build Pull Request #$TRAVIS_PULL_REQUEST => Branch [$TRAVIS_BRANCH]"
-  $GRADLE -Prelease.useLastTag=true build
+  $GRADLE build
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Build Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
   $GRADLE -Prelease.travisci=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -x test build snapshot --stacktrace
@@ -24,6 +24,6 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   esac
 else
   echo -e 'WARN: Should not be here => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']  Pull Request ['$TRAVIS_PULL_REQUEST']'
-  $GRADLE -Prelease.useLastTag=true build
+  $GRADLE build
 fi
 

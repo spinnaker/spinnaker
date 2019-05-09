@@ -11,6 +11,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import spock.lang.AutoCleanup
@@ -31,12 +32,6 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
 
   WriteableCache backingStore
 
-  def setup() {
-    (backingStore as SqlCache).clearCreatedTables()
-    return initDatabase("jdbc:h2:mem:test")
-  }
-
-
   def cleanup() {
     currentDatabase.context.dropSchemaIfExists("test")
   }
@@ -50,12 +45,12 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
   Cache getSubject() {
     def mapper = new ObjectMapper()
     def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
-    def sqlRetryProperties = new SqlRetryProperties()
+    def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
     def sqlMetrics = new SpectatorSqlCacheMetrics(new NoopRegistry())
     def dynamicConfigService = Mock(DynamicConfigService) {
-      getConfig(_, _, _) >> 10
+      getConfig(_ as Class, _ as String, _) >> 10
     }
-    currentDatabase = initDatabase()
+    currentDatabase = initDatabase("jdbc:h2:mem:test${System.currentTimeMillis()}")
     backingStore = new SqlCache(
       "test",
       currentDatabase.context,

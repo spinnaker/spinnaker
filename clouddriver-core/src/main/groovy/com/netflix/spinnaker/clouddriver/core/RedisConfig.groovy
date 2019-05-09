@@ -26,7 +26,11 @@ import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -36,7 +40,7 @@ import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
 
 @Configuration
-@ConditionalOnExpression('${redis.enabled:true}')
+@ConditionalOnProperty(value = 'redis.enabled', matchIfMissing = true)
 @EnableConfigurationProperties(RedisConfigurationProperties)
 class RedisConfig {
   @Bean
@@ -46,7 +50,7 @@ class RedisConfig {
   }
 
   @Bean
-  @ConditionalOnExpression('${redis.taskRepository.enabled:true}')
+  @ConditionalOnExpression('${redis.task-repository.enabled:true}')
   TaskRepository taskRepository(RedisClientDelegate redisClientDelegate, Optional<RedisClientDelegate> redisClientDelegatePrevious) {
     new RedisTaskRepository(redisClientDelegate, redisClientDelegatePrevious)
   }
@@ -57,6 +61,7 @@ class RedisConfig {
   }
 
   @Bean
+  @ConditionalOnBean(value = JedisPool, name = "jedisPoolPrevious")
   RedisClientDelegate redisClientDelegatePrevious(JedisPool jedisPoolPrevious) {
     return new JedisClientDelegate(jedisPoolPrevious)
   }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
 
 @Component
-@ConditionalOnExpression("${aws.lifecycleSubscribers.instanceTermination.enabled:false} && ${caching.writeEnabled:true}")
+@ConditionalOnExpression("${aws.lifecycle-subscribers.instance-termination.enabled:false} && ${caching.write-enabled:true}")
 public class InstanceTerminationLifecycleWorkerProvider {
   private final static String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");
   private final static String ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}");
@@ -50,7 +51,7 @@ public class InstanceTerminationLifecycleWorkerProvider {
   private final Registry registry;
 
   @Autowired
-  InstanceTerminationLifecycleWorkerProvider(ObjectMapper objectMapper,
+  InstanceTerminationLifecycleWorkerProvider(@Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
                                              AmazonClientProvider amazonClientProvider,
                                              AccountCredentialsProvider accountCredentialsProvider,
                                              InstanceTerminationConfigurationProperties properties,

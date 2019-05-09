@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the project.
 
-GRADLE="./gradlew -I gradle/init-publish.gradle --no-daemon --max-workers=1"
+GRADLE="./gradlew -PenablePublishing=true --no-daemon --max-workers=1"
 export GRADLE_OPTS="-Xmx1g -Xms1g"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
@@ -12,7 +12,7 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   $GRADLE -Prelease.travisci=true -x test assemble
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Assemble Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
-  $GRADLE -Prelease.travisci=true -Prelease.useLastTag=true -x test assemble
+  $GRADLE -Prelease.travisci=true -x test assemble
 else
   echo -e 'WARN: Should not be here => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']  Pull Request ['$TRAVIS_PULL_REQUEST']'
   $GRADLE assemble

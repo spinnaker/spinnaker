@@ -50,11 +50,11 @@ abstract class AbstractTitusDescriptionValidatorSupport<T extends AbstractTitusC
   }
 
 
-  static void validateRegion(T description, String regionName, String errorKey, Errors errors) {
+  static <T> void validateRegion(T description, String regionName, String errorKey, Errors errors) {
     validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
   }
 
-  static void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
+  static <T> void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
     } else {
@@ -65,14 +65,14 @@ abstract class AbstractTitusDescriptionValidatorSupport<T extends AbstractTitusC
     }
   }
 
-  static void validateAsgName(T description, Errors errors) {
+  static <T> void validateAsgName(T description, Errors errors) {
     def key = description.getClass().simpleName
     if (!description.asgName) {
       errors.rejectValue("asgName", "${key}.asgName.empty")
     }
   }
 
-  static void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
+  static <T> void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
     def key = description.class.simpleName
     if (description.asgName) {
       validateAsgName(description, errors)

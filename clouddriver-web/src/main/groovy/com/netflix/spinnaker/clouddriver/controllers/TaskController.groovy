@@ -37,7 +37,7 @@ class TaskController {
   @Autowired
   TaskRepository taskRepository
 
-  @Value('${admin.tasks.shutdownWaitSeconds:-1}')
+  @Value('${admin.tasks.shutdown-wait-seconds:-1}')
   Long shutdownWaitSeconds
 
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)

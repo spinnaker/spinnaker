@@ -20,7 +20,8 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchQueryCommand
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.clouddriver.search.executor.SearchExecutor
-import org.apache.log4j.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestMapping
@@ -33,7 +34,7 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 class SearchController {
 
-  protected static final Logger log = Logger.getLogger(this)
+  protected static final Logger log = LoggerFactory.getLogger(getClass())
 
   @Autowired
   List<SearchProvider> searchProviders

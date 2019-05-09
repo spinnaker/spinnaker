@@ -102,7 +102,7 @@ class SecurityGroupLookupSpec extends Specification {
 
   void "should look up security group, but not call AWS again"() {
     when:
-    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
+    def result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1").get()
 
     then:
     1 * amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(

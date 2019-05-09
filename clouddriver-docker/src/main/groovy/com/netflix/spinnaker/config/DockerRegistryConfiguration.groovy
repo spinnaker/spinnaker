@@ -35,13 +35,13 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @Configuration
 @EnableConfigurationProperties
 @EnableScheduling
-@ConditionalOnProperty('dockerRegistry.enabled')
+@ConditionalOnProperty('docker-registry.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.docker.registry"])
 @Import([ DockerRegistryCredentialsInitializer ])
 class DockerRegistryConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  @ConfigurationProperties("dockerRegistry")
+  @ConfigurationProperties("docker-registry")
   DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties() {
     new DockerRegistryConfigurationProperties()
   }

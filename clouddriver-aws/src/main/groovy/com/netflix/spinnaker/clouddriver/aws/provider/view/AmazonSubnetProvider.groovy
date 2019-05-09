@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
@@ -41,14 +41,14 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
   private final Cache cacheView
-  private final AmazonObjectMapper objectMapper
+  private final ObjectMapper amazonObjectMapper
 
   final String cloudProvider = AmazonCloudProvider.ID
 
   @Autowired
-  AmazonSubnetProvider(Cache cacheView, AmazonObjectMapper objectMapper) {
+  AmazonSubnetProvider(Cache cacheView, @Qualifier("amazonObjectMapper") ObjectMapper amazonObjectMapper) {
     this.cacheView = cacheView
-    this.objectMapper = objectMapper
+    this.amazonObjectMapper = amazonObjectMapper
   }
 
   @Override
@@ -69,7 +69,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
 
   AmazonSubnet fromCacheData(CacheData cacheData) {
     def parts = Keys.parse(cacheData.id)
-    def subnet = objectMapper.convertValue(cacheData.attributes, Subnet)
+    def subnet = amazonObjectMapper.convertValue(cacheData.attributes, Subnet)
     def tag = subnet.tags.find { it.key == METADATA_TAG_KEY }
     def isDeprecated = subnet.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
     String json = tag?.value

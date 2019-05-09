@@ -154,7 +154,7 @@ public class PooledRequestQueue implements RequestQueue {
     }
   }
 
-  @Scheduled(fixedDelayString = "${requestQueue.corePoolSizeRefreshMs:120000}")
+  @Scheduled(fixedDelayString = "${request-queue.core-pool-size-refresh-ms:120000}")
   public void refreshCorePoolSize() {
     int currentCorePoolSize = executorService.getCorePoolSize();
     int desiredCorePoolSize = dynamicConfigService.getConfig(

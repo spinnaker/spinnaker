@@ -1,6 +1,24 @@
 dependencies {
-  compile project(":clouddriver-core")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
 
-  compile 'org.elasticsearch:elasticsearch:2.4.1'
-  compile 'io.searchbox:jest:2.0.3'
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation("org.elasticsearch:elasticsearch:2.4.1") {
+    force = true
+  }
+
+  implementation("io.searchbox:jest:2.0.3") {
+    force = true
+  }
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

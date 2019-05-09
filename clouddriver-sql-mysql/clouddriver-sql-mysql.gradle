@@ -1,6 +1,6 @@
 dependencies {
-  compile project(':cats:cats-sql')
-  compile project(':clouddriver-sql')
+  implementation project(":cats:cats-sql")
+  implementation project(":clouddriver-sql")
 
-  compile "mysql:mysql-connector-java:8.0.12"
+  implementation "mysql:mysql-connector-java:8.0.12"
 }

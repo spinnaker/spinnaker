@@ -1,7 +1,36 @@
 dependencies {
-  compile project(":clouddriver-aws")
-  compile spinnaker.dependency('lombok')
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-aws")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
 
-  spinnaker.group('amazon')
-  spinnaker.group('retrofitDefault')
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-starter-test"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
 }
