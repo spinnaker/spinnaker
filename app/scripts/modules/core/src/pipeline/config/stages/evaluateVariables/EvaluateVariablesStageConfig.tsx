@@ -21,6 +21,7 @@ export class EvaluateVariablesStageConfig extends React.Component<IStageConfigPr
   public render() {
     const {
       stage: { variables = [] },
+      pipeline,
     } = this.props;
 
     // Flattens an array of objects {key, value} into a single object with the respective keys/values
@@ -33,7 +34,13 @@ export class EvaluateVariablesStageConfig extends React.Component<IStageConfigPr
     return (
       <div className="form-horizontal">
         <StageConfigField label="Variables to evaluate">
-          <MapEditor model={variablesObject} allowEmpty={true} onChange={(v: any) => this.mapChanged('variables', v)} />
+          <MapEditor
+            model={variablesObject}
+            allowEmpty={true}
+            onChange={(v: any) => this.mapChanged('variables', v)}
+            pipeline={pipeline}
+            valueCanContainSpel={true}
+          />
         </StageConfigField>
       </div>
     );

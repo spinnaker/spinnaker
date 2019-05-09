@@ -25,6 +25,10 @@ export interface ISpelTextState {
 }
 
 export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
+  public static defaultProps: Partial<ISpelTextProps> = {
+    placeholder: '',
+  };
+
   private autocompleteService: SpelAutocompleteService;
   private readonly spelInputRef: any;
   private destroy$ = new Subject();

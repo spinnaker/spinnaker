@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { isString } from 'lodash';
 
+import { IPipeline } from 'core/domain';
+import { SpelText } from 'core/widgets';
+
 export interface IMapPair {
   key: string;
   value: string;
@@ -17,6 +20,8 @@ export interface IMapEditorProps {
   model: string | { [key: string]: string };
   valueLabel?: string;
   onChange: (model: string | { [key: string]: string }, duplicateKeys: boolean) => void;
+  valueCanContainSpel?: boolean;
+  pipeline?: IPipeline;
 }
 
 export interface IMapEditorState {
@@ -34,6 +39,7 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
     keyLabel: 'Key',
     labelsLeft: false,
     valueLabel: 'Value',
+    valueCanContainSpel: false,
   };
 
   constructor(props: IMapEditorProps) {
@@ -113,7 +119,17 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
   }
 
   public render() {
-    const { addButtonLabel, hiddenKeys, keyLabel, label, labelsLeft, model, valueLabel } = this.props;
+    const {
+      addButtonLabel,
+      hiddenKeys,
+      keyLabel,
+      label,
+      labelsLeft,
+      model,
+      valueLabel,
+      valueCanContainSpel,
+      pipeline,
+    } = this.props;
     const { backingModel, columnCount, isParameterized, tableClass } = this.state;
 
     const rowProps = { keyLabel, valueLabel, labelsLeft };
@@ -148,6 +164,8 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
                     onChange={value => this.onChange(value, index)}
                     onDelete={() => this.onDelete(index)}
                     pair={pair}
+                    valueCanContainSpel={valueCanContainSpel}
+                    pipeline={pipeline}
                   />
                 ))}
             </tbody>
@@ -175,8 +193,10 @@ const MapPair = (props: {
   pair: IMapPair;
   onChange: (pair: IMapPair) => void;
   onDelete: () => void;
+  valueCanContainSpel?: boolean;
+  pipeline?: IPipeline;
 }) => {
-  const { keyLabel, labelsLeft, pair, onChange, onDelete, valueLabel } = props;
+  const { keyLabel, labelsLeft, pair, onChange, onDelete, valueLabel, valueCanContainSpel, pipeline } = props;
 
   return (
     <tr>
@@ -200,12 +220,21 @@ const MapPair = (props: {
         </td>
       )}
       <td>
-        <input
-          className="form-control input input-sm"
-          type="text"
-          value={pair.value}
-          onChange={e => onChange({ key: pair.key, value: e.target.value })}
-        />
+        {valueCanContainSpel ? (
+          <SpelText
+            value={pair.value}
+            pipeline={pipeline}
+            docLink={true}
+            onChange={value => onChange({ key: pair.key, value: value })}
+          />
+        ) : (
+          <input
+            className="form-control input input-sm"
+            type="text"
+            value={pair.value}
+            onChange={e => onChange({ key: pair.key, value: e.target.value })}
+          />
+        )}
       </td>
       <td>
         <div className="form-control-static">
