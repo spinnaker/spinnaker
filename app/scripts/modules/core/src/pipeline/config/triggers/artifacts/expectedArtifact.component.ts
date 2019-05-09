@@ -43,7 +43,7 @@ const expectedArtifactComponent: IComponentOptions = {
           Match against
           <help-field key="pipeline.config.expectedArtifact.matchArtifact"/>
         </div>
-        <div class="col-md-2 col-md-offset-7">
+        <div class="col-md-2 col-md-offset-7" ng-if="ctrl.removeExpectedArtifact">
           <button class="btn btn-sm btn-default" ng-click="ctrl.removeExpectedArtifact(ctrl.context, ctrl.expectedArtifact)">
             <span class="glyphicon glyphicon-trash" uib-tooltip="Remove expected artifact"/>
             <span class="visible-xl-inline">Remove artifact</span>

@@ -2,8 +2,8 @@ import { IController, IScope } from 'angular';
 
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { UUIDGenerator } from 'core/utils/uuid.service';
-import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
+import { IExpectedArtifact, IPipeline } from 'core/domain';
+import { ExpectedArtifactService } from '@spinnaker/core';
 
 export interface IFindArtifactFromExecutionStage {
   application: string;
@@ -32,18 +32,17 @@ export class FindArtifactFromExecutionCtrl implements IController {
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     this.stage = this.$scope.stage as IFindArtifactFromExecutionStage;
-    if (this.$scope.stage.isNew) {
+    if (!this.stage.executionOptions) {
       this.stage.executionOptions = {
         successful: true,
       };
-
-      this.stage.expectedArtifact = {
-        id: UUIDGenerator.generateUuid(),
-        matchArtifact: {
-          kind: 'custom',
-        } as IArtifact,
-      } as IExpectedArtifact;
     }
+
+    // Prior versions of this stage didn't allow a default artifact, so existing
+    // stages may have a partly-initialized expected artifact. To handle these
+    // cases, default any fields that are not present in the artifact.
+    const emptyArtifact = ExpectedArtifactService.createEmptyArtifact();
+    this.stage.expectedArtifact = { ...emptyArtifact, ...this.stage.expectedArtifact };
 
     this.loadApplications();
     this.loadPipelines();
