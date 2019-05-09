@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { UISref } from '@uirouter/react';
 import { connect } from 'react-redux';
+import { get } from 'lodash';
+
 import { ICanaryState } from '../reducers/index';
 
 interface ICopyConfigButtonStateProps {
@@ -23,7 +25,7 @@ function CopyConfigButton({ disabled }: ICopyConfigButtonStateProps) {
 
 function mapStateToProps(state: ICanaryState) {
   return {
-    disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
+    disabled: get(state.selectedConfig, 'config.isNew') || state.app.disableConfigEdit,
   };
 }
 

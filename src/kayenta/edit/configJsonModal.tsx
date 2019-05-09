@@ -105,7 +105,7 @@ function ConfigJsonModal({
                 data-id={id}
                 data-serialized={configJson}
                 onClick={updateConfig}
-                disabled={!!deserializationError}
+                disabled={!!deserializationError || disabled}
               >
                 Update
               </button>

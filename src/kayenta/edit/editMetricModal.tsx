@@ -39,6 +39,7 @@ interface IEditMetricModalStateProps {
   groups: string[];
   isTemplateValid: boolean;
   useInlineTemplateEditor: boolean;
+  disableEdit: boolean;
   validationErrors: ICanaryMetricValidationErrors;
 }
 
@@ -96,6 +97,7 @@ function EditMetricModal({
   updateCriticality,
   updateScopeName,
   useInlineTemplateEditor,
+  disableEdit,
   validationErrors,
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
@@ -110,7 +112,7 @@ function EditMetricModal({
     'canary',
     'effectSize',
   ]);
-  const isConfirmDisabled = !isTemplateValid || values(validationErrors).some(e => !isNull(e));
+  const isConfirmDisabled = !isTemplateValid || disableEdit || values(validationErrors).some(e => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   const templatesEnabled =
@@ -121,7 +123,7 @@ function EditMetricModal({
     <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
       <Styleguide>
         <Modal.Header>
-          <Modal.Title>Configure Metric</Modal.Title>
+          <Modal.Title>{disableEdit ? 'Metric Details' : 'Configure Metric'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <FormRow label="Group">
@@ -276,6 +278,7 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
     groups: state.selectedConfig.group.list.sort(),
     isTemplateValid: isTemplateValidSelector(state),
     useInlineTemplateEditor: useInlineTemplateEditorSelector(state),
+    disableEdit: state.app.disableConfigEdit,
     validationErrors: editingMetricValidationErrorsSelector(state),
   };
 }

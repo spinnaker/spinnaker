@@ -46,7 +46,7 @@ function NameAndDescription({
   );
 }
 
-function mapStateToProps(state: ICanaryState) {
+function mapStateToProps(state: ICanaryState): INameAndDescriptionStateProps {
   if (state.selectedConfig.config) {
     return {
       name: state.selectedConfig.config.name,
@@ -60,7 +60,7 @@ function mapStateToProps(state: ICanaryState) {
   }
 }
 
-function mapDispatchToProps(dispatch: (action: Action & any) => void) {
+function mapDispatchToProps(dispatch: (action: Action & any) => void): INameAndDescriptionDispatchProps {
   return {
     changeName: (event: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(

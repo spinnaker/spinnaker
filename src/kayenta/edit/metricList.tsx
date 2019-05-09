@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
-import { noop } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
@@ -61,20 +60,15 @@ function MetricList({
       getContent: metric => (
         <div className="horizontal pull-right metrics-action-buttons">
           <button className="link" data-id={metric.id} onClick={editMetric}>
-            Edit
+            {disableEdit ? 'View' : 'Edit'}
           </button>
-          <button className="link" data-id={metric.id} onClick={openChangeMetricGroupModal}>
+          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={openChangeMetricGroupModal}>
             Move Group
           </button>
-          <button className="link" data-id={metric.id} onClick={() => copyMetric(metric)}>
+          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={() => copyMetric(metric)}>
             Copy
           </button>
-          <button
-            className="link"
-            data-id={metric.id}
-            disabled={disableEdit}
-            onClick={disableEdit ? noop : removeMetric}
-          >
+          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={removeMetric}>
             Delete
           </button>
         </div>
