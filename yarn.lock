@@ -109,10 +109,10 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/kayenta@0.0.75":
-  version "0.0.75"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.75.tgz#e5549a16b01b55bee5ff2c616a9092ddffdf66de"
-  integrity sha512-ywlhkN7XkOs45+KaWgzGyZd96bmjCYEbhu77xo694ErFZc3cv/9nm6KlPjyMbmvHaTjfsc7vCg9v4LFqQiYQQw==
+"@spinnaker/kayenta@0.0.76":
+  version "0.0.76"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.76.tgz#e45af9fda9f0a3f43e95e92e758034d7fa7a5622"
+  integrity sha512-4th/3CRAhi6/xd/M6HHN1NavcVKjrAAGXRQ26hINzNHlPc5lqSj5c6atPWQQ2iKv+b6+ePUa2I3D9gFOQP/RuA==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@types/plotly.js" "^1.28.12"
