@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
@@ -141,6 +142,50 @@ metadata:
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
+  }
+
+  @Unroll
+  def "correctly builds cache data entry for pod metrics"() {
+    setup:
+    def account = "my-account"
+    def namespace = "my-namespace"
+    def podName = "pod-name"
+    def podMetric = KubernetesPodMetric.builder()
+      .podName(podName)
+      .containerMetrics(containerMetrics)
+      .build()
+
+    when:
+    def cacheData = KubernetesCacheDataConverter.convertPodMetric(account, namespace, podMetric)
+
+    then:
+    cacheData.attributes == [
+      name: podName,
+      namespace: namespace,
+      metrics: containerMetrics
+    ]
+
+    when:
+    def metrics = KubernetesCacheDataConverter.getMetrics(cacheData)
+
+    then:
+    metrics == containerMetrics
+
+    where:
+    containerMetrics << [
+      [containerMetric("container-a")],
+      [containerMetric("container-a"), containerMetric("container-b")],
+      []
+    ]
+  }
+
+  def containerMetric(String containerName) {
+    return KubernetesPodMetric.ContainerMetric.builder()
+      .containerName(containerName)
+      .metrics([
+        "CPU(cores)": "10m",
+        "MEMORY(bytes)": "2Mi"
+      ]).build()
   }
 
   def filterRelationships(Collection<String> keys, List<Pair<KubernetesKind, String>> existingResources) {

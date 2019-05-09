@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,7 +67,7 @@ public abstract class KubernetesV2AbstractManifestProvider implements ManifestPr
     return getCredentials(account).map(KubernetesV2Credentials::isLiveManifestCalls).orElseThrow(() -> new IllegalArgumentException("Account " + account + " is not a Kubernetess v2 account"));
   }
 
-  protected KubernetesV2Manifest buildManifest(String account, KubernetesManifest manifest, List<KubernetesManifest> events, List<Map> metrics) {
+  protected KubernetesV2Manifest buildManifest(String account, KubernetesManifest manifest, List<KubernetesManifest> events, List<KubernetesPodMetric.ContainerMetric> metrics) {
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
 

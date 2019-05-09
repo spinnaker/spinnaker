@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -28,9 +29,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -76,9 +78,15 @@ public class KubernetesV2LiveManifestProvider extends KubernetesV2AbstractManife
 
     List<KubernetesManifest> events = credentials.eventsFor(kind, namespace, parsedName.getRight());
 
-    // TODO kubectl top pod <name> -n <namespace>
-    // low-priority, pipeline-only mode doesn't need to see resource usage.
-    List<Map> metrics = Collections.emptyList();
+    List<KubernetesPodMetric.ContainerMetric> metrics = Collections.emptyList();
+    if (kind == KubernetesKind.POD && credentials.isMetrics()) {
+      metrics = credentials
+        .topPod(namespace, parsedName.getRight())
+        .stream()
+        .map(KubernetesPodMetric::getContainerMetrics)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+    }
 
     return buildManifest(account, manifest, events, metrics);
   }

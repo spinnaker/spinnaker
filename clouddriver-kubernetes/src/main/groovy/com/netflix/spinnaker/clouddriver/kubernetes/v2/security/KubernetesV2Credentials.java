@@ -287,7 +287,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     if (metrics) {
       try {
         log.info("Checking if pod metrics are readable...");
-        topPod(checkNamespace);
+        topPod(checkNamespace, null);
       } catch (Exception e) {
         log.warn("Could not read pod metrics in account '{}' for reason: {}", accountName, e.getMessage());
         log.debug("Reading logs failed with exception: ", e);
@@ -352,8 +352,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return runAndRecordMetrics("delete", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
-  public Collection<KubernetesPodMetric> topPod(String namespace) {
-    return runAndRecordMetrics("top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace));
+  public Collection<KubernetesPodMetric> topPod(String namespace, String pod) {
+    return runAndRecordMetrics("top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace, pod));
   }
 
   public void deploy(KubernetesManifest manifest) {

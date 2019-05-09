@@ -241,8 +241,10 @@ public class KubernetesCacheDataConverter {
     return defaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
   }
 
-  public static List<Map> getMetrics(CacheData cacheData) {
-    return mapper.convertValue(cacheData.getAttributes().get("metrics"), new TypeReference<List<Map>>() { });
+  public static List<KubernetesPodMetric.ContainerMetric> getMetrics(CacheData cacheData) {
+    return mapper.convertValue(
+      cacheData.getAttributes().get("metrics"),
+      new TypeReference<List<KubernetesPodMetric.ContainerMetric>>() {});
   }
 
   public static KubernetesManifest getManifest(CacheData cacheData) {

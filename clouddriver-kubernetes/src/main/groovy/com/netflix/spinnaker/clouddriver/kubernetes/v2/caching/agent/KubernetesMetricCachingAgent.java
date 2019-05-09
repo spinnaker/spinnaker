@@ -73,7 +73,7 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
     List<CacheData> cacheData = namespaces.parallelStream()
         .map(n -> {
               try {
-                return credentials.topPod(n)
+                return credentials.topPod(n, null)
                     .stream()
                     .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m));
               } catch (KubectlJobExecutor.KubectlException e) {
