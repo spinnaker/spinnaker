@@ -211,10 +211,6 @@ class BuildHalyardCommand(GradleCommandProcessor):
         'trusty-nightly,xenial-nightly,bionic-nightly'))
     build_number = source_info.build_number
     version = source_info.summary.version
-    args.extend(
-        ['-PenablePublishing=true',
-         '-Prelease.disableGitChecks=true',
-         '-Prelease.version=%s-%s' % (version, build_number)])
     self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
                           version=version, build_number=build_number)
 
@@ -437,10 +433,6 @@ class PublishHalyardCommand(CommandProcessor):
     args.extend(self.__gradle.get_debian_args(
         'trusty-stable,xenial-stable,bionic-stable'))
     build_number = self.options.build_number
-    args.extend(
-        ['-PenablePublishing=true',
-         '-Prelease.disableGitChecks=true',
-         '-Prelease.version=%s-%s' % (self.__release_version, build_number)])
     self.__gradle.check_run(
         args, self, repository, 'candidate', 'build-release',
         version=self.__release_version, build_number=build_number,

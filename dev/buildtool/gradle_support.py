@@ -156,6 +156,8 @@ class GradleMetricsUpdater(object):
 class GradleRunner(object):
   """Helper module for running gradle."""
 
+  __GRADLE_PUBLISH_FILE = os.path.join("gradle", "init-publish.gradle")
+
   @staticmethod
   def add_parser_args(parser, defaults):
     """Add parser arguments for gradle."""
@@ -344,14 +346,19 @@ class GradleRunner(object):
     return args
 
   def check_run(self, args, command_processor, repository, target, context,
-                gradle_dir=None, **kwargs):
+      version, build_number, gradle_dir=None):
     """Run the gradle command on the given repository."""
     gradle_dir = gradle_dir or repository.git_dir
-    version = kwargs.pop('version', None)
-    build_number = kwargs.pop('build_number', None)
-    # TODO(plumpy): remove this nebula call once all the repositories have been
-    #               converted to spinnaker-gradle-plugins-6.0.0
-    if version:
+
+    if self.__has_init_publish_file(repository):
+      args.extend(['-I', self.__GRADLE_PUBLISH_FILE])
+
+    if self.__is_plugin_version_6(repository):
+      args.extend(['-PenablePublishing=true',
+                   '-Prelease.disableGitChecks=true',
+                   '-Prelease.version=%s-%s' % (version, build_number)])
+    else:
+      args.append('-Prelease.useLastTag=true')
       build_number = self.prepare_local_git_for_nebula(
           gradle_dir, repository, version=version, build_number=build_number)
 
@@ -380,6 +387,14 @@ class GradleRunner(object):
         name + ' gradle ' + context, logfile, [cmd], cwd=gradle_dir,
         postprocess_hook=GradleMetricsUpdater(self.__metrics,
                                               repository, target))
+
+  def __is_plugin_version_6(self, repository):
+    return not self.__has_init_publish_file(
+        repository) and not repository.name == 'spinnaker-monitoring'
+
+  def __has_init_publish_file(self, repository):
+    return os.path.isfile(
+      os.path.join(repository.git_dir, self.__GRADLE_PUBLISH_FILE))
 
   def prepare_local_git_for_nebula(
       self, gradle_dir, repository, version=None, build_number=None):
