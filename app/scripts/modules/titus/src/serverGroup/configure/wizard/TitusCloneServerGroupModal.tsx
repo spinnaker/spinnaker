@@ -19,7 +19,7 @@ import {
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
 
-import { ITitusServerGroupCommand, defaultJobDisruptionBudget } from '../serverGroupConfiguration.service';
+import { ITitusServerGroupCommand, getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
 import { TitusReactInjector } from '../../../reactShims';
 
 import { ServerGroupBasicSettings, ServerGroupResources, ServerGroupParameters } from './pages';
@@ -143,7 +143,7 @@ export class TitusCloneServerGroupModal extends React.Component<
     if (command.disruptionBudget.timeWindows && !command.disruptionBudget.timeWindows.length) {
       delete command.disruptionBudget.timeWindows;
     }
-    if (isEqual(defaultJobDisruptionBudget, command.disruptionBudget)) {
+    if (isEqual(getDefaultJobDisruptionBudgetForApp(this.props.application), command.disruptionBudget)) {
       toSubmit = { ...command, disruptionBudget: undefined };
     }
     if (forPipelineConfig) {
@@ -266,7 +266,7 @@ export class TitusCloneServerGroupModal extends React.Component<
               label="Job Disruption Budget"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => <JobDisruptionBudget ref={innerRef} formik={formik} />}
+              render={({ innerRef }) => <JobDisruptionBudget ref={innerRef} formik={formik} app={application} />}
             />
 
             <WizardPage

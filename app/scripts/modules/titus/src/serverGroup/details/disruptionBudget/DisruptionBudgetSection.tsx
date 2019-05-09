@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isEqual, cloneDeep } from 'lodash';
+import { isEqual } from 'lodash';
 const angular = require('angular');
 import { react2angular } from 'react2angular';
 import * as prettyMilliseconds from 'pretty-ms';
@@ -7,7 +7,10 @@ import * as prettyMilliseconds from 'pretty-ms';
 import { IServerGroupDetailsSectionProps, HelpField } from '@spinnaker/core';
 import { TitusReactInjector } from 'titus/reactShims';
 
-import { defaultJobDisruptionBudget, ITitusServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
+import {
+  getDefaultJobDisruptionBudgetForApp,
+  ITitusServerGroupCommand,
+} from '../../configure/serverGroupConfiguration.service';
 import { policyOptions } from '../../configure/wizard/pages/disruptionBudget/PolicyOptions';
 import { rateOptions } from '../../configure/wizard/pages/disruptionBudget/RateOptions';
 import {
@@ -188,8 +191,9 @@ export class DisruptionBudgetSection extends React.Component<IServerGroupDetails
     const serverGroup: ITitusServerGroup = this.props.serverGroup;
     const hasDefaultMigrationPolicy =
       !serverGroup.migrationPolicy || serverGroup.migrationPolicy.type === 'SystemDefault';
-    const budget = serverGroup.disruptionBudget || cloneDeep(defaultJobDisruptionBudget);
-    const usingDefault = !hasDefaultMigrationPolicy && isEqual(budget, defaultJobDisruptionBudget);
+    const defaultBudget = getDefaultJobDisruptionBudgetForApp(this.props.app);
+    const budget = serverGroup.disruptionBudget || defaultBudget;
+    const usingDefault = !hasDefaultMigrationPolicy && isEqual(budget, defaultBudget);
     return (
       <>
         <DisruptionBudgetDescription />

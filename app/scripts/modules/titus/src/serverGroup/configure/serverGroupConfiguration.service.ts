@@ -1,10 +1,11 @@
 import { IPromise, module } from 'angular';
-import { chain, flatten, intersection, xor } from 'lodash';
+import { chain, flatten, intersection, xor, cloneDeep } from 'lodash';
 import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import {
   AccountService,
+  Application,
   IServerGroupCommand,
   IServerGroupCommandViewState,
   IDeploymentStrategy,
@@ -57,6 +58,14 @@ export const defaultJobDisruptionBudget: IJobDisruptionBudget = {
       timeZone: 'PST',
     },
   ],
+};
+
+export const getDefaultJobDisruptionBudgetForApp = (application: Application): IJobDisruptionBudget => {
+  const budget = cloneDeep(defaultJobDisruptionBudget);
+  if (application.attributes && application.attributes.platformHealthOnly) {
+    budget.containerHealthProviders = [];
+  }
+  return budget;
 };
 
 export type Constraint = 'ExclusiveHost' | 'UniqueHost' | 'ZoneBalance';

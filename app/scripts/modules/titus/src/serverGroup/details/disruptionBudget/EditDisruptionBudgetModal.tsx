@@ -73,7 +73,7 @@ export class EditDisruptionBudgetModal extends React.Component<IEditDisruptionBu
               </Modal.Header>
               <ModalClose dismiss={dismissModal} />
               <Modal.Body>
-                <JobDisruptionBudget formik={formik} />
+                <JobDisruptionBudget formik={formik} app={application} />
               </Modal.Body>
               <Modal.Footer>
                 <button className="btn btn-default" onClick={dismissModal} type="button">
