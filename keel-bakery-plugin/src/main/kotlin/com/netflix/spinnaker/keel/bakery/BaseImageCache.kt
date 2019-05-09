@@ -16,7 +16,7 @@ class BaseImageCache(
 ) {
   private val baseImages: MutableMap<Pair<String, BaseLabel>, String> = mutableMapOf()
 
-  @Scheduled(fixedDelayString = "\${keel.baseimage.refresh.frequency.ms:7200000}")
+  @Scheduled(fixedDelayString = "\${keel.baseimage.refresh.frequency.ms:60000}")
   fun scheduledRefresh() {
     GlobalScope.launch { refresh() }
   }

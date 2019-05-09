@@ -89,6 +89,9 @@ class ImageHandler(
           )
         }
       }
+      .also {
+        log.debug("Latest image for {} version {} is {}", spec.artifactName, version, it)
+      }
 
   override fun upsert(
     resource: Resource<ImageSpec>,

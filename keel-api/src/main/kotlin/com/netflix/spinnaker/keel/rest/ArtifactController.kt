@@ -51,6 +51,7 @@ class ArtifactController(
   )
   @ResponseStatus(CREATED)
   fun register(@RequestBody artifact: DeliveryArtifact) {
+    log.debug("Registering {} artifact {}", artifact.type, artifact.name)
     artifactRepository.register(artifact)
   }
 
