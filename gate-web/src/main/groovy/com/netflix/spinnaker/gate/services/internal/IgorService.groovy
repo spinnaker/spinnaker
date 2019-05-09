@@ -70,4 +70,7 @@ interface IgorService {
   @GET('/artifacts/{provider}/{packageName}')
   List<String> getArtifactVersions(@Path("provider") String provider,
                                    @Path("packageName") String packageName);
+
+  @GET('/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources')
+  List<String> getConcourseResources(@Path("buildMaster") String buildMaster, @Path("team") String team, @Path("pipeline") String pipeline);
 }

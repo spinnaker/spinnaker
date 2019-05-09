@@ -138,4 +138,7 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @POST("/v2/pipelineTemplates/plan")
   Map<String, Object> plan(@Body Map<String, Object> pipelineConfig)
+
+  @POST("/concourse/stage/start")
+  Response concourseStageExecution(@Query("stageId") String stageId, @Query("job") String job, @Query("buildNumber") Integer buildNumber, @Body String emptyBody);
 }

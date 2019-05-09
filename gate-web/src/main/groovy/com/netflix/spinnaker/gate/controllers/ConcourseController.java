@@ -16,27 +16,24 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
+import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import retrofit.http.Body;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/concourse")
+@RequiredArgsConstructor
 public class ConcourseController {
 
-  private Optional<IgorService> igorService;
-
-  @Autowired
-  public ConcourseController(Optional<IgorService> igorService) {
-    this.igorService = igorService;
-  }
+  private final Optional<IgorService> igorService;
+  private final OrcaServiceSelector orcaService;
 
   @ApiOperation(value = "Retrieve the list of team names available to triggers", response = List.class)
   @GetMapping(value = "/{buildMaster}/teams")
@@ -57,5 +54,21 @@ public class ConcourseController {
                     @PathVariable("team") String team,
                     @PathVariable("pipeline") String pipeline) {
     return igorService.get().getConcourseJobs(buildMaster, team, pipeline);
+  }
+
+  @ApiOperation(value = "Retrieve the list of resource names for a given pipeline available to the Concourse stage", response = List.class)
+  @GetMapping(value = "/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources")
+  List<String> resources(@PathVariable("buildMaster") String buildMaster,
+                    @PathVariable("team") String team,
+                    @PathVariable("pipeline") String pipeline) {
+    return igorService.get().getConcourseResources(buildMaster, team, pipeline);
+  }
+
+  @ApiOperation(value = "Inform Spinnaker of the Concourse build running connected to a particular Concourse stage execution")
+  @PostMapping("/stage/start")
+  void stageExecution(@RequestParam("stageId") String stageId,
+                      @RequestParam("job") String job,
+                      @RequestParam("buildNumber") Integer buildNumber) {
+    orcaService.withContext(RequestContext.get()).concourseStageExecution(stageId, job, buildNumber, "");
   }
 }
