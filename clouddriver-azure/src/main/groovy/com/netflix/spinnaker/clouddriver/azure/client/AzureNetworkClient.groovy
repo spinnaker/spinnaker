@@ -472,6 +472,18 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
+    def associatedSubnets = azure.networkSecurityGroups().getByResourceGroup(resourceGroupName, securityGroupName).listAssociatedSubnets()
+
+    associatedSubnets?.each{ associatedSubnet ->
+      def subnetName = associatedSubnet.inner().name()
+      associatedSubnet
+        .parent()
+        .update()
+        .updateSubnet(subnetName)
+        .withoutNetworkSecurityGroup()
+        .parent()
+        .apply()
+    }
 
     deleteAzureResource(
       azure.networkSecurityGroups().&deleteByResourceGroup,
