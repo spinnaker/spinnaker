@@ -26,12 +26,12 @@ export class Markdown extends React.Component<IMarkdownProps> {
   public render() {
     const { message, tag, ...rest } = this.props;
 
-    if (!message) {
+    if (message == null) {
       return null;
     }
 
     const restProps = rest as React.DOMAttributes<any>;
-    const parsed = this.parser.parse(message);
+    const parsed = this.parser.parse(message.toString());
     const rendered = this.renderer.render(parsed);
     restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(rendered) };
 
