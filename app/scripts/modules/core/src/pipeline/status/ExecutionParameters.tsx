@@ -16,11 +16,7 @@ export interface IDisplayableParameter {
   valueTruncated?: string;
 }
 
-interface IExecutionParametersState {
-  toggle: boolean;
-}
-
-export class ExecutionParameters extends React.Component<IExecutionParametersProps, IExecutionParametersState> {
+export class ExecutionParameters extends React.Component<IExecutionParametersProps> {
   constructor(props: IExecutionParametersProps) {
     super(props);
   }
@@ -29,7 +25,7 @@ export class ExecutionParameters extends React.Component<IExecutionParametersPro
     if (parameter.valueTruncated) {
       return () => {
         parameter.showTruncatedValue = !parameter.showTruncatedValue;
-        this.setState({ toggle: parameter.showTruncatedValue });
+        this.forceUpdate();
       };
     }
     return null;
@@ -60,13 +56,15 @@ export class ExecutionParameters extends React.Component<IExecutionParametersPro
               {c.map(p => (
                 <div key={p.key} className="an-execution-parameter">
                   <div className="parameter-key">{p.key}:</div>
-                  <div className="parameter-value" onClick={this.toggleParameterTruncation(p)}>
-                    {p.showTruncatedValue ? p.valueTruncated : p.value}
-                    {p.showTruncatedValue ? (
-                      <a>
-                        <span> View Full</span>
-                      </a>
-                    ) : null}
+                  <div className="parameter-value">
+                    <div className="vertical">
+                      <span>{p.showTruncatedValue ? p.valueTruncated : p.value}</span>
+                      {p.valueTruncated && (
+                        <button className="link truncate-toggle" onClick={this.toggleParameterTruncation(p)}>
+                          {p.showTruncatedValue ? ' Show more' : ' Show Less'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
