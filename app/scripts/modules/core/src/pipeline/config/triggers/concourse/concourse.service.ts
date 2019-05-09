@@ -29,4 +29,15 @@ export class ConcourseService {
       .one('jobs')
       .get();
   }
+
+  public static listResourcesForPipeline(master: string, team: string, pipeline: string): IPromise<string[]> {
+    return API.one('concourse')
+      .one(master)
+      .one('teams')
+      .one(team)
+      .one('pipelines')
+      .one(pipeline)
+      .one('resources')
+      .get();
+  }
 }

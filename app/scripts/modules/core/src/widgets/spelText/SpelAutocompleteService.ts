@@ -293,6 +293,14 @@ export class SpelAutocompleteService {
     return textcompleteConfig;
   }
 
+  private hasBuildTriggerOrStage(pipeline: IExecution & IPipeline, ...systems: string[]): boolean {
+    return systems.some(
+      system =>
+        (pipeline.triggers && pipeline.triggers.some(trigger => trigger.type === system)) ||
+        pipeline.stages.some(stage => stage.type === system),
+    );
+  }
+
   private addStageNamesToCodeHelperList(
     pipeline: IExecution & IPipeline,
     textcompleteConfig: ITextcompleteConfigElement[],
@@ -305,10 +313,7 @@ export class SpelAutocompleteService {
         ? codedHelperParamsCopy
         : codedHelperParamsCopy.filter(param => param.name !== 'parameters');
 
-      const hasJenkinsTriggerOrStage =
-        (pipeline.trigger && pipeline.trigger.type === 'jenkins') ||
-        pipeline.stages.some(stage => stage.type === 'jenkins');
-      codedHelperParamsCopy = hasJenkinsTriggerOrStage
+      codedHelperParamsCopy = this.hasBuildTriggerOrStage(pipeline, 'jenkins', 'concourse')
         ? codedHelperParamsCopy
         : codedHelperParamsCopy.filter(param => !param.name.includes('scmInfo'));
 

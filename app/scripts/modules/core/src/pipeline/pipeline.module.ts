@@ -34,6 +34,7 @@ import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeSt
 import './config/stages/wait/waitStage';
 import './config/stages/waitForCondition/waitForConditionStage';
 import './config/stages/evaluateVariables/evaluateVariablesStage';
+import './config/stages/concourse/concourseStage';
 import { PRECONFIGUREDJOB_STAGE_MODULE } from './config/stages/preconfiguredJob/preconfiguredJobStage.module';
 import './config/stages/entityTags/applyEntityTagsStage';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
