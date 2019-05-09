@@ -349,8 +349,11 @@ class GradleRunner(object):
     gradle_dir = gradle_dir or repository.git_dir
     version = kwargs.pop('version', None)
     build_number = kwargs.pop('build_number', None)
-    build_number = self.prepare_local_git_for_nebula(
-        gradle_dir, repository, version=version, build_number=build_number)
+    # TODO(plumpy): remove this nebula call once all the repositories have been
+    #               converted to spinnaker-gradle-plugins-6.0.0
+    if version:
+      build_number = self.prepare_local_git_for_nebula(
+          gradle_dir, repository, version=version, build_number=build_number)
 
     full_args = list(args)
     full_args.append('-PbintrayPackageBuildNumber=%s' % build_number)
@@ -392,6 +395,8 @@ class GradleRunner(object):
 
     if not build_number:
       build_number = self.__scm.determine_build_number(repository)
+    # This doesn't really work because get_repository_service_build_version only
+    # exists in BomSourceCodeManager.
     if not version:
       build_version = self.__scm.get_repository_service_build_version(
           repository)

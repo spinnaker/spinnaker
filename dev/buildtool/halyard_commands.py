@@ -215,7 +215,8 @@ class BuildHalyardCommand(GradleCommandProcessor):
         ['-PenablePublishing=true',
          '-Prelease.disableGitChecks=true',
          '-Prelease.version=%s-%s' % (version, build_number)])
-    self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
+    self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
+                          version=version, build_number=build_number)
 
     build_halyard_docs(self, repository)
     self.build_all_halyard_deployments(repository)
@@ -442,6 +443,7 @@ class PublishHalyardCommand(CommandProcessor):
          '-Prelease.version=%s-%s' % (self.__release_version, build_number)])
     self.__gradle.check_run(
         args, self, repository, 'candidate', 'build-release',
+        version=self.__release_version, build_number=build_number,
         gradle_dir=git_dir)
 
     info_path = os.path.join(self.get_output_dir(), 'halyard_info.yml')
