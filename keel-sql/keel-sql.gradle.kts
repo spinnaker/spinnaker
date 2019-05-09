@@ -8,7 +8,7 @@ dependencies {
   implementation("com.netflix.spinnaker.kork:kork-sql")
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
-  implementation("org.jooq:jooq")
+  implementation("org.jooq:jooq:3.11.11")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
 

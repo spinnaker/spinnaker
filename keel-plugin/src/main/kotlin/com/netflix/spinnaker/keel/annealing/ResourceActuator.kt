@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.diff.toDebug
-import com.netflix.spinnaker.keel.diff.toJson
+import com.netflix.spinnaker.keel.diff.toDeltaJson
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
@@ -46,7 +46,7 @@ class ResourceActuator(
       val resource = resourceRepository.get(name, type)
 
       val (desired, current) = plugin.resolve(resource)
-      val diff = differ.compare(current, desired)
+      val diff = differ.compare(desired, current)
 
       when {
         current == null -> {
@@ -57,7 +57,7 @@ class ResourceActuator(
             resourceRepository.appendHistory(ResourceMissing(resource, clock))
           }
 
-          plugin.create(resource, ResourceDiff(current, desired, diff))
+          plugin.create(resource, ResourceDiff(desired, current, diff))
             .also { tasks ->
               resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
@@ -65,13 +65,13 @@ class ResourceActuator(
         diff.hasChanges() -> {
           with(resource) {
             log.warn("Resource {} is invalid", metadata.name)
-            log.info("Resource {} delta: {}", metadata.name, diff.toDebug(current, desired))
+            log.info("Resource {} delta: {}", metadata.name, diff.toDebug(desired, current))
             publisher.publishEvent(ResourceChecked(resource, Diff))
 
-            resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, desired), clock))
+            resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(desired, current), clock))
           }
 
-          plugin.update(resource, ResourceDiff(current, desired, diff))
+          plugin.update(resource, ResourceDiff(desired, current, diff))
             .also { tasks ->
               resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }

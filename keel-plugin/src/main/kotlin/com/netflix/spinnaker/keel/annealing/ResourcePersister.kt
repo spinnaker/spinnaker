@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.toDebug
-import com.netflix.spinnaker.keel.diff.toJson
+import com.netflix.spinnaker.keel.diff.toUpdateJson
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -43,7 +43,7 @@ class ResourcePersister(
       log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
       normalized
         .also(resourceRepository::store)
-        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toJson(normalized.spec, existing.spec), clock)) }
+        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(normalized.spec, existing.spec), clock)) }
         .also { queue.scheduleCheck(it) }
     } else {
       existing
