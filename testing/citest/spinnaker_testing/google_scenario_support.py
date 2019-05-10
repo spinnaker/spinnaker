@@ -108,7 +108,7 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
     builder.add_argument(
         '--test_gce_image_name',
         default=defaults.get('TEST_GCE_IMAGE_NAME',
-                             'ubuntu-minimal-1804-bionic-v20190122'),
+                             'citest-boot-image'),
         help='Default Google Compute Engine image name to use when'
              ' creating test instances.')
 
