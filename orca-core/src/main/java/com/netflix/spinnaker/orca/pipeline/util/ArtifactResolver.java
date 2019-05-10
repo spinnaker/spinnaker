@@ -220,14 +220,30 @@ public class ArtifactResolver {
     }
   }
 
-  public Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches, boolean requireUniqueMatches) {
+  public Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches, List<Artifact> priorArtifacts, boolean requireUniqueMatches) {
+    Artifact resolved = matchSingleArtifact(expectedArtifact, possibleMatches, requireUniqueMatches);
+
+    if (resolved == null && expectedArtifact.isUsePriorArtifact() && priorArtifacts != null) {
+      resolved = matchSingleArtifact(expectedArtifact, priorArtifacts, requireUniqueMatches);
+      expectedArtifact.setBoundArtifact(resolved);
+    }
+
+    if (resolved == null && expectedArtifact.isUseDefaultArtifact() && expectedArtifact.getDefaultArtifact() != null) {
+      resolved = expectedArtifact.getDefaultArtifact();
+      expectedArtifact.setBoundArtifact(resolved);
+    }
+
+    return resolved;
+  }
+
+  private Artifact matchSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches, boolean requireUniqueMatches) {
     if (expectedArtifact.getBoundArtifact() != null) {
       return expectedArtifact.getBoundArtifact();
     }
     List<Artifact> matches = possibleMatches
-        .stream()
-        .filter(expectedArtifact::matches)
-        .collect(toList());
+      .stream()
+      .filter(expectedArtifact::matches)
+      .collect(toList());
     Artifact result;
     switch (matches.size()) {
       case 0:
@@ -252,29 +268,9 @@ public class ArtifactResolver {
 
   public LinkedHashSet<Artifact> resolveExpectedArtifacts(List<ExpectedArtifact> expectedArtifacts, List<Artifact> receivedArtifacts, List<Artifact> priorArtifacts, boolean requireUniqueMatches) {
     LinkedHashSet<Artifact> resolvedArtifacts = new LinkedHashSet<>();
-    LinkedHashSet<ExpectedArtifact> unresolvedExpectedArtifacts = new LinkedHashSet<>();
 
     for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
-      Artifact resolved = resolveSingleArtifact(expectedArtifact, receivedArtifacts, requireUniqueMatches);
-      if (resolved != null) {
-        resolvedArtifacts.add(resolved);
-      } else {
-        unresolvedExpectedArtifacts.add(expectedArtifact);
-      }
-    }
-
-    for (ExpectedArtifact expectedArtifact : unresolvedExpectedArtifacts) {
-      Artifact resolved = null;
-      if (expectedArtifact.isUsePriorArtifact() && priorArtifacts != null) {
-        resolved = resolveSingleArtifact(expectedArtifact, priorArtifacts, requireUniqueMatches);
-        expectedArtifact.setBoundArtifact(resolved);
-      }
-
-      if (resolved == null && expectedArtifact.isUseDefaultArtifact() && expectedArtifact.getDefaultArtifact() != null) {
-        resolved = expectedArtifact.getDefaultArtifact();
-        expectedArtifact.setBoundArtifact(resolved);
-      }
-
+      Artifact resolved = resolveSingleArtifact(expectedArtifact, receivedArtifacts, priorArtifacts, requireUniqueMatches);
       if (resolved == null) {
         throw new InvalidRequestException(format("Unmatched expected artifact %s could not be resolved.", expectedArtifact));
       } else {

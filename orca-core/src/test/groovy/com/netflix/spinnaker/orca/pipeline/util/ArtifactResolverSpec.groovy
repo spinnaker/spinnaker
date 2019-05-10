@@ -242,7 +242,7 @@ class ArtifactResolverSpec extends Specification {
   def "should find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, true)
+    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == desired
@@ -258,7 +258,7 @@ class ArtifactResolverSpec extends Specification {
   def "should fail find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, true)
+    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == null

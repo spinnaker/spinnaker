@@ -58,7 +58,7 @@ public class FindArtifactFromExecutionTask implements Task {
 
     List<Artifact> priorArtifacts = artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
 
-    Artifact match = artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, false);
+    Artifact match = artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, null, false);
 
     if (match == null) {
       outputs.put("exception", "No artifact matching " + expectedArtifact + " found among " + priorArtifacts);
