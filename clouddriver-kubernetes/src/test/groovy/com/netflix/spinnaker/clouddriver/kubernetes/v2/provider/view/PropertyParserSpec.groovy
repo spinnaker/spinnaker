@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.provider.view
 import com.fasterxml.jackson.core.JsonParseException
 import spock.lang.Specification
 
-class PropertyParserTest extends Specification {
+class PropertyParserSpec extends Specification {
     def "ExtractPropertiesFromLog"() {
         String buildLog = "[Thread 0] Uploading artifact: https://foo.host/artifactory/debian-local/some/nice/path/some-package_0.0.7_amd64.deb;deb.distribution=trusty;deb.component=main;deb.architecture=amd64\n" +
             "[Thread 0] Artifactory response: 201 Created"
