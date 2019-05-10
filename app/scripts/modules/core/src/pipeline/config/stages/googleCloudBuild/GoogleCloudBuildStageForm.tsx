@@ -7,6 +7,8 @@ import {
   IArtifact,
   IExpectedArtifact,
   IFormikStageConfigInjectedProps,
+  IPipeline,
+  PreRewriteStageArtifactSelector,
   RadioButtonInput,
   SETTINGS,
   StageArtifactSelector,
@@ -22,6 +24,7 @@ export enum buildDefinitionSources {
 
 interface IGoogleCloudBuildStageFormProps {
   googleCloudBuildAccounts: string[];
+  updatePipeline: (pipeline: IPipeline) => void;
 }
 
 interface IGoogleCloudBuildStageFormState {
@@ -64,18 +67,22 @@ export class GoogleCloudBuildStageForm extends React.Component<
     ];
   };
 
-  private onSourceChange = (e: any) => {
+  private onSourceChange = (e: any): void => {
     this.props.formik.setFieldValue('buildDefinitionSource', e.target.value);
   };
 
-  private onExpectedArtifactSelected = (expectedArtifact: IExpectedArtifact) => {
-    this.props.formik.setFieldValue('buildDefinitionArtifact.artifactId', expectedArtifact.id);
+  private setArtifactId = (expectedArtifactId: string): void => {
+    this.props.formik.setFieldValue('buildDefinitionArtifact.artifactId', expectedArtifactId);
     this.props.formik.setFieldValue('buildDefinitionArtifact.artifact', null);
   };
 
-  private onArtifactEdited = (artifact: IArtifact) => {
+  private setArtifact = (artifact: IArtifact): void => {
     this.props.formik.setFieldValue('buildDefinitionArtifact.artifact', artifact);
     this.props.formik.setFieldValue('buildDefinitionArtifact.artifactId', null);
+  };
+
+  private setArtifactAccount = (accountName: string): void => {
+    this.props.formik.setFieldValue('buildDefinitionArtifact.artifactAccount', accountName);
   };
 
   public render() {
@@ -87,42 +94,56 @@ export class GoogleCloudBuildStageForm extends React.Component<
             clearable={false}
             onChange={this.onAccountChange}
             options={this.getAccountOptions()}
-            value={this.props.formik.values.account}
+            value={stage.account}
           />
         </StageConfigField>
-        {SETTINGS.feature['artifactsRewrite'] && (
-          <StageConfigField label="Build Definition Source">
-            <RadioButtonInput
-              options={this.getSourceOptions()}
-              onChange={this.onSourceChange}
-              value={this.props.formik.values.buildDefinitionSource}
-            />
-          </StageConfigField>
-        )}
-        {this.props.formik.values.buildDefinitionSource === buildDefinitionSources.TEXT && (
+        <StageConfigField label="Build Definition Source">
+          <RadioButtonInput
+            options={this.getSourceOptions()}
+            onChange={this.onSourceChange}
+            value={stage.buildDefinitionSource}
+          />
+        </StageConfigField>
+        {stage.buildDefinitionSource === buildDefinitionSources.TEXT && (
           <StageConfigField label="Build Definition">
             <YamlEditor value={this.state.rawBuildDefinitionYaml} onChange={this.onYamlChange} />
           </StageConfigField>
         )}
-        {this.props.formik.values.buildDefinitionSource === buildDefinitionSources.ARTIFACT &&
-          SETTINGS.feature['artifactsRewrite'] && (
-            <StageConfigField label="Build Definition Artifact">
-              <StageArtifactSelector
-                pipeline={this.props.pipeline}
-                stage={stage}
-                expectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
-                artifact={get(stage, 'buildDefinitionArtifact.artifact')}
-                onExpectedArtifactSelected={this.onExpectedArtifactSelected}
-                onArtifactEdited={this.onArtifactEdited}
-                excludedArtifactTypePatterns={[
-                  ArtifactTypePatterns.DOCKER_IMAGE,
-                  ArtifactTypePatterns.KUBERNETES,
-                  ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
-                  ArtifactTypePatterns.EMBEDDED_BASE64,
-                ]}
-              />
-            </StageConfigField>
-          )}
+        {stage.buildDefinitionSource === buildDefinitionSources.ARTIFACT && SETTINGS.feature['artifactsRewrite'] && (
+          <StageConfigField label="Build Definition Artifact">
+            <StageArtifactSelector
+              artifact={get(stage, 'buildDefinitionArtifact.artifact')}
+              excludedArtifactTypePatterns={[
+                ArtifactTypePatterns.DOCKER_IMAGE,
+                ArtifactTypePatterns.KUBERNETES,
+                ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+                ArtifactTypePatterns.EMBEDDED_BASE64,
+              ]}
+              expectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
+              onArtifactEdited={this.setArtifact}
+              onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.setArtifactId(artifact.id)}
+              pipeline={this.props.pipeline}
+              stage={stage}
+            />
+          </StageConfigField>
+        )}
+        {stage.buildDefinitionSource === buildDefinitionSources.ARTIFACT && !SETTINGS.feature['artifactsRewrite'] && (
+          <PreRewriteStageArtifactSelector
+            excludedArtifactTypes={[
+              ArtifactTypePatterns.DOCKER_IMAGE,
+              ArtifactTypePatterns.KUBERNETES,
+              ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+              ArtifactTypePatterns.EMBEDDED_BASE64,
+            ]}
+            pipeline={this.props.pipeline}
+            selectedArtifactAccount={get(stage, 'buildDefinitionArtifact.artifactAccount')}
+            selectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
+            setArtifactAccount={this.setArtifactAccount}
+            setArtifactId={this.setArtifactId}
+            stage={stage}
+            updatePipeline={this.props.updatePipeline}
+          />
+        )}
       </>
     );
   }

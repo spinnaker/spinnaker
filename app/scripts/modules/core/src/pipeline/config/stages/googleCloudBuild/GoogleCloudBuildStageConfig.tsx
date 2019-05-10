@@ -22,8 +22,10 @@ export class GoogleCloudBuildStageConfig extends React.Component<IStageConfigPro
     };
     const { stage: initialStageConfig } = props;
     const stage = cloneDeep(initialStageConfig);
-    if (initialStageConfig.isNew) {
+    if (!stage.application) {
       stage.application = props.application.name;
+    }
+    if (!stage.buildDefinitionSource) {
       stage.buildDefinitionSource = buildDefinitionSources.TEXT;
     }
     // Intentionally initializing the stage config only once in the constructor
@@ -35,7 +37,7 @@ export class GoogleCloudBuildStageConfig extends React.Component<IStageConfigPro
     this.fetchGoogleCloudBuildAccounts();
   };
 
-  private fetchGoogleCloudBuildAccounts = () => {
+  private fetchGoogleCloudBuildAccounts = (): void => {
     Observable.fromPromise(IgorService.getGcbAccounts())
       .takeUntil(this.destroy$)
       .subscribe((googleCloudBuildAccounts: string[]) => {
@@ -55,7 +57,11 @@ export class GoogleCloudBuildStageConfig extends React.Component<IStageConfigPro
         onChange={this.props.updateStage}
         validate={validate}
         render={props => (
-          <GoogleCloudBuildStageForm {...props} googleCloudBuildAccounts={this.state.googleCloudBuildAccounts} />
+          <GoogleCloudBuildStageForm
+            {...props}
+            googleCloudBuildAccounts={this.state.googleCloudBuildAccounts}
+            updatePipeline={this.props.updatePipeline}
+          />
         )}
       />
     );

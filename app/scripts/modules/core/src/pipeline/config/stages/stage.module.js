@@ -217,6 +217,11 @@ module.exports = angular
                 extend($scope.stage, changes);
                 $scope.stageFieldUpdated();
               },
+              // Added to enable inline artifact editing from React stages
+              // todo(mneterval): remove after pre-rewrite artifacts are deprecated
+              updatePipeline: changes => {
+                extend($scope.$parent.pipeline, changes);
+              },
               pipeline: $scope.pipeline,
               stage: $scope.stage,
               component: config.component,
