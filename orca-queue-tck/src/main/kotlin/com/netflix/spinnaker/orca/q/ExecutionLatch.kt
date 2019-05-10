@@ -43,7 +43,7 @@ class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>)
     }
   }
 
-  fun await() = latch.await(1, TimeUnit.SECONDS)
+  fun await() = latch.await(2, TimeUnit.SECONDS)
 }
 
 fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launcher: (Execution) -> Unit, repository: ExecutionRepository) {

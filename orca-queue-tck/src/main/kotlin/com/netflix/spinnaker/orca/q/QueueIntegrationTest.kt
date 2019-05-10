@@ -80,7 +80,7 @@ import java.time.temporal.ChronoUnit.HOURS
   properties = ["queue.retry.delay.ms=10"]
 )
 @RunWith(SpringRunner::class)
-class QueueIntegrationTest {
+abstract class QueueIntegrationTest {
 
   @Autowired
   lateinit var queue: Queue
