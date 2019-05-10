@@ -168,7 +168,8 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
       "metricsUri", metricsUri,
       "droplet", droplet,
       "id", id,
-      "serviceInstances", serviceInstances)
+      "serviceInstances", serviceInstances,
+      "ciBuild", ciBuild)
       .toJavaMap();
   }
 
