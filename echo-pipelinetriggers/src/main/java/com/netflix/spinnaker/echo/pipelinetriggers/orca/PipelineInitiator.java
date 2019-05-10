@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
 import retrofit.client.Response;
+import retrofit.mime.TypedByteArray;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -116,9 +117,21 @@ public class PipelineInitiator {
                 pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
             log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
             pipeline = pipeline.withPlan(true);
-            Map resolvedPipelineMap =
-                orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
-            pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+
+            try {
+              Map resolvedPipelineMap =
+                  orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
+              pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+            } catch (RetrofitError e) {
+              log.warn(
+                  "Pipeline planning failed: \n{}",
+                  new String(((TypedByteArray) e.getResponse().getBody()).getBytes()));
+              // Continue anyway, so that the execution will appear in Deck
+              pipeline = pipeline.withPlan(false);
+              if (pipeline.getStages() == null) {
+                pipeline = pipeline.withStages(Collections.emptyList());
+              }
+            }
             if (propagateAuth) {
               pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));
             }
@@ -162,7 +175,7 @@ public class PipelineInitiator {
         }
         korkUser.setAllowedAccounts(getAllowedAccountsForUser(korkUser.getEmail()));
       }
-      AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
+      AuthenticatedRequest.propagate(orcaResponse::subscribe, korkUser).call();
     }
   }
 
