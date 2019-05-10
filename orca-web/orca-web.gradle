@@ -76,9 +76,16 @@ dependencies {
   testImplementation("org.spockframework:spock-core")
   testImplementation("org.spockframework:spock-spring")
   testImplementation("org.springframework:spring-test")
+  testImplementation("org.springframework.security:spring-security-test")
   testImplementation("cglib:cglib-nodep")
   testImplementation("org.objenesis:objenesis")
-  testImplementation("junit:junit")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.hamcrest:hamcrest-core:1.3")
   testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
 }
