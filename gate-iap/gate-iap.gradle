@@ -1,4 +1,8 @@
 dependencies {
-  compile project(":gate-core")
-  compile('com.nimbusds:nimbus-jose-jwt:5.2')
+  implementation project(":gate-core")
+  implementation 'com.nimbusds:nimbus-jose-jwt:5.2'
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
 }

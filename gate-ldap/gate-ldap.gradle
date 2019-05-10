@@ -1,7 +1,6 @@
-apply from: "$rootDir/gradle/ldap.gradle"
-
 dependencies {
-  compile project(":gate-core")
-  compile("org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}")
-  testCompile apachedsDependencies
+  implementation project(":gate-core")
+  implementation "org.springframework.security:spring-security-ldap"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "org.apache.commons:commons-lang3"
 }

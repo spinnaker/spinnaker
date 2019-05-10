@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.security.oauth2
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices
 import com.netflix.spinnaker.gate.services.CredentialsService

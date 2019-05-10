@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
-import org.springframework.security.config.annotation.SecurityBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.core.Authentication
@@ -62,15 +61,19 @@ class AuthConfig {
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
+  @Autowired
+  RequestMatcherProvider requestMatcherProvider
+
   @Value('${security.debug:false}')
   boolean securityDebug
 
-  @Value('${fiat.sessionFilter.enabled:true}')
+  @Value('${fiat.session-filter.enabled:true}')
   boolean fiatSessionFilterEnabled
 
   void configure(HttpSecurity http) throws Exception {
     // @formatter:off
-    SecurityBuilder securityBuilder = http
+    http
+      .requestMatcher(requestMatcherProvider.requestMatcher())
       .authorizeRequests()
         .antMatchers('/**/favicon.ico').permitAll()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -79,17 +82,16 @@ class AuthConfig {
         .antMatchers(HttpMethod.POST, '/webhooks/**').permitAll()
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
-        .and()
     if (fiatSessionFilterEnabled) {
       Filter fiatSessionFilter = new FiatSessionFilter(
         fiatSessionFilterEnabled,
         fiatStatus,
         permissionEvaluator)
 
-      securityBuilder.addFilterBefore(fiatSessionFilter, AnonymousAuthenticationFilter.class)
+      http.addFilterBefore(fiatSessionFilter, AnonymousAuthenticationFilter.class)
     }
 
-    securityBuilder.logout()
+    http.logout()
         .logoutUrl("/auth/logout")
         .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)
         .permitAll()
@@ -97,10 +99,6 @@ class AuthConfig {
       .csrf()
         .disable()
     // @formatter:on
-
-    if (securityProperties.basic.enabled) {
-      securityBuilder.httpBasic()
-    }
   }
 
   void configure(WebSecurity web) throws Exception {

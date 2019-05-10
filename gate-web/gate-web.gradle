@@ -1,5 +1,4 @@
 apply plugin: 'spinnaker.application'
-apply from: "$rootDir/gradle/ldap.gradle"
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
@@ -19,39 +18,41 @@ repositories {
 }
 
 dependencies {
-  compile project(":gate-core")
-  compile project(":gate-proxy")
-  compile project(":gate-integrations-gremlin")
+  implementation project(":gate-core")
+  implementation project(":gate-proxy")
+  implementation project(":gate-integrations-gremlin")
 
-  spinnaker.group('retrofitDefault')
-  spinnaker.group("test")
-  spinnaker.group("fiat")
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.okhttp:okhttp-apache"
 
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("korkStackdriver")
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency("korkWeb")
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency("logstashEncoder")
-  compile spinnaker.dependency('cglib')
-  compile spinnaker.dependency('jedis')
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version("kork")}"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
 
-  compile('org.apache.commons:commons-io:1.3.2')
-  compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
-  compile "org.springframework.data:spring-data-redis:1.8.10.RELEASE"
-  compile "org.springframework.session:spring-session:1.3.1.RELEASE"
+  implementation "com.netflix.spinnaker.kork:kork-stackdriver"
+  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.frigga:frigga"
+  implementation "redis.clients:jedis"
+  implementation "com.netflix.hystrix:hystrix-core"
 
-  compileOnly spinnaker.dependency("lombok")
+  implementation 'commons-io:commons-io'
+  implementation 'org.springframework.session:spring-session-data-redis'
 
-  testCompile project(":gate-ldap") // TODO: Move system tests to own module
-  testCompile project(":gate-basic")
-  testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
-  testCompile apachedsDependencies
-  testCompile spinnaker.dependency("korkJedisTest")
+  implementation "org.springframework:spring-web"
 
-  //this brings in the jetty GzipFilter which boot will autoconfigure
-  runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
+  testImplementation project(":gate-ldap") // TODO: Move system tests to own module
+  testImplementation project(":gate-basic")
+  testImplementation "com.squareup.okhttp:mockwebserver"
+
+  testImplementation "com.squareup.retrofit:retrofit-mock"
+  testImplementation "org.springframework.security:spring-security-ldap"
+  testImplementation "com.unboundid:unboundid-ldapsdk"
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -53,7 +54,7 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
   @Scheduled(fixedDelay = 30000L)
   void refreshCache() {
     try {
-      def accounts = clouddriverService.getAccountDetails()
+      def accounts = AuthenticatedRequest.allowAnonymous { clouddriverService.getAccountDetails() }
       //migration support, prefer permissions configuration, translate requiredGroupMembership
       // (for credentialsservice in non fiat mode) into permissions collection.
       //

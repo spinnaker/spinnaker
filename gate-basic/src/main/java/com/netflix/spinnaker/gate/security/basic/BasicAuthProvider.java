@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.gate.security.basic;
 
 import com.netflix.spinnaker.security.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -25,19 +23,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 
-@ConditionalOnExpression("${security.basicform.enabled:false}")
-@Component
 public class BasicAuthProvider implements AuthenticationProvider {
 
   private final SecurityProperties securityProperties;
 
-  @Autowired
   public BasicAuthProvider(SecurityProperties securityProperties) {
     this.securityProperties = securityProperties;
 

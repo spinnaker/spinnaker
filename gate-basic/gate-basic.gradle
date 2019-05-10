@@ -1,3 +1,4 @@
 dependencies {
-  compile project(":gate-core")
+  implementation project(":gate-core")
+  implementation "com.netflix.spinnaker.kork:kork-security"
 }

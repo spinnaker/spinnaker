@@ -239,7 +239,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromFront50", {
         AuthenticatedRequest.propagate({
           try {
-            return front50.getAllApplicationsUnrestricted()
+            return AuthenticatedRequest.allowAnonymous { front50.getAllApplicationsUnrestricted() }
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []
@@ -312,7 +312,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            clouddriver.getAllApplicationsUnrestricted(expandClusterNames)
+            return AuthenticatedRequest.allowAnonymous { clouddriver.getAllApplicationsUnrestricted(expandClusterNames) }
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []

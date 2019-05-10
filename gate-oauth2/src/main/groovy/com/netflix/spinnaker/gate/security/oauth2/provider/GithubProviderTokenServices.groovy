@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-@ConditionalOnExpression(''''${security.oauth2.providerRequirements.type:}' == "github"''')
+@ConditionalOnExpression(''''${security.oauth2.provider-requirements.type:}' == "github"''')
 class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
   @Autowired
   ResourceServerProperties sso
@@ -42,7 +42,7 @@ class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
   private OAuth2RestOperations restTemplate
 
   @Component
-  @ConfigurationProperties("security.oauth2.providerRequirements")
+  @ConfigurationProperties("security.oauth2.provider-requirements")
   static class GithubRequirements {
     String organization
   }

@@ -44,7 +44,7 @@ import java.util.function.ToDoubleFunction
  * It will publish a metric `redis.client.isUnhealthy` that should be alerted on.
  */
 @Component
-@ConditionalOnProperty("redis.useRelaxedHealthIndicator")
+@ConditionalOnProperty("redis.use-relaxed-health-indicator")
 class RedisRelaxedHealthIndicator extends AbstractHealthIndicator {
   AtomicReference<Exception> lastException = new AtomicReference<>(null)
   AtomicReference<String> redisVersion = new AtomicReference<>(null)

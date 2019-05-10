@@ -16,16 +16,12 @@
 
 package com.netflix.spinnaker.gate
 
-import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet
 import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorConfig
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.web.servlet.ServletRegistrationBean
-import org.springframework.boot.web.support.SpringBootServletInitializer
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -36,30 +32,20 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableConfigurationProperties
 @Import([HystrixSpectatorConfig])
 @ComponentScan(["com.netflix.spinnaker.gate", "com.netflix.spinnaker.config"])
-@EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
-class Main extends SpringBootServletInitializer {
+@EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
+class Main {
 
   static final Map<String, String> DEFAULT_PROPS = [
-          'netflix.environment': 'test',
-          'netflix.account': '${netflix.environment}',
-          'netflix.stack': 'test',
-          'spring.config.location': '${user.home}/.spinnaker/',
-          'spring.application.name': 'gate',
-          'spring.config.name': 'spinnaker,${spring.application.name}',
-          'spring.profiles.active': '${netflix.environment},local'
+    'netflix.environment': 'test',
+    'netflix.account': '${netflix.environment}',
+    'netflix.stack': 'test',
+    'spring.config.location': '${user.home}/.spinnaker/',
+    'spring.application.name': 'gate',
+    'spring.config.name': 'spinnaker,${spring.application.name}',
+    'spring.profiles.active': '${netflix.environment},local'
   ]
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
-  }
-
-  @Override
-  SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-    builder.properties(DEFAULT_PROPS).sources(Main)
-  }
-
-  @Bean
-  ServletRegistrationBean hystrixEventStream() {
-    new ServletRegistrationBean(new HystrixMetricsStreamServlet(), '/hystrix.stream')
   }
 }

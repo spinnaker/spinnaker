@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.security
 
-import org.springframework.security.web.bind.annotation.AuthenticationPrincipal
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention

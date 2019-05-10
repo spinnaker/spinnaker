@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class RootController {
 
-  @Value('${services.deck.baseUrl}')
+  @Value('${services.deck.base-url:}')
   URL deckBaseUrl
 
   @RequestMapping("/")

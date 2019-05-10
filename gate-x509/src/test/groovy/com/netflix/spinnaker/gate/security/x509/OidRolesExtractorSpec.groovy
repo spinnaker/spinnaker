@@ -29,7 +29,7 @@ class OidRolesExtractorSpec extends Specification {
   def "should return ldap roles - #description"() {
     given:
     String oid = "1.2.840.10070.8.1"
-    def extractor = new OidRolesExtractor(config: new X509Config(roleOid: oid))
+    def extractor = new OidRolesExtractor(roleOid: oid)
     def resource = OidRolesExtractorSpec.classLoader.getResource(certFilePath)
     CertificateFactory cf = CertificateFactory.getInstance("X.509")
     X509Certificate cert = (X509Certificate) cf.generateCertificate(resource.openStream())

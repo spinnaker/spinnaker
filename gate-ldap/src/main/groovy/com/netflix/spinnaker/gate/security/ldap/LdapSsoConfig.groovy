@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.gate.security.ldap
 
-import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
-import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.config.AuthConfig
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
@@ -29,8 +27,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -47,8 +43,6 @@ import org.springframework.stereotype.Component
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@SuppportsMultiAuth
-@Order(Ordered.LOWEST_PRECEDENCE)
 class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
@@ -60,24 +54,11 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   LdapUserContextMapper ldapUserContextMapper
 
-  @Autowired(required = false)
-  List<MultiAuthConfigurer> additionalAuthProviders
-
   @Autowired
   SecurityProperties securityProperties
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-
-    // In order for the HttpBasic user to have its creds checked first (and to keep unnecessary calls
-    // from hitting the LDAP server), this must be configured before the full LDAP config.
-    // See https://github.com/spinnaker/spinnaker/issues/3589
-    if (securityProperties.basic.enabled) {
-      auth.inMemoryAuthentication()
-          .withUser(securityProperties.user.name)
-          .password(securityProperties.user.password)
-          .roles("USER")
-    }
 
     def ldapConfigurer =
         auth.ldapAuthentication()
@@ -107,9 +88,6 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.formLogin()
     authConfig.configure(http)
-    additionalAuthProviders?.each {
-      it.configure(http)
-    }
   }
 
   @Override

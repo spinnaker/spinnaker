@@ -24,15 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 
 import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
 
 @CompileStatic
 @Component
 @Slf4j
-@ConditionalOnExpression('${services.kayenta.enabled:false} and ${services.kayenta.canaryConfigStore:false}')
+@ConditionalOnExpression('${services.kayenta.enabled:false} and ${services.kayenta.canary-config-store:false}')
 class KayentaCanaryConfigService implements CanaryConfigService {
 
   private static final String HYSTRIX_GROUP = "v2-canaryConfigs"

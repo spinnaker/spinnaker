@@ -59,8 +59,8 @@ class AuthController {
   PermissionService permissionService
 
   @Autowired
-  AuthController(@Value('${services.deck.baseUrl}') URL deckBaseUrl,
-                 @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern) {
+  AuthController(@Value('${services.deck.base-url:}') URL deckBaseUrl,
+                 @Value('${services.deck.redirect-host-pattern:#{null}}') String redirectHostPattern) {
     this.deckBaseUrl = deckBaseUrl
 
     if (redirectHostPattern) {

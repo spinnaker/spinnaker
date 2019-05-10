@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import spock.lang.Specification
 
-import javax.ws.rs.core.MediaType
+import org.springframework.http.MediaType
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
   initializers = YamlFileApplicationContextInitializer
 )
 @TestPropertySource(properties = "services.kayenta.enabled=true") // Enable Controllers we want to document in the spec here.
-class GenerateSwagger extends Specification {
+class GenerateSwaggerSpec extends Specification {
 
   @Autowired
   WebApplicationContext wac

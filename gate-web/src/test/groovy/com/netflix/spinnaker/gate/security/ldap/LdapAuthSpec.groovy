@@ -21,79 +21,66 @@ import com.netflix.spinnaker.gate.config.RedisTestConfig
 import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
+import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfig.LdapConfigProps
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
-import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import org.springframework.mock.web.MockHttpSession
-import org.springframework.security.web.FilterChainProxy
+import org.springframework.security.ldap.server.UnboundIdContainer
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.test.web.servlet.MvcResult
 import spock.lang.Specification
+
+import javax.servlet.http.Cookie
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @Slf4j
-@TestPropertySource("/ldap.properties")
 @GateSystemTest
+@SpringBootTest(
+    properties = ['ldap.enabled=true'])
 @ContextConfiguration(
-    classes = [Main, LdapSsoConfig, LdapTestConfig],
-    initializers = YamlFileApplicationContextInitializer
+  classes = [LdapSsoConfig, Main, LdapTestConfig, RedisTestConfig],
+  initializers = YamlFileApplicationContextInitializer
 )
+@AutoConfigureMockMvc
 class LdapAuthSpec extends Specification {
 
   @Autowired
-  WebApplicationContext wac
-
-  @MockBean
-  private IgorService igorService
-
   MockMvc mockMvc
-
-  @Autowired
-  FilterChainProxy springSecurityFilterChain
-
-  def setup() {
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).addFilter(springSecurityFilterChain).build()
-  }
-
-  def cleanup() {
-    ApacheDSServer.stopServer()
-  }
 
   def "should do ldap authentication"() {
     setup:
-    // MockMvc doesn't seem to like to generate and return cookies for some reason. In order to make
-    // the login workflow operate correctly, we have to yank the session out and set it on each
-    // subsequent request.
-    MockHttpSession session = null
+    Cookie sessionCookie = null
+    def extractSession = { MvcResult result ->
+      sessionCookie = result.response.getCookie("SESSION")
+    }
 
     when:
     mockMvc.perform(get("/credentials"))
            .andDo(print())
            .andExpect(status().is3xxRedirection())
            .andExpect(header().string("Location", "http://localhost/login"))
-           .andDo({ result ->
-      session = (MockHttpSession) result.getRequest().getSession()
-    })
+           .andDo(extractSession)
 
     mockMvc.perform(new FormLoginRequestBuilder().user("batman")
                                                  .password("batman")
-                                                 .session(session))
+                                                 .cookie(sessionCookie))
            .andDo(print())
            .andExpect(status().is(302))
            .andExpect(redirectedUrl("http://localhost/credentials"))
+           .andDo(extractSession)
 
-    def result = mockMvc.perform(get("/credentials").session(session))
+    def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
                         .andDo(print())
                         .andExpect(status().isOk())
                         .andReturn()
@@ -104,18 +91,25 @@ class LdapAuthSpec extends Specification {
 
   static class LdapTestConfig {
 
-    @Bean
-    RedisTestConfig redisTestConfig() {
-      new RedisTestConfig()
+    static final String DEFAULT_PARTITION_SUFFIX = "dc=unit,dc=test"
+
+    @Bean(destroyMethod = "stop")
+    UnboundIdContainer unboundIdContainer(ApplicationContext ctx) {
+      def c = new UnboundIdContainer(DEFAULT_PARTITION_SUFFIX, "classpath:ldap-server.ldif")
+      c.applicationContext = ctx
+      c.port = 0
+
+      return c
     }
 
-    @Autowired
-    LdapSsoConfig ldapSsoConfig(LdapSsoConfig config){
-      ApacheDSServer.startServer("classpath:ldap-server.ldif")
-      Integer ldapPort = ApacheDSServer.getServerPort()
-      log.debug("Setting LDAP server port to $ldapPort")
-      config.ldapConfigProps.url = config.ldapConfigProps.url.replaceFirst("5555", ldapPort.toString())
-      return config
+    @Bean
+    @Primary
+    @ConfigurationProperties("ldap")
+    LdapConfigProps ldapConfigProps(UnboundIdContainer ldapServer) {
+      def cfg = new LdapConfigProps()
+      cfg.url = "ldap://127.0.0.1:$ldapServer.port/$DEFAULT_PARTITION_SUFFIX"
+      cfg.userDnPattern = 'uid={0},ou=users'
+      return cfg
     }
 
     @Bean

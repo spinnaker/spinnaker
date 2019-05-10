@@ -6,6 +6,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.services.CredentialsService;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class AllowedAccountsSupport {
 
   public Collection<String> filterAllowedAccounts(String username, Collection<String> roles) {
     if (fiatStatus.isEnabled()) {
-      UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
+      UserPermission.View permission = AuthenticatedRequest.allowAnonymous(() -> fiatPermissionEvaluator.getPermission(username));
       if (permission == null) {
         return new ArrayList<>();
       }

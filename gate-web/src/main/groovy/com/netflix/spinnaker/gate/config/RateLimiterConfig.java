@@ -28,20 +28,20 @@ import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
 
 @Configuration
-@ConditionalOnExpression("${rateLimit.enabled:false}")
+@ConditionalOnExpression("${rate-limit.enabled:false}")
 public class RateLimiterConfig {
 
   @Autowired(required = false)
   RateLimiterConfiguration rateLimiterConfiguration;
 
   @Bean
-  @ConditionalOnExpression("${rateLimit.redis.enabled:false}")
+  @ConditionalOnExpression("${rate-limit.redis.enabled:false}")
   RateLimiter redisRateLimiter(JedisPool jedisPool) {
     return new RedisRateLimiter(jedisPool);
   }
 
   @Bean
-  @ConditionalOnExpression("${rateLimit.redis.enabled:false}")
+  @ConditionalOnExpression("${rate-limit.redis.enabled:false}")
   RateLimitPrincipalProvider redisRateLimiterPrincipalProvider(JedisPool jedisPool) {
     return new RedisRateLimitPrincipalProvider(jedisPool, rateLimiterConfiguration);
   }

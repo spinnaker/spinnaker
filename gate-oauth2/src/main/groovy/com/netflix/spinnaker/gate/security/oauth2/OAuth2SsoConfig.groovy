@@ -17,22 +17,16 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.config.AuthConfig
-import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -50,14 +44,11 @@ import javax.servlet.http.HttpServletResponse
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@Import(SecurityAutoConfiguration)
 @EnableOAuth2Sso
 @EnableConfigurationProperties
-@SuppportsMultiAuth
-@Order(Ordered.LOWEST_PRECEDENCE)
 // Note the 4 single-quotes below - this is a raw groovy string, because SpEL and groovy
 // string syntax overlap!
-@ConditionalOnExpression(''''${security.oauth2.client.clientId:}'!=""''')
+@ConditionalOnExpression(''''${security.oauth2.client.client-id:}'!=""''')
 class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
@@ -68,9 +59,6 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   ExternalSslAwareEntryPoint entryPoint
-
-  @Autowired(required = false)
-  List<MultiAuthConfigurer> additionalAuthProviders
 
   @Primary
   @Bean
@@ -83,21 +71,12 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     new ExternalAuthTokenFilter()
   }
 
-  @Bean
-  OAuth2SsoProperties oAuth2SsoProperties() {
-    new OAuth2SsoProperties()
-  }
-
   @Override
   void configure(HttpSecurity http) throws Exception {
     authConfig.configure(http)
 
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
-
-    additionalAuthProviders?.each {
-      it.configure(http)
-    }
   }
 
   void configure(WebSecurity web) throws Exception {
@@ -108,7 +87,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
    * Use this class to specify how to map fields from the userInfoUri response to what's expected to be in the User.
    */
   @Component
-  @ConfigurationProperties("security.oauth2.userInfoMapping")
+  @ConfigurationProperties("security.oauth2.user-info-mapping")
   static class UserInfoMapping {
     String email = "email"
     String firstName = "given_name"
@@ -119,7 +98,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Component
-  @ConfigurationProperties("security.oauth2.userInfoRequirements")
+  @ConfigurationProperties("security.oauth2.user-info-requirements")
   static class UserInfoRequirements extends HashMap<String, String> {
   }
 
@@ -128,7 +107,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
    * preEstablishedRedirectUri, if set, where the SSL is terminated outside of this server.
    */
   @Component
-  @ConditionalOnExpression(''''${security.oauth2.client.clientId:}'!=""''')
+  @ConditionalOnExpression(''''${security.oauth2.client.client-id:}'!=""''')
   static class ExternalSslAwareEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     @Autowired

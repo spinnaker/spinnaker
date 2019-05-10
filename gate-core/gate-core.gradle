@@ -15,16 +15,22 @@
  */
 
 dependencies {
-  spinnaker.group("bootWeb")
-  spinnaker.group('retrofitDefault')
-  spinnaker.group('test')
-  spinnaker.group('fiat')
+  api "org.springframework.boot:spring-boot-starter-web"
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "org.springframework.boot:spring-boot-starter-security"
 
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("korkSecurity")
-  compile spinnaker.dependency('spectatorApi')
-  compile spinnaker.dependency("groovy")
-  compile spinnaker.dependency("guava")
-  compile 'com.netflix.hystrix:hystrix-core:1.4.20'
-  compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.4.20'
+  api "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.okhttp:okhttp-apache"
+
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.hystrix:hystrix-core"
 }

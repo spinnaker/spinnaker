@@ -43,10 +43,13 @@ import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
@@ -101,9 +104,8 @@ class FunctionalSpec extends Specification {
     sock.close()
     System.setProperty("server.port", localPort.toString())
     System.setProperty("saml.enabled", "false")
-    System.setProperty('security.basic.enabled', 'false')
-    System.setProperty('management.security.enabled', 'false')
-    System.setProperty('spring.session.store-type', 'HASH_MAP')
+    System.setProperty('spring.session.store-type', 'NONE')
+    System.setProperty("spring.main.allow-bean-definition-overriding", "true")
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration] as Set)
     ctx = spring.run()
@@ -250,8 +252,9 @@ class FunctionalSpec extends Specification {
     return objectMapper.readValue(typedInput.in().text, Map)
   }
 
-  @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
-  private static class FunctionalConfiguration {
+  @Order(10)
+  @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
+  private static class FunctionalConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     ClouddriverServiceSelector clouddriverSelector() {
@@ -346,6 +349,13 @@ class FunctionalSpec extends Specification {
     @Bean
     GenericExceptionHandlers genericExceptionHandlers() {
       new GenericExceptionHandlers()
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      http
+        .csrf().disable()
+        .authorizeRequests().antMatchers("/**").permitAll()
     }
   }
 }

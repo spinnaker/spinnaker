@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.config.GateConfig
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.HealthCheckableService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.AbstractHealthIndicator
 import org.springframework.boot.actuate.health.Health
@@ -99,7 +100,7 @@ class DownstreamServicesHealthIndicator extends AbstractHealthIndicator {
     def serviceHealths = [:]
     healthCheckableServices.each { String name, HealthCheckableService service ->
       try {
-        service.health()
+        AuthenticatedRequest.allowAnonymous { service.health() }
       } catch (RetrofitError e) {
         serviceHealths[name] = "${e.message} (url: ${e.url})".toString()
       }

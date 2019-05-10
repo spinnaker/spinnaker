@@ -50,7 +50,7 @@ class GremlinConfig {
                                 Registry registry,
                                 EurekaLookupService eurekaLookupService,
                                 RequestInterceptor spinnakerRequestInterceptor,
-                                @Value("${retrofit.logLevel:BASIC}") String retrofitLogLevel) {
+                                @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return createClient(
       "gremlin",
       GremlinService.class,

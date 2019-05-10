@@ -32,7 +32,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @CompileStatic
-@ConditionalOnProperty('pagerDuty.token')
+@ConditionalOnProperty('pager-duty.token')
 class PagerDutyConfig {
 
   @Value('${pagerDuty.token}')
@@ -40,7 +40,7 @@ class PagerDutyConfig {
 
   @Bean
   Endpoint pagerDutyEndpoint(
-    @Value('${pagerDuty.baseUrl}') String pagerBaseUrl) {
+    @Value('${pager-duty.base-url}') String pagerBaseUrl) {
     newFixedEndpoint(pagerBaseUrl)
   }
 

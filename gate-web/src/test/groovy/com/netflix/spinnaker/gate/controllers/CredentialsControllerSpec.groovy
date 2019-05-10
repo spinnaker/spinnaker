@@ -17,18 +17,17 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.accept.ContentNegotiationManagerFactoryBean
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -42,12 +41,6 @@ class CredentialsControllerSpec extends Specification {
   AccountLookupService accountLookupService = Stub(AccountLookupService) {
     getAccounts() >> [new ClouddriverService.AccountDetails(name: "test"),
                       new ClouddriverService.AccountDetails(name: "test.com")]
-  }
-
-  def server = new MockWebServer()
-
-  void cleanup() {
-    server.shutdown()
   }
 
   void setup() {
@@ -64,8 +57,13 @@ class CredentialsControllerSpec extends Specification {
     FiatPermissionEvaluator fpe = Stub(FiatPermissionEvaluator)
     AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(fiatStatus, fpe, credentialsService)
 
-    server.start()
-    mockMvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountLookupService:  accountLookupService, allowedAccountsSupport: allowedAccountsSupport)).build()
+    def contentNegotiationManagerFactoryBean = new ContentNegotiationManagerFactoryBean()
+    contentNegotiationManagerFactoryBean.addMediaType("json", MediaType.APPLICATION_JSON)
+    contentNegotiationManagerFactoryBean.favorPathExtension = false
+    mockMvc = MockMvcBuilders
+      .standaloneSetup(new CredentialsController(accountLookupService:  accountLookupService, allowedAccountsSupport: allowedAccountsSupport))
+      .setContentNegotiationManager(contentNegotiationManagerFactoryBean.build())
+      .build()
   }
 
   @Unroll

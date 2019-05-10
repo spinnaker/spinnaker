@@ -20,8 +20,10 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.test.web.servlet.RequestBuilder
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 
 import javax.servlet.ServletContext
+import javax.servlet.http.Cookie
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
@@ -32,23 +34,37 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * Class is derived from
  * https://github.com/spring-projects/spring-security/blob/master/test/src/main/java/org/springframework/security/test/web/servlet/request/SecurityMockMvcRequestBuilders.java
  */
-public class FormLoginRequestBuilder implements RequestBuilder {
+class FormLoginRequestBuilder implements RequestBuilder {
   private String usernameParam = "username"
   private String passwordParam = "password"
   private String username = "user"
   private String password = "password"
   private String loginProcessingUrl = "/login"
+  private Cookie[] cookies = null
   private MediaType acceptMediaType = MediaType.APPLICATION_FORM_URLENCODED
   private MockHttpSession session
 
   @Override
   MockHttpServletRequest buildRequest(ServletContext servletContext) {
-    MockHttpServletRequest request = post(this.loginProcessingUrl)
+    MockHttpServletRequestBuilder request = post(this.loginProcessingUrl)
         .accept(this.acceptMediaType).param(this.usernameParam, this.username)
         .param(this.passwordParam, this.password)
-        .session(session)
-        .buildRequest(servletContext)
-    return request
+
+    if (session != null) {
+      request.session(session)
+    }
+
+    if (cookies != null && cookies.length > 0) {
+      request.cookie(cookies)
+    }
+
+
+    return request.buildRequest(servletContext)
+  }
+
+  FormLoginRequestBuilder cookie(Cookie... cookies) {
+    this.cookies = cookies
+    return this
   }
 
   /**

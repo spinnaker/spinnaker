@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 import retrofit.RetrofitError
 
@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan
-public class GateWebConfig extends WebMvcConfigurerAdapter {
+public class GateWebConfig implements WebMvcConfigurer {
   @Autowired
   Registry registry
 
@@ -65,10 +65,10 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   @Autowired
   Registry spectatorRegistry
 
-  @Value('${rateLimit.learning:true}')
+  @Value('${rate-limit.learning:true}')
   Boolean rateLimitLearningMode
 
-  @Value('${requestLogging.enabled:false}')
+  @Value('${request-logging.enabled:false}')
   Boolean requestLogging
 
   @Override

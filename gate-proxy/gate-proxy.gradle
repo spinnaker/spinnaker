@@ -1,7 +1,11 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile project(":gate-core")
+  implementation project(":gate-core")
 
-  compile spinnaker.dependency("korkExceptions")
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.netflix.spectator:spectator-api"
+  
 }

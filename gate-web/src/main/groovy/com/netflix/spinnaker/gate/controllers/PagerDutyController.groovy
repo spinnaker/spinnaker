@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PagerDutyService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference
 @CompileStatic
 @RequestMapping("/pagerDuty")
 @RestController
-@ConditionalOnProperty('pagerDuty.token')
+@ConditionalOnProperty('pager-duty.token')
 @Slf4j
 class PagerDutyController {
   AtomicReference<List<Map>> pagerDutyServicesCache = new AtomicReference<>([])
@@ -91,20 +92,20 @@ class PagerDutyController {
   }
 
   List<Map> fetchAllServices() {
-    PagerDutyService.PagerDutyServiceResult response = pagerDutyService.getServices(0)
+    PagerDutyService.PagerDutyServiceResult response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getServices(0) }
     List<Map> services = response?.services
     while (response?.more) {
-      response = pagerDutyService.getServices(services.size())
+      response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getServices(services.size()) }
       services += response?.services
     }
     return services
   }
 
   List<Map> fetchAllOnCalls() {
-    PagerDutyService.PagerDutyOnCallResult response = pagerDutyService.getOnCalls(0)
+    PagerDutyService.PagerDutyOnCallResult response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getOnCalls(0) }
     List<Map> onCalls = response?.oncalls
     while (response?.more) {
-      response = pagerDutyService.getOnCalls(onCalls.size())
+      response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getOnCalls(onCalls.size()) }
       onCalls += response?.oncalls
     }
     return onCalls
