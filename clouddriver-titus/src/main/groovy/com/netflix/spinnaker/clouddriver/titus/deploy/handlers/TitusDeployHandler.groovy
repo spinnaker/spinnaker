@@ -114,97 +114,26 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       String region = description.region
       String subnet = description.subnet
 
+      Map front50Application = null
+
+      try {
+        front50Application = front50Service.getApplication(description.getApplication())
+      } catch (Exception e) {
+        log.error('Failed to load front50 application attributes for {}', description.getApplication())
+      }
+
       if (!description.env) description.env = [:]
       if (!description.containerAttributes) description.containerAttributes = [:]
       if (!description.labels) description.labels = [:]
 
       if (description.source.asgName) {
         task.updateStatus BASE_PHASE, "Getting Source ASG Name Details... ${System.currentTimeMillis()}"
-
-
-        // If cluster name info was not provided, use the fields from the source asg
-        def sourceName = Names.parseName(description.source.asgName)
-        description.application = description.application != null ? description.application : sourceName.app
-        description.stack = description.stack != null ? description.stack : sourceName.stack
-        description.freeFormDetails = description.freeFormDetails != null ? description.freeFormDetails : sourceName.detail
-
-        Source source = description.source
-
-        TitusClient sourceClient = buildSourceTitusClient(source)
-        if (!sourceClient) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
-        }
-        Job sourceJob = sourceClient.findJobByName(source.asgName)
-        if (!sourceJob) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
-        }
-
-        task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
-
-        description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
-        description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
-        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + (sourceJob.version ?: sourceJob.digest))
-
-        if (description.source.useSourceCapacity) {
-          description.capacity.min = sourceJob.instancesMin
-          description.capacity.max = sourceJob.instancesMax
-          description.capacity.desired = sourceJob.instancesDesired
-        }
-
-        description.resources.cpu = description.resources.cpu ?: sourceJob.cpu
-        description.resources.memory = description.resources.memory ?: sourceJob.memory
-        description.resources.disk = description.resources.disk ?: sourceJob.disk
-        description.retries = description.retries ?: sourceJob.retries
-        description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
-        description.resources.gpu = description.resources.gpu ?: sourceJob.gpu
-        description.resources.networkMbps = description.resources.networkMbps ?: sourceJob.networkMbps
-        description.efs = description.efs ?: sourceJob.efs
-        description.resources.allocateIpAddress = description.resources.allocateIpAddress ?: sourceJob.allocateIpAddress
-        description.entryPoint = description.entryPoint ?: sourceJob.entryPoint
-        description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
-        description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
-
-        if (description.labels.isEmpty()) {
-          sourceJob.labels.each { k, v -> description.labels.put(k, v) }
-        }
-
-        if (description.env.isEmpty()) {
-          sourceJob.environment.each { k, v -> description.env.put(k, v) }
-        }
-
-        if (description.containerAttributes.isEmpty()) {
-          sourceJob.containerAttributes.each { k, v -> description.containerAttributes.put(k, v) }
-        }
-        if (description.inService == null) {
-          description.inService = sourceJob.inService
-        }
-        configureDisruptionBudget(description, sourceJob)
-        description.jobType = description.jobType ?: "service"
-        if (!description.hardConstraints) description.hardConstraints = []
-        if (!description.softConstraints) description.softConstraints = []
-        if (description.softConstraints.empty && sourceJob.softConstraints) {
-          sourceJob.softConstraints.each {
-            if (!description.hardConstraints.contains(it)) {
-              description.softConstraints.add(it)
-            }
-          }
-        }
-        if (description.hardConstraints.empty && sourceJob.hardConstraints) {
-          sourceJob.hardConstraints.each {
-            if (!description.softConstraints.contains(it)) {
-              description.hardConstraints.add(it)
-            }
-          }
-        }
-        if (sourceJob.labels?.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
-          description.useApplicationDefaultSecurityGroup = false
-        }
-
+        mergeSourceDetailsIntoDescription(description, front50Application)
         task.updateStatus BASE_PHASE, "Finished Getting Source ASG Name Details... ${System.currentTimeMillis()}"
-
       }
+
       if (!description.source.asgName) {
-        configureDisruptionBudget(description, null)
+        configureDisruptionBudget(description, null, front50Application)
       }
 
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}... ${System.currentTimeMillis()}"
@@ -214,75 +143,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(","))
       }
 
-      if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
-        if (description.labels.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
-          description.useApplicationDefaultSecurityGroup = false
-        } else {
-          description.useApplicationDefaultSecurityGroup = true
-        }
-      }
+      configureAppDefaultSecurityGroup(description)
 
-      if (description.useApplicationDefaultSecurityGroup == false) {
-        description.labels.put(USE_APPLICATION_DEFAULT_SG_LABEL, "false")
-      } else {
-        if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
-          description.labels.remove(USE_APPLICATION_DEFAULT_SG_LABEL)
-        }
-      }
+      SubmitJobRequest submitJobRequest = buildBaseSubmitJobRequest(description, dockerImage)
 
-      SubmitJobRequest submitJobRequest = new SubmitJobRequest()
-        .withApplication(description.application)
-        .withDockerImageName(dockerImage.imageName)
-        .withInstancesMin(description.capacity.min)
-        .withInstancesMax(description.capacity.max)
-        .withInstancesDesired(description.capacity.desired)
-        .withCpu(description.resources.cpu)
-        .withMemory(description.resources.memory)
-        .withDisk(description.resources.disk)
-        .withRetries(description.retries)
-        .withRuntimeLimitSecs(description.runtimeLimitSecs)
-        .withGpu(description.resources.gpu)
-        .withNetworkMbps(description.resources.networkMbps)
-        .withEfs(description.efs)
-        .withPorts(description.resources.ports)
-        .withEnv(description.env)
-        .withAllocateIpAddress(description.resources.allocateIpAddress)
-        .withStack(description.stack)
-        .withDetail(description.freeFormDetails)
-        .withEntryPoint(description.entryPoint)
-        .withIamProfile(description.iamProfile)
-        .withCapacityGroup(description.capacityGroup)
-        .withLabels(description.labels)
-        .withInService(description.inService)
-        .withMigrationPolicy(description.migrationPolicy)
-        .withCredentials(description.credentials.name)
-        .withContainerAttributes(description.containerAttributes.collectEntries { [(it.key): it.value?.toString()] })
-        .withDisruptionBudget(description.disruptionBudget)
-
-      if (dockerImage.imageDigest != null) {
-        submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)
-      } else {
-        submitJobRequest = submitJobRequest.withDockerImageVersion(dockerImage.imageVersion)
-      }
-
-      task.updateStatus BASE_PHASE, "Resolving Security Groups... ${System.currentTimeMillis()}"
-
-      Set<String> securityGroups = []
-      description.securityGroups?.each { providedSecurityGroup ->
-        task.updateStatus BASE_PHASE, "Resolving Security Group ${providedSecurityGroup}... ${System.currentTimeMillis()}"
-        if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
-          securityGroups << providedSecurityGroup
-        } else {
-          task.updateStatus BASE_PHASE, "Resolving Security Group name ${providedSecurityGroup}... ${System.currentTimeMillis()}"
-          String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
-          if (!convertedSecurityGroup) {
-            throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
-          }
-          securityGroups << convertedSecurityGroup
-        }
-      }
-
-      task.updateStatus BASE_PHASE, "Finished resolving Security Groups... ${System.currentTimeMillis()}"
+      Set<String> securityGroups = resolveSecurityGroups(description, account, region)
 
       if (description.jobType == 'service' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
@@ -294,35 +159,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      if (description.hardConstraints) {
-        description.hardConstraints.each { constraint ->
-          submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(constraint))
-        }
-      }
-
-      if (description.softConstraints) {
-        description.softConstraints.each { constraint ->
-          submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(constraint))
-        }
-      }
-
-      if (description.getJobType() == "service" && !description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
-        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
-      }
-
       if (!securityGroups.empty) {
         submitJobRequest.withSecurityGroups(securityGroups.asList())
       }
 
       task.updateStatus BASE_PHASE, "Setting user email... ${System.currentTimeMillis()}"
-
-      Map front50Application
-
-      try {
-        front50Application = front50Service.getApplication(description.getApplication())
-      } catch (Exception e) {
-        log.error('Failed to load front50 application attributes for {}', description.getApplication())
-      }
 
       if (front50Application && front50Application['email']) {
         submitJobRequest.withUser(front50Application['email'])
@@ -332,13 +173,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      if (description.jobType) {
-        submitJobRequest.withJobType(description.jobType)
-      }
-
       task.updateStatus BASE_PHASE, "Resolving target groups... ${System.currentTimeMillis()}"
 
-      TargetGroupLookupResult targetGroupLookupResult
+      TargetGroupLookupResult targetGroupLookupResult = null
 
       if (description.targetGroups) {
         targetGroupLookupResult = validateLoadBalancers(description)
@@ -420,18 +257,198 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
   }
 
-  private void configureDisruptionBudget(TitusDeployDescription description, Job sourceJob) {
+  private void configureAppDefaultSecurityGroup(TitusDeployDescription description) {
+    if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
+      if (description.labels.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
+        description.useApplicationDefaultSecurityGroup = false
+      } else {
+        description.useApplicationDefaultSecurityGroup = true
+      }
+    }
+
+    if (description.useApplicationDefaultSecurityGroup == false) {
+      description.labels.put(USE_APPLICATION_DEFAULT_SG_LABEL, "false")
+    } else {
+      if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
+        description.labels.remove(USE_APPLICATION_DEFAULT_SG_LABEL)
+      }
+    }
+  }
+
+  private SubmitJobRequest buildBaseSubmitJobRequest(TitusDeployDescription description, DockerImage dockerImage) {
+    SubmitJobRequest submitJobRequest = new SubmitJobRequest()
+            .withApplication(description.application)
+            .withDockerImageName(dockerImage.imageName)
+            .withInstancesMin(description.capacity.min)
+            .withInstancesMax(description.capacity.max)
+            .withInstancesDesired(description.capacity.desired)
+            .withCpu(description.resources.cpu)
+            .withMemory(description.resources.memory)
+            .withDisk(description.resources.disk)
+            .withRetries(description.retries)
+            .withRuntimeLimitSecs(description.runtimeLimitSecs)
+            .withGpu(description.resources.gpu)
+            .withNetworkMbps(description.resources.networkMbps)
+            .withEfs(description.efs)
+            .withPorts(description.resources.ports)
+            .withEnv(description.env)
+            .withAllocateIpAddress(description.resources.allocateIpAddress)
+            .withStack(description.stack)
+            .withDetail(description.freeFormDetails)
+            .withEntryPoint(description.entryPoint)
+            .withIamProfile(description.iamProfile)
+            .withCapacityGroup(description.capacityGroup)
+            .withLabels(description.labels)
+            .withInService(description.inService)
+            .withMigrationPolicy(description.migrationPolicy)
+            .withCredentials(description.credentials.name)
+            .withContainerAttributes(description.containerAttributes.collectEntries {
+              [(it.key): it.value?.toString()]
+            })
+            .withDisruptionBudget(description.disruptionBudget)
+
+    if (dockerImage.imageDigest != null) {
+      submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)
+    } else {
+      submitJobRequest = submitJobRequest.withDockerImageVersion(dockerImage.imageVersion)
+    }
+
+    if (description.hardConstraints) {
+      description.hardConstraints.each { constraint ->
+        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(constraint))
+      }
+    }
+
+    if (description.softConstraints) {
+      description.softConstraints.each { constraint ->
+        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(constraint))
+      }
+    }
+
+    if (description.jobType == "service" && !description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
+      submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
+    }
+
+    if (description.jobType) {
+      submitJobRequest.withJobType(description.jobType)
+    }
+
+    return submitJobRequest
+  }
+
+  private Set<String> resolveSecurityGroups(TitusDeployDescription description, String account, String region) {
+    task.updateStatus BASE_PHASE, "Resolving Security Groups... ${System.currentTimeMillis()}"
+
+    Set<String> securityGroups = []
+    description.securityGroups?.each { providedSecurityGroup ->
+      task.updateStatus BASE_PHASE, "Resolving Security Group ${providedSecurityGroup}... ${System.currentTimeMillis()}"
+      if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
+        securityGroups << providedSecurityGroup
+      } else {
+        task.updateStatus BASE_PHASE, "Resolving Security Group name ${providedSecurityGroup}... ${System.currentTimeMillis()}"
+        String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
+        if (!convertedSecurityGroup) {
+          throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
+        }
+        securityGroups << convertedSecurityGroup
+      }
+    }
+
+    task.updateStatus BASE_PHASE, "Finished resolving Security Groups... ${System.currentTimeMillis()}"
+    return securityGroups
+  }
+
+  private void mergeSourceDetailsIntoDescription(TitusDeployDescription description, Map front50Application) {
+    // If cluster name info was not provided, use the fields from the source asg
+    def sourceName = Names.parseName(description.source.asgName)
+    description.application = description.application != null ? description.application : sourceName.app
+    description.stack = description.stack != null ? description.stack : sourceName.stack
+    description.freeFormDetails = description.freeFormDetails != null ? description.freeFormDetails : sourceName.detail
+
+    Source source = description.source
+
+    TitusClient sourceClient = buildSourceTitusClient(source)
+    if (!sourceClient) {
+      throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
+    }
+    Job sourceJob = sourceClient.findJobByName(source.asgName)
+    if (!sourceJob) {
+      throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
+    }
+
+    task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
+
+    description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
+    description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + (sourceJob.version ?: sourceJob.digest))
+
+    if (description.source.useSourceCapacity) {
+      description.capacity.min = sourceJob.instancesMin
+      description.capacity.max = sourceJob.instancesMax
+      description.capacity.desired = sourceJob.instancesDesired
+    }
+
+    description.resources.cpu = description.resources.cpu ?: sourceJob.cpu
+    description.resources.memory = description.resources.memory ?: sourceJob.memory
+    description.resources.disk = description.resources.disk ?: sourceJob.disk
+    description.retries = description.retries ?: sourceJob.retries
+    description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
+    description.resources.gpu = description.resources.gpu ?: sourceJob.gpu
+    description.resources.networkMbps = description.resources.networkMbps ?: sourceJob.networkMbps
+    description.efs = description.efs ?: sourceJob.efs
+    description.resources.allocateIpAddress = description.resources.allocateIpAddress ?: sourceJob.allocateIpAddress
+    description.entryPoint = description.entryPoint ?: sourceJob.entryPoint
+    description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
+    description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
+
+    if (description.labels.isEmpty()) {
+      sourceJob.labels.each { k, v -> description.labels.put(k, v) }
+    }
+
+    if (description.env.isEmpty()) {
+      sourceJob.environment.each { k, v -> description.env.put(k, v) }
+    }
+
+    if (description.containerAttributes.isEmpty()) {
+      sourceJob.containerAttributes.each { k, v -> description.containerAttributes.put(k, v) }
+    }
+    if (description.inService == null) {
+      description.inService = sourceJob.inService
+    }
+    configureDisruptionBudget(description, sourceJob, front50Application)
+    description.jobType = description.jobType ?: "service"
+    if (!description.hardConstraints) description.hardConstraints = []
+    if (!description.softConstraints) description.softConstraints = []
+    if (description.softConstraints.empty && sourceJob.softConstraints) {
+      sourceJob.softConstraints.each {
+        if (!description.hardConstraints.contains(it)) {
+          description.softConstraints.add(it)
+        }
+      }
+    }
+    if (description.hardConstraints.empty && sourceJob.hardConstraints) {
+      sourceJob.hardConstraints.each {
+        if (!description.softConstraints.contains(it)) {
+          description.hardConstraints.add(it)
+        }
+      }
+    }
+    if (sourceJob.labels?.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
+      description.useApplicationDefaultSecurityGroup = false
+    }
+  }
+
+  private void configureDisruptionBudget(TitusDeployDescription description, Job sourceJob, Map application) {
     if (description.disruptionBudget == null) {
       //migrationPolicy should only be used when the disruptionBudget has not been specified
       description.migrationPolicy = description.migrationPolicy ?: sourceJob?.migrationPolicy
     }
     // "systemDefault" should be treated as "no migrationPolicy"
     if (description.disruptionBudget == null && (description.migrationPolicy == null || "systemDefault" == description.migrationPolicy.type)) {
-      description.disruptionBudget = getDefaultDisruptionBudget()
+      description.disruptionBudget = getDefaultDisruptionBudget(application)
     }
   }
 
-  private DisruptionBudget getDefaultDisruptionBudget() {
+  private DisruptionBudget getDefaultDisruptionBudget(Map application) {
     DisruptionBudget budget = new DisruptionBudget()
     budget.availabilityPercentageLimit = new AvailabilityPercentageLimit(95)
     budget.ratePercentagePerInterval = new RatePercentagePerInterval(60000, 5)
@@ -442,7 +459,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
               "PST"
             )
     ]
-    budget.containerHealthProviders = [ new ContainerHealthProvider("eureka") ]
+    if (application && application['platformHealthOnly']) {
+      budget.containerHealthProviders = [new ContainerHealthProvider("eureka")]
+    }
     return budget
   }
 
