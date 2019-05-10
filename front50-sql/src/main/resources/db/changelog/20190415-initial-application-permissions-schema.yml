@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-application-permissions-table
+      author: ajordens
+      changes:
+        - createTable:
+            tableName: application_permissions
+            columns:
+              - column:
+                  name: id
+                  type: char(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: applications
+  - changeSet:
+      id: create-application-permissions-history-table
+      author: ajordens
+      changes:
+        - createTable:
+            tableName: application_permissions_history
+            columns:
+              - column:
+                  name: id
+                  type: char(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body_sig
+                  type: char(32)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: last_modified_at
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: recorded_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci"
+      rollback:
+        - dropTable:
+            tableName: application_permissions_history
