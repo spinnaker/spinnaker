@@ -41,6 +41,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.boot.SpringApplication
+import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthIndicatorAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
@@ -253,7 +254,7 @@ class FunctionalSpec extends Specification {
   }
 
   @Order(10)
-  @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
+  @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration, LdapHealthIndicatorAutoConfiguration])
   private static class FunctionalConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
