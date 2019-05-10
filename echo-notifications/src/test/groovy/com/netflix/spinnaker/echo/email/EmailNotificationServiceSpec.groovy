@@ -96,6 +96,6 @@ class EmailNotificationServiceSpec extends Specification {
     ['receiver@localhost']                    | ['some-addr@localhost']                            || ['receiver@localhost']                      || ['some-addr@localhost']
     ['receiver@localhost another@localhost']  | ['some-addr@localhost some-other-addr@localhost']  || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
     ['receiver@localhost,another@localhost']  | ['some-addr@localhost,some-other-addr@localhost']  || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
-    ['receiver@localhost, another@localhost'] | ['some-addr@localhost, some-other-addr@localhost'] || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
+    ['receiver@localhost; another@localhost'] | ['some-addr@localhost, some-other-addr@localhost'] || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
   }
 }

@@ -55,25 +55,11 @@ class EmailNotificationService implements NotificationService {
 
   @Override
   EchoResponse.Void handle(Notification notification) {
-    def expando = { String addresses ->
-      // could be comma and/or space separated
-      addresses = addresses.replaceAll(",", " ")
-      return addresses.split(" ").findAll { !it.isEmpty() }
-    }
-
-    def to = notification.to?.collect {
-      expando(it)
-    }?.flatten() as String[]
-
-    def cc = notification.cc?.collect {
-      expando(it)
-    }?.flatten() as String[]
-
     def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 
     try {
-      send(to, cc, subject, body)
+      send(notification.to?.toArray(new String[0]), notification.cc?.toArray(new String[0]), subject, body)
     } catch (AddressException e) {
       throw new InvalidRequestException(e.message)
     }
@@ -85,12 +71,25 @@ class EmailNotificationService implements NotificationService {
     MimeMessage message = javaMailSender.createMimeMessage()
     MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8")
 
+    def splitAddresses = { String addresses ->
+      // Split on space, comma, or semicolon
+      return addresses.split("[ ,;]").findAll { !it.isEmpty() }
+    }
+
     if (to) {
-      helper.setTo(to)
+      def toParsed = to.collect {
+        splitAddresses(it)
+      }?.flatten() as String[]
+
+      helper.setTo(toParsed)
     }
 
     if (cc) {
-      helper.setCc(cc)
+      def ccParsed = cc.collect {
+        splitAddresses(it)
+      }?.flatten() as String[]
+
+      helper.setCc(ccParsed)
     }
 
     if (to || cc) {
