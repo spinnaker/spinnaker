@@ -66,12 +66,19 @@ class ContainerInformationServiceSpec extends Specification {
 
     serviceCacheClient.get(_) >> cachedService
     taskHealthCacheClient.get(_) >> cachedTaskHealth
+    taskCacheClient.get(_) >> new Task(lastStatus: 'RUNNING')
 
     def expectedHealthStatus = [
       [
         instanceId: taskId,
         state     : state,
         type      : type
+      ],
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      :'ecs',
+        healthClass: 'platform'
       ]
     ]
 
@@ -141,6 +148,42 @@ class ContainerInformationServiceSpec extends Specification {
     then:
     retrievedHealthStatus == expectedHealthStatus
   }
+
+  def 'should return correct health status based on last task status'() {
+    setup:
+    def taskId = 'task-id'
+    def serviceName = 'test-service-name'
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus)
+    def expectedHealthStatus = [
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      : 'loadBalancer'
+      ],
+      [
+        instanceId: taskId,
+        state     : resultStatus,
+        type      : 'ecs',
+        healthClass: 'platform'
+      ]
+    ]
+    def retrievedHealthStatus = service.getHealthStatus(taskId, serviceName, 'test-account', 'us-west-1')
+
+    expect:
+    retrievedHealthStatus == expectedHealthStatus
+
+    where:
+    lastStatus       | resultStatus
+    'PROVISIONING'   | 'Starting'
+    'PENDING'        | 'Starting'
+    'ACTIVATING'     | 'Starting'
+    'RUNNING'        | 'Unknown'
+    'DEACTIVATING'   | 'Down'
+    'STOPPING'       | 'Down'
+    'DEPROVISIONING' | 'Down'
+    'STOPPED'        | 'Down'
+  }
+
 
   def 'should throw an exception when the service has multiple loadbalancers'() {
     given:

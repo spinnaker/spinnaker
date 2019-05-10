@@ -70,35 +70,58 @@ public class ContainerInformationService {
     String healthKey = Keys.getTaskHealthKey(accountName, region, taskId);
     TaskHealth taskHealth = taskHealthCacheClient.get(healthKey);
 
-    if (service == null || taskHealth == null) {
-      List<Map<String, Object>> healthMetrics = new ArrayList<>();
+    String taskKey = Keys.getTaskKey(accountName, region, taskId);
+    Task task = taskCacheClient.get(taskKey);
 
+    List<Map<String, Object>> healthMetrics = new ArrayList<>();
+
+    // Load balancer-based health
+    if (service == null || taskHealth == null) {
       Map<String, Object> loadBalancerHealth = new HashMap<>();
       loadBalancerHealth.put("instanceId", taskId);
       loadBalancerHealth.put("state", "Unknown");
       loadBalancerHealth.put("type", "loadBalancer");
 
       healthMetrics.add(loadBalancerHealth);
-      return healthMetrics;
+    } else {
+      List<LoadBalancer> loadBalancers = service.getLoadBalancers();
+      //There should only be 1 based on AWS documentation.
+      if (loadBalancers.size() == 1) {
+        Map<String, Object> loadBalancerHealth = new HashMap<>();
+        loadBalancerHealth.put("instanceId", taskId);
+        loadBalancerHealth.put("state", taskHealth.getState());
+        loadBalancerHealth.put("type", taskHealth.getType());
+
+        healthMetrics.add(loadBalancerHealth);
+      } else if (loadBalancers.size() >= 2) {
+        throw new IllegalArgumentException("Cannot have more than 1 load balancer while checking ECS health.");
+      }
     }
 
-    List<LoadBalancer> loadBalancers = service.getLoadBalancers();
-    //There should only be 1 based on AWS documentation.
-    if (loadBalancers.size() == 1) {
-
-      List<Map<String, Object>> healthMetrics = new ArrayList<>();
-      Map<String, Object> loadBalancerHealth = new HashMap<>();
-      loadBalancerHealth.put("instanceId", taskId);
-      loadBalancerHealth.put("state", taskHealth.getState());
-      loadBalancerHealth.put("type", taskHealth.getType());
-
-      healthMetrics.add(loadBalancerHealth);
-      return healthMetrics;
-    } else if (loadBalancers.size() >= 2) {
-      throw new IllegalArgumentException("Cannot have more than 1 load balancer while checking ECS health.");
+    // Task-based health
+    if (task != null) {
+      Map<String, Object> taskPlatformHealth = new HashMap<>();
+      taskPlatformHealth.put("instanceId", taskId);
+      taskPlatformHealth.put("type", "ecs");
+      taskPlatformHealth.put("healthClass", "platform");
+      taskPlatformHealth.put("state", toPlatformHealthState(task.getLastStatus()));
+      healthMetrics.add(taskPlatformHealth);
     }
-    return null;
 
+    return healthMetrics;
+  }
+
+  private String toPlatformHealthState(String ecsTaskStatus) {
+    switch (ecsTaskStatus) {
+      case "PROVISIONING":
+      case "PENDING":
+      case "ACTIVATING":
+        return "Starting";
+      case "RUNNING":
+        return "Unknown";
+      default:
+        return "Down";
+    }
   }
 
   public String getClusterArn(String accountName, String region, String taskId) {

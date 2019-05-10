@@ -114,7 +114,7 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       if (createServerGroupDescription.getContainerPort() < 0 || createServerGroupDescription.getContainerPort() > 65535) {
         rejectValue(errors, "containerPort", "invalid");
       }
-    } else {
+    } else if (createServerGroupDescription.getTargetGroup() != null && !createServerGroupDescription.getTargetGroup().isEmpty()) {
       rejectValue(errors, "containerPort", "not.nullable");
     }
 

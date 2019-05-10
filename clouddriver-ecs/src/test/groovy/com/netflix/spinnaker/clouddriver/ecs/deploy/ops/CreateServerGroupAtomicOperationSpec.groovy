@@ -364,6 +364,19 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
   }
 
+  def 'should allow no port mappings'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getContainerPort() >> null
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getPortMappings().isEmpty()
+  }
+
   def 'should allow using secret credentials for the docker image'() {
     given:
     def description = Mock(CreateServerGroupDescription)

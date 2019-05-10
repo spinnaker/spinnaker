@@ -142,26 +142,36 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_STACK").withValue(description.getStack()));
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_DETAIL").withValue(description.getFreeFormDetails()));
 
-    PortMapping portMapping = new PortMapping()
-      .withProtocol(description.getPortProtocol() != null ? description.getPortProtocol() : "tcp");
-
-    if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
-      portMapping
-        .withHostPort(description.getContainerPort())
-        .withContainerPort(description.getContainerPort());
-    } else {
-      portMapping
-        .withHostPort(0)
-        .withContainerPort(description.getContainerPort());
-    }
+    ContainerDefinition containerDefinition = new ContainerDefinition()
+      .withName(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName))
+      .withEnvironment(containerEnvironment)
+      .withCpu(description.getComputeUnits())
+      .withMemoryReservation(description.getReservedMemory())
+      .withImage(description.getDockerImageAddress());
 
     Collection<PortMapping> portMappings = new LinkedList<>();
-    portMappings.add(portMapping);
+
+    if (description.getContainerPort() != null) {
+      PortMapping portMapping = new PortMapping()
+        .withProtocol(description.getPortProtocol() != null ? description.getPortProtocol() : "tcp");
+
+      if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
+        portMapping
+          .withHostPort(description.getContainerPort())
+          .withContainerPort(description.getContainerPort());
+      } else {
+        portMapping
+          .withHostPort(0)
+          .withContainerPort(description.getContainerPort());
+      }
+
+      portMappings.add(portMapping);
+    }
 
     if (description.getServiceDiscoveryAssociations() != null) {
       for (CreateServerGroupDescription.ServiceDiscoveryAssociation config : description.getServiceDiscoveryAssociations()) {
         if (config.getContainerPort() != null && config.getContainerPort() != 0 && config.getContainerPort() != description.getContainerPort()) {
-          portMapping = new PortMapping().withProtocol("tcp");
+          PortMapping portMapping = new PortMapping().withProtocol("tcp");
           if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
             portMapping
               .withHostPort(config.getContainerPort())
@@ -176,13 +186,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       }
     }
 
-    ContainerDefinition containerDefinition = new ContainerDefinition()
-      .withName(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName))
-      .withEnvironment(containerEnvironment)
-      .withPortMappings(portMappings)
-      .withCpu(description.getComputeUnits())
-      .withMemoryReservation(description.getReservedMemory())
-      .withImage(description.getDockerImageAddress());
+    containerDefinition.setPortMappings(portMappings);
 
     if (!NO_IMAGE_CREDENTIALS.equals(description.getDockerImageCredentialsSecret()) &&
       description.getDockerImageCredentialsSecret() != null) {
@@ -246,8 +250,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
   private Service createService(AmazonECS ecs, TaskDefinition taskDefinition, String ecsServiceRole,
                                 String newServerGroupName, Service sourceService) {
-    Collection<LoadBalancer> loadBalancers = new LinkedList<>();
-    loadBalancers.add(retrieveLoadBalancer(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName)));
+    Collection<LoadBalancer> loadBalancers = retrieveLoadBalancers(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
 
     Integer desiredCount = description.getCapacity().getDesired();
     if (sourceService != null &&
@@ -480,12 +483,13 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     return result;
   }
 
-  private LoadBalancer retrieveLoadBalancer(String containerName) {
-    LoadBalancer loadBalancer = new LoadBalancer();
-    loadBalancer.setContainerName(containerName);
-    loadBalancer.setContainerPort(description.getContainerPort());
+  private Collection<LoadBalancer> retrieveLoadBalancers(String containerName) {
+    Collection<LoadBalancer> loadBalancers = new LinkedList<>();
+    if (description.getTargetGroup() != null && !description.getTargetGroup().isEmpty()) {
+      LoadBalancer loadBalancer = new LoadBalancer();
+      loadBalancer.setContainerName(containerName);
+      loadBalancer.setContainerPort(description.getContainerPort());
 
-    if (description.getTargetGroup() != null) {
       AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
 
       DescribeTargetGroupsRequest request = new DescribeTargetGroupsRequest().withNames(description.getTargetGroup());
@@ -499,8 +503,9 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
         throw new IllegalArgumentException("There is no target group with the name " + description.getTargetGroup() + ".");
       }
 
+      loadBalancers.add(loadBalancer);
     }
-    return loadBalancer;
+    return loadBalancers;
   }
 
   private AWSApplicationAutoScaling getSourceAmazonApplicationAutoScalingClient() {
