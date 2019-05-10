@@ -24,6 +24,9 @@ public class TomcatConfigurationProperties {
 
   private int apiPort = -1;
 
+  private String relaxedQueryCharacters = "";
+  private String relaxedPathCharacters = "";
+
   public int getLegacyServerPort() {
     return legacyServerPort;
   }
@@ -38,5 +41,21 @@ public class TomcatConfigurationProperties {
 
   public void setApiPort(int apiPort) {
     this.apiPort = apiPort;
+  }
+
+  public String getRelaxedQueryCharacters() {
+    return relaxedQueryCharacters;
+  }
+
+  public void setRelaxedQueryCharacters(String relaxedQueryCharacters) {
+    this.relaxedQueryCharacters = relaxedQueryCharacters;
+  }
+
+  public String getRelaxedPathCharacters() {
+    return relaxedPathCharacters;
+  }
+
+  public void setRelaxedPathCharacters(String relaxedPathCharacters) {
+    this.relaxedPathCharacters = relaxedPathCharacters;
   }
 }

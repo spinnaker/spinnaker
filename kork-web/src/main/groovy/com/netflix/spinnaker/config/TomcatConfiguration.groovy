@@ -45,8 +45,9 @@ class TomcatConfiguration {
 
   @Bean
   TomcatContainerCustomizerUtil tomcatContainerCustomizerUtil(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-                                                              SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
-    return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, sslExtensionConfigurationProperties)
+                                                              SslExtensionConfigurationProperties sslExtensionConfigurationProperties,
+                                                              TomcatConfigurationProperties tomcatConfigurationProperties) {
+    return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, sslExtensionConfigurationProperties, tomcatConfigurationProperties)
   }
 
   /**
@@ -69,6 +70,7 @@ class TomcatConfiguration {
         @Override
         void customize(Connector connector) {
           tomcatContainerCustomizerUtil.applySSLSettings(connector)
+          tomcatContainerCustomizerUtil.applyRelaxedURIProperties(connector)
         }
       })
 
@@ -90,6 +92,7 @@ class TomcatConfiguration {
         def sslCustomizer = new SslConnectorCustomizer(ssl, tomcat.getSslStoreProvider())
         sslCustomizer.customize(apiConnector)
         tomcatContainerCustomizerUtil.applySSLSettings(apiConnector)
+        tomcatContainerCustomizerUtil.applyRelaxedURIProperties(apiConnector)
         tomcat.addAdditionalTomcatConnectors(apiConnector)
       }
     } as WebServerFactoryCustomizer
