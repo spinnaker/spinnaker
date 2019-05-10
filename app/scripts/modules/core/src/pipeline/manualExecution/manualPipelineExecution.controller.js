@@ -303,7 +303,7 @@ module.exports = angular
 
       if (!pipeline) {
         this.pipelineOptions = application.pipelineConfigs.data.filter(
-          c => !c.disabled && !PipelineTemplateV2Service.isV2PipelineConfig(c),
+          c => !c.disabled && PipelineTemplateV2Service.isConfigurable(c),
         );
       }
     },

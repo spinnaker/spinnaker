@@ -3,6 +3,7 @@ import { hri as HumanReadableIds } from 'human-readable-ids';
 import { IPipeline, IPipelineTemplateConfigV2, IPipelineTemplateV2 } from 'core/domain';
 import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
 import { UUIDGenerator } from 'core/utils';
+import { SETTINGS } from 'core/config';
 
 export class PipelineTemplateV2Service {
   public static createPipelineTemplate(pipeline: IPipeline, owner: string): IPipelineTemplateV2 {
@@ -52,6 +53,10 @@ export class PipelineTemplateV2Service {
   private static prefixSource(source = ''): string {
     const referencePrefix = 'spinnaker://';
     return source.startsWith(referencePrefix) ? source : `${referencePrefix}${source}`;
+  }
+
+  public static isConfigurable(pipelineConfig: IPipeline): boolean {
+    return SETTINGS.feature.managedPipelineTemplatesV2UI || !this.isV2PipelineConfig(pipelineConfig);
   }
 
   private static schema = 'v2';
