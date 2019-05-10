@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfigurati
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
@@ -31,7 +32,13 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
 @EnableScheduling
-@EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, CassandraAutoConfiguration, RedisAutoConfiguration, RedisRepositoriesAutoConfiguration])
+@EnableAutoConfiguration(exclude = [
+    GroovyTemplateAutoConfiguration,
+    CassandraAutoConfiguration,
+    RedisAutoConfiguration,
+    RedisRepositoriesAutoConfiguration,
+    DataSourceAutoConfiguration
+])
 @ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [

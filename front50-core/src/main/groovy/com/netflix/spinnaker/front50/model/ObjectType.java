@@ -40,9 +40,9 @@ public enum ObjectType {
   ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json"),
   DELIVERY(Delivery.class, "delivery", "delivery-metadata.json");
 
-  final Class<? extends Timestamped> clazz;
-  final String group;
-  final String defaultMetadataFilename;
+  public final Class<? extends Timestamped> clazz;
+  public final String group;
+  public final String defaultMetadataFilename;
 
   ObjectType(Class<? extends Timestamped> clazz, String group, String defaultMetadataFilename) {
     this.clazz = clazz;

@@ -52,7 +52,6 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final long refreshIntervalMs;
   private final boolean shouldWarmCache;
   private final Registry registry;
-  private final Timer cacheRefreshTimer;      // All refreshes
   private final Timer autoRefreshTimer;       // Only spontaneous refreshes in all()
   private final Timer scheduledRefreshTimer;  // Only refreshes from scheduler
   private final Counter addCounter;      // Newly discovered files during refresh
@@ -82,8 +81,6 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     this.registry = registry;
 
     String typeName = objectType.name();
-    this.cacheRefreshTimer = registry.timer(
-      registry.createId("storageServiceSupport.cacheRefreshTime", "objectType", typeName));
     this.autoRefreshTimer = registry.timer(
       registry.createId("storageServiceSupport.autoRefreshTime", "objectType", typeName));
     this.scheduledRefreshTimer = registry.timer(
