@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -26,7 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.Trigger;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
+import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
@@ -150,10 +152,23 @@ public class ExecutionLauncher {
     return null;
   }
 
+  @SuppressWarnings("unchecked")
   private Execution handleStartupFailure(Execution execution, Throwable failure) {
     final String canceledBy = "system";
-    final String reason = "Failed on startup: " + failure.getMessage();
+    String reason = "Failed on startup: " + failure.getMessage();
     final ExecutionStatus status = ExecutionStatus.TERMINAL;
+
+    if (failure instanceof ValidationException) {
+      ValidationException validationException = (ValidationException) failure;
+      if (validationException.getAdditionalAttributes().containsKey("errors")) {
+        List<Map<String, Object>> errors = ((List<Map<String, Object>>) validationException.getAdditionalAttributes()
+          .get("errors"));
+        reason += errors.stream()
+          .flatMap(error -> error.entrySet().stream().filter(entry -> !entry.getKey().equals("severity")))
+          .map(entry -> "\n" + WordUtils.capitalizeFully(entry.getKey()) + ": " + entry.getValue())
+          .collect(Collectors.joining("\n", "\n", ""));
+      }
+    }
 
     log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
     executionRepository.updateStatus(execution.getType(), execution.getId(), status);
