@@ -62,6 +62,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const instances = serverGroup.instances.filter(i => ClusterState.filterService.shouldShowInstance(i));
     const isSelected = this.isSelected(serverGroup);
     const isMultiSelected = this.isMultiSelected(props.sortFilter.multiselect, serverGroup);
+    const ciBuildConfig = serverGroup.buildInfo && serverGroup.buildInfo.ciBuild;
     const jenkinsConfig = serverGroup.buildInfo && serverGroup.buildInfo.jenkins;
     const dockerConfig = serverGroup.buildInfo && serverGroup.buildInfo.docker;
 
@@ -69,7 +70,12 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     let images: string[] = null;
     let docker: IDockerViewModel = null;
 
-    if (jenkinsConfig && (jenkinsConfig.host || jenkinsConfig.fullUrl || serverGroup.buildInfo.buildInfoUrl)) {
+    if (ciBuildConfig && ciBuildConfig.jobNumber) {
+      jenkins = {
+        number: ciBuildConfig.number,
+        href: ciBuildConfig.jobUrl,
+      };
+    } else if (jenkinsConfig && (jenkinsConfig.host || jenkinsConfig.fullUrl || serverGroup.buildInfo.buildInfoUrl)) {
       const fromHost =
         jenkinsConfig.host && [jenkinsConfig.host + 'job', jenkinsConfig.name, jenkinsConfig.number, ''].join('/');
       const fromFullUrl = jenkinsConfig.fullUrl;
