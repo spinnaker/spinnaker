@@ -108,7 +108,7 @@ export class ExecutionService {
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         if (application && name) {
-          return API.one('applications', application, 'pipelineConfigs', name)
+          return API.one('applications', application, 'pipelineConfigs', encodeURIComponent(name))
             .get()
             .then((pipelineConfig: IPipeline) => {
               execution.pipelineConfig = pipelineConfig;
