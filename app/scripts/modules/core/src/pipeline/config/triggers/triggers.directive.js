@@ -1,5 +1,7 @@
 'use strict';
 
+import { extend } from 'lodash';
+
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 import { ExpectedArtifactService } from 'core/artifact/expectedArtifact.service';
 import { Registry } from 'core/registry';
@@ -72,5 +74,42 @@ module.exports = angular
        */
 
       this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
+
+      //Call back function for full controlled react component
+      $scope.pipeline.parameterConfig = $scope.pipeline.parameterConfig || [];
+
+      $scope.addParameter = () => {
+        if (!$scope.pipeline.parameterConfig) {
+          $scope.pipeline.parameterConfig = [];
+        }
+        var newParameter = {
+          name: '',
+          label: '',
+          required: false,
+          pinned: false,
+          description: '',
+          default: '',
+          hasOptions: false,
+          options: [{ value: '' }],
+        };
+        $scope.pipeline.parameterConfig.push(newParameter);
+        $scope.$digest();
+      };
+
+      $scope.removeParameter = function(index) {
+        $scope.pipeline.parameterConfig.splice(index, 1);
+        $scope.$digest();
+      };
+
+      $scope.updateParameter = function(index, changes) {
+        $scope.pipeline.parameterConfig = $scope.pipeline.parameterConfig.slice(0);
+        extend($scope.pipeline.parameterConfig[index], changes);
+        $scope.$digest();
+      };
+
+      $scope.updateAllParameters = function(parameters) {
+        $scope.pipeline.parameterConfig = parameters;
+        $scope.$digest();
+      };
     },
   ]);

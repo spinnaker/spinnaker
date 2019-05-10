@@ -102,7 +102,15 @@
     </div>
   </page-section>
   <page-section key="parameters" label="Parameters" no-wrapper="true" badge="pipeline.parameterConfig.length">
-    <parameters pipeline="pipeline"></parameters>
+    <parameters
+      add-parameter="addParameter"
+      parameters="pipeline.parameterConfig"
+      pipeline-name="pipeline.name"
+      remove-parameter="removeParameter"
+      update-parameter="updateParameter"
+      update-all-parameters="updateAllParameters"
+    >
+    </parameters>
   </page-section>
   <page-section
     key="notifications"
