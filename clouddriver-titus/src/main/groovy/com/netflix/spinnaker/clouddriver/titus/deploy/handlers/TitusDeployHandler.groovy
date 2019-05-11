@@ -451,7 +451,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   private DisruptionBudget getDefaultDisruptionBudget(Map application) {
     DisruptionBudget budget = new DisruptionBudget()
     budget.availabilityPercentageLimit = new AvailabilityPercentageLimit(95)
-    budget.ratePercentagePerInterval = new RatePercentagePerInterval(60000, 5)
+    budget.ratePercentagePerInterval = new RatePercentagePerInterval(600000, 5)
     budget.timeWindows = [
             new TimeWindow(
               ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
