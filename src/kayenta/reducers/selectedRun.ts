@@ -73,7 +73,7 @@ const graphType = handleActions<GraphType>(
   {
     [Actions.SELECT_GRAPH_TYPE]: (_state: GraphType, action: Action & any) => action.payload.type,
   },
-  GraphType.AmplitudeVsTime,
+  GraphType.TimeSeries,
 );
 
 export const selectedRun: Reducer<ISelectedRunState> = combineReducers<ISelectedRunState>({

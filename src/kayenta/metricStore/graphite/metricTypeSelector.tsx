@@ -61,7 +61,7 @@ export const mapStateToProps = (state: ICanaryState, ownProps: IGraphiteMetricTy
   const options: string[] = descriptors.map(d => d.name);
 
   return {
-    options: options,
+    options,
     loading: state.data.metricsServiceMetadata.load === AsyncRequestState.Requesting,
     ...ownProps,
   };

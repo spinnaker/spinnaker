@@ -1,0 +1,29 @@
+.metric-result-actions {
+  .actions-layout {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin: 12px 4px;
+  }
+  .action {
+    padding-left: 8px;
+  }
+  .copy-button-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    .clipboard-btn {
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: 2;
+      position: absolute;
+    }
+    .copy-button {
+      .copy-icon {
+        top: -1px;
+      }
+    }
+  }
+}

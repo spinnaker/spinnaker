@@ -77,8 +77,8 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 }
 
 export function buildNewConfig(state: ICanaryState): ICanaryConfig {
-  let configName = 'new-config',
-    i = 1;
+  let configName = 'new-config';
+  let i = 1;
   while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `new-config-${i}`;
     i++;
@@ -112,8 +112,8 @@ export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
   }
 
   // Probably a rare case, but someone could be lazy about naming their configs.
-  let configName = `${config.name}-copy`,
-    i = 1;
+  let configName = `${config.name}-copy`;
+  let i = 1;
   while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `${config.name}-copy-${i}`;
     i++;

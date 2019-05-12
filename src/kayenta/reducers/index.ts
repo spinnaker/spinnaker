@@ -124,12 +124,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
       }
 
       const group = action.payload.group;
-      let filter: (r: ICanaryAnalysisResult) => boolean;
-      if (!group) {
-        filter = () => true;
-      } else {
-        filter = r => r.groups.includes(group);
-      }
+      const filter: (r: ICanaryAnalysisResult) => boolean = group ? r => r.groups.includes(group) : () => true;
 
       return results.find(filter) ? results.find(filter).id : null;
     }

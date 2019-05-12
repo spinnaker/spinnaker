@@ -4,6 +4,7 @@ import { connect, Dispatch } from 'react-redux';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { GraphType } from './graph/metricSetPairGraph.service';
+import './graphTypeSelector.less';
 
 interface IGraphTypeSelectorStateProps {
   selected: GraphType;
@@ -18,7 +19,7 @@ const GraphTypeSelector = ({
   selectGraphType,
 }: IGraphTypeSelectorStateProps & IGraphTypeSelectorDispatchProps) => {
   return (
-    <ul className="list-inline">
+    <ul className="list-inline graph-type-selector">
       <li>
         <label className="label uppercase color-text-primary" style={{ paddingLeft: 0 }}>
           Graph:

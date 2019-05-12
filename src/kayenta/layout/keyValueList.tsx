@@ -37,9 +37,9 @@ export const updateListReducer = (defaultValue = { key: '', value: '' }) => (
     case KeyValueListAction.DELETE:
       return [...state.slice(0, index), ...state.slice(index + 1)];
     case KeyValueListAction.KEY_EDIT:
-      return [...state.slice(0, index), Object.assign({}, state[index], { key: value }), ...state.slice(index + 1)];
+      return [...state.slice(0, index), { ...state[index], key: value }, ...state.slice(index + 1)];
     case KeyValueListAction.VALUE_EDIT:
-      return [...state.slice(0, index), Object.assign({}, state[index], { value }), ...state.slice(index + 1)];
+      return [...state.slice(0, index), { ...state[index], value }, ...state.slice(index + 1)];
   }
 };
 

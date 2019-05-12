@@ -13,16 +13,14 @@ interface IMetricSetPairGraphStateProps {
   graphType: GraphType;
 }
 
-const GRAPH_IMPLEMENTATIONS = ['chartjs', 'plotly'];
+const GRAPH_IMPLEMENTATIONS = ['semiotic'];
 
 const MetricSetPairGraph = ({ pair, result, graphType }: IMetricSetPairGraphStateProps) => {
   const delegates = GRAPH_IMPLEMENTATIONS.map(name => metricSetPairGraphService.getDelegate(name)).filter(d => !!d);
-
   const delegate = delegates.find(candidate => candidate.handlesGraphType(graphType));
   if (!delegate) {
     return <h3 className="heading-3">Could not load graph.</h3>;
   }
-
   const Graph = delegate.getGraph();
   return <Graph metricSetPair={pair} result={result} type={graphType} />;
 };

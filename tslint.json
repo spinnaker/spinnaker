@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint-eslint-rules", "tslint-react"],
+  "extends": ["tslint:latest", "tslint-react", "tslint-eslint-rules", "tslint-config-prettier"],
   "rules": {
     "class-name": true,
     "comment-format": [true, "check-space"],
@@ -11,6 +11,13 @@
     "max-line-length": false,
     "member-access": true,
     "member-ordering": [true, "static-before-instance", "variables-before-functions"],
+    "ordered-imports": false,
+    "no-submodule-imports": false,
+    "no-implicit-dependencies": false,
+    "no-object-literal-type-assertion": false,
+    "no-invalid-template-strings": false,
+    "no-empty-interface": false,
+    "prefer-conditional-expression": false,
     "no-arg": true,
     "no-bitwise": true,
     "no-console": [true, "log", "warn", "debug", "info", "time", "timeEnd", "trace"],

@@ -26,7 +26,7 @@ export class KayentaStageTransformer implements ITransformer {
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
         const runCanaryStages = syntheticCanaryStages.filter(s => s.type === RUN_CANARY);
-        syntheticCanaryStages.forEach(stage => OrchestratedItemTransformer.defineProperties(stage));
+        syntheticCanaryStages.forEach(syntheticStage => OrchestratedItemTransformer.defineProperties(syntheticStage));
         this.calculateRunCanaryResults(runCanaryStages);
         this.calculateKayentaCanaryResults(stage, syntheticCanaryStages);
 

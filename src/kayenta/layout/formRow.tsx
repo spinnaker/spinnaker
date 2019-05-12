@@ -18,7 +18,7 @@ export default function FormRow({ label, helpId, children, checkbox, error, warn
         {label} {helpId && <HelpField id={helpId} />}
       </label>
       <div
-        className={classNames('col-sm-10', { checkbox: checkbox })}
+        className={classNames('col-sm-10', { checkbox })}
         style={checkbox ? { marginTop: '0', marginBottom: '0' } : null}
       >
         {children}

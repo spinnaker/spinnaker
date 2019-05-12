@@ -18,7 +18,8 @@
     "noUnusedParameters": true,
     "outDir": "transpiled",
     "paths": {
-      "rxjs": ["../node_modules/rxjs"] // only needed when using npm link
+      "rxjs": ["../node_modules/rxjs"], // only needed when using npm link
+      "kayenta": ["kayenta"]
     },
     "pretty": true,
     "removeComments": true,

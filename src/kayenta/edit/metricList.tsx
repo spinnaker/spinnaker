@@ -104,12 +104,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   const selectedGroup = state.selectedConfig.group.selected;
   const metricList = state.selectedConfig.metricList;
 
-  let filter;
-  if (!selectedGroup) {
-    filter = () => true;
-  } else {
-    filter = (metric: ICanaryMetricConfig) => metric.groups.includes(selectedGroup);
-  }
+  const filter = selectedGroup ? (metric: ICanaryMetricConfig) => metric.groups.includes(selectedGroup) : () => true;
   return {
     selectedGroup,
     groupList: state.selectedConfig.group.list,

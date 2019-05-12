@@ -29,7 +29,8 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
     const hasExpressions =
       this.isExpression(this.props.unhealthyScore) || this.isExpression(this.props.successfulScore);
 
-    let successful: number, unhealthy: number;
+    let successful: number;
+    let unhealthy: number;
     if (!hasExpressions) {
       successful = parseInt(this.props.successfulScore, 10);
       unhealthy = parseInt(this.props.unhealthyScore, 10);

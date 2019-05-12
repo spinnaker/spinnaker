@@ -34,8 +34,8 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
     const score = props.score === 0 || (props.score && props.score > 0) ? props.score : 'N/A';
 
     return {
+      score,
       healthLabel: getHealthLabel(props.health, props.result),
-      score: score,
     };
   }
 

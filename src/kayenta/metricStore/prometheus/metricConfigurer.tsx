@@ -27,10 +27,10 @@ interface IPrometheusMetricConfigurerDispatchProps {
   updateLabelBindings: (payload: IUpdateListPayload) => void;
   updateGroupBy: (payload: IUpdateListPayload) => void;
   updateFilterQueryType: (queryType: PrometheusQueryType) => void;
-  updatePrometheusMetricQueryField<T extends keyof IPrometheusCanaryMetricSetQueryConfig>(
+  updatePrometheusMetricQueryField: <T extends keyof IPrometheusCanaryMetricSetQueryConfig>(
     field: keyof IPrometheusCanaryMetricSetQueryConfig,
     value: Option<IPrometheusCanaryMetricSetQueryConfig[T]>,
-  ): void;
+  ) => void;
 }
 
 const RESOURCE_TYPES = ['gce_instance', 'aws_ec2_instance'];

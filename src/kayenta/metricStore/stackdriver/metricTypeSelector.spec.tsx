@@ -9,7 +9,8 @@ import * as Actions from 'kayenta/actions';
 import { mapDispatchToProps, StackdriverMetricTypeSelector } from './metricTypeSelector';
 
 describe('<StackdriverMetricTypeSelector />', () => {
-  let Component: any, state: any;
+  let Component: any;
+  let state: any;
 
   beforeEach(() => {
     state = {

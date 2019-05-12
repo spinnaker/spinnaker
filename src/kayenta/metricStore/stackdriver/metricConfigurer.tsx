@@ -18,11 +18,11 @@ interface IStackdriverMetricConfigurerStateProps {
 }
 
 interface IStackdriverMetricConfigurerDispatchProps {
-  updateStackdriverQueryField<T extends keyof IStackdriverCanaryMetricSetQueryConfig>(
+  updateStackdriverQueryField: <T extends keyof IStackdriverCanaryMetricSetQueryConfig>(
     field: keyof IStackdriverCanaryMetricSetQueryConfig,
     value: Option<IStackdriverCanaryMetricSetQueryConfig[T]>,
-  ): void;
-  updateGroupBy(payload: IUpdateListPayload): void;
+  ) => void;
+  updateGroupBy: (payload: IUpdateListPayload) => void;
 }
 
 // TODO(dpeach): externalize these values.

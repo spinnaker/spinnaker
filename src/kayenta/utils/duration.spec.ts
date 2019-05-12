@@ -6,13 +6,13 @@ import {
   IDuration,
 } from './duration';
 
-interface DurationTest {
+interface IDurationTest {
   str: string;
   obj: IDuration;
 }
 
 describe('Duration utils', () => {
-  let validDurationStringsToObjects: DurationTest[];
+  let validDurationStringsToObjects: IDurationTest[];
   let invalidDurationStrings: any[];
   let invalidDurationObjects: any[];
 

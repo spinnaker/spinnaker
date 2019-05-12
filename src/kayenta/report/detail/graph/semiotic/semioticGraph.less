@@ -1,0 +1,52 @@
+@import './config.less';
+
+.semiotic-graph {
+  margin-bottom: 8px;
+  .visualization-layer {
+    .background-graphics {
+      .axis-tick-lines {
+        stroke: @grid-color;
+        opacity: 0.1;
+      }
+      .axis-title text {
+        letter-spacing: 1.5px;
+      }
+    }
+  }
+
+  .axis {
+    font-size: 12px;
+    font-weight: 400;
+    fill: @axis-color;
+    .axis-title.left.y text {
+      letter-spacing: 1.5px;
+    }
+    .x.axis.bottom text.axis-label {
+      transform: translateY(-10px);
+    }
+    .x.axis.bottom text.axis-label:nth-child(2) {
+      transform: translateY(5px);
+    }
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .prefix {
+      font-weight: 600;
+    }
+  }
+
+  .chart-title {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    font-size: 12px;
+  }
+
+  .graph-container {
+    position: relative;
+  }
+}

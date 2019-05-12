@@ -1,0 +1,42 @@
+.boxplot {
+  .tooltip-container {
+    .columns {
+      display: flex;
+      flex-direction: row;
+      .column {
+        padding: 10px;
+        .header {
+          font-weight: 600;
+          padding-left: 0px;
+        }
+      }
+    }
+  }
+
+  .boxplot-annotation {
+    text {
+      fill: var(--color-text-primary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .annotation-connector {
+      display: none;
+    }
+    .note-line {
+      display: none;
+    }
+  }
+
+  .boxplot-chart {
+    .boxplot-summary {
+      g {
+        opacity: 0.8;
+      }
+      g:nth-child(1),
+      g:nth-child(2),
+      g:nth-child(3) {
+        opacity: 0.3;
+      }
+    }
+  }
+}

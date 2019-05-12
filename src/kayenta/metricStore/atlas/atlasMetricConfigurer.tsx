@@ -23,7 +23,7 @@ interface IAtlasMetricConfigurerState {
   webComponent: Element;
 }
 
-export interface AtlasQuerySelector {
+export interface IAtlasQuerySelector {
   class: string;
   backends: string;
   query: string;
@@ -31,7 +31,7 @@ export interface AtlasQuerySelector {
   ref: (webComponent: Element) => void;
 }
 
-interface ChangeQueryStringEvent extends CustomEvent {
+interface IChangeQueryStringEvent extends CustomEvent {
   detail: string;
 }
 
@@ -52,12 +52,12 @@ if (CanarySettings.atlasWebComponentsUrl) {
   document.head.appendChild(componentScript);
 }
 
-// Add <atlas-query-selector> to the elements allowed in TSX, using the AtlasQuerySelector interface.
+// Add <atlas-query-selector> to the elements allowed in TSX, using the IAtlasQuerySelector interface.
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      'atlas-query-selector': AtlasQuerySelector;
+      'atlas-query-selector': IAtlasQuerySelector;
     }
   }
 }
@@ -77,7 +77,7 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
   private bindComponent(ref: Element) {
     this.setState({ webComponent: ref });
     if (ref) {
-      ref.addEventListener('change.queryString', (event: ChangeQueryStringEvent) => {
+      ref.addEventListener('change.queryString', (event: IChangeQueryStringEvent) => {
         this.props.updateQuery(event.detail);
       });
       // This gets passed down to the inner React rendering beyond the web-component wrapper. Simply setting it in

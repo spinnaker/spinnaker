@@ -647,8 +647,8 @@ export class KayentaStageController implements IComponentController {
           },
         }).result;
       }
-      const control = this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result),
-        experiment = cloneDeep(control);
+      const control = this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result);
+      const experiment = cloneDeep(control);
 
       const cleanup = (serverGroup: any, type: string) => {
         delete serverGroup.backingData;

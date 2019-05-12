@@ -101,7 +101,7 @@ const load = combineReducers({
 });
 
 function idMetrics(metrics: ICanaryMetricConfig[] = []) {
-  return metrics.map((metric, index) => Object.assign({}, metric, { id: '#' + index }));
+  return metrics.map((metric, index) => ({ ...metric, id: '#' + index }));
 }
 
 const metricList = handleActions(
@@ -291,28 +291,32 @@ const isInSyncWithServer = handleActions({}, null);
 function editingMetricReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
   switch (action.type) {
     case Actions.ADD_METRIC:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         editingMetric: state.metricList[state.metricList.length - 1],
-      });
+      };
 
     case Actions.EDIT_METRIC_BEGIN:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         editingMetric: state.metricList.find(metric => metric.id === action.payload.id),
-      });
+      };
 
     case Actions.EDIT_METRIC_CONFIRM: {
       const editing: ICanaryMetricConfig = omit(state.editingMetric, 'isNew');
-      return Object.assign({}, state, {
+      return {
+        ...state,
         metricList: state.metricList.map(metric => (metric.id === editing.id ? editing : metric)),
         editingMetric: null,
-      });
+      };
     }
 
     case Actions.EDIT_METRIC_CANCEL:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         metricList: state.metricList.filter(metric => !metric.isNew),
         editingMetric: null,
-      });
+      };
 
     default:
       return state;

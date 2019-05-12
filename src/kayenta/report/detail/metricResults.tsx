@@ -37,12 +37,9 @@ const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
   const result = judgeResultSelector(state);
 
   // Build list of metric results to render.
-  let filter: (r: ICanaryAnalysisResult) => boolean;
-  if (!selectedGroup) {
-    filter = () => true;
-  } else {
-    filter = r => r.groups.includes(selectedGroup);
-  }
+  const filter: (r: ICanaryAnalysisResult) => boolean = selectedGroup
+    ? r => r.groups.includes(selectedGroup)
+    : () => true;
 
   return {
     metricResults: Object.values(result.results).filter(filter),
