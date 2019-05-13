@@ -19,4 +19,17 @@ dependencies {
   implementation project(':echo-model')
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.assertj:assertj-core"
+
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
 }

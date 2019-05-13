@@ -17,22 +17,17 @@
 package com.netflix.spinnaker.echo.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ArtifactExtractor {
-  private List<WebhookArtifactExtractor> artifactExtractors = new ArrayList<>();
-
-  @Autowired
-  public ArtifactExtractor(List<WebhookArtifactExtractor> artifactExtractors) {
-    this.artifactExtractors = artifactExtractors;
-  }
+  private final List<WebhookArtifactExtractor> artifactExtractors;
 
   public List<Artifact> extractArtifacts(String type, String source, Map payload) {
     return artifactExtractors.stream()
