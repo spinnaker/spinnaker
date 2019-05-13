@@ -13,4 +13,3 @@ stages:
   type: wait
   config:
     waitTime: "{{ waitTime }}"
-

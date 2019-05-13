@@ -24,4 +24,3 @@ stages:
   - waitChild2
   config:
     waitTime: 10
-

@@ -34,4 +34,3 @@ databaseChangeLog:
     - dropUniqueConstraint:
         tableName: pipeline_stages
         constraintName: pipeline_stages_legacy_id_unique
-
