@@ -86,7 +86,20 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
 
   @Override
   public OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
-    return new OnDemandResult(getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
+    if (shouldHandle(data)) {
+      log.info("Updating CloudFormation cache for account: {} and region: {}", account.getName(), this.region);
+      return new OnDemandResult(getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
+    }
+    else {
+      return null;
+    }
+  }
+
+  private boolean shouldHandle(Map<String, ?> data) {
+    String credentials = (String) data.get("credentials");
+    List<String> region = (List<String>) data.get("region");
+    return data.isEmpty() ||
+      (account.getName().equals(credentials) && region != null && region.contains(this.region));
   }
 
   @Override

@@ -159,6 +159,26 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     OnDemandAgent.OnDemandType.Job            | AmazonCloudProvider.ID || false
   }
 
+  @Unroll
+  void "OnDemand request should be handled for the specific account and region"() {
+    when:
+    def result = agent.shouldHandle(data)
+
+    then:
+    result == expected
+
+    where:
+    data                                          | expected
+    [:]                                           | true // backwards compatiblity
+    [credentials: accountName, region: [region]]  | true
+    [credentials: null, region: null]             | false
+    [credentials: accountName, region: null]      | false
+    [credentials: null, region: [region]]         | false
+    [credentials: "other", region: [region]]      | false
+    [credentials: accountName, region: ["other"]] | false
+    [credentials: "other", region: ["other"]]     | false
+  }
+
   void "OnDemand handle method should get the same cache data as when reloading the cache"() {
     given:
     def amazonCloudFormation = Mock(AmazonCloudFormation)
