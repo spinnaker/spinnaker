@@ -45,7 +45,7 @@ public class RunJobStage implements StageDefinitionBuilder {
       builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
 
-    if (stage.getContext().containsKey("consumeArtifactId")) {
+    if (stage.getContext().getOrDefault("consumeArtifactSource", "").toString().equalsIgnoreCase("artifact")) {
       builder.withTask(ConsumeArtifactTask.TASK_NAME, ConsumeArtifactTask.class);
     }
   }
