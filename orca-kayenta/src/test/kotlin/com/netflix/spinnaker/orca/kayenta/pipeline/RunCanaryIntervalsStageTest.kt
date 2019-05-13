@@ -302,6 +302,90 @@ object RunCanaryIntervalsStageTest : Spek({
       }
     }
 
+    given("offsetWindow is specified, start and end time are not specified") {
+      where(
+        "canary analysis should begin after %s minutes",
+        values(null, listOf("wait", "runCanary"), 0L),
+        values("", listOf("wait", "runCanary"), 0L),
+        values("0", listOf("wait", "runCanary"), 0L),
+        values("30", listOf("wait", "runCanary"), 30L)
+      ) { baselineOffsetMins, expectedStageTypes, expectedBaselineOffsetMins ->
+        and("baseline analysis should start $baselineOffsetMins minutes before the canary") {
+          val kayentaCanaryStage = stage {
+            type = "kayentaCanary"
+            name = "Run Kayenta Canary"
+            context["canaryConfig"] = mapOf(
+              "canaryConfigId" to "MySampleStackdriverCanaryConfig",
+              "scopes" to listOf(mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021"
+              )),
+              "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
+              "lifetimeHours" to "1",
+              "baselineAnalysisOffsetInMins" to baselineOffsetMins,
+              "beginCanaryAnalysisAfterMins" to "0"
+            )
+          }
+
+          val builder = RunCanaryIntervalsStage(clock)
+          val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+            .let { graph ->
+              builder.beforeStages(kayentaCanaryStage, graph)
+              graph.build()
+            }
+
+          it("should start now") {
+            assertThat(aroundStages).extracting("type").isEqualTo(expectedStageTypes)
+            assertThat(aroundStages.controlScopes().map { it.start })
+              .allMatch { it == clock.instant().minus(expectedBaselineOffsetMins, MINUTES) }
+          }
+        }
+      }
+    }
+
+    given("offsetWindow is specified, start and end time are specified") {
+      where(
+        "canary analysis should begin after %s minutes",
+        values(null, listOf("runCanary"), 0L),
+        values("", listOf("runCanary"), 0L),
+        values("0", listOf("runCanary"), 0L),
+        values("30", listOf("runCanary"), 30L)
+      ) { baselineOffsetMins, expectedStageTypes, expectedBaselineOffsetMins ->
+        and("baseline analysis should start $baselineOffsetMins minutes before the canary") {
+          val kayentaCanaryStage = stage {
+            type = "kayentaCanary"
+            name = "Run Kayenta Canary"
+            context["canaryConfig"] = mapOf(
+              "canaryConfigId" to "MySampleStackdriverCanaryConfig",
+              "scopes" to listOf(mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021",
+                "startTimeIso" to clock.instant().toString(),
+                "endTimeIso" to clock.instant().plus(4, HOURS).toString()
+              )),
+              "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
+              "lifetimeHours" to "1",
+              "baselineAnalysisOffsetInMins" to baselineOffsetMins,
+              "beginCanaryAnalysisAfterMins" to "0"
+            )
+          }
+
+          val builder = RunCanaryIntervalsStage(clock)
+          val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+            .let { graph ->
+              builder.beforeStages(kayentaCanaryStage, graph)
+              graph.build()
+            }
+
+          it("should start now") {
+            assertThat(aroundStages).extracting("type").isEqualTo(expectedStageTypes)
+            assertThat(aroundStages.controlScopes().map { it.start })
+              .allMatch { it == clock.instant().minus(expectedBaselineOffsetMins, MINUTES) }
+          }
+        }
+      }
+    }
+
     given("additional canary attributes") {
       val attributes = mapOf("type" to "node")
 
