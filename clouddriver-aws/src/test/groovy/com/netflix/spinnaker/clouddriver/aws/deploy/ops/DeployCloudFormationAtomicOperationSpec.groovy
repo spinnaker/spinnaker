@@ -21,6 +21,7 @@ import com.amazonaws.services.cloudformation.model.AlreadyExistsException
 import com.amazonaws.services.cloudformation.model.CreateStackRequest
 import com.amazonaws.services.cloudformation.model.CreateStackResult
 import com.amazonaws.services.cloudformation.model.Parameter
+import com.amazonaws.services.cloudformation.model.Tag
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest
 import com.amazonaws.services.cloudformation.model.UpdateStackResult
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -49,6 +50,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           region: "eu-west-1",
           templateBody: [ key: "value" ],
           parameters: [ key: "value"],
+          tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
           credentials: TestCredential.named("test")
         ]
@@ -66,6 +68,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
+      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
       createStackResult
     }
@@ -84,7 +87,8 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: [ key: "value" ],
-          parameters: [ key: "value"],
+          parameters: [ key: "value" ],
+          tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
           credentials: TestCredential.named("test")
         ]
@@ -103,6 +107,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
+      assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
       updateStackRequest
     }

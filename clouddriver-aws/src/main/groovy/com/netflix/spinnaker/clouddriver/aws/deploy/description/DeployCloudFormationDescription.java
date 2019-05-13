@@ -30,6 +30,7 @@ public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDe
   private String stackName;
   private Map<String, Object> templateBody = new HashMap<>();
   private Map<String, String> parameters = new HashMap<>();
+  private Map<String, String> tags = new HashMap<>();
   private String region;
   private List<String> capabilities = new ArrayList<>();
 }

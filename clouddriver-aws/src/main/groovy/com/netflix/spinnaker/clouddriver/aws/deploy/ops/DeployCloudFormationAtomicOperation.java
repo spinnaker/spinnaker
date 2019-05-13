@@ -69,21 +69,28 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         .withParameterKey(entry.getKey())
         .withParameterValue(entry.getValue()))
       .collect(Collectors.toList());
+    List<Tag> tags = description.getTags().entrySet().stream()
+      .map(entry -> new Tag()
+        .withKey(entry.getKey())
+        .withValue(entry.getValue()))
+      .collect(Collectors.toList());
     try {
-      String stackId = createStack(amazonCloudFormation, template, parameters, description.getCapabilities());
+      String stackId = createStack(amazonCloudFormation, template, parameters, tags, description.getCapabilities());
       return Collections.singletonMap("stackId", stackId);
     } catch (AlreadyExistsException e) {
-      String stackId = updateStack(amazonCloudFormation, template, parameters, description.getCapabilities());
+      String stackId = updateStack(amazonCloudFormation, template, parameters, tags, description.getCapabilities());
       return Collections.singletonMap("stackId", stackId);
     }
   }
 
-  private String createStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters, List<String> capabilities) {
+  private String createStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters,
+                             List<Tag> tags, List<String> capabilities) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Preparing CloudFormation Stack");
     CreateStackRequest createStackRequest = new CreateStackRequest()
       .withStackName(description.getStackName())
       .withParameters(parameters)
+      .withTags(tags)
       .withTemplateBody(template)
       .withCapabilities(capabilities);
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
@@ -91,12 +98,14 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
     return createStackResult.getStackId();
   }
 
-  private String updateStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters, List<String> capabilities) {
+  private String updateStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters,
+                             List<Tag> tags, List<String> capabilities) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Updating it");
     UpdateStackRequest updateStackRequest = new UpdateStackRequest()
       .withStackName(description.getStackName())
       .withParameters(parameters)
+      .withTags(tags)
       .withTemplateBody(template)
       .withCapabilities(capabilities);
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
