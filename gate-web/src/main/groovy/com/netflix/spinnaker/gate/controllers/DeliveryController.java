@@ -3,6 +3,9 @@ package com.netflix.spinnaker.gate.controllers;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @RequestMapping("/deliveryConfigs")
 @RestController
 @Slf4j
 public class DeliveryController {
 
-  private final static Logger log = LoggerFactory.getLogger(DeliveryController.class);
+  private static final Logger log = LoggerFactory.getLogger(DeliveryController.class);
   private final Front50Service front50Service;
 
   @Autowired

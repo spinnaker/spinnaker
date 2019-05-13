@@ -36,7 +36,8 @@ public class V2PipelineTemplateService {
   private final OrcaServiceSelector orcaServiceSelector;
 
   @Autowired
-  public V2PipelineTemplateService(Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
+  public V2PipelineTemplateService(
+      Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
     this.front50Service = front50Service;
     this.orcaServiceSelector = orcaServiceSelector;
   }
@@ -50,20 +51,20 @@ public class V2PipelineTemplateService {
   }
 
   public List<Map> findByScope(List<String> scopes) {
-    return front50Service.getV2PipelineTemplates(scopes == null ? null : (String[]) scopes.toArray());
+    return front50Service.getV2PipelineTemplates(
+        scopes == null ? null : (String[]) scopes.toArray());
   }
 
   public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId) {
-    return front50Service.getV2PipelineTemplateDependents(templateId)
-      .stream()
-      .map(t -> newDependent(t))
-      .collect(Collectors.toList());
+    return front50Service.getV2PipelineTemplateDependents(templateId).stream()
+        .map(t -> newDependent(t))
+        .collect(Collectors.toList());
   }
 
   private static PipelineTemplateDependent newDependent(Map<String, Object> template) {
     return new PipelineTemplateDependent(
-      template.containsKey("application") ? (String) template.get("application") : "UNKNOWN",
-      template.containsKey("id") ? (String) template.get("id") : "UNKNOWN",
-      template.containsKey("name") ? (String) template.get("name") : "UNKNOWN");
+        template.containsKey("application") ? (String) template.get("application") : "UNKNOWN",
+        template.containsKey("id") ? (String) template.get("id") : "UNKNOWN",
+        template.containsKey("name") ? (String) template.get("name") : "UNKNOWN");
   }
 }

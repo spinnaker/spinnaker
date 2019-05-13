@@ -16,20 +16,21 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.PrincipalOverride;
-
 import java.util.List;
 
-abstract public class AbstractRateLimitPrincipalProvider implements RateLimitPrincipalProvider {
+public abstract class AbstractRateLimitPrincipalProvider implements RateLimitPrincipalProvider {
 
-  boolean isLearning(String name, List<String> enforcing, List<String> ignoring, boolean globalLearningFlag) {
+  boolean isLearning(
+      String name, List<String> enforcing, List<String> ignoring, boolean globalLearningFlag) {
     return !enforcing.contains(name) && (ignoring.contains(name) || globalLearningFlag);
   }
 
-  Integer overrideOrDefault(String principal, List<PrincipalOverride> overrides, Integer defaultValue) {
+  Integer overrideOrDefault(
+      String principal, List<PrincipalOverride> overrides, Integer defaultValue) {
     return overrides.stream()
-      .filter(o -> principal.equals(o.getPrincipal()))
-      .map(PrincipalOverride::getOverride)
-      .findFirst()
-      .orElse(defaultValue);
+        .filter(o -> principal.equals(o.getPrincipal()))
+        .map(PrincipalOverride::getOverride)
+        .findFirst()
+        .orElse(defaultValue);
   }
 }

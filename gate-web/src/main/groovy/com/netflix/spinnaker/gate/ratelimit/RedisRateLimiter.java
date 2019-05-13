@@ -15,18 +15,17 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import java.util.Calendar;
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.util.Calendar;
-import java.util.Date;
-
 public class RedisRateLimiter implements RateLimiter {
 
-  private final static Logger log = LoggerFactory.getLogger(RedisRateLimiter.class);
+  private static final Logger log = LoggerFactory.getLogger(RedisRateLimiter.class);
 
   JedisPool jedisPool;
 
@@ -46,7 +45,13 @@ public class RedisRateLimiter implements RateLimiter {
         bucket = Bucket.buildNew(key, principal.getCapacity(), principal.getRateSeconds());
       } else {
         Long ttl = jedis.pttl(key);
-        bucket = Bucket.buildExisting(key, principal.getCapacity(), principal.getRateSeconds(), Integer.parseInt(count), ttl.intValue());
+        bucket =
+            Bucket.buildExisting(
+                key,
+                principal.getCapacity(),
+                principal.getRateSeconds(),
+                Integer.parseInt(count),
+                ttl.intValue());
       }
 
       bucket.increment(jedis);
@@ -90,7 +95,8 @@ public class RedisRateLimiter implements RateLimiter {
       return bucket;
     }
 
-    static Bucket buildExisting(String key, Integer capacity, Integer rate, Integer count, Integer ttl) {
+    static Bucket buildExisting(
+        String key, Integer capacity, Integer rate, Integer count, Integer ttl) {
       Bucket bucket = new Bucket();
       bucket.key = key;
       bucket.capacity = capacity;

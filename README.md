@@ -10,13 +10,13 @@ The REST API fronts the following services:
 * [Orca](https://github.com/spinnaker/orca)
 
 ### Modular builds
-By default, Gate is built with all authentication providers included. To build only a subset of 
+By default, Gate is built with all authentication providers included. To build only a subset of
 providers, use the `includeProviders` flag:
  ```
 ./gradlew -PincludeProviders=oauth2,x509 clean build
 ```
  You can view the list of all providers in `gradle.properties`.
- 
+
 ### Debugging
 
 To start the JVM in debug mode, set the Java system property `DEBUG=true`:

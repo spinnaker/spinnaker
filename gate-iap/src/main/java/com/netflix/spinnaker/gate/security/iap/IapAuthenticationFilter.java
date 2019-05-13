@@ -52,8 +52,8 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.web.filter.OncePerRequestFilter;
 import retrofit.RetrofitError;
 
-/***
- * This filter verifies the request header from Cloud IAP containing a JWT token, after the user
+/**
+ * * This filter verifies the request header from Cloud IAP containing a JWT token, after the user
  * has been authenticated and authorized by IAP via Google OAuth2.0 and IAP's authorization service.
  * The user email from the payload used to create the Spinnaker user.
  */
@@ -71,24 +71,26 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
   private final Map<String, JWK> keyCache = new HashMap<>();
 
-
   public IapAuthenticationFilter(
-    IapSecurityConfigProperties configProperties,
-    PermissionService permissionService,
-    Front50Service front50Service) {
+      IapSecurityConfigProperties configProperties,
+      PermissionService permissionService,
+      Front50Service front50Service) {
     this.configProperties = configProperties;
     this.permissionService = permissionService;
     this.front50Service = front50Service;
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-    throws IOException, ServletException {
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
     HttpSession session = request.getSession();
 
     try {
       String token = request.getHeader(configProperties.getJwtHeader());
-      Preconditions.checkNotNull(token, String.format("Request is missing JWT header: %s", configProperties.getJwtHeader()));
+      Preconditions.checkNotNull(
+          token,
+          String.format("Request is missing JWT header: %s", configProperties.getJwtHeader()));
 
       SignedJWT jwt = SignedJWT.parse(token);
 
@@ -102,12 +104,12 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
       User verifiedUser = verifyJWTAndGetUser(jwt);
 
-      PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
-        verifiedUser,
-        null /* credentials */,
-        // Need to set authorities list even if empty to get a valid authentication.
-        verifiedUser.getAuthorities()
-      );
+      PreAuthenticatedAuthenticationToken authentication =
+          new PreAuthenticatedAuthenticationToken(
+              verifiedUser,
+              null /* credentials */,
+              // Need to set authorities list even if empty to get a valid authentication.
+              verifiedUser.getAuthorities());
 
       // Service accounts are already logged in.
       if (!isServiceAccount(verifiedUser.getEmail())) {
@@ -154,16 +156,36 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
     JWTClaimsSet claims = jwt.getJWTClaimsSet();
 
-    Preconditions.checkArgument(claims.getAudience().contains(configProperties.getAudience()),
-      String.format("JWT payload audience claim (aud) must contain: %s.", configProperties.getAudience()));
-    Preconditions.checkArgument(claims.getIssuer().equals(configProperties.getIssuerId()),
-      String.format("JWT payload issuer claim (iss) must be: %s", configProperties.getIssuerId()));
+    Preconditions.checkArgument(
+        claims.getAudience().contains(configProperties.getAudience()),
+        String.format(
+            "JWT payload audience claim (aud) must contain: %s.", configProperties.getAudience()));
+    Preconditions.checkArgument(
+        claims.getIssuer().equals(configProperties.getIssuerId()),
+        String.format(
+            "JWT payload issuer claim (iss) must be: %s", configProperties.getIssuerId()));
 
     Date currentTime = Date.from(Instant.now(CLOCK));
-    Preconditions.checkArgument(claims.getIssueTime().before(new Date(currentTime.getTime() + configProperties.getIssuedAtTimeAllowedSkew())),
-      String.format("JWT payloadissued-at time claim (iat) must be before the current time (with %dms allowed clock skew): currentTime=%d, issueTime=%d", configProperties.getIssuedAtTimeAllowedSkew(), currentTime.getTime(), claims.getIssueTime().getTime()));
-    Preconditions.checkArgument(claims.getExpirationTime().after(new Date(currentTime.getTime() - configProperties.getExpirationTimeAllowedSkew())),
-      String.format("JWT payload expiration time claim (exp) must be after the current time (with %dms allowed clock skew): currentTime=%d, expirationTime=%d", configProperties.getExpirationTimeAllowedSkew(), currentTime.getTime(), claims.getExpirationTime().getTime()));
+    Preconditions.checkArgument(
+        claims
+            .getIssueTime()
+            .before(
+                new Date(currentTime.getTime() + configProperties.getIssuedAtTimeAllowedSkew())),
+        String.format(
+            "JWT payloadissued-at time claim (iat) must be before the current time (with %dms allowed clock skew): currentTime=%d, issueTime=%d",
+            configProperties.getIssuedAtTimeAllowedSkew(),
+            currentTime.getTime(),
+            claims.getIssueTime().getTime()));
+    Preconditions.checkArgument(
+        claims
+            .getExpirationTime()
+            .after(
+                new Date(currentTime.getTime() - configProperties.getExpirationTimeAllowedSkew())),
+        String.format(
+            "JWT payload expiration time claim (exp) must be after the current time (with %dms allowed clock skew): currentTime=%d, expirationTime=%d",
+            configProperties.getExpirationTimeAllowedSkew(),
+            currentTime.getTime(),
+            claims.getExpirationTime().getTime()));
 
     Preconditions.checkNotNull(claims.getSubject(), "JWT payload is missing subject (sub)");
     String email = (String) claims.getClaim("email");

@@ -7,5 +7,5 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.netflix.spectator:spectator-api"
-  
+
 }

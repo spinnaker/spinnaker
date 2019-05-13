@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.gate.config;
 
-import com.netflix.spinnaker.gate.ratelimit.RateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider;
+import com.netflix.spinnaker.gate.ratelimit.RateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
 import com.netflix.spinnaker.gate.ratelimit.StaticRateLimitPrincipalProvider;

@@ -10,10 +10,10 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.3.0'
     classpath "com.netflix.nebula:nebula-kotlin-plugin:${kotlinVersion}"
     if (Boolean.valueOf(enablePublishing)) {
-      classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0'
+      classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.3.0'
     }
   }
 }
@@ -75,6 +75,12 @@ allprojects {
     testLogging {
       exceptionFormat = 'full'
     }
+  }
+}
+
+subprojects { project ->
+  spinnakerCodeStyle {
+    enabled = false
   }
 }
 

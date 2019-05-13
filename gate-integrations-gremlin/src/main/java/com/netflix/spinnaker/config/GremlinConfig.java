@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config;
 
+import static retrofit.Endpoints.newFixedEndpoint;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -37,43 +39,43 @@ import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.converter.JacksonConverter;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 @Slf4j
 @CompileStatic
 @Configuration
 @ConditionalOnProperty("integrations.gremlin.enabled")
 class GremlinConfig {
   @Bean
-  GremlinService gremlinService(OkHttpClient okHttpClient,
-                                ServiceConfiguration serviceConfiguration,
-                                Registry registry,
-                                EurekaLookupService eurekaLookupService,
-                                RequestInterceptor spinnakerRequestInterceptor,
-                                @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
+  GremlinService gremlinService(
+      OkHttpClient okHttpClient,
+      ServiceConfiguration serviceConfiguration,
+      Registry registry,
+      EurekaLookupService eurekaLookupService,
+      RequestInterceptor spinnakerRequestInterceptor,
+      @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return createClient(
-      "gremlin",
-      GremlinService.class,
-      okHttpClient,
-      serviceConfiguration,
-      registry,
-      eurekaLookupService,
-      spinnakerRequestInterceptor,
-      retrofitLogLevel
-    );
+        "gremlin",
+        GremlinService.class,
+        okHttpClient,
+        serviceConfiguration,
+        registry,
+        eurekaLookupService,
+        spinnakerRequestInterceptor,
+        retrofitLogLevel);
   }
 
-  private <T> T createClient(String serviceName,
-                             Class<T> type,
-                             OkHttpClient okHttpClient,
-                             ServiceConfiguration serviceConfiguration,
-                             Registry registry,
-                             EurekaLookupService eurekaLookupService,
-                             RequestInterceptor spinnakerRequestInterceptor,
-                             String retrofitLogLevel) {
+  private <T> T createClient(
+      String serviceName,
+      Class<T> type,
+      OkHttpClient okHttpClient,
+      ServiceConfiguration serviceConfiguration,
+      Registry registry,
+      EurekaLookupService eurekaLookupService,
+      RequestInterceptor spinnakerRequestInterceptor,
+      String retrofitLogLevel) {
     Service service = serviceConfiguration.getService(serviceName);
     if (service == null) {
-      throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}");
+      throw new IllegalArgumentException(
+          "Unknown service ${serviceName} requested of type ${type}");
     }
 
     if (!service.isEnabled()) {
@@ -82,27 +84,30 @@ class GremlinConfig {
 
     Endpoint endpoint = newFixedEndpoint(service.getBaseUrl());
 
-    EurekaOkClient client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService);
+    EurekaOkClient client =
+        new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService);
     return buildService(client, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
   }
 
-  private <T> T buildService(EurekaOkClient client,
-                             Class<T> type,
-                             Endpoint endpoint,
-                             RequestInterceptor spinnakerRequestInterceptor,
-                             String retrofitLogLevel) {
-    ObjectMapper objectMapper = new ObjectMapper()
-      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private <T> T buildService(
+      EurekaOkClient client,
+      Class<T> type,
+      Endpoint endpoint,
+      RequestInterceptor spinnakerRequestInterceptor,
+      String retrofitLogLevel) {
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     return new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(endpoint)
-      .setClient(client)
-      .setConverter(new JacksonConverter(objectMapper))
-      .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-      .setLog(new Slf4jRetrofitLogger(type))
-      .build()
-      .create(type);
+        .setRequestInterceptor(spinnakerRequestInterceptor)
+        .setEndpoint(endpoint)
+        .setClient(client)
+        .setConverter(new JacksonConverter(objectMapper))
+        .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
+        .setLog(new Slf4jRetrofitLogger(type))
+        .build()
+        .create(type);
   }
 }

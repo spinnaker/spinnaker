@@ -15,65 +15,56 @@
  */
 package com.netflix.spinnaker.gate.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties("rate-limit")
 public class RateLimiterConfiguration {
 
   /**
-   * When learning mode is enabled, principals that go over their
-   * allocated rate limit will not receive a 429, but gate will still
-   * log that they would have been rate limited.
+   * When learning mode is enabled, principals that go over their allocated rate limit will not
+   * receive a 429, but gate will still log that they would have been rate limited.
    */
   private boolean learning = true;
 
-  /**
-   * The number of requests allowed in the given rateSeconds window.
-   */
+  /** The number of requests allowed in the given rateSeconds window. */
   private int capacity = 60;
 
   /**
-   * The number of seconds for each rate limit bucket. Capacity will be
-   * filled at the beginning of each rate interval.
+   * The number of seconds for each rate limit bucket. Capacity will be filled at the beginning of
+   * each rate interval.
    */
   private int rateSeconds = 10;
 
   /**
-   * A principal-specific capacity override map. This can be defined if
-   * you want to give a specific principal more or less capacity per
-   * rateSeconds than the default.
+   * A principal-specific capacity override map. This can be defined if you want to give a specific
+   * principal more or less capacity per rateSeconds than the default.
    */
   private List<PrincipalOverride> capacityByPrincipal = new ArrayList<>();
 
   /**
-   * A source app-specific capacity override map. This can be defined if
-   * you want to give a specific source app more or less capacity per
-   * rateSeconds than the default.
+   * A source app-specific capacity override map. This can be defined if you want to give a specific
+   * source app more or less capacity per rateSeconds than the default.
    */
   private List<SourceAppOverride> capacityBySourceApp = new ArrayList<>();
 
-  /**
-   * A principal-specific rate override map.
-   */
+  /** A principal-specific rate override map. */
   private List<PrincipalOverride> rateSecondsByPrincipal = new ArrayList<>();
 
   /**
-   * A list of principals whose capacities are being enforced. This
-   * setting will only be used when learning mode is ENABLED, allowing
-   * operators to incrementally enable rate limiting on a per-principal
-   * basis.
+   * A list of principals whose capacities are being enforced. This setting will only be used when
+   * learning mode is ENABLED, allowing operators to incrementally enable rate limiting on a
+   * per-principal basis.
    */
   private List<String> enforcing = new ArrayList<>();
 
   /**
-   * A list of principals whose capacities are not being enforced. This
-   * setting will only be used when learning mode is DISABLED, allowing
-   * operators to enable learning-mode on a per-principal basis.
+   * A list of principals whose capacities are not being enforced. This setting will only be used
+   * when learning mode is DISABLED, allowing operators to enable learning-mode on a per-principal
+   * basis.
    */
   private List<String> ignoring = new ArrayList<>();
 

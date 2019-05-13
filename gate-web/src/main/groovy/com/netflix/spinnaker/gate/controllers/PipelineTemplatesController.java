@@ -52,9 +52,10 @@ public class PipelineTemplatesController {
   private ObjectMapper objectMapper;
 
   @Autowired
-  public PipelineTemplatesController(PipelineTemplateService pipelineTemplateService,
-                                     TaskService taskService,
-                                     ObjectMapper objectMapper) {
+  public PipelineTemplatesController(
+      PipelineTemplateService pipelineTemplateService,
+      TaskService taskService,
+      ObjectMapper objectMapper) {
     this.pipelineTemplateService = pipelineTemplateService;
     this.taskService = taskService;
     this.objectMapper = objectMapper;
@@ -85,7 +86,8 @@ public class PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put(
+        "description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
 
@@ -94,7 +96,10 @@ public class PipelineTemplatesController {
 
   @ApiOperation(value = "Resolve a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/resolve", method = RequestMethod.GET)
-  public Map resolveTemplates(@RequestParam String source, @RequestParam(required = false) String executionId, @RequestParam(required = false) String pipelineConfigId) {
+  public Map resolveTemplates(
+      @RequestParam String source,
+      @RequestParam(required = false) String executionId,
+      @RequestParam(required = false) String pipelineConfigId) {
     return pipelineTemplateService.resolve(source, executionId, pipelineConfigId);
   }
 
@@ -107,9 +112,11 @@ public class PipelineTemplatesController {
   @ApiOperation(value = "Update a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map update(@PathVariable String id,
-                    @RequestBody Map<String, Object> pipelineTemplate,
-                    @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
+  public Map update(
+      @PathVariable String id,
+      @RequestBody Map<String, Object> pipelineTemplate,
+      @RequestParam(value = "skipPlanDependents", defaultValue = "false")
+          boolean skipPlanDependents) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -127,7 +134,8 @@ public class PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put(
+        "description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
 
@@ -137,8 +145,9 @@ public class PipelineTemplatesController {
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map delete(@PathVariable String id,
-                    @RequestParam(value = "application", required = false) String application) {
+  public Map delete(
+      @PathVariable String id,
+      @RequestParam(value = "application", required = false) String application) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deletePipelineTemplate");
@@ -154,12 +163,13 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
-  @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
+  @ApiOperation(
+      value = "List all pipelines that implement a pipeline template",
+      response = List.class)
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(
-    @PathVariable String id,
-    @RequestParam(value = "recursive", required = false) boolean recursive
-  ) {
+      @PathVariable String id,
+      @RequestParam(value = "recursive", required = false) boolean recursive) {
     return pipelineTemplateService.getTemplateDependents(id, recursive);
   }
 
@@ -182,18 +192,14 @@ public class PipelineTemplatesController {
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class PipelineTemplate {
-    @JsonProperty
-    String id;
+    @JsonProperty String id;
 
-    @JsonProperty
-    Metadata metadata = new Metadata();
+    @JsonProperty Metadata metadata = new Metadata();
 
     static class Metadata {
-      @JsonProperty
-      String name;
+      @JsonProperty String name;
 
-      @JsonProperty
-      List<String> scopes = new ArrayList<>();
+      @JsonProperty List<String> scopes = new ArrayList<>();
     }
   }
 }

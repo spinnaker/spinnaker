@@ -16,22 +16,23 @@
 
 package com.netflix.spinnaker.gate.interceptors;
 
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import static com.netflix.spinnaker.security.AuthenticatedRequest.Header.REQUEST_ID;
+import static com.netflix.spinnaker.security.AuthenticatedRequest.getSpinnakerRequestId;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import static com.netflix.spinnaker.security.AuthenticatedRequest.getSpinnakerRequestId;
-import static com.netflix.spinnaker.security.AuthenticatedRequest.Header.REQUEST_ID;
 /**
- * Return value of SPINNAKER_REQUEST_ID (set via com.netflix.spinnaker.filters.AuthenticatedRequestFilter)
- * to gate callers as a response header.
+ * Return value of SPINNAKER_REQUEST_ID (set via
+ * com.netflix.spinnaker.filters.AuthenticatedRequestFilter) to gate callers as a response header.
  */
 public class RequestIdInterceptor extends HandlerInterceptorAdapter {
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
     getSpinnakerRequestId()
-      .ifPresent(requestId -> response.setHeader(REQUEST_ID.getHeader(), requestId));
+        .ifPresent(requestId -> response.setHeader(REQUEST_ID.getHeader(), requestId));
     return true;
   }
 }

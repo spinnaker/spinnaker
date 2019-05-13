@@ -15,31 +15,32 @@
  */
 package com.netflix.spinnaker.gate.interceptors;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
 
 public class RequestLoggingInterceptor extends HandlerInterceptorAdapter {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Override
-  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+      throws Exception {
     // 127.0.0.1 "GET /limecat.jpg HTTP/1.0" 200 2326
-    log.debug("{} \"{} {} {}\" {} {}",
-      value("sourceIp", sourceIpAddress(request)),
-      value("requestMethod", request.getMethod()),
-      value("requestEndpoint", getRequestEndpoint(request)),
-      value("requestProtocol", request.getProtocol()),
-      value("responseStatus", response.getStatus()),
-      value("responseSize", getResponseSize(response))
-      );
+    log.debug(
+        "{} \"{} {} {}\" {} {}",
+        value("sourceIp", sourceIpAddress(request)),
+        value("requestMethod", request.getMethod()),
+        value("requestEndpoint", getRequestEndpoint(request)),
+        value("requestProtocol", request.getProtocol()),
+        value("responseStatus", response.getStatus()),
+        value("responseSize", getResponseSize(response)));
   }
 
   private static String sourceIpAddress(HttpServletRequest request) {
@@ -64,5 +65,4 @@ public class RequestLoggingInterceptor extends HandlerInterceptorAdapter {
     }
     return -1;
   }
-
 }

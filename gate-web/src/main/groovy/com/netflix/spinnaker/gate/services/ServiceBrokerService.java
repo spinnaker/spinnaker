@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceBrokerService {
@@ -34,7 +33,9 @@ public class ServiceBrokerService {
     return this.clouddriverService.listServices(cloudProvider, region, account);
   }
 
-  public Map getServiceInstance(String account, String cloudProvider, String region, String serviceInstanceName) {
-    return this.clouddriverService.getServiceInstance(account, cloudProvider, region, serviceInstanceName);
+  public Map getServiceInstance(
+      String account, String cloudProvider, String region, String serviceInstanceName) {
+    return this.clouddriverService.getServiceInstance(
+        account, cloudProvider, region, serviceInstanceName);
   }
 }

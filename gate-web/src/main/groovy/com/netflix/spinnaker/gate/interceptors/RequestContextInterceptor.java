@@ -18,12 +18,11 @@ package com.netflix.spinnaker.gate.interceptors;
 
 import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 public class RequestContextInterceptor extends HandlerInterceptorAdapter {
 
@@ -31,13 +30,12 @@ public class RequestContextInterceptor extends HandlerInterceptorAdapter {
   private static Pattern orchestrationMatch = Pattern.compile("/(?:tasks$|tasks/)");
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+      throws Exception {
     RequestContext.set(
-      new RequestContext(
-        AuthenticatedRequest.getSpinnakerUserOrigin().orElse(null),
-        AuthenticatedRequest.getSpinnakerUser().orElse(null)
-      )
-    );
+        new RequestContext(
+            AuthenticatedRequest.getSpinnakerUserOrigin().orElse(null),
+            AuthenticatedRequest.getSpinnakerUser().orElse(null)));
 
     Matcher m = applicationPattern.matcher(request.getRequestURI());
     if (m.find()) {
@@ -52,8 +50,9 @@ public class RequestContextInterceptor extends HandlerInterceptorAdapter {
   }
 
   @Override
-  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-    throws Exception {
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+      throws Exception {
     RequestContext.clear();
   }
 }

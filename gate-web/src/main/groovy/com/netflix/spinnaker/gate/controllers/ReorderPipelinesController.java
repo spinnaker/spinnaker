@@ -24,6 +24,11 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,25 +36,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Slf4j
 @CompileStatic
 @RestController
 @RequestMapping("actions")
 public class ReorderPipelinesController {
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  PipelineService pipelineService;
+  @Autowired PipelineService pipelineService;
 
-  @Autowired
-  TaskService taskService;
+  @Autowired TaskService taskService;
 
   @ApiOperation(value = "Re-order pipelines")
   @RequestMapping(value = "/pipelines/reorder", method = RequestMethod.POST)
@@ -59,11 +55,13 @@ public class ReorderPipelinesController {
 
   @ApiOperation(value = "Re-order pipeline strategies")
   @RequestMapping(value = "/strategies/reorder", method = RequestMethod.POST)
-  public Map reorderPipelineStrategies(@RequestBody ReorderPipelinesCommand reorderPipelinesCommand) {
+  public Map reorderPipelineStrategies(
+      @RequestBody ReorderPipelinesCommand reorderPipelinesCommand) {
     return handlePipelineReorder(reorderPipelinesCommand, true);
   }
 
-  private Map handlePipelineReorder(ReorderPipelinesCommand reorderPipelinesCommand, Boolean isStrategy) {
+  private Map handlePipelineReorder(
+      ReorderPipelinesCommand reorderPipelinesCommand, Boolean isStrategy) {
     Map<String, Integer> idsToIndices = reorderPipelinesCommand.getIdsToIndices();
     String application = reorderPipelinesCommand.getApplication();
 

@@ -25,6 +25,7 @@ public class NoopOidcConfigService implements OidcConfigService {
   public List getOidcConfigs(String app) {
     return new ArrayList<>();
   }
+
   public Map getOidcConfig(String id) {
     return new HashMap<>();
   }

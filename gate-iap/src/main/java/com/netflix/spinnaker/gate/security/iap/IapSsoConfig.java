@@ -49,22 +49,17 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableConfigurationProperties(IapSecurityConfigProperties.class)
 public class IapSsoConfig extends WebSecurityConfigurerAdapter {
 
-  @Autowired
-  AuthConfig authConfig;
+  @Autowired AuthConfig authConfig;
 
-  @Autowired
-  PermissionService permissionService;
+  @Autowired PermissionService permissionService;
 
-  @Autowired
-  Front50Service front50Service;
+  @Autowired Front50Service front50Service;
 
-  @Autowired
-  IapSecurityConfigProperties configProperties;
+  @Autowired IapSecurityConfigProperties configProperties;
 
   @Bean
   public IapAuthenticationFilter iapAuthenticationFilter() {
-    return new IapAuthenticationFilter(
-      configProperties, permissionService, front50Service);
+    return new IapAuthenticationFilter(configProperties, permissionService, front50Service);
   }
 
   @Bean
@@ -90,14 +85,18 @@ public class IapSsoConfig extends WebSecurityConfigurerAdapter {
   public void configure(HttpSecurity http) throws Exception {
     log.info("IAP JWT token verification is enabled.");
 
-    Preconditions.checkNotNull(configProperties.getAudience(), "Please set the "
-      + "Audience field. You can retrieve this field from the IAP console: "
-      + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
+    Preconditions.checkNotNull(
+        configProperties.getAudience(),
+        "Please set the "
+            + "Audience field. You can retrieve this field from the IAP console: "
+            + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
 
-    Preconditions.checkArgument(configProperties.getIssuedAtTimeAllowedSkew() >= 0,
-      "IAP security issuedAtTimeAllowedSkew value must be >= 0.");
-    Preconditions.checkArgument(configProperties.getExpirationTimeAllowedSkew() >= 0,
-      "IAP security expirationTimeAllowedSkew value must be >= 0.");
+    Preconditions.checkArgument(
+        configProperties.getIssuedAtTimeAllowedSkew() >= 0,
+        "IAP security issuedAtTimeAllowedSkew value must be >= 0.");
+    Preconditions.checkArgument(
+        configProperties.getExpirationTimeAllowedSkew() >= 0,
+        "IAP security expirationTimeAllowedSkew value must be >= 0.");
 
     authConfig.configure(http);
     http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);

@@ -20,10 +20,12 @@ public class MultiAuthSupport {
         if (applicationContext instanceof WebServerApplicationContext) {
           final WebServerApplicationContext ctx = (WebServerApplicationContext) applicationContext;
           return req -> {
-            // we have to do this per request because at bean-creation time the WebServer has not yet been created
+            // we have to do this per request because at bean-creation time the WebServer has not
+            // yet been created
             final WebServer webServer = ctx.getWebServer();
             if (webServer instanceof TomcatWebServer) {
-              if (((TomcatWebServer) webServer).getTomcat().getService().findConnectors().length > 1) {
+              if (((TomcatWebServer) webServer).getTomcat().getService().findConnectors().length
+                  > 1) {
                 final int localPort = req.getLocalPort();
                 final int defaultPort = webServer.getPort();
                 return localPort == defaultPort;

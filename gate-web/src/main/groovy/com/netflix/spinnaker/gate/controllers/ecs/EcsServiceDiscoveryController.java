@@ -21,15 +21,14 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class EcsServiceDiscoveryController {
-  @Autowired
-  private EcsServiceDiscoveryService ecsServiceDiscoveryService;
+  @Autowired private EcsServiceDiscoveryService ecsServiceDiscoveryService;
 
-  @ApiOperation(value = "Retrieve a list of Cloud Map services that can be used for the account and region.")
+  @ApiOperation(
+      value = "Retrieve a list of Cloud Map services that can be used for the account and region.")
   @GetMapping(value = "/ecs/serviceDiscoveryRegistries")
   public List<Map> all() {
     return ecsServiceDiscoveryService.getAllEcsServiceDiscoveryRegistries();

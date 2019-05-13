@@ -27,7 +27,7 @@ public class RequestContext {
 
   public RequestContext(String origin, String authenticatedUser) {
     this.origin = origin;
-     this.authenticatedUser = authenticatedUser != null ? authenticatedUser : "anonymous";
+    this.authenticatedUser = authenticatedUser != null ? authenticatedUser : "anonymous";
   }
 
   public static void set(RequestContext requestContext) {
@@ -46,9 +46,13 @@ public class RequestContext {
     threadLocal.get().executionId = executionId;
   }
 
-  public static RequestContext get() { return threadLocal.get(); }
+  public static RequestContext get() {
+    return threadLocal.get();
+  }
 
-  public static void clear() { threadLocal.remove(); }
+  public static void clear() {
+    threadLocal.remove();
+  }
 
   public String getApplication() {
     return application;
@@ -66,5 +70,7 @@ public class RequestContext {
     return executionId;
   }
 
-  public String getOrigin() { return origin; }
+  public String getOrigin() {
+    return origin;
+  }
 }

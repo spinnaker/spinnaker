@@ -28,8 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PubsubSubscriptionController {
 
-  @Autowired
-  private PubsubSubscriptionService pubsubSubscriptionService;
+  @Autowired private PubsubSubscriptionService pubsubSubscriptionService;
 
   @ApiOperation(value = "Retrieve the list of pub/sub subscriptions configured in Echo.")
   @RequestMapping(value = "/pubsub/subscriptions", method = RequestMethod.GET)

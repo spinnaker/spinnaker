@@ -59,9 +59,10 @@ public class V2PipelineTemplatesController {
   private ObjectMapper objectMapper;
 
   @Autowired
-  public V2PipelineTemplatesController(V2PipelineTemplateService v2PipelineTemplateService,
-                                       TaskService taskService,
-                                       ObjectMapper objectMapper) {
+  public V2PipelineTemplatesController(
+      V2PipelineTemplateService v2PipelineTemplateService,
+      TaskService taskService,
+      ObjectMapper objectMapper) {
     this.v2PipelineTemplateService = v2PipelineTemplateService;
     this.taskService = taskService;
     this.objectMapper = objectMapper;
@@ -82,7 +83,9 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "(ALPHA) Create a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map create(@RequestParam(value = "tag", required = false) String tag, @RequestBody Map<String, Object> pipelineTemplate) {
+  public Map create(
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestBody Map<String, Object> pipelineTemplate) {
     validateSchema(pipelineTemplate);
     Map<String, Object> operation = makeCreateOp(pipelineTemplate, tag);
     return taskService.createAndWaitForCompletion(operation);
@@ -107,7 +110,8 @@ public class V2PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put(
+        "description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
     return operation;
@@ -125,16 +129,18 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "(ALPHA) Update a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map update(@PathVariable String id,
-    @RequestParam(value = "tag", required = false) String tag,
-    @RequestBody Map<String, Object> pipelineTemplate,
-    @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
+  public Map update(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestBody Map<String, Object> pipelineTemplate,
+      @RequestParam(value = "skipPlanDependents", defaultValue = "false")
+          boolean skipPlanDependents) {
     Map<String, Object> operation = makeUpdateOp(pipelineTemplate, id, skipPlanDependents, tag);
     return taskService.createAndWaitForCompletion(operation);
   }
 
-  private Map<String, Object> makeUpdateOp(Map<String, Object> pipelineTemplate, String id,
-                                           boolean skipPlanDependents, String tag) {
+  private Map<String, Object> makeUpdateOp(
+      Map<String, Object> pipelineTemplate, String id, boolean skipPlanDependents, String tag) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -155,7 +161,8 @@ public class V2PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put(
+        "description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
     return operation;
@@ -163,19 +170,21 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "(ALPHA) Get a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-  public Map get(@PathVariable String id,
-    @RequestParam(value = "tag", required = false) String tag,
-    @RequestParam(value = "digest", required = false) String digest) {
+  public Map get(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestParam(value = "digest", required = false) String digest) {
     return v2PipelineTemplateService.get(id, tag, digest);
   }
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map delete(@PathVariable String id,
-                    @RequestParam(value = "tag", required = false) String tag,
-                    @RequestParam(value = "digest", required = false) String digest,
-                    @RequestParam(value = "application", required = false) String application) {
+  public Map delete(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestParam(value = "digest", required = false) String digest,
+      @RequestParam(value = "application", required = false) String application) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deleteV2PipelineTemplate");
@@ -193,7 +202,9 @@ public class V2PipelineTemplatesController {
     return taskService.createAndWaitForCompletion(operation);
   }
 
-  @ApiOperation(value = "(ALPHA) List all pipelines that implement a pipeline template", response = List.class)
+  @ApiOperation(
+      value = "(ALPHA) List all pipelines that implement a pipeline template",
+      response = List.class)
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(@PathVariable String id) {
     return v2PipelineTemplateService.getTemplateDependents(id);

@@ -18,10 +18,9 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ServiceBrokerService;
 import groovy.util.logging.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -34,17 +33,20 @@ public class ServiceBrokerController {
   }
 
   @RequestMapping(value = "{account}/services", method = RequestMethod.GET)
-  public List<Map> listServices(@RequestParam(value = "cloudProvider", required = false) String cloudProvider,
-                                @RequestParam(value = "region") String region,
-                                @PathVariable String account) {
+  public List<Map> listServices(
+      @RequestParam(value = "cloudProvider", required = false) String cloudProvider,
+      @RequestParam(value = "region") String region,
+      @PathVariable String account) {
     return serviceBrokerService.listServices(cloudProvider, region, account);
   }
 
   @RequestMapping(value = "{account}/serviceInstance", method = RequestMethod.GET)
-  public Map getServiceInstance(@PathVariable(value = "account") String account,
-                                @RequestParam(value = "cloudProvider") String cloudProvider,
-                                @RequestParam(value = "region") String region,
-                                @RequestParam(value = "serviceInstanceName") String serviceInstanceName) {
-    return serviceBrokerService.getServiceInstance(account, cloudProvider, region, serviceInstanceName);
+  public Map getServiceInstance(
+      @PathVariable(value = "account") String account,
+      @RequestParam(value = "cloudProvider") String cloudProvider,
+      @RequestParam(value = "region") String region,
+      @RequestParam(value = "serviceInstanceName") String serviceInstanceName) {
+    return serviceBrokerService.getServiceInstance(
+        account, cloudProvider, region, serviceInstanceName);
   }
 }

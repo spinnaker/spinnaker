@@ -27,12 +27,13 @@ public class ClouddriverServiceSelector {
     this(defaultService, new HashMap<>());
   }
 
-  public ClouddriverServiceSelector(ClouddriverService defaultService, Map<String, ClouddriverService> services) {
+  public ClouddriverServiceSelector(
+      ClouddriverService defaultService, Map<String, ClouddriverService> services) {
     this.defaultService = defaultService;
     this.services = services;
   }
 
   public ClouddriverService select(String key) {
-    return (key == null) ? defaultService :  services.getOrDefault(key, defaultService);
+    return (key == null) ? defaultService : services.getOrDefault(key, defaultService);
   }
 }

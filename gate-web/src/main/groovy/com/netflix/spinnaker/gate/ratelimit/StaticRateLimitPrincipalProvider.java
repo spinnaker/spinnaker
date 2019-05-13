@@ -28,10 +28,19 @@ public class StaticRateLimitPrincipalProvider extends AbstractRateLimitPrincipal
   @Override
   public RateLimitPrincipal getPrincipal(String name, String sourceApp) {
     return new RateLimitPrincipal(
-      name,
-      overrideOrDefault(name, rateLimiterConfiguration.getRateSecondsByPrincipal(), rateLimiterConfiguration.getRateSeconds()),
-      overrideOrDefault(name, rateLimiterConfiguration.getCapacityByPrincipal(), rateLimiterConfiguration.getCapacity()),
-      isLearning(name, rateLimiterConfiguration.getEnforcing(), rateLimiterConfiguration.getIgnoring(), rateLimiterConfiguration.isLearning())
-    );
+        name,
+        overrideOrDefault(
+            name,
+            rateLimiterConfiguration.getRateSecondsByPrincipal(),
+            rateLimiterConfiguration.getRateSeconds()),
+        overrideOrDefault(
+            name,
+            rateLimiterConfiguration.getCapacityByPrincipal(),
+            rateLimiterConfiguration.getCapacity()),
+        isLearning(
+            name,
+            rateLimiterConfiguration.getEnforcing(),
+            rateLimiterConfiguration.getIgnoring(),
+            rateLimiterConfiguration.isLearning()));
   }
 }

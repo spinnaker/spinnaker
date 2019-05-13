@@ -20,4 +20,3 @@ services:
   mine.enabled: false
 
   swabbie.enabled: false
-

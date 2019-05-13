@@ -20,6 +20,12 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.gate.services.EntityTagsService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import io.swagger.annotations.ApiOperation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.AntPathMatcher;
@@ -32,13 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/tags")
@@ -53,8 +52,9 @@ public class EntityTagsController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  public Collection<Map> list(@RequestParam Map<String, Object> allParameters,
-                              @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+  public Collection<Map> list(
+      @RequestParam Map<String, Object> allParameters,
+      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return entityTagsService.list(allParameters, sourceApp);
   }
 
@@ -70,13 +70,16 @@ public class EntityTagsController {
     return entityTagsService.get(id, request.getHeader("X-RateLimit-App"));
   }
 
-  @ApiOperation(value = "Deletes a subset of tags for the provided tag ID",
-                notes = "multiple tags can be deleted for an entity using a comma as a separator, e.g. /tag1,tag2")
+  @ApiOperation(
+      value = "Deletes a subset of tags for the provided tag ID",
+      notes =
+          "multiple tags can be deleted for an entity using a comma as a separator, e.g. /tag1,tag2")
   @RequestMapping(value = "/{id}/{tag}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map delete(@PathVariable String id,
-                    @PathVariable String tag,
-                    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+  public Map delete(
+      @PathVariable String id,
+      @PathVariable String tag,
+      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deleteEntityTags");
@@ -85,7 +88,7 @@ public class EntityTagsController {
     jobs.add(job);
 
     Map entityTags = entityTagsService.get(id, sourceApp);
-    String entityId = (String) ((Map)entityTags.get("entityRef")).get("entityId");
+    String entityId = (String) ((Map) entityTags.get("entityRef")).get("entityId");
     String application = Names.parseName(entityId).getApp();
 
     Map<String, Object> operation = new HashMap<>();
@@ -97,14 +100,15 @@ public class EntityTagsController {
 
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map post(@RequestParam("entityId") String entityId,
-                  @RequestParam("entityType") String entityType,
-                  @RequestParam(value = "account") String account,
-                  @RequestParam(value = "region") String region,
-                  @RequestParam(value = "cloudProvider") String cloudProvider,
-                  @RequestParam(value = "application", required = false) String application,
-                  @RequestParam(value = "isPartial", defaultValue = "true") Boolean isPartial,
-                  @RequestBody List<Map> tags) {
+  public Map post(
+      @RequestParam("entityId") String entityId,
+      @RequestParam("entityType") String entityType,
+      @RequestParam(value = "account") String account,
+      @RequestParam(value = "region") String region,
+      @RequestParam(value = "cloudProvider") String cloudProvider,
+      @RequestParam(value = "application", required = false) String application,
+      @RequestParam(value = "isPartial", defaultValue = "true") Boolean isPartial,
+      @RequestBody List<Map> tags) {
 
     Map<String, String> entityRef = new HashMap<>();
     entityRef.put("entityId", entityId);
@@ -132,5 +136,4 @@ public class EntityTagsController {
     operation.put("job", jobs);
     return taskService.create(operation);
   }
-
 }

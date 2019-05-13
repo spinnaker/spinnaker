@@ -34,8 +34,11 @@ public class EcsServiceDiscoveryService {
   }
 
   public List<Map> getAllEcsServiceDiscoveryRegistries() {
-    return (List<Map>) HystrixFactory.newListCommand(GROUP,
-      "getAllEcsServiceDiscoveryRegistries",
-      () -> clouddriver.getAllEcsServiceDiscoveryRegistries()).execute();
+    return (List<Map>)
+        HystrixFactory.newListCommand(
+                GROUP,
+                "getAllEcsServiceDiscoveryRegistries",
+                () -> clouddriver.getAllEcsServiceDiscoveryRegistries())
+            .execute();
   }
 }

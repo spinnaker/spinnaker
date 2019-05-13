@@ -21,5 +21,6 @@ import java.util.Map;
 
 public interface OidcConfigService {
   List getOidcConfigs(String app);
+
   Map getOidcConfig(String id);
 }

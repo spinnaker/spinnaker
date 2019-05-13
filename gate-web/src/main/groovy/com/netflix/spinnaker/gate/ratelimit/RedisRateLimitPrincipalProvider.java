@@ -15,8 +15,13 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,23 +29,17 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
-
 public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalProvider {
 
-  private final static Logger log = LoggerFactory.getLogger(RedisRateLimitPrincipalProvider.class);
+  private static final Logger log = LoggerFactory.getLogger(RedisRateLimitPrincipalProvider.class);
 
   private JedisPool jedisPool;
   private RateLimiterConfiguration rateLimiterConfiguration;
 
   private boolean supportsDeckSourceApp;
 
-  public RedisRateLimitPrincipalProvider(JedisPool jedisPool, RateLimiterConfiguration rateLimiterConfiguration) {
+  public RedisRateLimitPrincipalProvider(
+      JedisPool jedisPool, RateLimiterConfiguration rateLimiterConfiguration) {
     this.jedisPool = jedisPool;
     this.rateLimiterConfiguration = rateLimiterConfiguration;
 
@@ -55,27 +54,22 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       int rateSeconds = getRateSeconds(jedis, configName);
       boolean learning = getLearningFlag(jedis, configName, sourceApp);
 
-      return new RateLimitPrincipal(
-        name,
-        rateSeconds,
-        capacity,
-        learning
-      );
+      return new RateLimitPrincipal(name, rateSeconds, capacity, learning);
     } catch (JedisException e) {
       log.error("failed getting rate limit principal, disabling for request", e);
       return new RateLimitPrincipal(
-        name,
-        rateLimiterConfiguration.getRateSeconds(),
-        rateLimiterConfiguration.getCapacity(),
-        true
-      );
+          name,
+          rateLimiterConfiguration.getRateSeconds(),
+          rateLimiterConfiguration.getCapacity(),
+          true);
     }
   }
 
   @Override
   public boolean supports(@Nullable String sourceApp) {
     if (DECK_APP.equalsIgnoreCase(sourceApp)) {
-      // normally rate limits apply to _all_ principals but those originating from 'deck' were historically excluded
+      // normally rate limits apply to _all_ principals but those originating from 'deck' were
+      // historically excluded
       return supportsDeckSourceApp;
     }
 
@@ -88,16 +82,17 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       try {
         return Integer.parseInt(capacity);
       } catch (NumberFormatException e) {
-        log.error("invalid principal capacity value, expected integer (principal: {}, value: {})",
-          value("principal", name), value("capacity", capacity));
+        log.error(
+            "invalid principal capacity value, expected integer (principal: {}, value: {})",
+            value("principal", name),
+            value("capacity", capacity));
       }
     }
 
     return overrideOrDefault(
-      name,
-      rateLimiterConfiguration.getCapacityByPrincipal(),
-      getCapacityForSourceApp(jedis, sourceApp).orElse(rateLimiterConfiguration.getCapacity())
-    );
+        name,
+        rateLimiterConfiguration.getCapacityByPrincipal(),
+        getCapacityForSourceApp(jedis, sourceApp).orElse(rateLimiterConfiguration.getCapacity()));
   }
 
   private int getRateSeconds(Jedis jedis, String name) {
@@ -106,11 +101,16 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       try {
         return Integer.parseInt(rateSeconds);
       } catch (NumberFormatException e) {
-        log.error("invalid principal rateSeconds value, expected integer (principal: {}, value: {})",
-          value("principal", name), value("rateSeconds", rateSeconds));
+        log.error(
+            "invalid principal rateSeconds value, expected integer (principal: {}, value: {})",
+            value("principal", name),
+            value("rateSeconds", rateSeconds));
       }
     }
-    return overrideOrDefault(name, rateLimiterConfiguration.getRateSecondsByPrincipal(), rateLimiterConfiguration.getRateSeconds());
+    return overrideOrDefault(
+        name,
+        rateLimiterConfiguration.getRateSecondsByPrincipal(),
+        rateLimiterConfiguration.getRateSeconds());
   }
 
   private boolean getLearningFlag(Jedis jedis, String name, @Nullable String sourceApp) {
@@ -123,8 +123,9 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     }
 
     if (enforcing.contains(name) && ignoring.contains(name)) {
-      log.warn("principal is configured to be enforced AND ignored in Redis, ENFORCING for request (principal: {})",
-        value("principal", name));
+      log.warn(
+          "principal is configured to be enforced AND ignored in Redis, ENFORCING for request (principal: {})",
+          value("principal", name));
       return false;
     }
 
@@ -133,14 +134,18 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       ignoring = rateLimiterConfiguration.getIgnoring();
 
       if (enforcing.contains(name) && ignoring.contains(name)) {
-        log.warn("principal is configured to be enforced AND ignored in static config, ENFORCING for request (principal: {})",
-          value("principal", name));
+        log.warn(
+            "principal is configured to be enforced AND ignored in static config, ENFORCING for request (principal: {})",
+            value("principal", name));
         return false;
       }
     }
 
     String redisLearning = jedis.get(getLearningKey());
-    boolean learning = redisLearning == null ? rateLimiterConfiguration.isLearning() : Boolean.parseBoolean(redisLearning);
+    boolean learning =
+        redisLearning == null
+            ? rateLimiterConfiguration.isLearning()
+            : Boolean.parseBoolean(redisLearning);
 
     return isLearning(name, enforcing, ignoring, learning);
   }
@@ -183,29 +188,28 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
         return Optional.of(Integer.parseInt(capacity));
       } catch (NumberFormatException e) {
         log.error(
-          "invalid source app capacity value, expected integer (sourceApp: {}, value: {})",
-          value("sourceApp", sourceApp),
-          value("capacity", capacity)
-        );
+            "invalid source app capacity value, expected integer (sourceApp: {}, value: {})",
+            value("sourceApp", sourceApp),
+            value("capacity", capacity));
       }
     }
 
-    return rateLimiterConfiguration
-      .getCapacityBySourceApp()
-      .stream()
-      .filter(o -> o.getSourceApp().equalsIgnoreCase(sourceApp))
-      .map(RateLimiterConfiguration.SourceAppOverride::getOverride)
-      .findFirst();
+    return rateLimiterConfiguration.getCapacityBySourceApp().stream()
+        .filter(o -> o.getSourceApp().equalsIgnoreCase(sourceApp))
+        .map(RateLimiterConfiguration.SourceAppOverride::getOverride)
+        .findFirst();
   }
 
   @Scheduled(fixedDelay = 60000L)
   void refreshSupportsDeckSourceApp() {
-    log.debug("Refreshing 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
+    log.debug(
+        "Refreshing 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
 
     try (Jedis jedis = jedisPool.getResource()) {
       supportsDeckSourceApp = jedis.sismember(getEnforcingKey(), "app:deck");
     }
 
-    log.debug("Refreshed 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
+    log.debug(
+        "Refreshed 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
   }
 }

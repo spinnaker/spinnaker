@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services.internal;
 
 import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
+
 public class OrcaServiceSelector {
 
   private final SelectableService selectableService;
@@ -27,16 +28,17 @@ public class OrcaServiceSelector {
   }
 
   public OrcaService withContext(RequestContext context) {
-    SelectableService.Criteria criteria = new SelectableService.Criteria(null, null, null, null, null);
+    SelectableService.Criteria criteria =
+        new SelectableService.Criteria(null, null, null, null, null);
 
     if (context != null) {
-      criteria = new SelectableService.Criteria(
-        context.getApplication(),
-        context.getAuthenticatedUser(),
-        context.getExecutionType(),
-        context.getExecutionId(),
-        context.getOrigin()
-      );
+      criteria =
+          new SelectableService.Criteria(
+              context.getApplication(),
+              context.getAuthenticatedUser(),
+              context.getExecutionType(),
+              context.getExecutionId(),
+              context.getOrigin());
     }
 
     return (OrcaService) selectableService.getService(criteria);

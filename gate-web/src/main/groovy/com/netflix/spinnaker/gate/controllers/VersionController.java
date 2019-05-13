@@ -39,10 +39,9 @@ public class VersionController {
     private String version;
 
     public Version() {
-      this.version = Optional.ofNullable(VersionController.class
-        .getPackage()
-        .getImplementationVersion())
-        .orElse("Unknown");
+      this.version =
+          Optional.ofNullable(VersionController.class.getPackage().getImplementationVersion())
+              .orElse("Unknown");
     }
   }
 }

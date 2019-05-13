@@ -15,11 +15,17 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spinnaker.security.User;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,13 +34,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZonedDateTime;
-import java.util.Collections;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
 
 public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
@@ -49,9 +48,10 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   private Counter throttlingCounter;
   private Counter learningThrottlingCounter;
 
-  public RateLimitingInterceptor(RateLimiter rateLimiter,
-                                 Registry registry,
-                                 RateLimitPrincipalProvider rateLimitPrincipalProvider) {
+  public RateLimitingInterceptor(
+      RateLimiter rateLimiter,
+      Registry registry,
+      RateLimitPrincipalProvider rateLimitPrincipalProvider) {
     this.rateLimiter = rateLimiter;
     this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
     this.registry = registry;
@@ -60,12 +60,14 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   }
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+      throws Exception {
     String sourceApp = request.getHeader("X-RateLimit-App");
     MDC.put("sourceApp", sourceApp);
 
     if (!rateLimitPrincipalProvider.supports(sourceApp)) {
-      // api requests from particular source applications (ie. deck) may not be subject to rate limits
+      // api requests from particular source applications (ie. deck) may not be subject to rate
+      // limits
       return true;
     }
 
@@ -76,7 +78,8 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return true;
     }
 
-    RateLimitPrincipal principal = rateLimitPrincipalProvider.getPrincipal(principalName, sourceApp);
+    RateLimitPrincipal principal =
+        rateLimitPrincipalProvider.getPrincipal(principalName, sourceApp);
 
     Rate rate = rateLimiter.incrementAndGetRate(principal);
 
@@ -86,19 +89,22 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     if (principal.isLearning()) {
       if (rate.isThrottled()) {
         learningThrottlingCounter.increment();
-        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)",
-          value("principal", principal.getName()), value("rateSeconds", rate.rateSeconds),
-          value("rateCapacity", rate.capacity));
+        log.warn(
+            "Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)",
+            value("principal", principal.getName()),
+            value("rateSeconds", rate.rateSeconds),
+            value("rateCapacity", rate.capacity));
       }
       return true;
     }
 
-
     if (rate.isThrottled()) {
       throttlingCounter.increment();
-      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)",
-        value("principal", principal.getName()), value("rateSeconds", rate.rateSeconds),
-        value("rateCapacity", rate.capacity));
+      log.warn(
+          "Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)",
+          value("principal", principal.getName()),
+          value("rateSeconds", rate.rateSeconds),
+          value("rateCapacity", rate.capacity));
       response.sendError(429, "Rate capacity exceeded");
       return false;
     }
@@ -107,7 +113,12 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   }
 
   @Override
-  public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+  public void postHandle(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Object handler,
+      ModelAndView modelAndView)
+      throws Exception {
     // Hystrix et-al can return 429's, which we'll want to intercept to provide a reset header
     if (response.getStatus() == 429 && !response.getHeaderNames().contains(Rate.RESET_HEADER)) {
       response.setIntHeader(Rate.CAPACITY_HEADER, -1);
@@ -131,8 +142,9 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       if ("anonymous".equals(principal)) {
         String rateLimitApp = request.getHeader("X-RateLimit-App");
         if (rateLimitApp != null && !rateLimitApp.equals("")) {
-          log.info("Unknown or anonymous principal, using X-RateLimit-App instead: {}",
-            value("rateLimitApp", rateLimitApp));
+          log.info(
+              "Unknown or anonymous principal, using X-RateLimit-App instead: {}",
+              value("rateLimitApp", rateLimitApp));
           return rateLimitApp;
         }
       }

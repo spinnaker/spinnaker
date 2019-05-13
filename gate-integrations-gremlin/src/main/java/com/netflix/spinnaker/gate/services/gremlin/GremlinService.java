@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.gate.services.gremlin;
 
-import retrofit.http.*;
-
 import java.util.List;
+import retrofit.http.*;
 
 public interface GremlinService {
   @GET("/templates/command")

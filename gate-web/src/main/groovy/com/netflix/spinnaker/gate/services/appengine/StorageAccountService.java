@@ -20,11 +20,10 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import groovy.transform.CompileStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.concurrent.Callable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @CompileStatic
 @Component
@@ -33,16 +32,17 @@ public class StorageAccountService {
 
   private static final String GROUP = "storageAccount";
 
-  @Autowired
-  private ClouddriverServiceSelector clouddriverServiceSelector;
+  @Autowired private ClouddriverServiceSelector clouddriverServiceSelector;
 
-  private static HystrixCommand<List<String>> listCommand(String type, Callable<List<String>> work) {
+  private static HystrixCommand<List<String>> listCommand(
+      String type, Callable<List<String>> work) {
     return HystrixFactory.newListCommand(GROUP, type, work);
   }
 
   public List<String> getAppengineStorageAccounts(String selectorKey) {
-    return listCommand("appengineStorageAccounts",
-        clouddriverServiceSelector.select(selectorKey)::getStorageAccounts)
+    return listCommand(
+            "appengineStorageAccounts",
+            clouddriverServiceSelector.select(selectorKey)::getStorageAccounts)
         .execute();
   }
 }

@@ -18,21 +18,19 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.appengine.StorageAccountService;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/storage")
 @Deprecated
 public class StorageAccountController {
 
-  @Autowired
-  private StorageAccountService storageAccountService;
+  @Autowired private StorageAccountService storageAccountService;
 
   @ApiOperation(value = "Retrieve the list of storage accounts configured in Clouddriver.")
   @RequestMapping(method = RequestMethod.GET)
