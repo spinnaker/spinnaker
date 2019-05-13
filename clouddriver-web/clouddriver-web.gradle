@@ -30,7 +30,7 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-sql-mysql")
 
-  
+
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
@@ -50,7 +50,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  
+
   testImplementation project(":clouddriver-elasticsearch")
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -61,4 +61,3 @@ dependencies {
     implementation project(":${it}")
   }
 }
-

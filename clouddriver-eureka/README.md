@@ -25,8 +25,8 @@ The provider also supports a region placeholder:
             regions:
               - us-west-1
             readOnlyUrl: "http://myhostname.{{region}}.mycompany.com:8080/eureka/v2"
-            
-Each account definition in AWS must also define a `discovery` field that denotes the URL for the writeable eureka. 
+
+Each account definition in AWS must also define a `discovery` field that denotes the URL for the writeable eureka.
 
 ```
 - name: test
@@ -38,7 +38,7 @@ Each account definition in AWS must also define a `discovery` field that denotes
         - name: us-east-1
 ```
 
-By default, only one Eureka is supported per AWS account. If you have multiple 
+By default, only one Eureka is supported per AWS account. If you have multiple
 `aws.accounts` configured in clouddriver which share an accountId, and wish to
 use a separate Eureka for each, then you can enable support by setting
 `eureka.provider.allowMultipleEurekaPerAccount` to true. For example:
@@ -82,4 +82,4 @@ name of the AWS account (`aws.enabled.accounts[].name`) with which it
 shares the same Eureka.
 Please note that `eureka.provider.allowMultipleEurekaPerAccount` only works
 with AWS as the cloud provider. Additionally, this feature is not supported
-in the titus integration. 
+in the titus integration.

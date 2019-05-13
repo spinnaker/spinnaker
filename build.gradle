@@ -30,9 +30,9 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.3.0'
     if (Boolean.valueOf(enablePublishing)) {
-      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0"
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.3.0"
     }
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.junit.platform:junit-platform-gradle-plugin:${junitPlatformVersion}"
@@ -90,6 +90,10 @@ subprojects { project ->
     repositories {
       mavenLocal()
     }
+  }
+
+  spinnakerCodeStyle {
+    enabled = false
   }
 
   tasks.withType(JavaExec) {

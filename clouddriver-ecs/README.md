@@ -1,4 +1,4 @@
-## AWS ECS Clouddriver 
+## AWS ECS Clouddriver
 
 The clouddriver-ecs module allows for ECS deployments of dockerized applications.  **You need to enable the AWS cloud provider in order for the ECS cloud provider to work**.
 
@@ -48,7 +48,7 @@ Make sure that you allow the `application-autoscaling.amazonaws.com` and `ecs.am
   ]
 }
 ```
-## 
+##
 
 
 TODO Wishlist:

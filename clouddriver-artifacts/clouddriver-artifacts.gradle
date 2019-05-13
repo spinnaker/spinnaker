@@ -65,7 +65,7 @@ dependencies {
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   compileOnly "org.apache.commons:commons-lang3"
-  
+
   implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
@@ -83,9 +83,9 @@ dependencies {
   implementation "org.eclipse.aether:aether-impl:1.1.0"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  
+
   implementation fileTree(sdkLocation)
-  
+
   testImplementation "com.github.tomakehurst:wiremock:latest.release"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"

@@ -68,4 +68,3 @@ EC2_REGION="us-east-1"
 # Customizing user data per deploy
 
 The AWS create/clone server group operations support a `base64UserData` attribute which is appended to any existing template to allow any custom user data to be injected during a deployment.
-

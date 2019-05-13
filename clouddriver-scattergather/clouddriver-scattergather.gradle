@@ -10,7 +10,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.squareup.okhttp3:okhttp"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  
+
   testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
   testImplementation "io.strikt:strikt-core"
   testImplementation "org.springframework:spring-test"
