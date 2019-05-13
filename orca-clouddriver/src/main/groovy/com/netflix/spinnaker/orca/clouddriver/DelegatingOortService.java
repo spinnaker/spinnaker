@@ -139,4 +139,9 @@ public class DelegatingOortService
   public Map getServiceInstance(String account, String cloudProvider, String region, String serviceInstanceName) {
     return getService().getServiceInstance(account, cloudProvider, region, serviceInstanceName);
   }
+
+  @Override
+  public List<Map<String, Object>> getCredentials(boolean expand) {
+    return getService().getCredentials(expand);
+  }
 }

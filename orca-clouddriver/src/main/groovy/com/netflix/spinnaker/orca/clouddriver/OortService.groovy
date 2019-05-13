@@ -145,4 +145,6 @@ interface OortService {
                                          @Query("cloudProvider") String cloudProvider,
                                          @Query("region") String region,
                                          @Query("serviceInstanceName") String serviceInstanceName)
+  @GET('/credentials')
+  List<Map<String, Object>> getCredentials(@Query("expand") boolean expand)
 }
