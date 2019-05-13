@@ -51,11 +51,6 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
           include: inclusionPattern.concat(path.resolve(__dirname, 'settings.js')),
         },
         {
-          test: /\.js$/,
-          use: ['ify-loader', 'transform-loader?plotly.js/tasks/util/compress_attributes.js'],
-          exclude: /node_modules\/react/,
-        },
-        {
           test: /\.less$/,
           use: ['cache-loader', 'style-loader', 'css-loader', 'less-loader'],
           include: inclusionPattern,
