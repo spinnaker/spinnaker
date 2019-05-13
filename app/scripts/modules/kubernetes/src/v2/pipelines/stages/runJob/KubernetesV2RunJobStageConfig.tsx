@@ -1,6 +1,19 @@
 import * as React from 'react';
+import Select from 'react-select';
 
-import { IStageConfigProps, AccountService, YamlEditor, yamlDocumentsToString, IAccount } from '@spinnaker/core';
+import {
+  IStageConfigProps,
+  AccountService,
+  YamlEditor,
+  yamlDocumentsToString,
+  IAccount,
+  StageArtifactSelector,
+  SETTINGS,
+  IExpectedArtifact,
+  IArtifact,
+  PreRewriteStageArtifactSelector,
+  StageConfigField,
+} from '@spinnaker/core';
 
 import { ManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
 
@@ -13,6 +26,12 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
   public state: IKubernetesRunJobStageConfigState = {
     credentials: [],
   };
+
+  public outputOptions = [
+    { label: 'None', value: 'none' },
+    { label: 'Logs', value: 'propertyFile' },
+    { label: 'Artifact', value: 'artifact' },
+  ];
 
   public accountChanged = (account: string) => {
     this.props.updateStageField({
@@ -43,8 +62,93 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
     this.initRawManifest();
   }
 
+  private sourceChanged = (event: any) => {
+    this.props.updateStageField({ consumeArtifactSource: event.value });
+  };
+
+  private updateArtifactId(artifactId: string) {
+    this.props.updateStageField({ consumeArtifactId: artifactId });
+  }
+
+  private updateArtifactAccount(artifactAccount: string) {
+    this.props.updateStageField({ consumeArtifactAccount: artifactAccount });
+  }
+
+  private onArtifactSelected = (artifact: IExpectedArtifact) => {
+    this.props.updateStageField({ consumeArtifactId: artifact.id });
+  };
+
+  private onArtifactEdited = (artifact: IArtifact) => {
+    this.props.updateStageField({
+      consumeArtifact: artifact,
+      consumeArtifactId: artifact.id,
+      consumeArtifactAccount: artifact.artifactAccount,
+    });
+  };
+
+  private updatePropertyFile = (event: any) => {
+    this.props.updateStageField({ propertyFile: event.target.value });
+  };
+
+  private checkFeatureFlag(flag: string): boolean {
+    return !!SETTINGS.feature[flag];
+  }
+
+  public logSourceForm() {
+    const { stage } = this.props;
+    return (
+      <StageConfigField label="Container Name" helpKey="kubernetes.runJob.captureSource.containerName">
+        <input
+          className="form-control input-sm"
+          type="text"
+          value={stage.propertyFile}
+          onChange={this.updatePropertyFile}
+        />
+      </StageConfigField>
+    );
+  }
+
+  public artifactRewriteForm() {
+    const { stage, pipeline } = this.props;
+    return (
+      <StageConfigField label="Artifact">
+        <StageArtifactSelector
+          pipeline={pipeline}
+          stage={stage}
+          artifact={stage.consumeArtifact}
+          excludedArtifactTypePatterns={[]}
+          expectedArtifactId={stage.consumeArtifactId}
+          onExpectedArtifactSelected={this.onArtifactSelected}
+          onArtifactEdited={this.onArtifactEdited}
+        />
+      </StageConfigField>
+    );
+  }
+
+  public artifactForm() {
+    const { stage, pipeline } = this.props;
+    return (
+      <PreRewriteStageArtifactSelector
+        excludedArtifactTypes={[]}
+        stage={stage}
+        pipeline={pipeline}
+        selectedArtifactId={stage.consumeArtifactId}
+        selectedArtifactAccount={stage.consumeArtifactAccount}
+        setArtifactAccount={(artifactAccount: string) => this.updateArtifactAccount(artifactAccount)}
+        setArtifactId={(artifactId: string) => this.updateArtifactId(artifactId)}
+      />
+    );
+  }
+
   public render() {
     const { application, stage } = this.props;
+
+    let outputSource = <div />;
+    if (stage.consumeArtifactSource === 'propertyFile') {
+      outputSource = this.logSourceForm();
+    } else if (stage.consumeArtifactSource === 'artifact') {
+      outputSource = this.checkFeatureFlag('artifactsRewrite') ? this.artifactRewriteForm() : this.artifactForm();
+    }
 
     return (
       <div className="container-fluid form-horizontal">
@@ -57,6 +161,18 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
         />
         <h4>Manifest Configuration</h4>
         <YamlEditor value={this.state.rawManifest} onChange={this.handleRawManifestChange} />
+        <h4>Output</h4>
+        <StageConfigField label="Capture Output From" helpKey="kubernetes.runJob.captureSource">
+          <div>
+            <Select
+              clearable={false}
+              options={this.outputOptions}
+              value={stage.consumeArtifactSource}
+              onChange={this.sourceChanged}
+            />
+          </div>
+        </StageConfigField>
+        {outputSource}
       </div>
     );
   }

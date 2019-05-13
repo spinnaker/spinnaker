@@ -225,6 +225,9 @@ const helpContents: { [key: string]: string } = {
     <p><b>json</b>: <a href="https://tools.ietf.org/html/rfc6902" target="_blank">JSON Patch, RFC 6902</a></p>
     <p><b>merge</b>: <a href="https://tools.ietf.org/html/rfc7386" target="_blank">JSON Merge Patch, RFC 7386</a></p>
   `,
+  'kubernetes.runJob.captureSource':
+    'Source from which to capture Job output. Captured output will be available in the pipeline context for use in downstream stages.',
+  'kubernetes.runJob.captureSource.containerName': `Use logs from this container to capture output data.`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
