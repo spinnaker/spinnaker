@@ -12,6 +12,7 @@ import {
 import {
   ApplicationManagerSection,
   BoundServicesSection,
+  BuildSection,
   cfServerGroupDetailsGetter,
   CloudFoundryCreateServerGroupModal,
   CloudFoundryServerGroupActions,
@@ -66,6 +67,7 @@ CloudProviderRegistry.registerProvider('cloudfoundry', {
       MetricsSection,
       ServerGroupSizingSection,
       HealthCheckSection,
+      BuildSection,
       PackageSection,
       BoundServicesSection,
       EvironmentVariablesSection,
