@@ -18,6 +18,7 @@ export interface IArtifactoryTrigger extends ITrigger {
 
 export interface IGitTrigger extends ITrigger {
   source: string;
+  secret?: string;
   project: string;
   slug: string;
   branch: string;
@@ -30,14 +31,22 @@ export interface IBuildTrigger extends ITrigger {
   buildNumber?: number;
   job: string;
   project: string;
+  propertyFile?: string;
   master: string;
   type: 'jenkins' | 'travis' | 'wercker' | 'concourse';
+}
+
+export interface IWerckerTrigger extends IBuildTrigger {
+  app: string;
+  pipeline: string;
+  type: 'wercker';
 }
 
 export interface IConcourseTrigger extends IBuildTrigger {
   // Concourse pipeline is represented by project
   team: string;
   jobName: string; // job will be the concatenation of team/pipeline/jobName
+  type: 'concourse';
 }
 
 export interface IPipelineTrigger extends ITrigger {
@@ -45,6 +54,7 @@ export interface IPipelineTrigger extends ITrigger {
   parentExecution?: IExecution;
   parentPipelineId?: string;
   pipeline: string;
+  status: string[];
 }
 
 export interface ICronTrigger extends ITrigger {

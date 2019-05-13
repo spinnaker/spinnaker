@@ -124,11 +124,17 @@ module.exports = angular
                 ReactDOM.render(React.createElement(TriggerConfig, props), triggerBodyNode);
 
               const props = {
-                fieldUpdated: () => {
+                application: $scope.application,
+                pipelineId: $scope.pipeline.id,
+                trigger: $scope.trigger,
+                triggerUpdated: trigger => {
+                  const triggerIndex = $scope.pipeline.triggers.indexOf($scope.trigger);
+                  trigger = Object.assign(props.trigger, trigger);
+                  $scope.pipeline.triggers[triggerIndex] = trigger;
+                  $scope.trigger = trigger;
                   $scope.fieldUpdated();
                   renderTrigger(props);
                 },
-                trigger: $scope.trigger,
               };
 
               renderTrigger(props);
