@@ -22,7 +22,7 @@ class SpinnakerApplicationPlugin implements Plugin<Project> {
         appConvention.applicationDefaultJvmArgs << "-Djava.security.egd=file:/dev/./urandom"
 
         project.tasks.withType(CreateStartScripts) {
-            it.defaultJvmOpts  = appConvention.applicationDefaultJvmArgs + ["-Dspring.config.location=/opt/spinnaker/config/"]
+            it.defaultJvmOpts = appConvention.applicationDefaultJvmArgs + ["-Dspring.config.additional-location=/opt/spinnaker/config/"]
             it.doLast {
                 unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '''\
                     if [ -f /etc/default/spinnaker ]; then
