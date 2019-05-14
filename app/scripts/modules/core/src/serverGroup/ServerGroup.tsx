@@ -3,6 +3,7 @@ import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
 import * as classNames from 'classnames';
 import { Subscription } from 'rxjs';
+import { $interpolate } from 'ngimport';
 
 import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
@@ -91,7 +92,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
         tag: dockerConfig.tag,
         image: dockerConfig.image,
         href:
-          SETTINGS.dockerInsights.url +
+          $interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
           'images/' +
           encodeURIComponent(dockerConfig.image) +
           '/' +
