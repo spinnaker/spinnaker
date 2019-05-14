@@ -32,7 +32,7 @@ const helpContents: { [key: string]: string } = {
   'aws.loadBalancer.name':
     '<p>The load balancer name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
   'aws.loadBalancer.targetGroups':
-    'Add a target group if you want to associate this with an Application Load Balancer (ALB)',
+    'Add a target group if you want to associate this with an Application Load Balancer (ALB) or Network Load Balancer (NLB)',
   'aws.loadBalancer.loadBalancers':
     'And a load balancer directly if you created a Classic Load Balancer (a classic load balancer does not have target groups)',
   'aws.loadBalancer.ruleCondition.host': `<p>You can specify a single host name (for example, <em>my.example.com</em>). A host name is case insensitive, can be up to 128 characters in length, and can contain any of the following characters. Note that you can include up to three wildcard characters.</p>
