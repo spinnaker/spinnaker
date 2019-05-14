@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { module } from 'angular';
 
 import { CanarySettings } from 'kayenta/canary.settings';

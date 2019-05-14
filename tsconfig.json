@@ -31,7 +31,7 @@
     "typeRoots": ["node_modules/@types"]
   },
   "awesomeTypescriptLoaderOptions": {
-    "useBabel": true,
+    "useBabel": false,
     "useCache": true
   },
   "exclude": ["build", "node", "node_modules", "transpiled"],

@@ -34,7 +34,6 @@ export class KayentaStageController implements IComponentController {
     '$scope',
     '$uibModal',
     '$log',
-    'providerSelectionService',
     'serverGroupCommandBuilder',
     'serverGroupTransformer',
     'stage',
@@ -74,7 +73,6 @@ export class KayentaStageController implements IComponentController {
     private $scope: IScope,
     private $uibModal: IModalService,
     private $log: ILogService,
-    private providerSelectionService: ProviderSelectionService,
     private serverGroupCommandBuilder: ServerGroupCommandBuilderService,
     private serverGroupTransformer: any,
     public stage: IKayentaStage,
@@ -579,7 +577,7 @@ export class KayentaStageController implements IComponentController {
     this.stage.deployments.serverGroupPairs = this.stage.deployments.serverGroupPairs || [];
     const provider = await (has(this.stage, 'deployments.baseline.cloudProvider')
       ? Promise.resolve(this.stage.deployments.baseline.cloudProvider)
-      : Promise.resolve(this.providerSelectionService.selectProvider(this.$scope.application, 'serverGroup')));
+      : Promise.resolve(ProviderSelectionService.selectProvider(this.$scope.application, 'serverGroup')));
     this.stage.deployments.baseline.cloudProvider = provider;
     const config = CloudProviderRegistry.getValue(provider, 'serverGroup');
 

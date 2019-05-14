@@ -8,13 +8,12 @@ const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
 const happyThreadPool = HappyPack.ThreadPool({ size: HAPPY_PACK_POOL_SIZE });
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
 
 module.exports = {
   context: basePath,
   entry: {
-    lib: ['babel-polyfill', path.join(basePath, 'src', 'kayenta', 'index.ts')],
+    lib: [path.join(basePath, 'src', 'kayenta', 'index.ts')],
   },
   output: {
     path: path.join(basePath, 'lib'),
@@ -26,7 +25,6 @@ module.exports = {
   externals: [
     nodeExternals({
       modulesDir: NODE_MODULE_PATH,
-      whitelist: ['babel-polyfill'],
     }),
   ],
   resolve: {
@@ -75,12 +73,6 @@ module.exports = {
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: false,
-      beautify: true,
-      comments: true,
-      sourceMap: true,
-    }),
     new HappyPack({
       id: 'lib-html',
       loaders: ['ngtemplate-loader?relativeTo=' + path.resolve(basePath, 'src') + '&prefix=kayenta', 'html-loader'],
@@ -88,12 +80,12 @@ module.exports = {
     }),
     new HappyPack({
       id: 'js',
-      loaders: ['babel-loader', 'envify-loader', 'eslint-loader'],
+      loaders: ['envify-loader', 'eslint-loader'],
       threadPool: happyThreadPool,
     }),
     new HappyPack({
       id: 'ts',
-      loaders: ['babel-loader', { path: 'ts-loader', query: { happyPackMode: true } }, 'tslint-loader'],
+      loaders: [{ path: 'ts-loader', query: { happyPackMode: true } }, 'tslint-loader'],
       threadPool: happyThreadPool,
     }),
     new HappyPack({
