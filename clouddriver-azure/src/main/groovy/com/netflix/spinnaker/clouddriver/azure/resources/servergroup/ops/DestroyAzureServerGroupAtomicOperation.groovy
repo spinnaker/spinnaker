@@ -101,21 +101,7 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
             }
           }
 
-          // Delete load balancer attached to server group
-          if (serverGroupDescription.loadBalancerName) {
-            task.updateStatus(BASE_PHASE, "Deleting load balancer ${serverGroupDescription.loadBalancerName} " + "in ${region}...")
-            try {
-              description
-                .credentials
-                .networkClient
-                .deleteLoadBalancer(resourceGroupName, serverGroupDescription.loadBalancerName)
 
-              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} in ${region} has succeeded.")
-            } catch (Exception e) {
-              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${serverGroupDescription.loadBalancerName} failed: ${e.message}")
-              errList.add("Failed to delete ${serverGroupDescription.loadBalancerName}: ${e.message}")
-            }
-          }
 
           // Delete subnet attached to server group
           if (serverGroupDescription.hasNewSubnet && serverGroupDescription.subnetId) {

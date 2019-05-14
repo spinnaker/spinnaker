@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.common.cache.AzureCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.common.cache.MutableCacheData
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
+
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.*
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
@@ -62,7 +64,12 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     List<AzureServerGroupDescription> serverGroups = creds.computeClient.getServerGroupsAll(region)
     serverGroups?.each {
       try {
-        it.isDisabled = creds.networkClient.isServerGroupDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.appGatewayName, it.name)
+        if(it.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+          it.isDisabled = creds.networkClient.isServerGroupWithLoadBalancerDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.loadBalancerName, it.name)
+        } else {
+          it.isDisabled = creds.networkClient.isServerGroupDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.appGatewayName, it.name)
+        }
+
       } catch (Exception e) {
         log.warn("Exception ${e.message} while computing 'isDisable' state for server group ${it.name}")
       }

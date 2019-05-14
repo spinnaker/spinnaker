@@ -16,15 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.PathVariable
@@ -34,11 +38,121 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Component
-class AzureLoadBalancerProvider /*implements LoadBalancerProvider<AzureLoadBalancer> */ {
+class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalancer> {
+
+  final String cloudProvider = AzureCloudProvider.ID
 
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  AzureLoadBalancerProvider azureLoadBalancerProvider
+
+  List<AzureLoadBalancerSummary> list() {
+    getSummaryForLoadBalancers().values() as List
+  }
+
+  private Map<String, AzureLoadBalancerSummary> getSummaryForLoadBalancers() {
+    Map<String, AzureLoadBalancerSummary> map = [:]
+    def loadBalancers = azureLoadBalancerProvider.getApplicationLoadBalancers('*')
+
+    loadBalancers?.each() { lb ->
+      def summary = map.get(lb.name)
+
+      if (!summary) {
+        summary = new AzureLoadBalancerSummary(name: lb.name)
+        map.put lb.name, summary
+      }
+
+      def loadBalancerDetail = new AzureLoadBalancerDetail(account: lb.account, name: lb.name, region: lb.region)
+
+      summary.getOrCreateAccount(lb.account).getOrCreateRegion(lb.region).loadBalancers << loadBalancerDetail
+    }
+    map
+  }
+
+  LoadBalancerProvider.Item get(String name) {
+    throw new UnsupportedOperationException("TODO: Implement single getter.")
+  }
+
+  List<Map> byAccountAndRegionAndName(String account, String region, String name) {
+    String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
+    AzureLoadBalancerDescription azureLoadBalancerDescription = azureLoadBalancerProvider.getLoadBalancerDescription(account, appName, region, name)
+
+    if (azureLoadBalancerDescription) {
+      def lbDetail = [
+        name: azureLoadBalancerDescription.loadBalancerName
+      ]
+
+      lbDetail.createdTime = azureLoadBalancerDescription.createdTime
+      lbDetail.serverGroup = azureLoadBalancerDescription.serverGroups
+      lbDetail.vnet = azureLoadBalancerDescription.vnet ?: "vnet-unassigned"
+      lbDetail.subnet = azureLoadBalancerDescription.subnet ?: "subnet-unassigned"
+      lbDetail.dnsName = azureLoadBalancerDescription.dnsName ?: "dnsname-unassigned"
+
+      lbDetail.probes = azureLoadBalancerDescription.probes
+      lbDetail.securityGroup = azureLoadBalancerDescription.securityGroup
+      lbDetail.loadBalancingRules = azureLoadBalancerDescription.loadBalancingRules
+      lbDetail.inboundNATRules = azureLoadBalancerDescription.inboundNATRules
+      lbDetail.tags = azureLoadBalancerDescription.tags
+
+      return [lbDetail]
+    }
+
+    return []
+  }
+
+  static class AzureLoadBalancerSummary implements LoadBalancerProvider.Item {
+    private Map<String, AzureLoadBalancerAccount> mappedAccounts = [:]
+    String name
+
+    AzureLoadBalancerAccount getOrCreateAccount(String name) {
+      if (!mappedAccounts.containsKey(name)) {
+        mappedAccounts.put(name, new AzureLoadBalancerAccount(name:name))
+      }
+
+      mappedAccounts[name]
+    }
+
+    @JsonProperty("accounts")
+    List<AzureLoadBalancerAccount> getByAccounts() {
+      mappedAccounts.values() as List
+    }
+  }
+
+  static class AzureLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
+    private Map<String, AzureLoadBalancerAccountRegion> mappedRegions = [:]
+    String name
+
+    AzureLoadBalancerAccountRegion getOrCreateRegion(String name) {
+      if (!mappedRegions.containsKey(name)) {
+        mappedRegions.put(name, new AzureLoadBalancerAccountRegion(name: name, loadBalancers: []))
+      }
+      mappedRegions[name];
+    }
+
+    @JsonProperty("regions")
+    List<AzureLoadBalancerAccountRegion> getByRegions() {
+      mappedRegions.values() as List
+    }
+
+  }
+
+  static class AzureLoadBalancerAccountRegion implements LoadBalancerProvider.Details {
+    String name
+    List<AzureLoadBalancerDetail> loadBalancers
+  }
+
+  static class AzureLoadBalancerDetail implements LoadBalancerProvider.Details {
+    String account
+    String region
+    String name
+    String type="azure"
+  }
 
   @Autowired
   AzureLoadBalancerProvider(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
@@ -78,14 +192,27 @@ class AzureLoadBalancerProvider /*implements LoadBalancerProvider<AzureLoadBalan
     AzureLoadBalancerDescription loadBalancerDescription = objectMapper.convertValue(cacheData.attributes['loadbalancer'], AzureLoadBalancerDescription)
     def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
-    new AzureLoadBalancer(
+    def loadBalancer = new AzureLoadBalancer(
       account: parts.account ?: "none",
       name: loadBalancerDescription.loadBalancerName,
       region: loadBalancerDescription.region,
       vnet: loadBalancerDescription.vnet ?: "vnet-unassigned",
       subnet: loadBalancerDescription.subnet ?: "subnet-unassigned",
-      serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [], cloudProvider: AzureCloudProvider.ID)]
+      loadBalancerType: AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER
     )
+
+    loadBalancerDescription.serverGroups?.each { serverGroup ->
+      // TODO: add proper check for enable/disable server groups
+      loadBalancer.serverGroups.add(new LoadBalancerServerGroup (
+        name: serverGroup,
+        isDisabled: false,
+        detachedInstances: [],
+        instances: [],
+        cloudProvider: AzureCloudProvider.ID
+      ))
+    }
+
+    loadBalancer
   }
 
   AzureLoadBalancerDescription getLoadBalancerDescription(String account, String appName, String region, String loadBalancerName) {

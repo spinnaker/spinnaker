@@ -58,6 +58,12 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
 
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
 
+      description.name = description.loadBalancerName
+      def loadBalancerDescription = description.credentials.networkClient.getLoadBalancer(resourceGroupName, description.name)
+
+      if(loadBalancerDescription) {
+        description.serverGroups = loadBalancerDescription.serverGroups
+      }
       Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
         AzureLoadBalancerResourceTemplate.getTemplate(description),
         resourceGroupName,

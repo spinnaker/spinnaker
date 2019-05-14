@@ -94,13 +94,12 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-05-01-preview",
+    "apiVersion" : "2018-08-01",
     "loadBalancerName" : "azuremasm-st1-d11",
     "virtualNetworkName" : "vnet-azuremasm-westus",
     "publicIPAddressName" : "pip-azuremasm-st1-d11",
-    "publicIPAddressType" : "Dynamic",
     "loadBalancerFrontEnd" : "fe-azuremasm-st1-d11",
-    "loadBalancerBackEnd" : "be-azuremasm-st1-d11",
+    "loadBalancerBackEnd" : "default_LB_BAP",
     "dnsNameForLBIP" : "[concat('dns-', uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11')))]",
     "ipConfigName" : "ipc-azuremasm-st1-d11",
     "loadBalancerID" : "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
@@ -115,10 +114,13 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "location" : "[parameters('location')]",
     "tags" : null,
     "properties" : {
-      "publicIPAllocationMethod" : "[variables('publicIPAddressType')]",
+      "publicIPAllocationMethod" : "Static",
       "dnsSettings" : {
         "domainNameLabel" : "[variables('dnsNameForLBIP')]"
       }
+    },
+    "sku" : {
+      "name" : "Standard"
     }
   }, {
     "apiVersion" : "[variables('apiVersion')]",
@@ -129,10 +131,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
       "appName" : "azuremasm",
       "stack" : "st1",
       "detail" : "d11",
-      "createdTime" : "1234567890",
-      "securityGroup" : "azuremasm-sg1",
-      "vnet" : "azuremasm-vnet-westus",
-      "subnet" : "azuremasm-subnet-westus"
+      "createdTime" : "1234567890"
     },
     "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]" ],
     "properties" : {
@@ -161,7 +160,8 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
           "backendPort" : 80,
           "probe" : {
             "id" : "[concat(variables('loadBalancerID'),'/probes/healthcheck1')]"
-          }
+          },
+          "loadDistribution" : null
         }
       } ],
       "probes" : [ {
@@ -174,6 +174,9 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
         },
         "name" : "healthcheck1"
       } ]
+    },
+    "sku" : {
+      "name" : "Standard"
     }
   } ]
 }'''

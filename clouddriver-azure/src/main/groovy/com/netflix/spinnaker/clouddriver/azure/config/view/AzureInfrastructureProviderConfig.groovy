@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache.AzureAppGatewayCachingAgent
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache.AzureLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.network.cache.AzureNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.cache.AzureSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.cache.AzureServerGroupCachingAgent
@@ -88,7 +89,7 @@ class AzureInfrastructureProviderConfig {
         if (!scheduledAccounts.contains(creds.accountName)) {
           def newlyAddedAgents = []
 
-//          newlyAddedAgents << new AzureLoadBalancerCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AzureLoadBalancerCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AzureSecurityGroupCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AzureNetworkCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
 //          newlyAddedAgents << new AzureSubnetCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)

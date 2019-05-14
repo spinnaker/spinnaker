@@ -22,6 +22,7 @@ import com.microsoft.azure.management.network.implementation.LoadBalancerInner
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
+import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -32,15 +33,16 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String securityGroup
   String dnsName
   String cluster
-  String serverGroup
+  List<String> serverGroups
   String appName
+  String sessionPersistence
   List<AzureLoadBalancerProbe> probes = []
   List<AzureLoadBalancingRule> loadBalancingRules = []
   List<AzureLoadBalancerInboundNATRule> inboundNATRules = []
 
   static class AzureLoadBalancerProbe {
     enum AzureLoadBalancerProbesType {
-      HTTP, TCP
+      TCP, HTTP, HTTPS
     }
 
     String probeName
@@ -86,11 +88,16 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
     description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
     description.cluster = azureLoadBalancer.tags?.cluster
-    description.serverGroup = azureLoadBalancer.tags?.serverGroup
     description.vnet = azureLoadBalancer.tags?.vnet
     description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
     description.tags.putAll(azureLoadBalancer.tags)
     description.region = azureLoadBalancer.location()
+
+    // Each load balancer backend address pool corresponds to a server group (except the "default_LB_BAP")
+    description.serverGroups = []
+    azureLoadBalancer.backendAddressPools()?.each { bap ->
+      if (bap.name() != AzureLoadBalancerResourceTemplate.DEFAULT_BACKEND_POOL) description.serverGroups << bap.name()
+    }
 
     for (def rule : azureLoadBalancer.loadBalancingRules()) {
       def r = new AzureLoadBalancingRule(ruleName: rule.name())

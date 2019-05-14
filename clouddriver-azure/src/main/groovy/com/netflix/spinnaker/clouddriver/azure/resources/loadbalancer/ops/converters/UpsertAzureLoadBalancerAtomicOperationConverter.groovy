@@ -18,6 +18,10 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.conve
 
 import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.UpsertAzureAppGatewayAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.UpsertAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -27,8 +31,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
-@AzureOperation("upsertLoadBalancerL4")
-//@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
+//@AzureOperation("upsertLoadBalancerL4")
+@AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAzureLoadBalancerDescription")
 class UpsertAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   UpsertAzureLoadBalancerAtomicOperationConverter() {
@@ -36,12 +40,23 @@ class UpsertAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOper
   }
 
   AtomicOperation convertOperation(Map input) {
-    new UpsertAzureLoadBalancerAtomicOperation(convertDescription(input))
+    String loadBalancerType = input.get("loadBalancerType")
+    if(loadBalancerType == null || loadBalancerType.equals(AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString())) {
+      return new UpsertAzureAppGatewayAtomicOperation((AzureAppGatewayDescription)convertDescription(input))
+    }else {
+      return new UpsertAzureLoadBalancerAtomicOperation((AzureLoadBalancerDescription)convertDescription(input))
+    }
   }
 
-  AzureLoadBalancerDescription convertDescription(Map input) {
-    AzureAtomicOperationConverterHelper.
-      convertDescription(input, this, AzureLoadBalancerDescription) as AzureLoadBalancerDescription
+  AzureResourceOpsDescription convertDescription(Map input) {
+    String loadBalancerType = input.get("loadBalancerType")
+    if(loadBalancerType == null || loadBalancerType.equals(AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString())) {
+      return AzureAtomicOperationConverterHelper.
+        convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
+    }else {
+      return AzureAtomicOperationConverterHelper.
+        convertDescription(input, this, AzureLoadBalancerDescription) as AzureLoadBalancerDescription
+    }
   }
 }
 

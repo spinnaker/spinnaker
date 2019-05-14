@@ -23,6 +23,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -48,6 +49,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
   UpgradePolicy upgradePolicy
   String loadBalancerName
+  String loadBalancerType
   String appGatewayName
   String appGatewayBapId
   AzureNamedImage image
@@ -114,7 +116,9 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
   @Override
   Set<String> getLoadBalancers() {
-    return this.appGatewayName == null ? new HashSet<String>() : Sets.newHashSet(this.appGatewayName)
+    if(this.appGatewayName != null) return Sets.newHashSet(this.appGatewayName)
+    if(this.loadBalancerName != null) return Sets.newHashSet(this.loadBalancerName)
+    new HashSet<String>()
   }
 
   @Override
@@ -164,6 +168,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
     azureSG.enableInboundNAT = scaleSet.tags?.enableInboundNAT
     azureSG.appGatewayName = scaleSet.tags?.appGatewayName
+    azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
+    azureSG.loadBalancerType = azureSG.loadBalancerName != null ? AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString() : AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId

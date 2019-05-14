@@ -87,7 +87,8 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
       region: description.region,
       vnet: description.vnet ?: "vnet-unassigned",
       subnet: description.subnet ?: "subnet-unassigned",
-      cluster: description.cluster ?: "unassigned"
+      cluster: description.cluster ?: "unassigned",
+      loadBalancerType: AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY
     )
     description.serverGroups?.each { serverGroup ->
       // TODO: add proper check for enable/disable server groups

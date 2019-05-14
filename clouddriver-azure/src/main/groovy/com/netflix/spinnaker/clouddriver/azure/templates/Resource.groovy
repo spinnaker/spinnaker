@@ -46,6 +46,14 @@ class Resource {
   Map<String, String> tags
 }
 
+class Sku {
+  String name
+
+  Sku(String name) {
+    this.name = name
+  }
+}
+
 class IdRef{
   String id
 
@@ -59,12 +67,14 @@ class IdRef{
 
 class PublicIpResource extends Resource{
   PublicIPProperties properties = new PublicIPProperties()
+  Sku sku
 
   PublicIpResource() {
     apiVersion = "[variables('apiVersion')]"
     name = "[variables('publicIPAddressName')]"
     type = "Microsoft.Network/publicIPAddresses"
     location = "[parameters('location')]"
+    sku = new Sku("Basic")
   }
 }
 

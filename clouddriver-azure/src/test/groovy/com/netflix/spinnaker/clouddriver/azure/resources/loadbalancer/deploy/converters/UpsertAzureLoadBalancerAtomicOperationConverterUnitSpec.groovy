@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
@@ -77,6 +78,7 @@ class UpsertAzureLoadBalancerAtomicOperationConverterUnitSpec extends Specificat
     setup:
       def input = [
           loadBalancerName: LOAD_BALANCER_NAME,
+          loadBalancerType: AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString(),
           region: REGION,
           accountName: ACCOUNT_NAME,
           cloudProvider: CLOUD_PROVIDER,

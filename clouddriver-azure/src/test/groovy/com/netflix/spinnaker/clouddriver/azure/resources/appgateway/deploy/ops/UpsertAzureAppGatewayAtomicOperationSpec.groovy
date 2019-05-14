@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.deploy.ops
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.converters.UpsertAzureAppGatewayAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.UpsertAzureAppGatewayAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
@@ -30,10 +30,10 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
-  @Shared UpsertAzureAppGatewayAtomicOperationConverter converter
+  @Shared UpsertAzureLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new UpsertAzureAppGatewayAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new UpsertAzureLoadBalancerAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(AzureNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -44,7 +44,7 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
     setup:
     mapper.configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "stack" : "lb1", "detail" : "d1", "credentials" : "myazure-account", "region" : "westus", "probes" : [ { "probeName" : "healthcheck1", "probeProtocol" : "HTTP", "probePath" : "/healthcheck", "probeInterval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "loadBalancingRules" : [ { "ruleName" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" } ], "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
+    def input = '''{ "cloudProvider" : "azure", "appName" : "testappgw", "loadBalancerName" : "testappgw-lb1-d1", "loadBalancerType" : "Azure Application Gateway", "stack" : "lb1", "detail" : "d1", "credentials" : "myazure-account", "region" : "westus", "probes" : [ { "probeName" : "healthcheck1", "probeProtocol" : "HTTP", "probePath" : "/healthcheck", "probeInterval" : 120, "unhealthyThreshold" : 8, "timeout" : 30 } ], "loadBalancingRules" : [ { "ruleName" : "lbRule1", "protocol" : "HTTP", "externalPort" : "80", "backendPort" : "8080" } ], "name" : "testappgw-lb1-d1", "user" : "[anonymous]" }'''
 
     when:
     UpsertAzureAppGatewayAtomicOperation operation = converter.convertOperation(mapper.readValue(input, Map))

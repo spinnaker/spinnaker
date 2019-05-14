@@ -25,6 +25,8 @@ class AzureLoadBalancerResourceTemplate {
 
   static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
 
+  static final String DEFAULT_BACKEND_POOL = "default_LB_BAP"
+
   static String getTemplate(AzureLoadBalancerDescription description) {
     LoadBalancerTemplate template = new LoadBalancerTemplate(description)
     mapper.writeValueAsString(template)
@@ -43,7 +45,10 @@ class AzureLoadBalancerResourceTemplate {
       parameters = new LoadBalancerParameters()
       variables = new LoadBalancerTemplateVariables(description)
 
-      resources.add(new PublicIpResource(properties: new PublicIPPropertiesWithDns()))
+      def publicIp = new PublicIpResource(properties: new PublicIPPropertiesWithDns())
+      publicIp.sku = new Sku("Standard")
+      publicIp.properties.publicIPAllocationMethod = "Static"
+      resources.add(publicIp)
 
       LoadBalancer lb = new LoadBalancer(description)
       lb.addDependency(resources[0])
@@ -52,11 +57,10 @@ class AzureLoadBalancerResourceTemplate {
   }
 
   static class LoadBalancerTemplateVariables{
-    String apiVersion = "2015-05-01-preview"
+    String apiVersion = "2018-08-01"
     String loadBalancerName
     String virtualNetworkName
     String publicIPAddressName
-    String publicIPAddressType = "Dynamic"
     String loadBalancerFrontEnd
     String loadBalancerBackEnd
     String dnsNameForLBIP
@@ -74,7 +78,7 @@ class AzureLoadBalancerResourceTemplate {
       virtualNetworkName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName.toLowerCase()
       publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
-      loadBalancerBackEnd = AzureUtilities.LBBACKEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      loadBalancerBackEnd = DEFAULT_BACKEND_POOL
       dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.loadBalancerName.toLowerCase())
       ipConfigName = AzureUtilities.IPCONFIG_NAME_PREFIX + description.loadBalancerName.toLowerCase()
     }
@@ -91,12 +95,14 @@ class AzureLoadBalancerResourceTemplate {
 
   static class LoadBalancer extends DependingResource{
     LoadBalancerProperties properties
+    Sku sku
 
     LoadBalancer(AzureLoadBalancerDescription description) {
       apiVersion = "[variables('apiVersion')]"
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
       location = "[parameters('location')]"
+      sku = new Sku("Standard")
       def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.appName = description.appName
@@ -104,10 +110,6 @@ class AzureLoadBalancerResourceTemplate {
       tags.detail = description.detail
       tags.createdTime = currentTime.toString()
       if (description.cluster) tags.cluster = description.cluster
-      if (description.serverGroup) tags.serverGroup = description.serverGroup
-      if (description.securityGroup) tags.securityGroup = description.securityGroup
-      if (description.vnet) tags.vnet = description.vnet
-      if (description.subnet) tags.subnet = description.subnet
 
       properties = new LoadBalancerProperties(description)
     }
@@ -148,7 +150,13 @@ class AzureLoadBalancerResourceTemplate {
     LoadBalancerProperties(AzureLoadBalancerDescription description){
       frontEndIPConfigurations.add(new FrontEndIpConfiguration())
       backendAddressPools.add(new BackEndAddressPool())
-      description.loadBalancingRules?.each{loadBalancingRules.add(new LoadBalancingRule(it))}
+      description.serverGroups?.each {
+        backendAddressPools.add(new BackEndAddressPool(it))
+      }
+      description.loadBalancingRules?.each{
+        it.persistence = description.sessionPersistence
+        loadBalancingRules.add(new LoadBalancingRule(it))
+      }
       description.probes?.each{ probes.add(new AzureProbe(it))}
     }
   }
@@ -170,6 +178,11 @@ class AzureLoadBalancerResourceTemplate {
     BackEndAddressPool()
     {
       name = "[variables('loadBalancerBackEnd')]"
+    }
+
+    BackEndAddressPool(String name)
+    {
+      this.name = name
     }
   }
 
@@ -235,12 +248,19 @@ class AzureLoadBalancerResourceTemplate {
   }
 
   static class LoadBalancingRuleProperties{
+    static enum LoadDistribution {
+      Default,
+      SourceIP,
+      SourceIPProtocol
+    }
+
     IdRef frontendIPConfiguration
     IdRef backendAddressPool
     String protocol
     Integer frontendPort
     Integer backendPort
     IdRef probe
+    LoadDistribution loadDistribution
 
     LoadBalancingRuleProperties(AzureLoadBalancerDescription.AzureLoadBalancingRule rule){
       frontendIPConfiguration = new IdRef("[variables('frontEndIPConfig')]")
@@ -249,6 +269,17 @@ class AzureLoadBalancerResourceTemplate {
       frontendPort = rule.externalPort
       backendPort = rule.backendPort
       probe = new IdRef("[concat(variables('loadBalancerID'),'/probes/" + rule.probeName + "')]")
+      switch(rule.persistence) {
+        case "None":
+          loadDistribution = LoadDistribution.Default
+          break
+        case "Client IP":
+          loadDistribution = LoadDistribution.SourceIP
+          break
+        case "Client IP and protocol":
+          loadDistribution = LoadDistribution.SourceIPProtocol
+          break
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -65,15 +66,28 @@ class EnableAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
         errList.add("could not find server group ${description.name} in ${region}")
       } else {
         try {
-          if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
-            description
-              .credentials
-              .networkClient
-              .enableServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
-            task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+          if(serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+            if (description.credentials.networkClient.isServerGroupWithLoadBalancerDisabled(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)) {
+              description
+                .credentials
+                .networkClient
+                .enableServerGroupWithLoadBalancer(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)
+              task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+            } else {
+              task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
+            }
           } else {
-            task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
+            if (description.credentials.networkClient.isServerGroupDisabled(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)) {
+              description
+                .credentials
+                .networkClient
+                .enableServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
+              task.updateStatus BASE_PHASE, "Done enabling Azure server group ${serverGroupDescription.name} in ${region}."
+            } else {
+              task.updateStatus BASE_PHASE, "Azure server group ${serverGroupDescription.name} in ${region} is already enabled."
+            }
           }
+
         } catch (Exception e) {
           task.updateStatus(BASE_PHASE, "Enabling of server group ${description.name} failed: ${e.message}")
           errList.add("Failed to enable server group ${description.name}: ${e.message}")

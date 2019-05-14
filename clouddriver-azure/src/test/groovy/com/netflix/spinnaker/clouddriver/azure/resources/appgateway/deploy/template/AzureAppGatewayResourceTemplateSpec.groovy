@@ -156,6 +156,9 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     "tags" : null,
     "properties" : {
       "publicIPAllocationMethod" : "[variables('publicIPAddressType')]"
+    },
+    "sku" : {
+      "name" : "Basic"
     }
   }, {
     "apiVersion" : "[variables('apiVersion')]",
@@ -330,6 +333,9 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
     "tags" : null,
     "properties" : {
       "publicIPAllocationMethod" : "[variables('publicIPAddressType')]"
+    },
+    "sku" : {
+      "name" : "Basic"
     }
   }, {
     "apiVersion" : "[variables('apiVersion')]",

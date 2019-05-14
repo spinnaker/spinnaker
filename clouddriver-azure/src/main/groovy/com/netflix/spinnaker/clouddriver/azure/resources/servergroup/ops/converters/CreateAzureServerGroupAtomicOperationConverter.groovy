@@ -18,8 +18,10 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.conver
 
 import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -32,7 +34,12 @@ import org.springframework.stereotype.Component
 class CreateAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   AtomicOperation convertOperation(Map input) {
-    new CreateAzureServerGroupAtomicOperation(convertDescription(input))
+    AzureServerGroupDescription asgd = convertDescription(input)
+    if(asgd.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+      new CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation(asgd)
+    }else {
+      new CreateAzureServerGroupAtomicOperation(asgd)
+    }
   }
 
   AzureServerGroupDescription convertDescription(Map input) {

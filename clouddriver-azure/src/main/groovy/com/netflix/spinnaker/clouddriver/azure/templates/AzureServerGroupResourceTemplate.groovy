@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription.AzureInboundPortConfig
 import groovy.util.logging.Slf4j
@@ -181,11 +182,13 @@ class AzureServerGroupResourceTemplate {
    */
   static class ServerGroupTemplateParameters {
     LocationParameter location = new LocationParameter(["description": "Location to deploy"])
-    SubnetParameter subnetId = new SubnetParameter(["description": "Subnet Resource ID"])
+    SubnetParameter subnetId = new SubnetParameter(["description": "Subnet Resource ID"], "")
     AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter(["description": "App Gateway backend address pool resource ID"])
     VMUserNameParameter vmUserName = new VMUserNameParameter(["description": "Admin username on all VMs"], "")
     VMPasswordParameter vmPassword = new VMPasswordParameter(["description": "Admin password on all VMs"], "")
     VMSshPublicKeyParameter vmSshPublicKey = new VMSshPublicKeyParameter(["description": "SSH public key on all VMs"], "")
+    LoadBalancerPoolParameter loadBalancerAddressPoolId = new LoadBalancerPoolParameter(["description": "Load balancer pool ID"], "")
+    LoadBalancerNatPoolParameter loadBalancerNatPoolId = new LoadBalancerNatPoolParameter(["description": "Load balancer NAT pool ID"], "")
 
     // The default value of custom data cannot be "" otherwise Azure service will run into error complaining "custom data must be in Base64".
     CustomDataParameter customData = new CustomDataParameter(["description":"custom data to pass down to the virtual machine(s)"], "sample custom data")
@@ -193,9 +196,9 @@ class AzureServerGroupResourceTemplate {
 
   /* Server Group Parameters */
   static String subnetParameterName = "subnetId"
-  static class SubnetParameter extends StringParameter {
-    SubnetParameter(Map<String, String> metadata) {
-      super(metadata)
+  static class SubnetParameter extends StringParameterWithDefault {
+    SubnetParameter(Map<String, String> metadata, String defaultValue) {
+      super(metadata, defaultValue)
     }
   }
 
@@ -210,6 +213,20 @@ class AzureServerGroupResourceTemplate {
   static class AppGatewayAddressPoolParameter extends StringParameter {
     AppGatewayAddressPoolParameter(Map<String, String> metadata) {
       super(metadata)
+    }
+  }
+
+  static String loadBalancerAddressPoolParameterName = "loadBalancerAddressPoolId"
+  static class LoadBalancerPoolParameter extends StringParameterWithDefault {
+    LoadBalancerPoolParameter(Map<String, String> metadata, String defaultValue) {
+      super(metadata, defaultValue)
+    }
+  }
+
+  static String loadBalancerNatPoolParameterName = "loadBalancerNatPoolId"
+  static class LoadBalancerNatPoolParameter extends StringParameterWithDefault {
+    LoadBalancerNatPoolParameter(Map<String, String> metadata, String defaultValue) {
+      super(metadata, defaultValue)
     }
   }
 
@@ -355,6 +372,7 @@ class AzureServerGroupResourceTemplate {
 
       // debug only; can be removed as part of the tags cleanup
       if (description.appGatewayName) tags.appGatewayName = description.appGatewayName
+      if (description.loadBalancerName) tags.loadBalancerName = description.loadBalancerName
       // will need this when cloning a server group
       if (description.image.imageName) tags.imageName = description.image.imageName
 
@@ -501,6 +519,7 @@ class AzureServerGroupResourceTemplate {
   static class NetworkInterfaceConfigurationProperty {
     boolean primary
     ArrayList<NetworkInterfaceIPConfiguration> ipConfigurations = []
+    NetworkSecurityGroup networkSecurityGroup
 
     /**
      *
@@ -509,6 +528,17 @@ class AzureServerGroupResourceTemplate {
     NetworkInterfaceConfigurationProperty(AzureServerGroupDescription description) {
       primary = true
       ipConfigurations.add(new NetworkInterfaceIPConfiguration(description))
+      if(description.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+        networkSecurityGroup = new NetworkSecurityGroup(description.securityGroupName)
+      }
+    }
+  }
+
+  static class NetworkSecurityGroup {
+    String id
+
+    NetworkSecurityGroup(String name) {
+      this.id = "[resourceId('Microsoft.Network/networkSecurityGroups', '${name}')]"
     }
   }
 
@@ -543,12 +573,18 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
-      subnet = new NetworkInterfaceIPConfigurationSubnet()
-      if(description.enableInboundNAT) {
-        loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
-        loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
+      if(description.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+        subnet = new NetworkInterfaceIPConfigurationSubnet(description)
+        loadBalancerBackendAddressPools.add(new ExistLoadBalancerBackendAddressPool())
+        loadBalancerInboundNatPools.add(new ExistLoadBalancerInboundNatPoolId())
+      }else {
+        subnet = new NetworkInterfaceIPConfigurationSubnet(null)
+        if(description.enableInboundNAT) {
+          loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
+          loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
+        }
+        ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
       }
-      ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
     }
   }
 
@@ -558,8 +594,9 @@ class AzureServerGroupResourceTemplate {
   static class NetworkInterfaceIPConfigurationSubnet {
     String id
 
-    NetworkInterfaceIPConfigurationSubnet() {
-      id = "[parameters('${subnetParameterName}')]"
+    NetworkInterfaceIPConfigurationSubnet(AzureServerGroupDescription description) {
+      if(description == null) id = "[parameters('${subnetParameterName}')]"
+      else id = "[resourceId('Microsoft.Network/virtualNetworks/subnets', '${description.vnet}', '${description.subnet}')]"
     }
   }
 
@@ -574,6 +611,20 @@ class AzureServerGroupResourceTemplate {
   static class LoadBalancerInboundNatPoolId extends IdRef {
     LoadBalancerInboundNatPoolId() {
       id = "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
+    }
+  }
+
+  static class ExistLoadBalancerBackendAddressPool {
+    String id
+
+    ExistLoadBalancerBackendAddressPool() {
+      id = "[parameters('${loadBalancerAddressPoolParameterName}')]"
+    }
+  }
+
+  static class ExistLoadBalancerInboundNatPoolId extends IdRef {
+    ExistLoadBalancerInboundNatPoolId() {
+      id = "[parameters('${loadBalancerNatPoolParameterName}')]"
     }
   }
 

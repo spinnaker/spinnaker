@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.deploy.conv
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.converters.UpsertAzureAppGatewayAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
@@ -30,10 +30,10 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
-  @Shared UpsertAzureAppGatewayAtomicOperationConverter converter
+  @Shared UpsertAzureLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new UpsertAzureAppGatewayAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new UpsertAzureLoadBalancerAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(AzureNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -47,6 +47,7 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
     def input = [
       name: "testappgw-lb1-d1",
       loadBalancerName: "testappgw-lb1-d1",
+      loadBalancerType: "Azure Application Gateway",
       region: "westus",
       accountName: "myazure-account",
       cloudProvider: "azure",

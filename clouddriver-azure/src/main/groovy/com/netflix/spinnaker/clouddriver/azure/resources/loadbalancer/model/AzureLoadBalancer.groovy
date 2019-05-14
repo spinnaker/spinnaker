@@ -22,8 +22,25 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.moniker.Moniker
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class AzureLoadBalancer implements LoadBalancer {
+  static enum AzureLoadBalancerType {
+    AZURE_LOAD_BALANCER("Azure Load Balancer"),
+    AZURE_APPLICATION_GATEWAY("Azure Application Gateway")
+
+    private String formattedType
+
+    private AzureLoadBalancerType(String formattedType) {
+      this.formattedType = formattedType
+    }
+
+    @Override
+    String toString() {
+      formattedType
+    }
+  }
 
   String account
   String name
@@ -34,6 +51,7 @@ class AzureLoadBalancer implements LoadBalancer {
   String cluster
   final String type = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
+  final AzureLoadBalancerType loadBalancerType
 
   void setMoniker(Moniker _ignored) {}
 

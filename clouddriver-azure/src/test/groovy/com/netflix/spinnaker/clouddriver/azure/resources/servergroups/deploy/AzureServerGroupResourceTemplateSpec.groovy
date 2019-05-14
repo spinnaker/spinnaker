@@ -175,7 +175,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -201,6 +202,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -305,7 +320,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         }
@@ -328,7 +344,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -354,6 +371,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -425,7 +456,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         }
@@ -448,7 +480,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -474,6 +507,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -578,7 +625,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         },
@@ -616,7 +664,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -642,6 +691,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -746,7 +809,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         },
@@ -784,7 +848,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -810,6 +875,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -914,7 +993,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         },
@@ -953,7 +1033,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -979,6 +1060,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -1083,7 +1178,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         },
@@ -1122,7 +1218,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "string",
       "metadata" : {
         "description" : "Subnet Resource ID"
-      }
+      },
+      "defaultValue" : ""
     },
     "appGatewayAddressPoolId" : {
       "type" : "string",
@@ -1148,6 +1245,20 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "type" : "securestring",
       "metadata" : {
         "description" : "SSH public key on all VMs"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer pool ID"
+      },
+      "defaultValue" : ""
+    },
+    "loadBalancerNatPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Load balancer NAT pool ID"
       },
       "defaultValue" : ""
     },
@@ -1254,7 +1365,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ]
+              } ],
+              "networkSecurityGroup" : null
             }
           } ]
         },
