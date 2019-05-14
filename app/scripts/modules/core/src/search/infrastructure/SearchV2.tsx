@@ -109,7 +109,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
           if (!this.state.selectedTab) {
             this.selectTab(resultSets);
           }
-          this.setState({ resultSets });
+          this.setState({ resultSets, isSearching: !finishedSearching });
         },
         null,
         () => this.setState({ isSearching: false }),
