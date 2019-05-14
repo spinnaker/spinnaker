@@ -45,32 +45,45 @@ class SelectableServiceSpec extends Specification {
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
         new ByOriginServiceSelector(instanceService, 20, ["origin": "deck", "executionTypes": [0: "orchestration"]]),
         new ByAuthenticatedUserServiceSelector(bakeryService, 25, ["users": [0: "user1@email.com", 1: ".*user2.*"]]),
-        new DefaultServiceSelector(katoService, 1, [:])
+        new DefaultServiceSelector(katoService, 1, [:]),
+        new ByLocationServiceSelector(bakeryService, 10, ["locations": [0: "us-west-1", 1: "us-east-1"]])
       ]
     )
 
     when:
-    def service = selectableService.getService(criteria)
+    def service = selectableService.getService(criteriaWithParams(selectorParams))
 
     then:
     service == expectedService
 
     where:
-    criteria                                                                                    || expectedService
-    new SelectableService.Criteria(null, null, null, null)                                      || katoService      // the default service selector
-    new SelectableService.Criteria("spindemo", null, "orchestration", "api")                    || mortService
-    new SelectableService.Criteria("1-spindemo-1", null, "orchestration", "api")                || mortService
-    new SelectableService.Criteria("spindemo", null, "orchestration", "deck")                   || instanceService  // origin selector is higher priority
-    new SelectableService.Criteria("spindemo", null, "pipeline", "deck")                        || mortService      // fall back to application selector as origin selector does not support pipeline
-    new SelectableService.Criteria("spintest", null, "orchestration", "api")                    || oortService
-    new SelectableService.Criteria("spintest", null, "pipeline", "api")                         || katoService
-    new SelectableService.Criteria("spintest", "user1@unsupported.com", "orchestration", "api") || oortService
-    new SelectableService.Criteria("spintest", "user1@email.com", "orchestration", "api")       || bakeryService    // user selector is highest priority
-    new SelectableService.Criteria("spintest", "user2@random.com", "orchestration", "api")      || bakeryService    // user selector supports regex patterns
+    selectorParams                                                                                                       || expectedService
+    [:]                                                                                                                  || katoService      // the default service selector
+    [application: "spindemo", executionType: "orchestration", origin: "api"]                                             || mortService
+    [application: "1-spindemo-1", executionType: "orchestration", origin: "api"]                                         || mortService
+    [application: "1-spindemo-1", executionType: "orchestration", origin: "deck"]                                        || instanceService  // origin selector is higher priority
+    [application: "spindemo", executionType: "pipeline", origin: "deck"]                                                 || mortService      // fall back to application selector as origin selector does not support pipeline
+    [application: "spintest", executionType: "orchestration", origin: "api"]                                             || oortService
+    [application: "spintest", executionType: "pipeline", origin: "api"]                                                  || katoService
+    [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user1@unsupported.com"] || oortService
+    [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user1@unsupported.com"] || oortService
+    [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user1@email.com"]       || bakeryService    // user selector is highest priority
+    [application: "spintest", executionType: "orchestration", origin: "api", authenticatedUser: "user2@random.com"]      || bakeryService    // user selector is highest priority
+    [location: "us-east-1"]                                                                                              || bakeryService    // selects by location
   }
 
   def "should default to all execution types if none configured (by origin selector)"() {
     expect:
     new ByOriginServiceSelector(instanceService, 20, [:]).executionTypes.sort() == ["orchestration", "pipeline"]
+  }
+
+  private static SelectableService.Criteria criteriaWithParams(Map<String, String> params) {
+    return new SelectableService.Criteria()
+      .withApplication(params.application)
+      .withAuthenticatedUser(params.authenticatedUser)
+      .withOrigin(params.origin)
+      .withExecutionType(params.executionType)
+      .withExecutionId(params.executionId)
+      .withLocation(params.location)
   }
 }

@@ -38,29 +38,12 @@ public class SelectableService {
   }
 
   public static class Criteria {
-    private final String application;
-    private final String authenticatedUser;
-    private final String executionType;
-    private final String executionId;
-    private final String origin;
-
-    public Criteria(
-        String application, String authenticatedUser, String executionType, String origin) {
-      this(application, authenticatedUser, executionType, null, origin);
-    }
-
-    public Criteria(
-        String application,
-        String authenticatedUser,
-        String executionType,
-        String executionId,
-        String origin) {
-      this.application = application;
-      this.authenticatedUser = authenticatedUser;
-      this.executionType = executionType;
-      this.executionId = executionId;
-      this.origin = origin;
-    }
+    private String application;
+    private String authenticatedUser;
+    private String executionType;
+    private String executionId;
+    private String origin;
+    private String location;
 
     public String getApplication() {
       return application;
@@ -80,6 +63,40 @@ public class SelectableService {
 
     public String getOrigin() {
       return origin;
+    }
+
+    public String getLocation() {
+      return location;
+    }
+
+    public Criteria withApplication(String application) {
+      this.application = application;
+      return this;
+    }
+
+    public Criteria withAuthenticatedUser(String user) {
+      this.authenticatedUser = user;
+      return this;
+    }
+
+    public Criteria withOrigin(String origin) {
+      this.origin = origin;
+      return this;
+    }
+
+    public Criteria withExecutionType(String executionType) {
+      this.executionType = executionType;
+      return this;
+    }
+
+    public Criteria withExecutionId(String executionId) {
+      this.executionId = executionId;
+      return this;
+    }
+
+    public Criteria withLocation(String location) {
+      this.location = location;
+      return this;
     }
   }
 }
