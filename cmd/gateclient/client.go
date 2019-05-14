@@ -23,7 +23,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -115,12 +114,6 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	httpClient, err := gateClient.initializeClient()
 	if err != nil {
 		util.UI.Error("Could not initialize http client, failing.")
-		return nil, err
-	}
-
-	err = dialGate(gateClient)
-	if err != nil {
-		util.UI.Error("Could not dial http client, please ensure Gate is running. Failing.")
 		return nil, err
 	}
 
@@ -491,14 +484,4 @@ func prompt() string {
 	util.UI.Output("Paste authorization code:")
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
-}
-
-func dialGate(gateClient *GatewayClient) error {
-	res, err := http.Get(gateClient.GateEndpoint())
-	if err != nil {
-		return err
-	}
-	io.Copy(ioutil.Discard, res.Body)
-	res.Body.Close()
-	return nil
 }
