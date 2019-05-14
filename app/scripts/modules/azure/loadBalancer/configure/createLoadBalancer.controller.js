@@ -18,7 +18,17 @@ module.exports = angular
     'application',
     'loadBalancer',
     'isNew',
-    function($scope, $uibModalInstance, $state, azureLoadBalancerTransformer, application, loadBalancer, isNew) {
+    'loadBalancerType',
+    function(
+      $scope,
+      $uibModalInstance,
+      $state,
+      azureLoadBalancerTransformer,
+      application,
+      loadBalancer,
+      isNew,
+      loadBalancerType,
+    ) {
       var ctrl = this;
 
       $scope.regions = [];
@@ -30,6 +40,8 @@ module.exports = angular
       };
 
       $scope.isNew = isNew;
+      $scope.loadBalancerType = loadBalancerType.type;
+      $scope.isALB = loadBalancerType.type === 'Azure Load Balancer';
 
       $scope.state = {
         accountsLoaded: false,
@@ -230,6 +242,7 @@ module.exports = angular
           var probeName = name + '-probe';
           var ruleNameBase = name + '-rule';
           $scope.loadBalancer.type = 'upsertLoadBalancer';
+          $scope.loadBalancer.loadBalancerType = $scope.loadBalancerType;
           if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {
             $scope.loadBalancer.securityGroups = null;
           }

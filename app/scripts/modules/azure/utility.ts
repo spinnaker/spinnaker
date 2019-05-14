@@ -13,6 +13,22 @@ export enum TagError {
   TAG_OBJECT_UNDEFINED,
 }
 
+export interface IAzureLoadBalancer {
+  type: string;
+  description: string;
+}
+
+export const AzureLoadBalancerTypes: IAzureLoadBalancer[] = [
+  {
+    type: 'Azure Load Balancer',
+    description: '',
+  },
+  {
+    type: 'Azure Application Gateway',
+    description: '',
+  },
+];
+
 export default class Utility {
   public static readonly TAG_LIMITATION: number = 8;
   public static readonly TAG_KEY_LENGTH_LIMITATION: number = 512;
@@ -70,5 +86,13 @@ export default class Utility {
       isValid: true,
       error: null,
     };
+  }
+
+  public static getLoadBalancerType(typeString: string): IAzureLoadBalancer | null {
+    typeString = typeString
+      .toLowerCase()
+      .split('_')
+      .join(' ');
+    return AzureLoadBalancerTypes.find((lb: IAzureLoadBalancer) => lb.type.toLowerCase() === typeString) || null;
   }
 }

@@ -81,7 +81,7 @@ module.exports = angular
             {
               probeName: '',
               probeProtocol: 'HTTP',
-              probePort: 'www.bing.com',
+              probePort: '80',
               probePath: '/',
               probeInterval: 30,
               unhealthyThreshold: 8,

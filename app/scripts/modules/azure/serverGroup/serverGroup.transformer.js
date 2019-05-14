@@ -83,6 +83,7 @@ module.exports = angular
         region: command.region,
         securityGroupName: command.securityGroupName,
         loadBalancerName: command.loadBalancerName,
+        loadBalancerType: command.loadBalancerType,
         user: '[anonymous]',
         upgradePolicy: 'Manual',
         type: 'createServerGroup',

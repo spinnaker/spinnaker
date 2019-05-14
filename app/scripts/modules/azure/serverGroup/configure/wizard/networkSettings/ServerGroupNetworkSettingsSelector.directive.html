@@ -5,6 +5,23 @@
   ng-if="command.viewState.networkSettingsConfigured"
   ng-controller="azureServerGroupNetworkSettingsCtrl as networkSettingCtrl"
 >
+  <div class="form-group" ng-if="command.loadBalancerType === 'Azure Load Balancer'">
+    <div class="col-md-3 sm-label-right">Virtual Network</div>
+    <div class="col-md-7">
+      <ui-select
+        required
+        class="form-control input-sm"
+        ng-model="command.selectedVnet"
+        on-select="networkSettingCtrl.vnetChanged($item)"
+      >
+        <ui-select-match placeholder="Select from existing virtual networks">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="selectVnet in command.allVnets">
+          <span ng-bind-html="selectVnet.name"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Subnets</b></div>
     <div class="col-md-7">

@@ -17,7 +17,8 @@
               <select
                 class="form-control input-sm"
                 ng-model="rule.protocol"
-                ng-options="protocol for protocol in ['HTTP']"
+                ng-init="rule.protocol = (isALB ? 'TCP' : 'HTTP')"
+                ng-options="protocol for protocol in (isALB ? ['TCP', 'UDP'] : ['HTTP'])"
               ></select>
             </td>
             <td>

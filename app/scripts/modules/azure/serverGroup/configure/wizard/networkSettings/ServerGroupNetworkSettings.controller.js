@@ -17,6 +17,12 @@ module.exports = angular
 
       $scope.command.selectedSubnet = $scope.command.subnet;
 
+      this.vnetChanged = function(item) {
+        $scope.command.vnet = item;
+        $scope.command.subnet = $scope.command.selectedSubnet = null;
+        $scope.command.selectedVnetSubnets = item.subnets.map(s => s.name);
+      };
+
       this.networkSettingsChanged = function(item) {
         $scope.command.vnet = $scope.command.selectedVnet.name;
         $scope.command.subnet = item;

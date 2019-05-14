@@ -19,6 +19,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function() {
         application: app,
         loadBalancer: null,
         isNew: true,
+        loadBalancerType: 'Azure Load Balancer',
       });
     }),
   );

@@ -273,6 +273,7 @@ module.exports = angular
           // reset previous set values
           if (!isInit) {
             command.loadBalancerName = null;
+            command.loadBalancerType = null;
             command.vnet = null;
             command.vnetResourceGroup = null;
             command.subnet = null;

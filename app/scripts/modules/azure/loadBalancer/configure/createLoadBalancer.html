@@ -1,5 +1,5 @@
 <form name="form" class="form-horizontal" novalidate validate-on-submit>
-  <v2-modal-wizard heading="Create New Load Balancer" task-monitor="taskMonitor" dismiss="$dismiss()">
+  <v2-modal-wizard heading="Create New {{loadBalancerType}}" task-monitor="taskMonitor" dismiss="$dismiss()">
     <v2-wizard-page key="Location" label="Location">
       <ng-include src="pages.location"></ng-include>
     </v2-wizard-page>

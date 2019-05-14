@@ -8,7 +8,7 @@
         class="col-md-12 well"
         ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}"
       >
-        <strong>Your load balancer will be named:</strong>
+        <strong>Your {{loadBalancerType}} will be named:</strong>
         <span>{{ctrl.getName()}}</span>
         <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
         <input
@@ -51,7 +51,7 @@
       regions="regions"
     ></region-select-field>
 
-    <div class="form-group">
+    <div class="form-group" ng-if="!isALB">
       <div class="col-md-3 sm-label-right">Virtual Network</div>
       <div class="col-md-7">
         <ui-select
@@ -70,7 +70,7 @@
       </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" ng-if="!isALB">
       <div class="col-md-3 sm-label-right">Subnet</div>
       <div class="col-md-7">
         <ui-select

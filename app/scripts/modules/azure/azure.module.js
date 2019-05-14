@@ -65,6 +65,8 @@ module.exports = angular
         detailsController: 'azureLoadBalancerDetailsCtrl',
         createLoadBalancerTemplateUrl: require('./loadBalancer/configure/createLoadBalancer.html'),
         createLoadBalancerController: 'azureCreateLoadBalancerCtrl',
+        CreateLoadBalancerModal: require('./loadBalancer/configure/AzureLoadBalancerChoiceModal')
+          .AzureLoadBalancerChoiceModal,
       },
       securityGroup: {
         transformer: 'azureSecurityGroupTransformer',
