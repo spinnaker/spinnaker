@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver
+package com.netflix.spinnaker.clouddriver;
 
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.TestPropertySource
-import spock.lang.Specification
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@SpringBootTest(classes = [Main])
-@TestPropertySource(properties = ["redis.enabled = false", "sql.enabled = false"])
-class MainSpec extends Specification {
-  def "Ensure clouddriver starts with the default profile"() {
-    when:
-    true
-
-    then:
-    noExceptionThrown()
-  }
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(classes = {Main.class})
+@TestPropertySource(properties = {"redis.enabled = false", "sql.enabled = false"})
+public class MainSpec {
+  @Test
+  public void startupTest() {}
 }
