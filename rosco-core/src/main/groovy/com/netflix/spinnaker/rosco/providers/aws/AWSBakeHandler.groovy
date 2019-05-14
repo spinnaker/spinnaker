@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.aws
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -35,6 +36,9 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
+
+  @Autowired
+  DynamicConfigService dynamicConfigService
 
   @Override
   def getBakeryDefaults() {
@@ -85,6 +89,13 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     if (bakeRequest.base_ami) {
       awsVirtualizationSettings = awsVirtualizationSettings.clone()
       awsVirtualizationSettings.sourceAmi = bakeRequest.base_ami
+    }
+
+    // Attempt to lookup baseAmi via dynamicConfigService if unset in the bakeRequest or rosco.yml
+    // Property name: "aws.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
+    if (!awsVirtualizationSettings.sourceAmi) {
+      def property = "aws.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
+      awsVirtualizationSettings.sourceAmi = dynamicConfigService.getConfig(String, property, null)
     }
 
     return awsVirtualizationSettings
