@@ -8,7 +8,7 @@ import { BaseTrigger } from 'core/pipeline';
 import { IPipeline, IPipelineTrigger } from 'core/domain';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Checklist } from 'core/forms';
-import { Application } from 'core';
+import { Application } from '@spinnaker/core';
 import { Subject } from 'rxjs/Subject';
 
 export interface IPipelineTriggerConfigProps {

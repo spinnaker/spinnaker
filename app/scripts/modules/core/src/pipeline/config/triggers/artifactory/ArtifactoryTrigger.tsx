@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { IArtifactoryTrigger } from 'core/domain/ITrigger';
 import { BaseTrigger } from 'core/pipeline';
 import { ArtifactoryReaderService } from './artifactoryReader.service';
-import { Application } from 'core';
+import { Application } from '@spinnaker/core';
 
 export interface IArtifactoryTriggerConfigProps {
   trigger: IArtifactoryTrigger;
