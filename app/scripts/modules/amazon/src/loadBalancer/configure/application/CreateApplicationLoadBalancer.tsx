@@ -17,13 +17,13 @@ import {
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ALBListeners } from './ALBListeners';
 import { ALBAdvancedSettings } from './ALBAdvancedSettings';
 import { TargetGroups } from './TargetGroups';
 import { SecurityGroups } from '../common/SecurityGroups';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
+import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';
 
@@ -62,8 +62,8 @@ export class CreateApplicationLoadBalancer extends React.Component<
     const loadBalancerCommand = props.command
       ? (props.command as IAmazonApplicationLoadBalancerUpsertCommand) // ejecting from a wizard
       : props.loadBalancer
-      ? AwsReactInjector.awsLoadBalancerTransformer.convertApplicationLoadBalancerForEditing(props.loadBalancer)
-      : AwsReactInjector.awsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(props.app);
+      ? AwsLoadBalancerTransformer.convertApplicationLoadBalancerForEditing(props.loadBalancer)
+      : AwsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(props.app);
 
     this.state = {
       includeSecurityGroups: !!loadBalancerCommand.vpcId,

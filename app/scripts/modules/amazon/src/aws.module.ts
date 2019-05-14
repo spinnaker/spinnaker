@@ -16,6 +16,7 @@ import './help/amazon.help';
 import { AwsImageReader } from './image';
 import { AmazonLoadBalancerClusterContainer } from './loadBalancer/AmazonLoadBalancerClusterContainer';
 import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
+import { AwsLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 
 import './deploymentStrategy/rollingPush.strategy';
 
@@ -117,7 +118,7 @@ module(AMAZON_MODULE, [
       detailsController: 'awsInstanceDetailsCtrl',
     },
     loadBalancer: {
-      transformer: 'awsLoadBalancerTransformer',
+      transformer: AwsLoadBalancerTransformer,
       detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetails.html'),
       detailsController: 'awsLoadBalancerDetailsCtrl',
       CreateLoadBalancerModal: AmazonLoadBalancerChoiceModal,

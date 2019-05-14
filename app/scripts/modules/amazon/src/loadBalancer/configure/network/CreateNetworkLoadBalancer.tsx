@@ -17,12 +17,12 @@ import {
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonNetworkLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { NLBListeners } from './NLBListeners';
 import { TargetGroups } from './TargetGroups';
 import { NLBAdvancedSettings } from './NLBAdvancedSettings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
+import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';
 
@@ -58,8 +58,8 @@ export class CreateNetworkLoadBalancer extends React.Component<
     super(props);
 
     const loadBalancerCommand = props.loadBalancer
-      ? AwsReactInjector.awsLoadBalancerTransformer.convertNetworkLoadBalancerForEditing(props.loadBalancer)
-      : AwsReactInjector.awsLoadBalancerTransformer.constructNewNetworkLoadBalancerTemplate(props.app);
+      ? AwsLoadBalancerTransformer.convertNetworkLoadBalancerForEditing(props.loadBalancer)
+      : AwsLoadBalancerTransformer.constructNewNetworkLoadBalancerTemplate(props.app);
 
     this.state = {
       isNew: !props.loadBalancer,

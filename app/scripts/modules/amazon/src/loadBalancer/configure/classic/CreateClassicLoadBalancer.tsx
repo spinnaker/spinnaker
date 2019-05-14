@@ -18,13 +18,13 @@ import {
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
-import { AwsReactInjector } from 'amazon/reactShims';
 
 import { AdvancedSettings } from './AdvancedSettings';
 import { HealthCheck } from './HealthCheck';
 import { Listeners } from './Listeners';
 import { SecurityGroups } from '../common/SecurityGroups';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
+import { AwsLoadBalancerTransformer } from '../../loadBalancer.transformer';
 
 import '../common/configure.less';
 
@@ -60,8 +60,8 @@ export class CreateClassicLoadBalancer extends React.Component<
     super(props);
 
     const loadBalancerCommand = props.loadBalancer
-      ? AwsReactInjector.awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(props.loadBalancer)
-      : AwsReactInjector.awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(props.app);
+      ? AwsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(props.loadBalancer)
+      : AwsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(props.app);
 
     this.state = {
       isNew: !props.loadBalancer,
