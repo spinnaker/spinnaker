@@ -31,15 +31,16 @@ class QueueAdminController(
 ) {
 
   @RequestMapping(value = ["/hydrate"], method = [(RequestMethod.POST)])
-  fun hydrateQueue(@QueryParam("dryRun") dryRun: Boolean?,
-                   @QueryParam("executionId") executionId: String?,
-                   @QueryParam("startMs") startMs: Long?,
-                   @QueryParam("endMs") endMs: Long?): HydrateQueueOutput =
+  fun hydrateQueue(
+    @QueryParam("dryRun") dryRun: Boolean?,
+    @QueryParam("executionId") executionId: String?,
+    @QueryParam("startMs") startMs: Long?,
+    @QueryParam("endMs") endMs: Long?
+  ): HydrateQueueOutput =
     hydrateCommand(HydrateQueueInput(
       executionId,
       if (startMs != null) Instant.ofEpochMilli(startMs) else null,
       if (endMs != null) Instant.ofEpochMilli(endMs) else null,
       dryRun ?: true
     ))
-
 }

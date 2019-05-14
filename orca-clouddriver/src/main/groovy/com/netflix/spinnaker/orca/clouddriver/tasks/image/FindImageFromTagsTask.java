@@ -16,14 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -32,17 +24,22 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  List<ImageFinder> imageFinders;
+  @Autowired List<ImageFinder> imageFinders;
 
   @Value("${tasks.find-image-from-tags-timeout-millis:600000}")
   private Long findImageFromTagsTimeoutMillis;
@@ -50,35 +47,48 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
   @Override
   public TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage);
-    ImageFinder imageFinder = imageFinders.stream()
-      .filter(it -> it.getCloudProvider().equals(cloudProvider))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("ImageFinder not found for cloudProvider " + cloudProvider));
+    ImageFinder imageFinder =
+        imageFinders.stream()
+            .filter(it -> it.getCloudProvider().equals(cloudProvider))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "ImageFinder not found for cloudProvider " + cloudProvider));
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
-    Collection<ImageFinder.ImageDetails> imageDetails = imageFinder.byTags(stage, stageData.packageName, stageData.tags);
+    Collection<ImageFinder.ImageDetails> imageDetails =
+        imageFinder.byTags(stage, stageData.packageName, stageData.tags);
 
     if (imageDetails == null || imageDetails.isEmpty()) {
-      throw new IllegalStateException("Could not find tagged image for package: " + stageData.packageName + " and tags: " + stageData.tags);
+      throw new IllegalStateException(
+          "Could not find tagged image for package: "
+              + stageData.packageName
+              + " and tags: "
+              + stageData.tags);
     }
 
     List<Artifact> artifacts = new ArrayList<>();
-    imageDetails.forEach(imageDetail -> artifacts.add(generateArtifactFrom(imageDetail, cloudProvider)));
+    imageDetails.forEach(
+        imageDetail -> artifacts.add(generateArtifactFrom(imageDetail, cloudProvider)));
 
     Map<String, Object> stageOutputs = new HashMap<>();
     stageOutputs.put("amiDetails", imageDetails);
     stageOutputs.put("artifacts", artifacts);
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).outputs(Collections.singletonMap("deploymentDetails", imageDetails)).build();
-
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(stageOutputs)
+        .outputs(Collections.singletonMap("deploymentDetails", imageDetails))
+        .build();
   }
 
-  private Artifact generateArtifactFrom(ImageFinder.ImageDetails imageDetails, String cloudProvider) {
+  private Artifact generateArtifactFrom(
+      ImageFinder.ImageDetails imageDetails, String cloudProvider) {
     Map<String, Object> metadata = new HashMap<>();
     try {
-        ImageFinder.JenkinsDetails jenkinsDetails = imageDetails.getJenkins();
-        metadata.put("build_info_url", jenkinsDetails.get("host"));
-        metadata.put("build_number", jenkinsDetails.get("number"));
+      ImageFinder.JenkinsDetails jenkinsDetails = imageDetails.getJenkins();
+      metadata.put("build_info_url", jenkinsDetails.get("host"));
+      metadata.put("build_number", jenkinsDetails.get("number"));
     } catch (Exception e) {
       // This is either all or nothing
     }
@@ -105,10 +115,8 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
   }
 
   static class StageData {
-    @JsonProperty
-    String packageName;
+    @JsonProperty String packageName;
 
-    @JsonProperty
-    Map<String, String> tags;
+    @JsonProperty Map<String, String> tags;
   }
 }

@@ -29,16 +29,15 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.validation.exception.StageValidationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StageValidator {
@@ -75,11 +74,10 @@ public class StageValidator {
 
       if (!processingReport.isSuccess()) {
         log.info(
-          "Failed to validate stage (executionId: {}, stageId: {}), reason: {}",
-          stage.getExecution().getId(),
-          stage.getId(),
-          processingReport
-        );
+            "Failed to validate stage (executionId: {}, stageId: {}), reason: {}",
+            stage.getExecution().getId(),
+            stage.getId(),
+            processingReport);
       }
 
       return processingReport.isSuccess();
@@ -89,7 +87,8 @@ public class StageValidator {
   }
 
   /**
-   * Load schema and exclude any conditional properties that are not enabled for the current stage's cloud provider.
+   * Load schema and exclude any conditional properties that are not enabled for the current stage's
+   * cloud provider.
    */
   private Optional<Schema> loadSchema(Stage stage) {
     String stageType = stage.getType();
@@ -102,37 +101,42 @@ public class StageValidator {
         return Optional.empty();
       }
 
-      Schema schema = objectMapper
-        .readerWithView(Views.Spinnaker.class)
-        .withType(Schema.class)
-        .readValue(new File(schemaUrl.toURI()));
+      Schema schema =
+          objectMapper
+              .readerWithView(Views.Spinnaker.class)
+              .withType(Schema.class)
+              .readValue(new File(schemaUrl.toURI()));
 
-      schema.properties = schema.properties.entrySet().stream()
-        .filter(e -> {
-          // filter out any conditional property that does not support `cloudProvider`
-          Collection<String> cloudProviders = e.getValue().meta.condition.cloudProviders;
-          return cloudProviders == null || cloudProviders.contains(cloudProvider.orElse(null));
-        })
-        .map(e -> {
-          // ensure that all schema properties support a 'string' value in order to support arbitrary SpEL expression use
-          Schema.Property property = e.getValue();
-          if (property.type != null && !property.type.equalsIgnoreCase("string")) {
-            property.anyOf = Arrays.asList(
-              Collections.singletonMap("type", property.type),
-              Collections.singletonMap("type", "string")
-            );
-            property.type = null;
-          }
-          return e;
-        })
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      schema.properties =
+          schema.properties.entrySet().stream()
+              .filter(
+                  e -> {
+                    // filter out any conditional property that does not support `cloudProvider`
+                    Collection<String> cloudProviders = e.getValue().meta.condition.cloudProviders;
+                    return cloudProviders == null
+                        || cloudProviders.contains(cloudProvider.orElse(null));
+                  })
+              .map(
+                  e -> {
+                    // ensure that all schema properties support a 'string' value in order to
+                    // support arbitrary SpEL expression use
+                    Schema.Property property = e.getValue();
+                    if (property.type != null && !property.type.equalsIgnoreCase("string")) {
+                      property.anyOf =
+                          Arrays.asList(
+                              Collections.singletonMap("type", property.type),
+                              Collections.singletonMap("type", "string"));
+                      property.type = null;
+                    }
+                    return e;
+                  })
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       schema.required.addAll(
-        schema.properties.entrySet().stream()
-          .filter(e -> e.getValue().meta.required)
-          .map(Map.Entry::getKey)
-          .collect(Collectors.toSet())
-      );
+          schema.properties.entrySet().stream()
+              .filter(e -> e.getValue().meta.required)
+              .map(Map.Entry::getKey)
+              .collect(Collectors.toSet()));
 
       return Optional.of(schema);
     } catch (Exception e) {
@@ -143,10 +147,8 @@ public class StageValidator {
   private JsonSchema processSchema(Schema schema) {
     try {
       return jsonSchemaFactory.getJsonSchema(
-        objectMapper.readTree(
-          objectMapper.writerWithView(Views.Public.class).writeValueAsString(schema)
-        )
-      );
+          objectMapper.readTree(
+              objectMapper.writerWithView(Views.Public.class).writeValueAsString(schema)));
     } catch (Exception e) {
       throw new StageValidationException(e);
     }
@@ -181,47 +183,37 @@ public class StageValidator {
 
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private static class Schema extends Generic {
-    @JsonProperty
-    Map<String, Property> properties;
+    @JsonProperty Map<String, Property> properties;
 
-    @JsonProperty
-    Set<String> required = new HashSet<>();
+    @JsonProperty Set<String> required = new HashSet<>();
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     static class Property extends Generic {
-      @JsonProperty
-      String type;
+      @JsonProperty String type;
 
-      @JsonProperty
-      List<Map> anyOf;
+      @JsonProperty List<Map> anyOf;
 
       @JsonProperty("_meta")
       @JsonView(Views.Spinnaker.class)
       Meta meta = new Meta();
 
       static class Meta {
-        @JsonProperty
-        boolean required;
+        @JsonProperty boolean required;
 
-        @JsonProperty
-        boolean builtIn;
+        @JsonProperty boolean builtIn;
 
-        @JsonProperty
-        Condition condition = new Condition();
+        @JsonProperty Condition condition = new Condition();
       }
 
       static class Condition extends Generic {
-        @JsonProperty
-        Set<String> cloudProviders;
+        @JsonProperty Set<String> cloudProviders;
       }
     }
   }
 
   private static class Views {
-    static class Public {
-    }
+    static class Public {}
 
-    static class Spinnaker {
-    }
+    static class Spinnaker {}
   }
 }

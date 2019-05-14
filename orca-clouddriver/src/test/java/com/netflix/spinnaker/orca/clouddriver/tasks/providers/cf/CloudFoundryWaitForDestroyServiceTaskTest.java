@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-
 class CloudFoundryWaitForDestroyServiceTaskTest
-  extends AbstractCloudFoundryWaitForServiceOperationTaskTest<CloudFoundryWaitForDestroyServiceTask> {
+    extends AbstractCloudFoundryWaitForServiceOperationTaskTest<
+        CloudFoundryWaitForDestroyServiceTask> {
   CloudFoundryWaitForDestroyServiceTaskTest() {
     super("destroyService", CloudFoundryWaitForDestroyServiceTask::new);
   }
@@ -34,7 +34,8 @@ class CloudFoundryWaitForDestroyServiceTaskTest
 
   @Test
   void isRunningWhenOortResultIsInProgress() {
-    testOortServiceStatus(ExecutionStatus.RUNNING, Collections.singletonMap("status", "IN_PROGRESS"));
+    testOortServiceStatus(
+        ExecutionStatus.RUNNING, Collections.singletonMap("status", "IN_PROGRESS"));
   }
 
   @Test

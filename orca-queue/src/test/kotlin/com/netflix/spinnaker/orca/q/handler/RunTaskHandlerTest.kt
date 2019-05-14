@@ -17,7 +17,14 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.fixture.pipeline
@@ -31,11 +38,30 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CompleteTask
+import com.netflix.spinnaker.orca.q.DummyTask
+import com.netflix.spinnaker.orca.q.DummyTimeoutOverrideTask
+import com.netflix.spinnaker.orca.q.InvalidTask
+import com.netflix.spinnaker.orca.q.InvalidTaskType
+import com.netflix.spinnaker.orca.q.PauseTask
+import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.time.fixedClock
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.anyOrNull
+import com.nhaarman.mockito_kotlin.check
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.isA
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -45,6 +71,14 @@ import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
 import java.time.Duration
+import kotlin.collections.emptyList
+import kotlin.collections.first
+import kotlin.collections.forEach
+import kotlin.collections.hashMapOf
+import kotlin.collections.listOf
+import kotlin.collections.mapOf
+import kotlin.collections.set
+import kotlin.collections.setOf
 import kotlin.reflect.jvm.jvmName
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
@@ -186,7 +220,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               .doesNotContainKey("stageTimeoutMs")
           })
         }
-
       }
     }
 
@@ -618,7 +651,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         it("marks the task as failed but continue") {
           verify(queue).push(CompleteTask(message, FAILED_CONTINUE))
         }
-
       }
 
       given("the execution is marked to succeed on timeout") {
@@ -1049,12 +1081,12 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               stage {
                 type = "whatever"
                 context["stageTimeoutMs"] = stageTimeoutMs
-                startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() //started 5.1 minutes ago
+                startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() // started 5.1 minutes ago
                 task {
                   id = "1"
                   implementingClass = DummyTimeoutOverrideTask::class.jvmName
                   status = RUNNING
-                  startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() //started 5.1 minutes ago
+                  startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() // started 5.1 minutes ago
                 }
               }
             }
@@ -1134,7 +1166,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               refId = "1"
               type = "whatever"
               context["expr"] = expression
-              trigger = DefaultTrigger ("manual")
+              trigger = DefaultTrigger("manual")
               task {
                 id = "1"
                 startTime = clock.instant().toEpochMilli()

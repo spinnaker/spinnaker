@@ -15,23 +15,18 @@
  */
 package com.netflix.spinnaker.orca.extensionpoint.pipeline;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
-/**
- * A preprocessor that can modify an Execution upon initial receipt of the configuration.
- */
+/** A preprocessor that can modify an Execution upon initial receipt of the configuration. */
 public interface ExecutionPreprocessor {
 
-  /**
-   * Returns whether or not the preprocess can handle the inbound execution.
-   */
+  /** Returns whether or not the preprocess can handle the inbound execution. */
   boolean supports(@Nonnull Map<String, Object> execution, @Nonnull Type type);
 
-  /**
-   * Allows modification of an execution configuration.
-   */
-  @Nonnull Map<String, Object> process(@Nonnull Map<String, Object> execution);
+  /** Allows modification of an execution configuration. */
+  @Nonnull
+  Map<String, Object> process(@Nonnull Map<String, Object> execution);
 
   enum Type {
     PIPELINE,

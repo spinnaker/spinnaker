@@ -19,16 +19,13 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import retrofit.client.Response;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-public class DelegatingOortService
-  extends DelegatingClouddriverService<OortService>
-  implements OortService {
+public class DelegatingOortService extends DelegatingClouddriverService<OortService>
+    implements OortService {
 
   public DelegatingOortService(SelectableService selectableService) {
     super(selectableService);
@@ -46,17 +43,27 @@ public class DelegatingOortService
 
   @Override
   public Manifest getManifest(String account, String location, String name) {
-    return StringUtils.isEmpty(location) ? getService().getManifest(account, name) : getService().getManifest(account, location, name);
+    return StringUtils.isEmpty(location)
+        ? getService().getManifest(account, name)
+        : getService().getManifest(account, location, name);
   }
 
   @Override
-  public Manifest getDynamicManifest(String account, String location, String kind, String app, String cluster, String criteria) {
+  public Manifest getDynamicManifest(
+      String account, String location, String kind, String app, String cluster, String criteria) {
     return getService().getDynamicManifest(account, location, kind, app, cluster, criteria);
   }
 
   @Override
-  public Response getServerGroupFromCluster(String app, String account, String cluster, String serverGroup, String region, String cloudProvider) {
-    return getService().getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
+  public Response getServerGroupFromCluster(
+      String app,
+      String account,
+      String cluster,
+      String serverGroup,
+      String region,
+      String cloudProvider) {
+    return getService()
+        .getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
   }
 
   @Override
@@ -76,13 +83,29 @@ public class DelegatingOortService
   }
 
   @Override
-  public Response getTargetServerGroup(String app, String account, String cluster, String cloudProvider, String scope, String target) {
+  public Response getTargetServerGroup(
+      String app,
+      String account,
+      String cluster,
+      String cloudProvider,
+      String scope,
+      String target) {
     return getService().getTargetServerGroup(app, account, cluster, cloudProvider, scope, target);
   }
 
   @Override
-  public Map<String, Object> getServerGroupSummary(String app, String account, String cluster, String cloudProvider, String scope, String target, String summaryType, String onlyEnabled) {
-    return getService().getServerGroupSummary(app, account, cluster, cloudProvider, scope, target, summaryType, onlyEnabled);
+  public Map<String, Object> getServerGroupSummary(
+      String app,
+      String account,
+      String cluster,
+      String cloudProvider,
+      String scope,
+      String target,
+      String summaryType,
+      String onlyEnabled) {
+    return getService()
+        .getServerGroupSummary(
+            app, account, cluster, cloudProvider, scope, target, summaryType, onlyEnabled);
   }
 
   @Override
@@ -106,7 +129,8 @@ public class DelegatingOortService
   }
 
   @Override
-  public List<Map> getLoadBalancerDetails(String provider, String account, String region, String name) {
+  public List<Map> getLoadBalancerDetails(
+      String provider, String account, String region, String name) {
     return getService().getLoadBalancerDetails(provider, account, region, name);
   }
 
@@ -116,12 +140,14 @@ public class DelegatingOortService
   }
 
   @Override
-  public List<Map> findImage(String cloudProvider, String query, String account, String region, Map additionalFilters) {
+  public List<Map> findImage(
+      String cloudProvider, String query, String account, String region, Map additionalFilters) {
     return getService().findImage(cloudProvider, query, account, region, additionalFilters);
   }
 
   @Override
-  public List<Map> getEntityTags(String cloudProvider, String entityType, String entityId, String account, String region) {
+  public List<Map> getEntityTags(
+      String cloudProvider, String entityType, String entityId, String account, String region) {
     return getService().getEntityTags(cloudProvider, entityType, entityId, account, region);
   }
 
@@ -136,7 +162,8 @@ public class DelegatingOortService
   }
 
   @Override
-  public Map getServiceInstance(String account, String cloudProvider, String region, String serviceInstanceName) {
+  public Map getServiceInstance(
+      String account, String cloudProvider, String region, String serviceInstanceName) {
     return getService().getServiceInstance(account, cloudProvider, region, serviceInstanceName);
   }
 

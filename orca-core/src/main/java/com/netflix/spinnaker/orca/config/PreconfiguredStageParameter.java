@@ -29,8 +29,7 @@ public class PreconfiguredStageParameter {
   private ParameterType type = ParameterType.string;
   private int order;
 
-  public
-  enum ParameterType {
+  public enum ParameterType {
     string
   }
 }

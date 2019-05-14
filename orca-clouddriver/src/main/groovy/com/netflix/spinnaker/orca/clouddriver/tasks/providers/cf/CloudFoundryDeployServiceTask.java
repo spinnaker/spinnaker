@@ -27,20 +27,19 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import java.util.*;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.util.*;
 
 @RequiredArgsConstructor
 @Component
 public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTask {
   private final KatoService kato;
   private final ArtifactResolver artifactResolver;
-  private final ObjectMapper artifactMapper = new ObjectMapper()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private final ObjectMapper artifactMapper =
+      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   @Nonnull
   @Override
@@ -48,16 +47,19 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
     Map<String, Object> context = bindArtifactIfNecessary(stage);
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-      .put("deployService", context)
-      .build();
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", "deployService")
-      .put("kato.last.task.id", taskId)
-      .put("service.region",  stage.getContext().get("region"))
-      .put("service.account", account)
-      .build();
+    Map<String, Map> operation =
+        new ImmutableMap.Builder<String, Map>().put("deployService", context).build();
+    TaskId taskId =
+        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
+            .toBlocking()
+            .first();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>()
+            .put("notification.type", "deployService")
+            .put("kato.last.task.id", taskId)
+            .put("service.region", stage.getContext().get("region"))
+            .put("service.account", account)
+            .build();
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
@@ -65,12 +67,15 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
   private Map<String, Object> bindArtifactIfNecessary(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
     Map manifest = (Map) context.get("manifest");
-    if(manifest.get("artifactId") != null || manifest.get("artifact") != null) {
-      Artifact artifact = manifest.get("artifact") != null ?
-        artifactMapper.convertValue(manifest.get("artifact"), Artifact.class) :
-        null;
-      Artifact boundArtifact = artifactResolver.getBoundArtifactForStage(stage, (String) manifest.get("artifactId"), artifact);
-      if(boundArtifact == null) {
+    if (manifest.get("artifactId") != null || manifest.get("artifact") != null) {
+      Artifact artifact =
+          manifest.get("artifact") != null
+              ? artifactMapper.convertValue(manifest.get("artifact"), Artifact.class)
+              : null;
+      Artifact boundArtifact =
+          artifactResolver.getBoundArtifactForStage(
+              stage, (String) manifest.get("artifactId"), artifact);
+      if (boundArtifact == null) {
         throw new IllegalArgumentException("Unable to bind the service manifest artifact");
       }
       manifest.remove("artifactId"); // replacing with the bound artifact now

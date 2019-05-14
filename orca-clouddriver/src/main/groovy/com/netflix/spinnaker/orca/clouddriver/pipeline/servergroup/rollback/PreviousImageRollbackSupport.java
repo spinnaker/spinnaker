@@ -21,13 +21,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PreviousImageRollbackSupport {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -37,45 +36,45 @@ public class PreviousImageRollbackSupport {
   private final FeaturesService featuresService;
   private final RetrySupport retrySupport;
 
-  public PreviousImageRollbackSupport(ObjectMapper objectMapper,
-                                      OortService oortService,
-                                      FeaturesService featuresService,
-                                      RetrySupport retrySupport) {
-    this.objectMapper = objectMapper.configure(
-      DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false
-    );
+  public PreviousImageRollbackSupport(
+      ObjectMapper objectMapper,
+      OortService oortService,
+      FeaturesService featuresService,
+      RetrySupport retrySupport) {
+    this.objectMapper =
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     this.oortService = oortService;
     this.featuresService = featuresService;
     this.retrySupport = retrySupport;
   }
 
-  public ImageDetails getImageDetailsFromEntityTags(String cloudProvider,
-                                                    String credentials,
-                                                    String region,
-                                                    String serverGroupName) {
+  public ImageDetails getImageDetailsFromEntityTags(
+      String cloudProvider, String credentials, String region, String serverGroupName) {
     List<Map> entityTags = null;
 
     try {
-      entityTags = retrySupport.retry(() -> {
-        if (!featuresService.areEntityTagsAvailable()) {
-          return Collections.emptyList();
-        }
+      entityTags =
+          retrySupport.retry(
+              () -> {
+                if (!featuresService.areEntityTagsAvailable()) {
+                  return Collections.emptyList();
+                }
 
-        return oortService.getEntityTags(
-          cloudProvider,
-          "serverGroup",
-          serverGroupName,
-          credentials,
-          region
-        );
-      }, 15, 2000, false);
+                return oortService.getEntityTags(
+                    cloudProvider, "serverGroup", serverGroupName, credentials, region);
+              },
+              15,
+              2000,
+              false);
     } catch (Exception e) {
       log.warn("Unable to fetch entity tags, reason: {}", e.getMessage());
     }
 
     if (entityTags != null && entityTags.size() > 1) {
       // this should _not_ happen
-      String id = String.format("%s:serverGroup:%s:%s:%s", cloudProvider, serverGroupName, credentials, region);
+      String id =
+          String.format(
+              "%s:serverGroup:%s:%s:%s", cloudProvider, serverGroupName, credentials, region);
       throw new IllegalStateException("More than one set of entity tags found for " + id);
     }
 
@@ -84,24 +83,23 @@ public class PreviousImageRollbackSupport {
     }
 
     List<Map> tags = (List<Map>) entityTags.get(0).get("tags");
-    PreviousServerGroup previousServerGroup = tags
-      .stream()
-      .filter(t -> "spinnaker:metadata".equalsIgnoreCase((String) t.get("name")))
-      .map(t -> (Map<String, Object>)((Map)t.get("value")).get("previousServerGroup"))
-      .filter(Objects::nonNull)
-      .map(m -> objectMapper.convertValue(m, PreviousServerGroup.class))
-      .findFirst()
-      .orElse(null);
+    PreviousServerGroup previousServerGroup =
+        tags.stream()
+            .filter(t -> "spinnaker:metadata".equalsIgnoreCase((String) t.get("name")))
+            .map(t -> (Map<String, Object>) ((Map) t.get("value")).get("previousServerGroup"))
+            .filter(Objects::nonNull)
+            .map(m -> objectMapper.convertValue(m, PreviousServerGroup.class))
+            .findFirst()
+            .orElse(null);
 
     if (previousServerGroup == null || previousServerGroup.imageName == null) {
       return null;
     }
 
     return new ImageDetails(
-      previousServerGroup.imageId,
-      previousServerGroup.imageName,
-      previousServerGroup.getBuildNumber()
-    );
+        previousServerGroup.imageId,
+        previousServerGroup.imageName,
+        previousServerGroup.getBuildNumber());
   }
 
   public static class ImageDetails {

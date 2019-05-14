@@ -16,27 +16,25 @@
 
 package com.netflix.spinnaker.orca.dryrun;
 
-import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 
 /**
  * Serializes a float as an integer if possible.
- * <p>
- * Written in Java as Kotlin's Float doesn't work with Jackson at runtime.
+ *
+ * <p>Written in Java as Kotlin's Float doesn't work with Jackson at runtime.
  */
 public class RoundingFloatSerializer extends JsonSerializer<Float> {
-  @Override public Class<Float> handledType() {
+  @Override
+  public Class<Float> handledType() {
     return Float.class;
   }
 
   @Override
-  public void serialize(
-    Float value,
-    JsonGenerator gen,
-    SerializerProvider serializers
-  ) throws IOException {
+  public void serialize(Float value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
     if (value % 1 == 0f) {
       gen.writeNumber(value.intValue());
     } else {

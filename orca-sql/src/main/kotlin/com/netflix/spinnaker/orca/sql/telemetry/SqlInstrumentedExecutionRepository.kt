@@ -165,16 +165,20 @@ class SqlInstrumentedExecutionRepository(
     }
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionCriteria): Observable<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionCriteria
+  ): Observable<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria)
     }
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionCriteria,
-                                                    sorter: ExecutionComparator?): MutableList<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionCriteria,
+    sorter: ExecutionComparator?
+  ): MutableList<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication3") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria, sorter)
     }
@@ -186,8 +190,10 @@ class SqlInstrumentedExecutionRepository(
     }
   }
 
-  override fun retrievePipelinesForPipelineConfigId(pipelineConfigId: String,
-                                                    criteria: ExecutionCriteria): Observable<Execution> {
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria
+  ): Observable<Execution> {
     return withMetrics("retrievePipelinesForPipelineConfigId") {
       executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
     }

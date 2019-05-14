@@ -25,13 +25,12 @@ import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
 import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
@@ -41,10 +40,11 @@ public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationS
   private final DisableClusterStage disableClusterStage;
 
   @Autowired
-  public ShrinkClusterStage(TrafficGuard trafficGuard,
-                            LockingConfigurationProperties lockingConfigurationProperties,
-                            DynamicConfigService dynamicConfigService,
-                            DisableClusterStage disableClusterStage) {
+  public ShrinkClusterStage(
+      TrafficGuard trafficGuard,
+      LockingConfigurationProperties lockingConfigurationProperties,
+      DynamicConfigService dynamicConfigService,
+      DisableClusterStage disableClusterStage) {
     super(trafficGuard, lockingConfigurationProperties, dynamicConfigService);
     this.disableClusterStage = disableClusterStage;
   }
@@ -60,27 +60,30 @@ public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationS
   }
 
   @Override
-  public void addAdditionalBeforeStages(
-    @Nonnull Stage parent,
-    @Nonnull StageGraphBuilder graph
-  ) {
+  public void addAdditionalBeforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
     if (Objects.equals(parent.getContext().get("allowDeleteActive"), true)) {
       Map<String, Object> context = new HashMap<>(parent.getContext());
       context.put("remainingEnabledServerGroups", parent.getContext().get("shrinkToSize"));
       context.put("preferLargerOverNewer", parent.getContext().get("retainLargerOverNewer"));
-      context.put("continueIfClusterNotFound", Objects.equals(parent.getContext().get("shrinkToSize"), 0));
+      context.put(
+          "continueIfClusterNotFound", Objects.equals(parent.getContext().get("shrinkToSize"), 0));
 
-      // We don't want the key propagated if interestingHealthProviderNames isn't defined, since this prevents
-      // health providers from the stage's 'determineHealthProviders' task to be added to the context.
+      // We don't want the key propagated if interestingHealthProviderNames isn't defined, since
+      // this prevents
+      // health providers from the stage's 'determineHealthProviders' task to be added to the
+      // context.
       if (parent.getContext().get("interestingHealthProviderNames") != null) {
-        context.put("interestingHealthProviderNames", parent.getContext().get("interestingHealthProviderNames"));
+        context.put(
+            "interestingHealthProviderNames",
+            parent.getContext().get("interestingHealthProviderNames"));
       }
 
-      graph.add((it) -> {
-        it.setType(disableClusterStage.getType());
-        it.setName("disableCluster");
-        it.setContext(context);
-      });
+      graph.add(
+          (it) -> {
+            it.setType(disableClusterStage.getType());
+            it.setName("disableCluster");
+            it.setContext(context);
+          });
     }
   }
 }

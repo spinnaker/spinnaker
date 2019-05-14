@@ -18,9 +18,8 @@ package com.netflix.spinnaker.orca.pipeline;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.DetermineLockTask;
 import com.netflix.spinnaker.orca.pipeline.tasks.ReleaseLockTask;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.Nonnull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReleaseLockStage implements StageDefinitionBuilder {
@@ -35,7 +34,7 @@ public class ReleaseLockStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder
-      .withTask("determineLock", DetermineLockTask.class)
-      .withTask("releaseLock", ReleaseLockTask.class);
+        .withTask("determineLock", DetermineLockTask.class)
+        .withTask("releaseLock", ReleaseLockTask.class);
   }
 }

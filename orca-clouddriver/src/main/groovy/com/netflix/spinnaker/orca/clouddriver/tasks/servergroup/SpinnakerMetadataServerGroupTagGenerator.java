@@ -16,21 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
 public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
@@ -38,17 +39,15 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
   private final OortService oortService;
   private final RetrySupport retrySupport;
 
-  public SpinnakerMetadataServerGroupTagGenerator(OortService oortService, RetrySupport retrySupport) {
+  public SpinnakerMetadataServerGroupTagGenerator(
+      OortService oortService, RetrySupport retrySupport) {
     this.oortService = oortService;
     this.retrySupport = retrySupport;
   }
 
   @Override
-  public Collection<Map<String, Object>> generateTags(Stage stage,
-                                                      String serverGroup,
-                                                      String account,
-                                                      String location,
-                                                      String cloudProvider) {
+  public Collection<Map<String, Object>> generateTags(
+      Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     Execution execution = stage.getExecution();
     Map context = stage.getContext();
 
@@ -80,21 +79,23 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
     try {
       cluster = Names.parseName(serverGroup).getCluster();
 
-      Map<String, Object> previousServerGroup = getPreviousServerGroupFromCluster(
-        execution.getApplication(),
-        account,
-        cluster,
-        cloudProvider,
-        location,
-        serverGroup
-      );
+      Map<String, Object> previousServerGroup =
+          getPreviousServerGroupFromCluster(
+              execution.getApplication(), account, cluster, cloudProvider, location, serverGroup);
 
       if (previousServerGroup != null) {
         value.put("previousServerGroup", previousServerGroup);
       }
     } catch (Exception e) {
-      // failure to populate `previousServerGroup` is not considered a fatal error that would cause this task to fail
-      log.error("Unable to determine ancestor image details for {}:{}:{}:{}", cloudProvider, account, location, cluster, e);
+      // failure to populate `previousServerGroup` is not considered a fatal error that would cause
+      // this task to fail
+      log.error(
+          "Unable to determine ancestor image details for {}:{}:{}:{}",
+          cloudProvider,
+          account,
+          location,
+          cluster,
+          e);
     }
 
     Map<String, Object> tag = new HashMap<>();
@@ -105,20 +106,26 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
     return Collections.singletonList(tag);
   }
 
-  Map<String, Object> getPreviousServerGroupFromCluster(String application,
-                                                        String account,
-                                                        String cluster,
-                                                        String cloudProvider,
-                                                        String location,
-                                                        String createdServerGroup) {
+  Map<String, Object> getPreviousServerGroupFromCluster(
+      String application,
+      String account,
+      String cluster,
+      String cloudProvider,
+      String location,
+      String createdServerGroup) {
     if (cloudProvider.equals("titus")) {
-      // titus does not (currently!) force cache refresh to it's possible that `NEWEST` is actually the `ANCESTOR` to
+      // titus does not (currently!) force cache refresh to it's possible that `NEWEST` is actually
+      // the `ANCESTOR` to
       // the just created server group
-      Map<String, Object> newestServerGroup = retrySupport.retry(() -> {
-        return getPreviousServerGroupFromClusterByTarget(
-          application, account, cluster, cloudProvider, location, "NEWEST"
-        );
-      }, 10, 3000, false); // retry for up to 30 seconds
+      Map<String, Object> newestServerGroup =
+          retrySupport.retry(
+              () -> {
+                return getPreviousServerGroupFromClusterByTarget(
+                    application, account, cluster, cloudProvider, location, "NEWEST");
+              },
+              10,
+              3000,
+              false); // retry for up to 30 seconds
 
       if (newestServerGroup == null) {
         // cluster has no enabled server groups
@@ -132,30 +139,27 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
       }
     }
 
-    return retrySupport.retry(() -> {
-      return getPreviousServerGroupFromClusterByTarget(
-        application, account, cluster, cloudProvider, location, "ANCESTOR"
-      );
-    }, 10, 3000, false); // retry for up to 30 seconds
+    return retrySupport.retry(
+        () -> {
+          return getPreviousServerGroupFromClusterByTarget(
+              application, account, cluster, cloudProvider, location, "ANCESTOR");
+        },
+        10,
+        3000,
+        false); // retry for up to 30 seconds
   }
 
-  public Map<String, Object> getPreviousServerGroupFromClusterByTarget(String application,
-                                                                String account,
-                                                                String cluster,
-                                                                String cloudProvider,
-                                                                String location,
-                                                                String target) {
+  public Map<String, Object> getPreviousServerGroupFromClusterByTarget(
+      String application,
+      String account,
+      String cluster,
+      String cloudProvider,
+      String location,
+      String target) {
     try {
-      Map<String, Object> targetServerGroup = oortService.getServerGroupSummary(
-        application,
-        account,
-        cluster,
-        cloudProvider,
-        location,
-        target,
-        "image",
-        "true"
-      );
+      Map<String, Object> targetServerGroup =
+          oortService.getServerGroupSummary(
+              application, account, cluster, cloudProvider, location, target, "image", "true");
 
       Map<String, Object> previousServerGroup = new HashMap<>();
       previousServerGroup.put("name", targetServerGroup.get("serverGroupName"));

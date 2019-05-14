@@ -20,22 +20,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import java.util.*;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 @Data
 public class KubernetesJobRunner implements JobRunner {
-
 
   private boolean katoResultExpected = false;
   private String cloudProvider = "kubernetes";
 
   private ArtifactResolver artifactResolver;
   private ObjectMapper objectMapper;
-
 
   public KubernetesJobRunner(ArtifactResolver artifactResolver, ObjectMapper objectMapper) {
     this.artifactResolver = artifactResolver;
@@ -64,7 +61,8 @@ public class KubernetesJobRunner implements JobRunner {
 
     // if the manifest contains the template annotation put it into the context
     if (stage.getContext().containsKey("manifest")) {
-      Manifest manifest = objectMapper.convertValue(stage.getContext().get("manifest"), Manifest.class);
+      Manifest manifest =
+          objectMapper.convertValue(stage.getContext().get("manifest"), Manifest.class);
       String logTemplate = ManifestAnnotationExtractor.logs(manifest);
       if (logTemplate != null) {
         execution.put("logs", logTemplate);
@@ -74,6 +72,4 @@ public class KubernetesJobRunner implements JobRunner {
 
     return outputs;
   }
-
-
 }

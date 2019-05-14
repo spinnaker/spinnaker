@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +31,8 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
   private Map<String, Object> trigger;
 
-  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Map<String, Object> trigger) {
+  public ConditionalStanzaTransform(
+      TemplateConfiguration templateConfiguration, Map<String, Object> trigger) {
     this.templateConfiguration = templateConfiguration;
     this.trigger = trigger;
   }
@@ -44,18 +44,27 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
   }
 
   private <T extends Conditional> void trimConditionals(List<T> stages, PipelineTemplate template) {
-    Optional.ofNullable(stages).ifPresent( allStages -> allStages
-      .stream()
-      .filter(stage -> stage.getWhen() != null && !stage.getWhen().isEmpty())
-      .forEach(stage -> {
-        RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
-        context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
-        // Conditionals have already been rendered
-        for (String conditional : stage.getWhen()) {
-          if (!Boolean.parseBoolean(conditional)) {
-            stage.setRemove();
-          }
-        }
-      }));
+    Optional.ofNullable(stages)
+        .ifPresent(
+            allStages ->
+                allStages.stream()
+                    .filter(stage -> stage.getWhen() != null && !stage.getWhen().isEmpty())
+                    .forEach(
+                        stage -> {
+                          RenderContext context =
+                              new DefaultRenderContext(
+                                  templateConfiguration.getPipeline().getApplication(),
+                                  template,
+                                  trigger);
+                          context
+                              .getVariables()
+                              .putAll(templateConfiguration.getPipeline().getVariables());
+                          // Conditionals have already been rendered
+                          for (String conditional : stage.getWhen()) {
+                            if (!Boolean.parseBoolean(conditional)) {
+                              stage.setRemove();
+                            }
+                          }
+                        }));
   }
 }

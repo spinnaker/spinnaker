@@ -33,9 +33,9 @@ public class UpsertImageTagsStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("upsertImageTags", UpsertImageTagsTask.class)
-      .withTask("monitorUpsert", MonitorKatoTask.class)
-      .withTask("forceCacheRefresh", ImageForceCacheRefreshTask.class)
-      .withTask("waitForTaggedImage", WaitForUpsertedImageTagsTask.class);
+        .withTask("upsertImageTags", UpsertImageTagsTask.class)
+        .withTask("monitorUpsert", MonitorKatoTask.class)
+        .withTask("forceCacheRefresh", ImageForceCacheRefreshTask.class)
+        .withTask("waitForTaggedImage", WaitForUpsertedImageTagsTask.class);
   }
 }

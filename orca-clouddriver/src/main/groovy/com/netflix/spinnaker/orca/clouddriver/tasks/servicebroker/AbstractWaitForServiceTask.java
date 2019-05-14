@@ -22,11 +22,11 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import javax.annotation.Nonnull;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
-public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAwareTask
+    implements RetryableTask {
   protected OortService oortService;
 
   public AbstractWaitForServiceTask(OortService oortService) {
@@ -51,8 +51,10 @@ public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAw
     String region = stage.mapTo("/service.region", String.class);
     String serviceInstanceName = stage.mapTo("/service.instance.name", String.class);
 
-    return TaskResult.ofStatus(oortStatusToTaskStatus(oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
+    return TaskResult.ofStatus(
+        oortStatusToTaskStatus(
+            oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
   }
 
-  abstract protected ExecutionStatus oortStatusToTaskStatus(Map m);
+  protected abstract ExecutionStatus oortStatusToTaskStatus(Map m);
 }

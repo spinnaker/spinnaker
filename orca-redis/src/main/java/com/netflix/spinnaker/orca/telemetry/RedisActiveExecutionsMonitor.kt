@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.telemetry
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionEvent
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
@@ -84,7 +82,7 @@ class RedisActiveExecutionsMonitor(
       {
         try {
           refreshGauges()
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           log.error("Unable to refresh active execution gauges", e)
         }
       },
@@ -97,7 +95,7 @@ class RedisActiveExecutionsMonitor(
       {
         try {
           cleanup()
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           log.error("Unable to cleanup orphaned active executions", e)
         }
       },
@@ -178,7 +176,7 @@ class RedisActiveExecutionsMonitor(
       return
     }
 
-    redisClientDelegate.withCommandsClient{ redis ->
+    redisClientDelegate.withCommandsClient { redis ->
       redis.hset(redisKey, execution.id, objectMapper.writeValueAsString(ActiveExecution(
         id = execution.id,
         type = execution.type,

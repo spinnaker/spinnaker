@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import com.google.common.collect.ForwardingMap;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import com.google.common.collect.ForwardingMap;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,26 +44,28 @@ public class AlertOnAccessMap extends ForwardingMap<String, Object> {
     this(execution, registry, new HashMap<>());
   }
 
-  @Override protected Map<String, Object> delegate() { return delegate; }
+  @Override
+  protected Map<String, Object> delegate() {
+    return delegate;
+  }
 
-  @Override public Object get(@Nullable Object key) {
+  @Override
+  public Object get(@Nullable Object key) {
     Object value = super.get(key);
     if (value != null) {
       log.warn(
-        "Global context key \"{}\" accessed by {} {}[{}] \"{}\"",
-        key,
-        execution.getApplication(),
-        execution.getType(),
-        execution.getId(),
-        Optional.ofNullable(execution.getName()).orElseGet(execution::getDescription)
-      );
-      Id counterId = registry
-        .createId("global.context.access")
-        .withTag("application", execution.getApplication())
-        .withTag("key", String.valueOf(key));
-      registry
-        .counter(counterId)
-        .increment();
+          "Global context key \"{}\" accessed by {} {}[{}] \"{}\"",
+          key,
+          execution.getApplication(),
+          execution.getType(),
+          execution.getId(),
+          Optional.ofNullable(execution.getName()).orElseGet(execution::getDescription));
+      Id counterId =
+          registry
+              .createId("global.context.access")
+              .withTag("application", execution.getApplication())
+              .withTag("key", String.valueOf(key));
+      registry.counter(counterId).increment();
     }
     return value;
   }

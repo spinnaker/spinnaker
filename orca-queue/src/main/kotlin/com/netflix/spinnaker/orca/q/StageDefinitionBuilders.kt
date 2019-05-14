@@ -146,7 +146,7 @@ private fun Stage.buildExecutionWindow(): Stage? {
       this,
       STAGE_BEFORE
     )
-    executionWindow.refId = "${refId}<0"
+    executionWindow.refId = "$refId<0"
     return executionWindow
   } else {
     return null

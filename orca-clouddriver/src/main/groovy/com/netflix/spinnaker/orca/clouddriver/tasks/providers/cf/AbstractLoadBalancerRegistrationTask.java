@@ -18,27 +18,26 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractInstanceLoadBalancerRegistrationTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
 
-abstract class AbstractLoadBalancerRegistrationTask extends AbstractInstanceLoadBalancerRegistrationTask implements Task {
-  @Autowired
-  TargetServerGroupResolver tsgResolver;
+abstract class AbstractLoadBalancerRegistrationTask
+    extends AbstractInstanceLoadBalancerRegistrationTask implements Task {
+  @Autowired TargetServerGroupResolver tsgResolver;
 
   @Override
   @Nonnull
   public TaskResult execute(@Nonnull Stage stage) {
     List<TargetServerGroup> tsgList = tsgResolver.resolve(stage);
     if (!tsgList.isEmpty()) {
-      Optional.ofNullable(tsgList.get(0)).ifPresent(tsg -> stage.getContext().put("serverGroupName", tsg.getName()));
+      Optional.ofNullable(tsgList.get(0))
+          .ifPresent(tsg -> stage.getContext().put("serverGroupName", tsg.getName()));
     }
 
     return super.execute(stage);

@@ -31,10 +31,12 @@ public class V2TemplateValidationHandler implements Handler {
     V2PipelineTemplateContext v2Context = context.getSchemaContext();
     boolean stagesNotEmpty = !v2Context.getConfiguration().getStages().isEmpty();
 
-    V2TemplateSchemaValidator<V2TemplateSchemaValidator.SchemaValidatorContext> validator = new V2TemplateSchemaValidator<>();
-    validator.validate(v2Context.getTemplate(),
-                       errors,
-                       new V2TemplateSchemaValidator.SchemaValidatorContext(stagesNotEmpty));
+    V2TemplateSchemaValidator<V2TemplateSchemaValidator.SchemaValidatorContext> validator =
+        new V2TemplateSchemaValidator<>();
+    validator.validate(
+        v2Context.getTemplate(),
+        errors,
+        new V2TemplateSchemaValidator.SchemaValidatorContext(stagesNotEmpty));
     if (errors.hasErrors(context.getRequest().getPlan())) {
       context.getErrors().addAll(errors);
       chain.clear();

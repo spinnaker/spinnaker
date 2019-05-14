@@ -15,6 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.converter;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -22,22 +27,21 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.*;
-import java.util.stream.Collectors;
-
 // Who needs type-checking anyway?
 @SuppressWarnings("unchecked")
 public class PipelineTemplateConverter {
 
-  private final static Logger log = LoggerFactory.getLogger(PipelineTemplateConverter.class);
+  private static final Logger log = LoggerFactory.getLogger(PipelineTemplateConverter.class);
 
   public String convertToPipelineTemplate(Map<String, Object> pipeline) {
     Map<String, Object> p = new LinkedHashMap<>();
     p.put("schema", "1");
-    p.put("id", String.format("%s-%s", pipeline.getOrDefault("application", "spinnaker"), ((String) pipeline.getOrDefault("name", "generatedTemplate")).replaceAll("\\W", "")));
+    p.put(
+        "id",
+        String.format(
+            "%s-%s",
+            pipeline.getOrDefault("application", "spinnaker"),
+            ((String) pipeline.getOrDefault("name", "generatedTemplate")).replaceAll("\\W", "")));
     p.put("metadata", generateMetadata(pipeline));
     p.put("protect", false);
     p.put("configuration", generateConfiguration(pipeline));
@@ -61,7 +65,11 @@ public class PipelineTemplateConverter {
     m.put("name", pipeline.getOrDefault("name", "GIVE ME A NAME"));
     m.put("description", pipeline.getOrDefault("description", "GIVE ME A DESCRIPTION"));
     m.put("owner", pipeline.get("lastModifiedBy"));
-    m.put("scopes", (pipeline.get("application") == null) ? new ArrayList<>() : Collections.singletonList(pipeline.get("application")));
+    m.put(
+        "scopes",
+        (pipeline.get("application") == null)
+            ? new ArrayList<>()
+            : Collections.singletonList(pipeline.get("application")));
     return m;
   }
 
@@ -79,21 +87,23 @@ public class PipelineTemplateConverter {
 
   private List<Map<String, Object>> convertStages(List<Map<String, Object>> stages) {
     return stages.stream()
-      .map(s -> {
-        List<String> dependsOn = new ArrayList<>();
-        if (s.containsKey("requisiteStageRefIds") && !((List) s.get("requisiteStageRefIds")).isEmpty()) {
-          dependsOn = buildStageRefIds(stages, (List) s.get("requisiteStageRefIds"));
-        }
+        .map(
+            s -> {
+              List<String> dependsOn = new ArrayList<>();
+              if (s.containsKey("requisiteStageRefIds")
+                  && !((List) s.get("requisiteStageRefIds")).isEmpty()) {
+                dependsOn = buildStageRefIds(stages, (List) s.get("requisiteStageRefIds"));
+              }
 
-        Map<String, Object> stage = new LinkedHashMap<>();
-        stage.put("id", getStageId((String) s.get("type"), (String) s.get("refId")));
-        stage.put("type", s.get("type"));
-        stage.put("dependsOn", dependsOn);
-        stage.put("name", s.get("name"));
-        stage.put("config", scrubStageConfig(s));
-        return stage;
-      })
-      .collect(Collectors.toList());
+              Map<String, Object> stage = new LinkedHashMap<>();
+              stage.put("id", getStageId((String) s.get("type"), (String) s.get("refId")));
+              stage.put("type", s.get("type"));
+              stage.put("dependsOn", dependsOn);
+              stage.put("name", s.get("name"));
+              stage.put("config", scrubStageConfig(s));
+              return stage;
+            })
+        .collect(Collectors.toList());
   }
 
   private static Map<String, Object> scrubStageConfig(Map<String, Object> config) {
@@ -105,13 +115,15 @@ public class PipelineTemplateConverter {
     return working;
   }
 
-  private static List<String> buildStageRefIds(List<Map<String, Object>> stages, List<String> requisiteStageRefIds) {
+  private static List<String> buildStageRefIds(
+      List<Map<String, Object>> stages, List<String> requisiteStageRefIds) {
     List<String> refIds = new ArrayList<>();
     for (String refId : requisiteStageRefIds) {
-      Optional<String> stage = stages.stream()
-        .filter(s -> refId.equals(s.get("refId")))
-        .map(s -> getStageId((String) s.get("type"), (String) s.get("refId")))
-        .findFirst();
+      Optional<String> stage =
+          stages.stream()
+              .filter(s -> refId.equals(s.get("refId")))
+              .map(s -> getStageId((String) s.get("type"), (String) s.get("refId")))
+              .findFirst();
       stage.ifPresent(refIds::add);
     }
     return refIds;

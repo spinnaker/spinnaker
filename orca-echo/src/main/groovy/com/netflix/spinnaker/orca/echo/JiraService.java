@@ -19,15 +19,14 @@ package com.netflix.spinnaker.orca.echo;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import retrofit.client.Response;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.constraints.NotNull;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
 @Component
 public class JiraService {
@@ -40,15 +39,18 @@ public class JiraService {
     this.mapper = mapper;
   }
 
-  public CreateJiraIssueResponse createJiraIssue(CreateIssueRequest createIssueRequest) throws CreateJiraIssueException {
+  public CreateJiraIssueResponse createJiraIssue(CreateIssueRequest createIssueRequest)
+      throws CreateJiraIssueException {
     try {
       validateInputs(createIssueRequest);
       EchoService.Notification notification = new EchoService.Notification();
       EchoService.Notification.Source source = new EchoService.Notification.Source();
-      Optional.ofNullable(createIssueRequest.getFields().getReporter()).ifPresent(reporter -> {
-        source.setUser(reporter.getName());
-        notification.setTo(Collections.singletonList(reporter.getName()));
-      });
+      Optional.ofNullable(createIssueRequest.getFields().getReporter())
+          .ifPresent(
+              reporter -> {
+                source.setUser(reporter.getName());
+                notification.setTo(Collections.singletonList(reporter.getName()));
+              });
 
       notification.setSource(source);
       notification.setNotificationType(EchoService.Notification.Type.JIRA);
@@ -57,21 +59,21 @@ public class JiraService {
       return mapper.readValue(response.getBody().in(), CreateJiraIssueResponse.class);
     } catch (Exception e) {
       throw new CreateJiraIssueException(
-        String.format("Failed to create Jira Issue for project %s %s", createIssueRequest.getFields().getProject(), e.getMessage())
-      );
+          String.format(
+              "Failed to create Jira Issue for project %s %s",
+              createIssueRequest.getFields().getProject(), e.getMessage()));
     }
   }
 
   private void validateInputs(CreateIssueRequest createIssueRequest) {
-    Set<ConstraintViolation<CreateIssueRequest>> violations = Validation.buildDefaultValidatorFactory()
-      .getValidator()
-      .validate(createIssueRequest);
+    Set<ConstraintViolation<CreateIssueRequest>> violations =
+        Validation.buildDefaultValidatorFactory().getValidator().validate(createIssueRequest);
     if (!violations.isEmpty()) {
       throw new IllegalArgumentException(
-        "Failed validation: " + violations.stream()
-          .map(v -> String.format("%s: %s", v.getPropertyPath().toString(), v.getMessage()))
-          .collect(Collectors.toList())
-      );
+          "Failed validation: "
+              + violations.stream()
+                  .map(v -> String.format("%s: %s", v.getPropertyPath().toString(), v.getMessage()))
+                  .collect(Collectors.toList()));
     }
   }
 
@@ -121,7 +123,6 @@ public class JiraService {
         this.self = self;
       }
     }
-
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -164,7 +165,8 @@ public class JiraService {
     }
 
     public CreateIssueRequest withIssueTypeName(String issueTypeName) {
-      fields.setIssueType(new JiraService.CreateIssueRequest.Fields.IssueType().withName(issueTypeName));
+      fields.setIssueType(
+          new JiraService.CreateIssueRequest.Fields.IssueType().withName(issueTypeName));
       return this;
     }
 
@@ -215,9 +217,7 @@ public class JiraService {
 
     @Override
     public String toString() {
-      return "CreateIssueContext{" +
-        "fields=" + fields +
-        '}';
+      return "CreateIssueContext{" + "fields=" + fields + '}';
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -302,21 +302,23 @@ public class JiraService {
 
       @Override
       public String toString() {
-        return "Update{" +
-          "linkType=" + issuelinks.get(0).getAdd().getType().getName() +
-          ", linkKey=" + issuelinks.get(0).getAdd().getInwardIssue().getKey() +
-          '}';
+        return "Update{"
+            + "linkType="
+            + issuelinks.get(0).getAdd().getType().getName()
+            + ", linkKey="
+            + issuelinks.get(0).getAdd().getInwardIssue().getKey()
+            + '}';
       }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Fields {
-      @NotNull
-      private Project project;
-      @NotNull
-      private String description;
+      @NotNull private Project project;
+      @NotNull private String description;
+
       @JsonProperty("issuetype")
       private IssueType issueType;
+
       private String summary;
       private Parent parent;
       private Reporter reporter;
@@ -392,16 +394,28 @@ public class JiraService {
 
       @Override
       public String toString() {
-        return "Fields{" +
-          "details=" + details +
-          ", project=" + project +
-          ", description='" + description + '\'' +
-          ", issueType=" + issueType +
-          ", summary='" + summary + '\'' +
-          ", parent=" + parent +
-          ", reporter='" + reporter + '\'' +
-          ", assignee='" + assignee + '\'' +
-          '}';
+        return "Fields{"
+            + "details="
+            + details
+            + ", project="
+            + project
+            + ", description='"
+            + description
+            + '\''
+            + ", issueType="
+            + issueType
+            + ", summary='"
+            + summary
+            + '\''
+            + ", parent="
+            + parent
+            + ", reporter='"
+            + reporter
+            + '\''
+            + ", assignee='"
+            + assignee
+            + '\''
+            + '}';
       }
 
       public static class Reporter {
@@ -422,9 +436,7 @@ public class JiraService {
 
         @Override
         public String toString() {
-          return "Reporter{" +
-            "name='" + name + '\'' +
-            '}';
+          return "Reporter{" + "name='" + name + '\'' + '}';
         }
       }
 
@@ -446,9 +458,7 @@ public class JiraService {
 
         @Override
         public String toString() {
-          return "Assignee{" +
-            "name='" + name + '\'' +
-            '}';
+          return "Assignee{" + "name='" + name + '\'' + '}';
         }
       }
 
@@ -466,10 +476,7 @@ public class JiraService {
 
         @Override
         public String toString() {
-          return "Project{" +
-            "id='" + super.id + '\'' +
-            ", key='" + super.key + '\'' +
-            '}';
+          return "Project{" + "id='" + super.id + '\'' + ", key='" + super.key + '\'' + '}';
         }
       }
 
@@ -487,10 +494,7 @@ public class JiraService {
 
         @Override
         public String toString() {
-          return "Parent{" +
-            "id='" + super.id + '\'' +
-            ", key='" + super.key + '\'' +
-            '}';
+          return "Parent{" + "id='" + super.id + '\'' + ", key='" + super.key + '\'' + '}';
         }
       }
 
@@ -548,10 +552,7 @@ public class JiraService {
 
         @Override
         public String toString() {
-          return "IssueType{" +
-            "name='" + name + '\'' +
-            ", id='" + id + '\'' +
-            '}';
+          return "IssueType{" + "name='" + name + '\'' + ", id='" + id + '\'' + '}';
         }
       }
     }

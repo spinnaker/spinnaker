@@ -33,7 +33,8 @@ public class EnableManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+    builder
+        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
         .withTask(EnableManifestTask.TASK_NAME, EnableManifestTask.class)
         .withTask("monitorEnable", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)

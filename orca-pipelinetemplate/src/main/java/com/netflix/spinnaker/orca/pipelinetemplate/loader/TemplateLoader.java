@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
+import static java.lang.String.format;
+
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -29,8 +28,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.lang.String.format;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TemplateLoader {
@@ -41,9 +40,7 @@ public class TemplateLoader {
     this.schemeLoaders = schemeLoaders;
   }
 
-  /**
-   * @return a LIFO list of pipeline templates
-   */
+  /** @return a LIFO list of pipeline templates */
   public List<PipelineTemplate> load(TemplateConfiguration.TemplateSource template) {
     PipelineTemplate pipelineTemplate = load(template.getSource());
     return load(pipelineTemplate);
@@ -63,8 +60,9 @@ public class TemplateLoader {
 
       if (seenTemplateSources.contains(pipelineTemplate.getSource())) {
         throw new TemplateLoaderException(
-          format("Illegal cycle detected loading pipeline template '%s'", pipelineTemplate.getSource())
-        );
+            format(
+                "Illegal cycle detected loading pipeline template '%s'",
+                pipelineTemplate.getSource()));
       }
     }
 
@@ -79,10 +77,14 @@ public class TemplateLoader {
       throw new TemplateLoaderException(format("Invalid URI '%s'", source), e);
     }
 
-    TemplateSchemeLoader schemeLoader = schemeLoaders.stream()
-      .filter(l -> l.supports(uri))
-      .findFirst()
-      .orElseThrow(() -> new TemplateLoaderException(format("No TemplateSchemeLoader found for '%s'", uri.getScheme())));
+    TemplateSchemeLoader schemeLoader =
+        schemeLoaders.stream()
+            .filter(l -> l.supports(uri))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new TemplateLoaderException(
+                        format("No TemplateSchemeLoader found for '%s'", uri.getScheme())));
 
     return schemeLoader.load(uri);
   }

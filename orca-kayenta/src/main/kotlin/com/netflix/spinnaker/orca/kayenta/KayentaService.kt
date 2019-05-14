@@ -18,7 +18,12 @@ package com.netflix.spinnaker.orca.kayenta
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
-import retrofit.http.*
+import retrofit.http.Body
+import retrofit.http.GET
+import retrofit.http.POST
+import retrofit.http.PUT
+import retrofit.http.Path
+import retrofit.http.Query
 import java.time.Duration
 import java.time.Instant
 

@@ -66,18 +66,16 @@ class PropagateDeployedServerGroupScopes(
   }
 }
 
-
 private fun Stage.childrenOf(name: String): List<Stage> {
   val stage = execution.stages.find {
-    it.name == name
-      && it.topLevelStage == topLevelStage
+    it.name == name &&
+      it.topLevelStage == topLevelStage
   } ?: throw IllegalArgumentException("Could not find stage $name.")
 
   return execution.stages.filter {
     it.parentStageId == stage.id
   }
 }
-
 
 data class DeployServerGroupContext @JsonCreator constructor(
   @param:JsonProperty("deploy.server.groups") val deployServerGroups: Map<String, List<String>>,

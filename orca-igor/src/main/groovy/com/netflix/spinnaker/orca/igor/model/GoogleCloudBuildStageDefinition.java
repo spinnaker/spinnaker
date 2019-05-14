@@ -18,10 +18,9 @@ package com.netflix.spinnaker.orca.igor.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Getter;
-
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition {
@@ -32,22 +31,24 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
   private final GoogleCloudBuildDefinitionArtifact buildDefinitionArtifact;
   private final int consecutiveErrors;
 
-  // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
+  // There does not seem to be a way to auto-generate a constructor using our current version of
+  // Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public GoogleCloudBuildStageDefinition(
-    @JsonProperty("account") String account,
-    @JsonProperty("buildInfo") GoogleCloudBuild build,
-    @JsonProperty("buildDefinition") Map<String, Object> buildDefinition,
-    @JsonProperty("buildDefinitionSource") String buildDefinitionSource,
-    @JsonProperty("buildDefinitionArtifact") GoogleCloudBuildDefinitionArtifact buildDefinitionArtifact,
-    @JsonProperty("consecutiveErrors") Integer consecutiveErrors
-  ) {
+      @JsonProperty("account") String account,
+      @JsonProperty("buildInfo") GoogleCloudBuild build,
+      @JsonProperty("buildDefinition") Map<String, Object> buildDefinition,
+      @JsonProperty("buildDefinitionSource") String buildDefinitionSource,
+      @JsonProperty("buildDefinitionArtifact")
+          GoogleCloudBuildDefinitionArtifact buildDefinitionArtifact,
+      @JsonProperty("consecutiveErrors") Integer consecutiveErrors) {
     this.account = account;
     this.buildInfo = build;
     this.buildDefinition = buildDefinition;
     this.buildDefinitionSource = buildDefinitionSource;
-    this.buildDefinitionArtifact = Optional.ofNullable(buildDefinitionArtifact)
-      .orElse(new GoogleCloudBuildDefinitionArtifact(null, null, null));
+    this.buildDefinitionArtifact =
+        Optional.ofNullable(buildDefinitionArtifact)
+            .orElse(new GoogleCloudBuildDefinitionArtifact(null, null, null));
     this.consecutiveErrors = Optional.ofNullable(consecutiveErrors).orElse(0);
   }
 
@@ -58,10 +59,9 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
     private final String artifactId;
 
     public GoogleCloudBuildDefinitionArtifact(
-      @JsonProperty("artifact") Artifact artifact,
-      @JsonProperty("artifactAccount") String artifactAccount,
-      @JsonProperty("artifactId") String artifactId
-    ) {
+        @JsonProperty("artifact") Artifact artifact,
+        @JsonProperty("artifactAccount") String artifactAccount,
+        @JsonProperty("artifactId") String artifactId) {
       this.artifact = artifact;
       this.artifactAccount = artifactAccount;
       this.artifactId = artifactId;

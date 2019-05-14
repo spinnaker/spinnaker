@@ -17,26 +17,26 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DelegatingMortService
-  extends DelegatingClouddriverService<MortService>
-  implements MortService {
+public class DelegatingMortService extends DelegatingClouddriverService<MortService>
+    implements MortService {
 
   public DelegatingMortService(SelectableService selectableService) {
     super(selectableService);
   }
 
   @Override
-  public SecurityGroup getSecurityGroup(String account, String type, String securityGroupName, String region) {
+  public SecurityGroup getSecurityGroup(
+      String account, String type, String securityGroupName, String region) {
     return getService().getSecurityGroup(account, type, securityGroupName, region);
   }
 
   @Override
-  public SecurityGroup getSecurityGroup(String account, String type, String securityGroupName, String region, String vpcId) {
+  public SecurityGroup getSecurityGroup(
+      String account, String type, String securityGroupName, String region, String vpcId) {
     return getService().getSecurityGroup(account, type, securityGroupName, region, vpcId);
   }
 

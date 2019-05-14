@@ -54,7 +54,7 @@ class SqlActiveExecutionsMonitor(
       {
         try {
           refreshGauges()
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           log.error("Unable to refresh active execution gauges", e)
         }
       },

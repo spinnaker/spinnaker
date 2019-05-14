@@ -20,18 +20,14 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.netflix.spinnaker.orca.igor.model.ConcourseStageExecution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ConcourseService {
-  private final Cache<String, ConcourseStageExecution> executionsByStageId = CacheBuilder
-    .newBuilder()
-    .expireAfterWrite(5, TimeUnit.MINUTES)
-    .build();
+  private final Cache<String, ConcourseStageExecution> executionsByStageId =
+      CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
   public void pushExecution(ConcourseStageExecution execution) {
     executionsByStageId.put(execution.getStageId(), execution);

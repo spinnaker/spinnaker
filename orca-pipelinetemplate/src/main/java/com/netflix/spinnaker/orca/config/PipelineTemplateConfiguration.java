@@ -30,24 +30,22 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderedValueConverter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
-import java.util.List;
-import java.util.Optional;
-
 @ConditionalOnExpression("${pipeline-templates.enabled:true}")
 @ComponentScan(
-  basePackageClasses = PipelineTemplateModule.class,
-  basePackages = {
-    "com.netflix.spinnaker.orca.pipelinetemplate.tasks",
-    "com.netflix.spinnaker.orca.pipelinetemplate.pipeline",
-    "com.netflix.spinnaker.orca.pipelinetemplate.handler",
-    "com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler"
-  }
-)
+    basePackageClasses = PipelineTemplateModule.class,
+    basePackages = {
+      "com.netflix.spinnaker.orca.pipelinetemplate.tasks",
+      "com.netflix.spinnaker.orca.pipelinetemplate.pipeline",
+      "com.netflix.spinnaker.orca.pipelinetemplate.handler",
+      "com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler"
+    })
 public class PipelineTemplateConfiguration {
 
   @Autowired(required = false)
@@ -56,9 +54,9 @@ public class PipelineTemplateConfiguration {
   @Bean
   ObjectMapper pipelineTemplateObjectMapper() {
     return new ObjectMapper()
-      .enable(SerializationFeature.INDENT_OUTPUT)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .registerModule(new KotlinModule());
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .registerModule(new KotlinModule());
   }
 
   @Bean
@@ -67,16 +65,21 @@ public class PipelineTemplateConfiguration {
   }
 
   @Bean
-  Renderer jinjaRenderer(RenderedValueConverter renderedValueConverter,
-                         ObjectMapper pipelineTemplateObjectMapper,
-                         Optional<Front50Service> front50Service) {
-    return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper, front50Service.orElse(null), additionalJinjaTags);
+  Renderer jinjaRenderer(
+      RenderedValueConverter renderedValueConverter,
+      ObjectMapper pipelineTemplateObjectMapper,
+      Optional<Front50Service> front50Service) {
+    return new JinjaRenderer(
+        renderedValueConverter,
+        pipelineTemplateObjectMapper,
+        front50Service.orElse(null),
+        additionalJinjaTags);
   }
 
   @Bean
-  PipelineModelMutator schemaV1TemplatedPipelineModelMutator(ObjectMapper pipelineTemplateObjectMapper,
-                                                             TemplateLoader templateLoader,
-                                                             Renderer renderer) {
-    return new TemplatedPipelineModelMutator(pipelineTemplateObjectMapper, templateLoader, renderer);
+  PipelineModelMutator schemaV1TemplatedPipelineModelMutator(
+      ObjectMapper pipelineTemplateObjectMapper, TemplateLoader templateLoader, Renderer renderer) {
+    return new TemplatedPipelineModelMutator(
+        pipelineTemplateObjectMapper, templateLoader, renderer);
   }
 }

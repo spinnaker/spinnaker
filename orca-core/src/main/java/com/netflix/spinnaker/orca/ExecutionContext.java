@@ -26,12 +26,13 @@ public class ExecutionContext {
   private final String stageId;
   private final String origin;
 
-  public ExecutionContext(String application,
-                          String authenticatedUser,
-                          String executionType,
-                          String executionId,
-                          String stageId,
-                          String origin) {
+  public ExecutionContext(
+      String application,
+      String authenticatedUser,
+      String executionType,
+      String executionId,
+      String stageId,
+      String origin) {
     this.application = application;
     this.authenticatedUser = authenticatedUser;
     this.executionType = executionType;
@@ -68,7 +69,9 @@ public class ExecutionContext {
     return executionId;
   }
 
-  public String getOrigin() { return origin; }
+  public String getOrigin() {
+    return origin;
+  }
 
   public String getStageId() {
     return stageId;

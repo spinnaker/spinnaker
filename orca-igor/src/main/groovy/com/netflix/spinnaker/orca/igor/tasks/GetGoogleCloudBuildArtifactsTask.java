@@ -22,27 +22,26 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GetGoogleCloudBuildArtifactsTask extends RetryableIgorTask<GoogleCloudBuildStageDefinition> {
+public class GetGoogleCloudBuildArtifactsTask
+    extends RetryableIgorTask<GoogleCloudBuildStageDefinition> {
   private final IgorService igorService;
 
   @Override
   public @Nonnull TaskResult tryExecute(@Nonnull GoogleCloudBuildStageDefinition stageDefinition) {
-    List<Artifact> artifacts = igorService.getGoogleCloudBuildArtifacts(
-      stageDefinition.getAccount(),
-      stageDefinition.getBuildInfo().getId()
-    );
+    List<Artifact> artifacts =
+        igorService.getGoogleCloudBuildArtifacts(
+            stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId());
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }

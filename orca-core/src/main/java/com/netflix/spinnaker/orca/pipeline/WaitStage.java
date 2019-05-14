@@ -21,12 +21,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WaitStage implements StageDefinitionBuilder {
@@ -45,10 +44,9 @@ public class WaitStage implements StageDefinitionBuilder {
 
     @JsonCreator
     public WaitStageContext(
-      @JsonProperty("waitTime") @Nullable Long waitTime,
-      @JsonProperty("skipRemainingWait") @Nullable Boolean skipRemainingWait,
-      @JsonProperty("startTime") @Nullable Instant startTime
-    ) {
+        @JsonProperty("waitTime") @Nullable Long waitTime,
+        @JsonProperty("skipRemainingWait") @Nullable Boolean skipRemainingWait,
+        @JsonProperty("startTime") @Nullable Instant startTime) {
       this.waitTime = waitTime;
       this.skipRemainingWait = skipRemainingWait == null ? false : skipRemainingWait;
       this.startTime = startTime;

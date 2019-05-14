@@ -22,17 +22,16 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import retrofit.client.Response;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import retrofit.client.Response;
 
 @Component
 public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {
@@ -40,18 +39,19 @@ public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTe
   @Autowired(required = false)
   private Front50Service front50Service;
 
-  @Autowired
-  private ObjectMapper pipelineTemplateObjectMapper;
+  @Autowired private ObjectMapper pipelineTemplateObjectMapper;
 
   @SuppressWarnings("unchecked")
   @Override
   public TaskResult execute(Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 is not enabled, no way to fetch pager duty. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 is not enabled, no way to fetch pager duty. Fix this by setting front50.enabled: true");
     }
 
     if (!(stage.getContext().get("pipelineTemplate") instanceof String)) {
-      throw new IllegalArgumentException("'pipelineTemplate' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
+      throw new IllegalArgumentException(
+          "'pipelineTemplate' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
     }
 
     List<String> missingParams = new ArrayList<>();
@@ -64,23 +64,23 @@ public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTe
     }
 
     if (!missingParams.isEmpty()) {
-      throw new IllegalArgumentException("Missing required task parameter (" +
-        StringUtils.arrayToCommaDelimitedString(missingParams.toArray()) +
-        ")");
+      throw new IllegalArgumentException(
+          "Missing required task parameter ("
+              + StringUtils.arrayToCommaDelimitedString(missingParams.toArray())
+              + ")");
     }
 
-    PipelineTemplate pipelineTemplate = (PipelineTemplate) stage.decodeBase64(
-      "/pipelineTemplate",
-      PipelineTemplate.class,
-      pipelineTemplateObjectMapper
-    );
+    PipelineTemplate pipelineTemplate =
+        (PipelineTemplate)
+            stage.decodeBase64(
+                "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
 
     validate(pipelineTemplate);
 
-    Response response = front50Service.updatePipelineTemplate(
-      (String) stage.getContext().get("id"),
-      (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class)
-    );
+    Response response =
+        front50Service.updatePipelineTemplate(
+            (String) stage.getContext().get("id"),
+            (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class));
 
     // TODO rz - app & account context?
     Map<String, Object> outputs = new HashMap<>();

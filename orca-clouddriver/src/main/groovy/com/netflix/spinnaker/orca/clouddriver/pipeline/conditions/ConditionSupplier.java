@@ -18,12 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
 import java.util.List;
 
-/**
- * A provider of unmet conditions leading to a paused execution
- */
+/** A provider of unmet conditions leading to a paused execution */
 public interface ConditionSupplier {
-  /**
-   * returns a list of currently unmet conditions.
-   */
+  /** returns a list of currently unmet conditions. */
   List<Condition> getConditions(String cluster, String region, String account);
 }

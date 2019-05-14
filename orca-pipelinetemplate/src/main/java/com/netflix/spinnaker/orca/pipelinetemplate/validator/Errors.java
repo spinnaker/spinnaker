@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.validator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Errors {
-  @JsonProperty
-  List<Error> errors = new ArrayList<>();
+  @JsonProperty List<Error> errors = new ArrayList<>();
 
   public Errors() {
     // empty
@@ -50,18 +48,15 @@ public class Errors {
 
   public Map<String, Object> toResponse() {
     HashMap<String, Object> m = new HashMap<>();
-    m.put("errors", errors
-      .stream()
-      .map(Error::toResponse)
-      .collect(Collectors.toList())
-    );
+    m.put("errors", errors.stream().map(Error::toResponse).collect(Collectors.toList()));
     return m;
   }
 
   public enum Severity {
     FATAL,
 
-    // Warn severity should be used when an error will not end fatally, but should still be addressed
+    // Warn severity should be used when an error will not end fatally, but should still be
+    // addressed
     // Things like best practice / deprecation notices would go here.
     WARN
   }
@@ -148,7 +143,9 @@ public class Errors {
       if (suggestion != null) err.put("suggestion", suggestion);
       if (!details.isEmpty()) err.put("details", details);
       if (nestedErrors != null && !nestedErrors.errors.isEmpty()) {
-        err.put("nestedErrors", nestedErrors.errors.stream().map(Error::toResponse).collect(Collectors.toList()));
+        err.put(
+            "nestedErrors",
+            nestedErrors.errors.stream().map(Error::toResponse).collect(Collectors.toList()));
       }
       return err;
     }

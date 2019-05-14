@@ -23,30 +23,40 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.ValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
-public class V1TemplateSchemaValidator<T extends SchemaValidatorContext> implements SchemaValidator<T> {
+public class V1TemplateSchemaValidator<T extends SchemaValidatorContext>
+    implements SchemaValidator<T> {
 
   private static final String SUPPORTED_VERSION = "1";
 
   @Override
-  public void validate(VersionedSchema pipelineTemplate, Errors errors, SchemaValidatorContext context) {
+  public void validate(
+      VersionedSchema pipelineTemplate, Errors errors, SchemaValidatorContext context) {
     if (!(pipelineTemplate instanceof PipelineTemplate)) {
       throw new IllegalArgumentException("Expected PipelineTemplate");
     }
     PipelineTemplate template = (PipelineTemplate) pipelineTemplate;
 
     if (!SUPPORTED_VERSION.equals(template.getSchemaVersion())) {
-      errors.add(new Error()
-        .withMessage("template schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + template.getSchemaVersion() + "'"));
+      errors.add(
+          new Error()
+              .withMessage(
+                  "template schema version is unsupported: expected '"
+                      + SUPPORTED_VERSION
+                      + "', got '"
+                      + template.getSchemaVersion()
+                      + "'"));
     }
 
     if (template.getProtect() && context.configHasStages) {
-      errors.add(new Error()
-        .withMessage("Modification of the stage graph (adding, removing, editing) is disallowed")
-        .withCause("The template being used has marked itself as protected")
-      );
+      errors.add(
+          new Error()
+              .withMessage(
+                  "Modification of the stage graph (adding, removing, editing) is disallowed")
+              .withCause("The template being used has marked itself as protected"));
     }
 
-    V1SchemaValidationHelper.validateStageDefinitions(template.getStages(), errors, V1TemplateSchemaValidator::location);
+    V1SchemaValidationHelper.validateStageDefinitions(
+        template.getStages(), errors, V1TemplateSchemaValidator::location);
   }
 
   private static String location(String location) {

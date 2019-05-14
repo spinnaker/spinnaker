@@ -17,9 +17,8 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.AcquireLockTask;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.Nonnull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AcquireLockStage implements StageDefinitionBuilder {

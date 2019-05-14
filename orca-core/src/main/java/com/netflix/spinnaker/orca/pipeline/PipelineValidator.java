@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collections;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import java.util.Collections;
 
 public interface PipelineValidator {
 

@@ -18,25 +18,35 @@ package com.netflix.spinnaker.orca.webhook.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.orca.config.PreconfiguredStageParameter;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpMethod;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.stream.Collectors;
-
 @ConfigurationProperties("webhook")
 @Data
 @Slf4j
 public class WebhookProperties {
-  private static List<String> IGNORE_FIELDS = Arrays.asList("props", "enabled", "label", "description", "type", "parameters", "parameterValues", "permissions", "parameterData");
-  private static List<Field> ALL_FIELDS = Arrays.stream(PreconfiguredWebhook.class.getDeclaredFields())
-    .filter(f -> !f.isSynthetic())
-    .filter(f -> !IGNORE_FIELDS.contains(f.getName()))
-    .collect(Collectors.toList());
+  private static List<String> IGNORE_FIELDS =
+      Arrays.asList(
+          "props",
+          "enabled",
+          "label",
+          "description",
+          "type",
+          "parameters",
+          "parameterValues",
+          "permissions",
+          "parameterData");
+  private static List<Field> ALL_FIELDS =
+      Arrays.stream(PreconfiguredWebhook.class.getDeclaredFields())
+          .filter(f -> !f.isSynthetic())
+          .filter(f -> !IGNORE_FIELDS.contains(f.getName()))
+          .collect(Collectors.toList());
 
   private List<PreconfiguredWebhook> preconfigured = new ArrayList<>();
   private TrustSettings trust;
@@ -52,7 +62,8 @@ public class WebhookProperties {
   @Data
   @NoArgsConstructor
   public static class PreconfiguredWebhook {
-    // Fields are public as webhook stages use reflection to access these directly from outside the class
+    // Fields are public as webhook stages use reflection to access these directly from outside the
+    // class
     public boolean enabled = true;
     public String label;
     public String description;
@@ -68,7 +79,7 @@ public class WebhookProperties {
     public String payload;
     public Boolean waitForCompletion;
     public StatusUrlResolution statusUrlResolution;
-    public String statusUrlJsonPath;  // if webhookResponse above
+    public String statusUrlJsonPath; // if webhookResponse above
     public String statusJsonPath;
     public String progressJsonPath;
     public String successStatuses;
@@ -78,24 +89,30 @@ public class WebhookProperties {
 
     public List<String> getPreconfiguredProperties() {
       return ALL_FIELDS.stream()
-        .filter(f -> {
-          try {
-            return f.get(this) != null;
-          } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-          }
-        })
-        .map(Field::getName)
-        .collect(Collectors.toList());
+          .filter(
+              f -> {
+                try {
+                  return f.get(this) != null;
+                } catch (IllegalAccessException e) {
+                  throw new RuntimeException(e);
+                }
+              })
+          .map(Field::getName)
+          .collect(Collectors.toList());
     }
 
     public boolean noUserConfigurableFields() {
       if (waitForCompletion == null) {
         return false;
       } else if (waitForCompletion) {
-        return getPreconfiguredProperties().size() >= ALL_FIELDS.size() - (StatusUrlResolution.webhookResponse.equals(statusUrlResolution) ? 0 : 1);
+        return getPreconfiguredProperties().size()
+            >= ALL_FIELDS.size()
+                - (StatusUrlResolution.webhookResponse.equals(statusUrlResolution) ? 0 : 1);
       } else {
-        return this.url != null && this.customHeaders != null && this.method != null && this.payload != null;
+        return this.url != null
+            && this.customHeaders != null
+            && this.method != null
+            && this.payload != null;
       }
     }
 
@@ -109,9 +126,7 @@ public class WebhookProperties {
         return true;
       }
 
-      return permissionList
-        .stream()
-        .anyMatch(p -> anyRoleMatches(p, roles));
+      return permissionList.stream().anyMatch(p -> anyRoleMatches(p, roles));
     }
 
     private boolean anyRoleMatches(String role, Set<Role.View> roles) {
@@ -120,6 +135,8 @@ public class WebhookProperties {
   }
 
   public enum StatusUrlResolution {
-    getMethod, locationHeader, webhookResponse
+    getMethod,
+    locationHeader,
+    webhookResponse
   }
 }

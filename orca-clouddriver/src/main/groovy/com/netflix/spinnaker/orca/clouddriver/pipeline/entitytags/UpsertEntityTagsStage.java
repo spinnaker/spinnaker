@@ -28,7 +28,7 @@ public class UpsertEntityTagsStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("upsertEntityTags", UpsertEntityTagsTask.class)
-      .withTask("monitorUpsert", MonitorKatoTask.class);
+        .withTask("upsertEntityTags", UpsertEntityTagsTask.class)
+        .withTask("monitorUpsert", MonitorKatoTask.class);
   }
 }

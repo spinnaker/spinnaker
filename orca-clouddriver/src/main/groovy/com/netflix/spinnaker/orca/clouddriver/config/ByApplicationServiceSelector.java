@@ -24,7 +24,8 @@ public class ByApplicationServiceSelector implements ServiceSelector {
   private final int priority;
   private final Pattern applicationPattern;
 
-  public ByApplicationServiceSelector(Object service, Integer priority, Map<String, Object> config) {
+  public ByApplicationServiceSelector(
+      Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
     this.applicationPattern = Pattern.compile((String) config.get("applicationPattern"));

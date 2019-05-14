@@ -17,9 +17,7 @@ package com.netflix.spinnaker.orca.front50;
 
 import java.util.Map;
 
-/**
- * Allows mutating a pipeline model during a create or update pipeline task operation.
- */
+/** Allows mutating a pipeline model during a create or update pipeline task operation. */
 public interface PipelineModelMutator {
 
   boolean supports(Map<String, Object> pipeline);

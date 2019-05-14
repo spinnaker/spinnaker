@@ -16,14 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.pipeline.v2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.v2.UpdateV2PipelineTemplateTask;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component

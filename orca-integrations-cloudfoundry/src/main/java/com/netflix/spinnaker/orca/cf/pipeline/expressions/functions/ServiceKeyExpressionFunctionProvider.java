@@ -23,14 +23,13 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Predicate;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Predicate;
 
 @Component
 public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionProvider {
@@ -47,42 +46,52 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
   @Override
   public Collection<FunctionDefinition> getFunctions() {
     return Collections.singletonList(
-      new FunctionDefinition("cfServiceKey", Arrays.asList(
-        new FunctionParameter(Execution.class, "execution", "The execution within which to search for stages"),
-        new FunctionParameter(String.class, "idOrName", "A stage name or stage ID to match")
-      ))
-    );
+        new FunctionDefinition(
+            "cfServiceKey",
+            Arrays.asList(
+                new FunctionParameter(
+                    Execution.class,
+                    "execution",
+                    "The execution within which to search for stages"),
+                new FunctionParameter(
+                    String.class, "idOrName", "A stage name or stage ID to match"))));
   }
 
   public static Map<String, Object> cfServiceKey(Execution execution, String idOrName) {
-    return execution.getStages()
-      .stream()
-      .filter(matchesServiceKeyStage(idOrName))
-      .findFirst()
-      .map(stage -> {
-        Map<String, Object> serviceKeyDetails = new HashMap<>();
+    return execution.getStages().stream()
+        .filter(matchesServiceKeyStage(idOrName))
+        .findFirst()
+        .map(
+            stage -> {
+              Map<String, Object> serviceKeyDetails = new HashMap<>();
 
-        Optional.ofNullable(stage.getContext().get("kato.tasks"))
-          .ifPresent(k -> {
-            List<Map<String, Object>> katoTasks = (List<Map<String, Object>>) k;
-            try {
-              ServiceKeyKatoTask katoTask = objectMapper.readValue(
-                new TreeTraversingParser(objectMapper.valueToTree(katoTasks.get(0)), objectMapper),
-                ServiceKeyKatoTask.class);
-              serviceKeyDetails.putAll(katoTask.getResultObjects().get(0).getServiceKey());
-            } catch (IOException e) {
-            }
-          });
+              Optional.ofNullable(stage.getContext().get("kato.tasks"))
+                  .ifPresent(
+                      k -> {
+                        List<Map<String, Object>> katoTasks = (List<Map<String, Object>>) k;
+                        try {
+                          ServiceKeyKatoTask katoTask =
+                              objectMapper.readValue(
+                                  new TreeTraversingParser(
+                                      objectMapper.valueToTree(katoTasks.get(0)), objectMapper),
+                                  ServiceKeyKatoTask.class);
+                          serviceKeyDetails.putAll(
+                              katoTask.getResultObjects().get(0).getServiceKey());
+                        } catch (IOException e) {
+                        }
+                      });
 
-          return serviceKeyDetails;
-        })
-      .orElse(Collections.emptyMap());
+              return serviceKeyDetails;
+            })
+        .orElse(Collections.emptyMap());
   }
 
   private static Predicate<Stage> matchesServiceKeyStage(String idOrName) {
-    return stage -> CREATE_SERVICE_KEY_STAGE_NAME.equals(stage.getType()) &&
-      stage.getStatus() == ExecutionStatus.SUCCEEDED &&
-      (Objects.equals(idOrName, stage.getName()) || Objects.equals(idOrName, stage.getId()));
+    return stage ->
+        CREATE_SERVICE_KEY_STAGE_NAME.equals(stage.getType())
+            && stage.getStatus() == ExecutionStatus.SUCCEEDED
+            && (Objects.equals(idOrName, stage.getName())
+                || Objects.equals(idOrName, stage.getId()));
   }
 
   @Data

@@ -26,7 +26,6 @@ public class CreatePipelineTemplateStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, Builder builder) {
-    builder
-      .withTask("createPipelineTemplate", CreatePipelineTemplateTask.class);
+    builder.withTask("createPipelineTemplate", CreatePipelineTemplateTask.class);
   }
 }

@@ -31,7 +31,8 @@ public class PauseRolloutManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(PauseRolloutManifestTask.TASK_NAME, PauseRolloutManifestTask.class)
+    builder
+        .withTask(PauseRolloutManifestTask.TASK_NAME, PauseRolloutManifestTask.class)
         .withTask("monitorPauseRollout", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class);
   }

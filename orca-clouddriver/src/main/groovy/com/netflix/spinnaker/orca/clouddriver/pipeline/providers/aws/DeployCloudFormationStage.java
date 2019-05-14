@@ -22,9 +22,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.Nonnull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DeployCloudFormationStage implements StageDefinitionBuilder {
@@ -32,9 +31,10 @@ public class DeployCloudFormationStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
-    builder.withTask(DeployCloudFormationTask.TASK_NAME, DeployCloudFormationTask.class)
-      .withTask("monitorCloudFormation", MonitorKatoTask.class)
-      .withTask("forceRefreshCache", CloudFormationForceCacheRefreshTask.class)
-      .withTask("waitForCloudFormationCompletion", WaitForCloudFormationCompletionTask.class);
+    builder
+        .withTask(DeployCloudFormationTask.TASK_NAME, DeployCloudFormationTask.class)
+        .withTask("monitorCloudFormation", MonitorKatoTask.class)
+        .withTask("forceRefreshCache", CloudFormationForceCacheRefreshTask.class)
+        .withTask("waitForCloudFormationCompletion", WaitForCloudFormationCompletionTask.class);
   }
 }

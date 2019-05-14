@@ -51,7 +51,8 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
     @Value("\${redis.timeout:2000}") timeout: Int,
     redisPoolConfig: GenericObjectPoolConfig<*>,
-    registry: Registry): Pool<Jedis> {
+    registry: Registry
+  ): Pool<Jedis> {
     if (mainConnection == previousConnection) {
       throw BeanInitializationException("previous Redis connection must not be the same as current connection")
     }
@@ -87,7 +88,6 @@ class RedisQueueShovelConfiguration {
       mapper = redisQueueObjectMapper,
       serializationMigrator = serializationMigrator
     )
-
 
   @Bean
   @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) fun redisQueueShovel(

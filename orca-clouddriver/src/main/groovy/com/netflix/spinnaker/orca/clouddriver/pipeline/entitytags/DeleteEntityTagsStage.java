@@ -28,7 +28,7 @@ public class DeleteEntityTagsStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("deleteEntityTags", DeleteEntityTagsTask.class)
-      .withTask("monitorDelete", MonitorKatoTask.class);
+        .withTask("deleteEntityTags", DeleteEntityTagsTask.class)
+        .withTask("monitorDelete", MonitorKatoTask.class);
   }
 }

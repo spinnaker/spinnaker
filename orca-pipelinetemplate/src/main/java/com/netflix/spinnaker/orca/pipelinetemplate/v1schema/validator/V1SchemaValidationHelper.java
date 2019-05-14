@@ -18,49 +18,55 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
-
 import java.util.List;
 import java.util.function.Function;
 
 public class V1SchemaValidationHelper {
 
-  public static void validateStageDefinitions(List<StageDefinition> stageDefinitions, Errors errors, Function<String, String> locationFormatter) {
-    stageDefinitions.forEach(stageDefinition -> {
-      if (stageDefinition.getId() == null) {
-        errors.add(new Error()
-          .withMessage("Stage ID is unset")
-          .withLocation(locationFormatter.apply("stages"))
-        );
-      }
+  public static void validateStageDefinitions(
+      List<StageDefinition> stageDefinitions,
+      Errors errors,
+      Function<String, String> locationFormatter) {
+    stageDefinitions.forEach(
+        stageDefinition -> {
+          if (stageDefinition.getId() == null) {
+            errors.add(
+                new Error()
+                    .withMessage("Stage ID is unset")
+                    .withLocation(locationFormatter.apply("stages")));
+          }
 
-      if (stageDefinition.getType() == null) {
-        errors.add(new Error()
-          .withMessage("Stage is missing type")
-          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
-        );
-      }
+          if (stageDefinition.getType() == null) {
+            errors.add(
+                new Error()
+                    .withMessage("Stage is missing type")
+                    .withLocation(locationFormatter.apply("stages." + stageDefinition.getId())));
+          }
 
-      if (stageDefinition.getConfig() == null) {
-        errors.add(new Error()
-          .withMessage("Stage configuration is unset")
-          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
-        );
-      }
+          if (stageDefinition.getConfig() == null) {
+            errors.add(
+                new Error()
+                    .withMessage("Stage configuration is unset")
+                    .withLocation(locationFormatter.apply("stages." + stageDefinition.getId())));
+          }
 
-      if (stageDefinition.getDependsOn() != null && !stageDefinition.getDependsOn().isEmpty() &&
-        stageDefinition.getInject() != null && stageDefinition.getInject().hasAny()) {
-        errors.add(new Error()
-          .withMessage("A stage cannot have both dependsOn and an inject rule defined simultaneously")
-          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
-        );
-      }
+          if (stageDefinition.getDependsOn() != null
+              && !stageDefinition.getDependsOn().isEmpty()
+              && stageDefinition.getInject() != null
+              && stageDefinition.getInject().hasAny()) {
+            errors.add(
+                new Error()
+                    .withMessage(
+                        "A stage cannot have both dependsOn and an inject rule defined simultaneously")
+                    .withLocation(locationFormatter.apply("stages." + stageDefinition.getId())));
+          }
 
-      if (stageDefinition.getInject() != null && stageDefinition.getInject().hasMany()) {
-        errors.add(new Error()
-          .withMessage("A stage cannot have multiple inject rules defined")
-          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
-        );
-      }
-    });
+          if (stageDefinition.getInject() != null && stageDefinition.getInject().hasMany()) {
+            errors.add(
+                new Error()
+                    .withMessage("A stage cannot have multiple inject rules defined")
+                    .withLocation(locationFormatter.apply("stages." + stageDefinition.getId())));
+          }
+        });
   }
 }

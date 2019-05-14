@@ -26,13 +26,12 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import lombok.NonNull;
-import org.springframework.stereotype.Component;
-import retrofit.client.Response;
-
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
+import lombok.NonNull;
+import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
 @Component
 public class ConsumeArtifactTask implements Task {
@@ -43,7 +42,8 @@ public class ConsumeArtifactTask implements Task {
   private RetrySupport retrySupport;
   private ObjectMapper objectMapper = new ObjectMapper();
 
-  public ConsumeArtifactTask(ArtifactResolver artifactResolver, OortService oortService, RetrySupport retrySupport) {
+  public ConsumeArtifactTask(
+      ArtifactResolver artifactResolver, OortService oortService, RetrySupport retrySupport) {
     this.artifactResolver = artifactResolver;
     this.oort = oortService;
     this.retrySupport = retrySupport;
@@ -61,17 +61,23 @@ public class ConsumeArtifactTask implements Task {
 
     artifact.setArtifactAccount((String) task.get("consumeArtifactAccount"));
 
-    InputStream fetchedArtifact = retrySupport.retry(() -> {
-      Response artifactBody = oort.fetchArtifact(artifact);
-      try {
-        return artifactBody.getBody().in();
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to fetch artifact.");
-      }
-    }, 10, 200, true);
+    InputStream fetchedArtifact =
+        retrySupport.retry(
+            () -> {
+              Response artifactBody = oort.fetchArtifact(artifact);
+              try {
+                return artifactBody.getBody().in();
+              } catch (Exception e) {
+                throw new IllegalStateException("Failed to fetch artifact.");
+              }
+            },
+            10,
+            200,
+            true);
 
     try {
-      Map<String, Object> parsed = objectMapper.readValue(fetchedArtifact, new TypeReference<Map<String, Object>>(){});
+      Map<String, Object> parsed =
+          objectMapper.readValue(fetchedArtifact, new TypeReference<Map<String, Object>>() {});
 
       // null values in the parsed result cause calls to TaskBuilder::context to throw an exception
       // so we remove them to avoid that.
@@ -81,6 +87,5 @@ public class ConsumeArtifactTask implements Task {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to deserialize artifact as JSON: " + e.getMessage());
     }
-
   }
 }

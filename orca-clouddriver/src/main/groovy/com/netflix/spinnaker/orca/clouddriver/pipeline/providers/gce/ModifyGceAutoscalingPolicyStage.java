@@ -32,9 +32,9 @@ public class ModifyGceAutoscalingPolicyStage extends TargetServerGroupLinearStag
   @Override
   protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("upsert", UpsertGceAutoscalingPolicyTask.class)
-      .withTask("monitor", MonitorKatoTask.class)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
-      .withTask("waitForScalingProcesses", WaitForGceAutoscalingPolicyTask.class);
+        .withTask("upsert", UpsertGceAutoscalingPolicyTask.class)
+        .withTask("monitor", MonitorKatoTask.class)
+        .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
+        .withTask("waitForScalingProcesses", WaitForGceAutoscalingPolicyTask.class);
   }
 }

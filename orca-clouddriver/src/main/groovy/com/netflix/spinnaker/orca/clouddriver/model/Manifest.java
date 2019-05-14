@@ -18,10 +18,9 @@
 package com.netflix.spinnaker.orca.clouddriver.model;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class Manifest {

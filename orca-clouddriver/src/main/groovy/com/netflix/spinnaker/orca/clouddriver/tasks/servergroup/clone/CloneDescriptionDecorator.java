@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone;
 
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.List;
 import java.util.Map;
 

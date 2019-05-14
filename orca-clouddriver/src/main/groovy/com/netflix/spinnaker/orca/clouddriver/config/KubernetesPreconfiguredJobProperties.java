@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import com.google.common.collect.ImmutableList;
 import io.kubernetes.client.models.V1Job;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -38,9 +36,9 @@ public class KubernetesPreconfiguredJobProperties extends PreconfiguredJobStageP
   }
 
   public List<String> getOverridableFields() {
-    List<String> overrideableFields = new ArrayList<>(Arrays.asList("account", "manifest", "application"));
+    List<String> overrideableFields =
+        new ArrayList<>(Arrays.asList("account", "manifest", "application"));
     overrideableFields.addAll(super.getOverridableFields());
     return overrideableFields;
   }
-
 }

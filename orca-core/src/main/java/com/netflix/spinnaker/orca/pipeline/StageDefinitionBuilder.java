@@ -16,16 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -35,13 +38,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
-import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface StageDefinitionBuilder {
 
@@ -51,13 +49,11 @@ public interface StageDefinitionBuilder {
     return graphBuilder.build();
   }
 
-  default void taskGraph(
-    @Nonnull Stage stage, @Nonnull Builder builder) {
-  }
+  default void taskGraph(@Nonnull Stage stage, @Nonnull Builder builder) {}
 
   /**
-   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and
-   * {@link #onFailureStages} instead.
+   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and {@link #onFailureStages}
+   *     instead.
    */
   @Deprecated
   default @Nonnull List<Stage> aroundStages(@Nonnull Stage stage) {
@@ -65,105 +61,91 @@ public interface StageDefinitionBuilder {
   }
 
   /**
-   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and
-   * {@link #onFailureStages} instead.
+   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and {@link #onFailureStages}
+   *     instead.
    */
   @Deprecated
-  default @Nonnull List<Stage> parallelStages(
-    @Nonnull Stage stage) {
+  default @Nonnull List<Stage> parallelStages(@Nonnull Stage stage) {
     return emptyList();
   }
 
   /**
-   * Implement this method to define any stages that should run before any tasks in
-   * this stage as part of a composed workflow.
-   * <p>
-   * This default implementation is for backward compatibility with the legacy
-   * {@link #aroundStages} and {@link #parallelStages} methods.
+   * Implement this method to define any stages that should run before any tasks in this stage as
+   * part of a composed workflow.
+   *
+   * <p>This default implementation is for backward compatibility with the legacy {@link
+   * #aroundStages} and {@link #parallelStages} methods.
    */
-  default void beforeStages(
-    @Nonnull Stage parent,
-    @Nonnull StageGraphBuilder graph
-  ) {
-    List<Stage> stages = aroundStages(parent)
-      .stream()
-      .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
-      .collect(toList());
+  default void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    List<Stage> stages =
+        aroundStages(parent).stream()
+            .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
+            .collect(toList());
     if (!stages.isEmpty()) {
       graph.add(stages.get(0));
     }
     for (int i = 1; i < stages.size(); i++) {
       graph.connect(stages.get(i - 1), stages.get(i));
     }
-    parallelStages(parent)
-      .stream()
-      .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
-      .forEach(graph::add);
+    parallelStages(parent).stream()
+        .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
+        .forEach(graph::add);
   }
 
   /**
-   * Implement this method to define any stages that should run after any tasks in
-   * this stage as part of a composed workflow.
-   * <p>
-   * This default implementation is for backward compatibility with the legacy
-   * {@link #aroundStages} and {@link #parallelStages} methods.
+   * Implement this method to define any stages that should run after any tasks in this stage as
+   * part of a composed workflow.
+   *
+   * <p>This default implementation is for backward compatibility with the legacy {@link
+   * #aroundStages} and {@link #parallelStages} methods.
    */
-  default void afterStages(
-    @Nonnull Stage parent,
-    @Nonnull StageGraphBuilder graph
-  ) {
-    List<Stage> stages = aroundStages(parent)
-      .stream()
-      .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
-      .collect(toList());
+  default void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    List<Stage> stages =
+        aroundStages(parent).stream()
+            .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
+            .collect(toList());
     if (!stages.isEmpty()) {
       graph.add(stages.get(0));
     }
     for (int i = 1; i < stages.size(); i++) {
       graph.connect(stages.get(i - 1), stages.get(i));
     }
-    parallelStages(parent)
-      .stream()
-      .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
-      .forEach(graph::add);
+    parallelStages(parent).stream()
+        .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
+        .forEach(graph::add);
   }
 
   /**
-   * Implement this method to define any stages that should run in response to a
-   * failure in tasks, before or after stages.
+   * Implement this method to define any stages that should run in response to a failure in tasks,
+   * before or after stages.
    */
-  default void onFailureStages(
-    @Nonnull Stage stage,
-    @Nonnull StageGraphBuilder graph
-  ) {}
+  default void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {}
 
-  /**
-   * @return the stage type this builder handles.
-   */
+  /** @return the stage type this builder handles. */
   default @Nonnull String getType() {
     return getType(this.getClass());
   }
 
-  /**
-   * Implementations can override this if they need any special cleanup on
-   * restart.
-   */
-  default void prepareStageForRestart(@Nonnull Stage stage) { }
+  /** Implementations can override this if they need any special cleanup on restart. */
+  default void prepareStageForRestart(@Nonnull Stage stage) {}
 
   static String getType(Class<? extends StageDefinitionBuilder> clazz) {
     String className = clazz.getSimpleName();
-    return className.substring(0, 1).toLowerCase() + className.substring(1).replaceFirst("StageDefinitionBuilder$", "").replaceFirst("Stage$", "");
+    return className.substring(0, 1).toLowerCase()
+        + className
+            .substring(1)
+            .replaceFirst("StageDefinitionBuilder$", "")
+            .replaceFirst("Stage$", "");
   }
 
   @Deprecated
   static @Nonnull Stage newStage(
-    @Nonnull Execution execution,
-    @Nonnull String type,
-    @Nullable String name,
-    @Nonnull Map<String, Object> context,
-    @Nullable Stage parent,
-    @Nullable SyntheticStageOwner stageOwner
-  ) {
+      @Nonnull Execution execution,
+      @Nonnull String type,
+      @Nullable String name,
+      @Nonnull Map<String, Object> context,
+      @Nullable Stage parent,
+      @Nullable SyntheticStageOwner stageOwner) {
     Stage stage = new Stage(execution, type, name, context);
     if (parent != null) {
       stage.setParentStageId(parent.getId());
@@ -172,9 +154,7 @@ public interface StageDefinitionBuilder {
     return stage;
   }
 
-  /**
-   * Return true if the stage can be manually skipped from the API.
-   */
+  /** Return true if the stage can be manually skipped from the API. */
   default boolean canManuallySkip() {
     return false;
   }
@@ -184,12 +164,10 @@ public interface StageDefinitionBuilder {
 
     try {
       return dynamicConfigService.isEnabled(
-        String.format(
-          "stages.%s.forceCacheRefresh",
-          Character.toLowerCase(className.charAt(0)) + className.substring(1)
-        ),
-        true
-      );
+          String.format(
+              "stages.%s.forceCacheRefresh",
+              Character.toLowerCase(className.charAt(0)) + className.substring(1)),
+          true);
     } catch (Exception e) {
       return true;
     }

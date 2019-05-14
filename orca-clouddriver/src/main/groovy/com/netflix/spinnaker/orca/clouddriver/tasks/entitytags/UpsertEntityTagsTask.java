@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.entitytags;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -27,6 +23,10 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,16 +41,26 @@ public class UpsertEntityTagsTask extends AbstractCloudProviderAwareTask impleme
 
   @Override
   public TaskResult execute(Stage stage) {
-    TaskId taskId = kato.requestOperations(Collections.singletonList(
-      new HashMap<String, Map>() {{
-        put("upsertEntityTags", stage.getContext());
-      }})
-    ).toBlocking().first();
+    TaskId taskId =
+        kato.requestOperations(
+                Collections.singletonList(
+                    new HashMap<String, Map>() {
+                      {
+                        put("upsertEntityTags", stage.getContext());
+                      }
+                    }))
+            .toBlocking()
+            .first();
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {{
-      put("notification.type", "upsertentitytags");
-      put("kato.last.task.id", taskId);
-    }}).build();
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(
+            new HashMap<String, Object>() {
+              {
+                put("notification.type", "upsertentitytags");
+                put("kato.last.task.id", taskId);
+              }
+            })
+        .build();
   }
 
   @Override

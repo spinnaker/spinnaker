@@ -40,16 +40,18 @@ import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
-import java.util.*
+import java.util.Optional
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)
 class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Autowired
-  fun redisQueueObjectMapper(mapper: ObjectMapper,
-                             objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
-                             taskResolver: TaskResolver) {
+  fun redisQueueObjectMapper(
+    mapper: ObjectMapper,
+    objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
+    taskResolver: TaskResolver
+  ) {
     mapper.apply {
       registerModule(KotlinModule())
       registerModule(

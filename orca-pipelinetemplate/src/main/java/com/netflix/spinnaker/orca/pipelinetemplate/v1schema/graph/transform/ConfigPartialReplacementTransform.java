@@ -30,6 +30,8 @@ public class ConfigPartialReplacementTransform implements PipelineTemplateVisito
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
-    pipelineTemplate.setPartials(TemplateMerge.mergeIdentifiable(pipelineTemplate.getPartials(), templateConfiguration.getPartials()));
+    pipelineTemplate.setPartials(
+        TemplateMerge.mergeIdentifiable(
+            pipelineTemplate.getPartials(), templateConfiguration.getPartials()));
   }
 }

@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * Allows statically defined conditions
- * Aimed to be used for testing or as a pause-all deployments mechanism
+ * Allows statically defined conditions Aimed to be used for testing or as a pause-all deployments
+ * mechanism
  */
 @Component
 @ConditionalOnExpression("${tasks.evaluate-condition.enabled:false}")
@@ -34,7 +33,8 @@ public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
 
   @Autowired
-  public ConfigurationBackedConditionSupplier(ConditionConfigurationProperties conditionsConfigurationProperties) {
+  public ConfigurationBackedConditionSupplier(
+      ConditionConfigurationProperties conditionsConfigurationProperties) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
   }
 
@@ -43,7 +43,10 @@ public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
     final List<String> clusters = conditionsConfigurationProperties.getClusters();
     final List<String> activeConditions = conditionsConfigurationProperties.getActiveConditions();
 
-    if (clusters == null || clusters.isEmpty() || activeConditions == null || activeConditions.isEmpty()) {
+    if (clusters == null
+        || clusters.isEmpty()
+        || activeConditions == null
+        || activeConditions.isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -52,7 +55,10 @@ public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
     }
 
     return activeConditions.stream()
-      .map(conditionName -> new Condition(conditionName, String.format("Active condition applies to: %s", conditionName)))
-      .collect(Collectors.toList());
+        .map(
+            conditionName ->
+                new Condition(
+                    conditionName, String.format("Active condition applies to: %s", conditionName)))
+        .collect(Collectors.toList());
   }
 }

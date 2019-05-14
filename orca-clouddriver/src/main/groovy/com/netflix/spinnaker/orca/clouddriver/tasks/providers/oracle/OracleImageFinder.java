@@ -14,17 +14,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OracleImageFinder implements ImageFinder {
@@ -41,29 +39,36 @@ public class OracleImageFinder implements ImageFinder {
   }
 
   @Override
-  public Collection<ImageDetails> byTags(Stage stage, String packageName,
-                                         Map<String, String> freeformTags) {
+  public Collection<ImageDetails> byTags(
+      Stage stage, String packageName, Map<String, String> freeformTags) {
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
-    List<OracleImage> allMatchedImages = oortService
-      .findImage(getCloudProvider(), packageName, null, null, prefixTags(freeformTags))
-      .stream()
-      .map(imageAsMap -> objectMapper.convertValue(imageAsMap, OracleImage.class))
-      .sorted()
-      .collect(Collectors.toList());
+    List<OracleImage> allMatchedImages =
+        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(freeformTags))
+            .stream()
+            .map(imageAsMap -> objectMapper.convertValue(imageAsMap, OracleImage.class))
+            .sorted()
+            .collect(Collectors.toList());
 
     // For each region, find the most recent matching image for that region. Note: sort order of
     // images is not defined by the OCI SDK, so we sorted them above
-    return stageData.regions.stream().map(stageDataRegion -> allMatchedImages.stream()
-      .filter(image -> stageDataRegion.equalsIgnoreCase(image.getRegion())).findFirst().orElse(null))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+    return stageData.regions.stream()
+        .map(
+            stageDataRegion ->
+                allMatchedImages.stream()
+                    .filter(image -> stageDataRegion.equalsIgnoreCase(image.getRegion()))
+                    .findFirst()
+                    .orElse(null))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   static Map<String, String> prefixTags(Map<String, String> tags) {
     return tags.entrySet().stream()
-      .collect(Collectors.toMap(tagEntry -> "tag:" + tagEntry.getKey(), tagEntry -> tagEntry.getValue()));
+        .collect(
+            Collectors.toMap(
+                tagEntry -> "tag:" + tagEntry.getKey(), tagEntry -> tagEntry.getValue()));
   }
 
   @Override
@@ -72,40 +77,31 @@ public class OracleImageFinder implements ImageFinder {
   }
 
   static class StageData {
-    @JsonProperty
-    Collection<String> regions;
+    @JsonProperty Collection<String> regions;
   }
 
   static class OracleImage implements Comparable<OracleImage>, ImageDetails {
-    @JsonProperty
-    String id;
+    @JsonProperty String id;
 
-    @JsonProperty
-    String name;
+    @JsonProperty String name;
 
-    @JsonProperty
-    String region;
+    @JsonProperty String region;
 
-    @JsonProperty
-    String account;
+    @JsonProperty String account;
 
-    @JsonProperty
-    String cloudProvider;
+    @JsonProperty String cloudProvider;
 
-    @JsonProperty
-    List<String> compatibleShapes;
+    @JsonProperty List<String> compatibleShapes;
 
-    @JsonProperty
-    Map<String, String> freeformTags;
+    @JsonProperty Map<String, String> freeformTags;
 
-    @JsonProperty
-    long timeCreated; //clouddriver returns this in milliseconds since epoch format
+    @JsonProperty long timeCreated; // clouddriver returns this in milliseconds since epoch format
 
     @Override
     public int compareTo(OracleImage o) {
       if (this.timeCreated == 0) return 1;
       if (o.timeCreated == 0) return -1;
-      //we need descending order, so compare other to this
+      // we need descending order, so compare other to this
       return Long.valueOf(o.timeCreated).compareTo(this.timeCreated);
     }
 

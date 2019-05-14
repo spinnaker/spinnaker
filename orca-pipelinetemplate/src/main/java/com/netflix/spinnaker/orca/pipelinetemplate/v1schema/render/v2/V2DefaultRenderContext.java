@@ -18,10 +18,9 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class V2DefaultRenderContext implements RenderContext {
@@ -33,7 +32,8 @@ public class V2DefaultRenderContext implements RenderContext {
     this.location = source.getLocation();
   }
 
-  public V2DefaultRenderContext(String application, V2PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
+  public V2DefaultRenderContext(
+      String application, V2PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
     variables.put("application", application);
     variables.put("pipelineTemplate", pipelineTemplate);
     variables.put("trigger", trigger);

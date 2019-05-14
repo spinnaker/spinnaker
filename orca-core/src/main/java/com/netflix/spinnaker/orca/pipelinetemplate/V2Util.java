@@ -19,56 +19,57 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class V2Util {
-  public static Map<String, Object> planPipeline(ContextParameterProcessor contextParameterProcessor,
-                                                 List<ExecutionPreprocessor> pipelinePreprocessors,
-                                                 Map<String, Object> pipeline) {
-    // TODO(jacobkiefer): Excise the logic in OperationsController that requires plan to avoid resolving artifacts.
+  public static Map<String, Object> planPipeline(
+      ContextParameterProcessor contextParameterProcessor,
+      List<ExecutionPreprocessor> pipelinePreprocessors,
+      Map<String, Object> pipeline) {
+    // TODO(jacobkiefer): Excise the logic in OperationsController that requires plan to avoid
+    // resolving artifacts.
     pipeline.put("plan", true); // avoid resolving artifacts
 
     Map<String, Object> finalPipeline = pipeline;
-    List<ExecutionPreprocessor> preprocessors = pipelinePreprocessors
-      .stream()
-      .filter(p -> p.supports(finalPipeline, ExecutionPreprocessor.Type.PIPELINE))
-      .collect(Collectors.toList());
+    List<ExecutionPreprocessor> preprocessors =
+        pipelinePreprocessors.stream()
+            .filter(p -> p.supports(finalPipeline, ExecutionPreprocessor.Type.PIPELINE))
+            .collect(Collectors.toList());
     for (ExecutionPreprocessor pp : preprocessors) {
       pipeline = pp.process(pipeline);
     }
 
     List<Map<String, Object>> pipelineErrors = (List<Map<String, Object>>) pipeline.get("errors");
     if (pipelineErrors != null && !pipelineErrors.isEmpty()) {
-      throw new ValidationException(
-        "Pipeline template is invalid", pipelineErrors);
+      throw new ValidationException("Pipeline template is invalid", pipelineErrors);
     }
 
     Map<String, Object> augmentedContext = new HashMap<>();
     augmentedContext.put("trigger", pipeline.get("trigger"));
-    augmentedContext.put("templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
-    Map<String, Object> spelEvaluatedPipeline = contextParameterProcessor.process(
-      pipeline, augmentedContext, true);
+    augmentedContext.put(
+        "templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
+    Map<String, Object> spelEvaluatedPipeline =
+        contextParameterProcessor.process(pipeline, augmentedContext, true);
 
     Map<String, Object> expressionEvalSummary =
-      (Map<String, Object>) spelEvaluatedPipeline.get("expressionEvaluationSummary");
+        (Map<String, Object>) spelEvaluatedPipeline.get("expressionEvaluationSummary");
     if (expressionEvalSummary != null) {
-      List<String> failedTemplateVars = expressionEvalSummary.entrySet()
-        .stream()
-        .map(e -> e.getKey())
-        .filter(v -> v.startsWith("templateVariables."))
-        .map(v -> v.replace("templateVariables.", ""))
-        .collect(Collectors.toList());
+      List<String> failedTemplateVars =
+          expressionEvalSummary.entrySet().stream()
+              .map(e -> e.getKey())
+              .filter(v -> v.startsWith("templateVariables."))
+              .map(v -> v.replace("templateVariables.", ""))
+              .collect(Collectors.toList());
 
       if (failedTemplateVars.size() > 0) {
         throw new ValidationException(
-          "Missing template variable values for the following variables: %s", failedTemplateVars);
+            "Missing template variable values for the following variables: %s", failedTemplateVars);
       }
     }
 

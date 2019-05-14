@@ -21,5 +21,6 @@ import java.util.List;
 
 public interface InterestingHealthProviderNamesSupplier {
   boolean supports(String cloudProvider, Stage stage);
+
   List<String> process(String cloudProvider, Stage stage);
 }

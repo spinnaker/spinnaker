@@ -16,12 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.snapshot;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
+import static java.util.stream.Collectors.toList;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -30,9 +26,14 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.snapshot.DeleteSnapshotStage;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static java.util.stream.Collectors.toList;
 
 @Component
 public class DeleteSnapshotTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -45,22 +46,26 @@ public class DeleteSnapshotTask extends AbstractCloudProviderAwareTask implement
 
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    DeleteSnapshotStage.DeleteSnapshotRequest deleteSnapshotRequest = stage.mapTo(DeleteSnapshotStage.DeleteSnapshotRequest.class);
+    DeleteSnapshotStage.DeleteSnapshotRequest deleteSnapshotRequest =
+        stage.mapTo(DeleteSnapshotStage.DeleteSnapshotRequest.class);
 
-    List<Map<String, Map>> operations = deleteSnapshotRequest
-      .getSnapshotIds()
-      .stream()
-      .map(snapshotId -> {
-          Map<String, Object> operation = new HashMap<>();
-          operation.put("credentials", deleteSnapshotRequest.getCredentials());
-          operation.put("region", deleteSnapshotRequest.getRegion());
-          operation.put("snapshotId", snapshotId);
-          return Collections.<String, Map>singletonMap("deleteSnapshot", operation);
-        }
-      ).collect(toList());
+    List<Map<String, Map>> operations =
+        deleteSnapshotRequest.getSnapshotIds().stream()
+            .map(
+                snapshotId -> {
+                  Map<String, Object> operation = new HashMap<>();
+                  operation.put("credentials", deleteSnapshotRequest.getCredentials());
+                  operation.put("region", deleteSnapshotRequest.getRegion());
+                  operation.put("snapshotId", snapshotId);
+                  return Collections.<String, Map>singletonMap("deleteSnapshot", operation);
+                })
+            .collect(toList());
 
-    TaskId taskId = katoService
-      .requestOperations(deleteSnapshotRequest.getCloudProvider(), operations).toBlocking().first();
+    TaskId taskId =
+        katoService
+            .requestOperations(deleteSnapshotRequest.getCloudProvider(), operations)
+            .toBlocking()
+            .first();
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deleteSnapshot");

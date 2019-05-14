@@ -34,12 +34,13 @@ public class PatchManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
-      .withTask(PatchManifestTask.TASK_NAME, PatchManifestTask.class)
-      .withTask("monitorPatch", MonitorKatoTask.class)
-      .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
-      .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
-      .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
-      .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+    builder
+        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+        .withTask(PatchManifestTask.TASK_NAME, PatchManifestTask.class)
+        .withTask("monitorPatch", MonitorKatoTask.class)
+        .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
+        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
+        .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
+        .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }
 }

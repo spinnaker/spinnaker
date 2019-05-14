@@ -20,12 +20,11 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
@@ -42,9 +41,8 @@ class DestroyServiceStage implements StageDefinitionBuilder, CloudProviderAware 
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
-    destroyServiceStagePreprocessors
-      .stream()
-      .filter(it -> it.supports(stage))
-      .forEach(it -> it.addSteps(builder, stage));
+    destroyServiceStagePreprocessors.stream()
+        .filter(it -> it.supports(stage))
+        .forEach(it -> it.addSteps(builder, stage));
   }
 }

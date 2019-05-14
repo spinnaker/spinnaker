@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import static java.lang.String.format;
+
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Trigger;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static java.lang.String.format;
 
 @Component
 public class EnabledPipelineValidator implements PipelineValidator {
@@ -41,21 +42,28 @@ public class EnabledPipelineValidator implements PipelineValidator {
     this.front50Service = front50Service.orElse(null);
   }
 
-
-  @Override public void checkRunnable(Execution pipeline) {
+  @Override
+  public void checkRunnable(Execution pipeline) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
     }
-    List<Map<String, Object>> pipelines = isStrategy(pipeline) ? front50Service.getStrategies(pipeline.getApplication()) : front50Service.getPipelines(pipeline.getApplication(), false);
-    pipelines
-      .stream()
-      .filter(it -> it.get("id").equals(pipeline.getPipelineConfigId()))
-      .findFirst()
-      .ifPresent(it -> {
-        if ((boolean) it.getOrDefault("disabled", false)) {
-          throw new PipelineIsDisabled(it.get("id").toString(), it.get("application").toString(), it.get("name").toString());
-        }
-      });
+    List<Map<String, Object>> pipelines =
+        isStrategy(pipeline)
+            ? front50Service.getStrategies(pipeline.getApplication())
+            : front50Service.getPipelines(pipeline.getApplication(), false);
+    pipelines.stream()
+        .filter(it -> it.get("id").equals(pipeline.getPipelineConfigId()))
+        .findFirst()
+        .ifPresent(
+            it -> {
+              if ((boolean) it.getOrDefault("disabled", false)) {
+                throw new PipelineIsDisabled(
+                    it.get("id").toString(),
+                    it.get("application").toString(),
+                    it.get("name").toString());
+              }
+            });
   }
 
   private boolean isStrategy(Execution pipeline) {
@@ -65,7 +73,8 @@ public class EnabledPipelineValidator implements PipelineValidator {
 
   static class PipelineIsDisabled extends PipelineValidationFailed {
     PipelineIsDisabled(String id, String application, String name) {
-      super(format("The pipeline config %s (%s) belonging to %s is disabled", name, id, application));
+      super(
+          format("The pipeline config %s (%s) belonging to %s is disabled", name, id, application));
     }
   }
 }

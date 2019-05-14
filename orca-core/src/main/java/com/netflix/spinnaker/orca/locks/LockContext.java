@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.Objects;
 import java.util.Optional;
 
@@ -38,9 +37,10 @@ public class LockContext {
       }
 
       @JsonCreator
-      public LockValueBuilder(@JsonProperty("application") String application,
-                              @JsonProperty("type") String type,
-                              @JsonProperty("id") String id) {
+      public LockValueBuilder(
+          @JsonProperty("application") String application,
+          @JsonProperty("type") String type,
+          @JsonProperty("id") String id) {
         this(application, type, id, null);
       }
 
@@ -59,39 +59,43 @@ public class LockContext {
       public LockManager.LockValue build() {
         final Optional<Execution> execution = Optional.ofNullable(stage).map(Stage::getExecution);
 
-        final String application = Optional.ofNullable(this.application).orElseGet(() ->
-          execution
-            .map(Execution::getApplication)
-            .orElse(null));
+        final String application =
+            Optional.ofNullable(this.application)
+                .orElseGet(() -> execution.map(Execution::getApplication).orElse(null));
 
-        final String type = Optional.ofNullable(this.type).orElseGet(() ->
-          execution
-            .map(Execution::getType)
-            .map(Execution.ExecutionType::toString)
-            .orElse(null));
+        final String type =
+            Optional.ofNullable(this.type)
+                .orElseGet(
+                    () ->
+                        execution
+                            .map(Execution::getType)
+                            .map(Execution.ExecutionType::toString)
+                            .orElse(null));
 
-        final String id = Optional.ofNullable(this.id).orElseGet(() -> {
-          if (!execution.isPresent()) {
-            return null;
-          }
+        final String id =
+            Optional.ofNullable(this.id)
+                .orElseGet(
+                    () -> {
+                      if (!execution.isPresent()) {
+                        return null;
+                      }
 
-          Optional<Execution> next = execution;
-          Execution rootExecution;
-          do {
-            rootExecution = next.get();
-            next = next
-              .filter(e -> e.getTrigger() instanceof PipelineTrigger)
-              .map(e -> ((PipelineTrigger) e.getTrigger()).getParentStage())
-              .map(Stage::getExecution);
-          } while (next.isPresent());
+                      Optional<Execution> next = execution;
+                      Execution rootExecution;
+                      do {
+                        rootExecution = next.get();
+                        next =
+                            next.filter(e -> e.getTrigger() instanceof PipelineTrigger)
+                                .map(e -> ((PipelineTrigger) e.getTrigger()).getParentStage())
+                                .map(Stage::getExecution);
+                      } while (next.isPresent());
 
-          return rootExecution.getId();
-        });
+                      return rootExecution.getId();
+                    });
 
         return new LockManager.LockValue(application, type, id);
       }
     }
-
 
     private String lockName;
     private LockValueBuilder lockValue;
@@ -104,13 +108,14 @@ public class LockContext {
 
     @JsonCreator
     public LockContextBuilder(
-      @JsonProperty("lockName") String lockName,
-      @JsonProperty("lockValue") LockValueBuilder lockValue,
-      @JsonProperty("lockHolder") String lockHolder) {
+        @JsonProperty("lockName") String lockName,
+        @JsonProperty("lockValue") LockValueBuilder lockValue,
+        @JsonProperty("lockHolder") String lockHolder) {
       this(lockName, lockValue, lockHolder, null);
     }
 
-    LockContextBuilder(String lockName, LockValueBuilder lockValue, String lockHolder, Stage stage) {
+    LockContextBuilder(
+        String lockName, LockValueBuilder lockValue, String lockHolder, Stage stage) {
       this.lockName = lockName;
       this.lockValue = lockValue;
       this.lockHolder = lockHolder;
@@ -125,14 +130,13 @@ public class LockContext {
 
     public LockContext build() {
       final LockManager.LockValue lockValue =
-        Optional.ofNullable(this.lockValue)
-          .orElseGet(() -> new LockValueBuilder().withStage(stage))
-          .build();
+          Optional.ofNullable(this.lockValue)
+              .orElseGet(() -> new LockValueBuilder().withStage(stage))
+              .build();
 
-      final String lockHolder = Optional.ofNullable(this.lockHolder).orElseGet(() ->
-        Optional.ofNullable(stage)
-          .map(Stage::getId)
-          .orElse(null));
+      final String lockHolder =
+          Optional.ofNullable(this.lockHolder)
+              .orElseGet(() -> Optional.ofNullable(stage).map(Stage::getId).orElse(null));
 
       return new LockContext(lockName, lockValue, lockHolder);
     }
@@ -142,9 +146,7 @@ public class LockContext {
   private final LockManager.LockValue lockValue;
   private final String lockHolder;
 
-  public LockContext(String lockName,
-              LockManager.LockValue lockValue,
-              String lockHolder) {
+  public LockContext(String lockName, LockManager.LockValue lockValue, String lockHolder) {
     this.lockName = Objects.requireNonNull(lockName);
     this.lockValue = Objects.requireNonNull(lockValue);
     this.lockHolder = Objects.requireNonNull(lockHolder);
@@ -167,9 +169,9 @@ public class LockContext {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     LockContext that = (LockContext) o;
-    return Objects.equals(lockName, that.lockName) &&
-      Objects.equals(lockValue, that.lockValue) &&
-      Objects.equals(lockHolder, that.lockHolder);
+    return Objects.equals(lockName, that.lockName)
+        && Objects.equals(lockValue, that.lockValue)
+        && Objects.equals(lockHolder, that.lockHolder);
   }
 
   @Override

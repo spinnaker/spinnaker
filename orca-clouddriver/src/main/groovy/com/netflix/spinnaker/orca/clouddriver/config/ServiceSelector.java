@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 
 interface ServiceSelector {
   Object getService();
+
   int getPriority();
+
   boolean supports(SelectableService.Criteria criteria);
 }

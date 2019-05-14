@@ -38,7 +38,8 @@ public class DeletePipelineTemplateTask implements RetryableTask {
   @Override
   public TaskResult execute(Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 is not enabled, no way to delete pipeline. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 is not enabled, no way to delete pipeline. Fix this by setting front50.enabled: true");
     }
 
     if (!stage.getContext().containsKey("pipelineTemplateId")) {
@@ -53,7 +54,12 @@ public class DeletePipelineTemplateTask implements RetryableTask {
     outputs.put("notification.type", "deletepipelinetemplate");
     outputs.put("pipeline.id", templateId);
 
-    return TaskResult.builder((response.getStatus() == HttpStatus.OK.value()) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL).context(outputs).build();
+    return TaskResult.builder(
+            (response.getStatus() == HttpStatus.OK.value())
+                ? ExecutionStatus.SUCCEEDED
+                : ExecutionStatus.TERMINAL)
+        .context(outputs)
+        .build();
   }
 
   @Override

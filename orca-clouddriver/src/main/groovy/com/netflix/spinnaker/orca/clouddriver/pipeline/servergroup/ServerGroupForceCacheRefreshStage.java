@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 public class ServerGroupForceCacheRefreshStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder
-      .withTask("refreshServerGroup", ServerGroupCacheForceRefreshTask.class);
+    builder.withTask("refreshServerGroup", ServerGroupCacheForceRefreshTask.class);
   }
 }

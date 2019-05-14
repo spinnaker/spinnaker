@@ -15,5 +15,4 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.validator;
 
-public class EmptyValidatorContext implements ValidatorContext {
-}
+public class EmptyValidatorContext implements ValidatorContext {}

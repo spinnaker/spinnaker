@@ -48,11 +48,13 @@ public class MutableClock extends Clock {
     return new MutableClock(instant, zone);
   }
 
-  @Override public ZoneId getZone() {
+  @Override
+  public ZoneId getZone() {
     return zone;
   }
 
-  @Override public Instant instant() {
+  @Override
+  public Instant instant() {
     return instant;
   }
 

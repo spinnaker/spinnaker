@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,12 +34,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleImageTagger extends ImageTagger implements CloudProviderAware {
-  private static final Set<String> BUILT_IN_TAGS = new HashSet<>(Arrays.asList("appversion", "build_host"));
+  private static final Set<String> BUILT_IN_TAGS =
+      new HashSet<>(Arrays.asList("appversion", "build_host"));
 
   @Autowired
   public GoogleImageTagger(OortService oortService, ObjectMapper objectMapper) {
@@ -51,42 +51,44 @@ public class GoogleImageTagger extends ImageTagger implements CloudProviderAware
   public ImageTagger.OperationContext getOperationContext(Stage stage) {
     StageData stageData = stage.mapTo(StageData.class);
 
-    Collection<MatchedImage> matchedImages = findImages(stageData.imageNames, stageData.consideredStages, stage, MatchedImage.class);
+    Collection<MatchedImage> matchedImages =
+        findImages(stageData.imageNames, stageData.consideredStages, stage, MatchedImage.class);
 
-    stageData.imageNames = matchedImages.stream()
-      .map(matchedImage -> matchedImage.imageName)
-      .collect(Collectors.toSet());
+    stageData.imageNames =
+        matchedImages.stream()
+            .map(matchedImage -> matchedImage.imageName)
+            .collect(Collectors.toSet());
 
     // Built-in tags are not updatable
-    Map<String, String> tags = stageData.tags.entrySet().stream()
-      .filter(entry -> !BUILT_IN_TAGS.contains(entry.getKey()))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, String> tags =
+        stageData.tags.entrySet().stream()
+            .filter(entry -> !BUILT_IN_TAGS.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     List<Image> targetImages = new ArrayList<>();
     Map<String, Object> originalTags = new HashMap<>();
     List<Map<String, Map>> operations = new ArrayList<>();
 
     for (MatchedImage matchedImage : matchedImages) {
-      Image targetImage = new Image(
-        matchedImage.imageName,
-        getCredentials(stage),
-        null,
-        tags
-      );
+      Image targetImage = new Image(matchedImage.imageName, getCredentials(stage), null, tags);
       targetImages.add(targetImage);
 
-      log.info(format("Tagging '%s' with '%s' (executionId: %s)", targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
+      log.info(
+          format(
+              "Tagging '%s' with '%s' (executionId: %s)",
+              targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
 
       // Update the tags on the image
       operations.add(
-        ImmutableMap.<String, Map>builder()
-          .put(OPERATION, ImmutableMap.builder()
-            .put("imageName", targetImage.imageName)
-            .put("tags", targetImage.tags)
-            .put("credentials", targetImage.account)
-            .build()
-          ).build()
-      );
+          ImmutableMap.<String, Map>builder()
+              .put(
+                  OPERATION,
+                  ImmutableMap.builder()
+                      .put("imageName", targetImage.imageName)
+                      .put("tags", targetImage.tags)
+                      .put("credentials", targetImage.account)
+                      .build())
+              .build());
 
       originalTags.put(matchedImage.imageName, matchedImage.tags);
     }
@@ -98,33 +100,41 @@ public class GoogleImageTagger extends ImageTagger implements CloudProviderAware
     return new ImageTagger.OperationContext(operations, extraOutput);
   }
 
-  /**
-   * Return true iff the tags on the current machine image match the desired.
-   */
+  /** Return true iff the tags on the current machine image match the desired. */
   @Override
-  public boolean areImagesTagged(Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
-    Collection<MatchedImage> matchedImages = findImages(
-      targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toSet()),
-      consideredStageRefIds,
-      stage,
-      MatchedImage.class
-    );
+  public boolean areImagesTagged(
+      Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
+    Collection<MatchedImage> matchedImages =
+        findImages(
+            targetImages.stream()
+                .map(targetImage -> targetImage.imageName)
+                .collect(Collectors.toSet()),
+            consideredStageRefIds,
+            stage,
+            MatchedImage.class);
 
     AtomicBoolean isUpserted = new AtomicBoolean(true);
 
     for (Image targetImage : targetImages) {
-      MatchedImage matchedImage = matchedImages.stream()
-        .filter(m -> m.imageName.equals(targetImage.imageName))
-        .findFirst()
-        .orElse(null);
+      MatchedImage matchedImage =
+          matchedImages.stream()
+              .filter(m -> m.imageName.equals(targetImage.imageName))
+              .findFirst()
+              .orElse(null);
 
       if (matchedImage == null) {
         isUpserted.set(false);
       } else {
-        targetImage.tags.entrySet().forEach(entry -> {
-          // assert tag equality
-          isUpserted.set(isUpserted.get() && entry.getValue().equals(matchedImage.tags.get(entry.getKey())));
-        });
+        targetImage
+            .tags
+            .entrySet()
+            .forEach(
+                entry -> {
+                  // assert tag equality
+                  isUpserted.set(
+                      isUpserted.get()
+                          && entry.getValue().equals(matchedImage.tags.get(entry.getKey())));
+                });
       }
     }
 

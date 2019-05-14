@@ -16,26 +16,27 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ServerGroupForceCacheRefreshStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryDeployStagePreProcessorTest {
   private RollbackClusterStage rollbackClusterStage = new RollbackClusterStage(null, null);
-  private ServerGroupForceCacheRefreshStage serverGroupForceCacheRefreshStage = new ServerGroupForceCacheRefreshStage();
+  private ServerGroupForceCacheRefreshStage serverGroupForceCacheRefreshStage =
+      new ServerGroupForceCacheRefreshStage();
   private CloudFoundryDeployStagePreProcessor preProcessor =
-    new CloudFoundryDeployStagePreProcessor(rollbackClusterStage, serverGroupForceCacheRefreshStage);
+      new CloudFoundryDeployStagePreProcessor(
+          rollbackClusterStage, serverGroupForceCacheRefreshStage);
 
   @Test
   void onFailureStageDefinitionsReturnsEmptyListForRedBlack() {
@@ -46,7 +47,8 @@ class CloudFoundryDeployStagePreProcessorTest {
     context.put("rollback", singletonMap("onFailure", true));
     stage.setContext(context);
 
-    List<DeployStagePreProcessor.StageDefinition> results = preProcessor.onFailureStageDefinitions(stage);
+    List<DeployStagePreProcessor.StageDefinition> results =
+        preProcessor.onFailureStageDefinitions(stage);
 
     assertThat(results).isEmpty();
   }
@@ -59,7 +61,8 @@ class CloudFoundryDeployStagePreProcessorTest {
     context.put("cloudProvider", "cloudfoundry");
     stage.setContext(context);
 
-    List<DeployStagePreProcessor.StageDefinition> results = preProcessor.onFailureStageDefinitions(stage);
+    List<DeployStagePreProcessor.StageDefinition> results =
+        preProcessor.onFailureStageDefinitions(stage);
 
     assertThat(results).isEmpty();
   }
@@ -73,7 +76,8 @@ class CloudFoundryDeployStagePreProcessorTest {
     context.put("rollback", singletonMap("onFailure", false));
     stage.setContext(context);
 
-    List<DeployStagePreProcessor.StageDefinition> results = preProcessor.onFailureStageDefinitions(stage);
+    List<DeployStagePreProcessor.StageDefinition> results =
+        preProcessor.onFailureStageDefinitions(stage);
 
     assertThat(results).isEmpty();
   }
@@ -90,10 +94,14 @@ class CloudFoundryDeployStagePreProcessorTest {
     context.put("rollback", singletonMap("onFailure", true));
     stage.setContext(context);
 
-    List<DeployStagePreProcessor.StageDefinition> results = preProcessor.onFailureStageDefinitions(stage);
+    List<DeployStagePreProcessor.StageDefinition> results =
+        preProcessor.onFailureStageDefinitions(stage);
 
-    assertThat(results.stream().map(stageDefinition -> stageDefinition.stageDefinitionBuilder.getType()))
-      .containsExactly(StageDefinitionBuilder.getType(ServerGroupForceCacheRefreshStage.class),
-        RollbackClusterStage.PIPELINE_CONFIG_TYPE);
+    assertThat(
+            results.stream()
+                .map(stageDefinition -> stageDefinition.stageDefinitionBuilder.getType()))
+        .containsExactly(
+            StageDefinitionBuilder.getType(ServerGroupForceCacheRefreshStage.class),
+            RollbackClusterStage.PIPELINE_CONFIG_TYPE);
   }
 }

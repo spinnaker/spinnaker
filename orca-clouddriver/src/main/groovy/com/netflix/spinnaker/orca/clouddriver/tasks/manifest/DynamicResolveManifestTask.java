@@ -27,25 +27,21 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.io.IOException;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.Map;
-
 @Component
 public class DynamicResolveManifestTask extends AbstractCloudProviderAwareTask implements Task {
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  RetrySupport retrySupport;
+  @Autowired RetrySupport retrySupport;
 
   public static final String TASK_NAME = "resolveDynamicManifest";
 
@@ -60,30 +56,37 @@ public class DynamicResolveManifestTask extends AbstractCloudProviderAwareTask i
       return TaskResult.SUCCEEDED;
     }
 
-    Manifest target = retrySupport.retry(() -> oortService.getDynamicManifest(credentials,
-          stageData.location,
-          stageData.kind,
-          stageData.app,
-          stageData.cluster,
-          stageData.criteria),
-        10, 200, true);
+    Manifest target =
+        retrySupport.retry(
+            () ->
+                oortService.getDynamicManifest(
+                    credentials,
+                    stageData.location,
+                    stageData.kind,
+                    stageData.app,
+                    stageData.cluster,
+                    stageData.criteria),
+            10,
+            200,
+            true);
 
     if (target == null) {
       throw new IllegalArgumentException("No manifest could be found matching " + stageData);
     }
 
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("manifestName", target.getName())
-        .build();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>().put("manifestName", target.getName()).build();
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
   private StageData fromStage(Stage stage) {
     try {
-      return objectMapper.readValue(objectMapper.writeValueAsString(stage.getContext()), StageData.class);
+      return objectMapper.readValue(
+          objectMapper.writeValueAsString(stage.getContext()), StageData.class);
     } catch (IOException e) {
-      throw new IllegalStateException("Malformed stage context in " + stage + ": " + e.getMessage(), e);
+      throw new IllegalStateException(
+          "Malformed stage context in " + stage + ": " + e.getMessage(), e);
     }
   }
 

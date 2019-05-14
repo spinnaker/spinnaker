@@ -2,11 +2,10 @@ package com.netflix.spinnaker.orca.front50.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class DeliveryConfig {
@@ -15,13 +14,13 @@ public class DeliveryConfig {
   private Long lastModified;
   private Long createTs;
   private String lastModifiedBy;
-  private List<Map<String,Object>> deliveryArtifacts;
-  private List<Map<String,Object>> deliveryEnvironments;
+  private List<Map<String, Object>> deliveryArtifacts;
+  private List<Map<String, Object>> deliveryEnvironments;
 
-  private Map<String,Object> details = new HashMap<>();
+  private Map<String, Object> details = new HashMap<>();
 
   @JsonAnyGetter
-  Map<String,Object> details() {
+  Map<String, Object> details() {
     return details;
   }
 

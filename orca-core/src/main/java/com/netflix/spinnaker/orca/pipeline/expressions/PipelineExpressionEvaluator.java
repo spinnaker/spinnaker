@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
+import java.util.Map;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-
-import java.util.Collection;
-import java.util.Map;
 
 public class PipelineExpressionEvaluator extends ExpressionsSupport implements ExpressionEvaluator {
   public static final String SUMMARY = "expressionEvaluationSummary";
@@ -42,18 +40,15 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   }
 
   @Override
-  public Map<String, Object> evaluate(Map<String, Object> source,
-                                      Object rootObject,
-                                      ExpressionEvaluationSummary summary,
-                                      boolean allowUnknownKeys) {
-    StandardEvaluationContext evaluationContext = newEvaluationContext(rootObject, allowUnknownKeys);
+  public Map<String, Object> evaluate(
+      Map<String, Object> source,
+      Object rootObject,
+      ExpressionEvaluationSummary summary,
+      boolean allowUnknownKeys) {
+    StandardEvaluationContext evaluationContext =
+        newEvaluationContext(rootObject, allowUnknownKeys);
     return new ExpressionTransform(
-        contextFunctionConfiguration.getExpressionFunctionProviders(),
-        parserContext,
-        parser
-    ).transformMap(source, evaluationContext, summary);
+            contextFunctionConfiguration.getExpressionFunctionProviders(), parserContext, parser)
+        .transformMap(source, evaluationContext, summary);
   }
 }
-
-
-

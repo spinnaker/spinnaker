@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.orca.webhook.util;
 
-import javax.net.ssl.X509TrustManager;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.net.ssl.X509TrustManager;
 
-// X509TrustManager that represents the union of multiple X509TrustManagers; a trust check succeeds if it succeeds on
+// X509TrustManager that represents the union of multiple X509TrustManagers; a trust check succeeds
+// if it succeeds on
 // any of the contained trust managers
 public class UnionX509TrustManager implements X509TrustManager {
   private final List<X509TrustManager> delegates;
@@ -33,24 +34,30 @@ public class UnionX509TrustManager implements X509TrustManager {
     this.delegates = Collections.unmodifiableList(delegates);
   }
 
-  public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+  public void checkClientTrusted(X509Certificate[] chain, String authType)
+      throws CertificateException {
     for (X509TrustManager delegate : delegates) {
       try {
         delegate.checkClientTrusted(chain, authType);
         return;
-      } catch (CertificateException ignored) { }
+      } catch (CertificateException ignored) {
+      }
     }
-    throw new CertificateException("None of the configured trust managers trusted the specified client.");
+    throw new CertificateException(
+        "None of the configured trust managers trusted the specified client.");
   }
 
-  public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+  public void checkServerTrusted(X509Certificate[] chain, String authType)
+      throws CertificateException {
     for (X509TrustManager delegate : delegates) {
       try {
         delegate.checkServerTrusted(chain, authType);
         return;
-      } catch (CertificateException ignored) { }
+      } catch (CertificateException ignored) {
+      }
     }
-    throw new CertificateException("None of the configured trust managers trusted the specified server.");
+    throw new CertificateException(
+        "None of the configured trust managers trusted the specified server.");
   }
 
   public X509Certificate[] getAcceptedIssuers() {

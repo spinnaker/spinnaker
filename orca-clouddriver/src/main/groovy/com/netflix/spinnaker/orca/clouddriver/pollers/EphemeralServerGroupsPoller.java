@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pollers;
 
+import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EphemeralServerGroupEntityTagGenerator.TTL_TAG;
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -30,20 +33,16 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import groovy.util.logging.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EphemeralServerGroupEntityTagGenerator.TTL_TAG;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -62,12 +61,13 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final Counter triggeredCounter;
 
   @Autowired
-  public EphemeralServerGroupsPoller(NotificationClusterLock notificationClusterLock,
-                                     ObjectMapper objectMapper,
-                                     OortService oortService,
-                                     RetrySupport retrySupport,
-                                     Registry registry,
-                                     ExecutionLauncher executionLauncher) {
+  public EphemeralServerGroupsPoller(
+      NotificationClusterLock notificationClusterLock,
+      ObjectMapper objectMapper,
+      OortService oortService,
+      RetrySupport retrySupport,
+      Registry registry,
+      ExecutionLauncher executionLauncher) {
     super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
@@ -111,11 +111,11 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
       try {
         List<Map<String, Object>> jobs = new ArrayList<>();
 
-        Optional<ServerGroup> serverGroup = pollerSupport.fetchServerGroup(
-          ephemeralServerGroupTag.account,
-          ephemeralServerGroupTag.location,
-          ephemeralServerGroupTag.serverGroup
-        );
+        Optional<ServerGroup> serverGroup =
+            pollerSupport.fetchServerGroup(
+                ephemeralServerGroupTag.account,
+                ephemeralServerGroupTag.location,
+                ephemeralServerGroupTag.serverGroup);
 
         if (serverGroup.isPresent()) {
           // server group exists -- destroy the server group (will also remove all associated tags)
@@ -132,14 +132,18 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
         systemUser.setUsername("spinnaker");
         systemUser.setAllowedAccounts(Collections.singletonList(ephemeralServerGroupTag.account));
 
-        AuthenticatedRequest.propagate(() -> executionLauncher.start(
-          Execution.ExecutionType.ORCHESTRATION,
-          objectMapper.writeValueAsString(cleanupOperation)
-        ), systemUser).call();
+        AuthenticatedRequest.propagate(
+                () ->
+                    executionLauncher.start(
+                        Execution.ExecutionType.ORCHESTRATION,
+                        objectMapper.writeValueAsString(cleanupOperation)),
+                systemUser)
+            .call();
 
         triggeredCounter.increment();
       } catch (Exception e) {
-        log.error("Failed to destroy ephemeral server group (id: {})", ephemeralServerGroupTag.id, e);
+        log.error(
+            "Failed to destroy ephemeral server group (id: {})", ephemeralServerGroupTag.id, e);
         errorsCounter.increment();
       }
     }
@@ -147,58 +151,64 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
 
   private List<EphemeralServerGroupTag> fetchEphemeralServerGroupTags() {
     try {
-      List<EntityTags> allEntityTags = AuthenticatedRequest.allowAnonymous(() -> retrySupport.retry(() -> objectMapper.convertValue(
-        oortService.getEntityTags(ImmutableMap.<String, String>builder()
-          .put("tag:" + TTL_TAG, "*")
-          .put("entityType", "servergroup")
-          .build()
-        ),
-        new TypeReference<List<EntityTags>>() {
-        }
-      ), 15, 2000, false));
+      List<EntityTags> allEntityTags =
+          AuthenticatedRequest.allowAnonymous(
+              () ->
+                  retrySupport.retry(
+                      () ->
+                          objectMapper.convertValue(
+                              oortService.getEntityTags(
+                                  ImmutableMap.<String, String>builder()
+                                      .put("tag:" + TTL_TAG, "*")
+                                      .put("entityType", "servergroup")
+                                      .build()),
+                              new TypeReference<List<EntityTags>>() {}),
+                      15,
+                      2000,
+                      false));
 
       return allEntityTags.stream()
-        .map(e -> e.tags.stream()
-          .filter(t -> TTL_TAG.equalsIgnoreCase(t.name))
-          .map(t -> {
-            EphemeralServerGroupTag ephemeralServerGroupTag = objectMapper.convertValue(t.value, EphemeralServerGroupTag.class);
-            ephemeralServerGroupTag.id = e.id;
-            ephemeralServerGroupTag.account = e.entityRef.account;
-            ephemeralServerGroupTag.location = e.entityRef.region;
-            ephemeralServerGroupTag.application = e.entityRef.application;
-            ephemeralServerGroupTag.serverGroup = e.entityRef.entityId;
-            ephemeralServerGroupTag.cloudProvider = e.entityRef.cloudProvider;
+          .map(
+              e ->
+                  e.tags.stream()
+                      .filter(t -> TTL_TAG.equalsIgnoreCase(t.name))
+                      .map(
+                          t -> {
+                            EphemeralServerGroupTag ephemeralServerGroupTag =
+                                objectMapper.convertValue(t.value, EphemeralServerGroupTag.class);
+                            ephemeralServerGroupTag.id = e.id;
+                            ephemeralServerGroupTag.account = e.entityRef.account;
+                            ephemeralServerGroupTag.location = e.entityRef.region;
+                            ephemeralServerGroupTag.application = e.entityRef.application;
+                            ephemeralServerGroupTag.serverGroup = e.entityRef.entityId;
+                            ephemeralServerGroupTag.cloudProvider = e.entityRef.cloudProvider;
 
-            return ephemeralServerGroupTag;
-          })
-          .findFirst()
-          .orElse(null)
-        )
-        .filter(Objects::nonNull)
-        .filter(t -> t.expiry.isBefore(ZonedDateTime.now(ZoneOffset.UTC)))
-        .collect(Collectors.toList());
+                            return ephemeralServerGroupTag;
+                          })
+                      .findFirst()
+                      .orElse(null))
+          .filter(Objects::nonNull)
+          .filter(t -> t.expiry.isBefore(ZonedDateTime.now(ZoneOffset.UTC)))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
   }
 
-  private Map<String, Object> buildCleanupOperation(EphemeralServerGroupTag ephemeralServerGroupTag,
-                                                    List<Map<String, Object>> jobs) {
+  private Map<String, Object> buildCleanupOperation(
+      EphemeralServerGroupTag ephemeralServerGroupTag, List<Map<String, Object>> jobs) {
     return ImmutableMap.<String, Object>builder()
-      .put("application", ephemeralServerGroupTag.application)
-      .put(
-        "name",
-        format(
-          "Destroy Ephemeral Server Group: %s",
-          ephemeralServerGroupTag.serverGroup
-        )
-      )
-      .put("user", "spinnaker")
-      .put("stages", jobs)
-      .build();
+        .put("application", ephemeralServerGroupTag.application)
+        .put(
+            "name",
+            format("Destroy Ephemeral Server Group: %s", ephemeralServerGroupTag.serverGroup))
+        .put("user", "spinnaker")
+        .put("stages", jobs)
+        .build();
   }
 
-  private Map<String, Object> buildDeleteEntityTagsOperation(EphemeralServerGroupTag ephemeralServerGroupTag) {
+  private Map<String, Object> buildDeleteEntityTagsOperation(
+      EphemeralServerGroupTag ephemeralServerGroupTag) {
     Map<String, Object> operation = new HashMap<>();
 
     operation.put("application", ephemeralServerGroupTag.application);
@@ -209,7 +219,8 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     return operation;
   }
 
-  private Map<String, Object> buildDestroyServerGroupOperation(EphemeralServerGroupTag ephemeralServerGroupTag) {
+  private Map<String, Object> buildDestroyServerGroupOperation(
+      EphemeralServerGroupTag ephemeralServerGroupTag) {
     Map<String, Object> operation = new HashMap<>();
 
     operation.put("type", "destroyServerGroup");

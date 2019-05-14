@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.ami.AppVersion;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,24 +31,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleImageFinder implements ImageFinder {
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Override
-  public Collection<ImageDetails> byTags(Stage stage, String packageName, Map<String, String> tags) {
+  public Collection<ImageDetails> byTags(
+      Stage stage, String packageName, Map<String, String> tags) {
     List<GoogleImage> allMatchedImages =
-      oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags)).stream()
-        .map(image -> objectMapper.convertValue(image, GoogleImage.class))
-        .sorted()
-        .collect(Collectors.toList());
+        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
+            .stream()
+            .map(image -> objectMapper.convertValue(image, GoogleImage.class))
+            .sorted()
+            .collect(Collectors.toList());
 
     /*
      * Find the most recently created image.
@@ -69,27 +68,26 @@ public class GoogleImageFinder implements ImageFinder {
   }
 
   static Map<String, String> prefixTags(Map<String, String> tags) {
-    return tags.entrySet()
-      .stream()
-      .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
+    return tags.entrySet().stream()
+        .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
   }
 
   static class GoogleImage implements Comparable<GoogleImage> {
-    @JsonProperty
-    String imageName;
+    @JsonProperty String imageName;
 
-    @JsonProperty
-    Map<String, Object> attributes;
+    @JsonProperty Map<String, Object> attributes;
 
-    @JsonProperty
-    Map<String, String> tags;
+    @JsonProperty Map<String, String> tags;
 
     ImageDetails toGoogleImageDetails() {
       AppVersion appVersion = AppVersion.parseName(tags.get("appversion"));
-      JenkinsDetails jenkinsDetails = Optional
-        .ofNullable(appVersion)
-        .map(av -> new JenkinsDetails(tags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
-        .orElse(null);
+      JenkinsDetails jenkinsDetails =
+          Optional.ofNullable(appVersion)
+              .map(
+                  av ->
+                      new JenkinsDetails(
+                          tags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
+              .orElse(null);
 
       return new GoogleImageDetails(imageName, jenkinsDetails);
     }
@@ -105,7 +103,10 @@ public class GoogleImageFinder implements ImageFinder {
       }
 
       // a lexicographic sort is sufficient given that `creationDate` is ISO 8601
-      return o.attributes.get("creationDate").toString().compareTo(attributes.get("creationDate").toString());
+      return o.attributes
+          .get("creationDate")
+          .toString()
+          .compareTo(attributes.get("creationDate").toString());
     }
   }
 

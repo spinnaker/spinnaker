@@ -21,14 +21,11 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import retrofit.client.Response;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DeleteV2PipelineTemplateTask implements RetryableTask {
@@ -39,7 +36,8 @@ public class DeleteV2PipelineTemplateTask implements RetryableTask {
   @Override
   public TaskResult execute(Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 is not enabled, no way to delete pipeline. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 is not enabled, no way to delete pipeline. Fix this by setting front50.enabled: true");
     }
 
     if (!stage.getContext().containsKey("pipelineTemplateId")) {

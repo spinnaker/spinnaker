@@ -25,17 +25,15 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collections;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Map;
-
 @Component
 public class DeleteManifestTask extends AbstractCloudProviderAwareTask implements Task {
-  @Autowired
-  KatoService kato;
+  @Autowired KatoService kato;
 
   public static final String TASK_NAME = "deleteManifest";
 
@@ -44,17 +42,20 @@ public class DeleteManifestTask extends AbstractCloudProviderAwareTask implement
   public TaskResult execute(@Nonnull Stage stage) {
     String credentials = getCredentials(stage);
     String cloudProvider = getCloudProvider(stage);
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-        .put(TASK_NAME, stage.getContext())
-        .build();
+    Map<String, Map> operation =
+        new ImmutableMap.Builder<String, Map>().put(TASK_NAME, stage.getContext()).build();
 
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
+    TaskId taskId =
+        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
+            .toBlocking()
+            .first();
 
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("kato.result.expected", true)
-        .put("kato.last.task.id", taskId)
-        .put("deploy.account.name", credentials)
-        .build();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>()
+            .put("kato.result.expected", true)
+            .put("kato.last.task.id", taskId)
+            .put("deploy.account.name", credentials)
+            .build();
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.*;
+
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
@@ -26,18 +28,16 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import groovy.transform.CompileStatic;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.*;
-
 @Component
 @CompileStatic
-public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAwareTask
+    implements RetryableTask {
   private KatoService kato;
 
   @Autowired
@@ -55,55 +55,58 @@ public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAw
     return 30 * 60 * 1000L;
   }
 
-
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     TaskId taskId = stage.mapTo("/kato.last.task.id", TaskId.class);
-    List<Map<String, Object>> katoTasks = Optional
-      .ofNullable((List<Map<String, Object>>) stage.getContext().get("kato.tasks"))
-      .orElse(new ArrayList<>());
+    List<Map<String, Object>> katoTasks =
+        Optional.ofNullable((List<Map<String, Object>>) stage.getContext().get("kato.tasks"))
+            .orElse(new ArrayList<>());
     Map<String, Object> stageContext = stage.getContext();
 
     Task katoTask = kato.lookupTask(taskId.getId(), true).toBlocking().first();
     ExecutionStatus status = katoStatusToTaskStatus(katoTask);
-    List<Map> results = Optional
-      .ofNullable(katoTask.getResultObjects())
-      .orElse(Collections.emptyList());
+    List<Map> results =
+        Optional.ofNullable(katoTask.getResultObjects()).orElse(Collections.emptyList());
 
-    ImmutableMap.Builder<String, Object> katoTaskMapBuilder = new ImmutableMap.Builder<String, Object>()
-      .put("id", katoTask.getId())
-      .put("status", katoTask.getStatus())
-      .put("history", katoTask.getHistory())
-      .put("resultObjects", results);
+    ImmutableMap.Builder<String, Object> katoTaskMapBuilder =
+        new ImmutableMap.Builder<String, Object>()
+            .put("id", katoTask.getId())
+            .put("status", katoTask.getStatus())
+            .put("history", katoTask.getHistory())
+            .put("resultObjects", results);
 
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>()
-      .put("kato.last.task.id", taskId)
-      .put("kato.task.firstNotFoundRetry", -1L)
-      .put("kato.task.notFoundRetryCount", 0);
+    ImmutableMap.Builder<String, Object> builder =
+        new ImmutableMap.Builder<String, Object>()
+            .put("kato.last.task.id", taskId)
+            .put("kato.task.firstNotFoundRetry", -1L)
+            .put("kato.task.notFoundRetryCount", 0);
 
     switch (status) {
-      case TERMINAL: {
-        results.stream()
-          .filter(result -> "EXCEPTION".equals(result.get("type")))
-          .findAny()
-          .ifPresent(e -> katoTaskMapBuilder.put("exception", e));
-        break;
-      }
-      case SUCCEEDED: {
-        builder
-          .put("service.region", Optional.ofNullable(stageContext.get("region")).orElse(""))
-          .put("service.account", getCredentials(stage))
-          .put("service.operation.type", results.get(0).get("type"))
-          .put("service.instance.name", results.get(0).get("serviceInstanceName"));
-        break;
-      }
+      case TERMINAL:
+        {
+          results.stream()
+              .filter(result -> "EXCEPTION".equals(result.get("type")))
+              .findAny()
+              .ifPresent(e -> katoTaskMapBuilder.put("exception", e));
+          break;
+        }
+      case SUCCEEDED:
+        {
+          builder
+              .put("service.region", Optional.ofNullable(stageContext.get("region")).orElse(""))
+              .put("service.account", getCredentials(stage))
+              .put("service.operation.type", results.get(0).get("type"))
+              .put("service.instance.name", results.get(0).get("serviceInstanceName"));
+          break;
+        }
       default:
     }
 
-    katoTasks = katoTasks.stream()
-      .filter(task -> !katoTask.getId().equals(task.get("id")))
-      .collect(Collectors.toList());
+    katoTasks =
+        katoTasks.stream()
+            .filter(task -> !katoTask.getId().equals(task.get("id")))
+            .collect(Collectors.toList());
     katoTasks.add(katoTaskMapBuilder.build());
     builder.put("kato.tasks", katoTasks);
 

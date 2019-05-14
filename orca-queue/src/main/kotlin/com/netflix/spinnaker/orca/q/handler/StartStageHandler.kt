@@ -22,7 +22,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.ext.*
+import com.netflix.spinnaker.orca.ext.allUpstreamStagesComplete
+import com.netflix.spinnaker.orca.ext.anyUpstreamStagesFailed
+import com.netflix.spinnaker.orca.ext.firstAfterStages
+import com.netflix.spinnaker.orca.ext.firstBeforeStages
+import com.netflix.spinnaker.orca.ext.firstTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -31,7 +35,14 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.CompleteStage
+import com.netflix.spinnaker.orca.q.SkipStage
+import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.StartTask
+import com.netflix.spinnaker.orca.q.addContextFlags
+import com.netflix.spinnaker.orca.q.buildBeforeStages
+import com.netflix.spinnaker.orca.q.buildTasks
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.MaxAttemptsAttribute
 import com.netflix.spinnaker.q.Queue
@@ -89,7 +100,7 @@ class StartStageHandler(
 
             publisher.publishEvent(StageStarted(this, stage))
             trackResult(stage)
-          } catch(e: Exception) {
+          } catch (e: Exception) {
             val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
             if (exceptionDetails?.shouldRetry == true) {
               val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
@@ -137,7 +148,7 @@ class StartStageHandler(
 
   private fun Stage.plan() {
     builder().let { builder ->
-      //if we have a top level stage, ensure that context expressions are processed
+      // if we have a top level stage, ensure that context expressions are processed
       val mergedStage = if (this.parentStageId == null) this.withMergedContext() else this
       builder.addContextFlags(mergedStage)
       builder.buildTasks(mergedStage)

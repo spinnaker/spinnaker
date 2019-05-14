@@ -24,57 +24,71 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.ValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
-
 import java.util.List;
 
-public class V1TemplateConfigurationSchemaValidator implements SchemaValidator<V1TemplateConfigurationSchemaValidator.SchemaValidatorContext> {
+public class V1TemplateConfigurationSchemaValidator
+    implements SchemaValidator<V1TemplateConfigurationSchemaValidator.SchemaValidatorContext> {
 
   private static final String SUPPORTED_VERSION = "1";
 
   @Override
-  public void validate(VersionedSchema configuration, Errors errors, SchemaValidatorContext context) {
+  public void validate(
+      VersionedSchema configuration, Errors errors, SchemaValidatorContext context) {
     if (!(configuration instanceof TemplateConfiguration)) {
       throw new IllegalArgumentException("Expected TemplateConfiguration");
     }
     TemplateConfiguration config = (TemplateConfiguration) configuration;
 
     if (!SUPPORTED_VERSION.equals(config.getSchemaVersion())) {
-      errors.add(new Error()
-        .withMessage("config schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + config.getSchemaVersion() + "'"));
+      errors.add(
+          new Error()
+              .withMessage(
+                  "config schema version is unsupported: expected '"
+                      + SUPPORTED_VERSION
+                      + "', got '"
+                      + config.getSchemaVersion()
+                      + "'"));
     }
 
     PipelineDefinition pipelineDefinition = config.getPipeline();
     if (pipelineDefinition == null) {
-      errors.add(new Error()
-        .withMessage("Missing pipeline configuration")
-        .withLocation(location("pipeline"))
-      );
+      errors.add(
+          new Error()
+              .withMessage("Missing pipeline configuration")
+              .withLocation(location("pipeline")));
     } else {
       if (pipelineDefinition.getApplication() == null) {
-        errors.add(new Error()
-          .withMessage("Missing 'application' pipeline configuration")
-          .withLocation(location("pipeline.application"))
-        );
+        errors.add(
+            new Error()
+                .withMessage("Missing 'application' pipeline configuration")
+                .withLocation(location("pipeline.application")));
       }
     }
 
-    V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V1TemplateConfigurationSchemaValidator::location);
+    V1SchemaValidationHelper.validateStageDefinitions(
+        config.getStages(), errors, V1TemplateConfigurationSchemaValidator::location);
 
-    config.getStages().forEach(s -> {
-      if (shouldRequireDagRules(s, config, context.stageIds)) {
-        errors.add(new Error()
-          .withMessage("A configuration-defined stage should have either dependsOn or an inject rule defined")
-          .withLocation(location(String.format("stages.%s", s.getId())))
-          .withSeverity(Severity.WARN));
-      }
-    });
+    config
+        .getStages()
+        .forEach(
+            s -> {
+              if (shouldRequireDagRules(s, config, context.stageIds)) {
+                errors.add(
+                    new Error()
+                        .withMessage(
+                            "A configuration-defined stage should have either dependsOn or an inject rule defined")
+                        .withLocation(location(String.format("stages.%s", s.getId())))
+                        .withSeverity(Severity.WARN));
+              }
+            });
   }
 
-  private static boolean shouldRequireDagRules(StageDefinition s, TemplateConfiguration config, List<String> stageIds) {
-    return config.getPipeline().getTemplate() != null &&
-      !stageIds.contains(s.getId()) &&
-      (s.getDependsOn() == null || s.getDependsOn().isEmpty()) &&
-      (s.getInject() == null || !s.getInject().hasAny());
+  private static boolean shouldRequireDagRules(
+      StageDefinition s, TemplateConfiguration config, List<String> stageIds) {
+    return config.getPipeline().getTemplate() != null
+        && !stageIds.contains(s.getId())
+        && (s.getDependsOn() == null || s.getDependsOn().isEmpty())
+        && (s.getInject() == null || !s.getInject().hasAny());
   }
 
   private static String location(String location) {

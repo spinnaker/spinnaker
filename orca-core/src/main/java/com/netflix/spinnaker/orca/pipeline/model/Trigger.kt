@@ -39,4 +39,3 @@ interface Trigger {
   @get:JsonAnyGetter
   var other: Map<String, Any>
 }
-

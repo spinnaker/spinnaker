@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,15 +34,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AmazonImageTagger extends ImageTagger implements CloudProviderAware {
   private static final String ALLOW_LAUNCH_OPERATION = "allowLaunchDescription";
-  private static final Set<String> BUILT_IN_TAGS = new HashSet<>(
-    Arrays.asList("appversion", "base_ami_version", "build_host", "creation_time", "creator")
-  );
+  private static final Set<String> BUILT_IN_TAGS =
+      new HashSet<>(
+          Arrays.asList(
+              "appversion", "base_ami_version", "build_host", "creation_time", "creator"));
 
   @Value("${default.bake.account:default}")
   String defaultBakeAccount;
@@ -58,21 +58,25 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
   public ImageTagger.OperationContext getOperationContext(Stage stage) {
     StageData stageData = stage.mapTo(StageData.class);
 
-    Collection<MatchedImage> matchedImages = findImages(stageData.imageNames, stageData.consideredStages, stage, MatchedImage.class);
+    Collection<MatchedImage> matchedImages =
+        findImages(stageData.imageNames, stageData.consideredStages, stage, MatchedImage.class);
     if (stageData.regions == null || stageData.regions.isEmpty()) {
-      stageData.regions = matchedImages.stream()
-        .flatMap(matchedImage -> matchedImage.amis.keySet().stream())
-        .collect(Collectors.toSet());
+      stageData.regions =
+          matchedImages.stream()
+              .flatMap(matchedImage -> matchedImage.amis.keySet().stream())
+              .collect(Collectors.toSet());
     }
 
-    stageData.imageNames = matchedImages.stream()
-      .map(matchedImage -> matchedImage.imageName)
-      .collect(Collectors.toSet());
+    stageData.imageNames =
+        matchedImages.stream()
+            .map(matchedImage -> matchedImage.imageName)
+            .collect(Collectors.toSet());
 
     // Built-in tags are not updatable
-    Map<String, String> tags = stageData.tags.entrySet().stream()
-      .filter(entry -> !BUILT_IN_TAGS.contains(entry.getKey()))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, String> tags =
+        stageData.tags.entrySet().stream()
+            .filter(entry -> !BUILT_IN_TAGS.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     List<Image> targetImages = new ArrayList<>();
     Map<String, Object> originalTags = new HashMap<>();
@@ -80,46 +84,46 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
 
     for (MatchedImage matchedImage : matchedImages) {
       Collection<String> regions = matchedImage.amis.keySet();
-      Image targetImage = new Image(
-        matchedImage.imageName,
-        defaultBakeAccount,
-        regions,
-        tags
-      );
+      Image targetImage = new Image(matchedImage.imageName, defaultBakeAccount, regions, tags);
       targetImages.add(targetImage);
 
-      log.info(format("Tagging '%s' with '%s' (executionId: %s)", targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
+      log.info(
+          format(
+              "Tagging '%s' with '%s' (executionId: %s)",
+              targetImage.imageName, targetImage.tags, stage.getExecution().getId()));
 
       // Update the tags on the image in the `defaultBakeAccount`
       operations.add(
-        ImmutableMap.<String, Map>builder()
-          .put(OPERATION, ImmutableMap.builder()
-            .put("amiName", targetImage.imageName)
-            .put("tags", targetImage.tags)
-            .put("regions", targetImage.regions)
-            .put("credentials", targetImage.account)
-            .build()
-          ).build()
-      );
+          ImmutableMap.<String, Map>builder()
+              .put(
+                  OPERATION,
+                  ImmutableMap.builder()
+                      .put("amiName", targetImage.imageName)
+                      .put("tags", targetImage.tags)
+                      .put("regions", targetImage.regions)
+                      .put("credentials", targetImage.account)
+                      .build())
+              .build());
 
       // Re-share the image in all other accounts (will result in tags being updated)
       matchedImage.accounts.stream()
-        .filter(account -> !account.equalsIgnoreCase(defaultBakeAccount))
-        .forEach(account -> {
-          regions.forEach(region ->
-            operations.add(
-              ImmutableMap.<String, Map>builder()
-                .put(ALLOW_LAUNCH_OPERATION, ImmutableMap.builder()
-                  .put("account", account)
-                  .put("credentials", defaultBakeAccount)
-                  .put("region", region)
-                  .put("amiName", targetImage.imageName)
-                  .build()
-                ).build()
-            )
-          );
-        });
-
+          .filter(account -> !account.equalsIgnoreCase(defaultBakeAccount))
+          .forEach(
+              account -> {
+                regions.forEach(
+                    region ->
+                        operations.add(
+                            ImmutableMap.<String, Map>builder()
+                                .put(
+                                    ALLOW_LAUNCH_OPERATION,
+                                    ImmutableMap.builder()
+                                        .put("account", account)
+                                        .put("credentials", defaultBakeAccount)
+                                        .put("region", region)
+                                        .put("amiName", targetImage.imageName)
+                                        .build())
+                                .build()));
+              });
 
       originalTags.put(matchedImage.imageName, matchedImage.tagsByImageId);
     }
@@ -130,45 +134,57 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
     return new ImageTagger.OperationContext(operations, extraOutput);
   }
 
-  /**
-   * Return true iff the tags on the current machine image match the desired.
-   */
+  /** Return true iff the tags on the current machine image match the desired. */
   @Override
-  public boolean areImagesTagged(Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
+  public boolean areImagesTagged(
+      Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
     if (targetImages.stream().anyMatch(image -> image.imageName == null)) {
       return false;
     }
 
-    Collection<MatchedImage> matchedImages = findImages(
-      targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toSet()),
-      consideredStageRefIds,
-      stage,
-      MatchedImage.class
-    );
+    Collection<MatchedImage> matchedImages =
+        findImages(
+            targetImages.stream()
+                .map(targetImage -> targetImage.imageName)
+                .collect(Collectors.toSet()),
+            consideredStageRefIds,
+            stage,
+            MatchedImage.class);
 
     AtomicBoolean isUpserted = new AtomicBoolean(true);
     for (Image targetImage : targetImages) {
-      targetImage.regions.forEach(region -> {
-          MatchedImage matchedImage = matchedImages.stream()
-            .filter(m -> m.imageName.equals(targetImage.imageName))
-            .findFirst()
-            .orElse(null);
+      targetImage.regions.forEach(
+          region -> {
+            MatchedImage matchedImage =
+                matchedImages.stream()
+                    .filter(m -> m.imageName.equals(targetImage.imageName))
+                    .findFirst()
+                    .orElse(null);
 
-          if (matchedImage == null) {
-            isUpserted.set(false);
-            return;
-          }
+            if (matchedImage == null) {
+              isUpserted.set(false);
+              return;
+            }
 
-          List<String> imagesForRegion = matchedImage.amis.get(region);
-          imagesForRegion.forEach(image -> {
-            Map<String, String> allImageTags = matchedImage.tagsByImageId.getOrDefault(image, new HashMap<>());
-            targetImage.tags.entrySet().forEach(entry -> {
-              // assert tag equality
-              isUpserted.set(isUpserted.get() && entry.getValue().equals(allImageTags.get(entry.getKey().toLowerCase())));
-            });
+            List<String> imagesForRegion = matchedImage.amis.get(region);
+            imagesForRegion.forEach(
+                image -> {
+                  Map<String, String> allImageTags =
+                      matchedImage.tagsByImageId.getOrDefault(image, new HashMap<>());
+                  targetImage
+                      .tags
+                      .entrySet()
+                      .forEach(
+                          entry -> {
+                            // assert tag equality
+                            isUpserted.set(
+                                isUpserted.get()
+                                    && entry
+                                        .getValue()
+                                        .equals(allImageTags.get(entry.getKey().toLowerCase())));
+                          });
+                });
           });
-        }
-      );
     }
 
     return isUpserted.get();
@@ -185,15 +201,13 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
 
     if (foundAmis.size() < upstreamImageIds.size()) {
       throw new ImageNotFound(
-        format("Only found %d images to tag but %d were specified upstream (found imageIds: %s, found imageNames: %s)",
-          foundAmis.size(),
-          upstreamImageIds.size(),
-          foundAmis,
-          matchedImages.stream()
-            .map(i -> i.imageName)
-            .collect(Collectors.toSet())),
-        true
-      );
+          format(
+              "Only found %d images to tag but %d were specified upstream (found imageIds: %s, found imageNames: %s)",
+              foundAmis.size(),
+              upstreamImageIds.size(),
+              foundAmis,
+              matchedImages.stream().map(i -> i.imageName).collect(Collectors.toSet())),
+          true);
     }
   }
 

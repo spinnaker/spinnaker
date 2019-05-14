@@ -19,7 +19,6 @@ import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.lib.filter.Filter;
 import com.netflix.frigga.Names;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -29,7 +28,8 @@ public class FriggaFilter implements Filter {
   public Object filter(Object var, JinjavaInterpreter interpreter, String... args) {
     String input = (String) var;
     if (args.length != 1) {
-      throw new InterpretException("frigga filter requires 1 arg (the name of the frigga part to return)");
+      throw new InterpretException(
+          "frigga filter requires 1 arg (the name of the frigga part to return)");
     }
 
     String methodName = "get" + args[0].substring(0, 1).toUpperCase() + args[0].substring(1);

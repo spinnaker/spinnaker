@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import com.google.common.collect.ImmutableList;
-import org.springframework.expression.spel.support.ReflectiveMethodResolver;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+
+import com.google.common.collect.ImmutableList;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.expression.spel.support.ReflectiveMethodResolver;
 
 public class FilteredMethodResolver extends ReflectiveMethodResolver {
 
@@ -31,18 +32,30 @@ public class FilteredMethodResolver extends ReflectiveMethodResolver {
 
   private static List<Method> buildRejectedMethods() {
     try {
-      List<Method> allowedObjectMethods = asList(
-        Object.class.getMethod("equals", Object.class),
-        Object.class.getMethod("hashCode"),
-        Object.class.getMethod("toString")
-      );
+      List<Method> allowedObjectMethods =
+          asList(
+              Object.class.getMethod("equals", Object.class),
+              Object.class.getMethod("hashCode"),
+              Object.class.getMethod("toString"));
       return ImmutableList.<Method>builder()
-        .addAll(stream(Object.class.getMethods()).filter(it -> !allowedObjectMethods.contains(it)).collect(toList()))
-        .addAll(asList(Class.class.getMethods()))
-        .addAll(stream(Boolean.class.getMethods()).filter(it -> it.getName().equals("getBoolean")).collect(toList()))
-        .addAll(stream(Integer.class.getMethods()).filter(it -> it.getName().equals("getInteger")).collect(toList()))
-        .addAll(stream(Long.class.getMethods()).filter(it -> it.getName().equals("getLong")).collect(toList()))
-        .build();
+          .addAll(
+              stream(Object.class.getMethods())
+                  .filter(it -> !allowedObjectMethods.contains(it))
+                  .collect(toList()))
+          .addAll(asList(Class.class.getMethods()))
+          .addAll(
+              stream(Boolean.class.getMethods())
+                  .filter(it -> it.getName().equals("getBoolean"))
+                  .collect(toList()))
+          .addAll(
+              stream(Integer.class.getMethods())
+                  .filter(it -> it.getName().equals("getInteger"))
+                  .collect(toList()))
+          .addAll(
+              stream(Long.class.getMethods())
+                  .filter(it -> it.getName().equals("getLong"))
+                  .collect(toList()))
+          .build();
     } catch (NoSuchMethodException e) {
       throw new IllegalStateException(e);
     }
@@ -54,9 +67,10 @@ public class FilteredMethodResolver extends ReflectiveMethodResolver {
 
     List<Method> m = new ArrayList<>(asList(methods));
     m.removeAll(rejectedMethods);
-    m = m.stream()
-      .filter(it -> ReturnTypeRestrictor.supports(it.getReturnType()))
-      .collect(toList());
+    m =
+        m.stream()
+            .filter(it -> ReturnTypeRestrictor.supports(it.getReturnType()))
+            .collect(toList());
 
     return m.toArray(new Method[m.size()]);
   }

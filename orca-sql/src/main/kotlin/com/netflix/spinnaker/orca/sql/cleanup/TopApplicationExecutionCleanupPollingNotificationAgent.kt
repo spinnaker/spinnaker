@@ -31,9 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
-import java.time.Clock
 import java.util.concurrent.atomic.AtomicInteger
-
 
 @Component
 @ConditionalOnExpression("\${pollers.top-application-execution-cleanup.enabled:false} && !\${execution-repository.redis.enabled:false}")
@@ -111,7 +109,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
         )
       } catch (e: Exception) {
         log.error("Failed to cleanup old orchestrations for $application", e)
-        errorsCounter.increment();
+        errorsCounter.increment()
       }
     }
   }
@@ -119,7 +117,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   /**
    * An application can have at most [threshold] completed orchestrations.
    */
-  private fun performCleanup(application: String) : Int {
+  private fun performCleanup(application: String): Int {
     val deletedExecutionCount = AtomicInteger()
 
     val executionsToRemove = jooq

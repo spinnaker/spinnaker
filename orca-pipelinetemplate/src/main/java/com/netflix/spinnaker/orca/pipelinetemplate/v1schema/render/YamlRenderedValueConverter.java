@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -23,20 +25,20 @@ import org.yaml.snakeyaml.composer.ComposerException;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.parser.ParserException;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private static final List<String> YAML_KEYWORDS = Arrays.asList("yes", "no", "on", "off");
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+  private static final ThreadLocal<Yaml> yaml =
+      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Override
   public Object convertRenderedValue(String renderedValue) {
-    if (containsEL(renderedValue) || isYamlKeyword(renderedValue) || containsYamlParsingExceptions(renderedValue)) {
+    if (containsEL(renderedValue)
+        || isYamlKeyword(renderedValue)
+        || containsYamlParsingExceptions(renderedValue)) {
       return renderedValue;
     }
     if (containsNoExpandMarker(renderedValue)) {
@@ -53,7 +55,8 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
       throw new TemplateRenderException("template produced invalid yaml", ce);
     } catch (ParserException pe) {
       if (pe.getProblem().contains("expected '<document start>'")) {
-        log.info("YAML parser expected start of document, assuming rendered value is desired state");
+        log.info(
+            "YAML parser expected start of document, assuming rendered value is desired state");
         return renderedValue;
       }
       throw pe;
@@ -69,10 +72,12 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
   }
 
   private static boolean containsYamlParsingExceptions(String renderedValue) {
-    return renderedValue != null && (
-      renderedValue.startsWith("*") || // A markdown list or bold: YAML will parse this as an alias and fail.
-      renderedValue.startsWith("@class") // Jackson annotations, a YAML document cannot start with an @ symbol
-    );
+    return renderedValue != null
+        && (renderedValue.startsWith("*")
+            || // A markdown list or bold: YAML will parse this as an alias and fail.
+            renderedValue.startsWith(
+                "@class") // Jackson annotations, a YAML document cannot start with an @ symbol
+        );
   }
 
   private static boolean containsNoExpandMarker(String renderedValue) {

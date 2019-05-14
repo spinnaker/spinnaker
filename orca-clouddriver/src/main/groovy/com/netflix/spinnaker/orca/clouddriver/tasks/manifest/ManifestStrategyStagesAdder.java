@@ -30,7 +30,8 @@ public class ManifestStrategyStagesAdder {
 
   private final ManifestNoneStrategy noneStrategy;
 
-  public void addAfterStages(ManifestStrategyType strategy, StageGraphBuilder graph, DeployManifestContext parentContext) {
+  public void addAfterStages(
+      ManifestStrategyType strategy, StageGraphBuilder graph, DeployManifestContext parentContext) {
     switch (strategy) {
       case RED_BLACK:
         redBlackStrategy.composeFlow(parentContext, graph);

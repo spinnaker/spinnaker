@@ -25,7 +25,8 @@ import redis.clients.util.Pool;
 
 @Configuration
 public class EmbeddedRedisConfiguration {
-  @Bean(destroyMethod = "destroy") public EmbeddedRedis redisServer() {
+  @Bean(destroyMethod = "destroy")
+  public EmbeddedRedis redisServer() {
     EmbeddedRedis redis = EmbeddedRedis.embed();
     try (Jedis jedis = redis.getJedis()) {
       jedis.flushAll();
@@ -33,11 +34,13 @@ public class EmbeddedRedisConfiguration {
     return redis;
   }
 
-  @Bean public Pool<Jedis> jedisPool(EmbeddedRedis redisServer) {
+  @Bean
+  public Pool<Jedis> jedisPool(EmbeddedRedis redisServer) {
     return redisServer.getPool();
   }
 
-  @Bean public RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
+  @Bean
+  public RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
     return new JedisClientDelegate("primaryDefault", jedisPool);
   }
 }

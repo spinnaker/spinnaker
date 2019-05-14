@@ -26,22 +26,19 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CleanupArtifactsTask extends AbstractCloudProviderAwareTask implements Task {
   public static final String TASK_NAME = "cleanupArtifacts";
 
-  @Autowired
-  KatoService kato;
+  @Autowired KatoService kato;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Nonnull
   @Override
@@ -50,22 +47,26 @@ public class CleanupArtifactsTask extends AbstractCloudProviderAwareTask impleme
     String credentials = getCredentials(stage);
     String cloudProvider = getCloudProvider(stage);
 
-    Map<String, Object> task = new ImmutableMap.Builder<String, Object>()
-        .put("manifests", context.get("outputs.manifests"))
-        .put("account", credentials)
-        .build();
+    Map<String, Object> task =
+        new ImmutableMap.Builder<String, Object>()
+            .put("manifests", context.get("outputs.manifests"))
+            .put("account", credentials)
+            .build();
 
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-        .put(TASK_NAME, task)
-        .build();
+    Map<String, Map> operation =
+        new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
 
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
+    TaskId taskId =
+        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
+            .toBlocking()
+            .first();
 
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("kato.result.expected", false)
-        .put("kato.last.task.id", taskId)
-        .put("deploy.account.name", credentials)
-        .build();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>()
+            .put("kato.result.expected", false)
+            .put("kato.last.task.id", taskId)
+            .put("deploy.account.name", credentials)
+            .build();
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }

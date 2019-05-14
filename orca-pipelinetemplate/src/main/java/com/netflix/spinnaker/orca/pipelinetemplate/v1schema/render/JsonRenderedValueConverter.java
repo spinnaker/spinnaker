@@ -18,11 +18,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
-import org.apache.commons.lang3.math.NumberUtils;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class JsonRenderedValueConverter implements RenderedValueConverter {
 
@@ -45,7 +44,8 @@ public class JsonRenderedValueConverter implements RenderedValueConverter {
       }
     } else if (rendered.equals("true") || rendered.equals("false")) {
       return Boolean.parseBoolean(rendered);
-    } else if (rendered.startsWith("{{") || (!rendered.startsWith("{") && !rendered.startsWith("["))) {
+    } else if (rendered.startsWith("{{")
+        || (!rendered.startsWith("{") && !rendered.startsWith("["))) {
       return rendered;
     }
 

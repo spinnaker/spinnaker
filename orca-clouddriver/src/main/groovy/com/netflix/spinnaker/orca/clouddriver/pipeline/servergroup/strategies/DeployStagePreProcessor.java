@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +25,8 @@ import java.util.Map;
 /**
  * Supports generic modification of a Deploy stage.
  *
- * Common use-cases:
- * - injecting synthetic stages before/after a deploy
- * - injecting steps (will be added prior to the deploy stage steps)
+ * <p>Common use-cases: - injecting synthetic stages before/after a deploy - injecting steps (will
+ * be added prior to the deploy stage steps)
  */
 public interface DeployStagePreProcessor {
   boolean supports(Stage stage);

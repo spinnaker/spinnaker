@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import com.google.common.collect.ImmutableList;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.lang.reflect.Array;
-import java.util.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

@@ -53,10 +53,6 @@ allprojects {
 subprojects {
   apply plugin: "java-library"
 
-  spinnakerCodeStyle {
-    enabled = false
-  }
-
   if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
     logger.info("Enabling mavenLocal")
     repositories {

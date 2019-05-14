@@ -20,7 +20,14 @@ import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.buildBeforeStages
+import com.netflix.spinnaker.orca.q.buildTasks
+import com.netflix.spinnaker.orca.q.multiTaskStage
+import com.netflix.spinnaker.orca.q.singleTaskStage
+import com.netflix.spinnaker.orca.q.stageWithParallelBranches
+import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
+import com.netflix.spinnaker.orca.q.stageWithSyntheticBeforeAndNoTasks
+import com.netflix.spinnaker.orca.q.zeroTaskStage
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe

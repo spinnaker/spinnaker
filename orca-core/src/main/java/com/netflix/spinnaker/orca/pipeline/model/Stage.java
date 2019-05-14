@@ -15,6 +15,14 @@
  */
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static java.lang.String.format;
+import static java.lang.String.join;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.toList;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,51 +37,43 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
 import de.huxhorn.sulky.ulid.ULID;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static java.lang.String.format;
-import static java.lang.String.join;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class Stage implements Serializable {
 
   private static final ULID ID_GENERATOR = new ULID();
 
-  /**
-   * Sorts stages into order according to their refIds / requisiteStageRefIds.
-   */
+  /** Sorts stages into order according to their refIds / requisiteStageRefIds. */
   public static Stream<Stage> topologicalSort(Collection<Stage> stages) {
     List<Stage> unsorted = stages.stream().filter(it -> it.parentStageId == null).collect(toList());
     ImmutableList.Builder<Stage> sorted = ImmutableList.builder();
     Set<String> refIds = new HashSet<>();
     while (!unsorted.isEmpty()) {
-      List<Stage> sortable = unsorted.stream()
-        .filter(it -> refIds.containsAll(it.getRequisiteStageRefIds()))
-        .collect(toList());
+      List<Stage> sortable =
+          unsorted.stream()
+              .filter(it -> refIds.containsAll(it.getRequisiteStageRefIds()))
+              .collect(toList());
       if (sortable.isEmpty()) {
         throw new IllegalStateException(
-          format(
-            "Invalid stage relationships found %s",
-            join(", ", stages.stream().map(it -> format("%s->%s", it.requisiteStageRefIds, it.refId)).collect(toList()))
-          )
-        );
+            format(
+                "Invalid stage relationships found %s",
+                join(
+                    ", ",
+                    stages.stream()
+                        .map(it -> format("%s->%s", it.requisiteStageRefIds, it.refId))
+                        .collect(toList()))));
       }
-      sortable
-        .forEach(it -> {
-          unsorted.remove(it);
-          refIds.add(it.refId);
-          sorted.add(it);
-        });
+      sortable.forEach(
+          it -> {
+            unsorted.remove(it);
+            refIds.add(it.refId);
+            sorted.add(it);
+          });
     }
     return sorted.build().stream();
   }
@@ -88,13 +88,13 @@ public class Stage implements Serializable {
     this.context.putAll(context);
 
     this.refId = (String) context.remove("refId");
-    this.startTimeExpiry = Optional
-      .ofNullable(context.remove("startTimeExpiry"))
-      .map(expiry -> Long.valueOf((String) expiry))
-      .orElse(null);
-    this.requisiteStageRefIds = Optional
-      .ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
-      .orElse(emptySet());
+    this.startTimeExpiry =
+        Optional.ofNullable(context.remove("startTimeExpiry"))
+            .map(expiry -> Long.valueOf((String) expiry))
+            .orElse(null);
+    this.requisiteStageRefIds =
+        Optional.ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
+            .orElse(emptySet());
   }
 
   public Stage(Execution execution, String type, Map<String, Object> context) {
@@ -105,9 +105,7 @@ public class Stage implements Serializable {
     this(execution, type, emptyMap());
   }
 
-  /**
-   * A stage's unique identifier
-   */
+  /** A stage's unique identifier */
   private String id = ID_GENERATOR.nextULID();
 
   public @Nonnull String getId() {
@@ -130,9 +128,7 @@ public class Stage implements Serializable {
     this.refId = refId;
   }
 
-  /**
-   * The type as it corresponds to the Mayo configuration
-   */
+  /** The type as it corresponds to the Mayo configuration */
   private String type;
 
   public @Nonnull String getType() {
@@ -143,9 +139,7 @@ public class Stage implements Serializable {
     this.type = type;
   }
 
-  /**
-   * The name of the stage. Can be different from type, but often will be the same.
-   */
+  /** The name of the stage. Can be different from type, but often will be the same. */
   private String name;
 
   public @Nonnull String getName() {
@@ -156,9 +150,7 @@ public class Stage implements Serializable {
     this.name = name;
   }
 
-  /**
-   * Gets the execution object for this stage
-   */
+  /** Gets the execution object for this stage */
   private Execution execution;
 
   @JsonBackReference
@@ -170,9 +162,7 @@ public class Stage implements Serializable {
     this.execution = execution;
   }
 
-  /**
-   * Gets the start time for this stage. May return null if the stage has not been started.
-   */
+  /** Gets the start time for this stage. May return null if the stage has not been started. */
   private Long startTime;
 
   public @Nullable Long getStartTime() {
@@ -183,9 +173,7 @@ public class Stage implements Serializable {
     this.startTime = startTime;
   }
 
-  /**
-   * Gets the end time for this stage. May return null if the stage has not yet finished.
-   */
+  /** Gets the end time for this stage. May return null if the stage has not yet finished. */
   private Long endTime;
 
   public @Nullable Long getEndTime() {
@@ -197,8 +185,8 @@ public class Stage implements Serializable {
   }
 
   /**
-   * Gets the start expiry timestamp for this stage. If the stage has not started
-   * before this timestamp, the stage will be skipped.
+   * Gets the start expiry timestamp for this stage. If the stage has not started before this
+   * timestamp, the stage will be skipped.
    */
   private Long startTimeExpiry;
 
@@ -210,9 +198,7 @@ public class Stage implements Serializable {
     this.startTimeExpiry = startTimeExpiry;
   }
 
-  /**
-   * The execution status for this stage
-   */
+  /** The execution status for this stage */
   private ExecutionStatus status = NOT_STARTED;
 
   public @Nonnull ExecutionStatus getStatus() {
@@ -223,9 +209,7 @@ public class Stage implements Serializable {
     this.status = status;
   }
 
-  /**
-   * The context driving this stage. Provides inputs necessary to component steps
-   */
+  /** The context driving this stage. Provides inputs necessary to component steps */
   private Map<String, Object> context = new StageContext(this);
 
   public @Nonnull Map<String, Object> getContext() {
@@ -240,9 +224,7 @@ public class Stage implements Serializable {
     }
   }
 
-  /**
-   * Outputs from this stage which may be accessed by downstream stages.
-   */
+  /** Outputs from this stage which may be accessed by downstream stages. */
   private Map<String, Object> outputs = new HashMap<>();
 
   public @Nonnull Map<String, Object> getOutputs() {
@@ -254,8 +236,9 @@ public class Stage implements Serializable {
   }
 
   /**
-   * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
-   * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
+   * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work
+   * in a stage. Because tasks can be dynamically composed, this list is open updated during a
+   * stage's execution.
    */
   private List<Task> tasks = new ArrayList<>();
 
@@ -268,10 +251,10 @@ public class Stage implements Serializable {
   }
 
   /**
-   * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag indicates the relationship
-   * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
-   * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
-   * synthetic.
+   * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag
+   * indicates the relationship of a synthetic stage to its position in the graph. To derive the
+   * owning stage, callers should directionally traverse the graph until the first non-synthetic
+   * stage is found. If this property is null, the stage is not synthetic.
    */
   private SyntheticStageOwner syntheticStageOwner;
 
@@ -279,14 +262,11 @@ public class Stage implements Serializable {
     return syntheticStageOwner;
   }
 
-  public void setSyntheticStageOwner(
-    @Nullable SyntheticStageOwner syntheticStageOwner) {
+  public void setSyntheticStageOwner(@Nullable SyntheticStageOwner syntheticStageOwner) {
     this.syntheticStageOwner = syntheticStageOwner;
   }
 
-  /**
-   * This stage's parent stage.
-   */
+  /** This stage's parent stage. */
   private String parentStageId;
 
   public @Nullable String getParentStageId() {
@@ -305,10 +285,11 @@ public class Stage implements Serializable {
   }
 
   @JsonDeserialize(using = RequisiteStageRefIdDeserializer.class)
-  public void setRequisiteStageRefIds(
-    @Nonnull Collection<String> requisiteStageRefIds) {
-    // This looks super weird, but when a custom deserializer is used on the method, null is passed along and the
-    // Nonnull check isn't triggered. Furthermore, some conditions only pick up the deserializer from the setter method,
+  public void setRequisiteStageRefIds(@Nonnull Collection<String> requisiteStageRefIds) {
+    // This looks super weird, but when a custom deserializer is used on the method, null is passed
+    // along and the
+    // Nonnull check isn't triggered. Furthermore, some conditions only pick up the deserializer
+    // from the setter method,
     // while others pick it up from the field. Sorry.
     if (requisiteStageRefIds == null) {
       this.requisiteStageRefIds = ImmutableSet.of();
@@ -317,9 +298,7 @@ public class Stage implements Serializable {
     }
   }
 
-  /**
-   * A date when this stage is scheduled to execute.
-   */
+  /** A date when this stage is scheduled to execute. */
   private Long scheduledTime;
 
   public @Nullable Long getScheduledTime() {
@@ -340,36 +319,28 @@ public class Stage implements Serializable {
     this.lastModified = lastModified;
   }
 
-  @Override public boolean equals(Object o) {
+  @Override
+  public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Stage stage = (Stage) o;
     return Objects.equals(id, stage.id);
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hash(id);
   }
 
   public Task taskById(String taskId) {
-    return tasks
-      .stream()
-      .filter(it -> it.getId().equals(taskId))
-      .findFirst()
-      .orElse(null);
+    return tasks.stream().filter(it -> it.getId().equals(taskId)).findFirst().orElse(null);
   }
 
-  /**
-   * Gets all ancestor stages, including the current stage.
-   */
+  /** Gets all ancestor stages, including the current stage. */
   public List<Stage> ancestors() {
     if (execution != null) {
       Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
-      return ImmutableList
-        .<Stage>builder()
-        .add(this)
-        .addAll(ancestorsOnly(visited))
-        .build();
+      return ImmutableList.<Stage>builder().add(this).addAll(ancestorsOnly(visited)).build();
     } else {
       return emptyList();
     }
@@ -380,41 +351,50 @@ public class Stage implements Serializable {
 
     if (!requisiteStageRefIds.isEmpty()) {
       // Get parent stages, but exclude already visited ones.
-      List<Stage> previousStages = execution.getStages().stream()
-        .filter(it -> requisiteStageRefIds.contains(it.refId))
-        .filter(it -> !visited.contains(it.refId)).collect(toList());
-      List<Stage> syntheticStages = execution.getStages().stream().filter(s ->
-        previousStages.stream().map(Stage::getId).anyMatch(id -> id.equals(s.parentStageId))
-      ).collect(toList());
-      return ImmutableList
-        .<Stage>builder()
-        .addAll(previousStages)
-        .addAll(syntheticStages)
-        .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly(visited).stream()).collect(toList()))
-        .build();
+      List<Stage> previousStages =
+          execution.getStages().stream()
+              .filter(it -> requisiteStageRefIds.contains(it.refId))
+              .filter(it -> !visited.contains(it.refId))
+              .collect(toList());
+      List<Stage> syntheticStages =
+          execution.getStages().stream()
+              .filter(
+                  s ->
+                      previousStages.stream()
+                          .map(Stage::getId)
+                          .anyMatch(id -> id.equals(s.parentStageId)))
+              .collect(toList());
+      return ImmutableList.<Stage>builder()
+          .addAll(previousStages)
+          .addAll(syntheticStages)
+          .addAll(
+              previousStages.stream()
+                  .flatMap(it -> it.ancestorsOnly(visited).stream())
+                  .collect(toList()))
+          .build();
     } else if (parentStageId != null && !visited.contains(parentStageId)) {
       List<Stage> ancestors = new ArrayList<>();
       if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
         ancestors.addAll(
-          execution
-            .getStages()
-            .stream()
-            .filter(it ->
-              parentStageId.equals(it.parentStageId) && it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE
-            )
-            .collect(toList())
-        );
+            execution.getStages().stream()
+                .filter(
+                    it ->
+                        parentStageId.equals(it.parentStageId)
+                            && it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE)
+                .collect(toList()));
       }
 
       ancestors.addAll(
-        execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
-          .<List<Stage>>map(parent -> ImmutableList
-            .<Stage>builder()
-            .add(parent)
-            .addAll(parent.ancestorsOnly(visited))
-            .build())
-          .orElse(emptyList())
-      );
+          execution.getStages().stream()
+              .filter(it -> it.id.equals(parentStageId))
+              .findFirst()
+              .<List<Stage>>map(
+                  parent ->
+                      ImmutableList.<Stage>builder()
+                          .add(parent)
+                          .addAll(parent.ancestorsOnly(visited))
+                          .build())
+              .orElse(emptyList()));
 
       return ancestors;
     } else {
@@ -422,9 +402,7 @@ public class Stage implements Serializable {
     }
   }
 
-  /**
-   * Recursively get all stages that are children of the current one
-   */
+  /** Recursively get all stages that are children of the current one */
   public List<Stage> allDownstreamStages() {
     List<Stage> children = new ArrayList<>();
 
@@ -446,33 +424,31 @@ public class Stage implements Serializable {
 
         List<Stage> childStages = stage.downstreamStages();
 
-        childStages
-          .stream()
-          .filter(s -> !visited.contains(s.refId))
-          .forEach(s -> queue.add(s));
+        childStages.stream().filter(s -> !visited.contains(s.refId)).forEach(s -> queue.add(s));
       }
     }
 
     return children;
   }
 
-  /**
-   * Maps the stage's context to a typed object
-   */
+  /** Maps the stage's context to a typed object */
   public <O> O mapTo(Class<O> type) {
     return mapTo(null, type);
   }
 
-  @JsonIgnore
-  private final transient ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
+  @JsonIgnore private final transient ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
 
   /**
-   * Maps the stage's context to a typed object at a provided pointer. Uses
-   * <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> notation for determining the pointer's position
+   * Maps the stage's context to a typed object at a provided pointer. Uses <a
+   * href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> notation for determining the
+   * pointer's position
    */
   public <O> O mapTo(String pointer, Class<O> type) {
     try {
-      return objectMapper.readValue(new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper), type);
+      return objectMapper.readValue(
+          new TreeTraversingParser(
+              getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper),
+          type);
     } catch (IOException e) {
       throw new IllegalArgumentException(format("Unable to map context to %s", type), e);
     }
@@ -485,17 +461,21 @@ public class Stage implements Serializable {
   public <O> O decodeBase64(String pointer, Class<O> type, ObjectMapper objectMapper) {
     byte[] data;
     try {
-      TreeTraversingParser parser = new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper);
+      TreeTraversingParser parser =
+          new TreeTraversingParser(
+              getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper);
       parser.nextToken();
       data = Base64.getDecoder().decode(parser.getText());
     } catch (IOException e) {
-      throw new IllegalArgumentException("Value in stage context at pointer " + pointer + " is not base 64 encoded", e);
+      throw new IllegalArgumentException(
+          "Value in stage context at pointer " + pointer + " is not base 64 encoded", e);
     }
 
     try {
       return objectMapper.readValue(data, type);
     } catch (IOException e) {
-      throw new RuntimeException("Could not convert " + new String(data, UTF_8) + " to " + type.getSimpleName(), e);
+      throw new RuntimeException(
+          "Could not convert " + new String(data, UTF_8) + " to " + type.getSimpleName(), e);
     }
   }
 
@@ -507,13 +487,14 @@ public class Stage implements Serializable {
     return (ObjectNode) objectMapper.valueToTree(context);
   }
 
-  /**
-   * Enriches stage context if it supports strategies
-   */
+  /** Enriches stage context if it supports strategies */
   @SuppressWarnings("unchecked")
   public void resolveStrategyParams() {
     if (execution.getType() == PIPELINE) {
-      Map<String, Object> parameters = Optional.ofNullable(execution.getTrigger()).map(Trigger::getParameters).orElse(emptyMap());
+      Map<String, Object> parameters =
+          Optional.ofNullable(execution.getTrigger())
+              .map(Trigger::getParameters)
+              .orElse(emptyMap());
       boolean strategy = false;
       if (parameters.get("strategy") != null) {
         strategy = (boolean) parameters.get("strategy");
@@ -531,10 +512,9 @@ public class Stage implements Serializable {
     }
   }
 
-  /**
-   * Returns the parent of this stage or null if it is a top-level stage.
-   */
-  @JsonIgnore public @Nullable Stage getParent() {
+  /** Returns the parent of this stage or null if it is a top-level stage. */
+  @JsonIgnore
+  public @Nullable Stage getParent() {
     if (parentStageId == null) {
       return null;
     } else {
@@ -542,24 +522,30 @@ public class Stage implements Serializable {
     }
   }
 
-  /**
-   * Returns the top-most stage.
-   */
-  @JsonIgnore public Stage getTopLevelStage() {
+  /** Returns the top-most stage. */
+  @JsonIgnore
+  public Stage getTopLevelStage() {
     Stage topLevelStage = this;
     while (topLevelStage.parentStageId != null) {
       String sid = topLevelStage.parentStageId;
-      Optional<Stage> stage = execution.getStages().stream().filter(s -> s.id.equals(sid)).findFirst();
+      Optional<Stage> stage =
+          execution.getStages().stream().filter(s -> s.id.equals(sid)).findFirst();
       if (stage.isPresent()) {
         topLevelStage = stage.get();
       } else {
-        throw new IllegalStateException("Could not find stage by parentStageId (stage: " + topLevelStage.getId() + ", parentStageId:" + sid + ")");
+        throw new IllegalStateException(
+            "Could not find stage by parentStageId (stage: "
+                + topLevelStage.getId()
+                + ", parentStageId:"
+                + sid
+                + ")");
       }
     }
     return topLevelStage;
   }
 
-  @JsonIgnore public Optional<Stage> getParentWithTimeout() {
+  @JsonIgnore
+  public Optional<Stage> getParentWithTimeout() {
     Stage current = this;
     Optional<Long> timeout = Optional.empty();
 
@@ -573,7 +559,8 @@ public class Stage implements Serializable {
     return timeout.isPresent() ? Optional.of(current) : Optional.empty();
   }
 
-  @JsonIgnore public Optional<Long> getTimeout() {
+  @JsonIgnore
+  public Optional<Long> getTimeout() {
     Object timeout = getContext().get(STAGE_TIMEOUT_OVERRIDE_KEY);
     if (timeout instanceof Integer) {
       return Optional.of((Integer) timeout).map(Integer::longValue);
@@ -602,8 +589,7 @@ public class Stage implements Serializable {
       return ImmutableSet.copyOf(allowedAccounts);
     }
 
-    public void setAllowedAccounts(
-      @Nonnull Collection<String> allowedAccounts) {
+    public void setAllowedAccounts(@Nonnull Collection<String> allowedAccounts) {
       this.allowedAccounts = ImmutableSet.copyOf(allowedAccounts);
     }
 
@@ -618,16 +604,16 @@ public class Stage implements Serializable {
     }
   }
 
-  @JsonIgnore public boolean isJoin() {
+  @JsonIgnore
+  public boolean isJoin() {
     return getRequisiteStageRefIds().size() > 1;
   }
 
-  @JsonIgnore public List<Stage> downstreamStages() {
-    return getExecution()
-      .getStages()
-      .stream()
-      .filter(it -> it.getRequisiteStageRefIds().contains(getRefId()))
-      .collect(toList());
+  @JsonIgnore
+  public List<Stage> downstreamStages() {
+    return getExecution().getStages().stream()
+        .filter(it -> it.getRequisiteStageRefIds().contains(getRefId()))
+        .collect(toList());
   }
 
   public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";

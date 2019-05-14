@@ -26,7 +26,6 @@ import com.hubspot.jinjava.util.HelperStringTokenizer;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
-
 import java.util.*;
 
 public class StrategyIdTag implements Tag {
@@ -52,30 +51,43 @@ public class StrategyIdTag implements Tag {
 
   @Override
   public String interpret(TagNode tagNode, JinjavaInterpreter interpreter) {
-    List<String> helper = new HelperStringTokenizer(tagNode.getHelpers()).splitComma(true).allTokens();
+    List<String> helper =
+        new HelperStringTokenizer(tagNode.getHelpers()).splitComma(true).allTokens();
     if (helper.isEmpty()) {
-        throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'strategyId' expects at least a strategy name: " + helper, tagNode.getLineNumber());
+      throw new TemplateSyntaxException(
+          tagNode.getMaster().getImage(),
+          "Tag 'strategyId' expects at least a strategy name: " + helper,
+          tagNode.getLineNumber());
     }
 
     Map<String, String> paramPairs = new HashMap<>();
-    helper.forEach(p -> {
-      List<String> parts = ON_EQUALS.splitToList(p);
-      if (parts.size() != 2) {
-          throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'strategyId' expects parameters to be in a 'key=value' format: " + helper, tagNode.getLineNumber());
-      }
+    helper.forEach(
+        p -> {
+          List<String> parts = ON_EQUALS.splitToList(p);
+          if (parts.size() != 2) {
+            throw new TemplateSyntaxException(
+                tagNode.getMaster().getImage(),
+                "Tag 'strategyId' expects parameters to be in a 'key=value' format: " + helper,
+                tagNode.getLineNumber());
+          }
 
-      paramPairs.put(parts.get(0), parts.get(1));
-    });
+          paramPairs.put(parts.get(0), parts.get(1));
+        });
 
     Context context = interpreter.getContext();
 
-    String application = paramPairs.getOrDefault(APPLICATION, (String) context.get(APPLICATION)).replaceAll("^[\"\']|[\"\']$", "");
+    String application =
+        paramPairs
+            .getOrDefault(APPLICATION, (String) context.get(APPLICATION))
+            .replaceAll("^[\"\']|[\"\']$", "");
     application = checkContext(application, context);
 
     String name = paramPairs.get(NAME).replaceAll("^[\"\']|[\"\']$", "");
     name = checkContext(name, context);
 
-    List<Map<String, Object>> strategies = Optional.ofNullable(front50Service.getStrategies(application)).orElse(Collections.emptyList());
+    List<Map<String, Object>> strategies =
+        Optional.ofNullable(front50Service.getStrategies(application))
+            .orElse(Collections.emptyList());
     Map<String, Object> result = findStrategy(strategies, application, name);
     return (String) result.get("id");
   }
@@ -84,21 +96,24 @@ public class StrategyIdTag implements Tag {
     Object var = context.get(param);
 
     if (var != null) {
-        return (String) var;
+      return (String) var;
     }
 
     return param;
   }
 
-  private Map<String, Object> findStrategy(List<Map<String, Object>> strategies, String application, String strategyName) {
-    return strategies
-            .stream()
-            .filter(p -> p.get(NAME).equals(strategyName))
-            .findFirst()
-            .orElseThrow(
-                    () -> TemplateRenderException.fromError(
-                            new Errors.Error()
-                                    .withMessage(String.format("Failed to find strategyId ID with name '%s' in application '%s'", strategyName, application)
-                                    )));
+  private Map<String, Object> findStrategy(
+      List<Map<String, Object>> strategies, String application, String strategyName) {
+    return strategies.stream()
+        .filter(p -> p.get(NAME).equals(strategyName))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                TemplateRenderException.fromError(
+                    new Errors.Error()
+                        .withMessage(
+                            String.format(
+                                "Failed to find strategyId ID with name '%s' in application '%s'",
+                                strategyName, application))));
   }
 }

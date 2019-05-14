@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.Task;
+import javax.annotation.Nonnull;
 
 public class TaskComplete extends ExecutionEvent {
   private final String stageId;
@@ -32,17 +32,16 @@ public class TaskComplete extends ExecutionEvent {
   private final ExecutionStatus status;
 
   public TaskComplete(
-    @Nonnull Object source,
-    @Nonnull Execution.ExecutionType executionType,
-    @Nonnull String executionId,
-    @Nonnull String stageId,
-    @Nonnull String stageType,
-    @Nonnull String stageName,
-    @Nonnull String taskId,
-    @Nonnull String taskType,
-    @Nonnull String taskName,
-    @Nonnull ExecutionStatus status
-  ) {
+      @Nonnull Object source,
+      @Nonnull Execution.ExecutionType executionType,
+      @Nonnull String executionId,
+      @Nonnull String stageId,
+      @Nonnull String stageType,
+      @Nonnull String stageName,
+      @Nonnull String taskId,
+      @Nonnull String taskType,
+      @Nonnull String taskName,
+      @Nonnull ExecutionStatus status) {
     super(source, executionType, executionId);
     this.stageId = stageId;
     this.stageType = stageType;
@@ -53,23 +52,18 @@ public class TaskComplete extends ExecutionEvent {
     this.status = status;
   }
 
-  public TaskComplete(
-    @Nonnull Object source,
-    @Nonnull Stage stage,
-    @Nonnull Task task
-  ) {
+  public TaskComplete(@Nonnull Object source, @Nonnull Stage stage, @Nonnull Task task) {
     this(
-      source,
-      stage.getExecution().getType(),
-      stage.getExecution().getId(),
-      stage.getId(),
-      stage.getType(),
-      stage.getName(),
-      task.getId(),
-      task.getImplementingClass(),
-      task.getName(),
-      task.getStatus()
-    );
+        source,
+        stage.getExecution().getType(),
+        stage.getExecution().getId(),
+        stage.getId(),
+        stage.getType(),
+        stage.getName(),
+        task.getId(),
+        task.getImplementingClass(),
+        task.getName(),
+        task.getStatus());
   }
 
   public @Nonnull String getStageId() {

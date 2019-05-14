@@ -59,7 +59,7 @@ class SqlConfiguration {
     System.setProperty("org.jooq.no-logo", "true")
 
     forceInetAddressCachePolicy()
-    Security.setProperty("networkaddress.cache.ttl", "0");
+    Security.setProperty("networkaddress.cache.ttl", "0")
   }
 
   @Bean fun liquibase(properties: SqlProperties): SpringLiquibase =
@@ -69,7 +69,7 @@ class SqlConfiguration {
     DataSourceTransactionManager(dataSource)
 
   @Bean fun dataSourceConnectionProvider(dataSource: DataSource): DataSourceConnectionProvider =
-    object: DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
+    object : DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
       // Use READ COMMITTED if possible
       override fun acquire(): Connection = super.acquire().apply {
           if (metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
@@ -78,8 +78,10 @@ class SqlConfiguration {
         }
     }
 
-  @Bean fun jooqConfiguration(connectionProvider: DataSourceConnectionProvider,
-                              properties: SqlProperties): DefaultConfiguration =
+  @Bean fun jooqConfiguration(
+    connectionProvider: DataSourceConnectionProvider,
+    properties: SqlProperties
+  ): DefaultConfiguration =
     DefaultConfiguration().apply {
       set(*DefaultExecuteListenerProvider.providers(
         JooqToSpringExceptionTransformer(),
@@ -94,10 +96,12 @@ class SqlConfiguration {
     DefaultDSLContext(jooqConfiguration)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
-  @Bean fun sqlExecutionRepository(dsl: DSLContext,
-                                   mapper: ObjectMapper,
-                                   registry: Registry,
-                                   properties: SqlProperties) =
+  @Bean fun sqlExecutionRepository(
+    dsl: DSLContext,
+    mapper: ObjectMapper,
+    registry: Registry,
+    properties: SqlProperties
+  ) =
     SqlInstrumentedExecutionRepository(
       SqlExecutionRepository(
         properties.partitionName,
@@ -112,8 +116,10 @@ class SqlConfiguration {
   @Bean fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
     SqlHealthcheckActivator(dsl, registry)
 
-  @Bean("dbHealthIndicator") fun dbHealthIndicator(sqlHealthcheckActivator: SqlHealthcheckActivator,
-                                                   sqlProperties: SqlProperties) =
+  @Bean("dbHealthIndicator") fun dbHealthIndicator(
+    sqlHealthcheckActivator: SqlHealthcheckActivator,
+    sqlProperties: SqlProperties
+  ) =
     SqlHealthIndicator(sqlHealthcheckActivator, sqlProperties.connectionPool.dialect)
 }
 

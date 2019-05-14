@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.Collections;
 import java.util.List;
 
-public enum Strategy implements StrategyFlowComposer{
+public enum Strategy implements StrategyFlowComposer {
   RED_BLACK("redblack"),
   ROLLING_RED_BLACK("rollingredblack"),
   CF_ROLLING_RED_BLACK("cfrollingredblack"),
@@ -47,7 +46,6 @@ public enum Strategy implements StrategyFlowComposer{
     }
     return NONE;
   }
-
 
   @Override
   public boolean replacesBasicSteps() {

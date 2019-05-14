@@ -16,27 +16,25 @@
 
 package com.netflix.spinnaker.orca.dryrun;
 
-import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 
 /**
  * Serializes a double as an integer if possible.
- * <p>
- * Written in Java as Kotlin's Double doesn't work with Jackson at runtime.
+ *
+ * <p>Written in Java as Kotlin's Double doesn't work with Jackson at runtime.
  */
 public class RoundingDoubleSerializer extends JsonSerializer<Double> {
-  @Override public Class<Double> handledType() {
+  @Override
+  public Class<Double> handledType() {
     return Double.class;
   }
 
   @Override
-  public void serialize(
-    Double value,
-    JsonGenerator gen,
-    SerializerProvider serializers
-  ) throws IOException {
+  public void serialize(Double value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
     if (value % 1 == 0d) {
       gen.writeNumber(value.intValue());
     } else {

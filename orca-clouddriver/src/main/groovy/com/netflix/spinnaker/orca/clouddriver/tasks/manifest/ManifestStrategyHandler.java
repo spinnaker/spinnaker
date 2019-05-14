@@ -21,14 +21,13 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeleteManifestSt
 import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DisableManifestStage;
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -48,25 +47,38 @@ public class ManifestStrategyHandler {
     return manifests.get(0);
   }
 
-  private List<String> getOldManifestNames(String application, String account, String clusterName, String namespace, String newManifestName) {
-    Map cluster = oortHelper.getCluster(application, account, clusterName, "kubernetes")
-      .orElseThrow(() -> new IllegalArgumentException(String.format("Error fetching cluster %s in account %s and namespace %s", clusterName, account, namespace)));
+  private List<String> getOldManifestNames(
+      String application,
+      String account,
+      String clusterName,
+      String namespace,
+      String newManifestName) {
+    Map cluster =
+        oortHelper
+            .getCluster(application, account, clusterName, "kubernetes")
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        String.format(
+                            "Error fetching cluster %s in account %s and namespace %s",
+                            clusterName, account, namespace)));
 
-    List<Map> serverGroups = Optional.ofNullable((List<Map>) cluster.get("serverGroups"))
-      .orElse(null);
+    List<Map> serverGroups =
+        Optional.ofNullable((List<Map>) cluster.get("serverGroups")).orElse(null);
 
     if (serverGroups == null) {
       return new ArrayList<>();
     }
 
     return serverGroups.stream()
-      .filter(s -> s.get("region").equals(namespace))
-      .filter(s -> !s.get("name").equals(newManifestName))
-      .map(s -> (String) s.get("name"))
-      .collect(Collectors.toList());
+        .filter(s -> s.get("region").equals(namespace))
+        .filter(s -> !s.get("name").equals(newManifestName))
+        .map(s -> (String) s.get("name"))
+        .collect(Collectors.toList());
   }
 
-  private void addStagesForOldManifests(DeployManifestContext parentContext, StageGraphBuilder graph, String stageType) {
+  private void addStagesForOldManifests(
+      DeployManifestContext parentContext, StageGraphBuilder graph, String stageType) {
     Map deployedManifest = getNewManifest(parentContext);
     String account = (String) parentContext.get("account");
     Map manifestMoniker = (Map) parentContext.get("moniker");
@@ -79,17 +91,20 @@ public class ManifestStrategyHandler {
     String clusterName = (String) annotations.get("moniker.spinnaker.io/cluster");
     String cloudProvider = "kubernetes";
 
-    List<String> previousManifestNames = getOldManifestNames(application, account, clusterName, namespace, manifestName);
-    previousManifestNames.forEach(name -> {
-      graph.append((stage) -> {
-        stage.setType(stageType);
-        Map<String, Object> context = stage.getContext();
-        context.put("account", account);
-        context.put("app", application);
-        context.put("cloudProvider", cloudProvider);
-        context.put("manifestName", name);
-        context.put("location", namespace);
-      });
-    });
+    List<String> previousManifestNames =
+        getOldManifestNames(application, account, clusterName, namespace, manifestName);
+    previousManifestNames.forEach(
+        name -> {
+          graph.append(
+              (stage) -> {
+                stage.setType(stageType);
+                Map<String, Object> context = stage.getContext();
+                context.put("account", account);
+                context.put("app", application);
+                context.put("cloudProvider", cloudProvider);
+                context.put("manifestName", name);
+                context.put("location", namespace);
+              });
+        });
   }
 }

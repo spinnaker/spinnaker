@@ -16,10 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.Optional;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -28,14 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.Optional;
-
-import static java.lang.String.format;
 
 @Component
 public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
@@ -49,9 +48,10 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
   public HttpTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
-    this.yamlObjectMapper = new ObjectMapper(new YAMLFactory())
-      .setConfig(jsonObjectMapper.getSerializationConfig())
-      .setConfig(jsonObjectMapper.getDeserializationConfig());
+    this.yamlObjectMapper =
+        new ObjectMapper(new YAMLFactory())
+            .setConfig(jsonObjectMapper.getSerializationConfig())
+            .setConfig(jsonObjectMapper.getDeserializationConfig());
 
     this.okHttpClient = new OkHttpClient();
   }
@@ -69,12 +69,14 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
     Request request = new Request.Builder().url(convertToUrl(uri)).build();
     try (Response response = okHttpClient.newCall(request).execute()) {
       if (!response.isSuccessful()) {
-        throw new FileNotFoundException(format(
-          "Received unsuccessful status code from template (code: %s, url: %s)", response.code(), uri.toString()
-        ));
+        throw new FileNotFoundException(
+            format(
+                "Received unsuccessful status code from template (code: %s, url: %s)",
+                response.code(), uri.toString()));
       }
-      ResponseBody body = Optional.ofNullable(response.body())
-        .orElseThrow(() -> new TemplateLoaderException("Endpoint returned an empty body"));
+      ResponseBody body =
+          Optional.ofNullable(response.body())
+              .orElseThrow(() -> new TemplateLoaderException("Endpoint returned an empty body"));
       String strBody = body.string();
 
       log.debug("Loaded Template ({}):\n{}", uri, strBody);

@@ -47,7 +47,7 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
   }
 
-  private fun getDeployDetails(stage: Stage) : DeployedServerGroupContext? {
+  private fun getDeployDetails(stage: Stage): DeployedServerGroupContext? {
     val deployedServerGroupsStage = stage.parent?.execution?.stages?.find {
       it.type == DeployCanaryServerGroupsStage.STAGE_TYPE && it.parentStageId == stage.parentStageId
     }
@@ -215,15 +215,15 @@ private val KayentaCanaryContext.step: Duration
   get() = Duration.ofSeconds(scopes.first().step)
 
 data class DeployedServerGroupContext @JsonCreator constructor(
-        val controlLocation: String,
-        val controlScope: String,
-        val controlAccountId: String?,
-        val experimentLocation: String,
-        val experimentScope: String,
-        val experimentAccountId: String?
+  val controlLocation: String,
+  val controlScope: String,
+  val controlAccountId: String?,
+  val experimentLocation: String,
+  val experimentScope: String,
+  val experimentAccountId: String?
 ) {
   companion object {
-    fun from(data: Map<String, String>) : DeployedServerGroupContext {
+    fun from(data: Map<String, String>): DeployedServerGroupContext {
       return DeployedServerGroupContext(
               data["controlLocation"].orEmpty(),
               data["controlScope"].orEmpty(),

@@ -1,5 +1,9 @@
 package com.netflix.spinnaker.orca.gremlin.tasks;
 
+import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.COMMAND_TEMPLATE_ID_KEY;
+import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.GUID_KEY;
+import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.TARGET_TEMPLATE_ID_KEY;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -7,23 +11,17 @@ import com.netflix.spinnaker.orca.gremlin.AttackParameters;
 import com.netflix.spinnaker.orca.gremlin.GremlinService;
 import com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.COMMAND_TEMPLATE_ID_KEY;
-import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.GUID_KEY;
-import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.TARGET_TEMPLATE_ID_KEY;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LaunchGremlinAttackTask implements Task {
   private static final String GREMLIN_TEMPLATE_ID_KEY = "template_id";
 
-  @Autowired
-  private GremlinService gremlinService;
+  @Autowired private GremlinService gremlinService;
 
   @Nonnull
   @Override

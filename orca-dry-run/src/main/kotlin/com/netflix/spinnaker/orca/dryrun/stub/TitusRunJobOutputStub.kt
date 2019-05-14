@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.dryrun.stub
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.UUID
 
 @Component
 class TitusRunJobOutputStub : OutputStub {

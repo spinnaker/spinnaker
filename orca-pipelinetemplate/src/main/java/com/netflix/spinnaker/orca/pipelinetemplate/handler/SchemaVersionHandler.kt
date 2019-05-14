@@ -26,9 +26,9 @@ class SchemaVersionHandler
 @Autowired constructor(
   private val v1SchemaHandlerGroup: V1SchemaHandlerGroup,
   private val v2SchemaHandlerGroup: V2SchemaHandlerGroup
-): Handler {
+) : Handler {
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {
-    when(context.getRequest().schema) {
+    when (context.getRequest().schema) {
       "1" -> chain.add(v1SchemaHandlerGroup)
       "v2" -> chain.add(v2SchemaHandlerGroup)
       else -> context.getErrors().add(

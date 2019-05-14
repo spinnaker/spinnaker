@@ -16,47 +16,47 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsImageFinder implements ImageFinder {
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Override
-  public Collection<ImageDetails> byTags(Stage stage, String packageName, Map<String, String> tags) {
+  public Collection<ImageDetails> byTags(
+      Stage stage, String packageName, Map<String, String> tags) {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
-    List<Map> result = oortService.findImage(getCloudProvider(),
-      (String) stage.getContext().get("imageLabelOrSha"),
-      null,
-      null,
-      null);
+    List<Map> result =
+        oortService.findImage(
+            getCloudProvider(),
+            (String) stage.getContext().get("imageLabelOrSha"),
+            null,
+            null,
+            null);
 
-    List<EcsImage> allMatchedImages = result
-      .stream()
-      .map(image -> objectMapper.convertValue(image, EcsImage.class))
-      .sorted()
-      .collect(Collectors.toList());
+    List<EcsImage> allMatchedImages =
+        result.stream()
+            .map(image -> objectMapper.convertValue(image, EcsImage.class))
+            .sorted()
+            .collect(Collectors.toList());
 
     HashSet<ImageDetails> response = Sets.newHashSet(allMatchedImages.get(0).toImageDetails());
     return response;
@@ -68,31 +68,24 @@ public class EcsImageFinder implements ImageFinder {
   }
 
   static Map<String, String> prefixTags(Map<String, String> tags) {
-    return tags.entrySet()
-      .stream()
-      .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
+    return tags.entrySet().stream()
+        .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
   }
 
   static class StageData {
-    @JsonProperty
-    Collection<String> regions;
+    @JsonProperty Collection<String> regions;
   }
 
   public static class EcsImage implements Comparable<EcsImage> {
-    @JsonProperty
-    String imageName;
+    @JsonProperty String imageName;
 
-    @JsonProperty
-    Map<String, Object> attributes;
+    @JsonProperty Map<String, Object> attributes;
 
-    @JsonProperty
-    Map<String, Map<String, String>> tagsByImageId;
+    @JsonProperty Map<String, Map<String, String>> tagsByImageId;
 
-    @JsonProperty
-    Map<String, List<String>> amis;
+    @JsonProperty Map<String, List<String>> amis;
 
-    @JsonProperty
-    String region;
+    @JsonProperty String region;
 
     ImageDetails toImageDetails() {
       String imageId;
@@ -103,11 +96,8 @@ public class EcsImageFinder implements ImageFinder {
         imageId = imageName;
       }
 
-
-
       return new EcsImageDetails(
-        imageId, imageName, region, new JenkinsDetails("host", "name", "1337001")
-      );
+          imageId, imageName, region, new JenkinsDetails("host", "name", "1337001"));
     }
 
     private List<String> getEcrRepositoryResult() {
@@ -129,12 +119,16 @@ public class EcsImageFinder implements ImageFinder {
       }
 
       // a lexicographic sort is sufficient given that `creationDate` is ISO 8601
-      return o.attributes.get("creationDate").toString().compareTo(attributes.get("creationDate").toString());
+      return o.attributes
+          .get("creationDate")
+          .toString()
+          .compareTo(attributes.get("creationDate").toString());
     }
   }
 
   private static class EcsImageDetails extends HashMap<String, Object> implements ImageDetails {
-    EcsImageDetails(String imageName, String imageId, String region, JenkinsDetails jenkinsDetails) {
+    EcsImageDetails(
+        String imageName, String imageId, String region, JenkinsDetails jenkinsDetails) {
       put("imageName", imageName);
       put("imageId", imageId);
 

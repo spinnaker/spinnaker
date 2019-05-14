@@ -23,27 +23,36 @@ import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.ValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
-public class V2TemplateSchemaValidator<T extends V2TemplateSchemaValidator.SchemaValidatorContext> implements SchemaValidator<T> {
+public class V2TemplateSchemaValidator<T extends V2TemplateSchemaValidator.SchemaValidatorContext>
+    implements SchemaValidator<T> {
 
   private static final String SUPPORTED_VERSION = "v2";
 
   @Override
-  public void validate(VersionedSchema pipelineTemplate, Errors errors, SchemaValidatorContext context) {
+  public void validate(
+      VersionedSchema pipelineTemplate, Errors errors, SchemaValidatorContext context) {
     if (!(pipelineTemplate instanceof V2PipelineTemplate)) {
       throw new IllegalArgumentException("Expected PipelineTemplate");
     }
     V2PipelineTemplate template = (V2PipelineTemplate) pipelineTemplate;
 
     if (!SUPPORTED_VERSION.equals(template.getSchemaVersion())) {
-      errors.add(new Error()
-        .withMessage("template schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + template.getSchemaVersion() + "'"));
+      errors.add(
+          new Error()
+              .withMessage(
+                  "template schema version is unsupported: expected '"
+                      + SUPPORTED_VERSION
+                      + "', got '"
+                      + template.getSchemaVersion()
+                      + "'"));
     }
 
     if (template.getProtect() && context.configHasStages) {
-      errors.add(new Error()
-        .withMessage("Modification of the stage graph (adding, removing, editing) is disallowed")
-        .withCause("The template being used has marked itself as protected")
-      );
+      errors.add(
+          new Error()
+              .withMessage(
+                  "Modification of the stage graph (adding, removing, editing) is disallowed")
+              .withCause("The template being used has marked itself as protected"));
     }
 
     // TODO(jacobkiefer): Validate the template stages in some manner.

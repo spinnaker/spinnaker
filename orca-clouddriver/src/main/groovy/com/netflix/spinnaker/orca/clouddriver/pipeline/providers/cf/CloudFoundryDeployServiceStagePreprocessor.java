@@ -35,8 +35,8 @@ public class CloudFoundryDeployServiceStagePreprocessor implements DeployService
   @Override
   public void addSteps(TaskNode.Builder builder, Stage stage) {
     builder
-      .withTask("deployService", CloudFoundryDeployServiceTask.class)
-      .withTask("monitorDeployService", CloudFoundryMonitorKatoServicesTask.class)
-      .withTask("waitForDeployService", CloudFoundryWaitForDeployServiceTask.class);
+        .withTask("deployService", CloudFoundryDeployServiceTask.class)
+        .withTask("monitorDeployService", CloudFoundryMonitorKatoServicesTask.class)
+        .withTask("waitForDeployService", CloudFoundryWaitForDeployServiceTask.class);
   }
 }

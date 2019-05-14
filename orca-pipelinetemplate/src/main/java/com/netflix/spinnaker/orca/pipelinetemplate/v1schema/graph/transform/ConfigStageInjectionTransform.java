@@ -22,26 +22,25 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Replaces and injects configuration-defined stages into the pipeline template.
  *
- * If the template does not have any stages, all stages from the configuration
- * will be added. This can be useful in situations where users want to publish
- * pipeline traits, then wire them together through configuration-level stages.
- * This offers more flexibility in addition to inheritance relatively for free.
+ * <p>If the template does not have any stages, all stages from the configuration will be added.
+ * This can be useful in situations where users want to publish pipeline traits, then wire them
+ * together through configuration-level stages. This offers more flexibility in addition to
+ * inheritance relatively for free.
  */
 public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
@@ -68,7 +67,11 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       for (int i = 0; i < templateStages.size(); i++) {
         if (templateStages.get(i).getId().equals(confStage.getId())) {
           templateStages.set(i, confStage);
-          log.debug("Template '{}' stage '{}' replaced by config {}", pipelineTemplate.getId(), confStage.getId(), templateConfiguration.getRuntimeId());
+          log.debug(
+              "Template '{}' stage '{}' replaced by config {}",
+              pipelineTemplate.getId(),
+              confStage.getId(),
+              templateConfiguration.getRuntimeId());
         }
       }
     }
@@ -78,39 +81,47 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     List<StageDefinition> addStages = new ArrayList<>();
     List<StageDefinition> templateStages = pipelineTemplate.getStages();
 
-    // For each looped stage in the graph, inject its internal stage graph into the main template, then delete
+    // For each looped stage in the graph, inject its internal stage graph into the main template,
+    // then delete
     // the container stages.
-    templateStages.stream().filter(StageDefinition::isLooping).forEach(loopingPlaceholder -> {
-      List<StageDefinition> stages = loopingPlaceholder.getLoopedStages();
+    templateStages.stream()
+        .filter(StageDefinition::isLooping)
+        .forEach(
+            loopingPlaceholder -> {
+              List<StageDefinition> stages = loopingPlaceholder.getLoopedStages();
 
-      createGraph(stages);
+              createGraph(stages);
 
-      Map<String, StageDefinition> graph = stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
-      Set<String> leafNodes = getLeafNodes(graph);
+              Map<String, StageDefinition> graph =
+                  stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
+              Set<String> leafNodes = getLeafNodes(graph);
 
-      stages.stream()
-        .filter(s -> s.getDependsOn().isEmpty())
-        .forEach(s -> {
-          s.setDependsOn(loopingPlaceholder.getDependsOn());
-          s.setRequisiteStageRefIds(loopingPlaceholder.getRequisiteStageRefIds());
-        });
+              stages.stream()
+                  .filter(s -> s.getDependsOn().isEmpty())
+                  .forEach(
+                      s -> {
+                        s.setDependsOn(loopingPlaceholder.getDependsOn());
+                        s.setRequisiteStageRefIds(loopingPlaceholder.getRequisiteStageRefIds());
+                      });
 
-      templateStages.stream()
-        .filter(s -> s.getDependsOn().contains(loopingPlaceholder.getId()))
-        .forEach(s -> {
-          s.getDependsOn().remove(loopingPlaceholder.getId());
-          s.getDependsOn().addAll(leafNodes);
-        });
+              templateStages.stream()
+                  .filter(s -> s.getDependsOn().contains(loopingPlaceholder.getId()))
+                  .forEach(
+                      s -> {
+                        s.getDependsOn().remove(loopingPlaceholder.getId());
+                        s.getDependsOn().addAll(leafNodes);
+                      });
 
-      templateStages.stream()
-        .filter(s -> s.getRequisiteStageRefIds().contains(loopingPlaceholder.getId()))
-        .forEach(s -> {
-          s.getRequisiteStageRefIds().remove(loopingPlaceholder.getId());
-          s.getRequisiteStageRefIds().addAll(leafNodes);
-        });
+              templateStages.stream()
+                  .filter(s -> s.getRequisiteStageRefIds().contains(loopingPlaceholder.getId()))
+                  .forEach(
+                      s -> {
+                        s.getRequisiteStageRefIds().remove(loopingPlaceholder.getId());
+                        s.getRequisiteStageRefIds().addAll(leafNodes);
+                      });
 
-      addStages.addAll(stages);
-    });
+              addStages.addAll(stages);
+            });
 
     templateStages.addAll(addStages);
     templateStages.removeIf(StageDefinition::isLooping);
@@ -120,49 +131,66 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     List<StageDefinition> addStages = new ArrayList<>();
     List<StageDefinition> templateStages = pipelineTemplate.getStages();
 
-    // For each "partial" type stage in the graph, inject its internal stage graph into the main template, then
-    // delete the "partial" type stages. Root-level partial stages will inherit the placeholder's dependsOn values,
-    // and stages that had dependsOn references to the placeholder will be reassigned to partial leaf nodes.
-    templateStages.stream().filter(StageDefinition::isPartialType).forEach(partialPlaceholder -> {
-      PartialDefinition partial = pipelineTemplate.getPartials().stream()
-        .filter(p -> p.getRenderedPartials().containsKey(partialPlaceholder.getId()))
-        .findFirst()
-        .orElseThrow(() -> new IllegalTemplateConfigurationException(String.format("Could not find rendered partial: %s", partialPlaceholder.getId())));
+    // For each "partial" type stage in the graph, inject its internal stage graph into the main
+    // template, then
+    // delete the "partial" type stages. Root-level partial stages will inherit the placeholder's
+    // dependsOn values,
+    // and stages that had dependsOn references to the placeholder will be reassigned to partial
+    // leaf nodes.
+    templateStages.stream()
+        .filter(StageDefinition::isPartialType)
+        .forEach(
+            partialPlaceholder -> {
+              PartialDefinition partial =
+                  pipelineTemplate.getPartials().stream()
+                      .filter(p -> p.getRenderedPartials().containsKey(partialPlaceholder.getId()))
+                      .findFirst()
+                      .orElseThrow(
+                          () ->
+                              new IllegalTemplateConfigurationException(
+                                  String.format(
+                                      "Could not find rendered partial: %s",
+                                      partialPlaceholder.getId())));
 
-      List<StageDefinition> stages = partial.getRenderedPartials().get(partialPlaceholder.getId());
+              List<StageDefinition> stages =
+                  partial.getRenderedPartials().get(partialPlaceholder.getId());
 
-      // Create a graph so we can find the leaf nodes
-      createGraph(stages);
+              // Create a graph so we can find the leaf nodes
+              createGraph(stages);
 
-      // get leaf nodes of the partial
-      Map<String, StageDefinition> graph = stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
-      Set<String> leafNodes = getLeafNodes(graph);
+              // get leaf nodes of the partial
+              Map<String, StageDefinition> graph =
+                  stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
+              Set<String> leafNodes = getLeafNodes(graph);
 
-      // assign root nodes to placeholder's dependsOn value
-      stages.stream()
-        .filter(s -> s.getDependsOn().isEmpty())
-        .forEach(s -> {
-          s.setDependsOn(partialPlaceholder.getDependsOn());
-          s.setRequisiteStageRefIds(partialPlaceholder.getRequisiteStageRefIds());
-        });
+              // assign root nodes to placeholder's dependsOn value
+              stages.stream()
+                  .filter(s -> s.getDependsOn().isEmpty())
+                  .forEach(
+                      s -> {
+                        s.setDependsOn(partialPlaceholder.getDependsOn());
+                        s.setRequisiteStageRefIds(partialPlaceholder.getRequisiteStageRefIds());
+                      });
 
-      // And assign them as the dependsOn of the placeholder partial stage
-      templateStages.stream()
-        .filter(s -> s.getDependsOn().contains(partialPlaceholder.getId()))
-        .forEach(s -> {
-          s.getDependsOn().remove(partialPlaceholder.getId());
-          s.getDependsOn().addAll(leafNodes);
-        });
+              // And assign them as the dependsOn of the placeholder partial stage
+              templateStages.stream()
+                  .filter(s -> s.getDependsOn().contains(partialPlaceholder.getId()))
+                  .forEach(
+                      s -> {
+                        s.getDependsOn().remove(partialPlaceholder.getId());
+                        s.getDependsOn().addAll(leafNodes);
+                      });
 
-      templateStages.stream()
-        .filter(s -> s.getRequisiteStageRefIds().contains(partialPlaceholder.getId()))
-        .forEach(s -> {
-          s.getRequisiteStageRefIds().remove(partialPlaceholder.getId());
-          s.getRequisiteStageRefIds().addAll(leafNodes);
-        });
+              templateStages.stream()
+                  .filter(s -> s.getRequisiteStageRefIds().contains(partialPlaceholder.getId()))
+                  .forEach(
+                      s -> {
+                        s.getRequisiteStageRefIds().remove(partialPlaceholder.getId());
+                        s.getRequisiteStageRefIds().addAll(leafNodes);
+                      });
 
-      addStages.addAll(stages);
-    });
+              addStages.addAll(stages);
+            });
 
     // Add partial stages into template stages list
     templateStages.addAll(addStages);
@@ -172,16 +200,16 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   }
 
   private void injectStages(PipelineTemplate pipelineTemplate) {
-    // Create initial graph via dependsOn. We need to include stages that the configuration defines with dependsOn as well
+    // Create initial graph via dependsOn. We need to include stages that the configuration defines
+    // with dependsOn as well
     List<StageDefinition> initialStages = pipelineTemplate.getStages();
 
-    initialStages.addAll(templateConfiguration.getStages().stream()
-      .filter(s -> !s.getDependsOn().isEmpty())
-      .collect(Collectors.toList()));
+    initialStages.addAll(
+        templateConfiguration.getStages().stream()
+            .filter(s -> !s.getDependsOn().isEmpty())
+            .collect(Collectors.toList()));
 
-    pipelineTemplate.setStages(
-      createGraph(initialStages)
-    );
+    pipelineTemplate.setStages(createGraph(initialStages));
 
     // Handle stage injections.
     injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
@@ -193,16 +221,17 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     VISITED
   }
 
-  private static void dfs(String stageId,
-                          Set<StageDefinition> result,
-                          Map<String, Status> state,
-                          Map<String, StageDefinition> graph,
-                          Map<String, Integer> outOrder) {
+  private static void dfs(
+      String stageId,
+      Set<StageDefinition> result,
+      Map<String, Status> state,
+      Map<String, StageDefinition> graph,
+      Map<String, Integer> outOrder) {
 
     state.put(stageId, Status.VISITING);
     StageDefinition stage = graph.get(stageId);
 
-    if(stage == null) {
+    if (stage == null) {
       state.put(stageId, Status.VISITED);
       return;
     }
@@ -211,8 +240,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       Status status = state.get(n);
       if (status == Status.VISITING) {
         throw new IllegalTemplateConfigurationException(
-          String.format("Cycle detected in graph (discovered on stage: %s)", stageId)
-        );
+            String.format("Cycle detected in graph (discovered on stage: %s)", stageId));
       }
 
       if (status == Status.VISITED) {
@@ -224,10 +252,13 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     result.add(stage);
     state.put(stage.getId(), Status.VISITED);
-    stage.getRequisiteStageRefIds().forEach( s -> {
-      int order = outOrder.getOrDefault(s, 0);
-      outOrder.put(s, order + 1);
-    });
+    stage
+        .getRequisiteStageRefIds()
+        .forEach(
+            s -> {
+              int order = outOrder.getOrDefault(s, 0);
+              outOrder.put(s, order + 1);
+            });
   }
 
   private static List<StageDefinition> createGraph(List<StageDefinition> stages) {
@@ -236,18 +267,16 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     stages.forEach(s -> s.setRequisiteStageRefIds(s.getDependsOn()));
 
-    Map<String, StageDefinition> graph = stages
-      .stream()
-      .collect(
-        Collectors.toMap(StageDefinition::getId, i -> i)
-      );
+    Map<String, StageDefinition> graph =
+        stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, new HashMap<>()));
 
     return new ArrayList<>(sorted);
   }
 
-  private static void injectStages(List<StageDefinition> stages, List<StageDefinition> templateStages) {
+  private static void injectStages(
+      List<StageDefinition> stages, List<StageDefinition> templateStages) {
     // Using a stream here can cause a ConcurrentModificationException.
     for (StageDefinition s : new ArrayList<>(stages)) {
       if (s.getInject() == null || !s.getInject().hasAny()) {
@@ -279,16 +308,18 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
         continue;
       }
 
-      throw new IllegalTemplateConfigurationException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
+      throw new IllegalTemplateConfigurationException(
+          String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
     }
   }
 
   private static void injectFirst(StageDefinition stage, List<StageDefinition> allStages) {
     if (!allStages.isEmpty()) {
-      allStages.forEach(s -> {
-        if(s.getRequisiteStageRefIds().isEmpty())
-          s.getRequisiteStageRefIds().add(stage.getId());
-      });
+      allStages.forEach(
+          s -> {
+            if (s.getRequisiteStageRefIds().isEmpty())
+              s.getRequisiteStageRefIds().add(stage.getId());
+          });
       allStages.add(0, stage);
     } else {
       allStages.add(stage);
@@ -300,26 +331,23 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     Set<StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
 
-    Map<String, StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(StageDefinition::getId, i -> i)
-      );
+    Map<String, StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
 
     // leaf nodes are stages with outOrder 0
     graph.keySet().forEach(k -> outOrder.put(k, 0));
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
-    sorted
-      .stream()
-      .filter(i -> outOrder.get(i.getId()) == 0)
-      .forEach(i -> stage.getRequisiteStageRefIds().add(i.getId()));
+    sorted.stream()
+        .filter(i -> outOrder.get(i.getId()) == 0)
+        .forEach(i -> stage.getRequisiteStageRefIds().add(i.getId()));
 
     allStages.add(stage);
     graph.put(stage.getId(), stage);
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static void injectBefore(StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
+  private static void injectBefore(
+      StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
     Set<String> targetEdges = new LinkedHashSet<>();
     SortedSet<Integer> targetIndexes = new TreeSet<>();
     for (String targetId : targetIds) {
@@ -334,61 +362,55 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     stage.getRequisiteStageRefIds().addAll(targetEdges);
     allStages.add(targetIndexes.last(), stage);
 
-    Map<String, StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(StageDefinition::getId, i -> i)
-      );
+    Map<String, StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
 
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static void ensureNoCyclesInDAG(List<StageDefinition> allStages, Map<String, StageDefinition> graph) {
+  private static void ensureNoCyclesInDAG(
+      List<StageDefinition> allStages, Map<String, StageDefinition> graph) {
     Map<String, Status> state = new HashMap<>();
-    allStages
-      .stream()
-      .collect(
-        Collectors.toMap(StageDefinition::getId, i -> i)
-      ).forEach((k, v) -> dfs(k, new LinkedHashSet<>(), state, graph, new HashMap<>()));
+    allStages.stream()
+        .collect(Collectors.toMap(StageDefinition::getId, i -> i))
+        .forEach((k, v) -> dfs(k, new LinkedHashSet<>(), state, graph, new HashMap<>()));
   }
 
-  private static void injectAfter(StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
+  private static void injectAfter(
+      StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
     Map<String, Integer> outOrder = new HashMap<>();
     Set<StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
 
-    Map<String, StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(StageDefinition::getId, i -> i)
-      );
+    Map<String, StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
 
     SortedSet<Integer> targetIndexes = new TreeSet<>();
-    for (String targetId: targetIds) {
+    for (String targetId : targetIds) {
       StageDefinition target = graph.get(targetId);
       if (target == null) {
         throw new IllegalTemplateConfigurationException(
-          String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getId(), targetId)
-        );
+            String.format(
+                "could not inject '%s' stage: unknown target stage id '%s'",
+                stage.getId(), targetId));
       }
 
       targetIndexes.add(allStages.indexOf(target));
       stage.getRequisiteStageRefIds().add(target.getId());
 
       // 1. find edges to target stage
-      Set<StageDefinition> edges = graph.entrySet()
-        .stream()
-        .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
-        .map(Map.Entry::getValue)
-        .collect(Collectors.toSet());
+      Set<StageDefinition> edges =
+          graph.entrySet().stream()
+              .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
+              .map(Map.Entry::getValue)
+              .collect(Collectors.toSet());
 
       // 2. swap target with stage being inserted
-      edges
-        .stream()
-        .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
-        .forEach(e -> e.getRequisiteStageRefIds().add(stage.getId()));
+      edges.stream()
+          .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
+          .forEach(e -> e.getRequisiteStageRefIds().add(stage.getId()));
     }
 
     // 3. add in the sorted graph
@@ -398,14 +420,17 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static StageDefinition getInjectionTarget(String stageId, String targetId, List<StageDefinition> allStages) {
-    return allStages
-      .stream()
-      .filter(pts -> pts.getId().equals(targetId))
-      .findFirst()
-      .orElseThrow(() -> new IllegalTemplateConfigurationException(
-        String.format("could not inject '%s' stage: unknown target stage id '%s'", stageId, targetId)
-      ));
+  private static StageDefinition getInjectionTarget(
+      String stageId, String targetId, List<StageDefinition> allStages) {
+    return allStages.stream()
+        .filter(pts -> pts.getId().equals(targetId))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalTemplateConfigurationException(
+                    String.format(
+                        "could not inject '%s' stage: unknown target stage id '%s'",
+                        stageId, targetId)));
   }
 
   private static Set<String> getLeafNodes(Map<String, StageDefinition> graph) {
@@ -417,10 +442,9 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     graph.keySet().forEach(k -> outOrder.put(k, 0));
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
 
-    return sorted
-      .stream()
-      .filter(i -> outOrder.get(i.getId()) == 0)
-      .map(StageDefinition::getId)
-      .collect(Collectors.toSet());
+    return sorted.stream()
+        .filter(i -> outOrder.get(i.getId()) == 0)
+        .map(StageDefinition::getId)
+        .collect(Collectors.toSet());
   }
 }

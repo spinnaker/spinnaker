@@ -21,5 +21,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan({"com.netflix.spinnaker.orca.cf"})
-public class CloudFoundryConfiguration {
-}
+public class CloudFoundryConfiguration {}

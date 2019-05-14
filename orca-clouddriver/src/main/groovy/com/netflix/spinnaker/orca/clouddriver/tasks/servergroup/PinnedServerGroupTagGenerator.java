@@ -18,13 +18,12 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @Component
 public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
@@ -32,53 +31,49 @@ public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenera
 
   public static final String PINNED_CAPACITY_TAG = "spinnaker:pinned_capacity";
 
-
   @Override
-  public Collection<Map<String, Object>> generateTags(Stage stage,
-                                                      String serverGroup,
-                                                      String account,
-                                                      String location,
-                                                      String cloudProvider) {
+  public Collection<Map<String, Object>> generateTags(
+      Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     StageData stageData = stage.mapTo(StageData.class);
     if (stageData.capacity == null || stageData.sourceServerGroupCapacitySnapshot == null) {
       return Collections.emptyList();
     }
 
     if (stageData.capacity.min.equals(stageData.sourceServerGroupCapacitySnapshot.min)) {
-      // min capacity was not actually pinned, no need to mark this server group as having a pinned capacity
+      // min capacity was not actually pinned, no need to mark this server group as having a pinned
+      // capacity
       return Collections.emptyList();
     }
 
-    Map<String, Object> value = ImmutableMap.<String, Object>builder()
-      .put("serverGroup", serverGroup)
-      .put("account", account)
-      .put("location", location)
-      .put("cloudProvider", cloudProvider)
-      .put("executionId", stage.getExecution().getId())
-      .put("executionType", stage.getExecution().getType())
-      .put("stageId", stage.getId())
-      .put("pinnedCapacity", stageData.capacity.toMap())
-      .put("unpinnedCapacity", stageData.sourceServerGroupCapacitySnapshot.toMap())
-      .build();
+    Map<String, Object> value =
+        ImmutableMap.<String, Object>builder()
+            .put("serverGroup", serverGroup)
+            .put("account", account)
+            .put("location", location)
+            .put("cloudProvider", cloudProvider)
+            .put("executionId", stage.getExecution().getId())
+            .put("executionType", stage.getExecution().getType())
+            .put("stageId", stage.getId())
+            .put("pinnedCapacity", stageData.capacity.toMap())
+            .put("unpinnedCapacity", stageData.sourceServerGroupCapacitySnapshot.toMap())
+            .build();
 
     log.debug(
-      "{}:{}:{} has been tagged with '{}' (executionId: {}, stageId: {}, value: {})",
-      account,
-      location,
-      serverGroup,
-      PINNED_CAPACITY_TAG,
-      stage.getExecution().getId(),
-      stage.getId(),
-      value
-    );
+        "{}:{}:{} has been tagged with '{}' (executionId: {}, stageId: {}, value: {})",
+        account,
+        location,
+        serverGroup,
+        PINNED_CAPACITY_TAG,
+        stage.getExecution().getId(),
+        stage.getId(),
+        value);
 
     return Collections.singletonList(
-      ImmutableMap.<String, Object>builder()
-        .put("name", PINNED_CAPACITY_TAG)
-        .put("namespace", "spinnaker")
-        .put("value", value)
-        .build()
-    );
+        ImmutableMap.<String, Object>builder()
+            .put("name", PINNED_CAPACITY_TAG)
+            .put("namespace", "spinnaker")
+            .put("value", value)
+            .build());
   }
 
   private static class StageData {
@@ -92,10 +87,10 @@ public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenera
 
       Map<String, Integer> toMap() {
         return ImmutableMap.<String, Integer>builder()
-          .put("min", min)
-          .put("desired", desired)
-          .put("max", max)
-          .build();
+            .put("min", min)
+            .put("desired", desired)
+            .put("max", max)
+            .build();
       }
     }
   }

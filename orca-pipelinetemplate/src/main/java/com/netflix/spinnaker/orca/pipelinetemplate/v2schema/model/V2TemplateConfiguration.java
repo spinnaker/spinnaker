@@ -19,9 +19,8 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
-import lombok.Data;
-
 import java.util.*;
+import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

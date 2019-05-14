@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -31,66 +29,66 @@ import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
 
 @Component
 public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  @Autowired
-  KatoService katoService;
+  @Autowired KatoService katoService;
 
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  SourceResolver sourceResolver;
+  @Autowired SourceResolver sourceResolver;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  MonikerHelper monikerHelper;
+  @Autowired MonikerHelper monikerHelper;
 
   @Override
   public TaskResult execute(Stage stage) {
     try {
       StageData.Source source = sourceResolver.getSource(stage);
-      String serverGroupName = Optional.ofNullable(source.getServerGroupName()).orElse(source.getAsgName());
+      String serverGroupName =
+          Optional.ofNullable(source.getServerGroupName()).orElse(source.getAsgName());
       String cloudProvider = getCloudProvider(stage);
 
-      Response serverGroupResponse = oortService.getServerGroupFromCluster(
-        monikerHelper.getAppNameFromStage(stage, serverGroupName),
-        source.getAccount(),
-        monikerHelper.getClusterNameFromStage(stage, serverGroupName),
-        serverGroupName,
-        source.getRegion(),
-        cloudProvider
-      );
+      Response serverGroupResponse =
+          oortService.getServerGroupFromCluster(
+              monikerHelper.getAppNameFromStage(stage, serverGroupName),
+              source.getAccount(),
+              monikerHelper.getClusterNameFromStage(stage, serverGroupName),
+              serverGroupName,
+              source.getRegion(),
+              cloudProvider);
 
       Map serverGroup = objectMapper.readValue(serverGroupResponse.getBody().in(), Map.class);
       String imageId = (String) ((Map) serverGroup.get("launchConfig")).get("imageId");
 
-      List<Map> tags = oortService.getEntityTags(
-        cloudProvider,
-        "servergroup",
-        serverGroupName,
-        source.getAccount(),
-        source.getRegion()
-      );
+      List<Map> tags =
+          oortService.getEntityTags(
+              cloudProvider,
+              "servergroup",
+              serverGroupName,
+              source.getAccount(),
+              source.getRegion());
 
-      List<String> tagsToDelete = tags.stream()
-        .flatMap(entityTag -> ((List<Map>) entityTag.get("tags")).stream())
-        .filter(tag -> "astrid_rules".equals(tag.get("namespace")))
-        .filter(hasNonMatchingImageId(imageId))
-        .map(t -> (String) t.get("name"))
-        .collect(Collectors.toList());
+      List<String> tagsToDelete =
+          tags.stream()
+              .flatMap(entityTag -> ((List<Map>) entityTag.get("tags")).stream())
+              .filter(tag -> "astrid_rules".equals(tag.get("namespace")))
+              .filter(hasNonMatchingImageId(imageId))
+              .map(t -> (String) t.get("name"))
+              .collect(Collectors.toList());
 
       log.info("found tags to delete {}", tagsToDelete);
       if (tagsToDelete.isEmpty()) {
@@ -100,23 +98,28 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
       // All IDs should be the same; use the first one
       String entityId = (String) tags.get(0).get("id");
 
-      TaskId taskId = katoService.requestOperations(
-        cloudProvider,
-        operations(entityId, tagsToDelete)
-      ).toBlocking().first();
+      TaskId taskId =
+          katoService
+              .requestOperations(cloudProvider, operations(entityId, tagsToDelete))
+              .toBlocking()
+              .first();
 
-      return TaskResult.builder(SUCCEEDED).context(new HashMap<String, Object>() {{
-        put("notification.type", "deleteentitytags");
-        put("kato.last.task.id", taskId);
-      }}).build();
+      return TaskResult.builder(SUCCEEDED)
+          .context(
+              new HashMap<String, Object>() {
+                {
+                  put("notification.type", "deleteentitytags");
+                  put("kato.last.task.id", taskId);
+                }
+              })
+          .build();
     } catch (Exception e) {
       log.error(
-        "Failed to clean up tags for stage {} of {} {}",
-        stage.getId(),
-        stage.getExecution().getType(),
-        stage.getExecution().getId(),
-        e
-      );
+          "Failed to clean up tags for stage {} of {} {}",
+          stage.getId(),
+          stage.getExecution().getType(),
+          stage.getExecution().getId(),
+          e);
       return TaskResult.SUCCEEDED;
     }
   }
@@ -132,12 +135,15 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
   }
 
   private List<Map<String, Map>> operations(String entityId, List<String> tags) {
-    return Collections.singletonList(Collections.singletonMap("deleteEntityTags", new HashMap<String, Object>() {
-      {
-        put("id", entityId);
-        put("tags", tags);
-      }
-    }));
+    return Collections.singletonList(
+        Collections.singletonMap(
+            "deleteEntityTags",
+            new HashMap<String, Object>() {
+              {
+                put("id", entityId);
+                put("tags", tags);
+              }
+            }));
   }
 
   @Override

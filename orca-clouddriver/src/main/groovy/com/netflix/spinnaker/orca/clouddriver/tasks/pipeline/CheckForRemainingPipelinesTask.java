@@ -27,10 +27,10 @@ public class CheckForRemainingPipelinesTask implements Task {
   @Override
   public TaskResult execute(Stage stage) {
     final SavePipelinesData savePipelines = stage.mapTo(SavePipelinesData.class);
-    if (savePipelines.getPipelinesToSave() == null || savePipelines.getPipelinesToSave().isEmpty()) {
+    if (savePipelines.getPipelinesToSave() == null
+        || savePipelines.getPipelinesToSave().isEmpty()) {
       return TaskResult.SUCCEEDED;
     }
     return TaskResult.ofStatus(ExecutionStatus.REDIRECT);
   }
-
 }

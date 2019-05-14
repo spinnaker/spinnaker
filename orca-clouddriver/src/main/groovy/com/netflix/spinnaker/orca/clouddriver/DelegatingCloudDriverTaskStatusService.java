@@ -19,11 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 
-import java.util.List;
-
 public class DelegatingCloudDriverTaskStatusService
-  extends DelegatingClouddriverService<CloudDriverTaskStatusService>
-  implements CloudDriverTaskStatusService {
+    extends DelegatingClouddriverService<CloudDriverTaskStatusService>
+    implements CloudDriverTaskStatusService {
 
   public DelegatingCloudDriverTaskStatusService(SelectableService selectableService) {
     super(selectableService);

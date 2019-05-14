@@ -23,10 +23,10 @@ public class ClusterMatchRule {
   private String detail;
   private Integer priority;
 
-  public ClusterMatchRule() {
-  }
+  public ClusterMatchRule() {}
 
-  public ClusterMatchRule(String account, String location, String stack, String detail, Integer priority) {
+  public ClusterMatchRule(
+      String account, String location, String stack, String detail, Integer priority) {
     this.account = account;
     this.location = location;
     this.stack = stack;
@@ -73,5 +73,4 @@ public class ClusterMatchRule {
   public void setPriority(Integer priority) {
     this.priority = priority;
   }
-
 }

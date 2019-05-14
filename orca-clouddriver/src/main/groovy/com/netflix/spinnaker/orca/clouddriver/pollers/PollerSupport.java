@@ -16,48 +16,51 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pollers;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import java.util.Optional;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-
-import java.util.Optional;
-
-import static java.lang.String.format;
 
 public class PollerSupport {
   private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
   private final OortService oortService;
 
-  public PollerSupport(ObjectMapper objectMapper, RetrySupport retrySupport, OortService oortService) {
+  public PollerSupport(
+      ObjectMapper objectMapper, RetrySupport retrySupport, OortService oortService) {
     this.objectMapper = objectMapper;
     this.retrySupport = retrySupport;
     this.oortService = oortService;
   }
 
   public Optional<ServerGroup> fetchServerGroup(String account, String region, String name) {
-    return retrySupport.retry(() -> {
-      try {
-        Response response = oortService.getServerGroup(account, region, name);
-        return Optional.of(objectMapper.readValue(response.getBody().in(), ServerGroup.class));
-      } catch (Exception e) {
-        if (e instanceof RetrofitError) {
-          RetrofitError re = (RetrofitError) e;
-          if (re.getResponse() != null && re.getResponse().getStatus() == 404) {
-            return Optional.empty();
-          }
-        }
+    return retrySupport.retry(
+        () -> {
+          try {
+            Response response = oortService.getServerGroup(account, region, name);
+            return Optional.of(objectMapper.readValue(response.getBody().in(), ServerGroup.class));
+          } catch (Exception e) {
+            if (e instanceof RetrofitError) {
+              RetrofitError re = (RetrofitError) e;
+              if (re.getResponse() != null && re.getResponse().getStatus() == 404) {
+                return Optional.empty();
+              }
+            }
 
-        throw new PollerException(
-          format(
-            "Unable to fetch server group (account: %s, region: %s, serverGroup: %s)", account, region, name
-          ),
-          e
-        );
-      }
-    }, 5, 2000, false);
+            throw new PollerException(
+                format(
+                    "Unable to fetch server group (account: %s, region: %s, serverGroup: %s)",
+                    account, region, name),
+                e);
+          }
+        },
+        5,
+        2000,
+        false);
   }
 
   static class PollerException extends RuntimeException {

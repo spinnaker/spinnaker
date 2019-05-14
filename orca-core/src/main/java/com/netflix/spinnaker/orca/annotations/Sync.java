@@ -21,10 +21,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used for flagging application event listeners as synchronous. By default, orca's event listeners will be setup
- * as asynchronous unless explicitly flagged with this annotation.
+ * Used for flagging application event listeners as synchronous. By default, orca's event listeners
+ * will be setup as asynchronous unless explicitly flagged with this annotation.
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Sync {
-}
+public @interface Sync {}

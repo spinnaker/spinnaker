@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.orca.StageResolver
 import com.netflix.spinnaker.orca.dryrun.DryRunStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

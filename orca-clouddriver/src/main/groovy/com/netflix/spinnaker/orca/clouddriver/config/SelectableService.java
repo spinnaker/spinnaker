@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import org.springframework.util.Assert;
-
 import java.util.List;
+import org.springframework.util.Assert;
 
 public class SelectableService {
   private final List<ServiceSelector> serviceSelectors;
@@ -30,13 +29,12 @@ public class SelectableService {
   public Object getService(Criteria criteria) {
     Assert.notNull(criteria);
 
-    return serviceSelectors
-      .stream()
-      .filter(it -> it.supports(criteria))
-      .sorted((a,b) -> b.getPriority() - a.getPriority())
-      .findFirst()
-      .map(ServiceSelector::getService)
-      .orElse(serviceSelectors.get(0).getService());
+    return serviceSelectors.stream()
+        .filter(it -> it.supports(criteria))
+        .sorted((a, b) -> b.getPriority() - a.getPriority())
+        .findFirst()
+        .map(ServiceSelector::getService)
+        .orElse(serviceSelectors.get(0).getService());
   }
 
   public static class Criteria {
@@ -46,15 +44,17 @@ public class SelectableService {
     private final String executionId;
     private final String origin;
 
-    public Criteria(String application, String authenticatedUser, String executionType, String origin) {
+    public Criteria(
+        String application, String authenticatedUser, String executionType, String origin) {
       this(application, authenticatedUser, executionType, null, origin);
     }
 
-    public Criteria(String application,
-                    String authenticatedUser,
-                    String executionType,
-                    String executionId,
-                    String origin) {
+    public Criteria(
+        String application,
+        String authenticatedUser,
+        String executionType,
+        String executionId,
+        String origin) {
       this.application = application;
       this.authenticatedUser = authenticatedUser;
       this.executionType = executionType;

@@ -16,38 +16,37 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask
+    implements RetryableTask {
   static final String REFRESH_TYPE = "Image";
 
-  @Autowired
-  CloudDriverCacheService cacheService;
+  @Autowired CloudDriverCacheService cacheService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public TaskResult execute(Stage stage) {
-//    TODO-AJ Support force cache refresh for 'Image' (clouddriver-aws)
-//    TODO (duftler): Support force cache refresh for 'Image' (clouddriver-google)
-//    String cloudProvider = getCloudProvider(stage)
-//
-//    stage.context.targets.each { Map target ->
-//      cacheService.forceCacheUpdate(
-//        cloudProvider, REFRESH_TYPE, [account: target.account, imageName: target.imageName, region: target.region]
-//      )
-//    }
+    //    TODO-AJ Support force cache refresh for 'Image' (clouddriver-aws)
+    //    TODO (duftler): Support force cache refresh for 'Image' (clouddriver-google)
+    //    String cloudProvider = getCloudProvider(stage)
+    //
+    //    stage.context.targets.each { Map target ->
+    //      cacheService.forceCacheUpdate(
+    //        cloudProvider, REFRESH_TYPE, [account: target.account, imageName: target.imageName,
+    // region: target.region]
+    //      )
+    //    }
 
     return TaskResult.SUCCEEDED;
   }

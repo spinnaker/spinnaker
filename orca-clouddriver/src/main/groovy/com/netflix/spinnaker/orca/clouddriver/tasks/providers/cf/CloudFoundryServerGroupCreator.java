@@ -22,12 +22,11 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import java.util.*;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.util.*;
 
 @Slf4j
 @Component
@@ -43,13 +42,16 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   @Override
   public List<Map> getOperations(Stage stage) {
     Map<String, Object> context = stage.getContext();
-    ImmutableMap.Builder<String, Object> operation = ImmutableMap.<String, Object>builder()
-      .put("application", context.get("application"))
-      .put("credentials", context.get("account"))
-      .put("startApplication", context.get("startApplication"))
-      .put("region", context.get("region"))
-      .put("applicationArtifact", applicationArtifact(stage, context.get("applicationArtifact")))
-      .put("manifest", manifestArtifact(stage, context.get("manifest")));
+    ImmutableMap.Builder<String, Object> operation =
+        ImmutableMap.<String, Object>builder()
+            .put("application", context.get("application"))
+            .put("credentials", context.get("account"))
+            .put("startApplication", context.get("startApplication"))
+            .put("region", context.get("region"))
+            .put(
+                "applicationArtifact",
+                applicationArtifact(stage, context.get("applicationArtifact")))
+            .put("manifest", manifestArtifact(stage, context.get("manifest")));
 
     if (context.get("stack") != null) {
       operation.put("stack", context.get("stack"));
@@ -59,16 +61,19 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
       operation.put("freeFormDetails", context.get("freeFormDetails"));
     }
 
-    return Collections.singletonList(ImmutableMap.<String, Object>builder()
-      .put(OPERATION, operation.build())
-      .build());
+    return Collections.singletonList(
+        ImmutableMap.<String, Object>builder().put(OPERATION, operation.build()).build());
   }
 
   private Artifact applicationArtifact(Stage stage, Object input) {
-    ApplicationArtifact applicationArtifactInput = mapper.convertValue(input, ApplicationArtifact.class);
-    Artifact artifact = artifactResolver.getBoundArtifactForStage(stage, applicationArtifactInput.getArtifactId(),
-      applicationArtifactInput.getArtifact());
-    if(artifact == null) {
+    ApplicationArtifact applicationArtifactInput =
+        mapper.convertValue(input, ApplicationArtifact.class);
+    Artifact artifact =
+        artifactResolver.getBoundArtifactForStage(
+            stage,
+            applicationArtifactInput.getArtifactId(),
+            applicationArtifactInput.getArtifact());
+    if (artifact == null) {
       throw new IllegalArgumentException("Unable to bind the application artifact");
     }
 
@@ -96,10 +101,8 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
 
   @Data
   private static class ApplicationArtifact {
-    @Nullable
-    private String artifactId;
+    @Nullable private String artifactId;
 
-    @Nullable
-    private Artifact artifact;
+    @Nullable private Artifact artifact;
   }
 }

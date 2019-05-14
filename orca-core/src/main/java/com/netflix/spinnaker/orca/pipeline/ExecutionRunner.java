@@ -16,35 +16,27 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collection;
-
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-
-import static java.lang.String.format;
 
 public interface ExecutionRunner {
   void start(@Nonnull Execution execution) throws Exception;
 
-  default void restart(
-    @Nonnull Execution execution, @Nonnull String stageId) throws Exception {
+  default void restart(@Nonnull Execution execution, @Nonnull String stageId) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default void reschedule(
-    @Nonnull Execution execution) throws Exception {
+  default void reschedule(@Nonnull Execution execution) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default void unpause(
-    @Nonnull Execution execution) throws Exception {
+  default void unpause(@Nonnull Execution execution) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default void cancel(
-    @Nonnull Execution execution,
-    @Nonnull String user, @Nullable String reason) throws Exception {
+  default void cancel(@Nonnull Execution execution, @Nonnull String user, @Nullable String reason)
+      throws Exception {
     throw new UnsupportedOperationException();
   }
 }

@@ -16,33 +16,32 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.*;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static java.util.Calendar.*;
 import static java.util.Collections.singletonList;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.orca.RetryableTask;
+import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 /**
- * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
- * current time is within that window.
+ * A stage that suspends execution of pipeline if the current stage is restricted to run during a
+ * time window and current time is within that window.
  */
 @Component
 public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
@@ -52,9 +51,9 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
   public static final String TYPE = "restrictExecutionDuringTimeWindow";
 
   @Override
-  public void taskGraph(
-    @Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
-    builder.withTask("suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask.class);
+  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+    builder.withTask(
+        "suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask.class);
 
     try {
       JitterConfig jitter = stage.mapTo("/restrictedExecutionWindow/jitter", JitterConfig.class);
@@ -120,11 +119,13 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
   @Component
   @VisibleForTesting
   private static class SuspendExecutionDuringTimeWindowTask implements RetryableTask {
-    @Override public long getBackoffPeriod() {
+    @Override
+    public long getBackoffPeriod() {
       return TimeUnit.SECONDS.toMillis(30);
     }
 
-    @Override public long getTimeout() {
+    @Override
+    public long getTimeout() {
       return TimeUnit.DAYS.toMillis(7);
     }
 
@@ -138,17 +139,24 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
     @Value("${tasks.executionWindow.timezone:America/Los_Angeles}")
     String timeZoneId;
 
-    @Override public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+    @Override
+    public @Nonnull TaskResult execute(@Nonnull Stage stage) {
       Instant now = Instant.now();
       Instant scheduledTime;
       try {
         scheduledTime = getTimeInWindow(stage, now);
       } catch (Exception e) {
-        return TaskResult.builder(TERMINAL).context(Collections.singletonMap("failureReason", "Exception occurred while calculating time window: " + e.getMessage())).build();
+        return TaskResult.builder(TERMINAL)
+            .context(
+                Collections.singletonMap(
+                    "failureReason",
+                    "Exception occurred while calculating time window: " + e.getMessage()))
+            .build();
       }
       if (now.equals(scheduledTime) || now.isAfter(scheduledTime)) {
         return TaskResult.SUCCEEDED;
-      } else if (parseBoolean(stage.getContext().getOrDefault("skipRemainingWait", "false").toString())) {
+      } else if (parseBoolean(
+          stage.getContext().getOrDefault("skipRemainingWait", "false").toString())) {
         return TaskResult.SUCCEEDED;
       } else {
         stage.setScheduledTime(scheduledTime.toEpochMilli());
@@ -188,7 +196,8 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
         this.days = days;
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return format("[ whitelist: %s, days: %s ]", whitelist, days);
       }
     }
@@ -231,7 +240,8 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
         this.endMin = endMin;
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return format("[ start: %d:%s, end: %d:%d ]", startHour, startMin, endHour, endMin);
       }
     }
@@ -249,14 +259,18 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
       try {
         RestrictedExecutionWindowConfig config = stage.mapTo(RestrictedExecutionWindowConfig.class);
         List<TimeWindow> whitelistWindows = new ArrayList<>();
-        log.info("Calculating scheduled time for {}; {}", stage.getId(), config.restrictedExecutionWindow);
+        log.info(
+            "Calculating scheduled time for {}; {}",
+            stage.getId(),
+            config.restrictedExecutionWindow);
         for (TimeWindowConfig timeWindow : config.restrictedExecutionWindow.whitelist) {
           LocalTime start = LocalTime.of(timeWindow.startHour, timeWindow.startMin);
           LocalTime end = LocalTime.of(timeWindow.endHour, timeWindow.endMin);
 
           whitelistWindows.add(new TimeWindow(start, end));
         }
-        return calculateScheduledTime(scheduledTime, whitelistWindows, config.restrictedExecutionWindow.days);
+        return calculateScheduledTime(
+            scheduledTime, whitelistWindows, config.restrictedExecutionWindow.days);
 
       } catch (IncorrectTimeWindowsException ite) {
         throw new RuntimeException("Incorrect time windows specified", ite);
@@ -264,11 +278,18 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
     }
 
     @VisibleForTesting
-    private Instant calculateScheduledTime(Instant scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays) throws IncorrectTimeWindowsException {
+    private Instant calculateScheduledTime(
+        Instant scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays)
+        throws IncorrectTimeWindowsException {
       return calculateScheduledTime(scheduledTime, whitelistWindows, whitelistDays, false);
     }
 
-    private Instant calculateScheduledTime(Instant scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays, boolean dayIncremented) throws IncorrectTimeWindowsException {
+    private Instant calculateScheduledTime(
+        Instant scheduledTime,
+        List<TimeWindow> whitelistWindows,
+        List<Integer> whitelistDays,
+        boolean dayIncremented)
+        throws IncorrectTimeWindowsException {
       if ((whitelistWindows.isEmpty()) && !whitelistDays.isEmpty()) {
         whitelistWindows = singletonList(new TimeWindow(LocalTime.of(0, 0), LocalTime.of(23, 59)));
       }
@@ -317,9 +338,11 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
       if (!inWindow) {
         if (!dayIncremented) {
           resetToTomorrow(calendar);
-          return calculateScheduledTime(calendar.getTime().toInstant(), whitelistWindows, whitelistDays, true);
+          return calculateScheduledTime(
+              calendar.getTime().toInstant(), whitelistWindows, whitelistDays, true);
         } else {
-          throw new IncorrectTimeWindowsException("Couldn't calculate a suitable time within given time windows");
+          throw new IncorrectTimeWindowsException(
+              "Couldn't calculate a suitable time within given time windows");
         }
       }
 
@@ -372,7 +395,8 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
         this.end = end;
       }
 
-      @Override public int compareTo(Object o) {
+      @Override
+      public int compareTo(Object o) {
         TimeWindow rhs = (TimeWindow) o;
         return this.start.compareTo(rhs.start);
       }
@@ -380,7 +404,8 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
       int indexOf(LocalTime current) {
         if (current.isBefore(this.start)) {
           return -1;
-        } else if ((current.isAfter(this.start) || current.equals(this.start)) && (current.isBefore(this.end) || current.equals(this.end))) {
+        } else if ((current.isAfter(this.start) || current.equals(this.start))
+            && (current.isBefore(this.end) || current.equals(this.end))) {
           return 0;
         } else {
           return 1;
@@ -395,10 +420,10 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
         return end;
       }
 
-      private static
-      final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+      private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return format("{%s to %s}", start.format(FORMAT), end.format(FORMAT));
       }
     }

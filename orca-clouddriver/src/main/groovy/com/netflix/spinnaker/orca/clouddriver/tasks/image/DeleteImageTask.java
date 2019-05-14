@@ -16,26 +16,24 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import com.google.common.collect.ImmutableMap;
+import static java.util.stream.Collectors.toList;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.image.DeleteImageStage;
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
+import javax.annotation.Nonnull;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DeleteImageTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -48,25 +46,30 @@ public class DeleteImageTask extends AbstractCloudProviderAwareTask implements R
 
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    DeleteImageStage.DeleteImageRequest deleteImageRequest = stage.mapTo(DeleteImageStage.DeleteImageRequest.class);
+    DeleteImageStage.DeleteImageRequest deleteImageRequest =
+        stage.mapTo(DeleteImageStage.DeleteImageRequest.class);
     validateInputs(deleteImageRequest);
 
-    List<Map<String, Map>> operations = deleteImageRequest
-      .getImageIds()
-      .stream()
-      .map( imageId -> {
-        Map<String, Object> operation = new HashMap<>();
-        operation.put("credentials", deleteImageRequest.getCredentials());
-        operation.put("region", deleteImageRequest.getRegion());
-        operation.put("imageId", imageId);
+    List<Map<String, Map>> operations =
+        deleteImageRequest.getImageIds().stream()
+            .map(
+                imageId -> {
+                  Map<String, Object> operation = new HashMap<>();
+                  operation.put("credentials", deleteImageRequest.getCredentials());
+                  operation.put("region", deleteImageRequest.getRegion());
+                  operation.put("imageId", imageId);
 
-        Map<String , Map> tmp = new HashMap<>();
-        tmp.put("deleteImage", operation);
-        return tmp;
-      }).collect(toList());
+                  Map<String, Map> tmp = new HashMap<>();
+                  tmp.put("deleteImage", operation);
+                  return tmp;
+                })
+            .collect(toList());
 
-    TaskId taskId = katoService
-      .requestOperations(deleteImageRequest.getCloudProvider(), operations).toBlocking().first();
+    TaskId taskId =
+        katoService
+            .requestOperations(deleteImageRequest.getCloudProvider(), operations)
+            .toBlocking()
+            .first();
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deleteImage");
@@ -78,15 +81,14 @@ public class DeleteImageTask extends AbstractCloudProviderAwareTask implements R
   }
 
   private void validateInputs(DeleteImageStage.DeleteImageRequest createIssueRequest) {
-    Set<ConstraintViolation<DeleteImageStage.DeleteImageRequest>> violations = Validation.buildDefaultValidatorFactory()
-      .getValidator()
-      .validate(createIssueRequest);
+    Set<ConstraintViolation<DeleteImageStage.DeleteImageRequest>> violations =
+        Validation.buildDefaultValidatorFactory().getValidator().validate(createIssueRequest);
     if (!violations.isEmpty()) {
       throw new IllegalArgumentException(
-        "Failed validation: " + violations.stream()
-          .map(v -> String.format("%s: %s", v.getPropertyPath().toString(), v.getMessage()))
-          .collect(Collectors.toList())
-      );
+          "Failed validation: "
+              + violations.stream()
+                  .map(v -> String.format("%s: %s", v.getPropertyPath().toString(), v.getMessage()))
+                  .collect(Collectors.toList()));
     }
   }
 

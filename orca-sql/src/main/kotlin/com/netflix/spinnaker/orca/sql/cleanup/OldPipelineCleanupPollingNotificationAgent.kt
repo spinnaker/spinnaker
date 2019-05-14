@@ -128,7 +128,7 @@ class OldPipelineCleanupPollingNotificationAgent(
         )
       } catch (e: Exception) {
         log.error("Failed to cleanup old pipelines for $application (pipelineConfigId: $pipelineConfigId)", e)
-        errorsCounter.increment();
+        errorsCounter.increment()
       }
     }
   }
@@ -142,9 +142,11 @@ class OldPipelineCleanupPollingNotificationAgent(
    * be used to indicate that a specific number of the most recent executions should be preserved even though they are
    * older than [thresholdMillis].
    */
-  private fun performCleanup(application: String,
-                             pipelineConfigId: String,
-                             thresholdMillis: Long) : Int {
+  private fun performCleanup(
+    application: String,
+    pipelineConfigId: String,
+    thresholdMillis: Long
+  ): Int {
     val deletedExecutionCount = AtomicInteger()
 
     val executionsToRemove = jooq

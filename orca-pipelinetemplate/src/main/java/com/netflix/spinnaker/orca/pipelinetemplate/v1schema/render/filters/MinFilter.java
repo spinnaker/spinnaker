@@ -15,16 +15,15 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters;
 
+import static java.lang.String.format;
+
 import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.lib.filter.Filter;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 public class MinFilter implements Filter {
 
@@ -39,18 +38,25 @@ public class MinFilter implements Filter {
       throw new InterpretException("min filter can only be used with a list type object");
     }
 
-    List<Double> casted = (List<Double>) ((Collection) var).stream()
-      .map(v -> {
-        try {
-          return Double.valueOf(String.valueOf(v));
-        } catch (NumberFormatException e) {
-          throw new InterpretException(format("min filter requires list of numeric values, %s given", v), e);
-        }
-      })
-      .collect(Collectors.toList());
+    List<Double> casted =
+        (List<Double>)
+            ((Collection) var)
+                .stream()
+                    .map(
+                        v -> {
+                          try {
+                            return Double.valueOf(String.valueOf(v));
+                          } catch (NumberFormatException e) {
+                            throw new InterpretException(
+                                format("min filter requires list of numeric values, %s given", v),
+                                e);
+                          }
+                        })
+                    .collect(Collectors.toList());
 
     if (casted.isEmpty()) {
-      throw new InterpretException("min filter must be provided a list of numeric values with at least one value");
+      throw new InterpretException(
+          "min filter must be provided a list of numeric values with at least one value");
     }
 
     Double min = Collections.min(casted);

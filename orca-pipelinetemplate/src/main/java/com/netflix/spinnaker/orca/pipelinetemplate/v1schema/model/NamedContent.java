@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 public interface NamedContent<T extends NamedContent> {
 
   String getName();
+
   boolean isRemove();
+
   boolean isMerge();
+
   T merge(T overlay);
 }

@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
+import static java.util.Collections.singletonMap;
+
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.WaitUntilStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static java.util.Collections.singletonMap;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WaitUntilTask implements RetryableTask {
@@ -43,9 +41,9 @@ public class WaitUntilTask implements RetryableTask {
   }
 
   @Override
-  public @Nonnull
-  TaskResult execute(@Nonnull Stage stage) {
-    WaitUntilStage.WaitUntilStageContext context = stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
+  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+    WaitUntilStage.WaitUntilStageContext context =
+        stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
 
     if (context.getEpochMillis() == null) {
       return TaskResult.SUCCEEDED;
@@ -69,7 +67,8 @@ public class WaitUntilTask implements RetryableTask {
 
   @Override
   public long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
-    WaitUntilStage.WaitUntilStageContext context = stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
+    WaitUntilStage.WaitUntilStageContext context =
+        stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
 
     // Return a backoff time that reflects the requested target time.
     if (context.getStartTime() != null && context.getEpochMillis() != null) {

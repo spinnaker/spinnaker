@@ -28,8 +28,10 @@ class DefaultApplicationExecutionPreprocessor(
   private val properties: DefaultApplicationConfigurationProperties
 ) : ExecutionPreprocessor {
 
-  override fun supports(@Nonnull execution: MutableMap<String, Any>,
-                        @Nonnull type: ExecutionPreprocessor.Type): Boolean = true
+  override fun supports(
+    @Nonnull execution: MutableMap<String, Any>,
+    @Nonnull type: ExecutionPreprocessor.Type
+  ): Boolean = true
 
   override fun process(execution: MutableMap<String, Any>): MutableMap<String, Any> {
     if (!execution.containsKey("application")) {

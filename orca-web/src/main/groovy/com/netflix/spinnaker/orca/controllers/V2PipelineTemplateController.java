@@ -19,6 +19,9 @@ package com.netflix.spinnaker.orca.controllers;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -27,18 +30,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping(value = "/v2/pipelineTemplates")
 @ConditionalOnExpression("${pipeline-templates.enabled:true}")
 @Slf4j
 public class V2PipelineTemplateController {
 
-  @Autowired
-  private ContextParameterProcessor contextParameterProcessor;
+  @Autowired private ContextParameterProcessor contextParameterProcessor;
 
   @Autowired(required = false)
   private List<ExecutionPreprocessor> executionPreprocessors = new ArrayList<>();

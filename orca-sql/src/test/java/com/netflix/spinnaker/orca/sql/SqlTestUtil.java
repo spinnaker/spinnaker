@@ -15,8 +15,15 @@
  */
 package com.netflix.spinnaker.orca.sql;
 
+import static org.jooq.SQLDialect.MYSQL;
+import static org.jooq.conf.RenderNameStyle.AS_IS;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.io.Closeable;
+import java.sql.SQLException;
+import java.util.Arrays;
+import javax.sql.DataSource;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -27,14 +34,6 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
-
-import javax.sql.DataSource;
-import java.io.Closeable;
-import java.sql.SQLException;
-import java.util.Arrays;
-
-import static org.jooq.SQLDialect.MYSQL;
-import static org.jooq.conf.RenderNameStyle.AS_IS;
 
 public class SqlTestUtil {
 
@@ -61,13 +60,14 @@ public class SqlTestUtil {
 
     Liquibase migrate;
     try {
-      migrate = new Liquibase(
-        "db/changelog-master.yml",
-        new ClassLoaderResourceAccessor(),
-        DatabaseFactory.getInstance()
-          .findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()))
-      );
-    } catch (DatabaseException |SQLException e) {
+      migrate =
+          new Liquibase(
+              "db/changelog-master.yml",
+              new ClassLoaderResourceAccessor(),
+              DatabaseFactory.getInstance()
+                  .findCorrectDatabaseImplementation(
+                      new JdbcConnection(dataSource.getConnection())));
+    } catch (DatabaseException | SQLException e) {
       throw new DatabaseInitializationFailed(e);
     }
 
@@ -83,15 +83,14 @@ public class SqlTestUtil {
   public static void cleanupDb(TestDatabase databaseContext) {
     // TODO rz - iterate over schema instead
     Arrays.asList(
-      "correlation_ids",
-      "orchestration_stages",
-      "orchestrations",
-      "pipeline_stages",
-      "pipelines",
-      "healthcheck"
-    ).forEach(table -> databaseContext.context.truncate(table).execute());
+            "correlation_ids",
+            "orchestration_stages",
+            "orchestrations",
+            "pipeline_stages",
+            "pipelines",
+            "healthcheck")
+        .forEach(table -> databaseContext.context.truncate(table).execute());
   }
-
 
   public static class TestDatabase implements Closeable {
     public final DSLContext context;

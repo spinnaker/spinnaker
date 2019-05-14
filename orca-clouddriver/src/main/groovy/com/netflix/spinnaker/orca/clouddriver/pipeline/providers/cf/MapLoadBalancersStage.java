@@ -24,10 +24,9 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import groovy.transform.CompileStatic;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 
 @Slf4j
 @Component
@@ -36,8 +35,8 @@ class MapLoadBalancersStage implements StageDefinitionBuilder, CloudProviderAwar
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder
-      .withTask("mapLoadBalancers", MapLoadBalancersTask.class)
-      .withTask("monitorTask", MonitorKatoTask.class)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+        .withTask("mapLoadBalancers", MapLoadBalancersTask.class)
+        .withTask("monitorTask", MonitorKatoTask.class)
+        .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
   }
 }

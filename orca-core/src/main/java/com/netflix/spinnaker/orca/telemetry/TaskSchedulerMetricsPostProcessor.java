@@ -15,20 +15,20 @@
  */
 package com.netflix.spinnaker.orca.telemetry;
 
+import static java.lang.String.format;
+
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
-import static java.lang.String.format;
-
 @Component
-public class TaskSchedulerMetricsPostProcessor extends AbstractMetricsPostProcessor<ThreadPoolTaskScheduler> {
+public class TaskSchedulerMetricsPostProcessor
+    extends AbstractMetricsPostProcessor<ThreadPoolTaskScheduler> {
 
   @Autowired
   public TaskSchedulerMetricsPostProcessor(Registry registry) {
@@ -38,13 +38,11 @@ public class TaskSchedulerMetricsPostProcessor extends AbstractMetricsPostProces
   @Override
   protected void applyMetrics(ThreadPoolTaskScheduler bean, String beanName) throws Exception {
     BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGauge =
-      (name, fn) -> {
-        Id id = registry
-          .createId(format("threadpool.%s", name))
-          .withTag("id", beanName);
+        (name, fn) -> {
+          Id id = registry.createId(format("threadpool.%s", name)).withTag("id", beanName);
 
-        registry.gauge(id, bean, ref -> fn.apply(ref.getScheduledThreadPoolExecutor()));
-      };
+          registry.gauge(id, bean, ref -> fn.apply(ref.getScheduledThreadPoolExecutor()));
+        };
 
     createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);
     createGauge.accept("maximumPoolSize", ThreadPoolExecutor::getMaximumPoolSize);

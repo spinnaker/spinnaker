@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +26,8 @@ import java.util.logging.Logger;
 
 public interface ManifestAware {
   default Map<String, List<String>> manifestNamesByNamespace(Stage stage) {
-    Map<String, List<String>> result = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
+    Map<String, List<String>> result =
+        (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
     if (result != null) {
       return result;
     }
@@ -38,7 +38,8 @@ public interface ManifestAware {
     if (name != null && location != null) {
       result.put(location, Collections.singletonList(name));
     } else {
-      Logger.getLogger(this.getClass().getName()).warning("No manifests found in stage " + stage.getId());
+      Logger.getLogger(this.getClass().getName())
+          .warning("No manifests found in stage " + stage.getId());
     }
 
     return result;

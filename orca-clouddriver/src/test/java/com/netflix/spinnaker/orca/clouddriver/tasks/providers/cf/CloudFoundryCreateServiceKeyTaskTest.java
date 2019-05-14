@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -23,19 +30,11 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-import rx.Observable;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.matches;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import rx.Observable;
 
 class CloudFoundryCreateServiceKeyTaskTest {
   @Test
@@ -52,23 +51,23 @@ class CloudFoundryCreateServiceKeyTaskTest {
     context.put("region", region);
     context.put("serviceInstanceName", "service-instance");
     context.put("serviceKeyName", "service-key");
-    when(kato.requestOperations(matches(cloudProvider),
-      eq(Collections.singletonList(Collections.singletonMap(type, context)))))
-      .thenReturn(Observable.from(new TaskId[] { taskId }));
+    when(kato.requestOperations(
+            matches(cloudProvider),
+            eq(Collections.singletonList(Collections.singletonMap(type, context)))))
+        .thenReturn(Observable.from(new TaskId[] {taskId}));
     CloudFoundryCreateServiceKeyTask task = new CloudFoundryCreateServiceKeyTask(kato);
 
-    Map<String, Object> expectedContext = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", type)
-      .put("kato.last.task.id", taskId)
-      .put("service.region", region)
-      .put("service.account", credentials)
-      .build();
-    TaskResult expected = TaskResult.builder(ExecutionStatus.SUCCEEDED).context(expectedContext).build();
+    Map<String, Object> expectedContext =
+        new ImmutableMap.Builder<String, Object>()
+            .put("notification.type", type)
+            .put("kato.last.task.id", taskId)
+            .put("service.region", region)
+            .put("service.account", credentials)
+            .build();
+    TaskResult expected =
+        TaskResult.builder(ExecutionStatus.SUCCEEDED).context(expectedContext).build();
 
-    TaskResult result = task.execute(new Stage(
-      new Execution(PIPELINE, "orca"),
-      type,
-      context));
+    TaskResult result = task.execute(new Stage(new Execution(PIPELINE, "orca"), type, context));
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expected);
   }

@@ -39,7 +39,8 @@ public class DefaultPersister implements Persister {
   }
 
   @Override
-  public void updateStatus(ExecutionType type, String executionId, ExecutionStatus executionStatus) {
+  public void updateStatus(
+      ExecutionType type, String executionId, ExecutionStatus executionStatus) {
     executionRepository.updateStatus(type, executionId, executionStatus);
   }
 }

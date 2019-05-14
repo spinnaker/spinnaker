@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -51,11 +50,11 @@ public class Base64Filter implements Filter {
 
     Context context = interpreter.getContext();
 
-    RenderContext renderContext = new DefaultRenderContext(
-      (String) context.get("application"),
-      (PipelineTemplate) context.get("pipelineTemplate"),
-      (Map<String, Object>) context.get("trigger", new HashMap<>())
-    );
+    RenderContext renderContext =
+        new DefaultRenderContext(
+            (String) context.get("application"),
+            (PipelineTemplate) context.get("pipelineTemplate"),
+            (Map<String, Object>) context.get("trigger", new HashMap<>()));
     renderContext.setLocation("base64");
     renderContext.getVariables().putAll(context);
 
@@ -64,12 +63,11 @@ public class Base64Filter implements Filter {
       value = RenderUtil.deepRender(renderer, value, renderContext);
     } catch (InterpretException e) {
       throw TemplateRenderException.fromError(
-        new Errors.Error()
-          .withMessage("Failed rendering base64 contents")
-          .withLocation(renderContext.getLocation())
-          .withDetail("source", value.toString()),
-        e
-      );
+          new Errors.Error()
+              .withMessage("Failed rendering base64 contents")
+              .withLocation(renderContext.getLocation())
+              .withDetail("source", value.toString()),
+          e);
     }
 
     return Base64.getEncoder().encodeToString(value.toString().getBytes(StandardCharsets.UTF_8));

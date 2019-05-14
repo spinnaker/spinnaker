@@ -16,23 +16,20 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-import java.util.Optional;
-
 @Component
 public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
-  @Autowired
-  private OortHelper oortHelper;
+  @Autowired private OortHelper oortHelper;
 
   @Override
   public long getBackoffPeriod() {
@@ -48,27 +45,33 @@ public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     StageData data = stage.mapTo(StageData.class);
-    String autoscalingMode = (String) getTargetGroupForLocation(data, data.getRegion())
-      .getAutoscalingPolicy()
-      .get("mode");
-    return AutoscalingMode.valueOf(autoscalingMode) == data.getMode() ?
-      TaskResult.SUCCEEDED :
-      TaskResult.RUNNING;
+    String autoscalingMode =
+        (String)
+            getTargetGroupForLocation(data, data.getRegion()).getAutoscalingPolicy().get("mode");
+    return AutoscalingMode.valueOf(autoscalingMode) == data.getMode()
+        ? TaskResult.SUCCEEDED
+        : TaskResult.RUNNING;
   }
 
   private TargetServerGroup getTargetGroupForLocation(StageData data, String location) {
-    Optional<TargetServerGroup> maybeTargetServerGroup = oortHelper.getTargetServerGroup(
-      data.getAccountName(), data.getServerGroupName(), location, "gce");
+    Optional<TargetServerGroup> maybeTargetServerGroup =
+        oortHelper.getTargetServerGroup(
+            data.getAccountName(), data.getServerGroupName(), location, "gce");
 
     if (!maybeTargetServerGroup.isPresent()) {
-      throw new IllegalStateException(String.format("No server group found (serverGroupName: %s:%s)",
-        location, data.getServerGroupName()));
+      throw new IllegalStateException(
+          String.format(
+              "No server group found (serverGroupName: %s:%s)",
+              location, data.getServerGroupName()));
     }
     return maybeTargetServerGroup.get();
   }
 
   enum AutoscalingMode {
-    ON, OFF, ONLY_DOWN, ONLY_UP
+    ON,
+    OFF,
+    ONLY_DOWN,
+    ONLY_UP
   }
 
   @Data

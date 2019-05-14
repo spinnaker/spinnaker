@@ -21,12 +21,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CheckPipelineResultsTask implements Task {
@@ -39,39 +38,48 @@ public class CheckPipelineResultsTask implements Task {
 
   @Override
   public TaskResult execute(Stage stage) {
-    final SavePipelineResultsData previousSavePipelineResults = stage.mapTo(SavePipelineResultsData.class);
+    final SavePipelineResultsData previousSavePipelineResults =
+        stage.mapTo(SavePipelineResultsData.class);
     final SavePipelinesData savePipelinesData = stage.mapTo(SavePipelinesData.class);
-    final List<PipelineReferenceData> previousCreated = previousSavePipelineResults.getPipelinesCreated();
-    final List<PipelineReferenceData> previousUpdated = previousSavePipelineResults.getPipelinesUpdated();
-    final List<PipelineReferenceData> previousFailedToSave = previousSavePipelineResults.getPipelinesFailedToSave();
-    final SavePipelineResultsData savePipelineResults = new SavePipelineResultsData(
-      previousCreated == null ? new ArrayList() : previousCreated,
-      previousUpdated == null ? new ArrayList() : previousUpdated,
-      previousFailedToSave == null ? new ArrayList() : previousFailedToSave
-    );
+    final List<PipelineReferenceData> previousCreated =
+        previousSavePipelineResults.getPipelinesCreated();
+    final List<PipelineReferenceData> previousUpdated =
+        previousSavePipelineResults.getPipelinesUpdated();
+    final List<PipelineReferenceData> previousFailedToSave =
+        previousSavePipelineResults.getPipelinesFailedToSave();
+    final SavePipelineResultsData savePipelineResults =
+        new SavePipelineResultsData(
+            previousCreated == null ? new ArrayList() : previousCreated,
+            previousUpdated == null ? new ArrayList() : previousUpdated,
+            previousFailedToSave == null ? new ArrayList() : previousFailedToSave);
 
-    stage.getTasks().stream().filter( task -> task.getName().equals("savePipeline")).findFirst()
-      .ifPresent(savePipelineTask -> {
-        final String application = (String) stage.getContext().get("application");
-        final String pipelineName = (String) stage.getContext().get("pipeline.name");
-        final String pipelineId = (String) stage.getContext().get("pipeline.id");
-        final PipelineReferenceData ref = new PipelineReferenceData(application, pipelineName, pipelineId);
-        if (savePipelineTask.getStatus().isSuccessful()) {
-          final Boolean isExistingPipeline = (Boolean) Optional.ofNullable(stage.getContext().get("isExistingPipeline"))
-            .orElse(false);
-          if (isExistingPipeline) {
-            savePipelineResults.getPipelinesUpdated().add(ref);
-          } else {
-            savePipelineResults.getPipelinesCreated().add(ref);
-          }
-        } else {
-          savePipelineResults.getPipelinesFailedToSave().add(ref);
-        }
-      });
+    stage.getTasks().stream()
+        .filter(task -> task.getName().equals("savePipeline"))
+        .findFirst()
+        .ifPresent(
+            savePipelineTask -> {
+              final String application = (String) stage.getContext().get("application");
+              final String pipelineName = (String) stage.getContext().get("pipeline.name");
+              final String pipelineId = (String) stage.getContext().get("pipeline.id");
+              final PipelineReferenceData ref =
+                  new PipelineReferenceData(application, pipelineName, pipelineId);
+              if (savePipelineTask.getStatus().isSuccessful()) {
+                final Boolean isExistingPipeline =
+                    (Boolean)
+                        Optional.ofNullable(stage.getContext().get("isExistingPipeline"))
+                            .orElse(false);
+                if (isExistingPipeline) {
+                  savePipelineResults.getPipelinesUpdated().add(ref);
+                } else {
+                  savePipelineResults.getPipelinesCreated().add(ref);
+                }
+              } else {
+                savePipelineResults.getPipelinesFailedToSave().add(ref);
+              }
+            });
 
-    final Map<String, ?> output = objectMapper.
-      convertValue(savePipelineResults, new TypeReference<Map<String, Object>>() {});
+    final Map<String, ?> output =
+        objectMapper.convertValue(savePipelineResults, new TypeReference<Map<String, Object>>() {});
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(output).build();
   }
-
 }

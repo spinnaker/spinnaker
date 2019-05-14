@@ -20,8 +20,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * The Concourse job name and build number that is executing for
- * a particular Concourse stage execution.
+ * The Concourse job name and build number that is executing for a particular Concourse stage
+ * execution.
  */
 @RequiredArgsConstructor
 @Getter

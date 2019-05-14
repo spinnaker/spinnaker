@@ -19,12 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Front50SchemeLoader implements TemplateSchemeLoader {
@@ -33,7 +32,8 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
   private final ObjectMapper objectMapper;
 
   @Autowired
-  public Front50SchemeLoader(Optional<Front50Service> front50Service, ObjectMapper pipelineTemplateObjectMapper) {
+  public Front50SchemeLoader(
+      Optional<Front50Service> front50Service, ObjectMapper pipelineTemplateObjectMapper) {
     this.front50Service = front50Service.orElse(null);
     this.objectMapper = pipelineTemplateObjectMapper;
   }
@@ -47,7 +47,8 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
   @Override
   public PipelineTemplate load(URI uri) {
     if (front50Service == null) {
-      throw new TemplateLoaderException("Cannot load templates without front50 enabled. Set 'front50.enabled: true' in your orca config.");
+      throw new TemplateLoaderException(
+          "Cannot load templates without front50 enabled. Set 'front50.enabled: true' in your orca config.");
     }
 
     String id = uri.getRawAuthority();

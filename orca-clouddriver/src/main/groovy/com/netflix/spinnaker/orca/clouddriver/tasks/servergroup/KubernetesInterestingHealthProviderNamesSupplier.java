@@ -21,13 +21,12 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesInterestingHealthProviderNamesSupplier implements InterestingHealthProviderNamesSupplier {
-
+public class KubernetesInterestingHealthProviderNamesSupplier
+    implements InterestingHealthProviderNamesSupplier {
 
   private static final String KUBERNETES = "kubernetes";
 
   private static final List<String> SUPPORTED_STAGES = Arrays.asList("disablecluster");
-
 
   public boolean supports(String cloudProvider, Stage stage) {
     if (!cloudProvider.equals(KUBERNETES)) {

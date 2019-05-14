@@ -19,8 +19,7 @@ import java.util.HashMap;
 
 public class NamedHashMap extends HashMap<String, Object> implements NamedContent<NamedHashMap> {
 
-  public NamedHashMap() {
-  }
+  public NamedHashMap() {}
 
   private NamedHashMap(NamedHashMap m) {
     super(m);

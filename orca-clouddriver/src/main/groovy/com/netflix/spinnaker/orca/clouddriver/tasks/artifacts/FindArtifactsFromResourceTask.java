@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
@@ -26,21 +25,18 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import java.util.*;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.util.*;
 
 @Slf4j
 @Component
 public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTask implements Task {
   public static final String TASK_NAME = "findArtifactsFromResource";
 
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
   RetrySupport retrySupport = new RetrySupport();
 
@@ -51,15 +47,19 @@ public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTas
     String account = getCredentials(stage);
     Map<String, Object> outputs = new HashMap<>();
 
-    Manifest manifest = retrySupport.retry(() -> oortService.getManifest(account, stageData.location, stageData.manifestName
-      ), 5, 1000, true);
+    Manifest manifest =
+        retrySupport.retry(
+            () -> oortService.getManifest(account, stageData.location, stageData.manifestName),
+            5,
+            1000,
+            true);
 
     if (manifest != null) {
       outputs.put("manifest", manifest.getManifest());
       outputs.put("artifacts", manifest.getArtifacts());
     } else {
-      throw new IllegalArgumentException("Manifest " + stageData.manifestName + " not found in "
-        + stageData.location);
+      throw new IllegalArgumentException(
+          "Manifest " + stageData.manifestName + " not found in " + stageData.location);
     }
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();

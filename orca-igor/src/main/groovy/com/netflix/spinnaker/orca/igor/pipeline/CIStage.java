@@ -24,13 +24,12 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -42,8 +41,8 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
     CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
     String jobType = StringUtils.capitalize(getType());
     builder
-      .withTask(String.format("start%sJob", jobType), StartJenkinsJobTask.class)
-      .withTask(String.format("waitFor%sJobStart", jobType), waitForJobStartTaskClass());
+        .withTask(String.format("start%sJob", jobType), StartJenkinsJobTask.class)
+        .withTask(String.format("waitFor%sJobStart", jobType), waitForJobStartTaskClass());
 
     if (stageDefinition.isWaitForCompletion()) {
       builder.withTask(String.format("monitor%sJob", jobType), MonitorJenkinsJobTask.class);
@@ -64,8 +63,11 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   public void prepareStageForRestart(@Nonnull Stage stage) {
     Object buildInfo = stage.getContext().get("buildInfo");
     if (buildInfo != null) {
-      Map<String, Object> restartDetails = (Map<String, Object>) stage.getContext()
-        .computeIfAbsent("restartDetails", k -> new HashMap<String, Object>());
+      Map<String, Object> restartDetails =
+          (Map<String, Object>)
+              stage
+                  .getContext()
+                  .computeIfAbsent("restartDetails", k -> new HashMap<String, Object>());
       restartDetails.put("previousBuildInfo", buildInfo);
     }
     stage.getContext().remove("buildInfo");
@@ -74,20 +76,19 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
 
   @Override
   public Result cancel(final Stage stage) {
-    log.info(String.format(
-      "Cancelling stage (stageId: %s, executionId: %s context: %s)",
-      stage.getId(),
-      stage.getExecution().getId(),
-      stage.getContext()
-    ));
+    log.info(
+        String.format(
+            "Cancelling stage (stageId: %s, executionId: %s context: %s)",
+            stage.getId(), stage.getExecution().getId(), stage.getContext()));
 
     try {
       stopJenkinsJobTask.execute(stage);
     } catch (Exception e) {
       log.error(
-        String.format("Failed to cancel stage (stageId: %s, executionId: %s), e: %s", stage.getId(), stage.getExecution().getId(), e.getMessage()),
-        e
-      );
+          String.format(
+              "Failed to cancel stage (stageId: %s, executionId: %s), e: %s",
+              stage.getId(), stage.getExecution().getId(), e.getMessage()),
+          e);
     }
     return new Result(stage, new HashMap());
   }
@@ -95,23 +96,23 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   @Override
   public void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
     CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
-    if (stageDefinition.getPropertyFile() != null && !stageDefinition.getPropertyFile().equals("")) {
+    if (stageDefinition.getPropertyFile() != null
+        && !stageDefinition.getPropertyFile().equals("")) {
       log.info(
-        "Stage failed (stageId: {}, executionId: {}), trying to find requested property file in case it was archived.",
-        stage.getId(),
-        stage.getExecution().getId()
-      );
-      graph.add( (Stage s) -> {
-          s.setType(new GetPropertiesStage().getType());
-          s.setName("Try to get properties file");
-          Map<String, Object> context = new HashMap<>();
-          context.put("master", stageDefinition.getMaster());
-          context.put("job", stageDefinition.getJob());
-          context.put("propertyFile", stageDefinition.getPropertyFile());
-          context.put("buildNumber", stageDefinition.getBuildNumber());
-          s.setContext(context);
-        }
-      );
+          "Stage failed (stageId: {}, executionId: {}), trying to find requested property file in case it was archived.",
+          stage.getId(),
+          stage.getExecution().getId());
+      graph.add(
+          (Stage s) -> {
+            s.setType(new GetPropertiesStage().getType());
+            s.setName("Try to get properties file");
+            Map<String, Object> context = new HashMap<>();
+            context.put("master", stageDefinition.getMaster());
+            context.put("job", stageDefinition.getJob());
+            context.put("propertyFile", stageDefinition.getPropertyFile());
+            context.put("buildNumber", stageDefinition.getBuildNumber());
+            s.setContext(context);
+          });
     }
   }
 }

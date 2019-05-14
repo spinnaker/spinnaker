@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.eureka;
 
-import java.lang.management.ManagementFactory;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
+import java.lang.management.ManagementFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -35,8 +35,7 @@ public class DiscoveryPollingConfiguration {
   @Configuration
   @ConditionalOnMissingBean(DiscoveryClient.class)
   public static class NoDiscoveryConfiguration {
-    @Autowired
-    ApplicationEventPublisher publisher;
+    @Autowired ApplicationEventPublisher publisher;
 
     @Value("${spring.application.name:orca}")
     String appName;

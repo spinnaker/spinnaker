@@ -17,19 +17,22 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public interface ImageFinder {
   Collection<ImageDetails> byTags(Stage stage, String packageName, Map<String, String> tags);
+
   String getCloudProvider();
 
   interface ImageDetails {
     String getImageId();
+
     String getImageName();
+
     String getRegion();
+
     JenkinsDetails getJenkins();
   }
 

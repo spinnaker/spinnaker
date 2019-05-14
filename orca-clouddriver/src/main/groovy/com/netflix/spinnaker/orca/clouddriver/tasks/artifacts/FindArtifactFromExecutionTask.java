@@ -26,26 +26,23 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FindArtifactFromExecutionTask implements Task {
   public static final String TASK_NAME = "findArtifactFromExecution";
 
-  @Autowired
-  ArtifactResolver artifactResolver;
+  @Autowired ArtifactResolver artifactResolver;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Nonnull
   @Override
@@ -53,16 +50,25 @@ public class FindArtifactFromExecutionTask implements Task {
     Map<String, Object> context = stage.getContext();
     Map<String, Object> outputs = new HashMap<>();
     String pipeline = (String) context.get("pipeline");
-    ExpectedArtifact expectedArtifact = objectMapper.convertValue(context.get("expectedArtifact"), ExpectedArtifact.class);
-    ExecutionOptions executionOptions = objectMapper.convertValue(context.get("executionOptions"), ExecutionOptions.class);
+    ExpectedArtifact expectedArtifact =
+        objectMapper.convertValue(context.get("expectedArtifact"), ExpectedArtifact.class);
+    ExecutionOptions executionOptions =
+        objectMapper.convertValue(context.get("executionOptions"), ExecutionOptions.class);
 
-    List<Artifact> priorArtifacts = artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
+    List<Artifact> priorArtifacts =
+        artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
 
-    Artifact match = artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, null, false);
+    Artifact match =
+        artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, null, false);
 
     if (match == null) {
-      outputs.put("exception", "No artifact matching " + expectedArtifact + " found among " + priorArtifacts);
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(new HashMap<>()).outputs(outputs).build();
+      outputs.put(
+          "exception",
+          "No artifact matching " + expectedArtifact + " found among " + priorArtifacts);
+      return TaskResult.builder(ExecutionStatus.TERMINAL)
+          .context(new HashMap<>())
+          .outputs(outputs)
+          .build();
     }
 
     outputs.put("resolvedExpectedArtifacts", Collections.singletonList(expectedArtifact));
@@ -73,9 +79,12 @@ public class FindArtifactFromExecutionTask implements Task {
 
   @Data
   private static class ExecutionOptions {
-    // Accept either 'succeeded' or 'successful' in the stage config. The front-end sets 'successful', but due to a bug
-    // this class was only looking for 'succeeded'. Fix this by accepting 'successful' but to avoid breaking anyone who
-    // discovered this bug and manually edited their stage to set 'succeeded', continue to accept 'succeeded'.
+    // Accept either 'succeeded' or 'successful' in the stage config. The front-end sets
+    // 'successful', but due to a bug
+    // this class was only looking for 'succeeded'. Fix this by accepting 'successful' but to avoid
+    // breaking anyone who
+    // discovered this bug and manually edited their stage to set 'succeeded', continue to accept
+    // 'succeeded'.
     boolean succeeded;
     boolean successful;
 

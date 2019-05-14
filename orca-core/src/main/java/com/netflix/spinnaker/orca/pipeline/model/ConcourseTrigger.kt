@@ -41,11 +41,13 @@ data class ConcourseTrigger
 
 class ConcourseBuildInfo
 @JsonCreator
-constructor(@param:JsonProperty("name") override val name: String?,
-            @param:JsonProperty("number") override val number: Int,
-            @param:JsonProperty("url") override val url: String?,
-            @param:JsonProperty("result") override val result: String?,
-            @param:JsonProperty("artifacts") override val artifacts: List<JenkinsArtifact>?,
-            @param:JsonProperty("scm") override val scm: List<SourceControl>?,
-            @param:JsonProperty("building") override var building: Boolean = false)
-  : BuildInfo<Any>(name, number, url, result, artifacts, scm, building)
+constructor(
+  @param:JsonProperty("name") override val name: String?,
+  @param:JsonProperty("number") override val number: Int,
+  @param:JsonProperty("url") override val url: String?,
+  @param:JsonProperty("result") override val result: String?,
+  @param:JsonProperty("artifacts") override val artifacts: List<JenkinsArtifact>?,
+  @param:JsonProperty("scm") override val scm: List<SourceControl>?,
+  @param:JsonProperty("building") override var building: Boolean = false
+) :
+  BuildInfo<Any>(name, number, url, result, artifacts, scm, building)

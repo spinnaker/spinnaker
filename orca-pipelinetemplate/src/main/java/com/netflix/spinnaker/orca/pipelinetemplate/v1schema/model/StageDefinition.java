@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-
 import java.util.*;
 
 public class StageDefinition implements Identifiable, Conditional, Cloneable {
@@ -36,17 +35,13 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
   private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
   private String loopWith;
 
-  @JsonIgnore
-  private List<StageDefinition> loopedStages = new ArrayList<>();
+  @JsonIgnore private List<StageDefinition> loopedStages = new ArrayList<>();
 
-  @JsonIgnore
-  private Map<String, Object> loopContext = new HashMap<>();
+  @JsonIgnore private Map<String, Object> loopContext = new HashMap<>();
 
-  @JsonIgnore
-  private Boolean removed = false;
+  @JsonIgnore private Boolean removed = false;
 
-  @JsonIgnore
-  private PartialDefinitionContext partialDefinitionContext;
+  @JsonIgnore private PartialDefinitionContext partialDefinitionContext;
 
   public static class InjectionRule implements Cloneable {
 
@@ -176,7 +171,8 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     private final PartialDefinition partialDefinition;
     private final StageDefinition markerStage;
 
-    public PartialDefinitionContext(PartialDefinition partialDefinition, StageDefinition markerStage) {
+    public PartialDefinitionContext(
+        PartialDefinition partialDefinition, StageDefinition markerStage) {
       this.partialDefinition = partialDefinition;
       this.markerStage = markerStage;
     }
@@ -330,7 +326,7 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
       return null;
     }
 
-    List<String> bits =  ON_DOTS.splitToList(type);
+    List<String> bits = ON_DOTS.splitToList(type);
     return bits.get(bits.size() - 1);
   }
 
@@ -365,7 +361,6 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     StageDefinition that = (StageDefinition) o;
 
     return id != null ? id.equals(that.id) : that.id == null;
-
   }
 
   @Override

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 class PageApplicationOwnerStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder
-      .withTask("pageApplicationOwner", PageApplicationOwnerTask.class);
+    builder.withTask("pageApplicationOwner", PageApplicationOwnerTask.class);
   }
 }

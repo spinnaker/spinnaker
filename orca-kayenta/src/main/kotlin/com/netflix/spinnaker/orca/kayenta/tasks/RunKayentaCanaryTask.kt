@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.kayenta.model.RunCanaryContext
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.util.Collections.singletonMap
 
 @Component
 class RunKayentaCanaryTask(

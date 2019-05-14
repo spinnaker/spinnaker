@@ -18,13 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.service;
 
 import com.netflix.spinnaker.orca.clouddriver.config.JobConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JobService {
@@ -32,20 +30,22 @@ public class JobService {
   @Autowired JobConfigurationProperties jobConfigurationProperties;
 
   public List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
-    if(jobConfigurationProperties.getTitus()==null && jobConfigurationProperties.getKubernetes()==null){
+    if (jobConfigurationProperties.getTitus() == null
+        && jobConfigurationProperties.getKubernetes() == null) {
       return Collections.EMPTY_LIST;
     }
 
     List<PreconfiguredJobStageProperties> preconfiguredJobStageProperties = new ArrayList<>();
-    if (jobConfigurationProperties.getTitus() != null && !jobConfigurationProperties.getTitus().isEmpty()) {
+    if (jobConfigurationProperties.getTitus() != null
+        && !jobConfigurationProperties.getTitus().isEmpty()) {
       preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getTitus());
     }
 
-    if (jobConfigurationProperties.getKubernetes() != null && !jobConfigurationProperties.getKubernetes().isEmpty()) {
+    if (jobConfigurationProperties.getKubernetes() != null
+        && !jobConfigurationProperties.getKubernetes().isEmpty()) {
       preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getKubernetes());
     }
 
     return preconfiguredJobStageProperties;
   }
-
 }

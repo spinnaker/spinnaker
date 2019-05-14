@@ -31,8 +31,9 @@ public class FindArtifactsFromResourceStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
-      .withTask(FindArtifactsFromResourceTask.TASK_NAME, FindArtifactsFromResourceTask.class)
-      .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+    builder
+        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+        .withTask(FindArtifactsFromResourceTask.TASK_NAME, FindArtifactsFromResourceTask.class)
+        .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }
 }

@@ -23,5 +23,4 @@ import lombok.Data;
 public class PreconfiguredJobStageParameter extends PreconfiguredStageParameter {
 
   String mapping;
-
 }

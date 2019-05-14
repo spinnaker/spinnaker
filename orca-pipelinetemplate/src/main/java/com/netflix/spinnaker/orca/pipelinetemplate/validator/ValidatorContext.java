@@ -15,5 +15,4 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.validator;
 
-public interface ValidatorContext {
-}
+public interface ValidatorContext {}

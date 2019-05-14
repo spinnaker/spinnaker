@@ -16,47 +16,46 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.AbstractWaitForServiceTask;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.AbstractWaitForServiceTask;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import javax.annotation.Nullable;
+
 class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWaitForServiceTask> {
   private final String operationType;
   private final Function<OortService, T> subjectConstructor;
 
   AbstractCloudFoundryWaitForServiceOperationTaskTest(
-    String operationType,
-    Function<OortService, T> subjectConstructor) {
+      String operationType, Function<OortService, T> subjectConstructor) {
     this.operationType = operationType;
     this.subjectConstructor = subjectConstructor;
   }
 
-  void testOortServiceStatus(ExecutionStatus expectedStatus, @Nullable Map<String, Object> serviceInstance) {
+  void testOortServiceStatus(
+      ExecutionStatus expectedStatus, @Nullable Map<String, Object> serviceInstance) {
     OortService oortService = mock(OortService.class);
     String credentials = "my-account";
     String cloudProvider = "cloud";
     String region = "org > space";
     String serviceInstanceName = "service-instance-name";
     when(oortService.getServiceInstance(
-      matches(credentials),
-      matches(cloudProvider),
-      matches(region),
-      matches(serviceInstanceName)))
-      .thenReturn(serviceInstance);
+            matches(credentials),
+            matches(cloudProvider),
+            matches(region),
+            matches(serviceInstanceName)))
+        .thenReturn(serviceInstance);
 
     T task = subjectConstructor.apply(oortService);
 
@@ -66,10 +65,8 @@ class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWait
     context.put("service.region", region);
     context.put("service.instance.name", serviceInstanceName);
 
-    TaskResult result = task.execute(new Stage(
-      new Execution(PIPELINE, "orca"),
-      operationType,
-      context));
+    TaskResult result =
+        task.execute(new Stage(new Execution(PIPELINE, "orca"), operationType, context));
 
     assertThat(result.getStatus()).isEqualTo(expectedStatus);
   }

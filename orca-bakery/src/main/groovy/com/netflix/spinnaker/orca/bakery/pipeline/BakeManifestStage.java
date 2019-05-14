@@ -28,7 +28,8 @@ import org.springframework.stereotype.Component;
 public class BakeManifestStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask("createBake", CreateBakeManifestTask.class)
+    builder
+        .withTask("createBake", CreateBakeManifestTask.class)
         .withTask("bindProducedArtifacts", BindProducedArtifactsTask.class);
   }
 }

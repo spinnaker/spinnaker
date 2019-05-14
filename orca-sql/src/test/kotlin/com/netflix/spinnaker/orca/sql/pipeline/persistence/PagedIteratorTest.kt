@@ -87,10 +87,10 @@ class PagedIteratorTest : JUnit5Minutests {
         fixture {
           PagedIterator(pageSize, String::toString) { _, cursor ->
             when (cursor) {
-              null    -> listOf("ONE", "TWO", "THREE")
+              null -> listOf("ONE", "TWO", "THREE")
               "THREE" -> listOf("FOUR", "FIVE", "SIX")
-              "SIX"   -> listOf("SEVEN")
-              else    -> emptyList()
+              "SIX" -> listOf("SEVEN")
+              else -> emptyList()
             }
           }
         }

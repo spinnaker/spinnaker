@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateConte
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.v2.V2PipelineTemplateContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.v2.V2TemplateConfigurationSchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,15 +31,12 @@ public class V2ConfigurationValidationHandler implements Handler {
   public void handle(HandlerChain chain, PipelineTemplateContext context) {
     Errors errors = new Errors();
     V2PipelineTemplateContext ctx = context.getSchemaContext();
-    List<String> stageIds = ctx.getTemplate().getStages()
-      .stream()
-      .map(s -> s.getRefId())
-      .collect(Collectors.toList());
+    List<String> stageIds =
+        ctx.getTemplate().getStages().stream().map(s -> s.getRefId()).collect(Collectors.toList());
     V2TemplateConfigurationSchemaValidator validator = new V2TemplateConfigurationSchemaValidator();
     validator.validate(
-      ctx.getConfiguration(),
-      errors,
-      new V2TemplateConfigurationSchemaValidator.SchemaValidatorContext(stageIds)
-    );
+        ctx.getConfiguration(),
+        errors,
+        new V2TemplateConfigurationSchemaValidator.SchemaValidatorContext(stageIds));
   }
 }

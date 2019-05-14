@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ContextBasedServerGroupEntityTagGenerator implements ServerGroupEntityTagGenerator {
 
   @Override
-  public List<Map<String, Object>> generateTags(Stage stage, String serverGroup, String account, String location, String cloudProvider) {
+  public List<Map<String, Object>> generateTags(
+      Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     Map context = stage.getContext();
 
     if (context.containsKey("entityTags")) {

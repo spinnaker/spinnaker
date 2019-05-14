@@ -27,8 +27,8 @@ public class DefaultComparableLooseVersion implements ComparableLooseVersion {
   }
 
   /**
-   * Groovy implementation of python LooseVersion class. Not complete and does
-   * not support all the cases which python class supports.
+   * Groovy implementation of python LooseVersion class. Not complete and does not support all the
+   * cases which python class supports.
    */
   static class LooseVersion implements Comparable {
 
@@ -43,16 +43,18 @@ public class DefaultComparableLooseVersion implements ComparableLooseVersion {
 
     private void parse() {
       try {
-        versions = stream(version.split("\\."))
-          .map(Integer::parseInt)
-          .collect(toList())
-          .toArray(new Integer[4]);
+        versions =
+            stream(version.split("\\."))
+                .map(Integer::parseInt)
+                .collect(toList())
+                .toArray(new Integer[4]);
       } catch (NumberFormatException e) {
         versions = new Integer[0];
       }
     }
 
-    @Override public int compareTo(Object o) {
+    @Override
+    public int compareTo(Object o) {
       LooseVersion rhs = (LooseVersion) o;
       if (this.version.equals(rhs.version)) return 0;
       for (int i = 0; i < 4; i++) {
@@ -60,7 +62,7 @@ public class DefaultComparableLooseVersion implements ComparableLooseVersion {
           if (versions[i] > rhs.versions[i]) return 1;
           if (versions[i] < rhs.versions[i]) return -1;
         } catch (Exception e) {
-          //assume it's different
+          // assume it's different
           return -1;
         }
       }

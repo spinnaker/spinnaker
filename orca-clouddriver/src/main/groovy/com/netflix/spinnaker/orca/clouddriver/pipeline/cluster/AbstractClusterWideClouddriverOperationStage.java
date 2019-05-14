@@ -37,21 +37,22 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import javax.annotation.Nonnull;
 import java.beans.Introspector;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
-public abstract class AbstractClusterWideClouddriverOperationStage implements StageDefinitionBuilder {
+public abstract class AbstractClusterWideClouddriverOperationStage
+    implements StageDefinitionBuilder {
 
   private final TrafficGuard trafficGuard;
   private final LockingConfigurationProperties lockingConfigurationProperties;
   private final DynamicConfigService dynamicConfigService;
 
-  protected AbstractClusterWideClouddriverOperationStage(TrafficGuard trafficGuard,
-                                                         LockingConfigurationProperties lockingConfigurationProperties,
-                                                         DynamicConfigService dynamicConfigService) {
+  protected AbstractClusterWideClouddriverOperationStage(
+      TrafficGuard trafficGuard,
+      LockingConfigurationProperties lockingConfigurationProperties,
+      DynamicConfigService dynamicConfigService) {
     this.trafficGuard = Objects.requireNonNull(trafficGuard);
     this.lockingConfigurationProperties = Objects.requireNonNull(lockingConfigurationProperties);
     this.dynamicConfigService = dynamicConfigService;
@@ -74,24 +75,24 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
       List<Location> locations = locationsFromStage(parent.getContext());
       ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
       for (Location location : locations) {
-        String lockName = ClusterLockHelper.clusterLockName(
-          clusterSelection.getMoniker(),
-          clusterSelection.getCredentials(),
-          location);
-        if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-          graph.add(stage -> {
-            stage.setType(AcquireLockStage.PIPELINE_TYPE);
-            stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-          });
+        String lockName =
+            ClusterLockHelper.clusterLockName(
+                clusterSelection.getMoniker(), clusterSelection.getCredentials(), location);
+        if (trafficGuard.hasDisableLock(
+            clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+          graph.add(
+              stage -> {
+                stage.setType(AcquireLockStage.PIPELINE_TYPE);
+                stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+              });
         }
       }
     }
     addAdditionalBeforeStages(parent, graph);
   }
 
-  protected void addAdditionalBeforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-
-  }
+  protected void addAdditionalBeforeStages(
+      @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
 
   @Override
   public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
@@ -100,23 +101,23 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
       List<Location> locations = locationsFromStage(parent.getContext());
       ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
       for (Location location : locations) {
-        String lockName = ClusterLockHelper.clusterLockName(
-          clusterSelection.getMoniker(),
-          clusterSelection.getCredentials(),
-          location);
-        if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-          graph.append(stage -> {
-            stage.setType(ReleaseLockStage.PIPELINE_TYPE);
-            stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-          });
+        String lockName =
+            ClusterLockHelper.clusterLockName(
+                clusterSelection.getMoniker(), clusterSelection.getCredentials(), location);
+        if (trafficGuard.hasDisableLock(
+            clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+          graph.append(
+              stage -> {
+                stage.setType(ReleaseLockStage.PIPELINE_TYPE);
+                stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+              });
         }
       }
     }
   }
 
-  protected void addAdditionalAfterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-
-  }
+  protected void addAdditionalAfterStages(
+      @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
 
   public static class ClusterSelection {
     private final String cluster;
@@ -126,10 +127,10 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
 
     @JsonCreator
     public ClusterSelection(
-      @JsonProperty("cluster") String cluster,
-      @JsonProperty("moniker") Moniker moniker,
-      @JsonProperty("cloudProvider") String cloudProvider,
-      @JsonProperty("credentials") String credentials) {
+        @JsonProperty("cluster") String cluster,
+        @JsonProperty("moniker") Moniker moniker,
+        @JsonProperty("cloudProvider") String cloudProvider,
+        @JsonProperty("credentials") String credentials) {
       if (cluster == null) {
         if (moniker == null || moniker.getCluster() == null) {
           throw new NullPointerException("At least one of 'cluster' and 'moniker' is required");
@@ -156,10 +157,9 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
     }
 
     public String getApplication() {
-      return Optional
-        .ofNullable(moniker)
-        .map(Moniker::getApp)
-        .orElseGet(() -> Names.parseName(cluster).getApp());
+      return Optional.ofNullable(moniker)
+          .map(Moniker::getApp)
+          .orElseGet(() -> Names.parseName(cluster).getApp());
     }
 
     public String getCluster() {
@@ -181,7 +181,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
 
   public static List<Location> locationsFromStage(Map<String, Object> context) {
 
-    //LinkedHashMap because we want to iterate in order:
+    // LinkedHashMap because we want to iterate in order:
     Map<String, Location.Type> types = new LinkedHashMap<>();
 
     types.put("namespaces", Location.Type.NAMESPACE);
@@ -195,9 +195,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
         Object value = context.get(entry.getKey());
         if (value instanceof Collection && !((Collection<String>) value).isEmpty()) {
           return new LinkedHashSet<>((Collection<String>) value)
-            .stream()
-            .map(l -> new Location(entry.getValue(), l))
-            .collect(Collectors.toList());
+              .stream().map(l -> new Location(entry.getValue(), l)).collect(Collectors.toList());
         } else if (value instanceof String && !value.toString().isEmpty()) {
           return Collections.singletonList(new Location(entry.getValue(), (String) value));
         }
@@ -217,16 +215,15 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
     String waitName = Introspector.decapitalize(getStepName(waitTask.getSimpleName()));
 
     builder
-      .withTask("determineHealthProviders", DetermineHealthProvidersTask.class)
-      .withTask(opName, operationTask)
-      .withTask("monitor" + name, MonitorKatoTask.class);
+        .withTask("determineHealthProviders", DetermineHealthProvidersTask.class)
+        .withTask(opName, operationTask)
+        .withTask("monitor" + name, MonitorKatoTask.class);
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
     }
 
-    builder
-      .withTask(waitName, waitTask);
+    builder.withTask(waitName, waitTask);
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);

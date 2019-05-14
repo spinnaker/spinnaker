@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import static java.util.Collections.emptyList;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -31,6 +33,10 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -38,13 +44,6 @@ import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
-
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static java.util.Collections.emptyList;
 
 @Component
 @RequiredArgsConstructor
@@ -56,7 +55,8 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
   private final ObjectMapper objectMapper;
   private final ContextParameterProcessor contextParameterProcessor;
 
-  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+  private static final ThreadLocal<Yaml> yamlParser =
+      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
   private final RetrySupport retrySupport = new RetrySupport();
 
   public static final String TASK_NAME = "deployManifest";
@@ -72,16 +72,18 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     Map<String, Object> task = new HashMap<>(context);
     String artifactSource = context.getSource();
     if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
-      Artifact manifestArtifact = artifactResolver.getBoundArtifactForStage(stage, context.getManifestArtifactId(),
-        context.getManifestArtifact());
+      Artifact manifestArtifact =
+          artifactResolver.getBoundArtifactForStage(
+              stage, context.getManifestArtifactId(), context.getManifestArtifact());
 
       if (manifestArtifact == null) {
         throw new IllegalArgumentException("No manifest artifact was specified.");
       }
 
-      // Once the legacy artifacts feature is removed, all trigger expected artifacts will be required to define
+      // Once the legacy artifacts feature is removed, all trigger expected artifacts will be
+      // required to define
       // an account up front.
-      if(context.getManifestArtifactAccount() != null) {
+      if (context.getManifestArtifactAccount() != null) {
         manifestArtifact.setArtifactAccount(context.getManifestArtifactAccount());
       }
 
@@ -91,45 +93,56 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
 
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
 
-      Object parsedManifests = retrySupport.retry(() -> {
-        try {
-          Response manifestText = oort.fetchArtifact(manifestArtifact);
-
-          Iterable<Object> rawManifests = yamlParser.get().loadAll(manifestText.getBody().in());
-          List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
-              .map(m -> {
+      Object parsedManifests =
+          retrySupport.retry(
+              () -> {
                 try {
-                  return Collections.singletonList(objectMapper.convertValue(m, Map.class));
+                  Response manifestText = oort.fetchArtifact(manifestArtifact);
+
+                  Iterable<Object> rawManifests =
+                      yamlParser.get().loadAll(manifestText.getBody().in());
+                  List<Map> manifests =
+                      StreamSupport.stream(rawManifests.spliterator(), false)
+                          .map(
+                              m -> {
+                                try {
+                                  return Collections.singletonList(
+                                      objectMapper.convertValue(m, Map.class));
+                                } catch (Exception e) {
+                                  return (List<Map>) objectMapper.convertValue(m, List.class);
+                                }
+                              })
+                          .flatMap(Collection::stream)
+                          .collect(Collectors.toList());
+
+                  Map<String, Object> manifestWrapper = new HashMap<>();
+                  manifestWrapper.put("manifests", manifests);
+
+                  Boolean skipExpressionEvaluation = context.getSkipExpressionEvaluation();
+                  if (skipExpressionEvaluation == null || !skipExpressionEvaluation) {
+                    manifestWrapper =
+                        contextParameterProcessor.process(
+                            manifestWrapper,
+                            contextParameterProcessor.buildExecutionContext(stage, true),
+                            true);
+
+                    if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
+                      throw new IllegalStateException(
+                          "Failure evaluating manifest expressions: "
+                              + manifestWrapper.get("expressionEvaluationSummary"));
+                    }
+                  }
+
+                  return manifestWrapper.get("manifests");
                 } catch (Exception e) {
-                  return (List<Map>) objectMapper.convertValue(m, List.class);
+                  log.warn("Failure fetching/parsing manifests from {}", manifestArtifact, e);
+                  // forces a retry
+                  throw new IllegalStateException(e);
                 }
-              })
-              .flatMap(Collection::stream)
-              .collect(Collectors.toList());
-
-          Map<String, Object> manifestWrapper = new HashMap<>();
-          manifestWrapper.put("manifests", manifests);
-
-          Boolean skipExpressionEvaluation = context.getSkipExpressionEvaluation();
-          if (skipExpressionEvaluation == null || !skipExpressionEvaluation) {
-            manifestWrapper = contextParameterProcessor.process(
-              manifestWrapper,
-              contextParameterProcessor.buildExecutionContext(stage, true),
-              true
-            );
-
-            if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
-              throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
-            }
-          }
-
-          return manifestWrapper.get("manifests");
-        } catch (Exception e) {
-          log.warn("Failure fetching/parsing manifests from {}", manifestArtifact, e);
-          // forces a retry
-          throw new IllegalStateException(e);
-        }
-      }, 10, 200, true); // retry 10x, starting at .2s intervals
+              },
+              10,
+              200,
+              true); // retry 10x, starting at .2s intervals
       task.put("manifests", parsedManifests);
       task.put("source", "text");
     }
@@ -138,18 +151,25 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     for (String id : Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList())) {
       Artifact requiredArtifact = artifactResolver.getBoundArtifactForId(stage, id);
       if (requiredArtifact == null) {
-        throw new IllegalStateException("No artifact with id '" + id + "' could be found in the pipeline context.");
+        throw new IllegalStateException(
+            "No artifact with id '" + id + "' could be found in the pipeline context.");
       }
 
       requiredArtifacts.add(requiredArtifact);
     }
 
     // resolve SpEL expressions in artifacts defined inline in the stage
-    for (DeployManifestContext.BindArtifact artifact : Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList())) {
-      Artifact requiredArtifact = artifactResolver.getBoundArtifactForStage(stage, artifact.getExpectedArtifactId(), artifact.getArtifact());
+    for (DeployManifestContext.BindArtifact artifact :
+        Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList())) {
+      Artifact requiredArtifact =
+          artifactResolver.getBoundArtifactForStage(
+              stage, artifact.getExpectedArtifactId(), artifact.getArtifact());
 
       if (requiredArtifact == null) {
-        throw new IllegalStateException("No artifact with id '" + artifact.getExpectedArtifactId() + "' could be found in the pipeline context.");
+        throw new IllegalStateException(
+            "No artifact with id '"
+                + artifact.getExpectedArtifactId()
+                + "' could be found in the pipeline context.");
       }
 
       requiredArtifacts.add(requiredArtifact);
@@ -165,22 +185,26 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       task.put("enableTraffic", context.getTrafficManagement().getOptions().isEnableTraffic());
       task.put("strategy", context.getTrafficManagement().getOptions().getStrategy().name());
     } else {
-      // For backwards compatibility, traffic is always enabled to new server groups when the new traffic management
+      // For backwards compatibility, traffic is always enabled to new server groups when the new
+      // traffic management
       // features are not enabled.
       task.put("enableTraffic", true);
     }
 
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-        .put(TASK_NAME, task)
-        .build();
+    Map<String, Map> operation =
+        new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
 
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
+    TaskId taskId =
+        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
+            .toBlocking()
+            .first();
 
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-        .put("kato.result.expected", true)
-        .put("kato.last.task.id", taskId)
-        .put("deploy.account.name", credentials)
-        .build();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>()
+            .put("kato.result.expected", true)
+            .put("kato.last.task.id", taskId)
+            .put("deploy.account.name", credentials)
+            .build();
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }

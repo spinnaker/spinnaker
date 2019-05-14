@@ -21,9 +21,8 @@ import com.netflix.spinnaker.orca.igor.tasks.GetBuildPropertiesTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
 import javax.annotation.Nonnull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GetPropertiesStage implements StageDefinitionBuilder {

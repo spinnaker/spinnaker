@@ -18,17 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.utils;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface CloudProviderAware {
-  String DEFAULT_CLOUD_PROVIDER = "aws";  // TODO: Should we fetch this from configuration instead?
+  String DEFAULT_CLOUD_PROVIDER = "aws"; // TODO: Should we fetch this from configuration instead?
   Logger cloudProviderAwareLog = LoggerFactory.getLogger(CloudProviderAware.class);
 
   default String getDefaultCloudProvider() {
@@ -48,9 +45,9 @@ public interface CloudProviderAware {
   }
 
   default String getCredentials(Map<String, Object> context) {
-    return (String) context.getOrDefault("account.name",
-      context.getOrDefault("account",
-        context.get("credentials")));
+    return (String)
+        context.getOrDefault(
+            "account.name", context.getOrDefault("account", context.get("credentials")));
   }
 
   // may return a list with 0, 1 or more regions (no guarantees on the ordering)
@@ -61,7 +58,8 @@ public interface CloudProviderAware {
     }
 
     try {
-      Map<String, Object> deployServerGroups = (Map<String, Object>) context.getOrDefault("deploy.server.groups", null);
+      Map<String, Object> deployServerGroups =
+          (Map<String, Object>) context.getOrDefault("deploy.server.groups", null);
       if (deployServerGroups == null || deployServerGroups.isEmpty()) {
         return ImmutableList.of();
       }
@@ -69,7 +67,8 @@ public interface CloudProviderAware {
       Set<String> regions = (Set<String>) deployServerGroups.keySet();
       return ImmutableList.copyOf(regions);
     } catch (ClassCastException e) {
-      cloudProviderAwareLog.error("Failed to parse deploy.server.groups in stage context " + context, e);
+      cloudProviderAwareLog.error(
+          "Failed to parse deploy.server.groups in stage context " + context, e);
       return ImmutableList.of();
     }
   }

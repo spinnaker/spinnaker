@@ -22,8 +22,8 @@ import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 
 @Component
-class TaskResultMonitor(private val registry: Registry)
-  : ApplicationListener<TaskComplete> {
+class TaskResultMonitor(private val registry: Registry) :
+  ApplicationListener<TaskComplete> {
 
   private val id = registry.createId("orca.task.result")
 

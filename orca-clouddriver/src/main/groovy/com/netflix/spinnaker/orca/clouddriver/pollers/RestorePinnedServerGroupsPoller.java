@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pollers;
 
+import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG;
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,19 +36,15 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import groovy.util.logging.Slf4j;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG;
-import static java.lang.String.format;
 
 @Slf4j
 @Component
@@ -67,37 +66,38 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
   private final Counter triggeredCounter;
 
   @Autowired
-  public RestorePinnedServerGroupsPoller(NotificationClusterLock notificationClusterLock,
-                                         ObjectMapper objectMapper,
-                                         OortService oortService,
-                                         RetrySupport retrySupport,
-                                         Registry registry,
-                                         ExecutionLauncher executionLauncher,
-                                         ExecutionRepository executionRepository,
-                                         @Value("${pollers.restorePinnedServerGroups.username:spinnaker}") String username) {
+  public RestorePinnedServerGroupsPoller(
+      NotificationClusterLock notificationClusterLock,
+      ObjectMapper objectMapper,
+      OortService oortService,
+      RetrySupport retrySupport,
+      Registry registry,
+      ExecutionLauncher executionLauncher,
+      ExecutionRepository executionRepository,
+      @Value("${pollers.restorePinnedServerGroups.username:spinnaker}") String username) {
     this(
-      notificationClusterLock,
-      objectMapper,
-      oortService,
-      retrySupport,
-      registry,
-      executionLauncher,
-      executionRepository,
-      username,
-      new PollerSupport(objectMapper, retrySupport, oortService)
-    );
+        notificationClusterLock,
+        objectMapper,
+        oortService,
+        retrySupport,
+        registry,
+        executionLauncher,
+        executionRepository,
+        username,
+        new PollerSupport(objectMapper, retrySupport, oortService));
   }
 
   @VisibleForTesting
-  public RestorePinnedServerGroupsPoller(NotificationClusterLock notificationClusterLock,
-                                  ObjectMapper objectMapper,
-                                  OortService oortService,
-                                  RetrySupport retrySupport,
-                                  Registry registry,
-                                  ExecutionLauncher executionLauncher,
-                                  ExecutionRepository executionRepository,
-                                  String username,
-                                  PollerSupport pollerSupport) {
+  public RestorePinnedServerGroupsPoller(
+      NotificationClusterLock notificationClusterLock,
+      ObjectMapper objectMapper,
+      OortService oortService,
+      RetrySupport retrySupport,
+      Registry registry,
+      ExecutionLauncher executionLauncher,
+      ExecutionRepository executionRepository,
+      String username,
+      PollerSupport pollerSupport) {
     super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
@@ -138,11 +138,13 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       return;
     }
 
-    pinnedServerGroupTags = pinnedServerGroupTags.stream()
-      .filter(this::hasCompletedExecution)
-      .collect(Collectors.toList());
+    pinnedServerGroupTags =
+        pinnedServerGroupTags.stream()
+            .filter(this::hasCompletedExecution)
+            .collect(Collectors.toList());
 
-    log.info("Found {} pinned server groups with completed executions", pinnedServerGroupTags.size());
+    log.info(
+        "Found {} pinned server groups with completed executions", pinnedServerGroupTags.size());
 
     for (PinnedServerGroupTag pinnedServerGroupTag : pinnedServerGroupTags) {
       try {
@@ -153,98 +155,127 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
         systemUser.setUsername(username);
         systemUser.setAllowedAccounts(Collections.singletonList(pinnedServerGroupTag.account));
 
-        Optional<ServerGroup> serverGroup = AuthenticatedRequest.propagate(() -> pollerSupport.fetchServerGroup(
-          pinnedServerGroupTag.account,
-          pinnedServerGroupTag.location,
-          pinnedServerGroupTag.serverGroup
-        ), systemUser).call();
+        Optional<ServerGroup> serverGroup =
+            AuthenticatedRequest.propagate(
+                    () ->
+                        pollerSupport.fetchServerGroup(
+                            pinnedServerGroupTag.account,
+                            pinnedServerGroupTag.location,
+                            pinnedServerGroupTag.serverGroup),
+                    systemUser)
+                .call();
 
-        serverGroup.ifPresent(s -> {
-          if (s.capacity.min.equals(pinnedServerGroupTag.pinnedCapacity.min)) {
-            jobs.add(0, buildResizeOperation(pinnedServerGroupTag, s));
+        serverGroup.ifPresent(
+            s -> {
+              if (s.capacity.min.equals(pinnedServerGroupTag.pinnedCapacity.min)) {
+                jobs.add(0, buildResizeOperation(pinnedServerGroupTag, s));
 
-            // ensure that the tag cleanup comes after the resize operation has completed
-            jobs.get(1).put("requisiteStageRefIds", Collections.singletonList(jobs.get(0).get("refId")));
-          }
-        });
+                // ensure that the tag cleanup comes after the resize operation has completed
+                jobs.get(1)
+                    .put(
+                        "requisiteStageRefIds",
+                        Collections.singletonList(jobs.get(0).get("refId")));
+              }
+            });
 
-        Map<String, Object> cleanupOperation = buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
+        Map<String, Object> cleanupOperation =
+            buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
         log.info((String) cleanupOperation.get("name"));
 
-        AuthenticatedRequest.propagate(() -> executionLauncher.start(
-          Execution.ExecutionType.ORCHESTRATION,
-          objectMapper.writeValueAsString(cleanupOperation)
-        ), systemUser).call();
+        AuthenticatedRequest.propagate(
+                () ->
+                    executionLauncher.start(
+                        Execution.ExecutionType.ORCHESTRATION,
+                        objectMapper.writeValueAsString(cleanupOperation)),
+                systemUser)
+            .call();
 
         triggeredCounter.increment();
       } catch (Exception e) {
-        log.error("Failed to unpin server group (serverGroup: {})", pinnedServerGroupTag.serverGroup, e);
+        log.error(
+            "Failed to unpin server group (serverGroup: {})", pinnedServerGroupTag.serverGroup, e);
         errorsCounter.increment();
       }
     }
   }
 
   public List<PinnedServerGroupTag> fetchPinnedServerGroupTags() {
-    List<EntityTags> allEntityTags = retrySupport.retry(() -> objectMapper.convertValue(
-      oortService.getEntityTags(ImmutableMap.<String, String>builder()
-        .put("tag:" + PINNED_CAPACITY_TAG, "*")
-        .put("entityType", "servergroup")
-        .build()
-      ),
-      new TypeReference<List<EntityTags>>() {
-      }
-    ), 15, 2000, false);
+    List<EntityTags> allEntityTags =
+        retrySupport.retry(
+            () ->
+                objectMapper.convertValue(
+                    oortService.getEntityTags(
+                        ImmutableMap.<String, String>builder()
+                            .put("tag:" + PINNED_CAPACITY_TAG, "*")
+                            .put("entityType", "servergroup")
+                            .build()),
+                    new TypeReference<List<EntityTags>>() {}),
+            15,
+            2000,
+            false);
 
     return allEntityTags.stream()
-      .map(e -> e.tags.stream()
-        .filter(t -> PINNED_CAPACITY_TAG.equalsIgnoreCase(t.name))
-        .map(t -> {
-          PinnedServerGroupTag pinnedServerGroupTag = objectMapper.convertValue(t.value, PinnedServerGroupTag.class);
-          pinnedServerGroupTag.id = e.id;
-          pinnedServerGroupTag.application = e.entityRef.application;
-          return pinnedServerGroupTag;
-        })
-        .findFirst()
-        .orElse(null)
-      )
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+        .map(
+            e ->
+                e.tags.stream()
+                    .filter(t -> PINNED_CAPACITY_TAG.equalsIgnoreCase(t.name))
+                    .map(
+                        t -> {
+                          PinnedServerGroupTag pinnedServerGroupTag =
+                              objectMapper.convertValue(t.value, PinnedServerGroupTag.class);
+                          pinnedServerGroupTag.id = e.id;
+                          pinnedServerGroupTag.application = e.entityRef.application;
+                          return pinnedServerGroupTag;
+                        })
+                    .findFirst()
+                    .orElse(null))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   public boolean hasCompletedExecution(PinnedServerGroupTag pinnedServerGroupTag) {
     try {
-      Execution execution = executionRepository.retrieve(
-        pinnedServerGroupTag.executionType, pinnedServerGroupTag.executionId
-      );
+      Execution execution =
+          executionRepository.retrieve(
+              pinnedServerGroupTag.executionType, pinnedServerGroupTag.executionId);
 
       return execution.getStatus().isComplete();
     } catch (ExecutionNotFoundException e) {
       return true;
     } catch (Exception e) {
-      log.warn("Unable to determine status of execution (executionId: {})", pinnedServerGroupTag.executionId, e);
+      log.warn(
+          "Unable to determine status of execution (executionId: {})",
+          pinnedServerGroupTag.executionId,
+          e);
       errorsCounter.increment();
       return false;
     }
   }
 
-  private Map<String, Object> buildCleanupOperation(PinnedServerGroupTag pinnedServerGroupTag,
-                                                    Optional<ServerGroup> serverGroup,
-                                                    List<Map<String, Object>> jobs) {
-    String name = serverGroup.map(s -> format(
-      "Unpin Server Group: %s (min: %s)",
-      pinnedServerGroupTag.serverGroup,
-      pinnedServerGroupTag.unpinnedCapacity.min
-    )).orElseGet(() -> "Deleting tags on '" + pinnedServerGroupTag.id + "'");
+  private Map<String, Object> buildCleanupOperation(
+      PinnedServerGroupTag pinnedServerGroupTag,
+      Optional<ServerGroup> serverGroup,
+      List<Map<String, Object>> jobs) {
+    String name =
+        serverGroup
+            .map(
+                s ->
+                    format(
+                        "Unpin Server Group: %s (min: %s)",
+                        pinnedServerGroupTag.serverGroup,
+                        pinnedServerGroupTag.unpinnedCapacity.min))
+            .orElseGet(() -> "Deleting tags on '" + pinnedServerGroupTag.id + "'");
 
     return ImmutableMap.<String, Object>builder()
-      .put("application", pinnedServerGroupTag.application)
-      .put("name", name)
-      .put("user", "spinnaker")
-      .put("stages", jobs)
-      .build();
+        .put("application", pinnedServerGroupTag.application)
+        .put("name", name)
+        .put("user", "spinnaker")
+        .put("stages", jobs)
+        .build();
   }
 
-  private Map<String, Object> buildDeleteEntityTagsOperation(PinnedServerGroupTag pinnedServerGroupTag) {
+  private Map<String, Object> buildDeleteEntityTagsOperation(
+      PinnedServerGroupTag pinnedServerGroupTag) {
     Map<String, Object> operation = new HashMap<>();
 
     operation.put("application", pinnedServerGroupTag.application);
@@ -255,25 +286,37 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
     return operation;
   }
 
-  private Map<String, Object> buildResizeOperation(PinnedServerGroupTag pinnedServerGroupTag, ServerGroup serverGroup) {
+  private Map<String, Object> buildResizeOperation(
+      PinnedServerGroupTag pinnedServerGroupTag, ServerGroup serverGroup) {
     return ImmutableMap.<String, Object>builder()
-      .put("refId", "1")
-      .put("asgName", pinnedServerGroupTag.serverGroup)
-      .put("serverGroupName", pinnedServerGroupTag.serverGroup)
-      .put("type", "resizeServerGroup")
-      .put("region", pinnedServerGroupTag.location)
-      .put("credentials", pinnedServerGroupTag.account)
-      .put("cloudProvider", pinnedServerGroupTag.cloudProvider)
-      .put("interestingHealthProviderNames", Collections.emptyList()) // no need to wait on health when only adjusting min capacity
-      .put("capacity", ImmutableMap.<String, Integer>builder()
-        .put("min", pinnedServerGroupTag.unpinnedCapacity.min)
-        .build()
-      )
-      .put("constraints", Collections.singletonMap("capacity", ImmutableMap.<String, Integer>builder()
-        .put("min", serverGroup.capacity.min)                         // ensure that the current min capacity has not been already changed
-        .build())
-      )
-      .build();
+        .put("refId", "1")
+        .put("asgName", pinnedServerGroupTag.serverGroup)
+        .put("serverGroupName", pinnedServerGroupTag.serverGroup)
+        .put("type", "resizeServerGroup")
+        .put("region", pinnedServerGroupTag.location)
+        .put("credentials", pinnedServerGroupTag.account)
+        .put("cloudProvider", pinnedServerGroupTag.cloudProvider)
+        .put(
+            "interestingHealthProviderNames",
+            Collections.emptyList()) // no need to wait on health when only adjusting min capacity
+        .put(
+            "capacity",
+            ImmutableMap.<String, Integer>builder()
+                .put("min", pinnedServerGroupTag.unpinnedCapacity.min)
+                .build())
+        .put(
+            "constraints",
+            Collections.singletonMap(
+                "capacity",
+                ImmutableMap.<String, Integer>builder()
+                    .put(
+                        "min",
+                        serverGroup
+                            .capacity
+                            .min) // ensure that the current min capacity has not been already
+                    // changed
+                    .build()))
+        .build();
   }
 
   public static class PinnedServerGroupTag {

@@ -26,26 +26,23 @@ import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class BindProducedArtifactsTask implements Task {
   public static final String TASK_NAME = "bindProducedArtifacts";
 
-  @Autowired
-  ArtifactResolver artifactResolver;
+  @Autowired ArtifactResolver artifactResolver;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Nonnull
   @Override
@@ -53,17 +50,17 @@ public class BindProducedArtifactsTask implements Task {
     Map<String, Object> context = stage.getContext();
     Map<String, Object> outputs = new HashMap<>();
 
-    List<ExpectedArtifact> expectedArtifacts = objectMapper.convertValue(
-        context.get("expectedArtifacts"),
-        new TypeReference<List<ExpectedArtifact>>() { }
-    );
+    List<ExpectedArtifact> expectedArtifacts =
+        objectMapper.convertValue(
+            context.get("expectedArtifacts"), new TypeReference<List<ExpectedArtifact>>() {});
 
     if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
       return TaskResult.SUCCEEDED;
     }
 
     List<Artifact> artifacts = artifactResolver.getArtifacts(stage);
-    Set<Artifact> resolvedArtifacts = artifactResolver.resolveExpectedArtifacts(expectedArtifacts, artifacts, false);
+    Set<Artifact> resolvedArtifacts =
+        artifactResolver.resolveExpectedArtifacts(expectedArtifacts, artifacts, false);
 
     outputs.put("artifacts", resolvedArtifacts);
     outputs.put("resolvedExpectedArtifacts", expectedArtifacts);

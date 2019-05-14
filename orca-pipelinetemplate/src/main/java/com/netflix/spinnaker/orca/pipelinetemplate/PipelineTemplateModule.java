@@ -16,8 +16,5 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-/**
- * Marker interface for package component scanning.
- */
-public interface PipelineTemplateModule {
-}
+/** Marker interface for package component scanning. */
+public interface PipelineTemplateModule {}

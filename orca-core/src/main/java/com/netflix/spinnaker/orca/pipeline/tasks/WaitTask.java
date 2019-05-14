@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
+import static java.util.Collections.singletonMap;
+
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static java.util.Collections.singletonMap;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WaitTask implements RetryableTask {
@@ -43,8 +41,7 @@ public class WaitTask implements RetryableTask {
   }
 
   @Override
-  public @Nonnull
-  TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     if (context.getWaitTime() == null) {
@@ -87,7 +84,6 @@ public class WaitTask implements RetryableTask {
     }
     return getBackoffPeriod();
   }
-
 
   @Override
   public long getTimeout() {

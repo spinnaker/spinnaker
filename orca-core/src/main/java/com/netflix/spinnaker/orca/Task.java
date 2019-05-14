@@ -16,8 +16,6 @@
 package com.netflix.spinnaker.orca;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
-import javax.annotation.Nonnull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,9 +23,11 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import javax.annotation.Nonnull;
 
 public interface Task {
-  @Nonnull TaskResult execute(@Nonnull Stage stage);
+  @Nonnull
+  TaskResult execute(@Nonnull Stage stage);
 
   default void onTimeout(@Nonnull Stage stage) {}
 

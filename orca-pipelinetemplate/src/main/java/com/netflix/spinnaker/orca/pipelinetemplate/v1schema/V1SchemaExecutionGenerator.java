@@ -20,16 +20,23 @@ import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class V1SchemaExecutionGenerator implements ExecutionGenerator {
 
   @Override
-  public Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, TemplatedPipelineRequest request) {
+  public Map<String, Object> generate(
+      PipelineTemplate template,
+      TemplateConfiguration configuration,
+      TemplatedPipelineRequest request) {
     Map<String, Object> pipeline = new HashMap<>();
-    pipeline.put("id", Optional.ofNullable(request.getId()).orElse(Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse("unknown")));
+    pipeline.put(
+        "id",
+        Optional.ofNullable(request.getId())
+            .orElse(
+                Optional.ofNullable(configuration.getPipeline().getPipelineConfigId())
+                    .orElse("unknown")));
     pipeline.put("application", configuration.getPipeline().getApplication());
     if (template.getSource() != null) {
       Map<String, String> source = new HashMap<>();
@@ -40,40 +47,51 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     if (request.getExecutionId() != null) {
       pipeline.put("executionId", request.getExecutionId());
     }
-    pipeline.put("name", Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
+    pipeline.put(
+        "name",
+        Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
 
     Configuration c = template.getConfiguration();
     if (c.getConcurrentExecutions().isEmpty()) {
       pipeline.put("limitConcurrent", request.isLimitConcurrent());
       pipeline.put("keepWaitingPipelines", request.isKeepWaitingPipelines());
     } else {
-      pipeline.put("limitConcurrent", c.getConcurrentExecutions().getOrDefault("limitConcurrent", request.isLimitConcurrent()));
-      pipeline.put("keepWaitingPipelines", c.getConcurrentExecutions().getOrDefault("keepWaitingPipelines", request.isKeepWaitingPipelines()));
+      pipeline.put(
+          "limitConcurrent",
+          c.getConcurrentExecutions().getOrDefault("limitConcurrent", request.isLimitConcurrent()));
+      pipeline.put(
+          "keepWaitingPipelines",
+          c.getConcurrentExecutions()
+              .getOrDefault("keepWaitingPipelines", request.isKeepWaitingPipelines()));
     }
 
     addNotifications(pipeline, template, configuration);
     addParameters(pipeline, template, configuration);
     addTriggers(pipeline, template, configuration);
 
-    pipeline.put("stages", template.getStages()
-      .stream()
-      .map(s -> {
-        Map<String, Object> stage = new HashMap<>();
-        stage.put("id", UUID.randomUUID().toString());
-        stage.put("refId", s.getId());
-        stage.put("type", s.getType());
-        stage.put("name", s.getName());
-        stage.put("requisiteStageRefIds", s.getRequisiteStageRefIds());
-        if (s.getPartialDefinitionContext() != null) {
-          stage.put("group", String.format("%s: %s",
-            s.getPartialDefinitionContext().getPartialDefinition().getName(),
-            s.getPartialDefinitionContext().getMarkerStage().getName()
-          ));
-        }
-        stage.putAll(s.getConfigAsMap());
-        return stage;
-      })
-      .collect(Collectors.toList()));
+    pipeline.put(
+        "stages",
+        template.getStages().stream()
+            .map(
+                s -> {
+                  Map<String, Object> stage = new HashMap<>();
+                  stage.put("id", UUID.randomUUID().toString());
+                  stage.put("refId", s.getId());
+                  stage.put("type", s.getType());
+                  stage.put("name", s.getName());
+                  stage.put("requisiteStageRefIds", s.getRequisiteStageRefIds());
+                  if (s.getPartialDefinitionContext() != null) {
+                    stage.put(
+                        "group",
+                        String.format(
+                            "%s: %s",
+                            s.getPartialDefinitionContext().getPartialDefinition().getName(),
+                            s.getPartialDefinitionContext().getMarkerStage().getName()));
+                  }
+                  stage.putAll(s.getConfigAsMap());
+                  return stage;
+                })
+            .collect(Collectors.toList()));
     if (request.getTrigger() != null && !request.getTrigger().isEmpty()) {
       pipeline.put("trigger", request.getTrigger());
     }
@@ -84,56 +102,57 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     return pipeline;
   }
 
-  private void addNotifications(Map<String, Object> pipeline, PipelineTemplate template, TemplateConfiguration configuration) {
+  private void addNotifications(
+      Map<String, Object> pipeline,
+      PipelineTemplate template,
+      TemplateConfiguration configuration) {
     if (configuration.getConfiguration().getInherit().contains("notifications")) {
       pipeline.put(
-        "notifications",
-        TemplateMerge.mergeNamedContent(
-          template.getConfiguration().getNotifications(),
-          configuration.getConfiguration().getNotifications()
-        )
-      );
+          "notifications",
+          TemplateMerge.mergeNamedContent(
+              template.getConfiguration().getNotifications(),
+              configuration.getConfiguration().getNotifications()));
     } else {
       pipeline.put(
-        "notifications",
-        Optional.ofNullable(configuration.getConfiguration().getNotifications()).orElse(Collections.emptyList())
-      );
+          "notifications",
+          Optional.ofNullable(configuration.getConfiguration().getNotifications())
+              .orElse(Collections.emptyList()));
     }
   }
 
-  private void addParameters(Map<String, Object> pipeline, PipelineTemplate template, TemplateConfiguration configuration) {
+  private void addParameters(
+      Map<String, Object> pipeline,
+      PipelineTemplate template,
+      TemplateConfiguration configuration) {
     if (configuration.getConfiguration().getInherit().contains("parameters")) {
       pipeline.put(
-        "parameterConfig",
-        TemplateMerge.mergeNamedContent(
-          template.getConfiguration().getParameters(),
-          configuration.getConfiguration().getParameters()
-        )
-      );
+          "parameterConfig",
+          TemplateMerge.mergeNamedContent(
+              template.getConfiguration().getParameters(),
+              configuration.getConfiguration().getParameters()));
     } else {
       pipeline.put(
-        "parameterConfig",
-        Optional.ofNullable(configuration.getConfiguration().getParameters()).orElse(Collections.emptyList())
-      );
+          "parameterConfig",
+          Optional.ofNullable(configuration.getConfiguration().getParameters())
+              .orElse(Collections.emptyList()));
     }
   }
 
-  private void addTriggers(Map<String, Object> pipeline,
-                           PipelineTemplate template,
-                           TemplateConfiguration configuration) {
+  private void addTriggers(
+      Map<String, Object> pipeline,
+      PipelineTemplate template,
+      TemplateConfiguration configuration) {
     if (configuration.getConfiguration().getInherit().contains("triggers")) {
       pipeline.put(
-        "triggers",
-        TemplateMerge.mergeNamedContent(
-          template.getConfiguration().getTriggers(),
-          configuration.getConfiguration().getTriggers()
-        )
-      );
+          "triggers",
+          TemplateMerge.mergeNamedContent(
+              template.getConfiguration().getTriggers(),
+              configuration.getConfiguration().getTriggers()));
     } else {
       pipeline.put(
-        "triggers",
-        Optional.ofNullable(configuration.getConfiguration().getTriggers()).orElse(Collections.emptyList())
-      );
+          "triggers",
+          Optional.ofNullable(configuration.getConfiguration().getTriggers())
+              .orElse(Collections.emptyList()));
     }
   }
 }

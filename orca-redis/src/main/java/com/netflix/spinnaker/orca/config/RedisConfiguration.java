@@ -15,42 +15,21 @@
  */
 package com.netflix.spinnaker.orca.config;
 
-
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
-import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import com.netflix.spinnaker.orca.telemetry.RedisInstrumentedExecutionRepository;
-import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Protocol;
-import redis.clients.util.Pool;
 import rx.Scheduler;
-import rx.schedulers.Schedulers;
-
-import java.lang.reflect.Field;
-import java.net.URI;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
 @Import({JedisClientConfiguration.class, JedisConfiguration.class})
@@ -63,27 +42,27 @@ public class RedisConfiguration {
 
   @Bean
   @ConditionalOnProperty(value = "execution-repository.redis.enabled", matchIfMissing = true)
-  public ExecutionRepository redisExecutionRepository(Registry registry,
-                                                      RedisClientSelector redisClientSelector,
-                                                      @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
-                                                      @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
-                                                      @Value("${chunk-size.execution-repository:75}") Integer threadPoolChunkSize,
-                                                      @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
+  public ExecutionRepository redisExecutionRepository(
+      Registry registry,
+      RedisClientSelector redisClientSelector,
+      @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
+      @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
+      @Value("${chunk-size.execution-repository:75}") Integer threadPoolChunkSize,
+      @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
     return new RedisInstrumentedExecutionRepository(
-      new RedisExecutionRepository(
-        registry,
-        redisClientSelector,
-        queryAllScheduler,
-        queryByAppScheduler,
-        threadPoolChunkSize,
-        bufferedPrefix
-      ),
-      registry
-    );
+        new RedisExecutionRepository(
+            registry,
+            redisClientSelector,
+            queryAllScheduler,
+            queryByAppScheduler,
+            threadPoolChunkSize,
+            bufferedPrefix),
+        registry);
   }
 
   @Bean
-  public NotificationClusterLock redisNotificationClusterLock(RedisClientSelector redisClientSelector) {
+  public NotificationClusterLock redisNotificationClusterLock(
+      RedisClientSelector redisClientSelector) {
     return new RedisNotificationClusterLock(redisClientSelector);
   }
 

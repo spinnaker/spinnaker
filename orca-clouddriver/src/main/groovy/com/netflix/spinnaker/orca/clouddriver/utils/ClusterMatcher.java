@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
 import com.netflix.spinnaker.moniker.Moniker;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ClusterMatcher {
 
-  public static ClusterMatchRule getMatchingRule(String account, String location, Moniker clusterMoniker, List<ClusterMatchRule> rules) {
+  public static ClusterMatchRule getMatchingRule(
+      String account, String location, Moniker clusterMoniker, List<ClusterMatchRule> rules) {
     if (!Optional.ofNullable(rules).isPresent()) {
       return null;
     }
@@ -32,31 +32,40 @@ public class ClusterMatcher {
     String stack = clusterMoniker.getStack() == null ? "" : clusterMoniker.getStack();
     String detail = clusterMoniker.getDetail() == null ? "" : clusterMoniker.getDetail();
 
-    List<ClusterMatchRule> candidates = rules.stream().filter(rule -> {
-      String ruleAccount = rule.getAccount();
-      String ruleLocation = rule.getLocation();
-      String ruleStack = rule.getStack();
-      String ruleDetail = rule.getDetail();
-      return (ruleAccount.equals("*") || ruleAccount.equals(account)) &&
-        (ruleLocation.equals("*") || ruleLocation.equals(location)) &&
-        (ruleStack.equals("*") || ruleStack.equals(stack) || ruleStack.isEmpty() && stack.isEmpty()) &&
-        (ruleDetail.equals("*") || ruleDetail.equals(detail) || ruleDetail.isEmpty() && detail.isEmpty());
-    }).sorted((o1, o2) -> {
-      if (!o1.getAccount().equals(o2.getAccount())) {
-        return "*".equals(o1.getAccount()) ? 1 : -1;
-      }
-      if (!o1.getLocation().equals(o2.getLocation())) {
-        return "*".equals(o1.getLocation()) ? 1 : -1;
-      }
-      if (!o1.getStack().equals(o2.getStack())) {
-        return "*".equals(o1.getStack()) ? 1 : -1;
-      }
-      if (!o1.getDetail().equals(o2.getDetail())) {
-        return "*".equals(o1.getDetail()) ? 1 : -1;
-      }
-      return o1.getPriority() - o2.getPriority();
-    })
-      .collect(Collectors.toList());
+    List<ClusterMatchRule> candidates =
+        rules.stream()
+            .filter(
+                rule -> {
+                  String ruleAccount = rule.getAccount();
+                  String ruleLocation = rule.getLocation();
+                  String ruleStack = rule.getStack();
+                  String ruleDetail = rule.getDetail();
+                  return (ruleAccount.equals("*") || ruleAccount.equals(account))
+                      && (ruleLocation.equals("*") || ruleLocation.equals(location))
+                      && (ruleStack.equals("*")
+                          || ruleStack.equals(stack)
+                          || ruleStack.isEmpty() && stack.isEmpty())
+                      && (ruleDetail.equals("*")
+                          || ruleDetail.equals(detail)
+                          || ruleDetail.isEmpty() && detail.isEmpty());
+                })
+            .sorted(
+                (o1, o2) -> {
+                  if (!o1.getAccount().equals(o2.getAccount())) {
+                    return "*".equals(o1.getAccount()) ? 1 : -1;
+                  }
+                  if (!o1.getLocation().equals(o2.getLocation())) {
+                    return "*".equals(o1.getLocation()) ? 1 : -1;
+                  }
+                  if (!o1.getStack().equals(o2.getStack())) {
+                    return "*".equals(o1.getStack()) ? 1 : -1;
+                  }
+                  if (!o1.getDetail().equals(o2.getDetail())) {
+                    return "*".equals(o1.getDetail()) ? 1 : -1;
+                  }
+                  return o1.getPriority() - o2.getPriority();
+                })
+            .collect(Collectors.toList());
 
     if (candidates.isEmpty()) {
       return null;
@@ -64,5 +73,4 @@ public class ClusterMatcher {
 
     return candidates.get(0);
   }
-
 }

@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.*;
+
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -23,17 +28,11 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-import rx.Observable;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.matches;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import rx.Observable;
 
 class CloudFoundryDestroyServiceTaskTest {
   @Test
@@ -47,24 +46,25 @@ class CloudFoundryDestroyServiceTaskTest {
     context.put("cloudProvider", cloudProvider);
     context.put("credentials", credentials);
     context.put("region", region);
-    when(kato.requestOperations(matches(cloudProvider),
-      eq(Collections.singletonList(Collections.singletonMap("destroyService", context)))))
-      .thenReturn(Observable.from(new TaskId[] { taskId }));
+    when(kato.requestOperations(
+            matches(cloudProvider),
+            eq(Collections.singletonList(Collections.singletonMap("destroyService", context)))))
+        .thenReturn(Observable.from(new TaskId[] {taskId}));
     CloudFoundryDestroyServiceTask task = new CloudFoundryDestroyServiceTask(kato);
 
     String type = "destroyService";
-    Map<String, Object> expectedContext = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", type)
-      .put("kato.last.task.id", taskId)
-      .put("service.region", region)
-      .put("service.account", credentials)
-      .build();
-    TaskResult expected = TaskResult.builder(ExecutionStatus.SUCCEEDED).context(expectedContext).build();
+    Map<String, Object> expectedContext =
+        new ImmutableMap.Builder<String, Object>()
+            .put("notification.type", type)
+            .put("kato.last.task.id", taskId)
+            .put("service.region", region)
+            .put("service.account", credentials)
+            .build();
+    TaskResult expected =
+        TaskResult.builder(ExecutionStatus.SUCCEEDED).context(expectedContext).build();
 
-    TaskResult result = task.execute(new Stage(
-      new Execution(PIPELINE, "orca"),
-      "destroyService",
-      context));
+    TaskResult result =
+        task.execute(new Stage(new Execution(PIPELINE, "orca"), "destroyService", context));
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expected);
   }

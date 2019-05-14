@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import static java.util.stream.Collectors.toList;
+
+import com.google.common.collect.ForwardingMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-import com.google.common.collect.ForwardingMap;
-import static java.util.stream.Collectors.toList;
 
 public class StageContext extends ForwardingMap<String, Object> {
 
@@ -41,7 +42,8 @@ public class StageContext extends ForwardingMap<String, Object> {
     this.delegate = delegate;
   }
 
-  @Override protected Map<String, Object> delegate() {
+  @Override
+  protected Map<String, Object> delegate() {
     return delegate;
   }
 
@@ -49,17 +51,16 @@ public class StageContext extends ForwardingMap<String, Object> {
     return stage.getExecution().getTrigger();
   }
 
-  @Override public Object get(@Nullable Object key) {
+  @Override
+  public Object get(@Nullable Object key) {
     if (delegate().containsKey(key)) {
       return super.get(key);
     } else {
-      return stage
-        .ancestors()
-        .stream()
-        .filter(it -> it.getOutputs().containsKey(key))
-        .findFirst()
-        .map(it -> it.getOutputs().get(key))
-        .orElse(null);
+      return stage.ancestors().stream()
+          .filter(it -> it.getOutputs().containsKey(key))
+          .findFirst()
+          .map(it -> it.getOutputs().get(key))
+          .orElse(null);
     }
   }
 
@@ -69,12 +70,12 @@ public class StageContext extends ForwardingMap<String, Object> {
    */
   @SuppressWarnings("unchecked")
   public <E> List<E> getAll(Object key) {
-    List<E> result = (List<E>) stage
-      .ancestors()
-      .stream()
-      .filter(it -> it.getOutputs().containsKey(key))
-      .map(it -> it.getOutputs().get(key))
-      .collect(toList());
+    List<E> result =
+        (List<E>)
+            stage.ancestors().stream()
+                .filter(it -> it.getOutputs().containsKey(key))
+                .map(it -> it.getOutputs().get(key))
+                .collect(toList());
 
     if (delegate.containsKey(key)) {
       result.add(0, (E) delegate.get(key));

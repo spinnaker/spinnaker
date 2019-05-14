@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 
-public class TemplateLoaderException extends InvalidRequestException implements PipelineTemplateException {
+public class TemplateLoaderException extends InvalidRequestException
+    implements PipelineTemplateException {
   public TemplateLoaderException(String message) {
     super(message);
   }

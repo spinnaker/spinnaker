@@ -16,5 +16,4 @@
 
 package com.netflix.spinnaker.orca.validation;
 
-public class ValidationModule {
-}
+public class ValidationModule {}

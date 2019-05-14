@@ -44,7 +44,7 @@ class ExecutionTrackingMessageHandlerPostProcessor : BeanPostProcessor {
   ) : MessageHandler<M> by delegate {
     override fun invoke(message: Message) {
       try {
-        when(message) {
+        when (message) {
           is TaskLevel -> {
             MDC.put(
               AuthenticatedRequest.Header.EXECUTION_ID.header,

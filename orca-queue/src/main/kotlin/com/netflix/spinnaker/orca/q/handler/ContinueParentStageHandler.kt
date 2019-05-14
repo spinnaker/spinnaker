@@ -50,7 +50,7 @@ class ContinueParentStageHandler(
         if (stage.allBeforeStagesSuccessful()) {
           when {
             stage.hasTasks() -> stage.runFirstTask()
-            else             -> queue.push(CompleteStage(stage))
+            else -> queue.push(CompleteStage(stage))
           }
         } else if (!stage.anyBeforeStagesFailed()) {
           log.info("Re-queuing $message as other ${message.phase} stages are still running")

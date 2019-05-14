@@ -26,7 +26,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CloudFoundryDestroyServiceStagePreprocessor implements DestroyServiceStagePreprocessor {
+public class CloudFoundryDestroyServiceStagePreprocessor
+    implements DestroyServiceStagePreprocessor {
   @Override
   public boolean supports(Stage stage) {
     return "cloudfoundry".equals(stage.mapTo(StageData.class).getCloudProvider());
@@ -35,8 +36,8 @@ public class CloudFoundryDestroyServiceStagePreprocessor implements DestroyServi
   @Override
   public void addSteps(TaskNode.Builder builder, Stage stage) {
     builder
-      .withTask("destroyService", CloudFoundryDestroyServiceTask.class)
-      .withTask("monitorDestroyService", CloudFoundryMonitorKatoServicesTask.class)
-      .withTask("waitForDestroyService", CloudFoundryWaitForDestroyServiceTask.class);
+        .withTask("destroyService", CloudFoundryDestroyServiceTask.class)
+        .withTask("monitorDestroyService", CloudFoundryMonitorKatoServicesTask.class)
+        .withTask("waitForDestroyService", CloudFoundryWaitForDestroyServiceTask.class);
   }
 }

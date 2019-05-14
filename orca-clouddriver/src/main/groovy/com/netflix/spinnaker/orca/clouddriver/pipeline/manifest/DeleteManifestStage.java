@@ -33,7 +33,8 @@ public class DeleteManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+    builder
+        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
         .withTask(DeleteManifestTask.TASK_NAME, DeleteManifestTask.class)
         .withTask("monitorDelete", MonitorKatoTask.class)
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)

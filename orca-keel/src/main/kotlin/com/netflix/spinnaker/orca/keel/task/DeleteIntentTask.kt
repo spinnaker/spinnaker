@@ -34,7 +34,7 @@ class DeleteIntentTask
 ) : RetryableTask {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun execute(stage: Stage) : TaskResult {
+  override fun execute(stage: Stage): TaskResult {
     if (!stage.context.containsKey("intentId")) {
       throw IllegalArgumentException("Missing required task parameter (intentId)")
     }

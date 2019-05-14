@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.kato.pipeline;
 
-import java.util.Map;
+import static java.lang.String.format;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -32,58 +32,61 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static java.lang.String.format;
 
 @Component
 public class RollingPushStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "rollingPush";
 
-  @Autowired
-  private FeaturesService featuresService;
+  @Autowired private FeaturesService featuresService;
 
-  @Autowired
-  private DynamicConfigService dynamicConfigService;
+  @Autowired private DynamicConfigService dynamicConfigService;
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     boolean taggingEnabled = featuresService.areEntityTagsAvailable();
     builder
-      .withTask("captureParentInterestingHealthProviderNames", CaptureParentInterestingHealthProviderNamesTask.class)
-      .withTask("determineTerminationCandidates", DetermineTerminationCandidatesTask.class)
-      .withLoop(subGraph -> {
-          subGraph
-            .withTask("determineCurrentPhaseTerminations", DetermineTerminationPhaseInstancesTask.class);
+        .withTask(
+            "captureParentInterestingHealthProviderNames",
+            CaptureParentInterestingHealthProviderNamesTask.class)
+        .withTask("determineTerminationCandidates", DetermineTerminationCandidatesTask.class)
+        .withLoop(
+            subGraph -> {
+              subGraph.withTask(
+                  "determineCurrentPhaseTerminations",
+                  DetermineTerminationPhaseInstancesTask.class);
 
-          if (shouldWaitForTermination(stage)) {
-            subGraph.withTask("wait", WaitTask.class);
-          }
+              if (shouldWaitForTermination(stage)) {
+                subGraph.withTask("wait", WaitTask.class);
+              }
 
-          subGraph
-            .withTask("disableInstances", DisableInstancesTask.class)
-            .withTask("monitorDisable", MonitorKatoTask.class)
-            .withTask("waitForDisabledState", WaitForDownInstanceHealthTask.class)
-            .withTask("terminateInstances", TerminateInstancesTask.class)
-            .withTask("waitForTerminateOperation", MonitorKatoTask.class)
-            .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask.class);
+              subGraph
+                  .withTask("disableInstances", DisableInstancesTask.class)
+                  .withTask("monitorDisable", MonitorKatoTask.class)
+                  .withTask("waitForDisabledState", WaitForDownInstanceHealthTask.class)
+                  .withTask("terminateInstances", TerminateInstancesTask.class)
+                  .withTask("waitForTerminateOperation", MonitorKatoTask.class)
+                  .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask.class);
 
-          if (isForceCacheRefreshEnabled(dynamicConfigService)) {
-            subGraph.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
-          }
+              if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+                subGraph.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+              }
 
-          subGraph
-            .withTask("waitForNewInstances", WaitForNewUpInstancesLaunchTask.class)
-            .withTask("checkForRemainingTerminations", CheckForRemainingTerminationsTask.class);
-        });
+              subGraph
+                  .withTask("waitForNewInstances", WaitForNewUpInstancesLaunchTask.class)
+                  .withTask(
+                      "checkForRemainingTerminations", CheckForRemainingTerminationsTask.class);
+            });
 
     if (taggingEnabled) {
       builder
-        .withTask("cleanUpTags", CleanUpTagsTask.class)
-        .withTask("monitorTagCleanUp", MonitorKatoTask.class);
+          .withTask("cleanUpTags", CleanUpTagsTask.class)
+          .withTask("monitorTagCleanUp", MonitorKatoTask.class);
     }
 
     builder.withTask("pushComplete", PushCompleteTask.class);
@@ -99,13 +102,14 @@ public class RollingPushStage implements StageDefinitionBuilder {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Override public TaskResult execute(Stage stage) {
-      log.info(format(
-        "Rolling Push completed for %s in %s / %s",
-        stage.getContext().get("asgName"),
-        stage.getContext().get("account"),
-        stage.getContext().get("region")
-      ));
+    @Override
+    public TaskResult execute(Stage stage) {
+      log.info(
+          format(
+              "Rolling Push completed for %s in %s / %s",
+              stage.getContext().get("asgName"),
+              stage.getContext().get("account"),
+              stage.getContext().get("region")));
       return TaskResult.SUCCEEDED;
     }
   }

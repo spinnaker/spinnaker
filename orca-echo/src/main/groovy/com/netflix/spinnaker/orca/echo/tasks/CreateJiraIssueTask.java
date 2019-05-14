@@ -24,12 +24,11 @@ import com.netflix.spinnaker.orca.echo.JiraService;
 import com.netflix.spinnaker.orca.echo.JiraService.CreateJiraIssueResponse;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CreateJiraIssueTask implements RetryableTask {
@@ -53,12 +52,16 @@ public class CreateJiraIssueTask implements RetryableTask {
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    JiraService.CreateIssueRequest createIssueRequest = stage.mapTo(JiraService.CreateIssueRequest.class);
+    JiraService.CreateIssueRequest createIssueRequest =
+        stage.mapTo(JiraService.CreateIssueRequest.class);
     Optional.ofNullable(stage.getExecution().getAuthentication())
-      .map(Execution.AuthenticationDetails::getUser)
-      .ifPresent(createIssueRequest::setReporter);
+        .map(Execution.AuthenticationDetails::getUser)
+        .ifPresent(createIssueRequest::setReporter);
 
-    CreateJiraIssueResponse createJiraIssueResponse = jiraService.createJiraIssue(createIssueRequest);
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ImmutableMap.of("createJiraIssueResponse", createJiraIssueResponse)).build();
+    CreateJiraIssueResponse createJiraIssueResponse =
+        jiraService.createJiraIssue(createIssueRequest);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(ImmutableMap.of("createJiraIssueResponse", createJiraIssueResponse))
+        .build();
   }
 }

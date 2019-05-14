@@ -18,26 +18,24 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Component
 public class MonitorFront50Task implements RetryableTask {
@@ -50,15 +48,17 @@ public class MonitorFront50Task implements RetryableTask {
   private final ObjectMapper objectMapper;
 
   @Autowired
-  public MonitorFront50Task(Optional<Front50Service> front50Service,
-                            ObjectMapper objectMapper,
-                            @Value("${tasks.monitor-front50-task.success-threshold:0}") int successThreshold,
-                            @Value("${tasks.monitor-front50-task.grace-period-ms:5000}") int gracePeriodMs) {
+  public MonitorFront50Task(
+      Optional<Front50Service> front50Service,
+      ObjectMapper objectMapper,
+      @Value("${tasks.monitor-front50-task.success-threshold:0}") int successThreshold,
+      @Value("${tasks.monitor-front50-task.grace-period-ms:5000}") int gracePeriodMs) {
     this.front50Service = front50Service.orElse(null);
     this.objectMapper = objectMapper;
     this.successThreshold = successThreshold;
 
-    // some storage providers round the last modified time to the nearest second, this allows for a configurable
+    // some storage providers round the last modified time to the nearest second, this allows for a
+    // configurable
     // grace period when comparing against a stage start time (always at millisecond granularity).
     this.gracePeriodMs = gracePeriodMs;
   }
@@ -77,7 +77,8 @@ public class MonitorFront50Task implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 was not enabled. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 was not enabled. Fix this by setting front50.enabled: true");
     }
 
     if (successThreshold == 0) {
@@ -90,11 +91,10 @@ public class MonitorFront50Task implements RetryableTask {
         return monitor(this::getPipeline, stageData.pipelineId, stage.getStartTime());
       } catch (Exception e) {
         log.error(
-          "Unable to verify that pipeline has been updated (executionId: {}, pipeline: {})",
-          stage.getExecution().getId(),
-          stageData.pipelineName,
-          e
-        );
+            "Unable to verify that pipeline has been updated (executionId: {}, pipeline: {})",
+            stage.getExecution().getId(),
+            stageData.pipelineName,
+            e);
         return TaskResult.RUNNING;
       }
     } else if (stageData.deliveryConfig != null) {
@@ -103,24 +103,25 @@ public class MonitorFront50Task implements RetryableTask {
         return monitor(this::getDeliveryConfig, deliveryConfigId, stage.getStartTime());
       } catch (Exception e) {
         log.error(
-          "Unable to verify that delivery config has been updated (executionId: {}, configId: {})",
-          stage.getExecution().getId(),
-          deliveryConfigId,
-          e
-        );
+            "Unable to verify that delivery config has been updated (executionId: {}, configId: {})",
+            stage.getExecution().getId(),
+            deliveryConfigId,
+            e);
         return TaskResult.RUNNING;
       }
     } else {
       log.warn(
-        "No id found, unable to verify that the object has been updated (executionId: {})",
-        stage.getExecution().getId()
-      );
+          "No id found, unable to verify that the object has been updated (executionId: {})",
+          stage.getExecution().getId());
     }
 
     return TaskResult.SUCCEEDED;
   }
 
-  private TaskResult monitor(Function<String, Optional<Map<String,Object>>> getObjectFunction, String id, Long startTime) {
+  private TaskResult monitor(
+      Function<String, Optional<Map<String, Object>>> getObjectFunction,
+      String id,
+      Long startTime) {
     /*
      * Some storage services (notably S3) are eventually consistent when versioning is enabled.
      *
@@ -150,7 +151,8 @@ public class MonitorFront50Task implements RetryableTask {
       try {
         // small delay between verification attempts
         Thread.sleep(1000);
-      } catch (InterruptedException ignored) {}
+      } catch (InterruptedException ignored) {
+      }
     }
 
     return TaskResult.SUCCEEDED;
@@ -167,8 +169,9 @@ public class MonitorFront50Task implements RetryableTask {
       DeliveryConfig deliveryConfig = front50Service.getDeliveryConfig(id);
       return Optional.of(objectMapper.convertValue(deliveryConfig, Map.class));
     } catch (RetrofitError e) {
-      //ignore an unknown (404) or unauthorized (403, 401)
-      if (e.getResponse() != null && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
+      // ignore an unknown (404) or unauthorized (403, 401)
+      if (e.getResponse() != null
+          && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
         return Optional.empty();
       } else {
         throw e;

@@ -17,14 +17,12 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.AbstractWaitForServiceTask;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFoundryWaitForDestroyServiceTask extends AbstractWaitForServiceTask {
@@ -34,17 +32,18 @@ public class CloudFoundryWaitForDestroyServiceTask extends AbstractWaitForServic
   }
 
   protected ExecutionStatus oortStatusToTaskStatus(Map m) {
-    return Optional.ofNullable(m).map(
-      myMap -> {
-        String state = Optional.ofNullable(myMap.get("status")).orElse("").toString();
-        switch (state) {
-          case "FAILED":
-            return ExecutionStatus.TERMINAL;
-          case "IN_PROGRESS":
-          default:
-            return ExecutionStatus.RUNNING;
-        }
-      }
-    ).orElse(ExecutionStatus.SUCCEEDED);
+    return Optional.ofNullable(m)
+        .map(
+            myMap -> {
+              String state = Optional.ofNullable(myMap.get("status")).orElse("").toString();
+              switch (state) {
+                case "FAILED":
+                  return ExecutionStatus.TERMINAL;
+                case "IN_PROGRESS":
+                default:
+                  return ExecutionStatus.RUNNING;
+              }
+            })
+        .orElse(ExecutionStatus.SUCCEEDED);
   }
 }

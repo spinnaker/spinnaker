@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
-import java.util.List;
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.List;
 
 public interface Strategy extends Nameable {
   List<Stage> composeFlow(Stage stage);

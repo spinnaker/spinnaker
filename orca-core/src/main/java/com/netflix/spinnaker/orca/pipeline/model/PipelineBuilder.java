@@ -48,7 +48,8 @@ public class PipelineBuilder {
   }
 
   public PipelineBuilder withStage(String type, String name, Map<String, Object> context) {
-    if (context.get("providerType") != null && !(Arrays.asList("aws", "titus")).contains(context.get("providerType"))) {
+    if (context.get("providerType") != null
+        && !(Arrays.asList("aws", "titus")).contains(context.get("providerType"))) {
       type += "_" + context.get("providerType");
     }
     pipeline.getStages().add(new Stage(pipeline, type, name, context));
@@ -64,17 +65,19 @@ public class PipelineBuilder {
   }
 
   public PipelineBuilder withStages(List<Map<String, Object>> stages) {
-    stages.forEach(it -> {
-      String type = it.remove("type").toString();
-      String name = it.containsKey("name")? it.remove("name").toString() : null;
-      withStage(type, name != null ? name : type, it);
-    });
+    stages.forEach(
+        it -> {
+          String type = it.remove("type").toString();
+          String name = it.containsKey("name") ? it.remove("name").toString() : null;
+          withStage(type, name != null ? name : type, it);
+        });
     return this;
   }
 
   public Execution build() {
     pipeline.setBuildTime(System.currentTimeMillis());
-    pipeline.setAuthentication(Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails()));
+    pipeline.setAuthentication(
+        Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails()));
 
     return pipeline;
   }

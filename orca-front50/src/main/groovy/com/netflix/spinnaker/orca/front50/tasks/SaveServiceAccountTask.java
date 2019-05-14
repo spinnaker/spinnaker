@@ -27,13 +27,6 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import retrofit.client.Response;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,13 +35,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
 /**
- * Save a pipeline-scoped Fiat Service Account. The roles from
- * this service account are used for authorization decisions when
- * the pipeline is executed from an automated trigger.
+ * Save a pipeline-scoped Fiat Service Account. The roles from this service account are used for
+ * authorization decisions when the pipeline is executed from an automated trigger.
  */
-
 @Component
 @Slf4j
 public class SaveServiceAccountTask implements RetryableTask {
@@ -84,7 +81,7 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     if (front50Service == null) {
       throw new UnsupportedOperationException(
-        "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
+          "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
     }
 
     if (!stage.getContext().containsKey("pipeline")) {
@@ -93,7 +90,7 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     if (!(stage.getContext().get("pipeline") instanceof String)) {
       throw new IllegalArgumentException(
-        "'pipeline' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
+          "'pipeline' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
     }
 
     Map<String, Object> pipeline;
@@ -113,17 +110,21 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     Map<String, Object> outputs = new HashMap<>();
 
-    pipeline.computeIfAbsent("id", k -> {
-      String uuid = UUID.randomUUID().toString();
-      outputs.put("pipeline.id", uuid);
-      return uuid;
-    });
+    pipeline.computeIfAbsent(
+        "id",
+        k -> {
+          String uuid = UUID.randomUUID().toString();
+          outputs.put("pipeline.id", uuid);
+          return uuid;
+        });
 
     // Check if pipeline roles did not change, and skip updating a service account if so.
     String serviceAccountName = generateSvcAcctName(pipeline);
     if (!pipelineRolesChanged(serviceAccountName, roles)) {
       log.debug("Skipping managed service account creation/updatimg since roles have not changed.");
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(ImmutableMap.of("pipeline.serviceAccount", serviceAccountName)).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(ImmutableMap.of("pipeline.serviceAccount", serviceAccountName))
+          .build();
     }
 
     if (!isUserAuthorized(user, roles)) {
@@ -176,10 +177,8 @@ public class SaveServiceAccountTask implements RetryableTask {
     }
 
     // User has to have all the pipeline roles.
-    Set<String> userRoles = permission.getRoles()
-      .stream()
-      .map(Role.View::getName)
-      .collect(Collectors.toSet());
+    Set<String> userRoles =
+        permission.getRoles().stream().map(Role.View::getName).collect(Collectors.toSet());
 
     return userRoles.containsAll(pipelineRoles);
   }
@@ -190,10 +189,8 @@ public class SaveServiceAccountTask implements RetryableTask {
       return true;
     }
 
-    Set<String> currentRoles = permission.getRoles()
-      .stream()
-      .map(Role.View::getName)
-      .collect(Collectors.toSet());
+    Set<String> currentRoles =
+        permission.getRoles().stream().map(Role.View::getName).collect(Collectors.toSet());
 
     return !currentRoles.equals(new HashSet<>(pipelineRoles));
   }

@@ -27,20 +27,19 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSuppl
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext.Status;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnBean(ConditionSupplier.class)
@@ -55,11 +54,10 @@ public class EvaluateConditionTask implements RetryableTask {
 
   @Autowired
   public EvaluateConditionTask(
-    ConditionConfigurationProperties conditionsConfigurationProperties,
-    List<ConditionSupplier> suppliers,
-    Registry registry,
-    Clock clock
-  ) {
+      ConditionConfigurationProperties conditionsConfigurationProperties,
+      List<ConditionSupplier> suppliers,
+      Registry registry,
+      Clock clock) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
     this.suppliers = suppliers;
     this.registry = registry;
@@ -82,13 +80,17 @@ public class EvaluateConditionTask implements RetryableTask {
   public TaskResult execute(@Nonnull Stage stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
     if (conditionsConfigurationProperties.isSkipWait()) {
-      log.debug("Un-pausing deployment to {} (execution: {}) based on configuration",
-        ctx.getCluster(), stage.getExecution());
+      log.debug(
+          "Un-pausing deployment to {} (execution: {}) based on configuration",
+          ctx.getCluster(),
+          stage.getExecution());
       ctx.setStatus(Status.SKIPPED);
     }
 
     if (ctx.getStatus() == Status.SKIPPED) {
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", Status.SKIPPED)).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(Collections.singletonMap("status", Status.SKIPPED))
+          .build();
     }
 
     Duration backoff = Duration.ofMillis(conditionsConfigurationProperties.getBackoffWaitMs());
@@ -96,44 +98,62 @@ public class EvaluateConditionTask implements RetryableTask {
     Instant now = clock.instant();
     if (ctx.getStatus() != null && startTime.plus(backoff).isAfter(now)) {
       recordDeployPause(ctx);
-      log.debug("Deployment to {} has been conditionally paused (executionId: {})",
-        ctx.getCluster(), stage.getExecution().getId());
+      log.debug(
+          "Deployment to {} has been conditionally paused (executionId: {})",
+          ctx.getCluster(),
+          stage.getExecution().getId());
       return TaskResult.builder(ExecutionStatus.RUNNING)
-        .context(Collections.singletonMap("status", Status.WAITING))
-        .build();
+          .context(Collections.singletonMap("status", Status.WAITING))
+          .build();
     }
 
     try {
-      Set<Condition> conditions = suppliers
-        .stream()
-        .flatMap(supplier -> supplier.getConditions(
-          ctx.getCluster(),
-          ctx.getRegion(),
-          ctx.getAccount()
-        ).stream()).filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+      Set<Condition> conditions =
+          suppliers.stream()
+              .flatMap(
+                  supplier ->
+                      supplier.getConditions(ctx.getCluster(), ctx.getRegion(), ctx.getAccount())
+                          .stream())
+              .filter(Objects::nonNull)
+              .collect(Collectors.toSet());
 
       final Status status = conditions.isEmpty() ? Status.SKIPPED : Status.WAITING;
       if (status == Status.WAITING) {
         recordDeployPause(ctx);
-        log.debug("Deployment to {} has been conditionally paused (executionId: {}). Conditions: {}",
-          ctx.getCluster(), stage.getExecution().getId(), conditions);
+        log.debug(
+            "Deployment to {} has been conditionally paused (executionId: {}). Conditions: {}",
+            ctx.getCluster(),
+            stage.getExecution().getId(),
+            conditions);
 
-        return TaskResult.builder(ExecutionStatus.RUNNING).context(Collections.singletonMap("status", status)).outputs(Collections.singletonMap("conditions", conditions)).build();
+        return TaskResult.builder(ExecutionStatus.RUNNING)
+            .context(Collections.singletonMap("status", status))
+            .outputs(Collections.singletonMap("conditions", conditions))
+            .build();
       }
 
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", status)).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(Collections.singletonMap("status", status))
+          .build();
     } catch (Exception e) {
       log.error("Error occurred while fetching for conditions to eval.", e);
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(Collections.singletonMap("status", Status.ERROR)).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(Collections.singletonMap("status", Status.ERROR))
+          .build();
     }
   }
 
   private void recordDeployPause(WaitForConditionContext ctx) {
-    registry.counter(
-      pauseDeployId
-        .withTags("cluster", ctx.getCluster(), "region", ctx.getRegion(), "account", ctx.getAccount())
-    ).increment();
+    registry
+        .counter(
+            pauseDeployId.withTags(
+                "cluster",
+                ctx.getCluster(),
+                "region",
+                ctx.getRegion(),
+                "account",
+                ctx.getAccount()))
+        .increment();
   }
 
   private Instant getStartTime(Stage stage) {

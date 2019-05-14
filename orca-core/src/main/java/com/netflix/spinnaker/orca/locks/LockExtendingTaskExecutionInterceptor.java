@@ -24,15 +24,13 @@ import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.AcquireLockTask;
 import com.netflix.spinnaker.orca.pipeline.tasks.ReleaseLockTask;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Component
 public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInterceptor {
@@ -41,8 +39,8 @@ public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInter
   private final LockingConfigurationProperties lockingConfigurationProperties;
 
   @Autowired
-  public LockExtendingTaskExecutionInterceptor(LockManager lockManager,
-                                               LockingConfigurationProperties lockingConfigurationProperties) {
+  public LockExtendingTaskExecutionInterceptor(
+      LockManager lockManager, LockingConfigurationProperties lockingConfigurationProperties) {
     this.lockManager = lockManager;
     this.lockingConfigurationProperties = lockingConfigurationProperties;
   }
@@ -50,8 +48,9 @@ public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInter
   @Override
   public long maxTaskBackoff() {
     return Duration.ofSeconds(
-      lockingConfigurationProperties.getTtlSeconds() - lockingConfigurationProperties.getBackoffBufferSeconds()
-    ).toMillis();
+            lockingConfigurationProperties.getTtlSeconds()
+                - lockingConfigurationProperties.getBackoffBufferSeconds())
+        .toMillis();
   }
 
   @Override
@@ -75,34 +74,35 @@ public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInter
     }
 
     Map<HeldLock, AtomicInteger> heldLocks = new HashMap<>();
-    Set<String> lockTypes = new HashSet<>(Arrays.asList(AcquireLockStage.PIPELINE_TYPE, ReleaseLockStage.PIPELINE_TYPE));
-    stage.getExecution().getStages()
-      .stream()
-      .filter(s -> lockTypes.contains(s.getType()) && s.getStatus() == ExecutionStatus.SUCCEEDED)
-      .forEach(s -> {
-      LockContext lc = s.mapTo("/lock", LockContext.LockContextBuilder.class).withStage(s).build();
-      AtomicInteger count = heldLocks.computeIfAbsent(
-        new HeldLock(lc.getLockName(), lc.getLockValue()),
-        hl -> new AtomicInteger(0));
-      if (AcquireLockStage.PIPELINE_TYPE.equals(s.getType())) {
-        count.incrementAndGet();
-      } else {
-        count.decrementAndGet();
-      }
-    });
+    Set<String> lockTypes =
+        new HashSet<>(
+            Arrays.asList(AcquireLockStage.PIPELINE_TYPE, ReleaseLockStage.PIPELINE_TYPE));
+    stage.getExecution().getStages().stream()
+        .filter(s -> lockTypes.contains(s.getType()) && s.getStatus() == ExecutionStatus.SUCCEEDED)
+        .forEach(
+            s -> {
+              LockContext lc =
+                  s.mapTo("/lock", LockContext.LockContextBuilder.class).withStage(s).build();
+              AtomicInteger count =
+                  heldLocks.computeIfAbsent(
+                      new HeldLock(lc.getLockName(), lc.getLockValue()),
+                      hl -> new AtomicInteger(0));
+              if (AcquireLockStage.PIPELINE_TYPE.equals(s.getType())) {
+                count.incrementAndGet();
+              } else {
+                count.decrementAndGet();
+              }
+            });
 
-    heldLocks
-      .entrySet()
-      .stream()
-      .filter(me -> me.getValue().get() > 0)
-      .map(Map.Entry::getKey)
-      .forEach(hl -> {
-        log.debug("extending lock {} held by {}", hl.lockName, hl.lockValue);
-        lockManager.extendLock(
-          hl.lockName,
-          hl.lockValue,
-          lockingConfigurationProperties.getTtlSeconds());
-      });
+    heldLocks.entrySet().stream()
+        .filter(me -> me.getValue().get() > 0)
+        .map(Map.Entry::getKey)
+        .forEach(
+            hl -> {
+              log.debug("extending lock {} held by {}", hl.lockName, hl.lockValue);
+              lockManager.extendLock(
+                  hl.lockName, hl.lockValue, lockingConfigurationProperties.getTtlSeconds());
+            });
   }
 
   private static class HeldLock {
@@ -119,8 +119,8 @@ public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInter
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       HeldLock heldLock = (HeldLock) o;
-      return Objects.equals(lockName, heldLock.lockName) &&
-        Objects.equals(lockValue, heldLock.lockValue);
+      return Objects.equals(lockName, heldLock.lockName)
+          && Objects.equals(lockValue, heldLock.lockValue);
     }
 
     @Override

@@ -1,6 +1,13 @@
 package com.netflix.spinnaker.orca.gremlin
 
-import retrofit.http.*;
+import retrofit.http.Body
+import retrofit.http.DELETE
+import retrofit.http.GET
+import retrofit.http.Header
+import retrofit.http.Headers
+import retrofit.http.POST
+import retrofit.http.Path
+import retrofit.http.Query
 
 interface GremlinService {
   @POST("/attacks/new")

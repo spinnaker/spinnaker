@@ -23,13 +23,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.De
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @AllArgsConstructor
@@ -43,7 +42,8 @@ class CloudFoundryDeployStagePreProcessor implements DeployStagePreProcessor {
     List<StageDefinition> stageDefinitions = new ArrayList<>();
     Strategy strategy = Strategy.fromStrategy(stageData.getStrategy());
 
-    if (strategy.equals(Strategy.CF_ROLLING_RED_BLACK) && (stageData.getRollback() != null && stageData.getRollback().isOnFailure())) {
+    if (strategy.equals(Strategy.CF_ROLLING_RED_BLACK)
+        && (stageData.getRollback() != null && stageData.getRollback().isOnFailure())) {
       StageDefinition forceCacheRefreshStageDefinition = new StageDefinition();
       forceCacheRefreshStageDefinition.stageDefinitionBuilder = serverGroupForceCacheRefreshStage;
       forceCacheRefreshStageDefinition.name = "Force Cache Refresh";
@@ -53,7 +53,8 @@ class CloudFoundryDeployStagePreProcessor implements DeployStagePreProcessor {
       StageDefinition rollbackStageDefinition = new StageDefinition();
       Map<String, Object> rollbackContext = createBasicContext(stageData);
       rollbackContext.put("serverGroup", stageData.getSource().getServerGroupName());
-      rollbackContext.put("stageTimeoutMs", TimeUnit.MINUTES.toMillis(30)); // timebox a rollback to 30 minutes
+      rollbackContext.put(
+          "stageTimeoutMs", TimeUnit.MINUTES.toMillis(30)); // timebox a rollback to 30 minutes
       rollbackStageDefinition.stageDefinitionBuilder = rollbackClusterStage;
       rollbackStageDefinition.name = "Rolling back to previous deployment";
       rollbackStageDefinition.context = rollbackContext;
@@ -70,14 +71,14 @@ class CloudFoundryDeployStagePreProcessor implements DeployStagePreProcessor {
 
   private Map<String, Object> createBasicContext(CfRollingRedBlackStageData stageData) {
     Map<String, Object> context = new HashMap<>();
-    String credentials = stageData.getCredentials() != null ? stageData.getCredentials() : stageData.getAccount();
+    String credentials =
+        stageData.getCredentials() != null ? stageData.getCredentials() : stageData.getAccount();
     context.put("credentials", credentials);
     context.put("cloudProvider", stageData.getCloudProvider());
     context.put("regions", Collections.singletonList(stageData.getRegion()));
     context.put("deploy.server.groups", stageData.getDeployedServerGroups());
     return context;
   }
-
 
   @EqualsAndHashCode(callSuper = true)
   @Data

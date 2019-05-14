@@ -18,25 +18,21 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EphemeralServerGroupEntityTagGenerator implements ServerGroupEntityTagGenerator {
   public static final String TTL_TAG = "spinnaker:ttl";
 
   @Override
-  public Collection<Map<String, Object>> generateTags(Stage stage,
-                                                      String serverGroup,
-                                                      String account,
-                                                      String location,
-                                                      String cloudProvider) {
+  public Collection<Map<String, Object>> generateTags(
+      Stage stage, String serverGroup, String account, String location, String cloudProvider) {
     StageData stageData = stage.mapTo(StageData.class);
     if (stageData.ttl.hours == null && stageData.ttl.minutes == null) {
       return Collections.emptyList();
@@ -50,20 +46,20 @@ public class EphemeralServerGroupEntityTagGenerator implements ServerGroupEntity
       expiry = expiry.plus(stageData.ttl.minutes, ChronoUnit.MINUTES);
     }
 
-    Map<String, Object> value = ImmutableMap.<String, Object>builder()
-      .put("serverGroup", serverGroup)
-      .put("executionId", stage.getExecution().getId())
-      .put("executionType", stage.getExecution().getType())
-      .put("expiry", expiry)
-      .build();
+    Map<String, Object> value =
+        ImmutableMap.<String, Object>builder()
+            .put("serverGroup", serverGroup)
+            .put("executionId", stage.getExecution().getId())
+            .put("executionType", stage.getExecution().getType())
+            .put("expiry", expiry)
+            .build();
 
     return Collections.singletonList(
-      ImmutableMap.<String, Object>builder()
-        .put("name", TTL_TAG)
-        .put("namespace", "spinnaker")
-        .put("value", value)
-        .build()
-    );
+        ImmutableMap.<String, Object>builder()
+            .put("name", TTL_TAG)
+            .put("namespace", "spinnaker")
+            .put("value", value)
+            .build());
   }
 
   private static class StageData {

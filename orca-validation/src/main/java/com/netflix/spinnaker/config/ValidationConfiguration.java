@@ -20,5 +20,4 @@ import com.netflix.spinnaker.orca.validation.ValidationModule;
 import org.springframework.context.annotation.ComponentScan;
 
 @ComponentScan(basePackageClasses = ValidationModule.class)
-public class ValidationConfiguration {
-}
+public class ValidationConfiguration {}

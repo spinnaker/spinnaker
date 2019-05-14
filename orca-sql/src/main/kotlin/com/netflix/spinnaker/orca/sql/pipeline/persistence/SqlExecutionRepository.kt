@@ -19,7 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
@@ -29,15 +33,28 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
-import org.jooq.*
+import org.jooq.DSLContext
+import org.jooq.Field
+import org.jooq.Record
+import org.jooq.SelectConditionStep
+import org.jooq.SelectConnectByStep
+import org.jooq.SelectForUpdateStep
+import org.jooq.SelectJoinStep
+import org.jooq.SelectWhereStep
+import org.jooq.Table
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.count
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
@@ -342,7 +359,6 @@ class SqlExecutionRepository(
     }
 
     throw ExecutionNotFoundException("No Pipeline found for correlation ID $correlationId")
-
   }
 
   override fun retrieveBufferedExecutions(): MutableList<Execution> =
@@ -501,10 +517,12 @@ class SqlExecutionRepository(
    * - When id is not a ULID but exists in the table, fetches ulid and returns: [fetched_ulid, id]
    * - When id is not a ULID and does not exist, creates new_ulid and returns: [new_ulid, id]
    */
-  private fun mapLegacyId(ctx: DSLContext,
-                          table: Table<Record>,
-                          id: String,
-                          timestamp: Long? = null): Pair<String, String?> {
+  private fun mapLegacyId(
+    ctx: DSLContext,
+    table: Table<Record>,
+    id: String,
+    timestamp: Long? = null
+  ): Pair<String, String?> {
     if (isULID(id)) return Pair(id, null)
 
     val ts = (timestamp ?: System.currentTimeMillis())
@@ -643,11 +661,13 @@ class SqlExecutionRepository(
     }
   }
 
-  private fun upsert(ctx: DSLContext,
-                     table: Table<Record>,
-                     insertPairs: Map<Field<Any?>, Any?>,
-                     updatePairs: Map<Field<Any>, Any?>,
-                     updateId: String) {
+  private fun upsert(
+    ctx: DSLContext,
+    table: Table<Record>,
+    insertPairs: Map<Field<Any?>, Any?>,
+    updatePairs: Map<Field<Any>, Any?>,
+    updateId: String
+  ) {
     // MySQL & PG support upsert concepts. A nice little efficiency here, we
     // can avoid a network call if the dialect supports it, otherwise we need
     // to do a select for update first.
@@ -692,10 +712,12 @@ class SqlExecutionRepository(
     }
   }
 
-  private fun selectExecution(ctx: DSLContext,
-                              type: ExecutionType,
-                              id: String,
-                              forUpdate: Boolean = false): Execution? {
+  private fun selectExecution(
+    ctx: DSLContext,
+    type: ExecutionType,
+    id: String,
+    forUpdate: Boolean = false
+  ): Execution? {
     val select = ctx.selectExecution(type).where(id.toWhereCondition())
     if (forUpdate) {
       select.forUpdate()
@@ -742,10 +764,12 @@ class SqlExecutionRepository(
     }, transactionRetryProperties.maxRetries, transactionRetryProperties.backoffMs, false)
   }
 
-  private fun DSLContext.selectExecutions(type: ExecutionType,
-                                          fields: List<Field<Any>> = selectFields(),
-                                          conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
-                                          seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>) =
+  private fun DSLContext.selectExecutions(
+    type: ExecutionType,
+    fields: List<Field<Any>> = selectFields(),
+    conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
+    seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
+  ) =
     select(fields)
       .from(type.tableName)
       .let { conditions(it) }

@@ -20,14 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
@@ -38,9 +36,10 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
   public FileTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
-    this.yamlObjectMapper = new ObjectMapper(new YAMLFactory())
-      .setConfig(jsonObjectMapper.getSerializationConfig())
-      .setConfig(jsonObjectMapper.getDeserializationConfig());
+    this.yamlObjectMapper =
+        new ObjectMapper(new YAMLFactory())
+            .setConfig(jsonObjectMapper.getSerializationConfig())
+            .setConfig(jsonObjectMapper.getDeserializationConfig());
   }
 
   @Override

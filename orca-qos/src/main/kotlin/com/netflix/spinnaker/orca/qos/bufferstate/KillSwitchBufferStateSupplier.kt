@@ -32,7 +32,7 @@ class KillSwitchBufferStateSupplier(
 
   override fun get() =
     when (configService.isEnabled("qos.bufferingState.killSwitch", false)) {
-      true  -> ACTIVE
+      true -> ACTIVE
       false -> INACTIVE
     }
 }

@@ -20,14 +20,13 @@ import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateCon
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateVisitor {
@@ -45,59 +44,87 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
       return;
     }
 
-    Map<String, Object> configVars = templateConfiguration.getVariables() != null
-      ? configurationVariables(pipelineTemplateVariables, templateConfiguration.getVariables())
-      : new HashMap<>();
+    Map<String, Object> configVars =
+        templateConfiguration.getVariables() != null
+            ? configurationVariables(
+                pipelineTemplateVariables, templateConfiguration.getVariables())
+            : new HashMap<>();
 
-    // if the config is missing vars and the template defines a default value, assign those values from the config
+    // if the config is missing vars and the template defines a default value, assign those values
+    // from the config
     pipelineTemplateVariables.stream()
-      .filter(templateVar -> !configVars.containsKey(templateVar.getName()) && templateVar.hasDefaultValue())
-      .forEach(templateVar -> configVars.put(templateVar.getName(), templateVar.getDefaultValue()));
+        .filter(
+            templateVar ->
+                !configVars.containsKey(templateVar.getName()) && templateVar.hasDefaultValue())
+        .forEach(
+            templateVar -> configVars.put(templateVar.getName(), templateVar.getDefaultValue()));
 
-    List<String> missingVariables = pipelineTemplateVariables.stream()
-      .filter(templateVar -> !configVars.containsKey(templateVar.getName()) && !templateVar.isNullable())
-      .map(V2PipelineTemplate.Variable::getName)
-      .collect(Collectors.toList());
+    List<String> missingVariables =
+        pipelineTemplateVariables.stream()
+            .filter(
+                templateVar ->
+                    !configVars.containsKey(templateVar.getName()) && !templateVar.isNullable())
+            .map(V2PipelineTemplate.Variable::getName)
+            .collect(Collectors.toList());
 
     if (!missingVariables.isEmpty()) {
-      throw new IllegalTemplateConfigurationException("Missing variable values for: " + StringUtils.join(missingVariables, ", "));
+      throw new IllegalTemplateConfigurationException(
+          "Missing variable values for: " + StringUtils.join(missingVariables, ", "));
     }
 
-    List<String> wrongNullableErrorMessages = pipelineTemplateVariables.stream()
-      .filter(templateVar -> !templateVar.isNullable() && configVars.get(templateVar.getName()) == null)
-      .map(var -> String.format("variable '%s' supplied value is null but variable is not nullable\n", var.getName()))
-      .collect(Collectors.toList());
+    List<String> wrongNullableErrorMessages =
+        pipelineTemplateVariables.stream()
+            .filter(
+                templateVar ->
+                    !templateVar.isNullable() && configVars.get(templateVar.getName()) == null)
+            .map(
+                var ->
+                    String.format(
+                        "variable '%s' supplied value is null but variable is not nullable\n",
+                        var.getName()))
+            .collect(Collectors.toList());
     if (!wrongNullableErrorMessages.isEmpty()) {
-      throw new IllegalTemplateConfigurationException("Incorrectly defined variable(s): " + StringUtils.join(wrongNullableErrorMessages, ", "));
+      throw new IllegalTemplateConfigurationException(
+          "Incorrectly defined variable(s): " + StringUtils.join(wrongNullableErrorMessages, ", "));
     }
 
     // collect variables where value type doesn't match the required type
-    List<String> wrongTypeErrorMessages = pipelineTemplateVariables.stream()
-      .filter(templateVar -> {
-        Object actualVar = configVars.get(templateVar.getName());
+    List<String> wrongTypeErrorMessages =
+        pipelineTemplateVariables.stream()
+            .filter(
+                templateVar -> {
+                  Object actualVar = configVars.get(templateVar.getName());
 
-        String expectedType = templateVar.getType();
-        if (expectedType.equalsIgnoreCase("object")) {
-          return false; // Not invalid, all classes are objects
-        } else if (templateVar.isNullable() && actualVar == null) {
-          return false; // Not invalid, can't determine type from null value
-        }
+                  String expectedType = templateVar.getType();
+                  if (expectedType.equalsIgnoreCase("object")) {
+                    return false; // Not invalid, all classes are objects
+                  } else if (templateVar.isNullable() && actualVar == null) {
+                    return false; // Not invalid, can't determine type from null value
+                  }
 
-        Class<?> actualType = actualVar.getClass();
-        return !(
-          (isInteger(templateVar, actualVar)) ||
-            (expectedType.equalsIgnoreCase("bool") && actualVar instanceof Boolean) ||
-            (expectedType.equalsIgnoreCase("list") && actualVar instanceof Collection) ||
-            (expectedType.equalsIgnoreCase("string") && actualVar instanceof CharSequence) ||
-            (expectedType.equalsIgnoreCase("float") && (actualVar instanceof Double || actualVar instanceof Float)) ||
-            (expectedType.equalsIgnoreCase(actualType.getSimpleName()))
-        );
-      })
-      .map(var -> var.getName() + " (expected type '" + var.getType() + "' found type '" + configVars.get(var.getName()).getClass().getSimpleName() + "')")
-      .collect(Collectors.toList());
+                  Class<?> actualType = actualVar.getClass();
+                  return !((isInteger(templateVar, actualVar))
+                      || (expectedType.equalsIgnoreCase("bool") && actualVar instanceof Boolean)
+                      || (expectedType.equalsIgnoreCase("list") && actualVar instanceof Collection)
+                      || (expectedType.equalsIgnoreCase("string")
+                          && actualVar instanceof CharSequence)
+                      || (expectedType.equalsIgnoreCase("float")
+                          && (actualVar instanceof Double || actualVar instanceof Float))
+                      || (expectedType.equalsIgnoreCase(actualType.getSimpleName())));
+                })
+            .map(
+                var ->
+                    var.getName()
+                        + " (expected type '"
+                        + var.getType()
+                        + "' found type '"
+                        + configVars.get(var.getName()).getClass().getSimpleName()
+                        + "')")
+            .collect(Collectors.toList());
 
     if (!wrongTypeErrorMessages.isEmpty()) {
-      throw new IllegalTemplateConfigurationException("Incorrectly defined variable(s): " + StringUtils.join(wrongTypeErrorMessages, ", "));
+      throw new IllegalTemplateConfigurationException(
+          "Incorrectly defined variable(s): " + StringUtils.join(wrongTypeErrorMessages, ", "));
     }
   }
 
@@ -118,24 +145,26 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
       noDecimal = actualFloat % 1 == 0;
     }
     String expectedtype = templateVar.getType();
-    return expectedtype.equalsIgnoreCase("int") &&
-      (actualVar instanceof Integer || (noDecimal && instanceOfDouble) || (noDecimal && instanceOfFloat));
+    return expectedtype.equalsIgnoreCase("int")
+        && (actualVar instanceof Integer
+            || (noDecimal && instanceOfDouble)
+            || (noDecimal && instanceOfFloat));
   }
 
   /**
    * Filter out configuration variables that don't exist in the template.
    *
    * @param pipelineTemplateVariables Variables from the pipeline template.
-   * @param configVariables           Variables from the pipeline configuration referencing the template.
+   * @param configVariables Variables from the pipeline configuration referencing the template.
    * @return Map of configuration variables exist in the declared template variables.
    */
-  public static Map<String, Object> configurationVariables(List<V2PipelineTemplate.Variable> pipelineTemplateVariables,
-                                                           Map<String, Object> configVariables) {
-    List<String> templateVariableNames = pipelineTemplateVariables.stream()
-      .map(var -> var.getName()).collect(Collectors.toList());
-    return configVariables.entrySet()
-      .stream()
-      .filter(configVar -> templateVariableNames.contains(configVar.getKey()))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  public static Map<String, Object> configurationVariables(
+      List<V2PipelineTemplate.Variable> pipelineTemplateVariables,
+      Map<String, Object> configVariables) {
+    List<String> templateVariableNames =
+        pipelineTemplateVariables.stream().map(var -> var.getName()).collect(Collectors.toList());
+    return configVariables.entrySet().stream()
+        .filter(configVar -> templateVariableNames.contains(configVar.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

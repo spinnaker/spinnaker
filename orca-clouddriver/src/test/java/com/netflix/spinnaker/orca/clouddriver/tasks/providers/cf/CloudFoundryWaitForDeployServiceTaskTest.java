@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-
 class CloudFoundryWaitForDeployServiceTaskTest
-  extends AbstractCloudFoundryWaitForServiceOperationTaskTest<CloudFoundryWaitForDeployServiceTask> {
+    extends AbstractCloudFoundryWaitForServiceOperationTaskTest<
+        CloudFoundryWaitForDeployServiceTask> {
   CloudFoundryWaitForDeployServiceTaskTest() {
     super("deployService", CloudFoundryWaitForDeployServiceTask::new);
   }
@@ -34,12 +34,14 @@ class CloudFoundryWaitForDeployServiceTaskTest
 
   @Test
   void isSuccessWhenOortResultIsSucceeded() {
-    testOortServiceStatus(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", "SUCCEEDED"));
+    testOortServiceStatus(
+        ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", "SUCCEEDED"));
   }
 
   @Test
   void isRunningWhenOortResultIsInProgress() {
-    testOortServiceStatus(ExecutionStatus.RUNNING, Collections.singletonMap("status", "IN_PROGRESS"));
+    testOortServiceStatus(
+        ExecutionStatus.RUNNING, Collections.singletonMap("status", "IN_PROGRESS"));
   }
 
   @Test

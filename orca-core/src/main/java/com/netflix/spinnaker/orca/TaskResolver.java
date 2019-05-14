@@ -17,18 +17,15 @@
 package com.netflix.spinnaker.orca;
 
 import com.google.common.annotations.VisibleForTesting;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.lang.String.format;
+import javax.annotation.Nonnull;
 
 /**
  * {@code TaskResolver} allows for {@code Task} retrieval via class name or alias.
- * <p>
- * Aliases represent the previous class names of a {@code Task}.
+ *
+ * <p>Aliases represent the previous class names of a {@code Task}.
  */
 public class TaskResolver {
   private final Map<String, Task> taskByAlias = new HashMap<>();
@@ -41,8 +38,9 @@ public class TaskResolver {
   }
 
   /**
-   * @param tasks         Task implementations
-   * @param allowFallback Fallback to {@code Class.forName()} if a task cannot be located by name or alias
+   * @param tasks Task implementations
+   * @param allowFallback Fallback to {@code Class.forName()} if a task cannot be located by name or
+   *     alias
    */
   public TaskResolver(Collection<Task> tasks, boolean allowFallback) {
     for (Task task : tasks) {
@@ -54,9 +52,7 @@ public class TaskResolver {
                   "Duplicate task alias detected (alias: %s, previous: %s, current: %s)",
                   alias,
                   taskByAlias.get(alias).getClass().getCanonicalName(),
-                  task.getClass().getCanonicalName()
-              )
-          );
+                  task.getClass().getCanonicalName()));
         }
 
         taskByAlias.put(alias, task);

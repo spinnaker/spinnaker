@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.orca.config;
+package com.netflix.spinnaker.orca.config
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -9,8 +9,8 @@ import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.Endpoints
 import retrofit.RequestInterceptor

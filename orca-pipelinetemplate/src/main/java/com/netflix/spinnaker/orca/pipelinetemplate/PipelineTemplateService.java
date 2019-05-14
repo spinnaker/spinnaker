@@ -15,10 +15,8 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import javax.annotation.Nullable;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -30,10 +28,13 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.TemplateSource;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
 public class PipelineTemplateService {
@@ -47,14 +48,19 @@ public class PipelineTemplateService {
   private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
 
   @Autowired
-  public PipelineTemplateService(TemplateLoader templateLoader, ExecutionRepository executionRepository, Renderer renderer) {
+  public PipelineTemplateService(
+      TemplateLoader templateLoader, ExecutionRepository executionRepository, Renderer renderer) {
     this.templateLoader = templateLoader;
     this.executionRepository = executionRepository;
     this.renderer = renderer;
   }
 
-  public PipelineTemplate resolveTemplate(TemplateSource templateSource, @Nullable String executionId, @Nullable String pipelineConfigId) {
-    if (containsJinja(templateSource.getSource()) && !(executionId == null && pipelineConfigId == null)) {
+  public PipelineTemplate resolveTemplate(
+      TemplateSource templateSource,
+      @Nullable String executionId,
+      @Nullable String pipelineConfigId) {
+    if (containsJinja(templateSource.getSource())
+        && !(executionId == null && pipelineConfigId == null)) {
       try {
         Execution pipeline = retrievePipelineOrNewestExecution(executionId, pipelineConfigId);
         String renderedSource = render(templateSource.getSource(), pipeline);
@@ -70,29 +76,37 @@ public class PipelineTemplateService {
   }
 
   /**
-   * If {@code executionId} is set, it will be retrieved. Otherwise, {@code pipelineConfigId} will be used to find the
-   * newest pipeline execution for that configuration.
+   * If {@code executionId} is set, it will be retrieved. Otherwise, {@code pipelineConfigId} will
+   * be used to find the newest pipeline execution for that configuration.
+   *
    * @param executionId An explicit pipeline execution id.
    * @param pipelineConfigId A pipeline configuration id. Ignored if {@code executionId} is set.
    * @return The pipeline
    * @throws IllegalArgumentException if neither executionId or pipelineConfigId are provided
    * @throws ExecutionNotFoundException if no execution could be found
    */
-  public Execution retrievePipelineOrNewestExecution(@Nullable String executionId, @Nullable String pipelineConfigId) throws ExecutionNotFoundException {
+  public Execution retrievePipelineOrNewestExecution(
+      @Nullable String executionId, @Nullable String pipelineConfigId)
+      throws ExecutionNotFoundException {
     if (executionId != null) {
       // Use an explicit execution
       return executionRepository.retrieve(PIPELINE, executionId);
     } else if (pipelineConfigId != null) {
       // No executionId set - use last execution
-      ExecutionRepository.ExecutionCriteria criteria = new ExecutionRepository.ExecutionCriteria().setPageSize(1);
+      ExecutionRepository.ExecutionCriteria criteria =
+          new ExecutionRepository.ExecutionCriteria().setPageSize(1);
       try {
-        return executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
-          .toSingle()
-          .toBlocking()
-          .value();
+        return executionRepository
+            .retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
+            .toSingle()
+            .toBlocking()
+            .value();
       } catch (NoSuchElementException e) {
-        throw new ExecutionNotFoundException("No pipeline execution could be found for config id " +
-          pipelineConfigId + ": " + e.getMessage());
+        throw new ExecutionNotFoundException(
+            "No pipeline execution could be found for config id "
+                + pipelineConfigId
+                + ": "
+                + e.getMessage());
       }
     } else {
       throw new IllegalArgumentException("Either executionId or pipelineConfigId have to be set.");
@@ -100,12 +114,13 @@ public class PipelineTemplateService {
   }
 
   private String render(String templateString, Execution pipeline) {
-    DefaultRenderContext rc = new DefaultRenderContext(pipeline.getApplication(), null, mapper.convertValue(pipeline.getTrigger(), Map.class));
+    DefaultRenderContext rc =
+        new DefaultRenderContext(
+            pipeline.getApplication(), null, mapper.convertValue(pipeline.getTrigger(), Map.class));
     return renderer.render(templateString, rc);
   }
 
   private static boolean containsJinja(String string) {
     return string.contains("{%") || string.contains("{{");
   }
-
 }

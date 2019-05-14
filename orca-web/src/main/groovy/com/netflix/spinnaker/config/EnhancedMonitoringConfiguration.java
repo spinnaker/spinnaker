@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.config;
 
-import com.google.common.collect.Lists;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +33,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import rx.schedulers.Schedulers;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
 @EnableConfigurationProperties(EnhancedMonitoringConfigurationProperties.class)
@@ -49,23 +47,23 @@ public class EnhancedMonitoringConfiguration {
   private final Map<String, AtomicLong> orchestrationCountPerApplication = new HashMap<>();
 
   @Autowired
-  public EnhancedMonitoringConfiguration(Registry registry,
-                                         ExecutionRepository executionRepository,
-                                         EnhancedMonitoringConfigurationProperties configuration) {
+  public EnhancedMonitoringConfiguration(
+      Registry registry,
+      ExecutionRepository executionRepository,
+      EnhancedMonitoringConfigurationProperties configuration) {
     this.registry = registry;
     this.executionRepository = executionRepository;
     this.configuration = configuration;
 
-    Id runningOrchestrationsId = registry
-      .createId("executions.running")
-      .withTag("executionType", "Orchestration"); // similar to what MetricsTagHelper is doing
+    Id runningOrchestrationsId =
+        registry
+            .createId("executions.running")
+            .withTag("executionType", "Orchestration"); // similar to what MetricsTagHelper is doing
 
     for (String application : configuration.getApplications()) {
       Id applicationSpecificId = runningOrchestrationsId.withTag("application", application);
       orchestrationCountPerApplication.put(
-        application,
-        registry.gauge(applicationSpecificId, new AtomicLong(0))
-      );
+          application, registry.gauge(applicationSpecificId, new AtomicLong(0)));
     }
   }
 
@@ -75,13 +73,20 @@ public class EnhancedMonitoringConfiguration {
 
     for (String application : configuration.getApplications()) {
       try {
-        List<Execution> executions = executionRepository.retrieveOrchestrationsForApplication(
-          application,
-          new ExecutionRepository.ExecutionCriteria().setStatuses(ExecutionStatus.RUNNING)
-        ).subscribeOn(Schedulers.io()).toList().toBlocking().single();
+        List<Execution> executions =
+            executionRepository
+                .retrieveOrchestrationsForApplication(
+                    application,
+                    new ExecutionRepository.ExecutionCriteria()
+                        .setStatuses(ExecutionStatus.RUNNING))
+                .subscribeOn(Schedulers.io())
+                .toList()
+                .toBlocking()
+                .single();
         orchestrationCountPerApplication.get(application).set(executions.size());
       } catch (Exception e) {
-        log.error("Unable to refresh running orchestration count (application: {})", application, e);
+        log.error(
+            "Unable to refresh running orchestration count (application: {})", application, e);
       }
     }
 

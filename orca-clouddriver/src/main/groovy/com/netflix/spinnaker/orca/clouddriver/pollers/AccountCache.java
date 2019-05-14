@@ -24,16 +24,15 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @ConditionalOnExpression(value = "${pollers.accountCache.enabled:false}")
@@ -49,10 +48,12 @@ public class AccountCache extends AbstractPollingNotificationAgent {
   private AtomicReference<List<Account>> accounts = new AtomicReference<>();
 
   @Autowired
-  public AccountCache(NotificationClusterLock notificationClusterLock,
-                      ObjectMapper objectMapper,
-                      OortService oortService,
-                      RetrySupport retrySupport, Registry registry) {
+  public AccountCache(
+      NotificationClusterLock notificationClusterLock,
+      ObjectMapper objectMapper,
+      OortService oortService,
+      RetrySupport retrySupport,
+      Registry registry) {
     super(notificationClusterLock);
     this.objectMapper = objectMapper;
     this.oortService = oortService;
@@ -84,11 +85,16 @@ public class AccountCache extends AbstractPollingNotificationAgent {
   private void refresh() {
     try {
       accounts.set(
-        AuthenticatedRequest.allowAnonymous(() -> retrySupport.retry(() ->
-            objectMapper.convertValue(oortService.getCredentials(true), new TypeReference<List<Account>>() {}),
-          5, 3000, false
-          )
-        ));
+          AuthenticatedRequest.allowAnonymous(
+              () ->
+                  retrySupport.retry(
+                      () ->
+                          objectMapper.convertValue(
+                              oortService.getCredentials(true),
+                              new TypeReference<List<Account>>() {}),
+                      5,
+                      3000,
+                      false)));
 
       successCounter.increment();
     } catch (Exception e) {
@@ -106,10 +112,8 @@ public class AccountCache extends AbstractPollingNotificationAgent {
   }
 
   public String getEnvironment(String accountName) {
-    final Optional<Account> account = getAccounts()
-      .stream()
-      .filter(i -> i.name.equals(accountName))
-      .findFirst();
+    final Optional<Account> account =
+        getAccounts().stream().filter(i -> i.name.equals(accountName)).findFirst();
 
     return account.map(a -> a.environment).orElse("unknown");
   }

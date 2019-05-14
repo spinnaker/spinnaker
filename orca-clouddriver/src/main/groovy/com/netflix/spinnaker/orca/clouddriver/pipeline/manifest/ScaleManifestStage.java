@@ -33,7 +33,8 @@ public class ScaleManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+    builder
+        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
         .withTask(ScaleManifestTask.TASK_NAME, ScaleManifestTask.class)
         .withTask("monitorScale", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)

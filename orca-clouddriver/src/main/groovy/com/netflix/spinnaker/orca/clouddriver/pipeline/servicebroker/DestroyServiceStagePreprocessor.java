@@ -22,8 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 /**
  * Supports generic modification of a Deploy Service stage.
  *
- * Common use-cases:
- * - injecting cloud-aware steps
+ * <p>Common use-cases: - injecting cloud-aware steps
  */
 public interface DestroyServiceStagePreprocessor {
   boolean supports(Stage stage);

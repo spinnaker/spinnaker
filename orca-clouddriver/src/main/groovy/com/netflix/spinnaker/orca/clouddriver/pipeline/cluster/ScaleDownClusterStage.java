@@ -30,9 +30,10 @@ import org.springframework.stereotype.Component;
 public class ScaleDownClusterStage extends AbstractClusterWideClouddriverOperationStage {
 
   @Autowired
-  public ScaleDownClusterStage(TrafficGuard trafficGuard,
-                               LockingConfigurationProperties lockingConfigurationProperties,
-                               DynamicConfigService dynamicConfigService) {
+  public ScaleDownClusterStage(
+      TrafficGuard trafficGuard,
+      LockingConfigurationProperties lockingConfigurationProperties,
+      DynamicConfigService dynamicConfigService) {
     super(trafficGuard, lockingConfigurationProperties, dynamicConfigService);
   }
 

@@ -20,5 +20,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(DefaultApplicationConfigurationProperties.class)
-public class PreprocessorConfiguration {
-}
+public class PreprocessorConfiguration {}

@@ -17,35 +17,28 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.image;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.DeleteImageTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.image.MonitorDeleteImageTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
-import javax.validation.constraints.NotNull;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DeleteImageStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(@NotNull Stage stage, @NotNull TaskNode.Builder builder) {
-    builder
-      .withTask("deleteImage", DeleteImageTask.class);
+    builder.withTask("deleteImage", DeleteImageTask.class);
   }
 
   public static class DeleteImageRequest {
-    @NotNull
-    private String credentials;
+    @NotNull private String credentials;
 
-    @NotNull
-    private String cloudProvider;
+    @NotNull private String cloudProvider;
 
-    @NotNull
-    private String region;
+    @NotNull private String region;
 
-    @NotNull
-    private Set<String> imageIds;
+    @NotNull private Set<String> imageIds;
 
     public String getCredentials() {
       return credentials;

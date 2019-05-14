@@ -75,4 +75,3 @@ public class RedisConnectionInfo {
   private int database;
   private String password;
 }
-

@@ -16,38 +16,37 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws;
 
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.ami.AppVersion;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toMap;
-
 @Component
 public class AmazonImageFinder implements ImageFinder {
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Override
-  public Collection<ImageDetails> byTags(Stage stage, String packageName, Map<String, String> tags) {
+  public Collection<ImageDetails> byTags(
+      Stage stage, String packageName, Map<String, String> tags) {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
     List<AmazonImage> allMatchedImages =
-        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags)).stream()
-        .map(image -> objectMapper.convertValue(image, AmazonImage.class))
-        .filter(image -> image.tagsByImageId != null && image.tagsByImageId.size() != 0)
-        .sorted()
-        .collect(Collectors.toList());
+        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
+            .stream()
+            .map(image -> objectMapper.convertValue(image, AmazonImage.class))
+            .filter(image -> image.tagsByImageId != null && image.tagsByImageId.size() != 0)
+            .sorted()
+            .collect(Collectors.toList());
 
     List<ImageDetails> imageDetails = new ArrayList<>();
 
@@ -55,11 +54,12 @@ public class AmazonImageFinder implements ImageFinder {
      * For each region, find the most recently created image.
      * (optimized for readability over efficiency given the generally small # of images)
      */
-    stageData.regions.forEach(region -> allMatchedImages.stream()
-      .filter(image -> image.amis.containsKey(region))
-      .findFirst()
-      .map(image -> imageDetails.add(image.toAmazonImageDetails(region)))
-    );
+    stageData.regions.forEach(
+        region ->
+            allMatchedImages.stream()
+                .filter(image -> image.amis.containsKey(region))
+                .findFirst()
+                .map(image -> imageDetails.add(image.toAmazonImageDetails(region))));
 
     return imageDetails;
   }
@@ -70,44 +70,38 @@ public class AmazonImageFinder implements ImageFinder {
   }
 
   static Map<String, String> prefixTags(Map<String, String> tags) {
-    return tags.entrySet()
-      .stream()
-      .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
+    return tags.entrySet().stream()
+        .collect(toMap(entry -> "tag:" + entry.getKey(), Map.Entry::getValue));
   }
 
   static class StageData {
-    @JsonProperty
-    Collection<String> regions;
+    @JsonProperty Collection<String> regions;
   }
 
   static class AmazonImage implements Comparable<AmazonImage> {
-    @JsonProperty
-    String imageName;
+    @JsonProperty String imageName;
 
-    @JsonProperty
-    Map<String, Object> attributes;
+    @JsonProperty Map<String, Object> attributes;
 
-    @JsonProperty
-    Map<String, Map<String, String>> tagsByImageId;
+    @JsonProperty Map<String, Map<String, String>> tagsByImageId;
 
-    @JsonProperty
-    Map<String, List<String>> amis;
+    @JsonProperty Map<String, List<String>> amis;
 
     ImageDetails toAmazonImageDetails(String region) {
       String imageId = amis.get(region).get(0);
 
-      Map<String, String> imageTags = Optional.ofNullable(tagsByImageId)
-        .map(it -> it.get(imageId))
-        .orElse(emptyMap());
+      Map<String, String> imageTags =
+          Optional.ofNullable(tagsByImageId).map(it -> it.get(imageId)).orElse(emptyMap());
       AppVersion appVersion = AppVersion.parseName(imageTags.get("appversion"));
-      JenkinsDetails jenkinsDetails = Optional
-        .ofNullable(appVersion)
-        .map(av -> new JenkinsDetails(imageTags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
-        .orElse(null);
+      JenkinsDetails jenkinsDetails =
+          Optional.ofNullable(appVersion)
+              .map(
+                  av ->
+                      new JenkinsDetails(
+                          imageTags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
+              .orElse(null);
 
-      return new AmazonImageDetails(
-        imageName, imageId, region, jenkinsDetails
-      );
+      return new AmazonImageDetails(imageName, imageId, region, jenkinsDetails);
     }
 
     @Override
@@ -121,12 +115,16 @@ public class AmazonImageFinder implements ImageFinder {
       }
 
       // a lexicographic sort is sufficient given that `creationDate` is ISO 8601
-      return o.attributes.get("creationDate").toString().compareTo(attributes.get("creationDate").toString());
+      return o.attributes
+          .get("creationDate")
+          .toString()
+          .compareTo(attributes.get("creationDate").toString());
     }
   }
 
   private static class AmazonImageDetails extends HashMap<String, Object> implements ImageDetails {
-    AmazonImageDetails(String imageName, String imageId, String region, JenkinsDetails jenkinsDetails) {
+    AmazonImageDetails(
+        String imageName, String imageId, String region, JenkinsDetails jenkinsDetails) {
       put("imageName", imageName);
       put("imageId", imageId);
 

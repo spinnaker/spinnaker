@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.v2.transform.V
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
-
 import java.util.ArrayList;
 import java.util.List;
 

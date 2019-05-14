@@ -16,13 +16,10 @@
 package com.netflix.spinnaker.orca.events;
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import javax.annotation.Nonnull;
 import org.springframework.context.ApplicationEvent;
 
-import javax.annotation.Nonnull;
-
-/**
- * An event emitted immediately before the initial persist of an execution.
- */
+/** An event emitted immediately before the initial persist of an execution. */
 public final class BeforeInitialExecutionPersist extends ApplicationEvent {
 
   private final Execution execution;

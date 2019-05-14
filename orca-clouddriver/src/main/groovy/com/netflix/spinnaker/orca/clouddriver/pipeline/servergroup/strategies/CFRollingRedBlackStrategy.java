@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
+import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport.getSource;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -35,6 +37,9 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import groovy.util.logging.Slf4j;
+import java.io.IOException;
+import java.util.*;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -46,17 +51,12 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.*;
-
-import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport.getSource;
-
 /**
- * CFRollingRedBlackStrategy is a rolling red/black strategy specifically made for Cloud Foundry
- * to handle the differences in this type of rollout between an IaaS and Cloud Foundry.
- * <p>
- * If you run on any other platform you should probably be using "{@link RollingRedBlackStrategy}"
+ * CFRollingRedBlackStrategy is a rolling red/black strategy specifically made for Cloud Foundry to
+ * handle the differences in this type of rollout between an IaaS and Cloud Foundry.
+ *
+ * <p>If you run on any other platform you should probably be using "{@link
+ * RollingRedBlackStrategy}"
  */
 @Slf4j
 @Data
@@ -73,20 +73,24 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
   private TargetServerGroupResolver targetServerGroupResolver;
   private ObjectMapper objectMapper;
   private OortService oort;
-  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+  private static final ThreadLocal<Yaml> yamlParser =
+      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Override
   public List<Stage> composeFlow(Stage stage) {
     if (!pipelineStage.isPresent()) {
-      throw new IllegalStateException("Rolling red/black cannot be run without front50 enabled. Please set 'front50.enabled: true' in your orca config.");
+      throw new IllegalStateException(
+          "Rolling red/black cannot be run without front50 enabled. Please set 'front50.enabled: true' in your orca config.");
     }
 
     List<Stage> stages = new ArrayList<>();
     RollingRedBlackStageData stageData = stage.mapTo(RollingRedBlackStageData.class);
-    AbstractDeployStrategyStage.CleanupConfig cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage);
+    AbstractDeployStrategyStage.CleanupConfig cleanupConfig =
+        AbstractDeployStrategyStage.CleanupConfig.fromStage(stage);
 
     Map<String, Object> baseContext = new HashMap<>();
-    baseContext.put(cleanupConfig.getLocation().singularType(), cleanupConfig.getLocation().getValue());
+    baseContext.put(
+        cleanupConfig.getLocation().singularType(), cleanupConfig.getLocation().getValue());
     baseContext.put("cluster", cleanupConfig.getCluster());
     baseContext.put("moniker", cleanupConfig.getMoniker());
     baseContext.put("credentials", cleanupConfig.getAccount());
@@ -104,8 +108,10 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     Map<String, Object> manifest = (Map<String, Object>) stage.getContext().get("manifest");
     if (manifest.get("direct") == null) {
       Artifact artifact = objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
-      String artifactId = manifest.get("artifactId") != null ? manifest.get("artifactId").toString() : null;
-      Artifact boundArtifact = artifactResolver.getBoundArtifactForStage(stage, artifactId, artifact);
+      String artifactId =
+          manifest.get("artifactId") != null ? manifest.get("artifactId").toString() : null;
+      Artifact boundArtifact =
+          artifactResolver.getBoundArtifactForStage(stage, artifactId, artifact);
 
       if (boundArtifact == null) {
         throw new IllegalArgumentException("Unable to bind the manifest artifact");
@@ -114,8 +120,9 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       Response manifestText = oort.fetchArtifact(boundArtifact);
       try {
         Object manifestYml = yamlParser.get().load(manifestText.getBody().in());
-        Map<String, List<Map<String, Object>>> applicationManifests = objectMapper
-          .convertValue(manifestYml, new TypeReference<Map<String, List<Map<String, Object>>>>() {});
+        Map<String, List<Map<String, Object>>> applicationManifests =
+            objectMapper.convertValue(
+                manifestYml, new TypeReference<Map<String, List<Map<String, Object>>>>() {});
         List<Map<String, Object>> applications = applicationManifests.get("applications");
         Map<String, Object> applicationConfiguration = applications.get(0);
         manifest.put("direct", applicationConfiguration);
@@ -126,7 +133,8 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
         throw new IllegalStateException(e);
       }
     }
-    Manifest.Direct directManifestAttributes = objectMapper.convertValue(manifest.get("direct"), Manifest.Direct.class);
+    Manifest.Direct directManifestAttributes =
+        objectMapper.convertValue(manifest.get("direct"), Manifest.Direct.class);
 
     if (!stage.getContext().containsKey("savedCapacity")) {
       int instances = directManifestAttributes.getInstances();
@@ -136,13 +144,15 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       stage.getContext().put("savedCapacity", savedCapacity);
       stage.getContext().put("sourceServerGroupCapacitySnapshot", savedCapacity);
     } else {
-      Map<String, Integer> savedCapacityMap = (Map<String, Integer>) stage.getContext().get("savedCapacity");
+      Map<String, Integer> savedCapacityMap =
+          (Map<String, Integer>) stage.getContext().get("savedCapacity");
       savedCapacity.setMin(savedCapacityMap.get("min"));
       savedCapacity.setMax(savedCapacityMap.get("max"));
       savedCapacity.setDesired(savedCapacityMap.get("desired"));
     }
 
-    // FIXME: this clobbers the input capacity value (if any). Should find a better way to request a new asg of size 0
+    // FIXME: this clobbers the input capacity value (if any). Should find a better way to request a
+    // new asg of size 0
     ResizeStrategy.Capacity zeroCapacity = new ResizeStrategy.Capacity();
     zeroCapacity.setMin(0);
     zeroCapacity.setMax(0);
@@ -163,7 +173,12 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     findContext.put("target", TargetServerGroup.Params.Target.current_asg_dynamic);
     findContext.put("targetLocation", cleanupConfig.getLocation());
 
-    Stage dtsgStage = new Stage(execution, DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE, "Determine Deployed Server Group", findContext);
+    Stage dtsgStage =
+        new Stage(
+            execution,
+            DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
+            "Determine Deployed Server Group",
+            findContext);
     dtsgStage.setParentStageId(stage.getId());
     dtsgStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
     stages.add(dtsgStage);
@@ -176,19 +191,34 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     }
 
     if (source == null) {
-      log.warn("no source server group -- will perform RRB to exact fallback capacity {} with no disableCluster or scaleDownCluster stages", savedCapacity);
+      log.warn(
+          "no source server group -- will perform RRB to exact fallback capacity {} with no disableCluster or scaleDownCluster stages",
+          savedCapacity);
     }
 
-    ResizeStrategy.Capacity sourceCapacity = source == null ?
-      savedCapacity :
-      resizeStrategySupport.getCapacity(source.getCredentials(), source.getServerGroupName(), source.getCloudProvider(), source.getLocation());
+    ResizeStrategy.Capacity sourceCapacity =
+        source == null
+            ? savedCapacity
+            : resizeStrategySupport.getCapacity(
+                source.getCredentials(),
+                source.getServerGroupName(),
+                source.getCloudProvider(),
+                source.getLocation());
 
     for (Integer percentage : targetPercentages) {
-      Map<String, Object> scaleUpContext = getScalingContext(stage, cleanupConfig, baseContext, savedCapacity, percentage, null);
+      Map<String, Object> scaleUpContext =
+          getScalingContext(stage, cleanupConfig, baseContext, savedCapacity, percentage, null);
 
-      log.info("Adding `Grow target to {}% of desired size` stage with context {} [executionId={}]", percentage, scaleUpContext, executionId);
+      log.info(
+          "Adding `Grow target to {}% of desired size` stage with context {} [executionId={}]",
+          percentage, scaleUpContext, executionId);
 
-      Stage resizeStage = new Stage(execution, ResizeServerGroupStage.TYPE, "Grow target to " + percentage + "% of desired size", scaleUpContext);
+      Stage resizeStage =
+          new Stage(
+              execution,
+              ResizeServerGroupStage.TYPE,
+              "Grow target to " + percentage + "% of desired size",
+              scaleUpContext);
       resizeStage.setParentStageId(stage.getId());
       resizeStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
       stages.add(resizeStage);
@@ -197,12 +227,25 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       if (source != null) {
         stages.addAll(getBeforeCleanupStages(stage, stageData));
         Map<String, Object> scaleDownContext =
-          getScalingContext(stage, cleanupConfig, baseContext, sourceCapacity, 100 - percentage, source.getServerGroupName());
+            getScalingContext(
+                stage,
+                cleanupConfig,
+                baseContext,
+                sourceCapacity,
+                100 - percentage,
+                source.getServerGroupName());
         scaleDownContext.put("scaleStoppedServerGroup", true);
 
-        log.info("Adding `Shrink source to {}% of initial size` stage with context {} [executionId={}]", 100 - percentage, scaleDownContext, executionId);
+        log.info(
+            "Adding `Shrink source to {}% of initial size` stage with context {} [executionId={}]",
+            100 - percentage, scaleDownContext, executionId);
 
-        Stage scaleDownStage = new Stage(execution, ResizeServerGroupStage.TYPE, "Shrink source to " + (100 - percentage) + "% of initial size", scaleDownContext);
+        Stage scaleDownStage =
+            new Stage(
+                execution,
+                ResizeServerGroupStage.TYPE,
+                "Shrink source to " + (100 - percentage) + "% of initial size",
+                scaleDownContext);
         scaleDownStage.setParentStageId(stage.getId());
         scaleDownStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
         stages.add(scaleDownStage);
@@ -215,31 +258,48 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       shrinkClusterContext.put("allowDeleteActive", false);
       shrinkClusterContext.put("shrinkToSize", stage.getContext().get("maxRemainingAsgs"));
       shrinkClusterContext.put("retainLargerOverNewer", false);
-      Stage shrinkClusterStage = new Stage(execution, ShrinkClusterStage.STAGE_TYPE, "shrinkCluster", shrinkClusterContext);
+      Stage shrinkClusterStage =
+          new Stage(
+              execution, ShrinkClusterStage.STAGE_TYPE, "shrinkCluster", shrinkClusterContext);
       shrinkClusterStage.setParentStageId(stage.getId());
       shrinkClusterStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
       stages.add(shrinkClusterStage);
 
       // disable old
-      log.info("Adding `Disable cluster` stage with context {} [executionId={}]", baseContext, executionId);
+      log.info(
+          "Adding `Disable cluster` stage with context {} [executionId={}]",
+          baseContext,
+          executionId);
       Map<String, Object> disableContext = new HashMap<>(baseContext);
-      Stage disableStage = new Stage(execution, DisableClusterStage.STAGE_TYPE, "Disable cluster", disableContext);
+      Stage disableStage =
+          new Stage(execution, DisableClusterStage.STAGE_TYPE, "Disable cluster", disableContext);
       disableStage.setParentStageId(stage.getId());
       disableStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
       stages.add(disableStage);
 
       // scale old back to original
-      Map<String, Object> scaleSourceContext = getScalingContext(stage, cleanupConfig, baseContext, sourceCapacity, 100, source.getServerGroupName());
+      Map<String, Object> scaleSourceContext =
+          getScalingContext(
+              stage, cleanupConfig, baseContext, sourceCapacity, 100, source.getServerGroupName());
       scaleSourceContext.put("scaleStoppedServerGroup", true);
-      log.info("Adding `Grow source to 100% of original size` stage with context {} [executionId={}]", scaleSourceContext, executionId);
-      Stage scaleSourceStage = new Stage(execution, ResizeServerGroupStage.TYPE, "Reset source to original size", scaleSourceContext);
+      log.info(
+          "Adding `Grow source to 100% of original size` stage with context {} [executionId={}]",
+          scaleSourceContext, executionId);
+      Stage scaleSourceStage =
+          new Stage(
+              execution,
+              ResizeServerGroupStage.TYPE,
+              "Reset source to original size",
+              scaleSourceContext);
       scaleSourceStage.setParentStageId(stage.getId());
       scaleSourceStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
       stages.add(scaleSourceStage);
 
       if (stageData.getDelayBeforeScaleDown() > 0L) {
-        Map<String, Object> waitContext = Collections.singletonMap("waitTime", stageData.getDelayBeforeScaleDown());
-        Stage delayStage = new Stage(execution, WaitStage.STAGE_TYPE, "Wait Before Scale Down", waitContext);
+        Map<String, Object> waitContext =
+            Collections.singletonMap("waitTime", stageData.getDelayBeforeScaleDown());
+        Stage delayStage =
+            new Stage(execution, WaitStage.STAGE_TYPE, "Wait Before Scale Down", waitContext);
         delayStage.setParentStageId(stage.getId());
         delayStage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
         stages.add(delayStage);
@@ -249,13 +309,15 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     return stages;
   }
 
-  private List<Stage> getBeforeCleanupStages(Stage parentStage,
-                                             RollingRedBlackStageData stageData) {
+  private List<Stage> getBeforeCleanupStages(
+      Stage parentStage, RollingRedBlackStageData stageData) {
     List<Stage> stages = new ArrayList<>();
 
     if (stageData.getDelayBeforeCleanup() != 0) {
-      Map<String, Object> waitContext = Collections.singletonMap("waitTime", stageData.getDelayBeforeCleanup());
-      Stage stage = new Stage(parentStage.getExecution(), WaitStage.STAGE_TYPE, "wait", waitContext);
+      Map<String, Object> waitContext =
+          Collections.singletonMap("waitTime", stageData.getDelayBeforeCleanup());
+      Stage stage =
+          new Stage(parentStage.getExecution(), WaitStage.STAGE_TYPE, "wait", waitContext);
       stage.setParentStageId(parentStage.getId());
       stage.setSyntheticStageOwner(SyntheticStageOwner.STAGE_AFTER);
       stages.add(stage);
@@ -264,12 +326,13 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     return stages;
   }
 
-  private Map<String, Object> getScalingContext(Stage stage,
-                                                AbstractDeployStrategyStage.CleanupConfig cleanupConfig,
-                                                Map<String, Object> baseContext,
-                                                ResizeStrategy.Capacity savedCapacity,
-                                                Integer percentage,
-                                                @Nullable String serverGroupName) {
+  private Map<String, Object> getScalingContext(
+      Stage stage,
+      AbstractDeployStrategyStage.CleanupConfig cleanupConfig,
+      Map<String, Object> baseContext,
+      ResizeStrategy.Capacity savedCapacity,
+      Integer percentage,
+      @Nullable String serverGroupName) {
     Map<String, Object> scaleContext = new HashMap<>(baseContext);
     if (serverGroupName != null) {
       scaleContext.put("serverGroupName", serverGroupName);
@@ -278,12 +341,21 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
     }
     scaleContext.put("targetLocation", cleanupConfig.getLocation());
     scaleContext.put("scalePct", percentage);
-    scaleContext.put("pinCapacity", percentage < 100); // if p < 100, capacity should be pinned (min == max == desired)
-    scaleContext.put("unpinMinimumCapacity", percentage == 100); // if p == 100, min capacity should be restored to the original unpinned value from source
+    scaleContext.put(
+        "pinCapacity",
+        percentage < 100); // if p < 100, capacity should be pinned (min == max == desired)
+    scaleContext.put(
+        "unpinMinimumCapacity",
+        percentage
+            == 100); // if p == 100, min capacity should be restored to the original unpinned value
+    // from source
     scaleContext.put("useNameAsLabel", true); // hint to deck that it should _not_ override the name
-    scaleContext.put("targetHealthyDeployPercentage", stage.getContext().get("targetHealthyDeployPercentage"));
+    scaleContext.put(
+        "targetHealthyDeployPercentage", stage.getContext().get("targetHealthyDeployPercentage"));
     scaleContext.put("action", ResizeStrategy.ResizeAction.scale_exact);
-    scaleContext.put("capacity", savedCapacity); // we always scale to what was part of the manifest configuration
+    scaleContext.put(
+        "capacity",
+        savedCapacity); // we always scale to what was part of the manifest configuration
 
     return scaleContext;
   }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.Identifiable;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedContent;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +31,8 @@ public class TemplateMerge {
     for (PipelineTemplate template : templates) {
       appendSource(result, template);
 
-      // If any of the templates are set as protected, configurations won't be allowed to alter stages.
+      // If any of the templates are set as protected, configurations won't be allowed to alter
+      // stages.
       if (template.getProtect()) {
         result.setProtect(true);
       }
@@ -68,12 +68,15 @@ public class TemplateMerge {
     PipelineTemplate.Configuration aConfig = a.getConfiguration();
     PipelineTemplate.Configuration bConfig = b.getConfiguration();
 
-    aConfig.setConcurrentExecutions(MapMerge.merge(aConfig.getConcurrentExecutions(), bConfig.getConcurrentExecutions()));
+    aConfig.setConcurrentExecutions(
+        MapMerge.merge(aConfig.getConcurrentExecutions(), bConfig.getConcurrentExecutions()));
 
     aConfig.setTriggers(mergeNamedContent(aConfig.getTriggers(), bConfig.getTriggers()));
     aConfig.setParameters(mergeNamedContent(aConfig.getParameters(), bConfig.getParameters()));
-    aConfig.setNotifications(mergeNamedContent(aConfig.getNotifications(), bConfig.getNotifications()));
-    aConfig.setExpectedArtifacts(mergeDistinct(aConfig.getExpectedArtifacts(), bConfig.getExpectedArtifacts()));
+    aConfig.setNotifications(
+        mergeNamedContent(aConfig.getNotifications(), bConfig.getNotifications()));
+    aConfig.setExpectedArtifacts(
+        mergeDistinct(aConfig.getExpectedArtifacts(), bConfig.getExpectedArtifacts()));
   }
 
   public static <T> List<T> mergeDistinct(List<T> a, List<T> b) {
@@ -154,5 +157,4 @@ public class TemplateMerge {
 
     return merged;
   }
-
 }

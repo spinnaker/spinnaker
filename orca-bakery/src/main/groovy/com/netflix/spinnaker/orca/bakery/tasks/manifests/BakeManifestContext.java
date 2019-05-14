@@ -18,10 +18,9 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class BakeManifestContext {
@@ -33,17 +32,17 @@ public class BakeManifestContext {
   private final String outputName;
   private final String namespace;
 
-  // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
+  // There does not seem to be a way to auto-generate a constructor using our current version of
+  // Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public BakeManifestContext(
-    @JsonProperty("inputArtifacts") List<CreateBakeManifestTask.InputArtifactPair> inputArtifacts,
-    @JsonProperty("expectedArtifacts") List<ExpectedArtifact> expectedArtifacts,
-    @JsonProperty("overrides") Map<String, Object> overrides,
-    @JsonProperty("evaluateOverrideExpressions") Boolean evaluateOverrideExpressions,
-    @JsonProperty("templateRenderer") String templateRenderer,
-    @JsonProperty("outputName") String outputName,
-    @JsonProperty("namespace") String namespace
-  ) {
+      @JsonProperty("inputArtifacts") List<CreateBakeManifestTask.InputArtifactPair> inputArtifacts,
+      @JsonProperty("expectedArtifacts") List<ExpectedArtifact> expectedArtifacts,
+      @JsonProperty("overrides") Map<String, Object> overrides,
+      @JsonProperty("evaluateOverrideExpressions") Boolean evaluateOverrideExpressions,
+      @JsonProperty("templateRenderer") String templateRenderer,
+      @JsonProperty("outputName") String outputName,
+      @JsonProperty("namespace") String namespace) {
     this.inputArtifacts = inputArtifacts;
     this.expectedArtifacts = expectedArtifacts;
     this.overrides = overrides;

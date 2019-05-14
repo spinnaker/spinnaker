@@ -17,7 +17,13 @@
 package com.netflix.spinnaker.orca.ext
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -128,8 +134,8 @@ fun Stage.shouldContinueOnFailure(): Boolean =
 fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
   when {
     shouldContinueOnFailure() -> FAILED_CONTINUE
-    shouldFailPipeline()      -> default
-    else                      -> STOPPED
+    shouldFailPipeline() -> default
+    else -> STOPPED
   }
 
 fun Stage.isManuallySkipped(): Boolean {

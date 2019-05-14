@@ -22,10 +22,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.conditions.EvaluateCondition
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
 
 @Component
 public class WaitForConditionStage implements StageDefinitionBuilder {
@@ -44,11 +43,10 @@ public class WaitForConditionStage implements StageDefinitionBuilder {
 
     @JsonCreator
     public WaitForConditionContext(
-      @JsonProperty("status") Status status,
-      @JsonProperty("region") @Nullable String region,
-      @JsonProperty("cluster") @Nullable String cluster,
-      @JsonProperty("account") @Nullable String account
-    ) {
+        @JsonProperty("status") Status status,
+        @JsonProperty("region") @Nullable String region,
+        @JsonProperty("cluster") @Nullable String cluster,
+        @JsonProperty("account") @Nullable String account) {
       this.status = status;
       this.region = region;
       this.cluster = cluster;
@@ -56,7 +54,9 @@ public class WaitForConditionStage implements StageDefinitionBuilder {
     }
 
     public enum Status {
-      SKIPPED, WAITING, ERROR
+      SKIPPED,
+      WAITING,
+      ERROR
     }
 
     public Status getStatus() {

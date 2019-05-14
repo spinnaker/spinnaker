@@ -29,7 +29,8 @@ public class FeaturesService {
   }
 
   public boolean isStageAvailable(String stageType) {
-    return featuresRestService.getStages().stream().anyMatch(s -> s.enabled && stageType.equals(s.name));
+    return featuresRestService.getStages().stream()
+        .anyMatch(s -> s.enabled && stageType.equals(s.name));
   }
 
   public boolean areEntityTagsAvailable() {

@@ -16,10 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
-import org.apache.logging.log4j.util.Strings;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,30 +29,36 @@ public interface SavePipelineTemplateTask {
     }
 
     List<String> missingFields = new ArrayList<>();
-    if (template.getMetadata().getName() == null || "".equalsIgnoreCase(template.getMetadata().getName())) {
+    if (template.getMetadata().getName() == null
+        || "".equalsIgnoreCase(template.getMetadata().getName())) {
       missingFields.add("metadata.name");
     }
-    if (template.getMetadata().getDescription() == null || "".equalsIgnoreCase(template.getMetadata().getDescription())) {
+    if (template.getMetadata().getDescription() == null
+        || "".equalsIgnoreCase(template.getMetadata().getDescription())) {
       missingFields.add("metadata.description");
     }
-    if (template.getMetadata().getScopes() == null || template.getMetadata().getScopes().isEmpty()) {
+    if (template.getMetadata().getScopes() == null
+        || template.getMetadata().getScopes().isEmpty()) {
       missingFields.add("metadata.scopes");
     }
 
     if (!missingFields.isEmpty()) {
-      throw new IllegalArgumentException("Missing required fields: " + String.join(",", missingFields));
+      throw new IllegalArgumentException(
+          "Missing required fields: " + String.join(",", missingFields));
     }
 
     if (template.getVariables() != null) {
-      List<String> invalidVariableNames = template.getVariables()
-        .stream()
-        .filter(variable -> variable.getName() != null && variable.getName().contains("-"))
-        .map(Variable::getName)
-        .collect(Collectors.toList());
+      List<String> invalidVariableNames =
+          template.getVariables().stream()
+              .filter(variable -> variable.getName() != null && variable.getName().contains("-"))
+              .map(Variable::getName)
+              .collect(Collectors.toList());
 
       if (!invalidVariableNames.isEmpty()) {
-        throw new IllegalArgumentException("Variable names cannot include dashes (-)."
-          + " Invalid variable names: " + String.join(", ", invalidVariableNames));
+        throw new IllegalArgumentException(
+            "Variable names cannot include dashes (-)."
+                + " Invalid variable names: "
+                + String.join(", ", invalidVariableNames));
       }
     }
   }

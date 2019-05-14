@@ -20,5 +20,6 @@ import java.util.List;
 
 public interface RetrofitInterceptorProvider {
   List<okhttp3.Interceptor> getInterceptors();
+
   List<com.squareup.okhttp.Interceptor> getLegacyInterceptors();
 }

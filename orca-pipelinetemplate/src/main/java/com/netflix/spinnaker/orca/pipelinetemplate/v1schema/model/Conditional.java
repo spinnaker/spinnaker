@@ -19,5 +19,6 @@ import java.util.List;
 
 public interface Conditional {
   List<String> getWhen();
+
   void setRemove();
 }

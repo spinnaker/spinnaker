@@ -15,18 +15,17 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence;
 
+import static java.util.stream.Collectors.toList;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import rx.Observable;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import rx.Observable;
 
 public interface ExecutionRepository {
   void store(@Nonnull Execution execution);
@@ -41,20 +40,29 @@ public interface ExecutionRepository {
 
   void cancel(@Nonnull ExecutionType type, @Nonnull String id);
 
-  void cancel(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user, @Nullable String reason);
+  void cancel(
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      @Nullable String user,
+      @Nullable String reason);
 
   void pause(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
   void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
-  void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user, boolean ignoreCurrentStatus);
+  void resume(
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      @Nullable String user,
+      boolean ignoreCurrentStatus);
 
   boolean isCanceled(ExecutionType type, @Nonnull String id);
 
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
   @Nonnull
-  Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id) throws ExecutionNotFoundException;
+  Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
+      throws ExecutionNotFoundException;
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
@@ -68,61 +76,63 @@ public interface ExecutionRepository {
   Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
 
   @Nonnull
-  Observable<Execution> retrievePipelinesForPipelineConfigId(@Nonnull String pipelineConfigId,
-                                                             @Nonnull ExecutionCriteria criteria);
+  Observable<Execution> retrievePipelinesForPipelineConfigId(
+      @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
   /**
    * Returns executions in the time boundary. Redis impl does not respect pageSize or offset params,
-   *  and returns all executions. Sql impl respects these params.
-   * @param executionCriteria use this param to specify:
-   *  if there are statuses, only those will be returned
-   *  if there is a sort type that will be used to sort the results
-   *  use pageSize and page to control pagination
+   * and returns all executions. Sql impl respects these params.
+   *
+   * @param executionCriteria use this param to specify: if there are statuses, only those will be
+   *     returned if there is a sort type that will be used to sort the results use pageSize and
+   *     page to control pagination
    */
   @Nonnull
   List<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-    @Nonnull List<String> pipelineConfigIds,
-    long buildTimeStartBoundary,
-    long buildTimeEndBoundary,
-    ExecutionCriteria executionCriteria
-  );
+      @Nonnull List<String> pipelineConfigIds,
+      long buildTimeStartBoundary,
+      long buildTimeEndBoundary,
+      ExecutionCriteria executionCriteria);
 
   /**
    * Returns all executions in the time boundary
-   * @param executionCriteria
-   *  if there are statuses, only those will be returned
-   *  if there is a pageSize, that will be used as the page size
-   *  if there is a sort type that will be used to sort the results
+   *
+   * @param executionCriteria if there are statuses, only those will be returned if there is a
+   *     pageSize, that will be used as the page size if there is a sort type that will be used to
+   *     sort the results
    */
   @Nonnull
   List<Execution> retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-    @Nonnull List<String> pipelineConfigIds,
-    long buildTimeStartBoundary,
-    long buildTimeEndBoundary,
-    ExecutionCriteria executionCriteria
-  );
+      @Nonnull List<String> pipelineConfigIds,
+      long buildTimeStartBoundary,
+      long buildTimeEndBoundary,
+      ExecutionCriteria executionCriteria);
 
   @Deprecated // Use the non-rx interface instead
   @Nonnull
-  Observable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application,
-                                                             @Nonnull ExecutionCriteria criteria);
+  Observable<Execution> retrieveOrchestrationsForApplication(
+      @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
-  List<Execution> retrieveOrchestrationsForApplication(@Nonnull String application,
-                                                       @Nonnull ExecutionCriteria criteria,
-                                                       @Nullable ExecutionComparator sorter);
+  List<Execution> retrieveOrchestrationsForApplication(
+      @Nonnull String application,
+      @Nonnull ExecutionCriteria criteria,
+      @Nullable ExecutionComparator sorter);
 
   @Nonnull
-  Execution retrieveByCorrelationId(@Nonnull ExecutionType executionType,
-                                    @Nonnull String correlationId) throws ExecutionNotFoundException;
-
-  @Deprecated
-  @Nonnull
-  Execution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException;
+  Execution retrieveByCorrelationId(
+      @Nonnull ExecutionType executionType, @Nonnull String correlationId)
+      throws ExecutionNotFoundException;
 
   @Deprecated
   @Nonnull
-  Execution retrievePipelineForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException;
+  Execution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId)
+      throws ExecutionNotFoundException;
+
+  @Deprecated
+  @Nonnull
+  Execution retrievePipelineForCorrelationId(@Nonnull String correlationId)
+      throws ExecutionNotFoundException;
 
   @Nonnull
   List<Execution> retrieveBufferedExecutions();
@@ -131,7 +141,8 @@ public interface ExecutionRepository {
   List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType);
 
   @Nonnull
-  List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType, int minExecutions);
+  List<String> retrieveAllApplicationNames(
+      @Nullable ExecutionType executionType, int minExecutions);
 
   boolean hasExecution(@Nonnull ExecutionType type, @Nonnull String id);
 
@@ -159,12 +170,10 @@ public interface ExecutionRepository {
 
     public @Nonnull ExecutionCriteria setStatuses(Collection<String> statuses) {
       return setStatuses(
-        statuses
-          .stream()
-          .map(it -> ExecutionStatus.valueOf(it.toUpperCase()))
-          .collect(toList())
-          .toArray(new ExecutionStatus[statuses.size()])
-      );
+          statuses.stream()
+              .map(it -> ExecutionStatus.valueOf(it.toUpperCase()))
+              .collect(toList())
+              .toArray(new ExecutionStatus[statuses.size()]));
     }
 
     public @Nonnull ExecutionCriteria setStatuses(ExecutionStatus... statuses) {
@@ -199,22 +208,23 @@ public interface ExecutionRepository {
       return this;
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       ExecutionCriteria that = (ExecutionCriteria) o;
-      return pageSize == that.pageSize &&
-        Objects.equals(statuses, that.statuses) &&
-        page == that.page;
+      return pageSize == that.pageSize
+          && Objects.equals(statuses, that.statuses)
+          && page == that.page;
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
       return Objects.hash(pageSize, statuses, page);
     }
   }
 
   enum ExecutionComparator implements Comparator<Execution> {
-
     NATURAL_ASC {
       @Override
       public int compare(Execution a, Execution b) {
@@ -230,7 +240,8 @@ public interface ExecutionRepository {
     },
 
     /**
-     * Sort executions nulls first, then by startTime descending, breaking ties by lexicographically descending IDs.
+     * Sort executions nulls first, then by startTime descending, breaking ties by lexicographically
+     * descending IDs.
      */
     START_TIME_OR_ID {
       @Override

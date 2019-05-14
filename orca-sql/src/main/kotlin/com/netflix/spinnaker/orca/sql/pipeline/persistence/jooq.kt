@@ -27,8 +27,10 @@ import org.jooq.impl.DSL.field
 /**
  * Run the provided [fn] in a transaction.
  */
-internal fun DSLContext.transactional(retrySupport: RetrySupport,
-                                      fn: (DSLContext) -> Unit) {
+internal fun DSLContext.transactional(
+  retrySupport: RetrySupport,
+  fn: (DSLContext) -> Unit
+) {
   retrySupport.retry({
     transaction { ctx ->
       fn(DSL.using(ctx))

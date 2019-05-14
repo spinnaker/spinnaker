@@ -34,7 +34,6 @@ public class UpdatePipelineStage implements StageDefinitionBuilder {
       builder.withTask("updatePipelinePermissions", SaveServiceAccountTask.class);
     }
 
-    builder
-      .withTask("updatePipeline", SavePipelineTask.class);
+    builder.withTask("updatePipeline", SavePipelineTask.class);
   }
 }

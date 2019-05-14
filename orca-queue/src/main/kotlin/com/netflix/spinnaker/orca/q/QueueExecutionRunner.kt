@@ -27,10 +27,10 @@ class QueueExecutionRunner(
   private val queue: Queue
 ) : ExecutionRunner {
 
-  override fun  start(execution: Execution) =
+  override fun start(execution: Execution) =
     queue.push(StartExecution(execution))
 
-  override fun  reschedule(execution: Execution) {
+  override fun reschedule(execution: Execution) {
     queue.push(RescheduleExecution(execution))
   }
 

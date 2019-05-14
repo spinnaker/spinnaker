@@ -15,8 +15,12 @@
  */
 package com.netflix.spinnaker.orca.notifications;
 
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -26,13 +30,8 @@ import rx.Scheduler;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
 
-import javax.annotation.PreDestroy;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
-
-abstract public class AbstractPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
+public abstract class AbstractPollingNotificationAgent
+    implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private final Logger log = LoggerFactory.getLogger(AbstractPollingNotificationAgent.class);
 
@@ -57,24 +56,26 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
   protected abstract void tick();
 
   protected void startPolling() {
-    subscription = Observable
-      .timer(getPollingInterval(), getPollingIntervalUnit(), scheduler)
-      .repeat()
-      .filter(interval -> tryAcquireLock())
-      .subscribe(interval -> {
-        try {
-          MDC.put(AGENT_MDC_KEY, this.getClass().getSimpleName());
-          tick();
-        } catch (Exception e) {
-          log.error("Error running agent tick", e);
-        } finally {
-          MDC.remove(AGENT_MDC_KEY);
-        }
-      });
+    subscription =
+        Observable.timer(getPollingInterval(), getPollingIntervalUnit(), scheduler)
+            .repeat()
+            .filter(interval -> tryAcquireLock())
+            .subscribe(
+                interval -> {
+                  try {
+                    MDC.put(AGENT_MDC_KEY, this.getClass().getSimpleName());
+                    tick();
+                  } catch (Exception e) {
+                    log.error("Error running agent tick", e);
+                  } finally {
+                    MDC.remove(AGENT_MDC_KEY);
+                  }
+                });
   }
 
   protected boolean tryAcquireLock() {
-    return clusterLock.tryAcquireLock(getNotificationType(), getPollingIntervalUnit().toSeconds(getPollingInterval()));
+    return clusterLock.tryAcquireLock(
+        getNotificationType(), getPollingIntervalUnit().toSeconds(getPollingInterval()));
   }
 
   @PreDestroy
@@ -95,8 +96,12 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
       log.info("Instance is UP... starting polling for " + getNotificationType() + " events");
       startPolling();
     } else if (event.getSource().getPreviousStatus() == UP) {
-      log.warn("Instance is " + event.getSource().getStatus().toString() +
-        "... stopping polling for " + getNotificationType() + " events");
+      log.warn(
+          "Instance is "
+              + event.getSource().getStatus().toString()
+              + "... stopping polling for "
+              + getNotificationType()
+              + " events");
       stopPolling();
     }
   }

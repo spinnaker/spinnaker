@@ -22,18 +22,16 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 @Component
 public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProviderAware {
-  @Autowired
-  List<ImageTagger> imageTaggers;
+  @Autowired List<ImageTagger> imageTaggers;
 
   @Value("${tasks.wait-for-upserted-image-tags-timeout-millis:600000}")
   private Long waitForUpsertedImageTagsTimeoutMillis;
@@ -42,13 +40,20 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
   public TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage);
 
-    ImageTagger tagger = imageTaggers.stream()
-      .filter(it -> it.getCloudProvider().equalsIgnoreCase(cloudProvider))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("ImageTagger not found for cloudProvider " + cloudProvider));
+    ImageTagger tagger =
+        imageTaggers.stream()
+            .filter(it -> it.getCloudProvider().equalsIgnoreCase(cloudProvider))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "ImageTagger not found for cloudProvider " + cloudProvider));
 
     StageData stageData = stage.mapTo(StageData.class);
-    return TaskResult.ofStatus(tagger.areImagesTagged(stageData.targets, stageData.consideredStages, stage) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING);
+    return TaskResult.ofStatus(
+        tagger.areImagesTagged(stageData.targets, stageData.consideredStages, stage)
+            ? ExecutionStatus.SUCCEEDED
+            : ExecutionStatus.RUNNING);
   }
 
   @Override
@@ -62,9 +67,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
   }
 
   static class StageData {
-    @JsonProperty
-    Collection<ImageTagger.Image> targets;
-    @JsonProperty
-    Collection<String> consideredStages;
+    @JsonProperty Collection<ImageTagger.Image> targets;
+    @JsonProperty Collection<String> consideredStages;
   }
 }

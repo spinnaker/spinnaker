@@ -28,15 +28,14 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import java.io.IOException;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -47,49 +46,62 @@ public class StartGoogleCloudBuildTask implements Task {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final RetrySupport retrySupport = new RetrySupport();
-  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+  private static final ThreadLocal<Yaml> yamlParser =
+      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Override
-  @Nonnull public TaskResult execute(@Nonnull Stage stage) {
-    GoogleCloudBuildStageDefinition stageDefinition = stage.mapTo(GoogleCloudBuildStageDefinition.class);
+  @Nonnull
+  public TaskResult execute(@Nonnull Stage stage) {
+    GoogleCloudBuildStageDefinition stageDefinition =
+        stage.mapTo(GoogleCloudBuildStageDefinition.class);
 
     Map<String, Object> buildDefinition;
-    if (stageDefinition.getBuildDefinitionSource() != null && stageDefinition.getBuildDefinitionSource().equals("artifact")) {
+    if (stageDefinition.getBuildDefinitionSource() != null
+        && stageDefinition.getBuildDefinitionSource().equals("artifact")) {
       buildDefinition = getBuildDefinitionFromArtifact(stage, stageDefinition);
     } else {
       buildDefinition = stageDefinition.getBuildDefinition();
     }
-    GoogleCloudBuild result = igorService.createGoogleCloudBuild(stageDefinition.getAccount(), buildDefinition);
+    GoogleCloudBuild result =
+        igorService.createGoogleCloudBuild(stageDefinition.getAccount(), buildDefinition);
     Map<String, Object> context = stage.getContext();
     context.put("buildInfo", result);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).build();
   }
 
-  private Map<String, Object> getBuildDefinitionFromArtifact(@Nonnull Stage stage, GoogleCloudBuildStageDefinition stageDefinition) {
-    Artifact buildDefinitionArtifact = artifactResolver.getBoundArtifactForStage(stage, stageDefinition.getBuildDefinitionArtifact().getArtifactId(),
-      stageDefinition.getBuildDefinitionArtifact().getArtifact());
+  private Map<String, Object> getBuildDefinitionFromArtifact(
+      @Nonnull Stage stage, GoogleCloudBuildStageDefinition stageDefinition) {
+    Artifact buildDefinitionArtifact =
+        artifactResolver.getBoundArtifactForStage(
+            stage,
+            stageDefinition.getBuildDefinitionArtifact().getArtifactId(),
+            stageDefinition.getBuildDefinitionArtifact().getArtifact());
 
     if (buildDefinitionArtifact == null) {
       throw new IllegalArgumentException("No manifest artifact was specified.");
     }
 
-    if(stageDefinition.getBuildDefinitionArtifact().getArtifactAccount() != null) {
-      buildDefinitionArtifact.setArtifactAccount(stageDefinition.getBuildDefinitionArtifact().getArtifactAccount());
+    if (stageDefinition.getBuildDefinitionArtifact().getArtifactAccount() != null) {
+      buildDefinitionArtifact.setArtifactAccount(
+          stageDefinition.getBuildDefinitionArtifact().getArtifactAccount());
     }
 
     if (buildDefinitionArtifact.getArtifactAccount() == null) {
       throw new IllegalArgumentException("No manifest artifact account was specified.");
     }
 
-    return retrySupport.retry(() -> {
-      try {
-        Response buildText = oortService.fetchArtifact(buildDefinitionArtifact);
-        Object result = yamlParser.get().load(buildText.getBody().in());
-        return (Map<String, Object>) result;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }, 10, 200, false);
+    return retrySupport.retry(
+        () -> {
+          try {
+            Response buildText = oortService.fetchArtifact(buildDefinitionArtifact);
+            Object result = yamlParser.get().load(buildText.getBody().in());
+            return (Map<String, Object>) result;
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        10,
+        200,
+        false);
   }
 }
-

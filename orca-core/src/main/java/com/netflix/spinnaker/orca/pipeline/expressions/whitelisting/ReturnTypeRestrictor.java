@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,40 +36,40 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
-  Set<Class<?>> allowedReturnTypes = Collections.unmodifiableSet(
-    new HashSet<>(
-      Arrays.asList(
-        Collection.class,
-        Map.class,
-        SortedMap.class,
-        List.class,
-        Set.class,
-        SortedSet.class,
-        ArrayList.class,
-        LinkedList.class,
-        HashSet.class,
-        LinkedHashSet.class,
-        HashMap.class,
-        LinkedHashMap.class,
-        TreeMap.class,
-        TreeSet.class,
-        Execution.class,
-        Stage.class,
-        Trigger.class,
-        BuildInfo.class,
-        JenkinsArtifact.class,
-        JenkinsBuildInfo.class,
-        ConcourseBuildInfo.class,
-        SourceControl.class,
-        ExecutionStatus.class,
-        Execution.AuthenticationDetails.class,
-        Execution.PausedDetails.class
-      )
-    )
-  );
+  Set<Class<?>> allowedReturnTypes =
+      Collections.unmodifiableSet(
+          new HashSet<>(
+              Arrays.asList(
+                  Collection.class,
+                  Map.class,
+                  SortedMap.class,
+                  List.class,
+                  Set.class,
+                  SortedSet.class,
+                  ArrayList.class,
+                  LinkedList.class,
+                  HashSet.class,
+                  LinkedHashSet.class,
+                  HashMap.class,
+                  LinkedHashMap.class,
+                  TreeMap.class,
+                  TreeSet.class,
+                  Execution.class,
+                  Stage.class,
+                  Trigger.class,
+                  BuildInfo.class,
+                  JenkinsArtifact.class,
+                  JenkinsBuildInfo.class,
+                  ConcourseBuildInfo.class,
+                  SourceControl.class,
+                  ExecutionStatus.class,
+                  Execution.AuthenticationDetails.class,
+                  Execution.PausedDetails.class)));
 
   static boolean supports(Class<?> type) {
     final Class<?> returnType = type.isArray() ? type.getComponentType() : type;
-    return returnType.isPrimitive() || InstantiationTypeRestrictor.supports(returnType) || allowedReturnTypes.contains(returnType);
+    return returnType.isPrimitive()
+        || InstantiationTypeRestrictor.supports(returnType)
+        || allowedReturnTypes.contains(returnType);
   }
 }

@@ -16,36 +16,33 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryUnshareServiceTask;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryUnshareServiceStagePreprocessorTest {
   @Test
   void ensureThatCorrectTasksAreAddedForUnsharingCloudFoundryService() {
     TaskNode.Builder expectedBuilder = TaskNode.Builder(TaskNode.GraphType.FULL);
     expectedBuilder
-      .withTask("unshareService", CloudFoundryUnshareServiceTask.class)
-      .withTask("monitorUnshareService", CloudFoundryMonitorKatoServicesTask.class);
+        .withTask("unshareService", CloudFoundryUnshareServiceTask.class)
+        .withTask("monitorUnshareService", CloudFoundryMonitorKatoServicesTask.class);
 
-    CloudFoundryUnshareServiceStagePreprocessor preprocessor = new CloudFoundryUnshareServiceStagePreprocessor();
+    CloudFoundryUnshareServiceStagePreprocessor preprocessor =
+        new CloudFoundryUnshareServiceStagePreprocessor();
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", "my-cloud");
     context.put("manifest", Collections.singletonMap("type", "direct"));
-    Stage stage = new Stage(
-      new Execution(PIPELINE, "orca"),
-      "unshareService",
-      context);
+    Stage stage = new Stage(new Execution(PIPELINE, "orca"), "unshareService", context);
 
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL);
     preprocessor.addSteps(builder, stage);

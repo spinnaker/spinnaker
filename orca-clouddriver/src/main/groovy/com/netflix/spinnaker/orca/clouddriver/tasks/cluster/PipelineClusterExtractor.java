@@ -28,7 +28,8 @@ public interface PipelineClusterExtractor {
 
   List<Map> extractClusters(Map stage);
 
-  static Optional<PipelineClusterExtractor> getExtractor(Map stage, List<PipelineClusterExtractor> extractors) {
+  static Optional<PipelineClusterExtractor> getExtractor(
+      Map stage, List<PipelineClusterExtractor> extractors) {
     return extractors.stream().filter(e -> e.getStageType().equals(stage.get("type"))).findFirst();
   }
 }

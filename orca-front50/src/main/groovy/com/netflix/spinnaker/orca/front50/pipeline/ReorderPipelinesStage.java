@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 public class ReorderPipelinesStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder
-      .withTask("reorderPipelines", ReorderPipelinesTask.class);
+    builder.withTask("reorderPipelines", ReorderPipelinesTask.class);
   }
 }

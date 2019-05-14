@@ -20,11 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
-
-import java.io.IOException;
 
 @Component
 public class V2TemplateLoader {
@@ -34,8 +33,7 @@ public class V2TemplateLoader {
   private ObjectMapper objectMapper;
 
   @Autowired
-  public V2TemplateLoader(OortService oortService,
-                          ObjectMapper objectMapper) {
+  public V2TemplateLoader(OortService oortService, ObjectMapper objectMapper) {
     this.oortService = oortService;
     this.objectMapper = objectMapper;
   }

@@ -22,12 +22,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVi
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisitor {
 
@@ -54,27 +52,33 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
           // NOTE: template.getStages() returns a copy of the stages, not the reference.
           // Hence we have to set the stages again.
           pipelineTemplate.setStages(templateStages);
-          log.debug("Template '{}' stage '{}' replaced by config {}", pipelineTemplate.getId(), confStage.getRefId(), templateConfiguration.getRuntimeId());
+          log.debug(
+              "Template '{}' stage '{}' replaced by config {}",
+              pipelineTemplate.getId(),
+              confStage.getRefId(),
+              templateConfiguration.getRuntimeId());
         }
       }
     }
   }
 
   private void injectStages(V2PipelineTemplate pipelineTemplate) {
-    // Create initial graph via dependsOn. We need to include stages that the configuration defines with dependsOn as well
+    // Create initial graph via dependsOn. We need to include stages that the configuration defines
+    // with dependsOn as well
     List<V2StageDefinition> initialStages = pipelineTemplate.getStages();
 
-    initialStages.addAll(templateConfiguration.getStages().stream()
-      .filter(s -> !s.getRequisiteStageRefIds().isEmpty())
-      .collect(Collectors.toList()));
+    initialStages.addAll(
+        templateConfiguration.getStages().stream()
+            .filter(s -> !s.getRequisiteStageRefIds().isEmpty())
+            .collect(Collectors.toList()));
 
-    pipelineTemplate.setStages(
-      createGraph(initialStages)
-    );
+    pipelineTemplate.setStages(createGraph(initialStages));
 
     // Handle stage injections.
-    List<V2StageDefinition> templateInjectStages = injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
-    List<V2StageDefinition> configInjectStages = injectStages(templateConfiguration.getStages(), templateInjectStages);
+    List<V2StageDefinition> templateInjectStages =
+        injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
+    List<V2StageDefinition> configInjectStages =
+        injectStages(templateConfiguration.getStages(), templateInjectStages);
     pipelineTemplate.setStages(configInjectStages);
   }
 
@@ -83,16 +87,17 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
     VISITED
   }
 
-  private static void dfs(String stageId,
-                          Set<V2StageDefinition> result,
-                          Map<String, Status> state,
-                          Map<String, V2StageDefinition> graph,
-                          Map<String, Integer> outOrder) {
+  private static void dfs(
+      String stageId,
+      Set<V2StageDefinition> result,
+      Map<String, Status> state,
+      Map<String, V2StageDefinition> graph,
+      Map<String, Integer> outOrder) {
 
     state.put(stageId, Status.VISITING);
     V2StageDefinition stage = graph.get(stageId);
 
-    if(stage == null) {
+    if (stage == null) {
       state.put(stageId, Status.VISITED);
       return;
     }
@@ -101,8 +106,7 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
       Status status = state.get(n);
       if (status == Status.VISITING) {
         throw new IllegalTemplateConfigurationException(
-          String.format("Cycle detected in graph (discovered on stage: %s)", stageId)
-        );
+            String.format("Cycle detected in graph (discovered on stage: %s)", stageId));
       }
 
       if (status == Status.VISITED) {
@@ -114,28 +118,29 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
 
     result.add(stage);
     state.put(stage.getRefId(), Status.VISITED);
-    stage.getRequisiteStageRefIds().forEach( s -> {
-      int order = outOrder.getOrDefault(s, 0);
-      outOrder.put(s, order + 1);
-    });
+    stage
+        .getRequisiteStageRefIds()
+        .forEach(
+            s -> {
+              int order = outOrder.getOrDefault(s, 0);
+              outOrder.put(s, order + 1);
+            });
   }
 
   private static List<V2StageDefinition> createGraph(List<V2StageDefinition> stages) {
     Set<V2StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
 
-    Map<String, V2StageDefinition> graph = stages
-      .stream()
-      .collect(
-        Collectors.toMap(V2StageDefinition::getRefId, i -> i)
-      );
+    Map<String, V2StageDefinition> graph =
+        stages.stream().collect(Collectors.toMap(V2StageDefinition::getRefId, i -> i));
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, new HashMap<>()));
 
     return new ArrayList<>(sorted);
   }
 
-  private static List<V2StageDefinition> injectStages(List<V2StageDefinition> stages, List<V2StageDefinition> templateStages) {
+  private static List<V2StageDefinition> injectStages(
+      List<V2StageDefinition> stages, List<V2StageDefinition> templateStages) {
     // Using a stream here can cause a ConcurrentModificationException.
     for (V2StageDefinition s : new ArrayList<>(stages)) {
       if (s.getInject() == null || !s.getInject().hasAny()) {
@@ -167,17 +172,19 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
         continue;
       }
 
-      throw new IllegalTemplateConfigurationException(String.format("stage did not have any valid injections defined (id: %s)", s.getRefId()));
+      throw new IllegalTemplateConfigurationException(
+          String.format("stage did not have any valid injections defined (id: %s)", s.getRefId()));
     }
     return templateStages;
   }
 
   private static void injectFirst(V2StageDefinition stage, List<V2StageDefinition> allStages) {
     if (!allStages.isEmpty()) {
-      allStages.forEach(s -> {
-        if(s.getRequisiteStageRefIds().isEmpty())
-          s.getRequisiteStageRefIds().add(stage.getRefId());
-      });
+      allStages.forEach(
+          s -> {
+            if (s.getRequisiteStageRefIds().isEmpty())
+              s.getRequisiteStageRefIds().add(stage.getRefId());
+          });
       allStages.add(0, stage);
     } else {
       allStages.add(stage);
@@ -189,26 +196,23 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
     Set<V2StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
 
-    Map<String, V2StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(V2StageDefinition::getRefId, i -> i)
-      );
+    Map<String, V2StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(V2StageDefinition::getRefId, i -> i));
 
     // leaf nodes are stages with outOrder 0
     graph.keySet().forEach(k -> outOrder.put(k, 0));
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
-    sorted
-      .stream()
-      .filter(i -> outOrder.get(i.getRefId()) == 0)
-      .forEach(i -> stage.getRequisiteStageRefIds().add(i.getRefId()));
+    sorted.stream()
+        .filter(i -> outOrder.get(i.getRefId()) == 0)
+        .forEach(i -> stage.getRequisiteStageRefIds().add(i.getRefId()));
 
     allStages.add(stage);
     graph.put(stage.getRefId(), stage);
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static void injectBefore(V2StageDefinition stage, List<String> targetIds, List<V2StageDefinition> allStages) {
+  private static void injectBefore(
+      V2StageDefinition stage, List<String> targetIds, List<V2StageDefinition> allStages) {
     Set<String> targetEdges = new LinkedHashSet<>();
     SortedSet<Integer> targetIndexes = new TreeSet<>();
     for (String targetId : targetIds) {
@@ -223,61 +227,55 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
     stage.getRequisiteStageRefIds().addAll(targetEdges);
     allStages.add(targetIndexes.last(), stage);
 
-    Map<String, V2StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(V2StageDefinition::getRefId, i -> i)
-      );
+    Map<String, V2StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(V2StageDefinition::getRefId, i -> i));
 
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static void ensureNoCyclesInDAG(List<V2StageDefinition> allStages, Map<String, V2StageDefinition> graph) {
+  private static void ensureNoCyclesInDAG(
+      List<V2StageDefinition> allStages, Map<String, V2StageDefinition> graph) {
     Map<String, Status> state = new HashMap<>();
-    allStages
-      .stream()
-      .collect(
-        Collectors.toMap(V2StageDefinition::getRefId, i -> i)
-      ).forEach((k, v) -> dfs(k, new LinkedHashSet<>(), state, graph, new HashMap<>()));
+    allStages.stream()
+        .collect(Collectors.toMap(V2StageDefinition::getRefId, i -> i))
+        .forEach((k, v) -> dfs(k, new LinkedHashSet<>(), state, graph, new HashMap<>()));
   }
 
-  private static void injectAfter(V2StageDefinition stage, List<String> targetIds, List<V2StageDefinition> allStages) {
+  private static void injectAfter(
+      V2StageDefinition stage, List<String> targetIds, List<V2StageDefinition> allStages) {
     Map<String, Integer> outOrder = new HashMap<>();
     Set<V2StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
 
-    Map<String, V2StageDefinition> graph = allStages
-      .stream()
-      .collect(
-        Collectors.toMap(V2StageDefinition::getRefId, i -> i)
-      );
+    Map<String, V2StageDefinition> graph =
+        allStages.stream().collect(Collectors.toMap(V2StageDefinition::getRefId, i -> i));
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
 
     SortedSet<Integer> targetIndexes = new TreeSet<>();
-    for (String targetId: targetIds) {
+    for (String targetId : targetIds) {
       V2StageDefinition target = graph.get(targetId);
       if (target == null) {
         throw new IllegalTemplateConfigurationException(
-          String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getRefId(), targetId)
-        );
+            String.format(
+                "could not inject '%s' stage: unknown target stage id '%s'",
+                stage.getRefId(), targetId));
       }
 
       targetIndexes.add(allStages.indexOf(target));
       stage.getRequisiteStageRefIds().add(target.getRefId());
 
       // 1. find edges to target stage
-      Set<V2StageDefinition> edges = graph.entrySet()
-        .stream()
-        .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
-        .map(Map.Entry::getValue)
-        .collect(Collectors.toSet());
+      Set<V2StageDefinition> edges =
+          graph.entrySet().stream()
+              .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
+              .map(Map.Entry::getValue)
+              .collect(Collectors.toSet());
 
       // 2. swap target with stage being inserted
-      edges
-        .stream()
-        .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
-        .forEach(e -> e.getRequisiteStageRefIds().add(stage.getRefId()));
+      edges.stream()
+          .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
+          .forEach(e -> e.getRequisiteStageRefIds().add(stage.getRefId()));
     }
 
     // 3. add in the sorted graph
@@ -287,13 +285,16 @@ public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisito
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static V2StageDefinition getInjectionTarget(String stageId, String targetId, List<V2StageDefinition> allStages) {
-    return allStages
-      .stream()
-      .filter(pts -> pts.getRefId().equals(targetId))
-      .findFirst()
-      .orElseThrow(() -> new IllegalTemplateConfigurationException(
-        String.format("could not inject '%s' stage: unknown target stage id '%s'", stageId, targetId)
-      ));
+  private static V2StageDefinition getInjectionTarget(
+      String stageId, String targetId, List<V2StageDefinition> allStages) {
+    return allStages.stream()
+        .filter(pts -> pts.getRefId().equals(targetId))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalTemplateConfigurationException(
+                    String.format(
+                        "could not inject '%s' stage: unknown target stage id '%s'",
+                        stageId, targetId)));
   }
 }

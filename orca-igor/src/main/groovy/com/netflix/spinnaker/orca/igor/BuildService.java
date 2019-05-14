@@ -16,12 +16,11 @@
 package com.netflix.spinnaker.orca.igor;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
-
-import java.util.List;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,7 +28,7 @@ public class BuildService {
   private final IgorService igorService;
 
   private String encode(String uri) {
-      return UriUtils.encodeFragment(uri, "UTF-8");
+    return UriUtils.encodeFragment(uri, "UTF-8");
   }
 
   public String build(String master, String jobName, Map<String, String> queryParams) {
@@ -48,15 +47,21 @@ public class BuildService {
     return igorService.getBuild(buildNumber, master, encode(job));
   }
 
-  public Map<String, Object> getPropertyFile(Integer buildNumber, String fileName, String master, String job) {
+  public Map<String, Object> getPropertyFile(
+      Integer buildNumber, String fileName, String master, String job) {
     return igorService.getPropertyFile(buildNumber, fileName, master, encode(job));
   }
 
-  public List<Artifact> getArtifacts(Integer buildNumber, String fileName, String master, String job) {
+  public List<Artifact> getArtifacts(
+      Integer buildNumber, String fileName, String master, String job) {
     return igorService.getArtifacts(buildNumber, fileName, master, encode(job));
   }
 
-  public List compareCommits(String repoType, String projectKey, String repositorySlug, Map<String, String> requestParams) {
+  public List compareCommits(
+      String repoType,
+      String projectKey,
+      String repositorySlug,
+      Map<String, String> requestParams) {
     return igorService.compareCommits(repoType, projectKey, repositorySlug, requestParams);
   }
 }

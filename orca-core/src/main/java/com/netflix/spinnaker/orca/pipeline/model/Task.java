@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
-
-/**
- * A "task" is a component piece of a stage
- */
+/** A "task" is a component piece of a stage */
 public class Task {
   private String id;
 

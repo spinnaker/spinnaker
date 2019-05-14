@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
-import retrofit.http.GET;
-
 import java.util.List;
+import retrofit.http.GET;
 
 public interface FeaturesRestService {
 
@@ -30,4 +29,3 @@ public interface FeaturesRestService {
     public Boolean enabled;
   }
 }
-

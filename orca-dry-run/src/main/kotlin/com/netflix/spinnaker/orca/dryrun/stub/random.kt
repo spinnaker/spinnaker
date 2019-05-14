@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.dryrun.stub
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 import kotlin.math.absoluteValue
 
 internal fun timestamp(format: String = "yyyyMMddHHmmss") = DateTimeFormatter

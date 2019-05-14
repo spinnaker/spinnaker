@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +29,8 @@ public class DefaultRenderContext implements RenderContext {
     this.location = source.getLocation();
   }
 
-  public DefaultRenderContext(String application, PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
+  public DefaultRenderContext(
+      String application, PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
     variables.put("application", application);
     variables.put("pipelineTemplate", pipelineTemplate);
     variables.put("trigger", trigger);

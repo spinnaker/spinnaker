@@ -19,19 +19,19 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SavePipelinesCompleteTask implements Task {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  @Override public TaskResult execute(Stage stage) {
+  @Override
+  public TaskResult execute(Stage stage) {
     final SavePipelineResultsData savePipelineResults = stage.mapTo(SavePipelineResultsData.class);
     logResults(savePipelineResults.getPipelinesFailedToSave(), "Failed to save pipelines: ");
     logResults(savePipelineResults.getPipelinesCreated(), "Created pipelines: ");
@@ -44,9 +44,11 @@ public class SavePipelinesCompleteTask implements Task {
 
   private void logResults(List<PipelineReferenceData> savePipelineSuccesses, String s) {
     if (!savePipelineSuccesses.isEmpty()) {
-      log.info(s + savePipelineSuccesses.stream()
-        .map(ref -> ref.getApplication() + ":" + ref.getName())
-        .collect(Collectors.joining(", ")));
+      log.info(
+          s
+              + savePipelineSuccesses.stream()
+                  .map(ref -> ref.getApplication() + ":" + ref.getName())
+                  .collect(Collectors.joining(", ")));
     }
   }
 }

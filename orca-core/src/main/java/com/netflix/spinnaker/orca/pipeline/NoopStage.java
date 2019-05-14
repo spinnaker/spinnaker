@@ -22,7 +22,5 @@ import org.springframework.stereotype.Component;
 @Component
 public class NoopStage implements StageDefinitionBuilder {
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
-
-  }
+  public void taskGraph(Stage stage, TaskNode.Builder builder) {}
 }

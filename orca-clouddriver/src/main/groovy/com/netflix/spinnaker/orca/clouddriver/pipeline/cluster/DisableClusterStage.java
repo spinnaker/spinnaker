@@ -32,9 +32,10 @@ public class DisableClusterStage extends AbstractClusterWideClouddriverOperation
   public static final String STAGE_TYPE = "disableCluster";
 
   @Autowired
-  public DisableClusterStage(TrafficGuard trafficGuard,
-                             LockingConfigurationProperties lockingConfigurationProperties,
-                             DynamicConfigService dynamicConfigService) {
+  public DisableClusterStage(
+      TrafficGuard trafficGuard,
+      LockingConfigurationProperties lockingConfigurationProperties,
+      DynamicConfigService dynamicConfigService) {
     super(trafficGuard, lockingConfigurationProperties, dynamicConfigService);
   }
 

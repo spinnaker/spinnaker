@@ -16,36 +16,33 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.*;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryDestroyServiceStagePreprocessorTest {
   @Test
   void ensureThatCorrectTasksAreAddedForDestroyingCloudFoundryService() {
     TaskNode.Builder expectedBuilder = TaskNode.Builder(TaskNode.GraphType.FULL);
     expectedBuilder
-      .withTask("destroyService", CloudFoundryDestroyServiceTask.class)
-      .withTask("monitorDestroyService", CloudFoundryMonitorKatoServicesTask.class)
-      .withTask("waitForDestroyService", CloudFoundryWaitForDestroyServiceTask.class);
+        .withTask("destroyService", CloudFoundryDestroyServiceTask.class)
+        .withTask("monitorDestroyService", CloudFoundryMonitorKatoServicesTask.class)
+        .withTask("waitForDestroyService", CloudFoundryWaitForDestroyServiceTask.class);
 
-    CloudFoundryDestroyServiceStagePreprocessor preprocessor = new CloudFoundryDestroyServiceStagePreprocessor();
+    CloudFoundryDestroyServiceStagePreprocessor preprocessor =
+        new CloudFoundryDestroyServiceStagePreprocessor();
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", "my-cloud");
     context.put("manifest", Collections.singletonMap("type", "direct"));
-    Stage stage = new Stage(
-      new Execution(PIPELINE, "orca"),
-      "destroyService",
-      context);
+    Stage stage = new Stage(new Execution(PIPELINE, "orca"), "destroyService", context);
 
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL);
     preprocessor.addSteps(builder, stage);

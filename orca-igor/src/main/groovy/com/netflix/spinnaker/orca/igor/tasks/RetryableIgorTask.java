@@ -32,7 +32,8 @@ import retrofit.RetrofitError;
 
 @RequiredArgsConstructor
 @Slf4j
-public abstract class RetryableIgorTask<T extends RetryableStageDefinition> implements RetryableTask {
+public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
+    implements RetryableTask {
   public long getBackoffPeriod() {
     return TimeUnit.SECONDS.toMillis(5);
   }
@@ -54,22 +55,28 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition> impl
       return resetErrorCount(result);
     } catch (RetrofitError e) {
       if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(e)) {
-        return TaskResult.builder(ExecutionStatus.RUNNING).context(errorContext(errors + 1)).build();
+        return TaskResult.builder(ExecutionStatus.RUNNING)
+            .context(errorContext(errors + 1))
+            .build();
       }
       throw e;
     }
   }
 
-  abstract protected @Nonnull TaskResult tryExecute(@Nonnull T stageDefinition);
+  protected abstract @Nonnull TaskResult tryExecute(@Nonnull T stageDefinition);
 
-  abstract protected @Nonnull T mapStage(@Nonnull Stage stage);
+  protected abstract @Nonnull T mapStage(@Nonnull Stage stage);
 
   private TaskResult resetErrorCount(TaskResult result) {
-    Map<String, Object> newContext = ImmutableMap.<String, Object>builder()
-      .putAll(result.getContext())
-      .put("consecutiveErrors", 0)
-      .build();
-    return TaskResult.builder(result.getStatus()).context(newContext).outputs(result.getOutputs()).build();
+    Map<String, Object> newContext =
+        ImmutableMap.<String, Object>builder()
+            .putAll(result.getContext())
+            .put("consecutiveErrors", 0)
+            .build();
+    return TaskResult.builder(result.getStatus())
+        .context(newContext)
+        .outputs(result.getOutputs())
+        .build();
   }
 
   private Map<String, Integer> errorContext(int errors) {

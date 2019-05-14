@@ -41,14 +41,14 @@ class UpsertIntentTask
 ) : RetryableTask {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun execute(stage: Stage) : TaskResult {
+  override fun execute(stage: Stage): TaskResult {
     val missingParams = mutableListOf<String>()
 
     if (!stage.context.containsKey("intents")) {
       missingParams.add("intents")
     }
 
-    if (!stage.context.containsKey("dryRun") ) {
+    if (!stage.context.containsKey("dryRun")) {
       missingParams.add("dryRun")
     }
 
@@ -67,10 +67,10 @@ class UpsertIntentTask
 
     try {
       if (upsertIntentRequest.dryRun) {
-        val dryRunResponse = keelObjectMapper.readValue<List<UpsertIntentDryRunResponse>>(response.body.`in`(), object : TypeReference<List<UpsertIntentDryRunResponse>>(){})
+        val dryRunResponse = keelObjectMapper.readValue<List<UpsertIntentDryRunResponse>>(response.body.`in`(), object : TypeReference<List<UpsertIntentDryRunResponse>>() {})
         outputs.put("upsertIntentResponse", dryRunResponse)
       } else {
-        val upsertResponse = keelObjectMapper.readValue<List<UpsertIntentResponse>>(response.body.`in`(), object : TypeReference<List<UpsertIntentResponse>>(){})
+        val upsertResponse = keelObjectMapper.readValue<List<UpsertIntentResponse>>(response.body.`in`(), object : TypeReference<List<UpsertIntentResponse>>() {})
         outputs.put("upsertIntentResponse", upsertResponse)
       }
     } catch (e: Exception) {
@@ -82,8 +82,7 @@ class UpsertIntentTask
     return TaskResult.builder(executionStatus).context(outputs).build()
   }
 
-  override fun getBackoffPeriod() =  TimeUnit.SECONDS.toMillis(15)
+  override fun getBackoffPeriod() = TimeUnit.SECONDS.toMillis(15)
 
   override fun getTimeout() = TimeUnit.MINUTES.toMillis(1)
-
 }

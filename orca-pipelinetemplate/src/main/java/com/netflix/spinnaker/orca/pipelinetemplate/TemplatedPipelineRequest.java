@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

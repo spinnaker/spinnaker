@@ -19,16 +19,15 @@ import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -39,8 +38,7 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
   private final long backoffPeriod = TimeUnit.SECONDS.toMillis(10);
   private final long timeout = TimeUnit.HOURS.toMillis(2);
 
-  @Autowired
-  private OortService oortService;
+  @Autowired private OortService oortService;
 
   @Nonnull
   @Override
@@ -50,13 +48,18 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       Map result = ((List<Map>) task.get("resultObjects")).iterator().next();
       String stackId = (String) result.get("stackId");
       Map stack = oortService.getCloudFormationStack(stackId);
-      log.info("Received cloud formation stackId " + stackId + " with status " + stack.get("stackStatus"));
+      log.info(
+          "Received cloud formation stackId "
+              + stackId
+              + " with status "
+              + stack.get("stackStatus"));
       if (isComplete(stack.get("stackStatus"))) {
         return TaskResult.SUCCEEDED;
       } else if (isInProgress(stack.get("stackStatus"))) {
         return TaskResult.RUNNING;
       } else if (isFailed(stack.get("stackStatus"))) {
-        log.info("Cloud formation stack failed to completed. Status: " + stack.get("stackStatusReason"));
+        log.info(
+            "Cloud formation stack failed to completed. Status: " + stack.get("stackStatusReason"));
         throw new RuntimeException((String) stack.get("stackStatusReason"));
       }
       throw new RuntimeException("Unexpected stack status: " + stack.get("stackStatus"));
@@ -83,7 +86,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
 
   private boolean isComplete(Object status) {
     if (status instanceof String) {
-      return ((String) status).endsWith("CREATE_COMPLETE") || ((String) status).endsWith("UPDATE_COMPLETE");
+      return ((String) status).endsWith("CREATE_COMPLETE")
+          || ((String) status).endsWith("UPDATE_COMPLETE");
     } else {
       return false;
     }

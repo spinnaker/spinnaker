@@ -46,26 +46,31 @@ data class JenkinsTrigger
 
 class JenkinsArtifact
 @JsonCreator
-constructor(@param:JsonProperty("fileName") val fileName: String,
-            @param:JsonProperty("relativePath") val relativePath: String)
+constructor(
+  @param:JsonProperty("fileName") val fileName: String,
+  @param:JsonProperty("relativePath") val relativePath: String
+)
 
 class JenkinsBuildInfo
 @JsonCreator
-constructor(@param:JsonProperty("name") override val name: String?,
-            @param:JsonProperty("number") override val number: Int,
-            @param:JsonProperty("url") override val url: String?,
-            @param:JsonProperty("result") override val result: String?,
-            @param:JsonProperty("artifacts") override val artifacts: List<JenkinsArtifact>?,
-            @param:JsonProperty("scm") override val scm: List<SourceControl>?,
-            @param:JsonProperty("building") override var building: Boolean = false,
-            @param:JsonProperty("timestamp") val timestamp: Long?)
-    : BuildInfo<JenkinsArtifact>(name, number, url, result, artifacts, scm, building) {
+constructor(
+  @param:JsonProperty("name") override val name: String?,
+  @param:JsonProperty("number") override val number: Int,
+  @param:JsonProperty("url") override val url: String?,
+  @param:JsonProperty("result") override val result: String?,
+  @param:JsonProperty("artifacts") override val artifacts: List<JenkinsArtifact>?,
+  @param:JsonProperty("scm") override val scm: List<SourceControl>?,
+  @param:JsonProperty("building") override var building: Boolean = false,
+  @param:JsonProperty("timestamp") val timestamp: Long?
+) :
+    BuildInfo<JenkinsArtifact>(name, number, url, result, artifacts, scm, building) {
 
     @JvmOverloads
-    constructor(name: String,
-                number: Int,
-                url: String,
-                result: String,
-                artifacts: List<JenkinsArtifact> = emptyList(),
-                scm: List<SourceControl> = emptyList()): this(name, number, url, result, artifacts, scm, false, null)
+    constructor(
+      name: String,
+      number: Int,
+      url: String,
+      result: String,
+      artifacts: List<JenkinsArtifact> = emptyList(),
+      scm: List<SourceControl> = emptyList()) : this(name, number, url, result, artifacts, scm, false, null)
 }

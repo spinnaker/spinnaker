@@ -32,7 +32,8 @@ public class UndoRolloutManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(UndoRolloutManifestTask.TASK_NAME, UndoRolloutManifestTask.class)
+    builder
+        .withTask(UndoRolloutManifestTask.TASK_NAME, UndoRolloutManifestTask.class)
         .withTask("monitorUndoRollout", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class);

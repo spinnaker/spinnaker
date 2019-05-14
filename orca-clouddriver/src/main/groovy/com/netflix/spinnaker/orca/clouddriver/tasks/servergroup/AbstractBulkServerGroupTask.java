@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import com.netflix.frigga.Names;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
@@ -31,21 +28,21 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderAwareTask
+    implements RetryableTask {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBulkServerGroupTask.class);
 
-  @Autowired
-  protected OortHelper oortHelper;
+  @Autowired protected OortHelper oortHelper;
 
-  @Autowired
-  protected MonikerHelper monikerHelper;
+  @Autowired protected MonikerHelper monikerHelper;
 
-  @Autowired
-  protected KatoService katoService;
+  @Autowired protected KatoService katoService;
 
   abstract void validateClusterStatus(Map<String, Object> operation, Moniker moniker);
 
@@ -67,33 +64,41 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
     if (request.getServerGroupNames() == null || request.getServerGroupNames().isEmpty()) {
       throw new IllegalArgumentException("Server group names must be provided");
     }
-    String clusterName = monikerHelper.getClusterNameFromStage(stage, request.getServerGroupNames().get(0));
-    Map cluster = oortHelper.getCluster(
-      monikerHelper.getAppNameFromStage(stage, request.getServerGroupNames().get(0)),
-      request.getCredentials(),
-      clusterName,
-      request.getCloudProvider()
-    ).orElseThrow(
-      () -> new IllegalArgumentException(String.format("No Cluster details found for %s", clusterName))
-    );
+    String clusterName =
+        monikerHelper.getClusterNameFromStage(stage, request.getServerGroupNames().get(0));
+    Map cluster =
+        oortHelper
+            .getCluster(
+                monikerHelper.getAppNameFromStage(stage, request.getServerGroupNames().get(0)),
+                request.getCredentials(),
+                clusterName,
+                request.getCloudProvider())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        String.format("No Cluster details found for %s", clusterName)));
 
-    List<Map> serverGroups = Optional.ofNullable((List<Map>) cluster.get("serverGroups"))
-      .orElseThrow(
-        () -> new IllegalArgumentException(String.format("No server groups found for cluster %s", clusterName))
-      );
+    List<Map> serverGroups =
+        Optional.ofNullable((List<Map>) cluster.get("serverGroups"))
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        String.format("No server groups found for cluster %s", clusterName)));
 
-    Location location = Optional.ofNullable(Location.region(request.getRegion()))
-      .orElseThrow(
-        () -> new IllegalArgumentException("A region is required for this operation")
-      );
+    Location location =
+        Optional.ofNullable(Location.region(request.getRegion()))
+            .orElseThrow(
+                () -> new IllegalArgumentException("A region is required for this operation"));
 
     List<TargetServerGroup> targetServerGroups = new ArrayList<>();
-    serverGroups.forEach( sg -> {
-      TargetServerGroup tg = new TargetServerGroup(sg);
-      if (tg.getLocation(location.getType()).equals(location) && request.getServerGroupNames().contains(tg.getName())) {
-        targetServerGroups.add(tg);
-      }
-    });
+    serverGroups.forEach(
+        sg -> {
+          TargetServerGroup tg = new TargetServerGroup(sg);
+          if (tg.getLocation(location.getType()).equals(location)
+              && request.getServerGroupNames().contains(tg.getName())) {
+            targetServerGroups.add(tg);
+          }
+        });
 
     LOGGER.info("Found target server groups {}", targetServerGroups);
     if (targetServerGroups.isEmpty()) {
@@ -101,28 +106,29 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
     }
 
     List<Map<String, Map>> operations = new ArrayList<>();
-    targetServerGroups.forEach( targetServerGroup -> {
-      Map<String , Map> tmp = new HashMap<>();
-      Map operation = targetServerGroup.toClouddriverOperationPayload(request.getCredentials());
-      Moniker moniker = targetServerGroup.getMoniker();
-      if (moniker == null || moniker.getCluster() == null) {
-        moniker = MonikerHelper.friggaToMoniker(targetServerGroup.getName());
-      }
-      validateClusterStatus(operation, moniker);
-      tmp.put(getClouddriverOperation(), operation);
-      operations.add(tmp);
-    });
+    targetServerGroups.forEach(
+        targetServerGroup -> {
+          Map<String, Map> tmp = new HashMap<>();
+          Map operation = targetServerGroup.toClouddriverOperationPayload(request.getCredentials());
+          Moniker moniker = targetServerGroup.getMoniker();
+          if (moniker == null || moniker.getCluster() == null) {
+            moniker = MonikerHelper.friggaToMoniker(targetServerGroup.getName());
+          }
+          validateClusterStatus(operation, moniker);
+          tmp.put(getClouddriverOperation(), operation);
+          operations.add(tmp);
+        });
 
-    TaskId taskId = katoService.requestOperations(request.cloudProvider, operations).toBlocking().first();
+    TaskId taskId =
+        katoService.requestOperations(request.cloudProvider, operations).toBlocking().first();
 
     Map<String, Object> result = new HashMap<>();
     result.put("deploy.account.name", request.getCredentials());
     result.put("kato.last.task.id", taskId);
     Map<String, List<String>> regionToServerGroupNames = new HashMap<>();
-    regionToServerGroupNames.put(request.getRegion(), targetServerGroups
-      .stream()
-      .map(TargetServerGroup::getName)
-      .collect(Collectors.toList()));
+    regionToServerGroupNames.put(
+        request.getRegion(),
+        targetServerGroups.stream().map(TargetServerGroup::getName).collect(Collectors.toList()));
 
     result.put("deploy.server.groups", regionToServerGroupNames);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(result).build();

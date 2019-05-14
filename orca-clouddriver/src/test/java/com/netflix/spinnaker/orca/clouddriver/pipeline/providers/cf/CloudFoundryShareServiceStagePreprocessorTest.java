@@ -16,36 +16,33 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryShareServiceTask;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryShareServiceStagePreprocessorTest {
   @Test
   void ensureThatCorrectTasksAreAddedForSharingCloudFoundryService() {
     TaskNode.Builder expectedBuilder = TaskNode.Builder(TaskNode.GraphType.FULL);
     expectedBuilder
-      .withTask("shareService", CloudFoundryShareServiceTask.class)
-      .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);
+        .withTask("shareService", CloudFoundryShareServiceTask.class)
+        .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);
 
-    CloudFoundryShareServiceStagePreprocessor preprocessor = new CloudFoundryShareServiceStagePreprocessor();
+    CloudFoundryShareServiceStagePreprocessor preprocessor =
+        new CloudFoundryShareServiceStagePreprocessor();
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", "my-cloud");
     context.put("manifest", Collections.singletonMap("type", "direct"));
-    Stage stage = new Stage(
-      new Execution(PIPELINE, "orca"),
-      "shareService",
-      context);
+    Stage stage = new Stage(new Execution(PIPELINE, "orca"), "shareService", context);
 
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL);
     preprocessor.addSteps(builder, stage);

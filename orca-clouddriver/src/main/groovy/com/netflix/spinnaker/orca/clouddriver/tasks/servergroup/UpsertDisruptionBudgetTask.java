@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import java.util.*;
-import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,8 +50,11 @@ public class UpsertDisruptionBudgetTask extends AbstractCloudProviderAwareTask {
     operation.put("disruptionBudget", request.get("disruptionBudget"));
     operations.add(Collections.singletonMap("upsertDisruptionBudget", operation));
 
-    TaskId taskId = katoService.requestOperations(request.get("cloudProvider").toString(), operations)
-      .toBlocking().first();
+    TaskId taskId =
+        katoService
+            .requestOperations(request.get("cloudProvider").toString(), operations)
+            .toBlocking()
+            .first();
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "upsertDisruptionBudget");
@@ -62,4 +65,3 @@ public class UpsertDisruptionBudgetTask extends AbstractCloudProviderAwareTask {
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 }
-

@@ -20,11 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitUntilTask;
-import org.springframework.stereotype.Component;
-
+import java.time.Instant;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.time.Instant;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WaitUntilStage implements StageDefinitionBuilder {
@@ -42,9 +41,8 @@ public class WaitUntilStage implements StageDefinitionBuilder {
 
     @JsonCreator
     public WaitUntilStageContext(
-      @JsonProperty("epochMillis") @Nullable Long epochMillis,
-      @JsonProperty("startTime") @Nullable Instant startTime
-    ) {
+        @JsonProperty("epochMillis") @Nullable Long epochMillis,
+        @JsonProperty("startTime") @Nullable Instant startTime) {
       this.epochMillis = epochMillis;
       this.startTime = startTime;
     }

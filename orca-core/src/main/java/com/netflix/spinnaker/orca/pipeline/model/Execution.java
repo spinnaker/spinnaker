@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,18 +32,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import de.huxhorn.sulky.ulid.ULID;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class Execution implements Serializable {
 
@@ -49,9 +48,9 @@ public class Execution implements Serializable {
 
   @JsonCreator
   public Execution(
-    @JsonProperty("type") ExecutionType type,
-    @JsonProperty("id") String id,
-    @JsonProperty("application") String application) {
+      @JsonProperty("type") ExecutionType type,
+      @JsonProperty("id") String id,
+      @JsonProperty("application") String application) {
     this.type = type;
     this.id = id;
     this.application = application;
@@ -156,21 +155,16 @@ public class Execution implements Serializable {
   @JsonIgnore
   public @Nonnull Map<String, Object> getContext() {
     return Stage.topologicalSort(stages)
-      .map(Stage::getOutputs)
-      .map(Map::entrySet)
-      .flatMap(Collection::stream)
-      .collect(toMap(
-        Map.Entry::getKey,
-        Map.Entry::getValue,
-        (o, o2) -> o2
-      ));
+        .map(Stage::getOutputs)
+        .map(Map::entrySet)
+        .flatMap(Collection::stream)
+        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (o, o2) -> o2));
   }
 
   private final List<Stage> stages = new ArrayList<>();
 
   /**
-   * Gets the stages of this execution.
-   * Does not serialize the child Execution object from stages.
+   * Gets the stages of this execution. Does not serialize the child Execution object from stages.
    * The child Execution object in Stage is a @JsonBackReference.
    */
   @JsonIgnoreProperties(value = "execution")
@@ -199,8 +193,8 @@ public class Execution implements Serializable {
   }
 
   /**
-   * Gets the start expiry timestamp for this execution. If the execution has not
-   * started before this timestamp, the execution will immediately terminate.
+   * Gets the start expiry timestamp for this execution. If the execution has not started before
+   * this timestamp, the execution will immediately terminate.
    */
   private Long startTimeExpiry;
 
@@ -228,8 +222,7 @@ public class Execution implements Serializable {
     return authentication;
   }
 
-  public void setAuthentication(
-    @Nullable AuthenticationDetails authentication) {
+  public void setAuthentication(@Nullable AuthenticationDetails authentication) {
     this.authentication = authentication;
   }
 
@@ -313,39 +306,40 @@ public class Execution implements Serializable {
 
   @Nullable
   public Stage namedStage(String type) {
-    return stages
-      .stream()
-      .filter(it -> it.getType().equals(type))
-      .findFirst()
-      .orElse(null);
+    return stages.stream().filter(it -> it.getType().equals(type)).findFirst().orElse(null);
   }
 
   @Nonnull
   public Stage stageById(String stageId) {
-    return stages
-      .stream()
-      .filter(it -> it.getId().equals(stageId))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with id %s exists", stageId)));
+    return stages.stream()
+        .filter(it -> it.getId().equals(stageId))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(String.format("No stage with id %s exists", stageId)));
   }
 
   @Nonnull
   public Stage stageByRef(String refId) {
-    return stages
-      .stream()
-      .filter(it -> refId.equals(it.getRefId()))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with refId %s exists", refId)));
+    return stages.stream()
+        .filter(it -> refId.equals(it.getRefId()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    String.format("No stage with refId %s exists", refId)));
   }
 
-  @Override public boolean equals(Object o) {
+  @Override
+  public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Execution execution = (Execution) o;
     return Objects.equals(id, execution.id);
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hash(id);
   }
 
@@ -392,24 +386,24 @@ public class Execution implements Serializable {
       Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
       Optional<String> spinnakerAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts();
       if (spinnakerUserOptional.isPresent() || spinnakerAccountsOptional.isPresent()) {
-        return Optional.of(new AuthenticationDetails(
-          spinnakerUserOptional.orElse(null),
-          spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0])
-        ));
+        return Optional.of(
+            new AuthenticationDetails(
+                spinnakerUserOptional.orElse(null),
+                spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0])));
       }
 
       return Optional.empty();
     }
 
     public Optional<User> toKorkUser() {
-      return Optional
-        .ofNullable(user)
-        .map(it -> {
-          User user = new User();
-          user.setEmail(it);
-          user.setAllowedAccounts(allowedAccounts);
-          return user;
-        });
+      return Optional.ofNullable(user)
+          .map(
+              it -> {
+                User user = new User();
+                user.setEmail(it);
+                user.setAllowedAccounts(allowedAccounts);
+                return user;
+              });
     }
   }
 
@@ -466,9 +460,11 @@ public class Execution implements Serializable {
   }
 
   public enum ExecutionType {
-    PIPELINE, ORCHESTRATION;
+    PIPELINE,
+    ORCHESTRATION;
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return name().toLowerCase();
     }
   }

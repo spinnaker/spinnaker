@@ -23,26 +23,24 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public interface InstantiationTypeRestrictor {
-  Set<Class<?>> allowedTypes = Collections.unmodifiableSet(
-    new HashSet<>(
-      Arrays.asList(
-        String.class,
-        Date.class,
-        Integer.class,
-        Long.class,
-        Double.class,
-        Byte.class,
-        SimpleDateFormat.class,
-        Math.class,
-        Random.class,
-        UUID.class,
-        Boolean.class,
-        LocalDate.class,
-        Instant.class,
-        ChronoUnit.class
-      )
-    )
-  );
+  Set<Class<?>> allowedTypes =
+      Collections.unmodifiableSet(
+          new HashSet<>(
+              Arrays.asList(
+                  String.class,
+                  Date.class,
+                  Integer.class,
+                  Long.class,
+                  Double.class,
+                  Byte.class,
+                  SimpleDateFormat.class,
+                  Math.class,
+                  Random.class,
+                  UUID.class,
+                  Boolean.class,
+                  LocalDate.class,
+                  Instant.class,
+                  ChronoUnit.class)));
 
   static boolean supports(Class<?> type) {
     return allowedTypes.contains(type);

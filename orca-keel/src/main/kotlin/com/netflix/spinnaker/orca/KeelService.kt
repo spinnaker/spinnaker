@@ -33,5 +33,5 @@ interface KeelService {
   fun upsertIntents(@Body upsertIntentRequest: UpsertIntentRequest): Response
 
   @DELETE("/v1/intents/{id}")
-  fun deleteIntents(@Path("id") id: String, @Query("status") status: String?) : Response
+  fun deleteIntents(@Path("id") id: String, @Query("status") status: String?): Response
 }

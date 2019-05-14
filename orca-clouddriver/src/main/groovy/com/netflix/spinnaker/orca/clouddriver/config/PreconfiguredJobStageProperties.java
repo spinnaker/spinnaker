@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import com.google.common.collect.ImmutableList;
-import jdk.nashorn.internal.ir.annotations.Immutable;
-import lombok.Data;
-
 import java.util.*;
+import lombok.Data;
 
 @Data
 public abstract class PreconfiguredJobStageProperties {
@@ -39,12 +36,6 @@ public abstract class PreconfiguredJobStageProperties {
 
   public List<String> getOverridableFields() {
     return Arrays.asList(
-      "cloudProvider",
-      "credentials",
-      "region",
-      "propertyFile",
-      "waitForCompletion"
-    );
+        "cloudProvider", "credentials", "region", "propertyFile", "waitForCompletion");
   }
-
 }

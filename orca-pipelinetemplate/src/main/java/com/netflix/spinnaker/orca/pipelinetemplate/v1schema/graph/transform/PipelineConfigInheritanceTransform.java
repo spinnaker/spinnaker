@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

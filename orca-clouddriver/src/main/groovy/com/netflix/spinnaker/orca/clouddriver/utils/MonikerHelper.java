@@ -15,15 +15,14 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
-
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
-
 /**
- * Helper methods for getting the app, cluster, etc from a moniker. When a moniker is not available use frigga.
+ * Helper methods for getting the app, cluster, etc from a moniker. When a moniker is not available
+ * use frigga.
  */
 @Component
 public class MonikerHelper {
@@ -52,7 +51,7 @@ public class MonikerHelper {
     return clusterName;
   }
 
-  static public Moniker monikerFromStage(Stage stage) {
+  public static Moniker monikerFromStage(Stage stage) {
     if (stage.getContext().containsKey("moniker")) {
       return (Moniker) stage.mapTo("/moniker", Moniker.class);
     } else {
@@ -60,20 +59,21 @@ public class MonikerHelper {
     }
   }
 
-  static public Moniker monikerFromStage(Stage stage, String fallbackFriggaName) {
+  public static Moniker monikerFromStage(Stage stage, String fallbackFriggaName) {
     Moniker moniker = monikerFromStage(stage);
-    return (moniker == null || moniker.getCluster() == null) ? friggaToMoniker(fallbackFriggaName) : moniker;
+    return (moniker == null || moniker.getCluster() == null)
+        ? friggaToMoniker(fallbackFriggaName)
+        : moniker;
   }
 
-  static public Moniker friggaToMoniker(String friggaName) {
+  public static Moniker friggaToMoniker(String friggaName) {
     Names names = Names.parseName(friggaName);
     return Moniker.builder()
-      .app(names.getApp())
-      .stack(names.getStack())
-      .detail(names.getDetail())
-      .cluster(names.getCluster())
-      .sequence(names.getSequence())
-      .build();
+        .app(names.getApp())
+        .stack(names.getStack())
+        .detail(names.getDetail())
+        .cluster(names.getCluster())
+        .sequence(names.getSequence())
+        .build();
   }
-
 }

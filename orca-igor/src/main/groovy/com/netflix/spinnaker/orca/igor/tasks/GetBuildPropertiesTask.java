@@ -21,14 +21,13 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.BuildService;
 import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -42,14 +41,17 @@ public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition>
       return TaskResult.SUCCEEDED;
     }
 
-    Map<String, Object> properties = buildService.getPropertyFile(
-      stageDefinition.getBuildNumber(),
-      stageDefinition.getPropertyFile(),
-      stageDefinition.getMaster(),
-      stageDefinition.getJob()
-    );
+    Map<String, Object> properties =
+        buildService.getPropertyFile(
+            stageDefinition.getBuildNumber(),
+            stageDefinition.getPropertyFile(),
+            stageDefinition.getMaster(),
+            stageDefinition.getJob());
     if (properties.size() == 0) {
-      throw new IllegalStateException(String.format("Expected properties file %s but it was either missing, empty or contained invalid syntax", stageDefinition.getPropertyFile()));
+      throw new IllegalStateException(
+          String.format(
+              "Expected properties file %s but it was either missing, empty or contained invalid syntax",
+              stageDefinition.getPropertyFile()));
     }
     HashMap<String, Object> outputs = new HashMap<>(properties);
     outputs.put("propertyFileContents", properties);

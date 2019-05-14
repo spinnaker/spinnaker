@@ -34,7 +34,7 @@ public class CloudFoundryShareServiceStagePreprocessor implements ShareServiceSt
   @Override
   public void addSteps(TaskNode.Builder builder, Stage stage) {
     builder
-      .withTask("shareService", CloudFoundryShareServiceTask.class)
-      .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);
+        .withTask("shareService", CloudFoundryShareServiceTask.class)
+        .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);
   }
 }

@@ -20,10 +20,18 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.ArtifactoryTrigger
+import com.netflix.spinnaker.orca.pipeline.model.ConcourseTrigger
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
+import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 
-internal class TriggerDeserializer
-  : StdDeserializer<Trigger>(Trigger::class.java) {
+internal class TriggerDeserializer :
+  StdDeserializer<Trigger>(Trigger::class.java) {
 
   companion object {
     val customTriggerSuppliers: MutableList<CustomTriggerDeserializerSupplier> = mutableListOf()

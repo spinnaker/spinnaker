@@ -22,13 +22,12 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.ConcourseService;
 import com.netflix.spinnaker.orca.igor.model.ConcourseStageExecution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +41,7 @@ public class WaitForConcourseJobStartTask implements OverridableTimeoutRetryable
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     ConcourseStageExecution stageExecution = concourseService.popExecution(stage);
-    if(stageExecution != null) {
+    if (stageExecution != null) {
       Map<String, Object> context = new HashMap<>();
       context.put("jobName", stageExecution.getJobName());
       context.put("buildNumber", stageExecution.getBuildNumber());

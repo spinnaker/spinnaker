@@ -32,16 +32,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {StartupTestConfiguration.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:orca-test.yml"})
 public class MainSpec {
-  @MockBean
-  ExecutionRepository executionRepository;
+  @MockBean ExecutionRepository executionRepository;
 
-  @MockBean
-  LockManager lockManager;
+  @MockBean LockManager lockManager;
 
-  @MockBean
-  NotificationClusterLock notificationClusterLock;
+  @MockBean NotificationClusterLock notificationClusterLock;
 
   @Test
-  public void startupTest() {
-  }
+  public void startupTest() {}
 }

@@ -24,20 +24,22 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RunJobStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask("runJob", RunJobTask.class)
-      .withTask("monitorDeploy", MonitorJobTask.class);
+    builder.withTask("runJob", RunJobTask.class).withTask("monitorDeploy", MonitorJobTask.class);
 
-    if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
+    if (!stage
+        .getContext()
+        .getOrDefault("waitForCompletion", "true")
+        .toString()
+        .equalsIgnoreCase("false")) {
       builder.withTask("waitOnJobCompletion", WaitOnJobCompletion.class);
     }
 
@@ -45,7 +47,11 @@ public class RunJobStage implements StageDefinitionBuilder {
       builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
 
-    if (stage.getContext().getOrDefault("consumeArtifactSource", "").toString().equalsIgnoreCase("artifact")) {
+    if (stage
+        .getContext()
+        .getOrDefault("consumeArtifactSource", "")
+        .toString()
+        .equalsIgnoreCase("artifact")) {
       builder.withTask(ConsumeArtifactTask.TASK_NAME, ConsumeArtifactTask.class);
     }
   }
@@ -56,9 +62,10 @@ public class RunJobStage implements StageDefinitionBuilder {
 
     // preserve previous job details
     if (context.containsKey("jobStatus")) {
-      Map<String, Object> restartDetails = context.containsKey("restartDetails") ?
-        (Map<String, Object>) context.get("restartDetails") :
-        new HashMap<>();
+      Map<String, Object> restartDetails =
+          context.containsKey("restartDetails")
+              ? (Map<String, Object>) context.get("restartDetails")
+              : new HashMap<>();
       restartDetails.put("jobStatus", context.get("jobStatus"));
       restartDetails.put("completionDetails", context.get("completionDetails"));
       restartDetails.put("propertyFileContents", context.get("propertyFileContents"));

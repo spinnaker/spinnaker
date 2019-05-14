@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.BuildInfo;
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsBuildInfo;
 import com.netflix.spinnaker.orca.pipeline.model.SourceControl;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
+import org.apache.commons.lang3.StringUtils;
 
 public class BuildDetailExtractor {
 
@@ -35,27 +34,30 @@ public class BuildDetailExtractor {
   private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
 
   public BuildDetailExtractor() {
-    this.detailExtractors = Arrays.asList(new DefaultDetailExtractor(), new LegacyJenkinsUrlDetailExtractor());
+    this.detailExtractors =
+        Arrays.asList(new DefaultDetailExtractor(), new LegacyJenkinsUrlDetailExtractor());
   }
 
   public boolean tryToExtractBuildDetails(BuildInfo<?> buildInfo, Map<String, Object> request) {
-    // The first strategy to succeed ends the loop. That is: the DefaultDetailExtractor is trying first
+    // The first strategy to succeed ends the loop. That is: the DefaultDetailExtractor is trying
+    // first
     // if it can not succeed the Legacy parser will be applied
-    return detailExtractors.stream().anyMatch(it ->
-      it.tryToExtractBuildDetails(buildInfo, request)
-    );
+    return detailExtractors.stream()
+        .anyMatch(it -> it.tryToExtractBuildDetails(buildInfo, request));
   }
 
   @Deprecated
-  public boolean tryToExtractJenkinsBuildDetails(Map<String, Object> buildInfo, Map<String, Object> request) {
+  public boolean tryToExtractJenkinsBuildDetails(
+      Map<String, Object> buildInfo, Map<String, Object> request) {
     try {
-      return tryToExtractBuildDetails(mapper.convertValue(buildInfo, JenkinsBuildInfo.class), request);
+      return tryToExtractBuildDetails(
+          mapper.convertValue(buildInfo, JenkinsBuildInfo.class), request);
     } catch (IllegalArgumentException e) {
       return false;
     }
   }
 
-  //Legacy Details extractor for Jenkins. It parses the url to fill the request build parameters
+  // Legacy Details extractor for Jenkins. It parses the url to fill the request build parameters
   @Deprecated
   private static class LegacyJenkinsUrlDetailExtractor implements DetailExtractor {
 
@@ -101,7 +103,7 @@ public class BuildDetailExtractor {
     }
   }
 
-  //Default detail extractor. It expects to find url, name and number in the buildInfo
+  // Default detail extractor. It expects to find url, name and number in the buildInfo
   private static class DefaultDetailExtractor implements DetailExtractor {
 
     @Override
@@ -131,26 +133,28 @@ public class BuildDetailExtractor {
     }
   }
 
-  //Common trait for DetailExtractor
+  // Common trait for DetailExtractor
   private interface DetailExtractor {
 
     boolean tryToExtractBuildDetails(BuildInfo<?> buildInfo, Map<String, Object> request);
 
     default void extractCommitHash(BuildInfo<?> buildInfo, Map<String, Object> request) {
       // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
-      // If the list contains more than one entry, prefer the first one that is not master and is not develop.
+      // If the list contains more than one entry, prefer the first one that is not master and is
+      // not develop.
       String commitHash = null;
 
       if (buildInfo.getScm() != null && buildInfo.getScm().size() >= 2) {
-        commitHash = buildInfo
-          .getScm()
-          .stream()
-          .filter(it -> !"master".equals(it.getBranch()) && !"develop".equals(it.getBranch()))
-          .findFirst()
-          .map(SourceControl::getSha1)
-          .orElse(null);
+        commitHash =
+            buildInfo.getScm().stream()
+                .filter(it -> !"master".equals(it.getBranch()) && !"develop".equals(it.getBranch()))
+                .findFirst()
+                .map(SourceControl::getSha1)
+                .orElse(null);
       }
-      if (StringUtils.isEmpty(commitHash) && buildInfo.getScm() != null && !buildInfo.getScm().isEmpty()) {
+      if (StringUtils.isEmpty(commitHash)
+          && buildInfo.getScm() != null
+          && !buildInfo.getScm().isEmpty()) {
         commitHash = buildInfo.getScm().get(0).getSha1();
       }
       if (commitHash != null) {

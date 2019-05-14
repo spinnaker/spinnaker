@@ -16,43 +16,41 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
-public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAwareTask
+    implements Task {
   static final String REFRESH_TYPE = "CloudFormation";
 
-  @Autowired
-  CloudDriverCacheService cacheService;
+  @Autowired CloudDriverCacheService cacheService;
 
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     String cloudProvider = getCloudProvider(stage);
 
     Map<String, Object> data = new HashMap<>();
-        
+
     String credentials = getCredentials(stage);
     if (credentials != null) {
       data.put("credentials", credentials);
     }
-    
+
     List<String> regions = (List<String>) stage.getContext().get("regions");
     if (regions != null && !regions.isEmpty()) {
       data.put("region", regions);
     }
-    
+
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
 
     return TaskResult.SUCCEEDED;

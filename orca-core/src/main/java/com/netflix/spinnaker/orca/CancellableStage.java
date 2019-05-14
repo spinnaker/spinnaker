@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca;
 
-import java.util.Map;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Map;
 
 public interface CancellableStage {
   Result cancel(Stage stage);

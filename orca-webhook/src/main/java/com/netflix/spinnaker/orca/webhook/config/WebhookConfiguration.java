@@ -19,6 +19,21 @@ package com.netflix.spinnaker.orca.webhook.config;
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.net.ssl.*;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,22 +55,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
-
-import javax.net.ssl.*;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Configuration
 @ConditionalOnProperty(prefix = "webhook.stage", value = "enabled", matchIfMissing = true)
@@ -84,14 +83,16 @@ public class WebhookConfiguration {
 
   @Bean
   public ClientHttpRequestFactory webhookRequestFactory(
-    OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
-  ) {
+      OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
     X509TrustManager trustManager = webhookX509TrustManager();
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory(trustManager);
-    OkHttpClient client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
+    OkHttpClient client =
+        new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
     OkHttp3ClientHttpRequestFactory requestFactory = new OkHttp3ClientHttpRequestFactory(client);
-    requestFactory.setReadTimeout(Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));
-    requestFactory.setConnectTimeout(Math.toIntExact(okHttpClientConfigurationProperties.getConnectTimeoutMs()));
+    requestFactory.setReadTimeout(
+        Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));
+    requestFactory.setConnectTimeout(
+        Math.toIntExact(okHttpClientConfigurationProperties.getConnectTimeoutMs()));
     return requestFactory;
   }
 
@@ -107,7 +108,7 @@ public class WebhookConfiguration {
   private SSLSocketFactory getSSLSocketFactory(X509TrustManager trustManager) {
     try {
       SSLContext sslContext = SSLContext.getInstance("TLS");
-      sslContext.init(null, new X509TrustManager[]{ trustManager }, null);
+      sslContext.init(null, new X509TrustManager[] {trustManager}, null);
       return sslContext.getSocketFactory();
     } catch (KeyManagementException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
@@ -116,7 +117,8 @@ public class WebhookConfiguration {
 
   private X509TrustManager getTrustManager(KeyStore keyStore) {
     try {
-      TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+      TrustManagerFactory trustManagerFactory =
+          TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       trustManagerFactory.init(keyStore);
       TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
       return (X509TrustManager) trustManagers[0];
@@ -127,7 +129,9 @@ public class WebhookConfiguration {
 
   private Optional<KeyStore> getCustomKeyStore() {
     WebhookProperties.TrustSettings trustSettings = webhookProperties.getTrust();
-    if (trustSettings == null || !trustSettings.isEnabled() || StringUtils.isEmpty(trustSettings.getTrustStore())) {
+    if (trustSettings == null
+        || !trustSettings.isEnabled()
+        || StringUtils.isEmpty(trustSettings.getTrustStore())) {
       return Optional.empty();
     }
 
@@ -157,9 +161,11 @@ public class WebhookConfiguration {
   /**
    * An HttpMessageConverter capable of converting a map to url encoded form values.
    *
-   * Will only apply if the content type of the request has been explicitly set to application/x-www-form-urlencoded.
+   * <p>Will only apply if the content type of the request has been explicitly set to
+   * application/x-www-form-urlencoded.
    */
-  public class MapToStringHttpMessageConverter extends AbstractHttpMessageConverter<Map<String, Object>> {
+  public class MapToStringHttpMessageConverter
+      extends AbstractHttpMessageConverter<Map<String, Object>> {
     MapToStringHttpMessageConverter() {
       super(Charset.defaultCharset(), MediaType.APPLICATION_FORM_URLENCODED);
     }
@@ -170,20 +176,26 @@ public class WebhookConfiguration {
     }
 
     @Override
-    protected Map<String, Object> readInternal(Class<? extends Map<String, Object>> clazz,
-                                               HttpInputMessage inputMessage) throws HttpMessageNotReadableException {
+    protected Map<String, Object> readInternal(
+        Class<? extends Map<String, Object>> clazz, HttpInputMessage inputMessage)
+        throws HttpMessageNotReadableException {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void writeInternal(Map<String, Object> body,
-                                 HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    protected void writeInternal(Map<String, Object> body, HttpOutputMessage outputMessage)
+        throws IOException, HttpMessageNotWritableException {
       Charset charset = getContentTypeCharset(outputMessage.getHeaders().getContentType());
 
-      String str = body.entrySet().stream()
-        .map(p -> urlEncode(p.getKey(), charset) + "=" + urlEncode(p.getValue().toString(), charset))
-        .reduce((p1, p2) -> p1 + "&" + p2)
-        .orElse("");
+      String str =
+          body.entrySet().stream()
+              .map(
+                  p ->
+                      urlEncode(p.getKey(), charset)
+                          + "="
+                          + urlEncode(p.getValue().toString(), charset))
+              .reduce((p1, p2) -> p1 + "&" + p2)
+              .orElse("");
 
       StreamUtils.copy(str, charset, outputMessage.getBody());
     }

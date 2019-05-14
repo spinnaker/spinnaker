@@ -41,11 +41,10 @@ public class JsonFilter implements Filter {
       return objectMapper.writeValueAsString(var);
     } catch (JsonProcessingException e) {
       throw TemplateRenderException.fromError(
-        new Error()
-          .withMessage("failed converting object to json")
-          .withDetail("object", (String) var),
-        e
-      );
+          new Error()
+              .withMessage("failed converting object to json")
+              .withDetail("object", (String) var),
+          e);
     }
   }
 

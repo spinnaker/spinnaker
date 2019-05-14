@@ -18,13 +18,12 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 @Getter
 public class DeployManifestContext extends HashMap<String, Object> {
@@ -37,39 +36,38 @@ public class DeployManifestContext extends HashMap<String, Object> {
   private final List<String> requiredArtifactIds;
   private final List<BindArtifact> requiredArtifacts;
 
-  // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
+  // There does not seem to be a way to auto-generate a constructor using our current version of
+  // Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public DeployManifestContext(
-    @JsonProperty("source") String source,
-    @JsonProperty("manifestArtifactId") String manifestArtifactId,
-    @JsonProperty("manifestArtifact") Artifact manifestArtifact,
-    @JsonProperty("manifestArtifactAccount") String manifestArtifactAccount,
-    @JsonProperty("skipExpressionEvaluation") Boolean skipExpressionEvaluation,
-    @JsonProperty("trafficManagement") TrafficManagement trafficManagement,
-    @JsonProperty("requiredArtifactIds") List<String> requiredArtifactIds,
-    @JsonProperty("requiredArtifacts") List<BindArtifact> requiredArtifacts
-  ){
+      @JsonProperty("source") String source,
+      @JsonProperty("manifestArtifactId") String manifestArtifactId,
+      @JsonProperty("manifestArtifact") Artifact manifestArtifact,
+      @JsonProperty("manifestArtifactAccount") String manifestArtifactAccount,
+      @JsonProperty("skipExpressionEvaluation") Boolean skipExpressionEvaluation,
+      @JsonProperty("trafficManagement") TrafficManagement trafficManagement,
+      @JsonProperty("requiredArtifactIds") List<String> requiredArtifactIds,
+      @JsonProperty("requiredArtifacts") List<BindArtifact> requiredArtifacts) {
     this.source = source;
     this.manifestArtifactId = manifestArtifactId;
     this.manifestArtifact = manifestArtifact;
     this.manifestArtifactAccount = manifestArtifactAccount;
     this.skipExpressionEvaluation = skipExpressionEvaluation;
-    this.trafficManagement = Optional.ofNullable(trafficManagement).orElse(new TrafficManagement(false, null));
+    this.trafficManagement =
+        Optional.ofNullable(trafficManagement).orElse(new TrafficManagement(false, null));
     this.requiredArtifactIds = requiredArtifactIds;
     this.requiredArtifacts = requiredArtifacts;
   }
 
   @Getter
   public static class BindArtifact {
-    @Nullable
-    private final String expectedArtifactId;
+    @Nullable private final String expectedArtifactId;
 
-    @Nullable
-    private final Artifact artifact;
+    @Nullable private final Artifact artifact;
 
-
-    public BindArtifact(@JsonProperty("expectedArtifactId") @Nullable String expectedArtifactId,
-                        @JsonProperty("artifact") @Nullable Artifact artifact) {
+    public BindArtifact(
+        @JsonProperty("expectedArtifactId") @Nullable String expectedArtifactId,
+        @JsonProperty("artifact") @Nullable Artifact artifact) {
       this.expectedArtifactId = expectedArtifactId;
       this.artifact = artifact;
     }
@@ -80,12 +78,11 @@ public class DeployManifestContext extends HashMap<String, Object> {
     private final boolean enabled;
     private final Options options;
 
-    public TrafficManagement (
-      @JsonProperty("enabled") Boolean enabled,
-      @JsonProperty("options") Options options
-    ) {
+    public TrafficManagement(
+        @JsonProperty("enabled") Boolean enabled, @JsonProperty("options") Options options) {
       this.enabled = Optional.ofNullable(enabled).orElse(false);
-      this.options = Optional.ofNullable(options).orElse(new Options(false, Collections.emptyList(), null));
+      this.options =
+          Optional.ofNullable(options).orElse(new Options(false, Collections.emptyList(), null));
     }
 
     @Getter
@@ -95,10 +92,9 @@ public class DeployManifestContext extends HashMap<String, Object> {
       private final ManifestStrategyType strategy;
 
       public Options(
-        @JsonProperty("enableTraffic") Boolean enableTraffic,
-        @JsonProperty("services") List<String> services,
-        @JsonProperty("strategy") String strategy
-      ) {
+          @JsonProperty("enableTraffic") Boolean enableTraffic,
+          @JsonProperty("services") List<String> services,
+          @JsonProperty("strategy") String strategy) {
         this.enableTraffic = Optional.ofNullable(enableTraffic).orElse(false);
         this.services = Optional.ofNullable(services).orElse(Collections.emptyList());
         this.strategy = ManifestStrategyType.fromKey(strategy);

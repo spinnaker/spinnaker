@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
-import kotlin.reflect.KClass
 
 @Component
 class DeleteIntentStage() : StageDefinitionBuilder {
@@ -31,5 +30,5 @@ class DeleteIntentStage() : StageDefinitionBuilder {
   }
 }
 
-inline fun <reified T: Task> TaskNode.Builder.withTask(name: String) =
+inline fun <reified T : Task> TaskNode.Builder.withTask(name: String) =
   withTask(name, T::class.java)

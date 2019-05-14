@@ -25,12 +25,12 @@ public class ByExecutionTypeServiceSelector implements ServiceSelector {
   private final int priority;
   private final Set<String> executionTypes;
 
-  public ByExecutionTypeServiceSelector(Object service, Integer priority, Map<String, Object> config) {
+  public ByExecutionTypeServiceSelector(
+      Object service, Integer priority, Map<String, Object> config) {
     this.service = service;
     this.priority = priority;
-    this.executionTypes = new HashSet(
-      ((Map<String, String>) config.get("executionTypes")).values()
-    );
+    this.executionTypes =
+        new HashSet(((Map<String, String>) config.get("executionTypes")).values());
   }
 
   @Override

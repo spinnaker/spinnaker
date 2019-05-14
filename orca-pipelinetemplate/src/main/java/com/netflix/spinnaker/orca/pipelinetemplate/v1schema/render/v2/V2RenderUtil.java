@@ -19,17 +19,20 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
-
 import java.util.Map;
 
 public class V2RenderUtil {
 
-  public static RenderContext createDefaultRenderContext(V2PipelineTemplate template, V2TemplateConfiguration configuration, Map<String, Object> trigger) {
-    RenderContext context = new V2DefaultRenderContext(configuration.getApplication(), template, trigger);
+  public static RenderContext createDefaultRenderContext(
+      V2PipelineTemplate template,
+      V2TemplateConfiguration configuration,
+      Map<String, Object> trigger) {
+    RenderContext context =
+        new V2DefaultRenderContext(configuration.getApplication(), template, trigger);
     if (template != null && template.getVariables() != null) {
       template.getVariables().stream()
-        .filter(v -> (v.isNullable() && v.getDefaultValue() == null) || v.hasDefaultValue())
-        .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+          .filter(v -> (v.isNullable() && v.getDefaultValue() == null) || v.hasDefaultValue())
+          .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
     }
     if (configuration.getVariables() != null) {
       context.getVariables().putAll(configuration.getVariables());

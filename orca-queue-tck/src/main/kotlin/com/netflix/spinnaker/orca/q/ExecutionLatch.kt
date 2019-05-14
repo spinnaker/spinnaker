@@ -32,8 +32,8 @@ import java.util.function.Predicate
  * An [ApplicationListener] implementation you can use to wait for an execution
  * to complete. Much better than `Thread.sleep(whatever)` in your tests.
  */
-class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>)
-  : ApplicationListener<ExecutionComplete> {
+class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>) :
+  ApplicationListener<ExecutionComplete> {
 
   private val latch = CountDownLatch(1)
 
@@ -65,10 +65,12 @@ fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launche
  * Useful for testing failure interactions between pipelines. Child pipeline can be inspected prior to
  * completion, and subsequently completed via [runToCompletion].
  */
-fun ConfigurableApplicationContext.runParentToCompletion(parent: Execution,
-                                                         child: Execution,
-                                                         launcher: (Execution) -> Unit,
-                                                         repository: ExecutionRepository) {
+fun ConfigurableApplicationContext.runParentToCompletion(
+  parent: Execution,
+  child: Execution,
+  launcher: (Execution) -> Unit,
+  repository: ExecutionRepository
+) {
   val latch = ExecutionLatch(Predicate {
     it.executionId == parent.id
   })

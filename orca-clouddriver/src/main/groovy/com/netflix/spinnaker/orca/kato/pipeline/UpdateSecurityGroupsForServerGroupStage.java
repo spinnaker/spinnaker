@@ -43,8 +43,8 @@ class UpdateSecurityGroupsForServerGroupStage implements StageDefinitionBuilder 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("updateLaunchConfig", UpdateLaunchConfigTask.class)
-      .withTask("updateInstances", UpdateInstancesTask.class);
+        .withTask("updateLaunchConfig", UpdateLaunchConfigTask.class)
+        .withTask("updateInstances", UpdateInstancesTask.class);
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);

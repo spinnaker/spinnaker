@@ -24,10 +24,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BulkUpsertEntityTagsStage  implements StageDefinitionBuilder {
+public class BulkUpsertEntityTagsStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask("bulkUpsertEntityTags", BulkUpsertEntityTagsTask.class)
-      .withTask("monitorUpsert", MonitorKatoTask.class);
+    builder
+        .withTask("bulkUpsertEntityTags", BulkUpsertEntityTagsTask.class)
+        .withTask("monitorUpsert", MonitorKatoTask.class);
   }
 }

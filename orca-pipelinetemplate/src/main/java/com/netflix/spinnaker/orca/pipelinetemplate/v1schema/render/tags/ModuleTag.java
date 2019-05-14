@@ -31,11 +31,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public class ModuleTag implements Tag {
   private static final Splitter ON_EQUALS = Splitter.on("=");
@@ -55,11 +54,13 @@ public class ModuleTag implements Tag {
 
   @Override
   public String interpret(TagNode tagNode, JinjavaInterpreter interpreter) {
-    List<String> helper = collapseWhitespaceInTokenPairs(
-      new HelperStringTokenizer(tagNode.getHelpers()).allTokens()
-    );
+    List<String> helper =
+        collapseWhitespaceInTokenPairs(new HelperStringTokenizer(tagNode.getHelpers()).allTokens());
     if (helper.isEmpty()) {
-      throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'module' expects ID as first parameter: " + helper, tagNode.getLineNumber());
+      throw new TemplateSyntaxException(
+          tagNode.getMaster().getImage(),
+          "Tag 'module' expects ID as first parameter: " + helper,
+          tagNode.getLineNumber());
     }
 
     Context context = interpreter.getContext();
@@ -70,38 +71,52 @@ public class ModuleTag implements Tag {
       throw new TemplateStateException("Pipeline template missing from jinja context");
     }
 
-    TemplateModule module = template.getModules().stream()
-      .filter(m -> m.getId().equals(moduleId))
-      .findFirst()
-      .orElseThrow((Supplier<RuntimeException>) () -> new TemplateRenderException(String.format("Module does not exist by ID: %s", moduleId)));
+    TemplateModule module =
+        template.getModules().stream()
+            .filter(m -> m.getId().equals(moduleId))
+            .findFirst()
+            .orElseThrow(
+                (Supplier<RuntimeException>)
+                    () ->
+                        new TemplateRenderException(
+                            String.format("Module does not exist by ID: %s", moduleId)));
 
-    RenderContext moduleContext = new DefaultRenderContext(
-      (String) context.get("application"),
-      template,
-      (Map<String, Object>) context.get("trigger")
-    );
+    RenderContext moduleContext =
+        new DefaultRenderContext(
+            (String) context.get("application"),
+            template,
+            (Map<String, Object>) context.get("trigger"));
     moduleContext.setLocation("module:" + moduleId);
 
     // Assign parameters into the context
     Map<String, String> paramPairs = new HashMap<>();
-    helper.subList(1, helper.size()).forEach(p -> {
-      List<String> parts = ON_EQUALS.splitToList(p);
-      if (parts.size() != 2) {
-        throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'module' expects parameters to be in a 'key=value' format: " + helper, tagNode.getLineNumber());
-      }
-      paramPairs.put(parts.get(0), parts.get(1));
-    });
+    helper
+        .subList(1, helper.size())
+        .forEach(
+            p -> {
+              List<String> parts = ON_EQUALS.splitToList(p);
+              if (parts.size() != 2) {
+                throw new TemplateSyntaxException(
+                    tagNode.getMaster().getImage(),
+                    "Tag 'module' expects parameters to be in a 'key=value' format: " + helper,
+                    tagNode.getLineNumber());
+              }
+              paramPairs.put(parts.get(0), parts.get(1));
+            });
 
     List<String> missing = new ArrayList<>();
     for (NamedHashMap var : module.getVariables()) {
       // First try to assign the variable from the context directly
       Object val = tryResolveExpression(interpreter, var.getName(), tagNode.getLineNumber());
       if (val == null) {
-        // Try to assign from a parameter (using the param value as a context key first, then as a literal)
+        // Try to assign from a parameter (using the param value as a context key first, then as a
+        // literal)
         if (paramPairs.containsKey(var.getName())) {
-          val = Optional.ofNullable(
-            tryResolveExpression(interpreter, paramPairs.get(var.getName()), tagNode.getLineNumber())
-          ).orElse(paramPairs.get(var.getName()));
+          val =
+              Optional.ofNullable(
+                      tryResolveExpression(
+                          interpreter, paramPairs.get(var.getName()), tagNode.getLineNumber()))
+                  .orElse(paramPairs.get(var.getName()));
         }
 
         // If the val is still null, try to assign from a default value
@@ -119,12 +134,11 @@ public class ModuleTag implements Tag {
 
     if (missing.size() > 0) {
       throw TemplateRenderException.fromError(
-        new Error()
-          .withMessage("Missing required variables in module")
-          .withCause("'" + StringUtils.join(missing, "', '") + "' must be defined")
-          .withLocation(moduleContext.getLocation())
-          .withDetail("source", tagNode.getMaster().getImage())
-      );
+          new Error()
+              .withMessage("Missing required variables in module")
+              .withCause("'" + StringUtils.join(missing, "', '") + "' must be defined")
+              .withLocation(moduleContext.getLocation())
+              .withDetail("source", tagNode.getMaster().getImage()));
     }
 
     Object rendered;
@@ -132,12 +146,11 @@ public class ModuleTag implements Tag {
       rendered = RenderUtil.deepRender(renderer, module.getDefinition(), moduleContext);
     } catch (InterpretException e) {
       throw TemplateRenderException.fromError(
-        new Error()
-          .withMessage("Failed rendering module")
-          .withLocation(moduleContext.getLocation())
-          .withDetail("source", tagNode.getMaster().getImage()),
-        e
-      );
+          new Error()
+              .withMessage("Failed rendering module")
+              .withLocation(moduleContext.getLocation())
+              .withDetail("source", tagNode.getMaster().getImage()),
+          e);
     }
 
     if (rendered instanceof CharSequence) {
@@ -148,12 +161,11 @@ public class ModuleTag implements Tag {
       return objectMapper.writeValueAsString(rendered);
     } catch (JsonProcessingException e) {
       throw TemplateRenderException.fromError(
-        new Error()
-          .withMessage("Failed rendering module as JSON")
-          .withLocation(moduleContext.getLocation())
-          .withDetail("source", tagNode.getMaster().getImage()),
-        e
-      );
+          new Error()
+              .withMessage("Failed rendering module as JSON")
+              .withLocation(moduleContext.getLocation())
+              .withDetail("source", tagNode.getMaster().getImage()),
+          e);
     }
   }
 
@@ -163,11 +175,10 @@ public class ModuleTag implements Tag {
   }
 
   /**
-   * Look at this ungodly code. It's gross. Thanks to poor foresight, we tokenize on
-   * whitespace, which can break concatenation, and definitely breaks usage of filters.
-   * Sooo, we take the tokenized module definition and best-guess our way through collapsing
-   * whitespace to arrive at the real key/value pairs that we later parse for populating
-   * the module's internal context.
+   * Look at this ungodly code. It's gross. Thanks to poor foresight, we tokenize on whitespace,
+   * which can break concatenation, and definitely breaks usage of filters. Sooo, we take the
+   * tokenized module definition and best-guess our way through collapsing whitespace to arrive at
+   * the real key/value pairs that we later parse for populating the module's internal context.
    */
   private static List<String> collapseWhitespaceInTokenPairs(List<String> tokens) {
     List<String> combinedTokens = new ArrayList<>();
@@ -198,21 +209,23 @@ public class ModuleTag implements Tag {
     }
 
     return combinedTokens.stream()
-      .map(ModuleTag::removeTrailingCommas)
-      .collect(Collectors.toList());
+        .map(ModuleTag::removeTrailingCommas)
+        .collect(Collectors.toList());
   }
 
   private static String removeTrailingCommas(String token) {
     if (token.endsWith(",")) {
-      return token.substring(0, token.length()-1);
+      return token.substring(0, token.length() - 1);
     }
     return token;
   }
 
-  private Object tryResolveExpression(JinjavaInterpreter interpreter, String expression, int lineNumber) {
+  private Object tryResolveExpression(
+      JinjavaInterpreter interpreter, String expression, int lineNumber) {
     try {
       return interpreter.resolveELExpression(expression, lineNumber);
-    } catch (UnknownTokenException ignored) { }
+    } catch (UnknownTokenException ignored) {
+    }
     return null;
   }
 }

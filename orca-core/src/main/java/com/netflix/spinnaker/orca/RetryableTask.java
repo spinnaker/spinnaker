@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.orca;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-
 import java.time.Duration;
 
 /**
- * A retryable task defines its backoff period (the period between delays) and its timeout (the total period of the task)
+ * A retryable task defines its backoff period (the period between delays) and its timeout (the
+ * total period of the task)
  */
 public interface RetryableTask extends Task {
   long getBackoffPeriod();

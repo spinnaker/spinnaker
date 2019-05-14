@@ -30,16 +30,16 @@ public class SavePipelinesFromArtifactStage implements StageDefinitionBuilder {
   public void taskGraph(Stage stage, Builder builder) {
 
     builder
-      .withTask("getPipelinesFromArtifact", GetPipelinesFromArtifactTask.class)
-      .withLoop(subGraph -> {
-        subGraph
-          .withTask("preparePipelineToSaveTask", PreparePipelineToSaveTask.class)
-          .withTask("savePipeline", SavePipelineTask.class)
-          .withTask("waitForPipelineSave", MonitorFront50Task.class)
-          .withTask("checkPipelineResults", CheckPipelineResultsTask.class)
-          .withTask("checkForRemainingPipelines", CheckForRemainingPipelinesTask.class);
-      })
-      .withTask("savePipelinesCompleteTask", SavePipelinesCompleteTask.class);
+        .withTask("getPipelinesFromArtifact", GetPipelinesFromArtifactTask.class)
+        .withLoop(
+            subGraph -> {
+              subGraph
+                  .withTask("preparePipelineToSaveTask", PreparePipelineToSaveTask.class)
+                  .withTask("savePipeline", SavePipelineTask.class)
+                  .withTask("waitForPipelineSave", MonitorFront50Task.class)
+                  .withTask("checkPipelineResults", CheckPipelineResultsTask.class)
+                  .withTask("checkForRemainingPipelines", CheckForRemainingPipelinesTask.class);
+            })
+        .withTask("savePipelinesCompleteTask", SavePipelinesCompleteTask.class);
   }
-
 }

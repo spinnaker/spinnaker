@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.autoscaling;
 
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce.WaitForGceAutoscalingPolicyTask.StageData;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -25,25 +27,20 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce.WaitForGceAutoscalingPolicyTask.StageData;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTask implements Task {
-  @Autowired
-  private KatoService katoService;
+  @Autowired private KatoService katoService;
 
-  @Autowired
-  private TargetServerGroupResolver resolver;
+  @Autowired private TargetServerGroupResolver resolver;
 
   public String getType() {
     return "upsertScalingPolicy";
@@ -58,13 +55,16 @@ public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTa
       // of the server group based on *this task's region*
       targetServerGroup = TargetServerGroupResolver.fromPreviousStage(stage);
     } else {
-      // Statically resolved server groups should only resolve to a single server group at all times,
-      // because each region desired should have been spun off its own ScalingProcess for that region.
+      // Statically resolved server groups should only resolve to a single server group at all
+      // times,
+      // because each region desired should have been spun off its own ScalingProcess for that
+      // region.
       List<TargetServerGroup> resolvedServerGroups = resolver.resolve(stage);
       if (resolvedServerGroups == null || resolvedServerGroups.size() != 1) {
         throw new IllegalStateException(
-          String.format("Could not resolve exactly one server group for autoscaling policy upsert for %s in %s",
-            stageData.getAccountName(), stageData.getRegion()));
+            String.format(
+                "Could not resolve exactly one server group for autoscaling policy upsert for %s in %s",
+                stageData.getAccountName(), stageData.getRegion()));
       }
 
       targetServerGroup = resolvedServerGroups.get(0);
@@ -88,9 +88,11 @@ public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTa
     stageContext.put("autoscalingPolicy", autoscalingPolicy);
     op.put(getType(), stageContext);
 
-    TaskId taskId = katoService.requestOperations(getCloudProvider(stage), Collections.singletonList(op))
-      .toBlocking()
-      .first();
+    TaskId taskId =
+        katoService
+            .requestOperations(getCloudProvider(stage), Collections.singletonList(op))
+            .toBlocking()
+            .first();
     stageOutputs.put("kato.last.task.id", taskId);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build();

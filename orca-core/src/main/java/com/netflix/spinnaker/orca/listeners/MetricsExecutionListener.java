@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.listeners;
 
-import java.util.concurrent.TimeUnit;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import java.util.concurrent.TimeUnit;
 
 public class MetricsExecutionListener implements ExecutionListener {
   private final Registry registry;
@@ -36,36 +37,43 @@ public class MetricsExecutionListener implements ExecutionListener {
       return;
     }
 
-    Id id = registry
-      .createId("executions.started")
-      .withTag("executionType", execution.getClass().getSimpleName().toLowerCase())
-      .withTag("application", execution.getApplication().toLowerCase());
+    Id id =
+        registry
+            .createId("executions.started")
+            .withTag("executionType", execution.getClass().getSimpleName().toLowerCase())
+            .withTag("application", execution.getApplication().toLowerCase());
 
     registry.counter(id).increment();
   }
 
   @Override
-  public void afterExecution(Persister persister,
-                             Execution execution,
-                             ExecutionStatus executionStatus,
-                             boolean wasSuccessful) {
+  public void afterExecution(
+      Persister persister,
+      Execution execution,
+      ExecutionStatus executionStatus,
+      boolean wasSuccessful) {
     if (execution.getType() != ORCHESTRATION) {
-      // not concerned with pipelines right now (pipelines can have wait stages / manual judgments which skew execution time)
+      // not concerned with pipelines right now (pipelines can have wait stages / manual judgments
+      // which skew execution time)
       return;
     }
 
-
-    if (execution.getApplication() == null || execution.getStartTime() == null || execution.getEndTime() == null) {
+    if (execution.getApplication() == null
+        || execution.getStartTime() == null
+        || execution.getEndTime() == null) {
       // should normally have all attributes but a guard just in case
       return;
     }
 
-    Id id = registry
-      .createId("executions.totalTime")
-      .withTag("executionType", "orchestration")
-      .withTag("successful", Boolean.valueOf(wasSuccessful).toString())
-      .withTag("application", execution.getApplication().toLowerCase());
+    Id id =
+        registry
+            .createId("executions.totalTime")
+            .withTag("executionType", "orchestration")
+            .withTag("successful", Boolean.valueOf(wasSuccessful).toString())
+            .withTag("application", execution.getApplication().toLowerCase());
 
-    registry.timer(id).record(execution.getEndTime() - execution.getStartTime(), TimeUnit.MILLISECONDS);
+    registry
+        .timer(id)
+        .record(execution.getEndTime() - execution.getStartTime(), TimeUnit.MILLISECONDS);
   }
 }

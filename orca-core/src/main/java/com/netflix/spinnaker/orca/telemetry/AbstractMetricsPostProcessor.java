@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.orca.telemetry;
 
+import static java.lang.String.format;
+
 import com.netflix.spectator.api.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import static java.lang.String.format;
 
 public abstract class AbstractMetricsPostProcessor<T> implements BeanPostProcessor {
 
@@ -37,8 +38,10 @@ public abstract class AbstractMetricsPostProcessor<T> implements BeanPostProcess
 
   protected abstract void applyMetrics(T bean, String beanName) throws Exception;
 
-  @SuppressWarnings("unchecked") @Override
-  public final Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+  @SuppressWarnings("unchecked")
+  @Override
+  public final Object postProcessBeforeInitialization(Object bean, String beanName)
+      throws BeansException {
     if (beanType.isAssignableFrom(bean.getClass())) {
       try {
         log.info("Applying metrics to {} {}", bean.getClass(), beanName);
@@ -51,7 +54,8 @@ public abstract class AbstractMetricsPostProcessor<T> implements BeanPostProcess
   }
 
   @Override
-  public final Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+  public final Object postProcessAfterInitialization(Object bean, String beanName)
+      throws BeansException {
     return bean;
   }
 }

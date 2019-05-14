@@ -16,11 +16,9 @@
 package com.netflix.spinnaker.orca;
 
 /**
- *  A retryable task whose timeout is taken from the top level stage
- *  if that value has been overridden.
+ * A retryable task whose timeout is taken from the top level stage if that value has been
+ * overridden.
  *
- *  These are typically wait/monitor stages
+ * <p>These are typically wait/monitor stages
  */
-public interface OverridableTimeoutRetryableTask extends RetryableTask {
-
-}
+public interface OverridableTimeoutRetryableTask extends RetryableTask {}

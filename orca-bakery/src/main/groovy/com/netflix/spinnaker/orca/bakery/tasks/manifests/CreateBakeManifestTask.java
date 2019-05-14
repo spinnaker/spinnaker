@@ -28,17 +28,16 @@ import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequ
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -56,14 +55,11 @@ public class CreateBakeManifestTask implements RetryableTask {
   @Autowired(required = false)
   BakeryService bakery;
 
-  @Autowired
-  ArtifactResolver artifactResolver;
+  @Autowired ArtifactResolver artifactResolver;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  ContextParameterProcessor contextParameterProcessor;
+  @Autowired ContextParameterProcessor contextParameterProcessor;
 
   @Nonnull
   @Override
@@ -77,20 +73,28 @@ public class CreateBakeManifestTask implements RetryableTask {
       throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
     }
 
-    inputArtifacts = inputArtifactsObj.stream()
-        .map(p -> {
-          Artifact a = artifactResolver.getBoundArtifactForId(stage, p.getId());
-          if (a == null) {
-            throw new IllegalArgumentException(stage.getExecution().getId() + ": Input artifact " + p.getId() + " could not be found in the execution");
-          }
-          a.setArtifactAccount(p.getAccount());
-          return a;
-        }).collect(Collectors.toList());
+    inputArtifacts =
+        inputArtifactsObj.stream()
+            .map(
+                p -> {
+                  Artifact a = artifactResolver.getBoundArtifactForId(stage, p.getId());
+                  if (a == null) {
+                    throw new IllegalArgumentException(
+                        stage.getExecution().getId()
+                            + ": Input artifact "
+                            + p.getId()
+                            + " could not be found in the execution");
+                  }
+                  a.setArtifactAccount(p.getAccount());
+                  return a;
+                })
+            .collect(Collectors.toList());
 
     List<ExpectedArtifact> expectedArtifacts = context.getExpectedArtifacts();
 
     if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
-      throw new IllegalArgumentException("At least one expected artifact to baked manifest must be supplied");
+      throw new IllegalArgumentException(
+          "At least one expected artifact to baked manifest must be supplied");
     }
 
     if (expectedArtifacts.size() > 1) {
@@ -102,11 +106,9 @@ public class CreateBakeManifestTask implements RetryableTask {
     Map<String, Object> overrides = context.getOverrides();
     Boolean evaluateOverrideExpressions = context.getEvaluateOverrideExpressions();
     if (evaluateOverrideExpressions != null && evaluateOverrideExpressions) {
-      overrides = contextParameterProcessor.process(
-        overrides,
-        contextParameterProcessor.buildExecutionContext(stage, true),
-        true
-      );
+      overrides =
+          contextParameterProcessor.process(
+              overrides, contextParameterProcessor.buildExecutionContext(stage, true), true);
     }
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();

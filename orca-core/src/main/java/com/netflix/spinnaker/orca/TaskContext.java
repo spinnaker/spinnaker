@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.orca;
 
-import java.util.Map;
-import com.google.common.collect.ImmutableMap;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
+
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 
 public interface TaskContext {
 
@@ -29,14 +30,9 @@ public interface TaskContext {
     final String prefixWithDot = format("%s.", prefix);
 
     return ImmutableMap.copyOf(
-      getInputs()
-        .entrySet()
-        .stream()
-        .filter(it -> it.getKey().startsWith(prefixWithDot))
-        .collect(toMap(
-          it -> it.getKey().substring(prefixWithDot.length()),
-          Map.Entry::getValue
-        ))
-    );
+        getInputs().entrySet().stream()
+            .filter(it -> it.getKey().startsWith(prefixWithDot))
+            .collect(
+                toMap(it -> it.getKey().substring(prefixWithDot.length()), Map.Entry::getValue)));
   }
 }

@@ -2,21 +2,19 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Arrays;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Optional;
 
 @Component
 public class DeleteDeliveryConfigTask implements Task {
@@ -44,7 +42,8 @@ public class DeleteDeliveryConfigTask implements Task {
     Optional<DeliveryConfig> config = getDeliveryConfig(stageData.deliveryConfigId);
 
     if (!config.isPresent()) {
-      log.debug("Config {} does not exist, considering deletion successful.", stageData.deliveryConfigId);
+      log.debug(
+          "Config {} does not exist, considering deletion successful.", stageData.deliveryConfigId);
       return TaskResult.SUCCEEDED;
     }
 
@@ -64,8 +63,9 @@ public class DeleteDeliveryConfigTask implements Task {
       DeliveryConfig deliveryConfig = front50Service.getDeliveryConfig(id);
       return Optional.of(deliveryConfig);
     } catch (RetrofitError e) {
-      //ignore an unknown (404) or unauthorized (403, 401)
-      if (e.getResponse() != null && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
+      // ignore an unknown (404) or unauthorized (403, 401)
+      if (e.getResponse() != null
+          && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
         return Optional.empty();
       } else {
         throw e;

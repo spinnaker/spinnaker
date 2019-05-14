@@ -19,27 +19,29 @@ import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderExce
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
-
 import java.util.*;
 import java.util.Map.Entry;
 
 public class RenderUtil {
 
-  private final static int MAX_RENDER_DEPTH = 5;
+  private static final int MAX_RENDER_DEPTH = 5;
 
   public static Object deepRender(Renderer renderer, Object obj, RenderContext context) {
     return deepRender(renderer, obj, context, 0);
   }
 
   @SuppressWarnings("unchecked")
-  private static Object deepRender(Renderer renderer, Object obj, RenderContext context, int depth) {
+  private static Object deepRender(
+      Renderer renderer, Object obj, RenderContext context, int depth) {
     if (depth >= MAX_RENDER_DEPTH) {
       throw TemplateRenderException.fromError(
-        new Error()
-          .withMessage(String.format("Cannot exceed %d levels of depth in handlebars rendering", MAX_RENDER_DEPTH))
-          .withSuggestion("Try breaking up your templates into smaller, more reusable chunks via modules")
-          .withLocation(context.getLocation())
-      );
+          new Error()
+              .withMessage(
+                  String.format(
+                      "Cannot exceed %d levels of depth in handlebars rendering", MAX_RENDER_DEPTH))
+              .withSuggestion(
+                  "Try breaking up your templates into smaller, more reusable chunks via modules")
+              .withLocation(context.getLocation()));
     }
 
     if (obj == null) {
@@ -48,7 +50,8 @@ public class RenderUtil {
     if (isPrimitive(obj)) {
       if (CharSequence.class.isInstance(obj)) {
         // If the rendered result is another object graph, we need to go deeper and ensure
-        // all handlebars templates in that object graph get rendered. FOR INFINITY (or MAX_RENDER_DEPTH).
+        // all handlebars templates in that object graph get rendered. FOR INFINITY (or
+        // MAX_RENDER_DEPTH).
         Object rendered = renderer.renderGraph((String) obj, context);
         if (rendered instanceof Collection || rendered instanceof Map) {
           return deepRender(renderer, rendered, context, depth + 1);
@@ -68,32 +71,34 @@ public class RenderUtil {
       Map<String, Object> objMap = new LinkedHashMap<>();
       for (Entry<Object, Object> e : ((Map<Object, Object>) obj).entrySet()) {
         objMap.put(
-          (String) deepRender(renderer, e.getKey(), context, depth),
-          deepRender(renderer, e.getValue(), context, depth)
-        );
+            (String) deepRender(renderer, e.getKey(), context, depth),
+            deepRender(renderer, e.getValue(), context, depth));
       }
       return objMap;
     }
 
     throw TemplateRenderException.fromError(
-      new Error()
-        .withMessage("Unknown rendered type, cannot continue")
-        .withCause("Unhandled type: " + obj.getClass().getSimpleName())
-        .withSuggestion("Expected types: primitives, collections and maps")
-        .withLocation(context.getLocation())
-    );
+        new Error()
+            .withMessage("Unknown rendered type, cannot continue")
+            .withCause("Unhandled type: " + obj.getClass().getSimpleName())
+            .withSuggestion("Expected types: primitives, collections and maps")
+            .withLocation(context.getLocation()));
   }
 
   private static boolean isPrimitive(Object o) {
-    return CharSequence.class.isInstance(o) || Number.class.isInstance(o) || Boolean.class.isInstance(o);
+    return CharSequence.class.isInstance(o)
+        || Number.class.isInstance(o)
+        || Boolean.class.isInstance(o);
   }
 
-  public static RenderContext createDefaultRenderContext(PipelineTemplate template, TemplateConfiguration configuration, Map<String, Object> trigger) {
-    RenderContext context = new DefaultRenderContext(configuration.getPipeline().getApplication(), template, trigger);
+  public static RenderContext createDefaultRenderContext(
+      PipelineTemplate template, TemplateConfiguration configuration, Map<String, Object> trigger) {
+    RenderContext context =
+        new DefaultRenderContext(configuration.getPipeline().getApplication(), template, trigger);
     if (template != null && template.getVariables() != null) {
       template.getVariables().stream()
-        .filter(v -> (v.isNullable() && v.getDefaultValue() == null) || v.hasDefaultValue())
-        .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+          .filter(v -> (v.isNullable() && v.getDefaultValue() == null) || v.hasDefaultValue())
+          .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
     }
     if (configuration.getPipeline().getVariables() != null) {
       context.getVariables().putAll(configuration.getPipeline().getVariables());

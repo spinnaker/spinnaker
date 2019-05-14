@@ -35,10 +35,9 @@ public class GoogleCloudBuild {
 
   @JsonCreator
   public GoogleCloudBuild(
-    @JsonProperty("id") String id,
-    @JsonProperty("status") String status,
-    @JsonProperty("logUrl") String logUrl
-  ) {
+      @JsonProperty("id") String id,
+      @JsonProperty("status") String status,
+      @JsonProperty("logUrl") String logUrl) {
     this.id = id;
     this.status = Status.fromString(status);
     this.logUrl = logUrl;
@@ -54,8 +53,7 @@ public class GoogleCloudBuild {
     TIMEOUT(ExecutionStatus.TERMINAL),
     CANCELLED(ExecutionStatus.TERMINAL);
 
-    @Getter
-    private ExecutionStatus executionStatus;
+    @Getter private ExecutionStatus executionStatus;
 
     Status(ExecutionStatus executionStatus) {
       this.executionStatus = executionStatus;

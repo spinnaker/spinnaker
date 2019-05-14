@@ -25,7 +25,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CloudFoundryUnshareServiceStagePreprocessor implements UnshareServiceStagePreprocessor {
+public class CloudFoundryUnshareServiceStagePreprocessor
+    implements UnshareServiceStagePreprocessor {
   @Override
   public boolean supports(Stage stage) {
     return "cloudfoundry".equals(stage.mapTo(StageData.class).getCloudProvider());
@@ -34,7 +35,7 @@ public class CloudFoundryUnshareServiceStagePreprocessor implements UnshareServi
   @Override
   public void addSteps(TaskNode.Builder builder, Stage stage) {
     builder
-      .withTask("unshareService", CloudFoundryUnshareServiceTask.class)
-      .withTask("monitorUnshareService", CloudFoundryMonitorKatoServicesTask.class);
+        .withTask("unshareService", CloudFoundryUnshareServiceTask.class)
+        .withTask("monitorUnshareService", CloudFoundryMonitorKatoServicesTask.class);
   }
 }

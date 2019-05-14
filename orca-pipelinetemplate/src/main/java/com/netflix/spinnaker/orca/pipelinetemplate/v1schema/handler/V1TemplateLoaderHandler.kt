@@ -58,7 +58,7 @@ class V1TemplateLoaderHandler(
           .map { PipelineTemplate.Variable().apply {
             name = it.key
             defaultValue = it.value
-          }}
+          } }
           .collect(Collectors.toList())
       }
     } else {
@@ -79,7 +79,6 @@ class V1TemplateLoaderHandler(
       template
     ))
   }
-
 
   private fun renderTemplateVariables(renderContext: RenderContext, pipelineTemplate: PipelineTemplate) {
     if (pipelineTemplate.variables == null) {

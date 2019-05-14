@@ -19,16 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * Used strictly for testing, not available as a template loader at runtime.
- */
+/** Used strictly for testing, not available as a template loader at runtime. */
 public class ResourceSchemeLoader implements TemplateSchemeLoader {
 
   private final String rootPath;
@@ -39,9 +36,10 @@ public class ResourceSchemeLoader implements TemplateSchemeLoader {
   public ResourceSchemeLoader(String rootPath, ObjectMapper objectMapper) {
     this.rootPath = rootPath;
     this.jsonObjectMapper = objectMapper;
-    this.yamlObjectMapper = new ObjectMapper(new YAMLFactory())
-      .setConfig(jsonObjectMapper.getSerializationConfig())
-      .setConfig(jsonObjectMapper.getDeserializationConfig());
+    this.yamlObjectMapper =
+        new ObjectMapper(new YAMLFactory())
+            .setConfig(jsonObjectMapper.getSerializationConfig())
+            .setConfig(jsonObjectMapper.getDeserializationConfig());
   }
 
   @Override

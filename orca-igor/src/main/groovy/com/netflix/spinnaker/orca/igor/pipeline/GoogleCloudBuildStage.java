@@ -22,11 +22,10 @@ import com.netflix.spinnaker.orca.igor.tasks.StartGoogleCloudBuildTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 
 @Component
 @RequiredArgsConstructor
@@ -34,11 +33,11 @@ import javax.annotation.Nonnull;
 public class GoogleCloudBuildStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
-    GoogleCloudBuildStageDefinition stageDefinition = stage.mapTo(GoogleCloudBuildStageDefinition.class);
+    GoogleCloudBuildStageDefinition stageDefinition =
+        stage.mapTo(GoogleCloudBuildStageDefinition.class);
     builder
-      .withTask("startGoogleCloudBuildTask", StartGoogleCloudBuildTask.class)
-      .withTask("monitorGoogleCloudBuildTask", MonitorGoogleCloudBuildTask.class)
-      .withTask("getGoogleCloudBuildArtifactsTask", GetGoogleCloudBuildArtifactsTask.class)
-    ;
+        .withTask("startGoogleCloudBuildTask", StartGoogleCloudBuildTask.class)
+        .withTask("monitorGoogleCloudBuildTask", MonitorGoogleCloudBuildTask.class)
+        .withTask("getGoogleCloudBuildArtifactsTask", GetGoogleCloudBuildArtifactsTask.class);
   }
 }

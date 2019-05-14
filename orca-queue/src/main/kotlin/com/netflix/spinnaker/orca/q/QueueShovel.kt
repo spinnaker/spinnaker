@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import javax.annotation.PostConstruct
 
-
 /**
  * The QueueShovel can be used to migrate from one queue implementation to another without an
  * operator needing to perform any substantial external work.

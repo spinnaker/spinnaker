@@ -24,11 +24,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,21 +32,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class PromoteManifestKatoOutputsTask implements Task {
   public static final String TASK_NAME = "promoteOutputs";
 
-  private static final TypeReference<List<Artifact>> artifactListType = new TypeReference<List<Artifact>>() { };
+  private static final TypeReference<List<Artifact>> artifactListType =
+      new TypeReference<List<Artifact>>() {};
   private static final String MANIFESTS_KEY = "manifests";
   private static final String MANIFESTS_BY_NAMESPACE_KEY = "manifestNamesByNamespace";
   private static final String BOUND_ARTIFACTS_KEY = "boundArtifacts";
   private static final String CREATED_ARTIFACTS_KEY = "createdArtifacts";
   private static final String ARTIFACTS_KEY = "artifacts";
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Nonnull
   @Override
@@ -60,10 +59,11 @@ public class PromoteManifestKatoOutputsTask implements Task {
     Map<String, Object> outputs = new HashMap<>();
     List<Map> tasks = (List<Map>) context.get("kato.tasks");
     tasks = tasks == null ? new ArrayList<>() : tasks;
-    List<Map> allResults = tasks.stream()
-        .map(t -> (List<Map>) t.getOrDefault("resultObjects", new ArrayList<>()))
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<Map> allResults =
+        tasks.stream()
+            .map(t -> (List<Map>) t.getOrDefault("resultObjects", new ArrayList<>()))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     addToOutputs(outputs, allResults, MANIFESTS_KEY);
     addToOutputs(outputs, allResults, MANIFESTS_BY_NAMESPACE_KEY);
@@ -92,11 +92,9 @@ public class PromoteManifestKatoOutputsTask implements Task {
     addToOutputs(outputs, allResults, key, outputKey(key));
   }
 
-  private void addToOutputs(Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {
-    Optional value = allResults.stream()
-        .map(m -> m.get(key))
-        .filter(Objects::nonNull)
-        .findFirst();
+  private void addToOutputs(
+      Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {
+    Optional value = allResults.stream().map(m -> m.get(key)).filter(Objects::nonNull).findFirst();
 
     value.ifPresent(m -> outputs.put(targetKey, m));
   }

@@ -27,7 +27,6 @@ public class DeletePipelineTemplateStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, Builder builder) {
-    builder
-      .withTask("deletePipelineTemplate", DeletePipelineTemplateTask.class);
+    builder.withTask("deletePipelineTemplate", DeletePipelineTemplateTask.class);
   }
 }

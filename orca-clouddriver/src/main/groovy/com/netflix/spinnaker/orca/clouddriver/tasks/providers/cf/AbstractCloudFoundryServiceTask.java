@@ -24,12 +24,11 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nonnull;
+import org.springframework.stereotype.Component;
 
 @Component
 public abstract class AbstractCloudFoundryServiceTask implements CloudProviderAware, Task {
@@ -46,16 +45,21 @@ public abstract class AbstractCloudFoundryServiceTask implements CloudProviderAw
   public TaskResult execute(@Nonnull Stage stage) {
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
-    Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-      .put(getNotificationType(), stage.getContext())
-      .build();
-    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
-    Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", getNotificationType())
-      .put("kato.last.task.id", taskId)
-      .put("service.region",  Optional.ofNullable(stage.getContext().get("region")).orElse(""))
-      .put("service.account", account)
-      .build();
+    Map<String, Map> operation =
+        new ImmutableMap.Builder<String, Map>()
+            .put(getNotificationType(), stage.getContext())
+            .build();
+    TaskId taskId =
+        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
+            .toBlocking()
+            .first();
+    Map<String, Object> outputs =
+        new ImmutableMap.Builder<String, Object>()
+            .put("notification.type", getNotificationType())
+            .put("kato.last.task.id", taskId)
+            .put("service.region", Optional.ofNullable(stage.getContext().get("region")).orElse(""))
+            .put("service.account", account)
+            .build();
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 }

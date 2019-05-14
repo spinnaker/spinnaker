@@ -30,4 +30,3 @@ interface PendingExecutionService {
   fun purge(pipelineConfigId: String, callback: (Message) -> Unit)
   fun depth(pipelineConfigId: String): Int
 }
-

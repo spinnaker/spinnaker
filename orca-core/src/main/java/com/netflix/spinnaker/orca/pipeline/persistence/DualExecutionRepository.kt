@@ -172,8 +172,10 @@ class DualExecutionRepository(
     )
   }
 
-  override fun retrievePipelinesForPipelineConfigId(pipelineConfigId: String,
-                                                    criteria: ExecutionCriteria): Observable<Execution> {
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria
+  ): Observable<Execution> {
     return Observable.merge(
       primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria),
       previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
@@ -221,17 +223,21 @@ class DualExecutionRepository(
       )
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionCriteria): Observable<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionCriteria
+  ): Observable<Execution> {
     return Observable.merge(
       primary.retrieveOrchestrationsForApplication(application, criteria),
       previous.retrieveOrchestrationsForApplication(application, criteria)
     )
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionCriteria,
-                                                    sorter: ExecutionComparator?): MutableList<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionCriteria,
+    sorter: ExecutionComparator?
+  ): MutableList<Execution> {
     val result = Observable.merge(
       Observable.from(primary.retrieveOrchestrationsForApplication(application, criteria, sorter)),
       Observable.from(previous.retrieveOrchestrationsForApplication(application, criteria, sorter))
@@ -282,8 +288,10 @@ class DualExecutionRepository(
     ).toList().toBlocking().single().distinct().toMutableList()
   }
 
-  override fun retrieveAllApplicationNames(executionType: Execution.ExecutionType?,
-                                           minExecutions: Int): MutableList<String> {
+  override fun retrieveAllApplicationNames(
+    executionType: Execution.ExecutionType?,
+    minExecutions: Int
+  ): MutableList<String> {
     return Observable.merge(
       Observable.from(primary.retrieveAllApplicationNames(executionType, minExecutions)),
       Observable.from(previous.retrieveAllApplicationNames(executionType, minExecutions))

@@ -59,7 +59,8 @@ public class LockingConfigurationProperties {
   }
 
   public int getBackoffBufferSeconds() {
-    return dynamicConfigService.getConfig(Integer.class, "locking.backoffBufferSeconds", backoffBufferSeconds);
+    return dynamicConfigService.getConfig(
+        Integer.class, "locking.backoffBufferSeconds", backoffBufferSeconds);
   }
 
   public void setBackoffBufferSeconds(int backoffBufferSeconds) {

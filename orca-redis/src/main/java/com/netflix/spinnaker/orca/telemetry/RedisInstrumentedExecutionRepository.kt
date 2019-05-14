@@ -161,16 +161,20 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionRepository.ExecutionCriteria): Observable<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionRepository.ExecutionCriteria
+  ): Observable<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria)
     }
   }
 
-  override fun retrieveOrchestrationsForApplication(application: String,
-                                                    criteria: ExecutionRepository.ExecutionCriteria,
-                                                    sorter: ExecutionComparator?): MutableList<Execution> {
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionRepository.ExecutionCriteria,
+    sorter: ExecutionComparator?
+  ): MutableList<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication3") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria, sorter)
     }
@@ -182,8 +186,10 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
-  override fun retrievePipelinesForPipelineConfigId(pipelineConfigId: String,
-                                                    criteria: ExecutionRepository.ExecutionCriteria): Observable<Execution> {
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionRepository.ExecutionCriteria
+  ): Observable<Execution> {
     return withMetrics("retrievePipelinesForPipelineConfigId") {
       executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
     }

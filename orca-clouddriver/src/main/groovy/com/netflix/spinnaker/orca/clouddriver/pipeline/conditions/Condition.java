@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 public class Condition {
@@ -26,7 +25,8 @@ public class Condition {
   private String description;
 
   @JsonCreator
-  public Condition(@JsonProperty("name") String name, @JsonProperty("description") String description) {
+  public Condition(
+      @JsonProperty("name") String name, @JsonProperty("description") String description) {
     this.name = name;
     this.description = description;
   }
@@ -51,7 +51,8 @@ public class Condition {
   public boolean equals(Object o) {
     if (this == o) {
       return true;
-    } if (o == null || getClass() != o.getClass()) {
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
@@ -66,9 +67,6 @@ public class Condition {
 
   @Override
   public String toString() {
-    return "Condition{" +
-      "name='" + name + '\'' +
-      ", description='" + description + '\'' +
-      '}';
+    return "Condition{" + "name='" + name + '\'' + ", description='" + description + '\'' + '}';
   }
 }

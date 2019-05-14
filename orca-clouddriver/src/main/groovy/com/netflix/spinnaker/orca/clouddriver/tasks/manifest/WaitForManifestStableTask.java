@@ -27,28 +27,26 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Component
 @Slf4j
-public class WaitForManifestStableTask implements OverridableTimeoutRetryableTask, CloudProviderAware, ManifestAware {
-  public final static String TASK_NAME = "waitForManifestToStabilize";
+public class WaitForManifestStableTask
+    implements OverridableTimeoutRetryableTask, CloudProviderAware, ManifestAware {
+  public static final String TASK_NAME = "waitForManifestToStabilize";
 
-  @Autowired
-  OortService oortService;
+  @Autowired OortService oortService;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @Override
   public long getBackoffPeriod() {
@@ -83,9 +81,17 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           manifest = oortService.getManifest(account, location, name);
         } catch (RetrofitError e) {
           log.warn("Unable to read manifest {}", identifier, e);
-          return TaskResult.builder(ExecutionStatus.RUNNING).context(new HashMap<>()).outputs(new HashMap<>()).build();
+          return TaskResult.builder(ExecutionStatus.RUNNING)
+              .context(new HashMap<>())
+              .outputs(new HashMap<>())
+              .build();
         } catch (Exception e) {
-          throw new RuntimeException("Execution '" + stage.getExecution().getId() + "' failed with unexpected reason: " + e.getMessage(), e);
+          throw new RuntimeException(
+              "Execution '"
+                  + stage.getExecution().getId()
+                  + "' failed with unexpected reason: "
+                  + e.getMessage(),
+              e);
         }
 
         Status status = manifest.getStatus();
@@ -94,10 +100,11 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           messages.add(identifier + ": waiting for manifest to stabilize");
         }
 
-        Map<String, String> manifestNameAndLocation = ImmutableMap.<String, String>builder().
-          put("manifestName", name).
-          put("location", location).
-          build();
+        Map<String, String> manifestNameAndLocation =
+            ImmutableMap.<String, String>builder()
+                .put("manifestName", name)
+                .put("location", location)
+                .build();
 
         if (status.getFailed() != null && status.getFailed().isState()) {
           anyFailed = true;
@@ -111,8 +118,9 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           anyUnknown = true;
         }
 
-        if (status.getStable() != null && status.getStable().isState()
-          && (status.getFailed() == null || !status.getFailed().isState())) {
+        if (status.getStable() != null
+            && status.getStable().isState()
+            && (status.getFailed() == null || !status.getFailed().isState())) {
           stableManifests.add(manifestNameAndLocation);
         }
 
@@ -122,10 +130,11 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
       }
     }
 
-    ImmutableMap.Builder builder = new ImmutableMap.Builder<String, Object>()
-        .put("messages", messages)
-        .put("stableManifests", stableManifests)
-        .put("failedManifests", failedManifests);
+    ImmutableMap.Builder builder =
+        new ImmutableMap.Builder<String, Object>()
+            .put("messages", messages)
+            .put("stableManifests", stableManifests)
+            .put("failedManifests", failedManifests);
 
     if (!failureMessages.isEmpty()) {
       builder.put("exception", buildExceptions(failureMessages));
@@ -139,9 +148,15 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     if (!anyUnknown && anyFailed) {
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
     } else if (allStable) {
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).outputs(new HashMap<>()).build();
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+          .context(context)
+          .outputs(new HashMap<>())
+          .build();
     } else {
-      return TaskResult.builder(ExecutionStatus.RUNNING).context(context).outputs(new HashMap<>()).build();
+      return TaskResult.builder(ExecutionStatus.RUNNING)
+          .context(context)
+          .outputs(new HashMap<>())
+          .build();
     }
   }
 
@@ -151,11 +166,9 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
 
   private static Map<String, Object> buildExceptions(List<String> failureMessages) {
     return new ImmutableMap.Builder<String, Object>()
-      .put(
-        "details",
-        new ImmutableMap.Builder<String, List<String>>()
-          .put("errors", failureMessages)
-          .build()
-      ).build();
+        .put(
+            "details",
+            new ImmutableMap.Builder<String, List<String>>().put("errors", failureMessages).build())
+        .build();
   }
 }

@@ -25,7 +25,15 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.ContinueParentStage
+import com.netflix.spinnaker.orca.q.ExecutionLevel
+import com.netflix.spinnaker.orca.q.InvalidExecutionId
+import com.netflix.spinnaker.orca.q.InvalidStageId
+import com.netflix.spinnaker.orca.q.InvalidTaskId
+import com.netflix.spinnaker.orca.q.StageLevel
+import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
 import java.time.Duration
@@ -90,8 +98,8 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
     val configId = pipelineConfigId
     return when {
       !isLimitConcurrent -> false
-      configId == null   -> false
-      else               -> {
+      configId == null -> false
+      else -> {
         val criteria = ExecutionCriteria().setPageSize(2).setStatuses(RUNNING)
         repository
           .retrievePipelinesForPipelineConfigId(configId, criteria)

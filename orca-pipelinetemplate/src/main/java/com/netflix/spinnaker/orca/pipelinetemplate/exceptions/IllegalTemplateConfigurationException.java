@@ -18,7 +18,8 @@ package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
-public class IllegalTemplateConfigurationException extends IllegalStateException implements PipelineTemplateException {
+public class IllegalTemplateConfigurationException extends IllegalStateException
+    implements PipelineTemplateException {
 
   private Error error;
 

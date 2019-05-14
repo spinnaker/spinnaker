@@ -23,12 +23,11 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JobUtils implements CloudProviderAware {
@@ -42,7 +41,8 @@ public class JobUtils implements CloudProviderAware {
   }
 
   public void cancelWait(Stage stage) {
-    Map<String, List<String>> jobs = (Map<String, List<String>>) stage.getContext().getOrDefault("deploy.jobs", new HashMap<>());
+    Map<String, List<String>> jobs =
+        (Map<String, List<String>>) stage.getContext().getOrDefault("deploy.jobs", new HashMap<>());
     String account = getCredentials(stage);
 
     for (Map.Entry<String, List<String>> entry : jobs.entrySet()) {
@@ -67,7 +67,8 @@ public class JobUtils implements CloudProviderAware {
         appName = (String) stage.getContext().getOrDefault("application", parsedName.getApp());
       }
 
-      retrySupport.retry(() -> katoRestService.cancelJob(appName, account, location, name), 6, 5000, false);
+      retrySupport.retry(
+          () -> katoRestService.cancelJob(appName, account, location, name), 6, 5000, false);
     }
   }
 }

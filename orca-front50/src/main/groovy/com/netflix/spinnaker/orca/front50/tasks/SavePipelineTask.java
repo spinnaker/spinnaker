@@ -22,17 +22,15 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class SavePipelineTask implements RetryableTask {
@@ -45,14 +43,14 @@ public class SavePipelineTask implements RetryableTask {
   @Autowired(required = false)
   private List<PipelineModelMutator> pipelineModelMutators = new ArrayList<>();
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @SuppressWarnings("unchecked")
   @Override
   public TaskResult execute(Stage stage) {
     if (front50Service == null) {
-      throw new UnsupportedOperationException("Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
+      throw new UnsupportedOperationException(
+          "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
     }
 
     if (!stage.getContext().containsKey("pipeline")) {
@@ -60,7 +58,8 @@ public class SavePipelineTask implements RetryableTask {
     }
 
     if (!(stage.getContext().get("pipeline") instanceof String)) {
-      throw new IllegalArgumentException("'pipeline' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
+      throw new IllegalArgumentException(
+          "'pipeline' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
     }
 
     byte[] pipelineData;
@@ -91,7 +90,9 @@ public class SavePipelineTask implements RetryableTask {
       pipeline.put("regenerateCronTriggerIds", true);
     }
 
-    pipelineModelMutators.stream().filter(m -> m.supports(pipeline)).forEach(m -> m.mutate(pipeline));
+    pipelineModelMutators.stream()
+        .filter(m -> m.supports(pipeline))
+        .forEach(m -> m.mutate(pipeline));
 
     Response response = front50Service.savePipeline(pipeline);
 
@@ -101,9 +102,8 @@ public class SavePipelineTask implements RetryableTask {
     outputs.put("pipeline.name", pipeline.get("name"));
 
     try {
-      Map<String, Object> savedPipeline = (Map<String, Object>) objectMapper.readValue(
-        response.getBody().in(), Map.class
-      );
+      Map<String, Object> savedPipeline =
+          (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
       outputs.put("pipeline.id", savedPipeline.get("id"));
     } catch (Exception e) {
       log.error("Unable to deserialize saved pipeline, reason: ", e.getMessage());
@@ -117,8 +117,10 @@ public class SavePipelineTask implements RetryableTask {
     if (response.getStatus() == HttpStatus.OK.value()) {
       status = ExecutionStatus.SUCCEEDED;
     } else {
-      final Boolean isSavingMultiplePipelines = (Boolean) Optional
-        .ofNullable(stage.getContext().get("isSavingMultiplePipelines")).orElse(false);
+      final Boolean isSavingMultiplePipelines =
+          (Boolean)
+              Optional.ofNullable(stage.getContext().get("isSavingMultiplePipelines"))
+                  .orElse(false);
       if (isSavingMultiplePipelines) {
         status = ExecutionStatus.FAILED_CONTINUE;
       } else {
@@ -153,11 +155,12 @@ public class SavePipelineTask implements RetryableTask {
 
     // Managed Service account exists and roles are set; Update triggers
     triggers.stream()
-      .filter(t -> {
-        String runAsUser = (String) t.get("runAsUser");
-        return runAsUser == null || runAsUser.endsWith("@managed-service-account");
-      })
-      .forEach(t -> t.put("runAsUser", serviceAccount));
+        .filter(
+            t -> {
+              String runAsUser = (String) t.get("runAsUser");
+              return runAsUser == null || runAsUser.endsWith("@managed-service-account");
+            })
+        .forEach(t -> t.put("runAsUser", serviceAccount));
   }
 
   private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
@@ -165,10 +168,10 @@ public class SavePipelineTask implements RetryableTask {
     String newPipelineID = (String) newPipeline.get("id");
     if (!StringUtils.isEmpty(newPipelineID)) {
       return front50Service.getPipelines(applicationName).stream()
-        .filter(m -> m.containsKey("id"))
-        .filter(m -> m.get("id").equals(newPipelineID))
-        .findFirst()
-        .orElse(null);
+          .filter(m -> m.containsKey("id"))
+          .filter(m -> m.get("id").equals(newPipelineID))
+          .findFirst()
+          .orElse(null);
     }
     return null;
   }

@@ -16,23 +16,22 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+
+import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CheckPreconditionsStage implements StageDefinitionBuilder {
@@ -47,39 +46,40 @@ public class CheckPreconditionsStage implements StageDefinitionBuilder {
   }
 
   @Override
-  public void taskGraph(
-    @Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     if (!isTopLevelStage(stage)) {
       String preconditionType = stage.getContext().get("preconditionType").toString();
       if (preconditionType == null) {
-        throw new IllegalStateException(format("no preconditionType specified for stage %s", stage.getId()));
+        throw new IllegalStateException(
+            format("no preconditionType specified for stage %s", stage.getId()));
       }
-      Task preconditionTask = preconditionTasks
-        .stream()
-        .filter(it -> it.getPreconditionType().equals(preconditionType))
-        .findFirst()
-        .orElseThrow(() ->
-          new IllegalStateException(format("no Precondition implementation for type %s", preconditionType))
-        );
+      Task preconditionTask =
+          preconditionTasks.stream()
+              .filter(it -> it.getPreconditionType().equals(preconditionType))
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          format("no Precondition implementation for type %s", preconditionType)));
       builder.withTask("checkPrecondition", preconditionTask.getClass());
     }
   }
 
-  @Override @Nonnull public List<Stage> parallelStages(@Nonnull Stage stage) {
+  @Override
+  @Nonnull
+  public List<Stage> parallelStages(@Nonnull Stage stage) {
     if (isTopLevelStage(stage)) {
-      return parallelContexts(stage)
-        .stream()
-        .map(context ->
-          newStage(
-            stage.getExecution(),
-            getType(),
-            format("Check precondition (%s)", context.get("preconditionType")),
-            context,
-            stage,
-            STAGE_BEFORE
-          )
-        )
-        .collect(toList());
+      return parallelContexts(stage).stream()
+          .map(
+              context ->
+                  newStage(
+                      stage.getExecution(),
+                      getType(),
+                      format("Check precondition (%s)", context.get("preconditionType")),
+                      context,
+                      stage,
+                      STAGE_BEFORE))
+          .collect(toList());
     } else {
       return emptyList();
     }
@@ -93,23 +93,28 @@ public class CheckPreconditionsStage implements StageDefinitionBuilder {
   private Collection<Map<String, Object>> parallelContexts(Stage stage) {
     stage.resolveStrategyParams();
     Map<String, Object> baseContext = new HashMap<>(stage.getContext());
-    List<Map<String, Object>> preconditions = (List<Map<String, Object>>) baseContext.remove("preconditions");
-    return preconditions
-      .stream()
-      .map(preconditionConfig -> {
-        Map<String, Object> context = new HashMap<>(baseContext);
-        context.putAll(preconditionConfig);
-        context.put("type", PIPELINE_CONFIG_TYPE);
-        context.put("preconditionType", preconditionConfig.get("type"));
+    List<Map<String, Object>> preconditions =
+        (List<Map<String, Object>>) baseContext.remove("preconditions");
+    return preconditions.stream()
+        .map(
+            preconditionConfig -> {
+              Map<String, Object> context = new HashMap<>(baseContext);
+              context.putAll(preconditionConfig);
+              context.put("type", PIPELINE_CONFIG_TYPE);
+              context.put("preconditionType", preconditionConfig.get("type"));
 
-        context.putIfAbsent("context", new HashMap<String, Object>());
-        ((Map<String, Object>) context.get("context")).putIfAbsent("cluster", baseContext.get("cluster"));
-        ((Map<String, Object>) context.get("context")).putIfAbsent("regions", baseContext.get("regions"));
-        ((Map<String, Object>) context.get("context")).putIfAbsent("credentials", baseContext.get("credentials"));
-        ((Map<String, Object>) context.get("context")).putIfAbsent("zones", baseContext.get("zoned"));
+              context.putIfAbsent("context", new HashMap<String, Object>());
+              ((Map<String, Object>) context.get("context"))
+                  .putIfAbsent("cluster", baseContext.get("cluster"));
+              ((Map<String, Object>) context.get("context"))
+                  .putIfAbsent("regions", baseContext.get("regions"));
+              ((Map<String, Object>) context.get("context"))
+                  .putIfAbsent("credentials", baseContext.get("credentials"));
+              ((Map<String, Object>) context.get("context"))
+                  .putIfAbsent("zones", baseContext.get("zoned"));
 
-        return context;
-      })
-      .collect(toList());
+              return context;
+            })
+        .collect(toList());
   }
 }

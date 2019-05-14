@@ -17,19 +17,17 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.BuildService;
 import com.netflix.spinnaker.orca.igor.model.ConcourseStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.ConcourseBuildInfo;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -44,18 +42,22 @@ public class WaitForConcourseJobCompletionTask implements OverridableTimeoutRetr
   @Nonnull
   public TaskResult execute(@Nonnull Stage stage) {
     ConcourseStageDefinition stageDefinition = stage.mapTo(ConcourseStageDefinition.class);
-    String jobPath = stageDefinition.getTeamName() + "/" + stageDefinition.getPipelineName() + "/" +
-      stage.getContext().get("jobName");
+    String jobPath =
+        stageDefinition.getTeamName()
+            + "/"
+            + stageDefinition.getPipelineName()
+            + "/"
+            + stage.getContext().get("jobName");
 
-    Map<String, Object> buildMap = buildService
-      .getBuild((Integer) stage.getContext().get("buildNumber"), stageDefinition.getMaster(), jobPath);
+    Map<String, Object> buildMap =
+        buildService.getBuild(
+            (Integer) stage.getContext().get("buildNumber"), stageDefinition.getMaster(), jobPath);
 
     ConcourseBuildInfo buildInfo = mapper.convertValue(buildMap, ConcourseBuildInfo.class);
 
-    if("SUCCESS".equals(buildInfo.getResult())) {
+    if ("SUCCESS".equals(buildInfo.getResult())) {
       return TaskResult.SUCCEEDED;
-    }
-    else if("BUILDING".equals(buildInfo.getResult())) {
+    } else if ("BUILDING".equals(buildInfo.getResult())) {
       return TaskResult.RUNNING;
     }
     throw new IllegalStateException("The Concourse job failed.");

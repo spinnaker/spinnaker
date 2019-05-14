@@ -19,10 +19,20 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.ext.*
+import com.netflix.spinnaker.orca.ext.afterStages
+import com.netflix.spinnaker.orca.ext.failureStatus
+import com.netflix.spinnaker.orca.ext.firstAfterStages
+import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -30,13 +40,33 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CancelStage
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.CompleteStage
+import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.appendAfterStages
+import com.netflix.spinnaker.orca.q.buildAfterStages
 import com.netflix.spinnaker.q.Queue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.util.concurrent.TimeUnit
+import kotlin.collections.List
+import kotlin.collections.all
+import kotlin.collections.any
+import kotlin.collections.emptyList
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.forEachIndexed
+import kotlin.collections.isNotEmpty
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.minus
+import kotlin.collections.plus
+import kotlin.collections.set
+import kotlin.collections.setOf
+import kotlin.collections.toList
 
 @Component
 class CompleteStageHandler(
@@ -226,14 +256,14 @@ class CompleteStageHandler(
     val allStatuses = syntheticStatuses + taskStatuses + planningStatus
     val afterStageStatuses = afterStages().map(Stage::getStatus)
     return when {
-      allStatuses.isEmpty()                    -> NOT_STARTED
-      allStatuses.contains(TERMINAL)           -> failureStatus() // handle configured 'if stage fails' options correctly
-      allStatuses.contains(STOPPED)            -> STOPPED
-      allStatuses.contains(CANCELED)           -> CANCELED
-      allStatuses.contains(FAILED_CONTINUE)    -> FAILED_CONTINUE
-      allStatuses.all { it == SUCCEEDED }      -> SUCCEEDED
+      allStatuses.isEmpty() -> NOT_STARTED
+      allStatuses.contains(TERMINAL) -> failureStatus() // handle configured 'if stage fails' options correctly
+      allStatuses.contains(STOPPED) -> STOPPED
+      allStatuses.contains(CANCELED) -> CANCELED
+      allStatuses.contains(FAILED_CONTINUE) -> FAILED_CONTINUE
+      allStatuses.all { it == SUCCEEDED } -> SUCCEEDED
       afterStageStatuses.contains(NOT_STARTED) -> RUNNING // after stages were planned but not run yet
-      else                                     -> {
+      else -> {
         log.error("Unhandled condition for stage $id of $execution.id, marking as TERMINAL. syntheticStatuses=$syntheticStatuses, taskStatuses=$taskStatuses, planningStatus=$planningStatus, afterStageStatuses=$afterStageStatuses")
         TERMINAL
       }

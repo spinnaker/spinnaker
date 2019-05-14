@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes;
 
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class Manifest {
@@ -27,6 +26,6 @@ public class Manifest {
 
   @Data
   public static class ManifestMeta {
-     Map<String, String> annotations = new HashMap<>();
+    Map<String, String> annotations = new HashMap<>();
   }
 }

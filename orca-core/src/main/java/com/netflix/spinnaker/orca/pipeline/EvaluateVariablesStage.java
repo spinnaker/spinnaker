@@ -20,11 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.EvaluateVariablesTask;
-import org.springframework.stereotype.Component;
-
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EvaluateVariablesStage implements StageDefinitionBuilder {
@@ -41,8 +40,7 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
 
     @JsonCreator
     public EvaluateVariablesStageContext(
-      @JsonProperty("variables") @Nullable List<Variable> variables
-    ) {
+        @JsonProperty("variables") @Nullable List<Variable> variables) {
       this.vars = variables;
     }
 

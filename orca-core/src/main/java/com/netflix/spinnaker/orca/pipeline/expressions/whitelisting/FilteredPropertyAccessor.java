@@ -16,26 +16,30 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
+import static java.lang.String.format;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 
 public class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Override
-  protected Method findGetterForProperty(String propertyName, Class<?> clazz, boolean mustBeStatic) {
+  protected Method findGetterForProperty(
+      String propertyName, Class<?> clazz, boolean mustBeStatic) {
     Method getter = super.findGetterForProperty(propertyName, clazz, mustBeStatic);
     if (getter == null) {
-      throw new IllegalArgumentException(format("requested getter %s not found on type %s", propertyName, clazz));
+      throw new IllegalArgumentException(
+          format("requested getter %s not found on type %s", propertyName, clazz));
     } else if (!ReturnTypeRestrictor.supports(getter.getReturnType())) {
-      throw new IllegalArgumentException(format("found getter for requested %s but rejected due to return type %s", propertyName, getter.getReturnType()));
+      throw new IllegalArgumentException(
+          format(
+              "found getter for requested %s but rejected due to return type %s",
+              propertyName, getter.getReturnType()));
     }
     return getter;
   }
@@ -44,9 +48,11 @@ public class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
   protected Field findField(String name, Class<?> clazz, boolean mustBeStatic) {
     Field field = super.findField(name, clazz, mustBeStatic);
     if (field == null) {
-      throw new IllegalArgumentException(format("requested field %s not found on type %s", name, clazz));
+      throw new IllegalArgumentException(
+          format("requested field %s not found on type %s", name, clazz));
     } else if (!ReturnTypeRestrictor.supports(field.getType())) {
-      throw new IllegalArgumentException(format("found field %s but rejected due to unsupported type %s", name, clazz));
+      throw new IllegalArgumentException(
+          format("found field %s but rejected due to unsupported type %s", name, clazz));
     }
     return field;
   }

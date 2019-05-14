@@ -16,38 +16,35 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryDeployServiceTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryWaitForDeployServiceTask;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-class CloudFoundryDeployServiceStagePreprocessorTest  {
+class CloudFoundryDeployServiceStagePreprocessorTest {
   @Test
   void ensureThatCorrectTasksAreAddedForDeployingCloudFoundryService() {
     TaskNode.Builder expectedBuilder = TaskNode.Builder(TaskNode.GraphType.FULL);
     expectedBuilder
-      .withTask("deployService", CloudFoundryDeployServiceTask.class)
-      .withTask("monitorDeployService", CloudFoundryMonitorKatoServicesTask.class)
-      .withTask("waitForDeployService", CloudFoundryWaitForDeployServiceTask.class);
+        .withTask("deployService", CloudFoundryDeployServiceTask.class)
+        .withTask("monitorDeployService", CloudFoundryMonitorKatoServicesTask.class)
+        .withTask("waitForDeployService", CloudFoundryWaitForDeployServiceTask.class);
 
-    CloudFoundryDeployServiceStagePreprocessor preprocessor = new CloudFoundryDeployServiceStagePreprocessor();
+    CloudFoundryDeployServiceStagePreprocessor preprocessor =
+        new CloudFoundryDeployServiceStagePreprocessor();
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", "my-cloud");
     context.put("manifest", Collections.singletonMap("type", "direct"));
-    Stage stage = new Stage(
-      new Execution(PIPELINE, "orca"),
-      "deployService",
-      context);
+    Stage stage = new Stage(new Execution(PIPELINE, "orca"), "deployService", context);
 
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL);
     preprocessor.addSteps(builder, stage);

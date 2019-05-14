@@ -40,7 +40,7 @@ class TitusBakeOutputStub : OutputStub {
             "baseOs" to "trusty",
             "storeType" to "docker",
             "region" to region,
-            "package" to "ssh://git@my.docker.repo:7999/${app}/docker-build-repo.git?${randomHex(40)}",
+            "package" to "ssh://git@my.docker.repo:7999/$app/docker-build-repo.git?${randomHex(40)}",
             "cloudProviderType" to "titus"
           )
         }

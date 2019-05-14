@@ -30,6 +30,8 @@ public class ConfigModuleReplacementTransform implements PipelineTemplateVisitor
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
-    pipelineTemplate.setModules(TemplateMerge.mergeIdentifiable(pipelineTemplate.getModules(), templateConfiguration.getModules()));
+    pipelineTemplate.setModules(
+        TemplateMerge.mergeIdentifiable(
+            pipelineTemplate.getModules(), templateConfiguration.getModules()));
   }
 }

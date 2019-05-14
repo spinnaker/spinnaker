@@ -32,7 +32,8 @@ public class ResumeRolloutManifestStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask(ResumeRolloutManifestTask.TASK_NAME, ResumeRolloutManifestTask.class)
+    builder
+        .withTask(ResumeRolloutManifestTask.TASK_NAME, ResumeRolloutManifestTask.class)
         .withTask("monitorResumeRollout", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class);

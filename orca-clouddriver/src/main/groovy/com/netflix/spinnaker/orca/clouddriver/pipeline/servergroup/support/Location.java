@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.HashMap;
 import java.util.Objects;
 
 public class Location {
   /**
-   * @return The all lowercase, plural form of this location type ("regions", "zones" or "namespaces")
+   * @return The all lowercase, plural form of this location type ("regions", "zones" or
+   *     "namespaces")
    */
   @JsonIgnore
   public String pluralType() {
@@ -31,7 +31,8 @@ public class Location {
   }
 
   /**
-   * @return The all lowercase, singular form of this location type ("region", "zone" or "namespace")
+   * @return The all lowercase, singular form of this location type ("region", "zone" or
+   *     "namespace")
    */
   @JsonIgnore
   public String singularType() {
@@ -56,9 +57,7 @@ public class Location {
   }
 
   public Location(HashMap args) {
-    this(
-      (Type) args.get("type"),
-      (String) args.get("value"));
+    this((Type) args.get("type"), (String) args.get("value"));
   }
 
   public final Type getType() {
@@ -73,7 +72,9 @@ public class Location {
   private final String value;
 
   public enum Type {
-    REGION, NAMESPACE, ZONE
+    REGION,
+    NAMESPACE,
+    ZONE
   }
 
   @Override
@@ -81,8 +82,7 @@ public class Location {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Location location = (Location) o;
-    return type == location.type &&
-      Objects.equals(value, location.value);
+    return type == location.type && Objects.equals(value, location.value);
   }
 
   @Override
@@ -92,9 +92,6 @@ public class Location {
 
   @Override
   public String toString() {
-    return "Location{" +
-      "type=" + type +
-      ", value='" + value + '\'' +
-      '}';
+    return "Location{" + "type=" + type + ", value='" + value + '\'' + '}';
   }
 }

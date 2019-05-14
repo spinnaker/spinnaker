@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import javax.annotation.Nonnull;
-
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 
 public class DefaultStageDefinitionBuilderFactory implements StageDefinitionBuilderFactory {
   private final StageResolver stageResolver;
@@ -30,6 +29,7 @@ public class DefaultStageDefinitionBuilderFactory implements StageDefinitionBuil
 
   @Override
   public @Nonnull StageDefinitionBuilder builderFor(@Nonnull Stage stage) {
-    return stageResolver.getStageDefinitionBuilder(stage.getType(), (String) stage.getContext().get("alias"));
+    return stageResolver.getStageDefinitionBuilder(
+        stage.getType(), (String) stage.getContext().get("alias"));
   }
 }

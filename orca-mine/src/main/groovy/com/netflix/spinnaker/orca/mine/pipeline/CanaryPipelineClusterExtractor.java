@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.orca.mine.pipeline;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.PipelineClusterExtractor;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CanaryPipelineClusterExtractor implements PipelineClusterExtractor {
@@ -33,20 +32,22 @@ public class CanaryPipelineClusterExtractor implements PipelineClusterExtractor 
   @Override
   public void updateStageClusters(Map stage, List<Map> replacements) {
     List<Map> clusterPairs = (List<Map>) stage.get("clusterPairs");
-    clusterPairs.forEach( pair -> {
-      pair.put("baseline", replacements.remove(0));
-      pair.put("canary", replacements.remove(0));
-    });
+    clusterPairs.forEach(
+        pair -> {
+          pair.put("baseline", replacements.remove(0));
+          pair.put("canary", replacements.remove(0));
+        });
   }
 
   @Override
   public List<Map> extractClusters(Map stage) {
     List<Map> results = new ArrayList<>();
     List<Map> clusterPairs = (List<Map>) stage.getOrDefault("clusterPairs", new ArrayList<>());
-    clusterPairs.forEach( pair -> {
-      results.add((Map) pair.get("baseline"));
-      results.add((Map) pair.get("canary"));
-    });
+    clusterPairs.forEach(
+        pair -> {
+          results.add((Map) pair.get("baseline"));
+          results.add((Map) pair.get("canary"));
+        });
     return results;
   }
 }

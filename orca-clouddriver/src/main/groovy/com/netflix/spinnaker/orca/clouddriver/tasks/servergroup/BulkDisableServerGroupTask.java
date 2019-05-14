@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage.*;
+
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.Map;
-
-import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage.*;
 
 @Component
-public class BulkDisableServerGroupTask extends AbstractBulkServerGroupTask implements RetryableTask {
-  @Autowired
-  private TrafficGuard trafficGuard;
+public class BulkDisableServerGroupTask extends AbstractBulkServerGroupTask
+    implements RetryableTask {
+  @Autowired private TrafficGuard trafficGuard;
 
   @Override
   String getClouddriverOperation() {
@@ -37,10 +37,12 @@ public class BulkDisableServerGroupTask extends AbstractBulkServerGroupTask impl
 
   @Override
   void validateClusterStatus(Map<String, Object> operation, Moniker moniker) {
-    trafficGuard.verifyTrafficRemoval((String) operation.get("serverGroupName"),
-      moniker,
-      getCredentials(operation),
-      getLocation(operation),
-      getCloudProvider(operation), "Disabling");
+    trafficGuard.verifyTrafficRemoval(
+        (String) operation.get("serverGroupName"),
+        moniker,
+        getCredentials(operation),
+        getLocation(operation),
+        getCloudProvider(operation),
+        "Disabling");
   }
 }

@@ -37,10 +37,10 @@ class V2SchemaHandlerGroup
   private val objectMapper: ObjectMapper,
   private val contextParameterProcessor: ContextParameterProcessor,
   private val artifactResolver: ArtifactResolver
-): HandlerGroup {
+) : HandlerGroup {
 
-  override fun getHandlers(): List<Handler>
-    = listOf(
+  override fun getHandlers(): List<Handler> =
+    listOf(
     V2TemplateLoaderHandler(templateLoader, contextParameterProcessor, objectMapper),
     V2ConfigurationValidationHandler(),
     V2TemplateValidationHandler(),
@@ -57,7 +57,7 @@ class V2GraphMutatorHandler : Handler {
   }
 }
 
-class V2PipelineGenerator (
+class V2PipelineGenerator(
   private val artifactResolver: ArtifactResolver
 ) : Handler {
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {

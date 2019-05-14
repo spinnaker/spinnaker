@@ -22,8 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 /**
  * Supports generic modification of an Unshare Service stage.
  *
- * Common use-cases:
- * - injecting cloud-aware steps
+ * <p>Common use-cases: - injecting cloud-aware steps
  */
 public interface UnshareServiceStagePreprocessor {
   boolean supports(Stage stage);
