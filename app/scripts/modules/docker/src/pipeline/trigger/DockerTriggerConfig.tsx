@@ -1,51 +1,36 @@
 import * as React from 'react';
 
-import { ITriggerConfigProps, RunAsUser, SETTINGS, ServiceAccountReader } from '@spinnaker/core';
+import { BaseTrigger } from '@spinnaker/core';
 
-import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '../../image/DockerImageAndTagSelector';
-
+import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '../../image';
 import { IDockerTrigger } from './IDockerTrigger';
 
-export interface IDockerTriggerConfigProps extends ITriggerConfigProps {
+export interface IDockerTriggerConfigProps {
   trigger: IDockerTrigger;
+  triggerUpdated: (trigger: IDockerTrigger) => void;
 }
 
-export interface IDockerTriggerConfigState {
-  fiatEnabled: boolean;
-  managedServiceAccountsEnabled: boolean;
-  serviceAccounts: string[];
-}
-
-export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigProps, IDockerTriggerConfigState> {
-  public state: IDockerTriggerConfigState = {
-    fiatEnabled: SETTINGS.feature.fiatEnabled,
-    managedServiceAccountsEnabled: SETTINGS.feature.managedServiceAccounts,
-    serviceAccounts: [],
-  };
-
-  public componentDidMount() {
-    ServiceAccountReader.getServiceAccounts().then((serviceAccounts: string[]) => {
-      this.setState({ serviceAccounts });
-    });
+export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigProps> {
+  constructor(props: IDockerTriggerConfigProps) {
+    super(props);
   }
 
   private dockerChanged = (changes: IDockerImageAndTagChanges) => {
     // Trigger doesn't use imageId.
     const { imageId, ...rest } = changes;
-    Object.assign(this.props.trigger, rest);
-    this.props.fieldUpdated();
-    this.setState({});
+    this.onUpdateTrigger({ ...rest });
   };
 
-  private runAsUserChanged = (user: string) => {
-    this.props.trigger.runAsUser = user !== '' ? user : null;
-    this.props.fieldUpdated();
-    this.setState({});
+  private onUpdateTrigger = (update: any) => {
+    this.props.triggerUpdated &&
+      this.props.triggerUpdated({
+        ...this.props.trigger,
+        ...update,
+      });
   };
 
-  public render() {
+  private DockerTriggerContents = () => {
     const { trigger } = this.props;
-    const { fiatEnabled, managedServiceAccountsEnabled, serviceAccounts } = this.state;
     return (
       <div className="form-horizontal">
         <DockerImageAndTagSelector
@@ -59,19 +44,12 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
           onChange={this.dockerChanged}
           showDigest={false}
         />
-
-        {fiatEnabled && !managedServiceAccountsEnabled && (
-          <div className="form-group">
-            <RunAsUser
-              serviceAccounts={serviceAccounts}
-              value={trigger.runAsUser}
-              onChange={this.runAsUserChanged}
-              selectClasses=""
-              selectColumns={8}
-            />
-          </div>
-        )}
       </div>
     );
+  };
+
+  public render() {
+    const { DockerTriggerContents } = this;
+    return <BaseTrigger {...this.props} triggerContents={<DockerTriggerContents />} />;
   }
 }

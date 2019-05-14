@@ -24,7 +24,7 @@ export class RunAsUser extends React.Component<IRunAsUserProps> {
     return (
       <div>
         <div className="col-md-3 sm-label-right">
-          Run As User
+          <span className="label-text">Run As User </span>
           <HelpField id="pipeline.config.trigger.runAsUser" />
         </div>
         <div className={'col-md-' + selectColumns}>
