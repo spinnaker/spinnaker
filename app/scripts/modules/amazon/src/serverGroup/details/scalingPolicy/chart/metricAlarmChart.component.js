@@ -3,6 +3,8 @@
 const angular = require('angular');
 import _ from 'lodash';
 import { Subject } from 'rxjs';
+// we need to explicitly import d3 because n3-charts depends on it being in the global namespace
+import 'd3';
 
 import { CloudMetricsReader } from '@spinnaker/core';
 
