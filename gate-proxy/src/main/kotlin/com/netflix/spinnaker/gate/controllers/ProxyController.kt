@@ -18,42 +18,50 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.squareup.okhttp.Request
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.HandlerMapping
-import javax.servlet.http.HttpServletRequest
-
 import com.netflix.spinnaker.config.ProxyConfigurationProperties
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.squareup.okhttp.Request
 import com.squareup.okhttp.RequestBody
 import com.squareup.okhttp.internal.http.HttpMethod
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod.GET
+import org.springframework.web.bind.annotation.RequestMethod.POST
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.HandlerMapping
 import java.net.SocketException
 import java.util.stream.Collectors
-
-import org.springframework.web.bind.annotation.RequestMethod.*
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping(value = ["/proxies"])
-class ProxyController(val objectMapper: ObjectMapper,
-                      val registry: Registry,
-                      val proxyConfigurationProperties: ProxyConfigurationProperties) {
+class ProxyController(
+  val objectMapper: ObjectMapper,
+  val registry: Registry,
+  val proxyConfigurationProperties: ProxyConfigurationProperties
+) {
 
   val proxyInvocationsId = registry.createId("proxy.invocations")
 
   @RequestMapping(value = ["/{proxy}/**"], method = [GET, POST])
-  fun any(@PathVariable(value = "proxy") proxy: String,
-          @RequestParam requestParams: Map<String, String>,
-          httpServletRequest: HttpServletRequest): ResponseEntity<Any> {
+  fun any(
+    @PathVariable(value = "proxy") proxy: String,
+    @RequestParam requestParams: Map<String, String>,
+    httpServletRequest: HttpServletRequest
+  ): ResponseEntity<Any> {
     return request(proxy, requestParams, httpServletRequest)
   }
 
-  private fun request(proxy: String,
-                      requestParams: Map<String, String>,
-                      httpServletRequest: HttpServletRequest): ResponseEntity<Any> {
+  private fun request(
+    proxy: String,
+    requestParams: Map<String, String>,
+    httpServletRequest: HttpServletRequest
+  ): ResponseEntity<Any> {
     val proxyConfig = proxyConfigurationProperties
       .proxies
       .find { it.id.equals(proxy, true) } ?: throw InvalidRequestException("No proxy config found with id '$proxy'")

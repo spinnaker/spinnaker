@@ -26,7 +26,11 @@ import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
-import javax.net.ssl.*
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 @Configuration
 @EnableConfigurationProperties(
@@ -54,28 +58,29 @@ data class ProxyConfigurationProperties(var proxies: List<ProxyConfig> = mutable
   }
 }
 
-data class ProxyConfig(var id: String? = null,
-                       var uri: String? = null,
-                       var skipHostnameVerification: Boolean = false,
-                       var keyStore: String? = null,
-                       var keyStoreType: String = KeyStore.getDefaultType(),
-                       var keyStorePassword: String? = null,
-                       var keyStorePasswordFile: String? = null,
-                       var trustStore: String? = null,
-                       var trustStoreType: String = KeyStore.getDefaultType(),
-                       var trustStorePassword: String? = null,
-                       var trustStorePasswordFile: String? = null,
-                       var methods: List<String> = mutableListOf(),
-                       var connectTimeoutMs: Long = 30_000,
-                       var readTimeoutMs: Long = 59_000,
-                       var writeTimeoutMs: Long = 30_000) {
+data class ProxyConfig(
+  var id: String? = null,
+  var uri: String? = null,
+  var skipHostnameVerification: Boolean = false,
+  var keyStore: String? = null,
+  var keyStoreType: String = KeyStore.getDefaultType(),
+  var keyStorePassword: String? = null,
+  var keyStorePasswordFile: String? = null,
+  var trustStore: String? = null,
+  var trustStoreType: String = KeyStore.getDefaultType(),
+  var trustStorePassword: String? = null,
+  var trustStorePasswordFile: String? = null,
+  var methods: List<String> = mutableListOf(),
+  var connectTimeoutMs: Long = 30_000,
+  var readTimeoutMs: Long = 59_000,
+  var writeTimeoutMs: Long = 30_000
+) {
 
   companion object {
     val logger = LoggerFactory.getLogger(ProxyConfig::class.java)
   }
 
   var okHttpClient = OkHttpClient()
-
 
   fun init() {
     okHttpClient.setConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS)
@@ -105,10 +110,10 @@ data class ProxyConfig(var id: String? = null,
       }
 
       val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-      kmf.init(kStore, keyStorePassword!!.toCharArray());
+      kmf.init(kStore, keyStorePassword!!.toCharArray())
 
       val keyManagers = kmf.keyManagers
-      var trustManagers : Array<TrustManager>? = null
+      var trustManagers: Array<TrustManager>? = null
 
       if (!trustStore.isNullOrEmpty()) {
         if (trustStore.equals("*")) {
@@ -135,7 +140,7 @@ data class ProxyConfig(var id: String? = null,
       }
 
       val sslContext = SSLContext.getInstance("TLS")
-      sslContext.init(keyManagers, trustManagers, null);
+      sslContext.init(keyManagers, trustManagers, null)
 
       this.okHttpClient = okHttpClient.setSslSocketFactory(sslContext.socketFactory)
     }

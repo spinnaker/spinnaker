@@ -78,10 +78,4 @@ allprojects {
   }
 }
 
-subprojects { project ->
-  spinnakerCodeStyle {
-    enabled = false
-  }
-}
-
 defaultTasks ':gate-web:run'
