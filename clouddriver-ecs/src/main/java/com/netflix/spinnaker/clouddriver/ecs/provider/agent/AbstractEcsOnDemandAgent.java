@@ -26,19 +26,30 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
-import groovy.lang.Closure;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T> implements OnDemandAgent {
+abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
+    implements OnDemandAgent {
   final OnDemandMetricsSupport metricsSupport;
 
-  AbstractEcsOnDemandAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+  AbstractEcsOnDemandAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      Registry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider);
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, EcsCloudProvider.ID + ":" + EcsCloudProvider.ID + ":${OnDemandAgent.OnDemandType.ServerGroup}");
+    this.metricsSupport =
+        new OnDemandMetricsSupport(
+            registry,
+            this,
+            EcsCloudProvider.ID
+                + ":"
+                + EcsCloudProvider.ID
+                + ":${OnDemandAgent.OnDemandType.ServerGroup}");
   }
 
   @Override
@@ -73,9 +84,15 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T> im
 
     storeOnDemand(providerCache, data);
 
-    CacheResult cacheResult = metricsSupport.transformData(() -> buildCacheResult(getAuthoritativeKeyName(), items, providerCache));
+    CacheResult cacheResult =
+        metricsSupport.transformData(
+            () -> buildCacheResult(getAuthoritativeKeyName(), items, providerCache));
 
-    return new OnDemandResult(getAgentType(), cacheResult, null); // TODO(Bruno Carrier) - evictions should happen properly instead of having a null here
+    return new OnDemandResult(
+        getAgentType(),
+        cacheResult,
+        null); // TODO(Bruno Carrier) - evictions should happen properly instead of having a null
+    // here
   }
 
   void storeOnDemand(ProviderCache providerCache, Map<String, ?> data) {

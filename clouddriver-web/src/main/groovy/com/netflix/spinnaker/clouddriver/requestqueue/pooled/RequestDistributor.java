@@ -18,13 +18,12 @@ package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class RequestDistributor implements Runnable {
   private final AtomicBoolean continueRunning = new AtomicBoolean(true);
@@ -35,7 +34,11 @@ class RequestDistributor implements Runnable {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  RequestDistributor(Registry registry, PollCoordinator pollCoordinator, Executor executor, Collection<Queue<PooledRequest<?>>> requestQueues) {
+  RequestDistributor(
+      Registry registry,
+      PollCoordinator pollCoordinator,
+      Executor executor,
+      Collection<Queue<PooledRequest<?>>> requestQueues) {
     this.pollCoordinator = pollCoordinator;
     this.executor = executor;
     this.requestQueues = requestQueues;

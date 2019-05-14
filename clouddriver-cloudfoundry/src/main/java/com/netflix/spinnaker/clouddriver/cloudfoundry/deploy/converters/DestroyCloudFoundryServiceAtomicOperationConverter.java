@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Destroy
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DestroyCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.DESTROY_SERVICE)
 @Component
-public class DestroyCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class DestroyCloudFoundryServiceAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -36,10 +36,15 @@ public class DestroyCloudFoundryServiceAtomicOperationConverter extends Abstract
 
   @Override
   public DestroyCloudFoundryServiceDescription convertDescription(Map input) {
-    DestroyCloudFoundryServiceDescription converted =  getObjectMapper().convertValue(input, DestroyCloudFoundryServiceDescription.class);
+    DestroyCloudFoundryServiceDescription converted =
+        getObjectMapper().convertValue(input, DestroyCloudFoundryServiceDescription.class);
     converted.setClient(getClient(input));
-    converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
+    converted.setSpace(
+        findSpace(converted.getRegion(), converted.getClient())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Unable to find space '" + converted.getRegion() + "'.")));
     return converted;
   }
 }

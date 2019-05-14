@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
+import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Data
 public class Pagination<R> {

@@ -17,11 +17,10 @@ package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ServiceDiscoveryRegistry;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsServiceDiscoveryProvider;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collection;
 
 @RestController
 public class EcsServiceDiscoveryController {
@@ -37,5 +36,4 @@ public class EcsServiceDiscoveryController {
   public Collection<ServiceDiscoveryRegistry> getAllServiceDiscoveryRegistries() {
     return serviceDiscoveryProvider.getAllServiceDiscoveryRegistries();
   }
-
 }

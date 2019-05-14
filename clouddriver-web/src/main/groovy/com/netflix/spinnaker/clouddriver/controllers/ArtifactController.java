@@ -21,16 +21,14 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -40,8 +38,9 @@ public class ArtifactController {
   private ArtifactDownloader artifactDownloader;
 
   @Autowired
-  public ArtifactController(Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
-                            Optional<ArtifactDownloader> artifactDownloader) {
+  public ArtifactController(
+      Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
+      Optional<ArtifactDownloader> artifactDownloader) {
     this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
     this.artifactDownloader = artifactDownloader.orElse(null);
   }
@@ -59,24 +58,28 @@ public class ArtifactController {
   @RequestMapping(method = RequestMethod.PUT, value = "/fetch")
   StreamingResponseBody fetch(@RequestBody Artifact artifact) {
     if (artifactDownloader == null) {
-      throw new IllegalStateException("Artifacts have not been enabled. Enable them using 'artifacts.enabled' in clouddriver");
+      throw new IllegalStateException(
+          "Artifacts have not been enabled. Enable them using 'artifacts.enabled' in clouddriver");
     }
 
     return outputStream -> IOUtils.copy(artifactDownloader.download(artifact), outputStream);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")
-  List<String> getNames(@PathVariable("accountName") String accountName,
-                        @RequestParam(value = "type") String type) {
-    ArtifactCredentials credentials = artifactCredentialsRepository.getCredentials(accountName, type);
+  List<String> getNames(
+      @PathVariable("accountName") String accountName, @RequestParam(value = "type") String type) {
+    ArtifactCredentials credentials =
+        artifactCredentialsRepository.getCredentials(accountName, type);
     return credentials.getArtifactNames();
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/versions")
-  List<String> getVersions(@PathVariable("accountName") String accountName,
-                           @RequestParam(value = "type") String type,
-                           @RequestParam(value = "artifactName") String artifactName) {
-    ArtifactCredentials credentials = artifactCredentialsRepository.getCredentials(accountName, type);
+  List<String> getVersions(
+      @PathVariable("accountName") String accountName,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "artifactName") String artifactName) {
+    ArtifactCredentials credentials =
+        artifactCredentialsRepository.getCredentials(accountName, type);
     return credentials.getArtifactVersions(artifactName);
   }
 }

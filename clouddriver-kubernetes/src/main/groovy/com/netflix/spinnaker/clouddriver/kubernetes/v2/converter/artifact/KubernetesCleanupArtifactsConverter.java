@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.artifact;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
@@ -26,31 +28,29 @@ import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
-
 @KubernetesOperation(CLEANUP_ARTIFACTS)
 @Component
-public class KubernetesCleanupArtifactsConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  ArtifactProvider artifactProvider;
+public class KubernetesCleanupArtifactsConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired ArtifactProvider artifactProvider;
 
-  @Autowired
-  KubernetesResourcePropertyRegistry registry;
+  @Autowired KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesCleanupArtifactsOperation(convertDescription(input), artifactProvider, registry);
+    return new KubernetesCleanupArtifactsOperation(
+        convertDescription(input), artifactProvider, registry);
   }
 
   @Override
   public KubernetesCleanupArtifactsDescription convertDescription(Map input) {
-    return (KubernetesCleanupArtifactsDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesCleanupArtifactsDescription.class);
+    return (KubernetesCleanupArtifactsDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesCleanupArtifactsDescription.class);
   }
 
   @Override

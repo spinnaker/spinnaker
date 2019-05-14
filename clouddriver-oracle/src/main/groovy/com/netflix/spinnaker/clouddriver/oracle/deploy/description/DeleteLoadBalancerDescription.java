@@ -9,23 +9,26 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
-
 import java.util.Collection;
 import java.util.Collections;
 
-public class DeleteLoadBalancerDescription extends AbstractOracleCredentialsDescription implements ApplicationNameable {
+public class DeleteLoadBalancerDescription extends AbstractOracleCredentialsDescription
+    implements ApplicationNameable {
   String application;
   String loadBalancerId;
-  
+
   public String getApplication() {
     return application;
   }
+
   public void setApplication(String application) {
     this.application = application;
   }
+
   public String getLoadBalancerId() {
     return loadBalancerId;
   }
+
   public void setLoadBalancerId(String loadBalancerId) {
     this.loadBalancerId = loadBalancerId;
   }

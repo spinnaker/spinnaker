@@ -20,7 +20,6 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics;
-
 import java.util.Arrays;
 
 public class SpectatorDynomiteCacheMetrics implements CacheMetrics {
@@ -32,33 +31,68 @@ public class SpectatorDynomiteCacheMetrics implements CacheMetrics {
   }
 
   @Override
-  public void merge(String prefix, String type, int itemCount, int relationshipCount, int hashMatches, int hashUpdates, int saddOperations, int hmsetOperations, int expireOperations, int delOperations) {
+  public void merge(
+      String prefix,
+      String type,
+      int itemCount,
+      int relationshipCount,
+      int hashMatches,
+      int hashUpdates,
+      int saddOperations,
+      int hmsetOperations,
+      int expireOperations,
+      int delOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
     registry.counter(id("cats.dynomiteCache.merge", "itemCount", tags)).increment(itemCount);
-    registry.counter(id("cats.dynomiteCache.merge", "relationshipCount", tags)).increment(relationshipCount);
+    registry
+        .counter(id("cats.dynomiteCache.merge", "relationshipCount", tags))
+        .increment(relationshipCount);
     registry.counter(id("cats.dynomiteCache.merge", "hashMatches", tags)).increment(hashMatches);
     registry.counter(id("cats.dynomiteCache.merge", "hashUpdates", tags)).increment(hashUpdates);
-    registry.counter(id("cats.dynomiteCache.merge", "saddOperations", tags)).increment(saddOperations);
-    registry.counter(id("cats.dynomiteCache.merge", "hmsetOperations", tags)).increment(hmsetOperations);
-    registry.counter(id("cats.dynomiteCache.merge", "expireOperations", tags)).increment(expireOperations);
-    registry.counter(id("cats.dynomiteCache.merge", "delOperations", tags)).increment(delOperations);
+    registry
+        .counter(id("cats.dynomiteCache.merge", "saddOperations", tags))
+        .increment(saddOperations);
+    registry
+        .counter(id("cats.dynomiteCache.merge", "hmsetOperations", tags))
+        .increment(hmsetOperations);
+    registry
+        .counter(id("cats.dynomiteCache.merge", "expireOperations", tags))
+        .increment(expireOperations);
+    registry
+        .counter(id("cats.dynomiteCache.merge", "delOperations", tags))
+        .increment(delOperations);
   }
 
   @Override
-  public void evict(String prefix, String type, int itemCount, int delOperations, int sremOperations) {
+  public void evict(
+      String prefix, String type, int itemCount, int delOperations, int sremOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
     registry.counter(id("cats.dynomiteCache.evict", "itemCount", tags)).increment(itemCount);
-    registry.counter(id("cats.dynomiteCache.evict", "delOperations", tags)).increment(delOperations);
-    registry.counter(id("cats.dynomiteCache.evict", "sremOperations", tags)).increment(sremOperations);
+    registry
+        .counter(id("cats.dynomiteCache.evict", "delOperations", tags))
+        .increment(delOperations);
+    registry
+        .counter(id("cats.dynomiteCache.evict", "sremOperations", tags))
+        .increment(sremOperations);
   }
 
   @Override
-  public void get(String prefix, String type, int itemCount, int requestedSize, int relationshipsRequested, int hmgetAllOperations) {
+  public void get(
+      String prefix,
+      String type,
+      int itemCount,
+      int requestedSize,
+      int relationshipsRequested,
+      int hmgetAllOperations) {
     final Iterable<Tag> tags = tags(prefix, type);
     registry.counter(id("cats.dynomiteCache.get", "itemCount", tags)).increment(itemCount);
     registry.counter(id("cats.dynomiteCache.get", "requestedSize", tags)).increment(requestedSize);
-    registry.counter(id("cats.dynomiteCache.get", "relationshipsRequested", tags)).increment(relationshipsRequested);
-    registry.counter(id("cats.dynomiteCache.get", "hmgetAllOperations", tags)).increment(hmgetAllOperations);
+    registry
+        .counter(id("cats.dynomiteCache.get", "relationshipsRequested", tags))
+        .increment(relationshipsRequested);
+    registry
+        .counter(id("cats.dynomiteCache.get", "hmgetAllOperations", tags))
+        .increment(hmgetAllOperations);
   }
 
   private Id id(String metricGroup, String metric, Iterable<Tag> tags) {

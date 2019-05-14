@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry;
 
 import com.netflix.spinnaker.clouddriver.core.CloudProvider;
-import org.springframework.stereotype.Component;
-
 import java.lang.annotation.Annotation;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFoundryCloudProvider implements CloudProvider {

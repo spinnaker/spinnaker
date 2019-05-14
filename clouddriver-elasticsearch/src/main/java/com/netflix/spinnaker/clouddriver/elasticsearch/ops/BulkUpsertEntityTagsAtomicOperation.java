@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
+import static java.lang.String.format;
+
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -29,17 +31,16 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static java.lang.String.format;
-
-public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<BulkUpsertEntityTagsAtomicOperationResult> {
-  private static final Logger log = LoggerFactory.getLogger(BulkUpsertEntityTagsAtomicOperation.class);
+public class BulkUpsertEntityTagsAtomicOperation
+    implements AtomicOperation<BulkUpsertEntityTagsAtomicOperationResult> {
+  private static final Logger log =
+      LoggerFactory.getLogger(BulkUpsertEntityTagsAtomicOperation.class);
   private static final String BASE_PHASE = "ENTITY_TAGS";
 
   private final RetrySupport retrySupport;
@@ -48,11 +49,12 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription;
 
-  public BulkUpsertEntityTagsAtomicOperation(RetrySupport retrySupport,
-                                             Front50Service front50Service,
-                                             AccountCredentialsProvider accountCredentialsProvider,
-                                             ElasticSearchEntityTagsProvider entityTagsProvider,
-                                             BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription) {
+  public BulkUpsertEntityTagsAtomicOperation(
+      RetrySupport retrySupport,
+      Front50Service front50Service,
+      AccountCredentialsProvider accountCredentialsProvider,
+      ElasticSearchEntityTagsProvider entityTagsProvider,
+      BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription) {
     this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -61,13 +63,13 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
   }
 
   public BulkUpsertEntityTagsAtomicOperationResult operate(List priorOutputs) {
-    BulkUpsertEntityTagsAtomicOperationResult result = new BulkUpsertEntityTagsAtomicOperationResult();
+    BulkUpsertEntityTagsAtomicOperationResult result =
+        new BulkUpsertEntityTagsAtomicOperationResult();
 
     if (bulkUpsertEntityTagsDescription.entityTags != null) {
       // ensure that this collection is _not_ unmodifiable
-      bulkUpsertEntityTagsDescription.entityTags = new ArrayList<>(
-        bulkUpsertEntityTagsDescription.entityTags
-      );
+      bulkUpsertEntityTagsDescription.entityTags =
+          new ArrayList<>(bulkUpsertEntityTagsDescription.entityTags);
     } else {
       bulkUpsertEntityTagsDescription.entityTags = new ArrayList<>();
     }
@@ -79,38 +81,43 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
 
     Date now = new Date();
 
-    Lists.partition(entityTags, 50).forEach(tags -> {
-      getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
-      Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
+    Lists.partition(entityTags, 50)
+        .forEach(
+            tags -> {
+              getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
+              Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
 
-      List<EntityTags> modifiedEntityTags = new ArrayList<>();
-      getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
-      tags.forEach(tag -> {
-        boolean wasModified = mergeExistingTagsAndMetadata(
-          now,
-          existingTags.get(tag.getId()),
-          tag,
-          bulkUpsertEntityTagsDescription.isPartial
-        );
+              List<EntityTags> modifiedEntityTags = new ArrayList<>();
+              getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
+              tags.forEach(
+                  tag -> {
+                    boolean wasModified =
+                        mergeExistingTagsAndMetadata(
+                            now,
+                            existingTags.get(tag.getId()),
+                            tag,
+                            bulkUpsertEntityTagsDescription.isPartial);
 
-        if (wasModified) {
-          modifiedEntityTags.add(tag);
-        }
-      });
+                    if (wasModified) {
+                      modifiedEntityTags.add(tag);
+                    }
+                  });
 
-      if (modifiedEntityTags.isEmpty()) {
-        getTask().updateStatus(BASE_PHASE, "No tags have been modified");
-        return;
-      }
+              if (modifiedEntityTags.isEmpty()) {
+                getTask().updateStatus(BASE_PHASE, "No tags have been modified");
+                return;
+              }
 
-      getTask().updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
-      Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(modifiedEntityTags))
-        .stream().collect(Collectors.toMap(EntityTags::getId, Function.identity()));
+              getTask()
+                  .updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
+              Map<String, EntityTags> durableTags =
+                  front50Service.batchUpdate(new ArrayList<>(modifiedEntityTags)).stream()
+                      .collect(Collectors.toMap(EntityTags::getId, Function.identity()));
 
-      getTask().updateStatus(BASE_PHASE, "Pushing tags to Elastic Search");
-      updateMetadataFromDurableTagsAndIndex(modifiedEntityTags, durableTags, result);
-      result.upserted.addAll(modifiedEntityTags);
-    });
+              getTask().updateStatus(BASE_PHASE, "Pushing tags to Elastic Search");
+              updateMetadataFromDurableTagsAndIndex(modifiedEntityTags, durableTags, result);
+              result.upserted.addAll(modifiedEntityTags);
+            });
     return result;
   }
 
@@ -118,96 +125,116 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     List<String> ids = entityTags.stream().map(EntityTags::getId).collect(Collectors.toList());
 
     try {
-      return retrySupport.retry(() -> front50Service.getAllEntityTagsById(ids)
-        .stream()
-        .collect(Collectors.toMap(EntityTags::getId, Function.identity())), 10, 2000, false);
+      return retrySupport.retry(
+          () ->
+              front50Service.getAllEntityTagsById(ids).stream()
+                  .collect(Collectors.toMap(EntityTags::getId, Function.identity())),
+          10,
+          2000,
+          false);
     } catch (Exception e) {
-      log.error("Unable to retrieve existing tags from Front50, reason: {} (ids: {})", e.getMessage(), ids);
+      log.error(
+          "Unable to retrieve existing tags from Front50, reason: {} (ids: {})",
+          e.getMessage(),
+          ids);
       throw e;
     }
   }
 
-  private void addTagIdsIfMissing(List<EntityTags> entityTags, BulkUpsertEntityTagsAtomicOperationResult result) {
+  private void addTagIdsIfMissing(
+      List<EntityTags> entityTags, BulkUpsertEntityTagsAtomicOperationResult result) {
     Collection<EntityTags> failed = new ArrayList<>();
-    entityTags.forEach(tag -> {
-      if (tag.getId() == null) {
-        try {
-          EntityRefIdBuilder.EntityRefId entityRefId = entityRefId(accountCredentialsProvider, tag);
-          tag.setId(entityRefId.id);
-          tag.setIdPattern(entityRefId.idPattern);
-        } catch (Exception e) {
-          log.error("Failed to build tag id for {}", tag.getId(), e);
-          getTask().updateStatus(
-            BASE_PHASE, format("Failed to build tag id for %s, reason: %s", tag.getId(), e.getMessage())
-          );
-          failed.add(tag);
-          result.failures.add(new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
-        }
-      }
-    });
+    entityTags.forEach(
+        tag -> {
+          if (tag.getId() == null) {
+            try {
+              EntityRefIdBuilder.EntityRefId entityRefId =
+                  entityRefId(accountCredentialsProvider, tag);
+              tag.setId(entityRefId.id);
+              tag.setIdPattern(entityRefId.idPattern);
+            } catch (Exception e) {
+              log.error("Failed to build tag id for {}", tag.getId(), e);
+              getTask()
+                  .updateStatus(
+                      BASE_PHASE,
+                      format(
+                          "Failed to build tag id for %s, reason: %s",
+                          tag.getId(), e.getMessage()));
+              failed.add(tag);
+              result.failures.add(
+                  new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
+            }
+          }
+        });
     entityTags.removeAll(failed);
   }
 
-  private void updateMetadataFromDurableTagsAndIndex(List<EntityTags> entityTags,
-                                                     Map<String, EntityTags> durableTags,
-                                                     BulkUpsertEntityTagsAtomicOperationResult result) {
+  private void updateMetadataFromDurableTagsAndIndex(
+      List<EntityTags> entityTags,
+      Map<String, EntityTags> durableTags,
+      BulkUpsertEntityTagsAtomicOperationResult result) {
     Collection<EntityTags> failed = new ArrayList<>();
-    entityTags.forEach(tag -> {
-      try {
-        EntityTags durableTag = durableTags.get(tag.getId());
-        tag.setLastModified(durableTag.getLastModified());
-        tag.setLastModifiedBy(durableTag.getLastModifiedBy());
-      } catch (Exception e) {
-        log.error("Failed to update {} in ElasticSearch", tag.getId(), e);
-        getTask().updateStatus(
-          BASE_PHASE, format("Failed to update %s in ElasticSearch, reason: %s", tag.getId(), e.getMessage())
-        );
-        failed.add(tag);
-        result.failures.add(new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
-      }
-    });
+    entityTags.forEach(
+        tag -> {
+          try {
+            EntityTags durableTag = durableTags.get(tag.getId());
+            tag.setLastModified(durableTag.getLastModified());
+            tag.setLastModifiedBy(durableTag.getLastModifiedBy());
+          } catch (Exception e) {
+            log.error("Failed to update {} in ElasticSearch", tag.getId(), e);
+            getTask()
+                .updateStatus(
+                    BASE_PHASE,
+                    format(
+                        "Failed to update %s in ElasticSearch, reason: %s",
+                        tag.getId(), e.getMessage()));
+            failed.add(tag);
+            result.failures.add(
+                new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
+          }
+        });
     entityTags.removeAll(failed);
     getTask().updateStatus(BASE_PHASE, "Indexing tags in ElasticSearch");
     entityTagsProvider.bulkIndex(entityTags);
 
-    entityTags.forEach(tag -> {
-      try {
-        entityTagsProvider.verifyIndex(tag);
-      } catch (Exception e) {
-        log.error("Failed to verify {} in ElasticSearch", tag.getId(), e);
-        getTask().updateStatus(
-          BASE_PHASE, format("Failed to verify %s in ElasticSearch, reason: %s", tag.getId(), e.getMessage())
-        );
-        failed.add(tag);
-      }
-    });
+    entityTags.forEach(
+        tag -> {
+          try {
+            entityTagsProvider.verifyIndex(tag);
+          } catch (Exception e) {
+            log.error("Failed to verify {} in ElasticSearch", tag.getId(), e);
+            getTask()
+                .updateStatus(
+                    BASE_PHASE,
+                    format(
+                        "Failed to verify %s in ElasticSearch, reason: %s",
+                        tag.getId(), e.getMessage()));
+            failed.add(tag);
+          }
+        });
     entityTags.removeAll(failed);
   }
 
-  public static EntityRefIdBuilder.EntityRefId entityRefId(AccountCredentialsProvider accountCredentialsProvider,
-                                                           EntityTags description) {
+  public static EntityRefIdBuilder.EntityRefId entityRefId(
+      AccountCredentialsProvider accountCredentialsProvider, EntityTags description) {
     EntityTags.EntityRef entityRef = description.getEntityRef();
     String entityRefAccount = entityRef.getAccount();
     String entityRefAccountId = entityRef.getAccountId();
 
     if (entityRefAccount != null && !entityRefAccount.equals("*") && entityRefAccountId == null) {
       // add `accountId` if not explicitly provided
-      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(
-        accountCredentialsProvider,
-        entityRefAccount,
-        "accountName"
-      );
+      AccountCredentials accountCredentials =
+          lookupAccountCredentialsByAccountIdOrName(
+              accountCredentialsProvider, entityRefAccount, "accountName");
       entityRefAccountId = accountCredentials.getAccountId();
       entityRef.setAccountId(entityRefAccountId);
     }
 
     if (entityRefAccount == null && entityRefAccountId != null) {
       // add `account` if not explicitly provided
-      AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(
-        accountCredentialsProvider,
-        entityRefAccountId,
-        "accountId"
-      );
+      AccountCredentials accountCredentials =
+          lookupAccountCredentialsByAccountIdOrName(
+              accountCredentialsProvider, entityRefAccountId, "accountId");
       if (accountCredentials != null) {
         entityRefAccount = accountCredentials.getName();
         entityRef.setAccount(entityRefAccount);
@@ -215,18 +242,15 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     }
 
     return EntityRefIdBuilder.buildId(
-      entityRef.getCloudProvider(),
-      entityRef.getEntityType(),
-      entityRef.getEntityId(),
-      Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
-      entityRef.getRegion()
-    );
+        entityRef.getCloudProvider(),
+        entityRef.getEntityType(),
+        entityRef.getEntityId(),
+        Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
+        entityRef.getRegion());
   }
 
-  public static boolean mergeExistingTagsAndMetadata(Date now,
-                                                     EntityTags currentTags,
-                                                     EntityTags updatedTags,
-                                                     boolean isPartial) {
+  public static boolean mergeExistingTagsAndMetadata(
+      Date now, EntityTags currentTags, EntityTags updatedTags, boolean isPartial) {
     if (currentTags == null) {
       addTagMetadata(now, updatedTags);
       return true;
@@ -243,8 +267,7 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     }
 
     updatedTags.setTagsMetadata(
-      currentTags.getTagsMetadata() == null ? new ArrayList<>() : currentTags.getTagsMetadata()
-    );
+        currentTags.getTagsMetadata() == null ? new ArrayList<>() : currentTags.getTagsMetadata());
 
     updatedTags.getTags().forEach(tag -> updatedTags.putEntityTagMetadata(tagMetadata(tag, now)));
 
@@ -253,43 +276,39 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     return wasModified;
   }
 
-  /**
-   * @return true if all {@code target} tags are contained in {@code source}, otherwise false
-   */
+  /** @return true if all {@code target} tags are contained in {@code source}, otherwise false */
   private static boolean containedWithin(EntityTags source, EntityTags target) {
-    return target
-      .getTags()
-      .stream()
-      .allMatch(
-        updatedTag -> source
-          .getTags()
-          .stream()
-          .anyMatch(currentTag ->
-            currentTag.getName().equals(updatedTag.getName()) && currentTag.getValue().equals(updatedTag.getValue())
-          )
-      );
+    return target.getTags().stream()
+        .allMatch(
+            updatedTag ->
+                source.getTags().stream()
+                    .anyMatch(
+                        currentTag ->
+                            currentTag.getName().equals(updatedTag.getName())
+                                && currentTag.getValue().equals(updatedTag.getValue())));
   }
 
   private static void mergeTags(BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription) {
     List<EntityTags> toRemove = new ArrayList<>();
-    bulkUpsertEntityTagsDescription.entityTags.forEach(tag -> {
-      Collection<EntityTags> matches = bulkUpsertEntityTagsDescription.entityTags
-        .stream()
-        .filter(t ->
-          t.getId().equals(tag.getId()) && !toRemove.contains(t) && !tag.equals(t)
-        )
-        .collect(Collectors.toList());
-      if (matches.size() > 1) {
-        matches.forEach(m -> tag.getTags().addAll(m.getTags()));
-        toRemove.addAll(matches);
-      }
-    });
+    bulkUpsertEntityTagsDescription.entityTags.forEach(
+        tag -> {
+          Collection<EntityTags> matches =
+              bulkUpsertEntityTagsDescription.entityTags.stream()
+                  .filter(
+                      t -> t.getId().equals(tag.getId()) && !toRemove.contains(t) && !tag.equals(t))
+                  .collect(Collectors.toList());
+          if (matches.size() > 1) {
+            matches.forEach(m -> tag.getTags().addAll(m.getTags()));
+            toRemove.addAll(matches);
+          }
+        });
     bulkUpsertEntityTagsDescription.entityTags.removeAll(toRemove);
   }
 
   private static void replaceTagContents(EntityTags currentTags, EntityTags entityTagsDescription) {
-    Map<String, EntityTags.EntityTag> entityTagsByName = entityTagsDescription.getTags().stream()
-      .collect(Collectors.toMap(EntityTags.EntityTag::getName, x -> x));
+    Map<String, EntityTags.EntityTag> entityTagsByName =
+        entityTagsDescription.getTags().stream()
+            .collect(Collectors.toMap(EntityTags.EntityTag::getName, x -> x));
 
     currentTags.setTags(entityTagsDescription.getTags());
     for (EntityTags.EntityTagMetadata entityTagMetadata : currentTags.getTagsMetadata()) {
@@ -299,7 +318,8 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     }
   }
 
-  private static EntityTags.EntityTagMetadata tagMetadata(EntityTags.EntityTag entityTag, Date now) {
+  private static EntityTags.EntityTagMetadata tagMetadata(
+      EntityTags.EntityTag entityTag, Date now) {
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
 
     String tagName = entityTag.getName();
@@ -323,15 +343,21 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     entityTags.getTags().forEach(tag -> entityTags.putEntityTagMetadata(tagMetadata(tag, now)));
   }
 
-  private static AccountCredentials lookupAccountCredentialsByAccountIdOrName(AccountCredentialsProvider accountCredentialsProvider,
-                                                                              String entityRefAccountIdOrName,
-                                                                              String type) {
+  private static AccountCredentials lookupAccountCredentialsByAccountIdOrName(
+      AccountCredentialsProvider accountCredentialsProvider,
+      String entityRefAccountIdOrName,
+      String type) {
     return accountCredentialsProvider.getAll().stream()
-      .filter(c -> entityRefAccountIdOrName.equals(c.getAccountId()) || entityRefAccountIdOrName.equals(c.getName()))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(
-        String.format("No credentials found for %s: %s", type, entityRefAccountIdOrName)
-      ));
+        .filter(
+            c ->
+                entityRefAccountIdOrName.equals(c.getAccountId())
+                    || entityRefAccountIdOrName.equals(c.getName()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    String.format(
+                        "No credentials found for %s: %s", type, entityRefAccountIdOrName)));
   }
 
   private static Task getTask() {

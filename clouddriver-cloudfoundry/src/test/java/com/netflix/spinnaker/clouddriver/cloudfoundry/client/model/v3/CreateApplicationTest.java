@@ -16,41 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+import org.junit.jupiter.api.Test;
 
 class CreateApplicationTest {
 
   @Test
   void getLifecycleShouldReturnMultipleBuildpacks() {
     ToOneRelationship toOneRelationship = new ToOneRelationship(new Relationship("space-guid"));
-    Map<String, ToOneRelationship> relationships = Collections.singletonMap("relationship", toOneRelationship);
+    Map<String, ToOneRelationship> relationships =
+        Collections.singletonMap("relationship", toOneRelationship);
     List<String> buildpacks = Arrays.asList("buildpackOne", "buildpackTwo");
-    CreateApplication createApplication = new CreateApplication(
-      "some-application",
-      relationships,
-      null,
-      buildpacks);
+    CreateApplication createApplication =
+        new CreateApplication("some-application", relationships, null, buildpacks);
 
     assertThat(createApplication.getLifecycle().getData().get("buildpacks")).isEqualTo(buildpacks);
   }
 
   @Test
   void getLifecycleShouldReturnNull() {
-    ToOneRelationship toOneRelationship = new ToOneRelationship(new Relationship("relationship-guid"));
-    Map<String, ToOneRelationship> relationships = Collections.singletonMap("relationship", toOneRelationship);
-    CreateApplication createApplication = new CreateApplication(
-      "some-application",
-      relationships,
-      null,
-      null);
+    ToOneRelationship toOneRelationship =
+        new ToOneRelationship(new Relationship("relationship-guid"));
+    Map<String, ToOneRelationship> relationships =
+        Collections.singletonMap("relationship", toOneRelationship);
+    CreateApplication createApplication =
+        new CreateApplication("some-application", relationships, null, null);
 
     assertThat(createApplication.getLifecycle()).isNull();
   }

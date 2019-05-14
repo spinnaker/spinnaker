@@ -19,16 +19,18 @@ package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.UpdateFunctionConfigurationRequest;
 import com.amazonaws.services.lambda.model.UpdateFunctionConfigurationResult;
+import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionConfigurationDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import java.util.List;
 
 public class UpdateLambdaConfigurationAtomicOperation
-  extends AbstractLambdaAtomicOperation<CreateLambdaFunctionConfigurationDescription, UpdateFunctionConfigurationResult>
-  implements AtomicOperation<UpdateFunctionConfigurationResult> {
+    extends AbstractLambdaAtomicOperation<
+        CreateLambdaFunctionConfigurationDescription, UpdateFunctionConfigurationResult>
+    implements AtomicOperation<UpdateFunctionConfigurationResult> {
 
-  public UpdateLambdaConfigurationAtomicOperation(CreateLambdaFunctionConfigurationDescription description) {
+  public UpdateLambdaConfigurationAtomicOperation(
+      CreateLambdaFunctionConfigurationDescription description) {
     super(description, "UPDATE_LAMBDA_FUNCTION_CONFIGURATION");
   }
 
@@ -38,19 +40,21 @@ public class UpdateLambdaConfigurationAtomicOperation
     return updateFunctionConfigurationResult();
   }
 
-  private UpdateFunctionConfigurationResult updateFunctionConfigurationResult (){
-    LambdaFunction cache = (LambdaFunction) lambdaFunctionProvider.getFunction(
-      description.getAccount(), description.getRegion(), description.getFunctionName()
-    );
+  private UpdateFunctionConfigurationResult updateFunctionConfigurationResult() {
+    LambdaFunction cache =
+        (LambdaFunction)
+            lambdaFunctionProvider.getFunction(
+                description.getAccount(), description.getRegion(), description.getFunctionName());
 
     AWSLambda client = getLambdaClient();
-    UpdateFunctionConfigurationRequest request = new UpdateFunctionConfigurationRequest()
-      .withFunctionName(cache.getFunctionArn())
-      .withDescription(description.getDescription())
-      .withHandler(description.getHandler())
-      .withMemorySize(description.getMemory())
-      .withRole(description.getRole())
-      .withTimeout(description.getTimeout());
+    UpdateFunctionConfigurationRequest request =
+        new UpdateFunctionConfigurationRequest()
+            .withFunctionName(cache.getFunctionArn())
+            .withDescription(description.getDescription())
+            .withHandler(description.getHandler())
+            .withMemorySize(description.getMemory())
+            .withRole(description.getRole())
+            .withTimeout(description.getTimeout());
 
     UpdateFunctionConfigurationResult result = client.updateFunctionConfiguration(request);
     updateTaskStatus("Finished Updating of AWS Lambda Function Configuration Operation...");

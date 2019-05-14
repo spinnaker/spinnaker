@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2;
 
 public class DockerUserAgent {
-  static public String getUserAgent() {
+  public static String getUserAgent() {
     String version;
     try {
       version = DockerUserAgent.class.getPackage().getImplementationVersion();

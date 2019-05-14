@@ -21,15 +21,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -41,14 +40,16 @@ public class OperationResult {
   Set<Artifact> createdArtifacts = new HashSet<>();
   Set<Artifact> boundArtifacts = new HashSet<>();
 
-  public void removeSensitiveKeys(KubernetesResourcePropertyRegistry propertyRegistry, String accountName) {
+  public void removeSensitiveKeys(
+      KubernetesResourcePropertyRegistry propertyRegistry, String accountName) {
     manifests.forEach(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m));
   }
 
   public OperationResult addManifest(KubernetesManifest manifest) {
     manifests.add(manifest);
 
-    Set<String> addedNames = manifestNamesByNamespace.getOrDefault(manifest.getNamespace(), new HashSet<>());
+    Set<String> addedNames =
+        manifestNamesByNamespace.getOrDefault(manifest.getNamespace(), new HashSet<>());
     addedNames.add(manifest.getFullResourceName());
     manifestNamesByNamespace.put(manifest.getNamespace(), addedNames);
     return this;
@@ -56,7 +57,8 @@ public class OperationResult {
 
   public void merge(OperationResult other) {
     for (Map.Entry<String, Set<String>> entry : other.manifestNamesByNamespace.entrySet()) {
-      Set<String> thisManifests = this.manifestNamesByNamespace.getOrDefault(entry.getKey(), new HashSet<>());
+      Set<String> thisManifests =
+          this.manifestNamesByNamespace.getOrDefault(entry.getKey(), new HashSet<>());
       thisManifests.addAll(entry.getValue());
       this.manifestNamesByNamespace.put(entry.getKey(), thisManifests);
     }

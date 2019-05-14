@@ -17,17 +17,16 @@
 package com.netflix.spinnaker.cats.provider;
 
 import com.netflix.spinnaker.cats.cache.Cache;
-
 import java.util.Collection;
 
 /**
- * A ProviderRegistry has multiple providers, and provides access to the
- * ProviderCaches for each provider.
+ * A ProviderRegistry has multiple providers, and provides access to the ProviderCaches for each
+ * provider.
  */
 public interface ProviderRegistry {
-    Collection<Provider> getProviders();
+  Collection<Provider> getProviders();
 
-    Collection<Cache> getProviderCaches();
+  Collection<Cache> getProviderCaches();
 
-    ProviderCache getProviderCache(String providerName);
+  ProviderCache getProviderCache(String providerName);
 }

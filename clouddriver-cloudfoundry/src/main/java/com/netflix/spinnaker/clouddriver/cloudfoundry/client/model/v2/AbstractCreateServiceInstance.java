@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-import lombok.Data;
-
-import javax.annotation.Nullable;
 import java.util.Set;
+import javax.annotation.Nullable;
+import lombok.Data;
 
 @Data
 public abstract class AbstractCreateServiceInstance {
@@ -27,6 +26,5 @@ public abstract class AbstractCreateServiceInstance {
   private String spaceGuid;
   private boolean updatable = true;
 
-  @Nullable
-  private Set<String> tags;
+  @Nullable private Set<String> tags;
 }

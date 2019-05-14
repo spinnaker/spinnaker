@@ -20,12 +20,12 @@ import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaF
 import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.InvokeLambdaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component("invokeLambdaFunction")
-public class InvokeLambdaFunctionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class InvokeLambdaFunctionAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new InvokeLambdaAtomicOperation(convertDescription(input));
@@ -33,10 +33,8 @@ public class InvokeLambdaFunctionAtomicOperationConverter extends AbstractAtomic
 
   @Override
   public InvokeLambdaFunctionDescription convertDescription(Map input) {
-    InvokeLambdaFunctionDescription converted = getObjectMapper().convertValue(
-      input,
-      InvokeLambdaFunctionDescription.class
-    );
+    InvokeLambdaFunctionDescription converted =
+        getObjectMapper().convertValue(input, InvokeLambdaFunctionDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;

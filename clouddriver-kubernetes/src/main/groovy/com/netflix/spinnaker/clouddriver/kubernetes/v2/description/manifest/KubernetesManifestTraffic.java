@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.List;
 
 @AllArgsConstructor
 @EqualsAndHashCode

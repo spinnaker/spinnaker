@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.artifacts.helm;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -32,6 +28,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @Data
@@ -68,7 +67,6 @@ public class IndexParser {
     List<EntryConfig> configs = buildEntryConfigsByName(buildIndexConfig(in), name);
     String validVersion = StringUtils.isBlank(version) ? findLatestVersion(configs) : version;
     return resolveReferenceUrls(findUrlsByVersion(configs, validVersion));
-
   }
 
   private List<String> resolveReferenceUrls(List<String> urls) {
@@ -78,7 +76,7 @@ public class IndexParser {
   private String resolveReferenceUrl(String ref) {
     String resolvedRef = ref;
     String base = repository;
-    if(!base.endsWith("/")) {
+    if (!base.endsWith("/")) {
       base = base.concat("/");
     }
     try {
@@ -93,20 +91,21 @@ public class IndexParser {
 
   private List<String> findUrlsByVersion(List<EntryConfig> configs, String version) {
     List<String> urls = new ArrayList<>();
-    configs.forEach(e -> {
-      if (e.getVersion().equals(version)) {
-        urls.addAll(e.getUrls());
-      }
-    });
+    configs.forEach(
+        e -> {
+          if (e.getVersion().equals(version)) {
+            urls.addAll(e.getUrls());
+          }
+        });
     if (urls.isEmpty()) {
-      throw new IllegalArgumentException("Could not find correct entry with artifact version " + version);
+      throw new IllegalArgumentException(
+          "Could not find correct entry with artifact version " + version);
     }
     return urls;
   }
 
   private String findLatestVersion(List<EntryConfig> configs) {
-    return configs.stream()
-      .max(Comparator.comparing(EntryConfig::getVersion)).get().getVersion();
+    return configs.stream().max(Comparator.comparing(EntryConfig::getVersion)).get().getVersion();
   }
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
@@ -120,14 +119,13 @@ public class IndexParser {
     return indexConfig;
   }
 
-  private List<EntryConfig>  buildEntryConfigsByName(IndexConfig indexConfig, String name) {
+  private List<EntryConfig> buildEntryConfigsByName(IndexConfig indexConfig, String name) {
     List<EntryConfig> configs = indexConfig.getEntries().get(name);
     if (configs == null || configs.isEmpty()) {
       throw new IllegalArgumentException("Could not find correct entry with artifact name " + name);
     }
     return configs;
   }
-
 }
 
 @Data

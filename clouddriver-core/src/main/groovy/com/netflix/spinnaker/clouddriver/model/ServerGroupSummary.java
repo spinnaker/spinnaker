@@ -21,7 +21,10 @@ import com.netflix.spinnaker.moniker.Moniker;
 
 public interface ServerGroupSummary {
   String getName();
+
   String getRegion();
+
   String getAccount();
+
   Moniker getMoniker();
 }

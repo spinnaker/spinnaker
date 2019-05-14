@@ -18,23 +18,25 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.validators;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.BulkUpsertEntityTagsDescription;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
 @Component("bulkUpsertEntityTagsDescriptionValidator")
-public class BulkUpsertEntityTagsDescriptionValidator extends DescriptionValidator<BulkUpsertEntityTagsDescription> {
+public class BulkUpsertEntityTagsDescriptionValidator
+    extends DescriptionValidator<BulkUpsertEntityTagsDescription> {
 
   @Value("${entity-tags.max-concurrent-bulk-tags:1000}")
   Integer maxConcurrentBulkTags;
 
   @Override
-  public void validate(List priorDescriptions, BulkUpsertEntityTagsDescription description, Errors errors) {
+  public void validate(
+      List priorDescriptions, BulkUpsertEntityTagsDescription description, Errors errors) {
     if (description.entityTags != null && description.entityTags.size() > maxConcurrentBulkTags) {
-      errors.rejectValue("entityTags.length",
-        "Max number of entity tags that can be submitted at once is " + maxConcurrentBulkTags);
+      errors.rejectValue(
+          "entityTags.length",
+          "Max number of entity tags that can be submitted at once is " + maxConcurrentBulkTags);
     }
   }
 }

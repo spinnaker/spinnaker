@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,9 +45,7 @@ abstract class AbstractCacheClient<T> {
    */
   protected abstract T convert(CacheData cacheData);
 
-  /**
-   * @return A list of all generic type objects belonging to the key namespace.
-   */
+  /** @return A list of all generic type objects belonging to the key namespace. */
   public Collection<T> getAll() {
     Collection<CacheData> allData = cacheView.getAll(keyNamespace);
     return convertAll(allData);
@@ -56,8 +53,9 @@ abstract class AbstractCacheClient<T> {
 
   /**
    * @param account name of the AWS account, as defined in clouddriver.yml
-   * @param region  region of the AWS account, as defined in clouddriver.yml
-   * @return A list of all generic type objects belonging to the account and region in the key namespace.
+   * @param region region of the AWS account, as defined in clouddriver.yml
+   * @return A list of all generic type objects belonging to the account and region in the key
+   *     namespace.
    */
   public Collection<T> getAll(String account, String region) {
     Collection<CacheData> data = fetchFromCache(account, region);
@@ -77,25 +75,25 @@ abstract class AbstractCacheClient<T> {
   }
 
   /**
-   * @param cacheData A collection of CacheData that will be converted into a collection of generic typ objects.
+   * @param cacheData A collection of CacheData that will be converted into a collection of generic
+   *     typ objects.
    * @return A collection of generic typ objects.
    */
   private Collection<T> convertAll(Collection<CacheData> cacheData) {
-    return cacheData.stream()
-      .map(this::convert)
-      .collect(Collectors.toList());
+    return cacheData.stream().map(this::convert).collect(Collectors.toList());
   }
 
   /**
    * @param account name of the AWS account, as defined in clouddriver.yml
-   * @param region  region of the AWS account, as defined in clouddriver.yml
+   * @param region region of the AWS account, as defined in clouddriver.yml
    * @return
    */
   private Collection<CacheData> fetchFromCache(String account, String region) {
     String accountFilter = account != null ? account + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     String regionFilter = region != null ? region + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     Set<String> keys = new HashSet<>();
-    String pattern = "ecs" + Keys.SEPARATOR + keyNamespace + Keys.SEPARATOR + accountFilter + regionFilter + "*";
+    String pattern =
+        "ecs" + Keys.SEPARATOR + keyNamespace + Keys.SEPARATOR + accountFilter + regionFilter + "*";
     Collection<String> nameMatches = cacheView.filterIdentifiers(keyNamespace, pattern);
 
     keys.addAll(nameMatches);

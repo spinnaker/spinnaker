@@ -25,18 +25,16 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException;
+import java.util.ArrayList;
+import java.util.List;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.StringGroovyMethods;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ResizeAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE_SERVER_GROUP";
   private final ResizeAzureServerGroupDescription description;
-  @Autowired
-  private AzureClusterProvider azureClusterProvider;
+  @Autowired private AzureClusterProvider azureClusterProvider;
 
   public AzureClusterProvider getAzureClusterProvider() {
     return azureClusterProvider;
@@ -55,7 +53,9 @@ public class ResizeAzureServerGroupAtomicOperation implements AtomicOperation<Vo
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": { "serverGroupName": "myapp-dev-v000", "targetSize": 2, "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/azure/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeServerGroup": {
+   * "serverGroupName": "myapp-dev-v000", "targetSize": 2, "region": "us-central1", "credentials":
+   * "my-account-name" }} ]' localhost:7002/azure/ops
    */
   @Override
   public Void operate(List priorOutputs) {
@@ -66,42 +66,88 @@ public class ResizeAzureServerGroupAtomicOperation implements AtomicOperation<Vo
       description.setName(description.getServerGroupName());
     if (!StringGroovyMethods.asBoolean(description.getApplication())) {
       final String name = description.getAppName();
-      description.setApplication(StringGroovyMethods.asBoolean(name) ? name : Names.parseName(description.getName()).getApp());
+      description.setApplication(
+          StringGroovyMethods.asBoolean(name)
+              ? name
+              : Names.parseName(description.getName()).getApp());
     }
 
-    final int targetSize = description.getTargetSize() instanceof Number ? description.getTargetSize() : description.getCapacity().getDesired();
-    getTask().updateStatus(BASE_PHASE, "Resizing server group " + description.getName() + " in " + region + " to target size " + String.valueOf(targetSize) + "...");
+    final int targetSize =
+        description.getTargetSize() instanceof Number
+            ? description.getTargetSize()
+            : description.getCapacity().getDesired();
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            "Resizing server group "
+                + description.getName()
+                + " in "
+                + region
+                + " to target size "
+                + String.valueOf(targetSize)
+                + "...");
 
     if (!DefaultGroovyMethods.asBoolean(description.getCredentials())) {
-      throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.");
+      throw new IllegalArgumentException(
+          "Unable to resolve credentials for the selected Azure account.");
     }
-
 
     ArrayList<String> errList = new ArrayList<String>();
 
     try {
-      String resourceGroupName = AzureUtilities.getResourceGroupName(description.getApplication(), region);
-      AzureServerGroupDescription serverGroupDescription = description.getCredentials().getComputeClient().getServerGroup(resourceGroupName, description.getName());
+      String resourceGroupName =
+          AzureUtilities.getResourceGroupName(description.getApplication(), region);
+      AzureServerGroupDescription serverGroupDescription =
+          description
+              .getCredentials()
+              .getComputeClient()
+              .getServerGroup(resourceGroupName, description.getName());
 
       if (!DefaultGroovyMethods.asBoolean(serverGroupDescription)) {
-        getTask().updateStatus(BASE_PHASE, "Resize Server Group Operation failed: could not find server group " + description.getName() + " in " + region);
+        getTask()
+            .updateStatus(
+                BASE_PHASE,
+                "Resize Server Group Operation failed: could not find server group "
+                    + description.getName()
+                    + " in "
+                    + region);
         errList.add("could not find server group " + description.getName() + " in " + region);
       } else {
         try {
-          description.getCredentials().getComputeClient().resizeServerGroup(resourceGroupName, description.getName(), targetSize);
-          getTask().updateStatus(BASE_PHASE, "Done resizing Azure server group " + description.getName() + " in " + region + ".");
+          description
+              .getCredentials()
+              .getComputeClient()
+              .resizeServerGroup(resourceGroupName, description.getName(), targetSize);
+          getTask()
+              .updateStatus(
+                  BASE_PHASE,
+                  "Done resizing Azure server group "
+                      + description.getName()
+                      + " in "
+                      + region
+                      + ".");
         } catch (Exception e) {
-          getTask().updateStatus(BASE_PHASE, "Resizing server group " + description.getName() + " failed: " + e.getMessage());
-          errList.add("Failed to resize server group " + description.getName() + ": " + e.getMessage());
+          getTask()
+              .updateStatus(
+                  BASE_PHASE,
+                  "Resizing server group " + description.getName() + " failed: " + e.getMessage());
+          errList.add(
+              "Failed to resize server group " + description.getName() + ": " + e.getMessage());
         }
       }
     } catch (Exception e) {
-      getTask().updateStatus(BASE_PHASE, "Resizing server group " + description.getName() + " failed: " + e.getMessage());
+      getTask()
+          .updateStatus(
+              BASE_PHASE,
+              "Resizing server group " + description.getName() + " failed: " + e.getMessage());
       errList.add("Failed to resize server group " + description.getName() + ": " + e.getMessage());
     }
 
     if (errList.isEmpty()) {
-      getTask().updateStatus(BASE_PHASE, "Resize Azure Server Group Operation for " + description.getName() + " succeeded.");
+      getTask()
+          .updateStatus(
+              BASE_PHASE,
+              "Resize Azure Server Group Operation for " + description.getName() + " succeeded.");
     } else {
       errList.add(" Go to Azure Portal for more info");
       throw new AtomicOperationException("Failed to resize " + description.getName(), errList);

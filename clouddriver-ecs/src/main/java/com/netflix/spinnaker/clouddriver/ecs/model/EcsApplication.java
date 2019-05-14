@@ -16,10 +16,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
 import com.netflix.spinnaker.clouddriver.model.Application;
-import lombok.Data;
-
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class EcsApplication implements Application {
@@ -28,7 +27,8 @@ public class EcsApplication implements Application {
   Map<String, String> attributes;
   Map<String, Set<String>> clusterNames;
 
-  public EcsApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
+  public EcsApplication(
+      String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
     this.name = name;
     this.attributes = attributes;
     this.clusterNames = clusterNames;

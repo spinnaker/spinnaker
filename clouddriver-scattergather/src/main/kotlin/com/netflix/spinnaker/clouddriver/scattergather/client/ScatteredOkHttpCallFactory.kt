@@ -38,9 +38,11 @@ class ScatteredOkHttpCallFactory(
    *
    * The [targets] map expects a mapping of `shardName to shardBaseUrl`.
    */
-  fun createCalls(workId: String,
-                  targets: Map<String, String>,
-                  originalRequest: HttpServletRequest): List<Call> {
+  fun createCalls(
+    workId: String,
+    targets: Map<String, String>,
+    originalRequest: HttpServletRequest
+  ): List<Call> {
     val requestBody = getRequestBody(originalRequest)
 
     return targets.map { (targetName, baseUrl) ->

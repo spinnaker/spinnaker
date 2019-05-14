@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -29,33 +32,29 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
-  @Getter
-  protected String providerName = KubernetesCloudProvider.getID();
+public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials>
+    implements AgentIntervalAware {
+  @Getter protected String providerName = KubernetesCloudProvider.getID();
+
+  @Getter private final Long agentInterval;
 
   @Getter
-  private final Long agentInterval;
+  protected Collection<AgentDataType> providedDataTypes =
+      Collections.unmodifiableCollection(
+          Collections.singletonList(AUTHORITATIVE.forType(KUBERNETES_METRIC.toString())));
 
-  @Getter
-  protected Collection<AgentDataType> providedDataTypes = Collections.unmodifiableCollection(
-      Collections.singletonList(AUTHORITATIVE.forType(KUBERNETES_METRIC.toString()))
-  );
-
-  protected KubernetesMetricCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+  protected KubernetesMetricCachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -70,33 +69,44 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
     log.info(getAgentType() + ": agent is starting");
     reloadNamespaces();
 
-    List<CacheData> cacheData = namespaces.parallelStream()
-        .map(n -> {
-              try {
-                return credentials.topPod(n, null)
-                    .stream()
-                    .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m));
-              } catch (KubectlJobExecutor.KubectlException e) {
-                if (e.getMessage().contains("not available")) {
-                  log.warn("{}: Metrics for namespace '" + n + "' in account '" + accountName + "' have not been recorded yet.", getAgentType());
-                  return null;
-                } else {
-                  throw e;
-                }
-              }
-            }
-        ).filter(Objects::nonNull)
-        .flatMap(x -> x)
-        .collect(Collectors.toList());
+    List<CacheData> cacheData =
+        namespaces
+            .parallelStream()
+            .map(
+                n -> {
+                  try {
+                    return credentials.topPod(n, null).stream()
+                        .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m));
+                  } catch (KubectlJobExecutor.KubectlException e) {
+                    if (e.getMessage().contains("not available")) {
+                      log.warn(
+                          "{}: Metrics for namespace '"
+                              + n
+                              + "' in account '"
+                              + accountName
+                              + "' have not been recorded yet.",
+                          getAgentType());
+                      return null;
+                    } else {
+                      throw e;
+                    }
+                  }
+                })
+            .filter(Objects::nonNull)
+            .flatMap(x -> x)
+            .collect(Collectors.toList());
 
-    List<CacheData> invertedRelationships = cacheData.stream()
-        .map(KubernetesCacheDataConverter::invertRelationships)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<CacheData> invertedRelationships =
+        cacheData.stream()
+            .map(KubernetesCacheDataConverter::invertRelationships)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     cacheData.addAll(invertedRelationships);
 
-    Map<String, Collection<CacheData>> entries = KubernetesCacheDataConverter.stratifyCacheDataByGroup(KubernetesCacheDataConverter.dedupCacheData(cacheData));
+    Map<String, Collection<CacheData>> entries =
+        KubernetesCacheDataConverter.stratifyCacheDataByGroup(
+            KubernetesCacheDataConverter.dedupCacheData(cacheData));
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);

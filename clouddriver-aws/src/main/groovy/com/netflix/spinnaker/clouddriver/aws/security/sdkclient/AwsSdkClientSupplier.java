@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
+import static java.util.Objects.requireNonNull;
+
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -33,7 +35,6 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixSTSAssumeRoleSessionCredentialsProvider;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,33 +44,39 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Objects.requireNonNull;
-
-/**
- * Factory for shared instances of AWS SDK clients.
- */
+/** Factory for shared instances of AWS SDK clients. */
 public class AwsSdkClientSupplier {
 
   private final Registry registry;
   private final LoadingCache<AmazonClientKey<?>, ?> awsSdkClients;
   private final RateLimiterSupplier rateLimiterSupplier;
 
-  public AwsSdkClientSupplier(RateLimiterSupplier rateLimiterSupplier, Registry registry, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers, AWSProxy proxy, boolean useGzip) {
+  public AwsSdkClientSupplier(
+      RateLimiterSupplier rateLimiterSupplier,
+      Registry registry,
+      RetryPolicy retryPolicy,
+      List<RequestHandler2> requestHandlers,
+      AWSProxy proxy,
+      boolean useGzip) {
     this.rateLimiterSupplier = Objects.requireNonNull(rateLimiterSupplier);
     this.registry = Objects.requireNonNull(registry);
-    awsSdkClients = CacheBuilder
-      .newBuilder()
-      .recordStats()
-      .expireAfterAccess(10, TimeUnit.MINUTES)
-      .build(
-        new SdkClientCacheLoader(retryPolicy, requestHandlers, proxy, useGzip)
-      );
+    awsSdkClients =
+        CacheBuilder.newBuilder()
+            .recordStats()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build(new SdkClientCacheLoader(retryPolicy, requestHandlers, proxy, useGzip));
     LoadingCacheMetrics.instrument("awsSdkClientSupplier", registry, awsSdkClients);
   }
 
-  public <T> T getClient(Class<? extends AwsClientBuilder<?, T>> impl, Class<T> iface, String account, AWSCredentialsProvider awsCredentialsProvider, String region) {
+  public <T> T getClient(
+      Class<? extends AwsClientBuilder<?, T>> impl,
+      Class<T> iface,
+      String account,
+      AWSCredentialsProvider awsCredentialsProvider,
+      String region) {
     final RequestHandler2 handler = getRateLimiterHandler(iface, account, region);
-    final AmazonClientKey<T> key = new AmazonClientKey<>(impl, awsCredentialsProvider, region, handler);
+    final AmazonClientKey<T> key =
+        new AmazonClientKey<>(impl, awsCredentialsProvider, region, handler);
 
     try {
       return iface.cast(awsSdkClients.get(key));
@@ -81,12 +88,18 @@ public class AwsSdkClientSupplier {
     }
   }
 
-  private RequestHandler2 getRateLimiterHandler(Class<?> sdkInterface, String account, String region) {
+  private RequestHandler2 getRateLimiterHandler(
+      Class<?> sdkInterface, String account, String region) {
     final RateLimiter limiter = rateLimiterSupplier.getRateLimiter(sdkInterface, account, region);
-    final Counter rateLimitCounter = registry.counter("amazonClientProvider.rateLimitDelayMillis",
-      "clientType", sdkInterface.getSimpleName(),
-      "account", account,
-      "region", region == null ? "UNSPECIFIED" : region);
+    final Counter rateLimitCounter =
+        registry.counter(
+            "amazonClientProvider.rateLimitDelayMillis",
+            "clientType",
+            sdkInterface.getSimpleName(),
+            "account",
+            account,
+            "region",
+            region == null ? "UNSPECIFIED" : region);
     return new RateLimitingRequestHandler(rateLimitCounter, limiter);
   }
 
@@ -96,9 +109,14 @@ public class AwsSdkClientSupplier {
     private final AWSProxy proxy;
     private final boolean useGzip;
 
-    public SdkClientCacheLoader(RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers, AWSProxy proxy, boolean useGzip) {
+    public SdkClientCacheLoader(
+        RetryPolicy retryPolicy,
+        List<RequestHandler2> requestHandlers,
+        AWSProxy proxy,
+        boolean useGzip) {
       this.retryPolicy = Objects.requireNonNull(retryPolicy);
-      this.requestHandlers = requestHandlers == null ? Collections.emptyList() : ImmutableList.copyOf(requestHandlers);
+      this.requestHandlers =
+          requestHandlers == null ? Collections.emptyList() : ImmutableList.copyOf(requestHandlers);
       this.proxy = proxy;
       this.useGzip = useGzip;
     }
@@ -117,10 +135,12 @@ public class AwsSdkClientSupplier {
         proxy.apply(clientConfiguration);
       }
 
-      builder.withCredentials(key.awsCredentialsProvider)
-        .withClientConfiguration(clientConfiguration);
+      builder
+          .withCredentials(key.awsCredentialsProvider)
+          .withClientConfiguration(clientConfiguration);
       getRequestHandlers(key).ifPresent(builder::withRequestHandlers);
-      builder.withRegion(key.getRegion().orElseGet(() -> new SpinnakerAwsRegionProvider().getRegion()));
+      builder.withRegion(
+          key.getRegion().orElseGet(() -> new SpinnakerAwsRegionProvider().getRegion()));
 
       return builder.build();
     }
@@ -137,25 +157,30 @@ public class AwsSdkClientSupplier {
 
     private RetryPolicy getRetryPolicy(AmazonClientKey<?> key) {
 
-      if (!(key.getAwsCredentialsProvider() instanceof NetflixSTSAssumeRoleSessionCredentialsProvider)) {
+      if (!(key.getAwsCredentialsProvider()
+          instanceof NetflixSTSAssumeRoleSessionCredentialsProvider)) {
         return retryPolicy;
       }
 
-      final RetryPolicy.RetryCondition delegatingRetryCondition = (originalRequest, exception, retriesAttempted) -> {
-        NetflixSTSAssumeRoleSessionCredentialsProvider stsCredentialsProvider = (NetflixSTSAssumeRoleSessionCredentialsProvider) key.getAwsCredentialsProvider();
-        if (exception instanceof AmazonServiceException) {
-          ((AmazonServiceException) exception).getHttpHeaders().put("targetAccountId", stsCredentialsProvider.getAccountId());
-        }
-        return retryPolicy.getRetryCondition().shouldRetry(originalRequest, exception, retriesAttempted);
-      };
+      final RetryPolicy.RetryCondition delegatingRetryCondition =
+          (originalRequest, exception, retriesAttempted) -> {
+            NetflixSTSAssumeRoleSessionCredentialsProvider stsCredentialsProvider =
+                (NetflixSTSAssumeRoleSessionCredentialsProvider) key.getAwsCredentialsProvider();
+            if (exception instanceof AmazonServiceException) {
+              ((AmazonServiceException) exception)
+                  .getHttpHeaders()
+                  .put("targetAccountId", stsCredentialsProvider.getAccountId());
+            }
+            return retryPolicy
+                .getRetryCondition()
+                .shouldRetry(originalRequest, exception, retriesAttempted);
+          };
 
       return new RetryPolicy(
-        delegatingRetryCondition,
-        retryPolicy.getBackoffStrategy(),
-        retryPolicy.getMaxErrorRetry(),
-        retryPolicy.isMaxErrorRetryInClientConfigHonored()
-      );
-
+          delegatingRetryCondition,
+          retryPolicy.getBackoffStrategy(),
+          retryPolicy.getMaxErrorRetry(),
+          retryPolicy.isMaxErrorRetryInClientConfigHonored());
     }
   }
 
@@ -165,7 +190,11 @@ public class AwsSdkClientSupplier {
     private final Region region;
     private final RequestHandler2 requestHandler;
 
-    public AmazonClientKey(Class<? extends AwsClientBuilder<?, T>> implClass, AWSCredentialsProvider awsCredentialsProvider, String region, RequestHandler2 requestHandler) {
+    public AmazonClientKey(
+        Class<? extends AwsClientBuilder<?, T>> implClass,
+        AWSCredentialsProvider awsCredentialsProvider,
+        String region,
+        RequestHandler2 requestHandler) {
       this.implClass = requireNonNull(implClass);
       this.awsCredentialsProvider = requireNonNull(awsCredentialsProvider);
       this.region = region == null ? null : RegionUtils.getRegion(region);
@@ -198,7 +227,9 @@ public class AwsSdkClientSupplier {
       if (!implClass.equals(that.implClass)) return false;
       if (!awsCredentialsProvider.equals(that.awsCredentialsProvider)) return false;
       if (region != that.region) return false;
-      return requestHandler != null ? requestHandler.equals(that.requestHandler) : that.requestHandler == null;
+      return requestHandler != null
+          ? requestHandler.equals(that.requestHandler)
+          : that.requestHandler == null;
     }
 
     @Override

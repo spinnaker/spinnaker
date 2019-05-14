@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Unshare
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.UnshareCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.UNSHARE_SERVICE)
 @Component
-public class UnshareCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class UnshareCloudFoundryServiceAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new UnshareCloudFoundryServiceAtomicOperation(convertDescription(input));
@@ -35,7 +35,8 @@ public class UnshareCloudFoundryServiceAtomicOperationConverter extends Abstract
 
   @Override
   public UnshareCloudFoundryServiceDescription convertDescription(Map input) {
-    UnshareCloudFoundryServiceDescription converted = getObjectMapper().convertValue(input, UnshareCloudFoundryServiceDescription.class);
+    UnshareCloudFoundryServiceDescription converted =
+        getObjectMapper().convertValue(input, UnshareCloudFoundryServiceDescription.class);
     converted.setClient(getClient(input));
     return converted;
   }

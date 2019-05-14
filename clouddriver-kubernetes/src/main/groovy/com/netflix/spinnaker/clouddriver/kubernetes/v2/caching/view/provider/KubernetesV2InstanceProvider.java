@@ -34,25 +34,26 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import io.kubernetes.client.models.V1Container;
 import io.kubernetes.client.models.V1Pod;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 @Component
 @Slf4j
-public class KubernetesV2InstanceProvider implements InstanceProvider<KubernetesV2Instance, List<ContainerLog>> {
+public class KubernetesV2InstanceProvider
+    implements InstanceProvider<KubernetesV2Instance, List<ContainerLog>> {
   private final KubernetesCacheUtils cacheUtils;
   private final KubernetesSpinnakerKindMap kindMap;
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final KubectlJobExecutor jobExecutor;
 
   @Autowired
-  KubernetesV2InstanceProvider(KubernetesCacheUtils cacheUtils,
+  KubernetesV2InstanceProvider(
+      KubernetesCacheUtils cacheUtils,
       KubernetesSpinnakerKindMap kindMap,
       AccountCredentialsRepository accountCredentialsRepository,
       KubectlJobExecutor jobExecutor) {
@@ -94,7 +95,8 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
   public List<ContainerLog> getConsoleOutput(String account, String location, String fullName) {
     KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials;
     try {
-      credentials = (KubernetesNamedAccountCredentials) accountCredentialsRepository.getOne(account);
+      credentials =
+          (KubernetesNamedAccountCredentials) accountCredentialsRepository.getOne(account);
     } catch (Exception e) {
       log.warn("Failure getting account {}", account);
       return null;
@@ -113,10 +115,9 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
 
     String name = parsedName.getRight();
 
-    V1Pod pod = KubernetesCacheDataConverter.getResource(
-        credentials.getCredentials().get(KubernetesKind.POD, location, name),
-        V1Pod.class
-    );
+    V1Pod pod =
+        KubernetesCacheDataConverter.getResource(
+            credentials.getCredentials().get(KubernetesKind.POD, location, name), V1Pod.class);
 
     List<ContainerLog> result = new ArrayList();
 

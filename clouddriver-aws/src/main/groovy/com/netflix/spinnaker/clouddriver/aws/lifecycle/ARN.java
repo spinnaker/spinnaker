@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,10 +43,14 @@ class ARN {
     this.name = sqsMatcher.group(3);
 
     String accountId = sqsMatcher.group(2);
-    this.account = (NetflixAmazonCredentials) accountCredentials.stream()
-      .filter(c -> accountId.equals(c.getAccountId()))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("No account credentials found for " + accountId));
-
+    this.account =
+        (NetflixAmazonCredentials)
+            accountCredentials.stream()
+                .filter(c -> accountId.equals(c.getAccountId()))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "No account credentials found for " + accountId));
   }
 }

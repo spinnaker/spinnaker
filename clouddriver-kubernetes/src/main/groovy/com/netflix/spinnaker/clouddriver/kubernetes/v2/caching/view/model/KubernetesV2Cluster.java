@@ -23,12 +23,11 @@ import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.Data;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
 
 @Data
 public class KubernetesV2Cluster implements Cluster {
@@ -48,14 +47,15 @@ public class KubernetesV2Cluster implements Cluster {
     this.moniker = Moniker.builder().cluster(name).app(application).build();
   }
 
-  public KubernetesV2Cluster(String rawKey, List<KubernetesV2ServerGroup> serverGroups, List<KubernetesV2LoadBalancer> loadBalancers) {
+  public KubernetesV2Cluster(
+      String rawKey,
+      List<KubernetesV2ServerGroup> serverGroups,
+      List<KubernetesV2LoadBalancer> loadBalancers) {
     this(rawKey);
-    this.serverGroups = serverGroups.stream()
-        .map(sg -> (ServerGroup) sg)
-        .collect(Collectors.toSet());
+    this.serverGroups =
+        serverGroups.stream().map(sg -> (ServerGroup) sg).collect(Collectors.toSet());
 
-    this.loadBalancers = loadBalancers.stream()
-        .map(sg -> (LoadBalancer) sg)
-        .collect(Collectors.toSet());
+    this.loadBalancers =
+        loadBalancers.stream().map(sg -> (LoadBalancer) sg).collect(Collectors.toSet());
   }
 }

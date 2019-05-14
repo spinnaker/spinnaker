@@ -23,5 +23,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class DeleteLambdaFunctionDescription extends AbstractLambdaFunctionDescription {
   String functionName;
-  //TODO : Stub, implement later
+  // TODO : Stub, implement later
 }

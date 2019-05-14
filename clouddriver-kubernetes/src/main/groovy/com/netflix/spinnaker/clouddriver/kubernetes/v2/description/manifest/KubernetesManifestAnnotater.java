@@ -23,13 +23,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesManifestAnnotater {
@@ -52,15 +51,18 @@ public class KubernetesManifestAnnotater {
   private static final String VERSIONED = STRATEGY_ANNOTATION_PREFIX + "/versioned";
   private static final String RECREATE = STRATEGY_ANNOTATION_PREFIX + "/recreate";
   private static final String REPLACE = STRATEGY_ANNOTATION_PREFIX + "/replace";
-  private static final String MAX_VERSION_HISTORY = STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
-  private static final String USE_SOURCE_CAPACITY = STRATEGY_ANNOTATION_PREFIX + "/use-source-capacity";
+  private static final String MAX_VERSION_HISTORY =
+      STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
+  private static final String USE_SOURCE_CAPACITY =
+      STRATEGY_ANNOTATION_PREFIX + "/use-source-capacity";
   private static final String LOAD_BALANCERS = TRAFFIC_ANNOTATION_PREFIX + "/load-balancers";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String KUBECTL_ANNOTATION_PREFIX = "kubectl." + KUBERNETES_ANNOTATION;
   private static final String DEPLOYMENT_ANNOTATION_PREFIX = "deployment." + KUBERNETES_ANNOTATION;
   private static final String DEPLOYMENT_REVISION = DEPLOYMENT_ANNOTATION_PREFIX + "/revision";
-  private static final String KUBECTL_LAST_APPLIED_CONFIGURATION = KUBECTL_ANNOTATION_PREFIX + "/last-applied-configuration";
+  private static final String KUBECTL_LAST_APPLIED_CONFIGURATION =
+      KUBECTL_ANNOTATION_PREFIX + "/last-applied-configuration";
 
   private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -85,7 +87,8 @@ public class KubernetesManifestAnnotater {
     }
   }
 
-  private static <T> T getAnnotation(Map<String, String> annotations, String key, TypeReference<T> typeReference) {
+  private static <T> T getAnnotation(
+      Map<String, String> annotations, String key, TypeReference<T> typeReference) {
     return getAnnotation(annotations, key, typeReference, null);
   }
 
@@ -98,7 +101,8 @@ public class KubernetesManifestAnnotater {
     return typeReference.getType().getTypeName().equals(String.class.getName());
   }
 
-  // This is to read values that were annotated with the ObjectMapper with quotes, before we started ignoring the quotes
+  // This is to read values that were annotated with the ObjectMapper with quotes, before we started
+  // ignoring the quotes
   private static boolean looksLikeSerializedString(String value) {
     if (StringUtils.isEmpty(value) || value.length() == 1) {
       return false;
@@ -107,7 +111,8 @@ public class KubernetesManifestAnnotater {
     return value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"';
   }
 
-  private static <T> T getAnnotation(Map<String, String> annotations, String key, TypeReference<T> typeReference, T defaultValue) {
+  private static <T> T getAnnotation(
+      Map<String, String> annotations, String key, TypeReference<T> typeReference, T defaultValue) {
     String value = annotations.get(key);
     if (value == null) {
       return defaultValue;
@@ -131,25 +136,32 @@ public class KubernetesManifestAnnotater {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, moniker);
 
-    manifest.getSpecTemplateAnnotations().flatMap(a -> {
-      storeAnnotations(a, moniker);
-      return Optional.empty();
-    });
+    manifest
+        .getSpecTemplateAnnotations()
+        .flatMap(
+            a -> {
+              storeAnnotations(a, moniker);
+              return Optional.empty();
+            });
   }
 
   public static void annotateManifest(KubernetesManifest manifest, Artifact artifact) {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, artifact);
 
-    manifest.getSpecTemplateAnnotations().flatMap(a -> {
-      storeAnnotations(a, artifact);
-      return Optional.empty();
-    });
+    manifest
+        .getSpecTemplateAnnotations()
+        .flatMap(
+            a -> {
+              storeAnnotations(a, artifact);
+              return Optional.empty();
+            });
   }
 
   private static void storeAnnotations(Map<String, String> annotations, Moniker moniker) {
     if (moniker == null) {
-      throw new IllegalArgumentException("Every resource deployed via spinnaker must be assigned a moniker");
+      throw new IllegalArgumentException(
+          "Every resource deployed via spinnaker must be assigned a moniker");
     }
 
     storeAnnotation(annotations, CLUSTER, moniker.getCluster());
@@ -177,12 +189,13 @@ public class KubernetesManifestAnnotater {
       return Optional.empty();
     }
 
-    return Optional.of(Artifact.builder()
-        .type(type)
-        .name(getAnnotation(annotations, NAME, new TypeReference<String>() {}))
-        .location(getAnnotation(annotations, LOCATION, new TypeReference<String>() {}))
-        .version(getAnnotation(annotations, VERSION, new TypeReference<String>() {}))
-        .build());
+    return Optional.of(
+        Artifact.builder()
+            .type(type)
+            .name(getAnnotation(annotations, NAME, new TypeReference<String>() {}))
+            .location(getAnnotation(annotations, LOCATION, new TypeReference<String>() {}))
+            .version(getAnnotation(annotations, VERSION, new TypeReference<String>() {}))
+            .build());
   }
 
   public static Moniker getMoniker(KubernetesManifest manifest) {
@@ -191,22 +204,35 @@ public class KubernetesManifestAnnotater {
     Integer defaultSequence = parsed.getSequence();
 
     return Moniker.builder()
-        .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}, parsed.getCluster()))
-        .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}, parsed.getApp()))
+        .cluster(
+            getAnnotation(
+                annotations, CLUSTER, new TypeReference<String>() {}, parsed.getCluster()))
+        .app(
+            getAnnotation(
+                annotations, APPLICATION, new TypeReference<String>() {}, parsed.getApp()))
         .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, null))
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, null))
-        .sequence(getAnnotation(annotations, SEQUENCE, new TypeReference<Integer>() {},
-            manifest.getKind() == KubernetesKind.REPLICA_SET ?
-                getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, defaultSequence) :
-              defaultSequence
-        ))
+        .sequence(
+            getAnnotation(
+                annotations,
+                SEQUENCE,
+                new TypeReference<Integer>() {},
+                manifest.getKind() == KubernetesKind.REPLICA_SET
+                    ? getAnnotation(
+                        annotations,
+                        DEPLOYMENT_REVISION,
+                        new TypeReference<Integer>() {},
+                        defaultSequence)
+                    : defaultSequence))
         .build();
   }
 
   public static KubernetesManifestTraffic getTraffic(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
 
-    List<String> loadBalancers = getAnnotation(annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}, new ArrayList<>());
+    List<String> loadBalancers =
+        getAnnotation(
+            annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}, new ArrayList<>());
     return new KubernetesManifestTraffic(loadBalancers);
   }
 
@@ -219,25 +245,27 @@ public class KubernetesManifestAnnotater {
       if (currentTraffic.getLoadBalancers().equals(loadBalancers)) {
         return;
       } else {
-        throw new RuntimeException(String.format(
-          "Manifest already has %s annotation set to %s. Failed attempting to set it to %s.",
-          LOAD_BALANCERS,
-          currentTraffic.getLoadBalancers(),
-          loadBalancers
-        ));
+        throw new RuntimeException(
+            String.format(
+                "Manifest already has %s annotation set to %s. Failed attempting to set it to %s.",
+                LOAD_BALANCERS, currentTraffic.getLoadBalancers(), loadBalancers));
       }
     }
     storeAnnotation(annotations, LOAD_BALANCERS, loadBalancers);
   }
 
-  public static void validateAnnotationsForRolloutStrategies(KubernetesManifest manifest, KubernetesDeployManifestDescription.Strategy strategy) {
+  public static void validateAnnotationsForRolloutStrategies(
+      KubernetesManifest manifest, KubernetesDeployManifestDescription.Strategy strategy) {
     Map<String, String> annotations = manifest.getAnnotations();
-    Integer maxVersionHistory = getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {});
-    if (strategy == KubernetesDeployManifestDescription.Strategy.RED_BLACK && maxVersionHistory != null && maxVersionHistory < 2) {
-      throw new RuntimeException(String.format(
-        "The max version history specified in your manifest conflicts with the behavior of the Red/Black rollout strategy. Please update your %s annotation to a value greater than or equal to 2.",
-        MAX_VERSION_HISTORY
-      ));
+    Integer maxVersionHistory =
+        getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {});
+    if (strategy == KubernetesDeployManifestDescription.Strategy.RED_BLACK
+        && maxVersionHistory != null
+        && maxVersionHistory < 2) {
+      throw new RuntimeException(
+          String.format(
+              "The max version history specified in your manifest conflicts with the behavior of the Red/Black rollout strategy. Please update your %s annotation to a value greater than or equal to 2.",
+              MAX_VERSION_HISTORY));
     }
   }
 
@@ -257,14 +285,20 @@ public class KubernetesManifestAnnotater {
         .versioned(getAnnotation(annotations, VERSIONED, new TypeReference<Boolean>() {}))
         .recreate(getAnnotation(annotations, RECREATE, new TypeReference<Boolean>() {}))
         .replace(getAnnotation(annotations, REPLACE, new TypeReference<Boolean>() {}))
-        .maxVersionHistory(getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {}))
-        .useSourceCapacity(getAnnotation(annotations, USE_SOURCE_CAPACITY, new TypeReference<Boolean>() {}))
+        .maxVersionHistory(
+            getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {}))
+        .useSourceCapacity(
+            getAnnotation(annotations, USE_SOURCE_CAPACITY, new TypeReference<Boolean>() {}))
         .build();
   }
 
   public static KubernetesManifest getLastAppliedConfiguration(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
 
-    return getAnnotation(annotations, KUBECTL_LAST_APPLIED_CONFIGURATION, new TypeReference<KubernetesManifest>() { }, null);
+    return getAnnotation(
+        annotations,
+        KUBECTL_LAST_APPLIED_CONFIGURATION,
+        new TypeReference<KubernetesManifest>() {},
+        null);
   }
 }

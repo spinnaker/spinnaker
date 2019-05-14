@@ -20,11 +20,11 @@ import com.netflix.spinnaker.clouddriver.artifacts.exceptions.FailedDownloadExce
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
-
 import java.io.IOException;
 import java.io.InputStream;
 
-public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount> extends BaseHttpArtifactCredentials<T> {
+public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount>
+    extends BaseHttpArtifactCredentials<T> {
   protected SimpleHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
     super(okHttpClient, account);
   }
@@ -32,7 +32,10 @@ public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount> e
   protected HttpUrl getDownloadUrl(Artifact artifact) throws IOException {
     HttpUrl url = HttpUrl.parse(artifact.getReference());
     if (url == null) {
-      throw new IllegalArgumentException("Malformed content URL in reference: " + artifact.getReference() + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
+      throw new IllegalArgumentException(
+          "Malformed content URL in reference: "
+              + artifact.getReference()
+              + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
     }
     return url;
   }
@@ -42,7 +45,8 @@ public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount> e
     try {
       return fetchUrl(downloadUrl).byteStream();
     } catch (IOException e) {
-      throw new FailedDownloadException("Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);
+      throw new FailedDownloadException(
+          "Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);
     }
   }
 }

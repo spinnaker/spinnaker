@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.core.limits;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -27,49 +26,62 @@ public class ServiceLimitConfiguration {
   public static final String POLL_TIMEOUT_MILLIS = "agentPollTimeoutMs";
   public static final String API_RATE_LIMIT = "rateLimit";
 
-
   private final ServiceLimits defaults;
   private final Map<String, ServiceLimits> cloudProviderOverrides;
   private final Map<String, ServiceLimits> accountOverrides;
   private final Map<String, ImplementationLimits> implementationLimits;
 
-  public ServiceLimitConfiguration(ServiceLimits defaults, Map<String, ServiceLimits> cloudProviderOverrides, Map<String, ServiceLimits> accountOverrides, Map<String, ImplementationLimits> implementationLimits) {
+  public ServiceLimitConfiguration(
+      ServiceLimits defaults,
+      Map<String, ServiceLimits> cloudProviderOverrides,
+      Map<String, ServiceLimits> accountOverrides,
+      Map<String, ImplementationLimits> implementationLimits) {
     this.defaults = defaults == null ? new ServiceLimits(null) : defaults;
-    this.cloudProviderOverrides = cloudProviderOverrides == null ? Collections.emptyMap() : ImmutableMap.copyOf(cloudProviderOverrides);
-    this.accountOverrides = accountOverrides == null ? Collections.emptyMap() : ImmutableMap.copyOf(accountOverrides);
-    this.implementationLimits = implementationLimits == null ? Collections.emptyMap() : ImmutableMap.copyOf(implementationLimits);
+    this.cloudProviderOverrides =
+        cloudProviderOverrides == null
+            ? Collections.emptyMap()
+            : ImmutableMap.copyOf(cloudProviderOverrides);
+    this.accountOverrides =
+        accountOverrides == null ? Collections.emptyMap() : ImmutableMap.copyOf(accountOverrides);
+    this.implementationLimits =
+        implementationLimits == null
+            ? Collections.emptyMap()
+            : ImmutableMap.copyOf(implementationLimits);
   }
 
-  public Double getLimit(String limit, String implementation, String account, String cloudProvider, Double defaultValue) {
-    return Optional
-      .ofNullable(getImplementationLimit(limit, implementation, account))
-      .orElse(Optional.ofNullable(getAccountLimit(limit, account))
-        .orElse(Optional.ofNullable(getCloudProviderLimit(limit, cloudProvider))
-          .orElse(Optional.ofNullable(defaults.getLimit(limit))
-            .orElse(defaultValue))));
+  public Double getLimit(
+      String limit,
+      String implementation,
+      String account,
+      String cloudProvider,
+      Double defaultValue) {
+    return Optional.ofNullable(getImplementationLimit(limit, implementation, account))
+        .orElse(
+            Optional.ofNullable(getAccountLimit(limit, account))
+                .orElse(
+                    Optional.ofNullable(getCloudProviderLimit(limit, cloudProvider))
+                        .orElse(
+                            Optional.ofNullable(defaults.getLimit(limit)).orElse(defaultValue))));
   }
 
   private Double getAccountLimit(String limit, String account) {
-    return Optional
-      .ofNullable(account)
-      .map(accountOverrides::get)
-      .map(sl -> sl.getLimit(limit))
-      .orElse(null);
+    return Optional.ofNullable(account)
+        .map(accountOverrides::get)
+        .map(sl -> sl.getLimit(limit))
+        .orElse(null);
   }
 
   private Double getCloudProviderLimit(String limit, String cloudProvider) {
-    return Optional
-      .ofNullable(cloudProvider)
-      .map(cloudProviderOverrides::get)
-      .map(sl -> sl.getLimit(limit))
-      .orElse(null);
+    return Optional.ofNullable(cloudProvider)
+        .map(cloudProviderOverrides::get)
+        .map(sl -> sl.getLimit(limit))
+        .orElse(null);
   }
 
   private Double getImplementationLimit(String limit, String implementation, String account) {
-    return Optional
-      .ofNullable(implementation)
-      .map(implementationLimits::get)
-      .map(il -> il.getLimit(limit, account))
-      .orElse(null);
+    return Optional.ofNullable(implementation)
+        .map(implementationLimits::get)
+        .map(il -> il.getLimit(limit, account))
+        .orElse(null);
   }
 }

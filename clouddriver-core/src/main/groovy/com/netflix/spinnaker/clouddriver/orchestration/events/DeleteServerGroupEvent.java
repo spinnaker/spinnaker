@@ -26,7 +26,8 @@ public class DeleteServerGroupEvent implements OperationEvent {
   private final String region;
   private final String name;
 
-  public DeleteServerGroupEvent(String cloudProvider, String accountId, String region, String name) {
+  public DeleteServerGroupEvent(
+      String cloudProvider, String accountId, String region, String name) {
     this.cloudProvider = cloudProvider;
     this.accountId = accountId;
     this.region = region;
@@ -62,13 +63,23 @@ public class DeleteServerGroupEvent implements OperationEvent {
 
   @Override
   public String toString() {
-    return "DeleteServerGroupEvent{" +
-      "type=" + type +
-      ", action=" + action +
-      ", cloudProvider='" + cloudProvider + '\'' +
-      ", accountId='" + accountId + '\'' +
-      ", region='" + region + '\'' +
-      ", name='" + name + '\'' +
-      '}';
+    return "DeleteServerGroupEvent{"
+        + "type="
+        + type
+        + ", action="
+        + action
+        + ", cloudProvider='"
+        + cloudProvider
+        + '\''
+        + ", accountId='"
+        + accountId
+        + '\''
+        + ", region='"
+        + region
+        + '\''
+        + ", name='"
+        + name
+        + '\''
+        + '}';
   }
 }

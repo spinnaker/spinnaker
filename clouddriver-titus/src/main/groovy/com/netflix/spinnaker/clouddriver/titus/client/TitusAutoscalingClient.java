@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.netflix.titus.grpc.protogen.*;
-
 import java.util.List;
 
 public interface TitusAutoscalingClient {

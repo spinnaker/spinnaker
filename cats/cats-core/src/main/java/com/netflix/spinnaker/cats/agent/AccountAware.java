@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.cats.agent;
 
 /**
- * This interface is used to identify classes (typically Agents) that are capable of returning the name of the account
- * they are associated with.
+ * This interface is used to identify classes (typically Agents) that are capable of returning the
+ * name of the account they are associated with.
  */
 public interface AccountAware {
-  /**
-   * Get the name of the account this object is associated with.
-   */
+  /** Get the name of the account this object is associated with. */
   String getAccountName();
 }

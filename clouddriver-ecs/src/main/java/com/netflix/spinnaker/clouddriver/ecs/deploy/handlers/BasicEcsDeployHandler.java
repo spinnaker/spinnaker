@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.BasicEcsDeployDescription;
-
 import java.util.List;
 
 public class BasicEcsDeployHandler implements DeployHandler<BasicEcsDeployDescription> {
@@ -33,7 +32,7 @@ public class BasicEcsDeployHandler implements DeployHandler<BasicEcsDeployDescri
   @Override
   public DeploymentResult handle(BasicEcsDeployDescription description, List priorOutputs) {
 
-    //TODO - Implement this stub
+    // TODO - Implement this stub
 
     return new DeploymentResult();
   }

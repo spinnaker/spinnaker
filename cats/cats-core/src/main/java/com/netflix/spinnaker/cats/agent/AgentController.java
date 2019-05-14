@@ -20,22 +20,26 @@ import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 
 /**
- * AgentController schedules an AgentExecution for each Agent in each Provider in the ProviderRegistry.
- * 
- * When the AgentControllers AgentExecution is invoked, it will trigger a load and cache cycle for that agent.
+ * AgentController schedules an AgentExecution for each Agent in each Provider in the
+ * ProviderRegistry.
+ *
+ * <p>When the AgentControllers AgentExecution is invoked, it will trigger a load and cache cycle
+ * for that agent.
  */
 public class AgentController {
-    public AgentController(ProviderRegistry providerRegistry,
-                           AgentScheduler agentScheduler,
-                           ExecutionInstrumentation executionInstrumentation) {
-        for (Provider provider : providerRegistry.getProviders()) {
-            if (provider instanceof AgentSchedulerAware) {
-              ((AgentSchedulerAware)provider).setAgentScheduler(agentScheduler);
-            }
+  public AgentController(
+      ProviderRegistry providerRegistry,
+      AgentScheduler agentScheduler,
+      ExecutionInstrumentation executionInstrumentation) {
+    for (Provider provider : providerRegistry.getProviders()) {
+      if (provider instanceof AgentSchedulerAware) {
+        ((AgentSchedulerAware) provider).setAgentScheduler(agentScheduler);
+      }
 
-            for (Agent agent : provider.getAgents()) {
-                agentScheduler.schedule(agent, agent.getAgentExecution(providerRegistry), executionInstrumentation);
-            }
-        }
+      for (Agent agent : provider.getAgents()) {
+        agentScheduler.schedule(
+            agent, agent.getAgentExecution(providerRegistry), executionInstrumentation);
+      }
     }
+  }
 }

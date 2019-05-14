@@ -19,23 +19,23 @@ package com.netflix.spinnaker.clouddriver.security;
 import java.util.Set;
 
 public class DefaultAccountCredentialsProvider implements AccountCredentialsProvider {
-    private final AccountCredentialsRepository repository;
+  private final AccountCredentialsRepository repository;
 
-    public DefaultAccountCredentialsProvider() {
-        this.repository = new MapBackedAccountCredentialsRepository();
-    }
+  public DefaultAccountCredentialsProvider() {
+    this.repository = new MapBackedAccountCredentialsRepository();
+  }
 
-    public DefaultAccountCredentialsProvider(AccountCredentialsRepository repository) {
-        this.repository = repository;
-    }
+  public DefaultAccountCredentialsProvider(AccountCredentialsRepository repository) {
+    this.repository = repository;
+  }
 
-    @Override
-    public Set<? extends AccountCredentials> getAll() {
-        return repository.getAll();
-    }
+  @Override
+  public Set<? extends AccountCredentials> getAll() {
+    return repository.getAll();
+  }
 
-    @Override
-    public AccountCredentials getCredentials(String name) {
-        return repository.getOne(name);
-    }
+  @Override
+  public AccountCredentials getCredentials(String name) {
+    return repository.getOne(name);
+  }
 }

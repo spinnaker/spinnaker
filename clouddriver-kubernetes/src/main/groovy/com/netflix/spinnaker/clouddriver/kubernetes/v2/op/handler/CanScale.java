@@ -23,7 +23,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 public interface CanScale {
   KubernetesKind kind();
 
-  default void scale(KubernetesV2Credentials credentials, String namespace, String name, int replicas) {
+  default void scale(
+      KubernetesV2Credentials credentials, String namespace, String name, int replicas) {
     credentials.scale(kind(), namespace, name, replicas);
   }
 }

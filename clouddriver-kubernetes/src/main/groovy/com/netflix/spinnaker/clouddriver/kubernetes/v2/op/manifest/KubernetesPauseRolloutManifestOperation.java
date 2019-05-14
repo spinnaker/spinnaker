@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanPauseRollou
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<Void> {
@@ -37,7 +36,9 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
   private final String accountName;
   private static final String OP_NAME = "PAUSE_ROLLOUT_KUBERNETES_MANIFEST";
 
-  public KubernetesPauseRolloutManifestOperation(KubernetesPauseRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesPauseRolloutManifestOperation(
+      KubernetesPauseRolloutManifestDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -58,15 +59,14 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanPauseRollout)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support pause rollout");
+      throw new IllegalArgumentException(
+          "Resource with " + coordinates + " does not support pause rollout");
     }
 
     CanPauseRollout canPauseRollout = (CanPauseRollout) deployer;
 
     getTask().updateStatus(OP_NAME, "Calling pause rollout operation...");
-    canPauseRollout.pauseRollout(credentials,
-        coordinates.getNamespace(),
-        coordinates.getName());
+    canPauseRollout.pauseRollout(credentials, coordinates.getNamespace(), coordinates.getName());
 
     return null;
   }

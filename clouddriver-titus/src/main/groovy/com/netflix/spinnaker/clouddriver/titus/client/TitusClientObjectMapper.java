@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.util.Optional;
 
 public class TitusClientObjectMapper {
@@ -34,8 +33,9 @@ public class TitusClientObjectMapper {
 
   public static ObjectMapper configure(Optional<ObjectMapper> objectMapper) {
     return objectMapper
-      .map(ObjectMapper::copy).orElse(new ObjectMapper())
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        .map(ObjectMapper::copy)
+        .orElse(new ObjectMapper())
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
   }
 }

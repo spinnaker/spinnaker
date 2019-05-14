@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.model;
 
 public interface Function {
   String getCloudProvider();
+
   String getAccount();
+
   String getRegion();
 }

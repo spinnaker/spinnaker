@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractRegionAsgInstanceIdsDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription;
 
-public class DeregisterInstancesFromLoadBalancerAtomicOperation extends AbstractInstanceLoadBalancerRegistrationAtomicOperation {
-  public DeregisterInstancesFromLoadBalancerAtomicOperation(AbstractRegionAsgInstanceIdsDescription description) {
-    super((InstanceLoadBalancerRegistrationDescription)description);
+public class DeregisterInstancesFromLoadBalancerAtomicOperation
+    extends AbstractInstanceLoadBalancerRegistrationAtomicOperation {
+  public DeregisterInstancesFromLoadBalancerAtomicOperation(
+      AbstractRegionAsgInstanceIdsDescription description) {
+    super((InstanceLoadBalancerRegistrationDescription) description);
   }
 
   @Override

@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
+
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 
 @Component
 public class TaskHealthCacheClient extends AbstractCacheClient<TaskHealth> {

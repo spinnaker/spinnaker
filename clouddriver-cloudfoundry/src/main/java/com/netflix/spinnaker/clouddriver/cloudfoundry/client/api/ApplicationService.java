@@ -20,19 +20,21 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Applicatio
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.InstanceStatus;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
+import java.util.List;
+import java.util.Map;
 import retrofit.client.Response;
 import retrofit.http.*;
 import retrofit.mime.TypedFile;
 
-import java.util.List;
-import java.util.Map;
-
 public interface ApplicationService {
   @GET("/v3/apps")
-  Pagination<Application> all(@Query("page") Integer page, @Query("names") List<String> names, @Query("space_guids") List<String> spaceGuids);
+  Pagination<Application> all(
+      @Query("page") Integer page,
+      @Query("names") List<String> names,
+      @Query("space_guids") List<String> spaceGuids);
 
   @GET("/v3/apps/{guid}")
   Application findById(@Path("guid") String guid);
@@ -48,15 +50,14 @@ public interface ApplicationService {
 
   @GET("/v2/apps")
   Page<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> listAppsFiltered(
-    @Query("page") Integer page,
-    @Query("q") List<String> q,
-    @Query("results-per-page") Integer resultsPerPage);
+      @Query("page") Integer page,
+      @Query("q") List<String> q,
+      @Query("results-per-page") Integer resultsPerPage);
 
-  /**
-   * Requires an empty body.
-   */
+  /** Requires an empty body. */
   @PUT("/v2/apps/{aguid}/routes/{rguid}")
-  Response mapRoute(@Path("aguid") String applicationGuid, @Path("rguid") String routeGuid, @Body MapRoute body);
+  Response mapRoute(
+      @Path("aguid") String applicationGuid, @Path("rguid") String routeGuid, @Body MapRoute body);
 
   @DELETE("/v2/apps/{aguid}/routes/{rguid}")
   Response unmapRoute(@Path("aguid") String applicationGuid, @Path("rguid") String routeGuid);

@@ -1,5 +1,11 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Organization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
@@ -7,16 +13,9 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Space;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 class OrganizationsTest {
   private Organizations organizations;
@@ -25,13 +24,20 @@ class OrganizationsTest {
     OrganizationService organizationService = mock(OrganizationService.class);
     organizations = new Organizations(organizationService);
     when(organizationService.all(any(), any())).thenReturn(generateOrganizationPage());
-    when(organizationService.getSpaceByName(anyString(), any(), any())).thenReturn(generateSpacePage());
+    when(organizationService.getSpaceByName(anyString(), any(), any()))
+        .thenReturn(generateSpacePage());
   }
 
   @Test
   void findSpaceByRegionSucceedsWhenSpaceExistsInOrg() {
-    CloudFoundryOrganization expectedOrganization = CloudFoundryOrganization.builder().id("org-guid").name("org").build();
-    CloudFoundrySpace expectedSpace = CloudFoundrySpace.builder().id("space-guid").name("space").organization(expectedOrganization).build();
+    CloudFoundryOrganization expectedOrganization =
+        CloudFoundryOrganization.builder().id("org-guid").name("org").build();
+    CloudFoundrySpace expectedSpace =
+        CloudFoundrySpace.builder()
+            .id("space-guid")
+            .name("space")
+            .organization(expectedOrganization)
+            .build();
 
     Optional<CloudFoundrySpace> result = organizations.findSpaceByRegion("org > space");
 
@@ -43,7 +49,7 @@ class OrganizationsTest {
     try {
       organizations.findSpaceByRegion("org > sPaCe");
       failBecauseExceptionWasNotThrown(CloudFoundryApiException.class);
-    } catch(Throwable t) {
+    } catch (Throwable t) {
       assertThat(t).isInstanceOf(CloudFoundryApiException.class);
     }
   }

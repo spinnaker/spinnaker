@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class EcsDockerImage {

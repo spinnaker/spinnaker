@@ -17,29 +17,27 @@
 package com.netflix.spinnaker.cats.agent;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * The result of a CachingAgent run.
- */
+/** The result of a CachingAgent run. */
 public interface CacheResult {
-  /**
-   * @return The CacheDatas to cache, keyed by item type.
-   */
+  /** @return The CacheDatas to cache, keyed by item type. */
   Map<String, Collection<CacheData>> getCacheResults();
 
   /**
    * Provides a means to explicitly evict items as a result of a CachingAgent execution.
    *
-   * Note: Eviction will already occur based on the values in getCacheResults for all the types
-   *       that the CachingAgent authoritatively caches - this collection is for additional items
-   *       that were potentially cached out of band of a complete caching run.
+   * <p>Note: Eviction will already occur based on the values in getCacheResults for all the types
+   * that the CachingAgent authoritatively caches - this collection is for additional items that
+   * were potentially cached out of band of a complete caching run.
+   *
    * @return The ids of items that should be explicitly evicted.
    */
-  default Map<String, Collection<String>> getEvictions() { return Collections.emptyMap(); }
+  default Map<String, Collection<String>> getEvictions() {
+    return Collections.emptyMap();
+  }
 
   default Map<String, Object> getIntrospectionDetails() {
     return Collections.emptyMap();

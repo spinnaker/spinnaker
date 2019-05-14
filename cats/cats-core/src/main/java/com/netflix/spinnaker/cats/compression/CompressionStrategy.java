@@ -17,5 +17,6 @@ package com.netflix.spinnaker.cats.compression;
 
 public interface CompressionStrategy {
   String compress(final String str);
+
   String decompress(final String compressed);
 }

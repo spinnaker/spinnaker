@@ -26,94 +26,92 @@ import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
 import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A CatsModule should provide the component configuration for caching a
- * collection of Providers, and return a readable view Cache for access to
- * the cached data.
+ * A CatsModule should provide the component configuration for caching a collection of Providers,
+ * and return a readable view Cache for access to the cached data.
  */
 public interface CatsModule {
 
-    NamedCacheFactory getNamedCacheFactory();
+  NamedCacheFactory getNamedCacheFactory();
 
-    ProviderRegistry getProviderRegistry();
+  ProviderRegistry getProviderRegistry();
 
-    AgentScheduler getAgentScheduler();
+  AgentScheduler getAgentScheduler();
 
-    Cache getView();
+  Cache getView();
 
-    ExecutionInstrumentation getExecutionInstrumentation();
+  ExecutionInstrumentation getExecutionInstrumentation();
 
-    public static class Builder {
-        private NamedCacheFactory cacheFactory;
-        private AgentScheduler scheduler;
-        private ProviderRegistry providerRegistry;
-        private Collection<ExecutionInstrumentation> instrumentations = new LinkedList<>();
+  public static class Builder {
+    private NamedCacheFactory cacheFactory;
+    private AgentScheduler scheduler;
+    private ProviderRegistry providerRegistry;
+    private Collection<ExecutionInstrumentation> instrumentations = new LinkedList<>();
 
-        public Builder scheduler(AgentScheduler agentScheduler) {
-            if (this.scheduler != null) {
-                throw new IllegalStateException("AgentScheduler already configured");
-            }
-            this.scheduler = agentScheduler;
-            return this;
-        }
-
-        public Builder intervalScheduler(long interval) {
-            return scheduler(new DefaultAgentScheduler(interval, TimeUnit.MILLISECONDS));
-        }
-
-        public Builder intervalScheduler(long interval, TimeUnit unit) {
-            return intervalScheduler(unit.toMillis(interval));
-        }
-
-        public Builder instrumentation(Collection<ExecutionInstrumentation> instrumentation) {
-            instrumentations.addAll(instrumentation);
-            return this;
-        }
-
-        public Builder instrumentation(ExecutionInstrumentation... instrumentation) {
-            return instrumentation(Arrays.asList(instrumentation));
-        }
-
-        public Builder cacheFactory(NamedCacheFactory namedCacheFactory) {
-            if (this.cacheFactory != null) {
-                throw new IllegalStateException("NamedCacheFactory already configured");
-            }
-            this.cacheFactory = namedCacheFactory;
-            return this;
-        }
-
-        public Builder providerRegistry(ProviderRegistry providerRegistry) {
-          this.providerRegistry = providerRegistry;
-          return this;
-        }
-
-        public CatsModule build(Provider... providers) {
-            return build(Arrays.asList(providers));
-        }
-
-        public CatsModule build(Collection<Provider> providers) {
-            final ExecutionInstrumentation instrumentation;
-            if (instrumentations.isEmpty()) {
-                instrumentation = new NoopExecutionInstrumentation();
-            } else {
-                instrumentation = new CompositeExecutionInstrumentation(instrumentations);
-            }
-
-            if (scheduler == null) {
-                scheduler = new DefaultAgentScheduler();
-            }
-
-            if (cacheFactory == null) {
-                cacheFactory = new InMemoryNamedCacheFactory();
-            }
-            return new DefaultCatsModule(providerRegistry, providers, cacheFactory, scheduler, instrumentation);
-        }
+    public Builder scheduler(AgentScheduler agentScheduler) {
+      if (this.scheduler != null) {
+        throw new IllegalStateException("AgentScheduler already configured");
+      }
+      this.scheduler = agentScheduler;
+      return this;
     }
 
+    public Builder intervalScheduler(long interval) {
+      return scheduler(new DefaultAgentScheduler(interval, TimeUnit.MILLISECONDS));
+    }
+
+    public Builder intervalScheduler(long interval, TimeUnit unit) {
+      return intervalScheduler(unit.toMillis(interval));
+    }
+
+    public Builder instrumentation(Collection<ExecutionInstrumentation> instrumentation) {
+      instrumentations.addAll(instrumentation);
+      return this;
+    }
+
+    public Builder instrumentation(ExecutionInstrumentation... instrumentation) {
+      return instrumentation(Arrays.asList(instrumentation));
+    }
+
+    public Builder cacheFactory(NamedCacheFactory namedCacheFactory) {
+      if (this.cacheFactory != null) {
+        throw new IllegalStateException("NamedCacheFactory already configured");
+      }
+      this.cacheFactory = namedCacheFactory;
+      return this;
+    }
+
+    public Builder providerRegistry(ProviderRegistry providerRegistry) {
+      this.providerRegistry = providerRegistry;
+      return this;
+    }
+
+    public CatsModule build(Provider... providers) {
+      return build(Arrays.asList(providers));
+    }
+
+    public CatsModule build(Collection<Provider> providers) {
+      final ExecutionInstrumentation instrumentation;
+      if (instrumentations.isEmpty()) {
+        instrumentation = new NoopExecutionInstrumentation();
+      } else {
+        instrumentation = new CompositeExecutionInstrumentation(instrumentations);
+      }
+
+      if (scheduler == null) {
+        scheduler = new DefaultAgentScheduler();
+      }
+
+      if (cacheFactory == null) {
+        cacheFactory = new InMemoryNamedCacheFactory();
+      }
+      return new DefaultCatsModule(
+          providerRegistry, providers, cacheFactory, scheduler, instrumentation);
+    }
+  }
 }

@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
+
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.AliasConfiguration;
 import com.amazonaws.services.lambda.model.EventSourceMappingConfiguration;
@@ -38,26 +41,24 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LambdaCachingAgent implements CachingAgent, AccountAware {
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
-  };
+  private static final TypeReference<Map<String, Object>> ATTRIBUTES =
+      new TypeReference<Map<String, Object>>() {};
 
-  private static final Set<AgentDataType> types = new HashSet<AgentDataType>() {{
-    add(AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns));
-  }};
+  private static final Set<AgentDataType> types =
+      new HashSet<AgentDataType>() {
+        {
+          add(AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns));
+        }
+      };
 
   private final ObjectMapper objectMapper;
 
@@ -65,10 +66,11 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware {
   private final NetflixAmazonCredentials account;
   private final String region;
 
-  LambdaCachingAgent(ObjectMapper objectMapper,
-                     AmazonClientProvider amazonClientProvider,
-                     NetflixAmazonCredentials account,
-                     String region) {
+  LambdaCachingAgent(
+      ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      NetflixAmazonCredentials account,
+      String region) {
     this.objectMapper = objectMapper;
 
     this.amazonClientProvider = amazonClientProvider;
@@ -124,13 +126,14 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware {
 
       attributes.put("revisions", listFunctionRevisions(x.getFunctionArn()));
       attributes.put("aliasConfiguration", listAliasConfiguration(x.getFunctionArn()));
-      attributes.put("eventSourceMappings", listEventSourceMappingConfiguration(x.getFunctionArn()));
+      attributes.put(
+          "eventSourceMappings", listEventSourceMappingConfiguration(x.getFunctionArn()));
 
       data.add(
-        new DefaultCacheData(
-          Keys.getLambdaFunctionKey(account.getName(), region, x.getFunctionName()), attributes, Collections.emptyMap()
-        )
-      );
+          new DefaultCacheData(
+              Keys.getLambdaFunctionKey(account.getName(), region, x.getFunctionName()),
+              attributes,
+              Collections.emptyMap()));
     }
 
     log.info("Caching {} items in {}", String.valueOf(data.size()), getAgentType());
@@ -142,13 +145,15 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware {
     String nextMarker = null;
     Map<String, String> listRevionIds = new HashMap<String, String>();
     do {
-      ListVersionsByFunctionRequest listVersionsByFunctionRequest = new ListVersionsByFunctionRequest();
+      ListVersionsByFunctionRequest listVersionsByFunctionRequest =
+          new ListVersionsByFunctionRequest();
       listVersionsByFunctionRequest.setFunctionName(functionArn);
       if (nextMarker != null) {
         listVersionsByFunctionRequest.setMarker(nextMarker);
       }
 
-      ListVersionsByFunctionResult listVersionsByFunctionResult = lambda.listVersionsByFunction(listVersionsByFunctionRequest);
+      ListVersionsByFunctionResult listVersionsByFunctionResult =
+          lambda.listVersionsByFunction(listVersionsByFunctionRequest);
       for (FunctionConfiguration x : listVersionsByFunctionResult.getVersions()) {
         listRevionIds.put(x.getRevisionId(), x.getVersion());
       }
@@ -177,27 +182,28 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware {
 
     } while (nextMarker != null && nextMarker.length() != 0);
     return aliasConfigurations;
-
   }
 
-  private final List<EventSourceMappingConfiguration> listEventSourceMappingConfiguration(String functionArn) {
+  private final List<EventSourceMappingConfiguration> listEventSourceMappingConfiguration(
+      String functionArn) {
     List<EventSourceMappingConfiguration> eventSourceMappingConfigurations = new ArrayList<>();
 
     AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
     String nextMarker = null;
     do {
-      ListEventSourceMappingsRequest listEventSourceMappingsRequest = new ListEventSourceMappingsRequest();
+      ListEventSourceMappingsRequest listEventSourceMappingsRequest =
+          new ListEventSourceMappingsRequest();
       listEventSourceMappingsRequest.setFunctionName(functionArn);
 
       if (nextMarker != null) {
         listEventSourceMappingsRequest.setMarker(nextMarker);
       }
 
-      ListEventSourceMappingsResult listEventSourceMappingsResult = lambda.listEventSourceMappings(
-        listEventSourceMappingsRequest
-      );
+      ListEventSourceMappingsResult listEventSourceMappingsResult =
+          lambda.listEventSourceMappings(listEventSourceMappingsRequest);
 
-      for (EventSourceMappingConfiguration x : listEventSourceMappingsResult.getEventSourceMappings()) {
+      for (EventSourceMappingConfiguration x :
+          listEventSourceMappingsResult.getEventSourceMappings()) {
         eventSourceMappingConfigurations.add(x);
       }
       nextMarker = listEventSourceMappingsResult.getNextMarker();

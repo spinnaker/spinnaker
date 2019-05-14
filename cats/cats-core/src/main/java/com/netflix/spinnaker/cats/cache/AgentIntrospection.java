@@ -19,21 +19,31 @@ package com.netflix.spinnaker.cats.cache;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 
 /**
- * This is meant to store data about a single agent execution that _doesn't_ make sense to reasonably report to a
- * monitoring system. Being able to inspect a single clouddriver node's use of these caching agents, having them report
- * provider-specific details in the `details` field, (e.g. which namespaces/kinds are cached) and correlate that with
- * details of how long the caching agents are executing, allowing users to both diagnose faulty/underprovisioned nodes, as
- * well as tune their caching configuration by adjusting provider-specific fields.
+ * This is meant to store data about a single agent execution that _doesn't_ make sense to
+ * reasonably report to a monitoring system. Being able to inspect a single clouddriver node's use
+ * of these caching agents, having them report provider-specific details in the `details` field,
+ * (e.g. which namespaces/kinds are cached) and correlate that with details of how long the caching
+ * agents are executing, allowing users to both diagnose faulty/underprovisioned nodes, as well as
+ * tune their caching configuration by adjusting provider-specific fields.
  */
 public interface AgentIntrospection {
   String getId();
+
   String getProvider();
+
   int getTotalAdditions();
+
   int getTotalEvictions();
+
   Long getLastExecutionDurationMs();
+
   Long getLastExecutionStartMs();
+
   Throwable getLastError();
+
   String getLastExecutionStartDate();
+
   void finishWithError(Throwable error, CacheResult result);
+
   void finish(CacheResult result);
 }

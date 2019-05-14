@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junitpioneer.jupiter.TempDirectory;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.TempDirectory;
 
 @ExtendWith(TempDirectory.class)
 class IvySettingsTest {
@@ -44,16 +43,18 @@ class IvySettingsTest {
   }
 
   @Test
-  void parseIvySettingsGeneratedForMavenRepositoryInArtifactory(@TempDirectory.TempDir Path tempDir) {
-    String ivySettingsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-      "<ivy-settings>\n" +
-      "  <settings defaultResolver=\"main\" />\n" +
-      "  <resolvers>\n" +
-      "    <chain name=\"main\">\n" +
-      "      <ibiblio name=\"public\" m2compatible=\"true\" root=\"https://repo.spring.io/libs-release\" />\n" +
-      "    </chain>\n" +
-      "  </resolvers>\n" +
-      "</ivy-settings>";
+  void parseIvySettingsGeneratedForMavenRepositoryInArtifactory(
+      @TempDirectory.TempDir Path tempDir) {
+    String ivySettingsXml =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<ivy-settings>\n"
+            + "  <settings defaultResolver=\"main\" />\n"
+            + "  <resolvers>\n"
+            + "    <chain name=\"main\">\n"
+            + "      <ibiblio name=\"public\" m2compatible=\"true\" root=\"https://repo.spring.io/libs-release\" />\n"
+            + "    </chain>\n"
+            + "  </resolvers>\n"
+            + "</ivy-settings>";
 
     IvySettings settings = IvySettings.parse(ivySettingsXml);
     settings.toIvy(tempDir);
@@ -64,6 +65,7 @@ class IvySettingsTest {
   @Test
   void atLeastOneResolverIsRequired() {
     IvySettings settings = new IvySettings();
-    assertThatThrownBy(() -> settings.toIvySettings(Paths.get("./"))).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> settings.toIvySettings(Paths.get("./")))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }

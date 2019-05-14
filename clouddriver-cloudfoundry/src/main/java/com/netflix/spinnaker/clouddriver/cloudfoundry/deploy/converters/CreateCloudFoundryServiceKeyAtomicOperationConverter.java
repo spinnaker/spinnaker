@@ -19,18 +19,16 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceKeyDescription;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CreateCloudFoundryServiceKeyAtomicOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.ShareCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.CREATE_SERVICE_KEY)
 @Component
-public class CreateCloudFoundryServiceKeyAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class CreateCloudFoundryServiceKeyAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new CreateCloudFoundryServiceKeyAtomicOperation(convertDescription(input));
@@ -38,7 +36,8 @@ public class CreateCloudFoundryServiceKeyAtomicOperationConverter extends Abstra
 
   @Override
   public CreateCloudFoundryServiceKeyDescription convertDescription(Map input) {
-    CreateCloudFoundryServiceKeyDescription converted = getObjectMapper().convertValue(input, CreateCloudFoundryServiceKeyDescription.class);
+    CreateCloudFoundryServiceKeyDescription converted =
+        getObjectMapper().convertValue(input, CreateCloudFoundryServiceKeyDescription.class);
     CloudFoundryClient client = getClient(input);
     converted.setClient(client);
     findSpace(converted.getRegion(), client).ifPresent(converted::setSpace);

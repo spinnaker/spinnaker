@@ -18,16 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.http.enabled")
@@ -39,23 +38,25 @@ public class HttpArtifactConfiguration {
 
   @Bean
   List<? extends HttpArtifactCredentials> httpArtifactCredentials(OkHttpClient okHttpClient) {
-    List<HttpArtifactCredentials> result = httpArtifactProviderProperties.getAccounts()
-      .stream()
-      .map(a -> {
-        try {
-          return new HttpArtifactCredentials(a, okHttpClient);
-        } catch (Exception e) {
-          log.warn("Failure instantiating Http artifact account {}: ", a, e);
-          return null;
-        }
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+    List<HttpArtifactCredentials> result =
+        httpArtifactProviderProperties.getAccounts().stream()
+            .map(
+                a -> {
+                  try {
+                    return new HttpArtifactCredentials(a, okHttpClient);
+                  } catch (Exception e) {
+                    log.warn("Failure instantiating Http artifact account {}: ", a, e);
+                    return null;
+                  }
+                })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-    if (httpArtifactProviderProperties.getAccounts().stream().noneMatch(HttpArtifactAccount::usesAuth)) {
-      HttpArtifactAccount noAuthAccount = new HttpArtifactAccount()
-        .setName("no-auth-http-account");
-      HttpArtifactCredentials noAuthCredentials = new HttpArtifactCredentials(noAuthAccount, okHttpClient);
+    if (httpArtifactProviderProperties.getAccounts().stream()
+        .noneMatch(HttpArtifactAccount::usesAuth)) {
+      HttpArtifactAccount noAuthAccount = new HttpArtifactAccount().setName("no-auth-http-account");
+      HttpArtifactCredentials noAuthCredentials =
+          new HttpArtifactCredentials(noAuthAccount, okHttpClient);
 
       result.add(noAuthCredentials);
     }

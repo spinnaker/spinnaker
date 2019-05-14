@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.titus.grpc.protogen.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,34 +26,49 @@ import java.util.Map;
 
 public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerClient {
 
-  /**
-   * Default connect timeout in milliseconds
-   */
+  /** Default connect timeout in milliseconds */
   private static final long DEFAULT_CONNECT_TIMEOUT = 60000;
 
-  private final LoadBalancerServiceGrpc.LoadBalancerServiceBlockingStub loadBalancerServiceBlockingStub;
+  private final LoadBalancerServiceGrpc.LoadBalancerServiceBlockingStub
+      loadBalancerServiceBlockingStub;
 
-  public RegionScopedTitusLoadBalancerClient(TitusRegion titusRegion,
-                                             Registry registry,
-                                             String environment,
-                                             String eurekaName,
-                                             GrpcChannelFactory channelFactory) {
-    this.loadBalancerServiceBlockingStub = LoadBalancerServiceGrpc.newBlockingStub(channelFactory.build(titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
+  public RegionScopedTitusLoadBalancerClient(
+      TitusRegion titusRegion,
+      Registry registry,
+      String environment,
+      String eurekaName,
+      GrpcChannelFactory channelFactory) {
+    this.loadBalancerServiceBlockingStub =
+        LoadBalancerServiceGrpc.newBlockingStub(
+            channelFactory.build(
+                titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
   }
 
   @Override
   public List<LoadBalancerId> getJobLoadBalancers(String jobId) {
-    return loadBalancerServiceBlockingStub.getJobLoadBalancers(JobId.newBuilder().setId(jobId).build()).getLoadBalancersList();
+    return loadBalancerServiceBlockingStub
+        .getJobLoadBalancers(JobId.newBuilder().setId(jobId).build())
+        .getLoadBalancersList();
   }
 
   @Override
   public void addLoadBalancer(String jobId, String loadBalancerId) {
-    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub).addLoadBalancer(AddLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
+    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub)
+        .addLoadBalancer(
+            AddLoadBalancerRequest.newBuilder()
+                .setJobId(jobId)
+                .setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build())
+                .build());
   }
 
   @Override
   public void removeLoadBalancer(String jobId, String loadBalancerId) {
-    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub).removeLoadBalancer(RemoveLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
+    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub)
+        .removeLoadBalancer(
+            RemoveLoadBalancerRequest.newBuilder()
+                .setJobId(jobId)
+                .setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build())
+                .build());
   }
 
   public Map<String, List<String>> getAllLoadBalancers() {
@@ -66,7 +80,9 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
       if (!cursor.isEmpty()) {
         loadBalancerPage.setCursor(cursor);
       }
-      GetAllLoadBalancersResult getAllLoadBalancersResult = loadBalancerServiceBlockingStub.getAllLoadBalancers(GetAllLoadBalancersRequest.newBuilder().setPage(loadBalancerPage).build());
+      GetAllLoadBalancersResult getAllLoadBalancersResult =
+          loadBalancerServiceBlockingStub.getAllLoadBalancers(
+              GetAllLoadBalancersRequest.newBuilder().setPage(loadBalancerPage).build());
       for (GetJobLoadBalancersResult result : getAllLoadBalancersResult.getJobLoadBalancersList()) {
         for (LoadBalancerId loadBalancerid : result.getLoadBalancersList()) {
           if (results.get(result.getJobId()) == null) {
@@ -83,5 +99,4 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
     } while (hasMore);
     return results;
   }
-
 }

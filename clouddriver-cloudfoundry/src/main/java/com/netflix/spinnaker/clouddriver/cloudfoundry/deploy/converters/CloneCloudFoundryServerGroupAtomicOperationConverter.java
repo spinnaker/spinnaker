@@ -26,10 +26,12 @@ import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.CLONE_SERVER_GROUP)
 @Component
-public class CloneCloudFoundryServerGroupAtomicOperationConverter extends DeployCloudFoundryServerGroupAtomicOperationConverter {
-  public CloneCloudFoundryServerGroupAtomicOperationConverter(@Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
-                                                              ArtifactCredentialsRepository credentialsRepository,
-                                                              ArtifactDownloader artifactDownloader) {
+public class CloneCloudFoundryServerGroupAtomicOperationConverter
+    extends DeployCloudFoundryServerGroupAtomicOperationConverter {
+  public CloneCloudFoundryServerGroupAtomicOperationConverter(
+      @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
+      ArtifactCredentialsRepository credentialsRepository,
+      ArtifactDownloader artifactDownloader) {
     super(operationPoller, credentialsRepository, artifactDownloader);
   }
 }

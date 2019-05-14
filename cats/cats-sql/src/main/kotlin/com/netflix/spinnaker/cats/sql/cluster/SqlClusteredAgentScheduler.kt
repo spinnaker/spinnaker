@@ -92,9 +92,11 @@ class SqlClusteredAgentScheduler(
     enabledAgents = Pattern.compile(enabledAgentPattern, CASE_INSENSITIVE)
   }
 
-  override fun schedule(agent: Agent,
-                        agentExecution: AgentExecution,
-                        executionInstrumentation: ExecutionInstrumentation) {
+  override fun schedule(
+    agent: Agent,
+    agentExecution: AgentExecution,
+    executionInstrumentation: ExecutionInstrumentation
+  ) {
     if (agent is AgentSchedulerAware) {
       agent.agentScheduler = this
     }

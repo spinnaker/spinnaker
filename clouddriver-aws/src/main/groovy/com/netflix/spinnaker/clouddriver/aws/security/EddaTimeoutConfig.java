@@ -40,21 +40,25 @@ public class EddaTimeoutConfig {
   private final Set<String> disabledRegions;
   private boolean albEnabled;
 
-  public EddaTimeoutConfig(long retryBase,
-                           int backoffMillis,
-                           int maxAttempts,
-                           int connectTimeout,
-                           int connectionRequestTimeout,
-                           int socketTimeout,
-                           Collection<String> disabledRegions,
-                           boolean albEnabled) {
+  public EddaTimeoutConfig(
+      long retryBase,
+      int backoffMillis,
+      int maxAttempts,
+      int connectTimeout,
+      int connectionRequestTimeout,
+      int socketTimeout,
+      Collection<String> disabledRegions,
+      boolean albEnabled) {
     this.retryBase = retryBase;
     this.backoffMillis = backoffMillis;
     this.maxAttempts = maxAttempts;
     this.connectTimeout = connectTimeout;
     this.connectionRequestTimeout = connectionRequestTimeout;
     this.socketTimeout = socketTimeout;
-    this.disabledRegions = disabledRegions == null || disabledRegions.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(new LinkedHashSet<>(disabledRegions));
+    this.disabledRegions =
+        disabledRegions == null || disabledRegions.isEmpty()
+            ? Collections.emptySet()
+            : Collections.unmodifiableSet(new LinkedHashSet<>(disabledRegions));
     this.albEnabled = albEnabled;
   }
 
@@ -113,15 +117,14 @@ public class EddaTimeoutConfig {
 
     public EddaTimeoutConfig build() {
       return new EddaTimeoutConfig(
-        retryBase,
-        backoffMillis,
-        maxAttempts,
-        connectTimeout,
-        connectionRequestTimeout,
-        socketTimeout,
-        disabledRegions,
-        albEnabled
-      );
+          retryBase,
+          backoffMillis,
+          maxAttempts,
+          connectTimeout,
+          connectionRequestTimeout,
+          socketTimeout,
+          disabledRegions,
+          albEnabled);
     }
 
     public long getRetryBase() {

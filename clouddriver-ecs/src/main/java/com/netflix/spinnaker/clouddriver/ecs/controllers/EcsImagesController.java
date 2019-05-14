@@ -18,15 +18,14 @@ package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.ImageRepositoryProvider;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/ecs/images")
@@ -39,16 +38,19 @@ public class EcsImagesController {
   }
 
   @RequestMapping(value = "/find", method = RequestMethod.GET)
-  public List<EcsDockerImage> findImage(@RequestParam("q") String dockerImageUrl, HttpServletRequest request) {
+  public List<EcsDockerImage> findImage(
+      @RequestParam("q") String dockerImageUrl, HttpServletRequest request) {
     for (ImageRepositoryProvider provider : imageRepositoryProviders) {
       if (provider.handles(dockerImageUrl)) {
         return provider.findImage(dockerImageUrl);
       }
     }
 
-    throw new Error("The URL is not support by any of the providers. Currently enabled and supported providers are: " +
-      imageRepositoryProviders.stream().
-        map(ImageRepositoryProvider::getRepositoryName).
-        collect(Collectors.joining(", ")) + ".");
+    throw new Error(
+        "The URL is not support by any of the providers. Currently enabled and supported providers are: "
+            + imageRepositoryProviders.stream()
+                .map(ImageRepositoryProvider::getRepositoryName)
+                .collect(Collectors.joining(", "))
+            + ".");
   }
 }

@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.cats.compression;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,18 +24,23 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GZipCompression implements CompressionStrategy {
 
-  private final static Logger log = LoggerFactory.getLogger(GZipCompression.class);
+  private static final Logger log = LoggerFactory.getLogger(GZipCompression.class);
 
-  private final static String CHARSET = "UTF-8";
+  private static final String CHARSET = "UTF-8";
 
   private final long thresholdBytesSize;
   private final boolean enabled;
 
   public GZipCompression(long thresholdBytesSize, boolean enabled) {
-    log.info("Cats using gzip compression: {} bytes threshold, compress enabled: {}", thresholdBytesSize, enabled);
+    log.info(
+        "Cats using gzip compression: {} bytes threshold, compress enabled: {}",
+        thresholdBytesSize,
+        enabled);
     this.thresholdBytesSize = thresholdBytesSize;
     this.enabled = enabled;
   }
@@ -89,7 +91,7 @@ public class GZipCompression implements CompressionStrategy {
     byte[] bytes;
     try {
       bytes = Base64.getDecoder().decode(compressed.getBytes(CHARSET));
-    } catch (IllegalArgumentException|UnsupportedEncodingException e) {
+    } catch (IllegalArgumentException | UnsupportedEncodingException e) {
       return compressed;
     }
 
@@ -115,6 +117,7 @@ public class GZipCompression implements CompressionStrategy {
   }
 
   private static boolean isCompressed(final byte[] compressed) {
-    return compressed[0] == (byte) (GZIPInputStream.GZIP_MAGIC) && compressed[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8);
+    return compressed[0] == (byte) (GZIPInputStream.GZIP_MAGIC)
+        && compressed[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8);
   }
 }

@@ -25,23 +25,20 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.ResponseBody;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArtifactAccount> implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("helm/chart");
+public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArtifactAccount>
+    implements ArtifactCredentials {
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("helm/chart");
 
-  @JsonIgnore
-  private final IndexParser indexParser;
+  @JsonIgnore private final IndexParser indexParser;
 
   HelmArtifactCredentials(HelmArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);
@@ -95,7 +92,8 @@ public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArt
       ResponseBody indexDownloadResponse = fetchUrl(indexParser.indexPath());
       return indexDownloadResponse.byteStream();
     } catch (IOException e) {
-      throw new FailedDownloadException("Failed to download index.yaml file in '" + indexParser.getRepository() + "' repository");
+      throw new FailedDownloadException(
+          "Failed to download index.yaml file in '" + indexParser.getRepository() + "' repository");
     }
   }
 }

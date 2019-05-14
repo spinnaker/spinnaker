@@ -45,12 +45,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,6 +54,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluster> {
@@ -77,15 +76,16 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  public EcsServerClusterProvider(AccountCredentialsProvider accountCredentialsProvider,
-                                  ContainerInformationService containerInformationService,
-                                  SubnetSelector subnetSelector,
-                                  TaskCacheClient taskCacheClient,
-                                  ServiceCacheClient serviceCacheClient,
-                                  ScalableTargetCacheClient scalableTargetCacheClient,
-                                  EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
-                                  TaskDefinitionCacheClient taskDefinitionCacheClient,
-                                  EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient) {
+  public EcsServerClusterProvider(
+      AccountCredentialsProvider accountCredentialsProvider,
+      ContainerInformationService containerInformationService,
+      SubnetSelector subnetSelector,
+      TaskCacheClient taskCacheClient,
+      ServiceCacheClient serviceCacheClient,
+      ScalableTargetCacheClient scalableTargetCacheClient,
+      EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
+      TaskDefinitionCacheClient taskDefinitionCacheClient,
+      EcsCloudWatchAlarmCacheClient ecsCloudWatchAlarmCacheClient) {
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.containerInformationService = containerInformationService;
     this.subnetSelector = subnetSelector;
@@ -97,14 +97,15 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     this.ecsCloudWatchAlarmCacheClient = ecsCloudWatchAlarmCacheClient;
   }
 
-  private Map<String, Set<EcsServerCluster>> findClusters(Map<String, Set<EcsServerCluster>> clusterMap,
-                                                          AmazonCredentials credentials) {
+  private Map<String, Set<EcsServerCluster>> findClusters(
+      Map<String, Set<EcsServerCluster>> clusterMap, AmazonCredentials credentials) {
     return findClusters(clusterMap, credentials, null);
   }
 
-  private Map<String, Set<EcsServerCluster>> findClusters(Map<String, Set<EcsServerCluster>> clusterMap,
-                                                          AmazonCredentials credentials,
-                                                          String application) {
+  private Map<String, Set<EcsServerCluster>> findClusters(
+      Map<String, Set<EcsServerCluster>> clusterMap,
+      AmazonCredentials credentials,
+      String application) {
     for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
       clusterMap = findClustersForRegion(clusterMap, credentials, awsRegion, application);
     }
@@ -112,12 +113,14 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return clusterMap;
   }
 
-  private Map<String, Set<EcsServerCluster>> findClustersForRegion(Map<String, Set<EcsServerCluster>> clusterMap,
-                                                                   AmazonCredentials credentials,
-                                                                   AmazonCredentials.AWSRegion awsRegion,
-                                                                   String application) {
+  private Map<String, Set<EcsServerCluster>> findClustersForRegion(
+      Map<String, Set<EcsServerCluster>> clusterMap,
+      AmazonCredentials credentials,
+      AmazonCredentials.AWSRegion awsRegion,
+      String application) {
 
-    Collection<Service> services = serviceCacheClient.getAll(credentials.getName(), awsRegion.getName());
+    Collection<Service> services =
+        serviceCacheClient.getAll(credentials.getName(), awsRegion.getName());
     Collection<Task> allTasks = taskCacheClient.getAll(credentials.getName(), awsRegion.getName());
 
     for (Service service : services) {
@@ -128,22 +131,40 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         continue;
       }
 
-      Set<LoadBalancer> loadBalancers = new HashSet<>(ecsLoadbalancerCacheClient.find(credentials.getName(), awsRegion.getName()));
+      Set<LoadBalancer> loadBalancers =
+          new HashSet<>(
+              ecsLoadbalancerCacheClient.find(credentials.getName(), awsRegion.getName()));
 
-      Set<Instance> instances = allTasks.stream()
-        .filter(task -> task.getGroup().equals("service:" + serviceName))
-        .map(task -> convertToEcsTask(credentials.getName(), awsRegion.getName(), serviceName, task))
-        .collect(Collectors.toSet());
+      Set<Instance> instances =
+          allTasks.stream()
+              .filter(task -> task.getGroup().equals("service:" + serviceName))
+              .map(
+                  task ->
+                      convertToEcsTask(
+                          credentials.getName(), awsRegion.getName(), serviceName, task))
+              .collect(Collectors.toSet());
 
-      String taskDefinitionKey = Keys.getTaskDefinitionKey(credentials.getName(), awsRegion.getName(), service.getTaskDefinition());
-      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionKey);
+      String taskDefinitionKey =
+          Keys.getTaskDefinitionKey(
+              credentials.getName(), awsRegion.getName(), service.getTaskDefinition());
+      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition =
+          taskDefinitionCacheClient.get(taskDefinitionKey);
       if (taskDefinition == null) {
         continue;
       }
 
-      EcsServerGroup ecsServerGroup = buildEcsServerGroup(credentials.getName(), awsRegion.getName(),
-        serviceName, service.getDesiredCount(), instances, service.getCreatedAt(),
-        service.getClusterName(), taskDefinition, service.getSubnets(), service.getSecurityGroups());
+      EcsServerGroup ecsServerGroup =
+          buildEcsServerGroup(
+              credentials.getName(),
+              awsRegion.getName(),
+              serviceName,
+              service.getDesiredCount(),
+              instances,
+              service.getCreatedAt(),
+              service.getClusterName(),
+              taskDefinition,
+              service.getSubnets(),
+              service.getSecurityGroups());
 
       if (ecsServerGroup == null) {
         continue;
@@ -162,11 +183,13 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         }
 
         if (!found) {
-          EcsServerCluster spinnakerCluster = buildSpinnakerServerCluster(credentials, loadBalancers, ecsServerGroup);
+          EcsServerCluster spinnakerCluster =
+              buildSpinnakerServerCluster(credentials, loadBalancers, ecsServerGroup);
           clusterMap.get(applicationName).add(spinnakerCluster);
         }
       } else {
-        EcsServerCluster spinnakerCluster = buildSpinnakerServerCluster(credentials, loadBalancers, ecsServerGroup);
+        EcsServerCluster spinnakerCluster =
+            buildSpinnakerServerCluster(credentials, loadBalancers, ecsServerGroup);
         clusterMap.put(applicationName, Sets.newHashSet(spinnakerCluster));
       }
     }
@@ -179,18 +202,29 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     Long launchTime = task.getStartedAt();
 
     String address = containerInformationService.getTaskPrivateAddress(account, region, task);
-    List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(taskId, serviceName, account, region);
+    List<Map<String, Object>> healthStatus =
+        containerInformationService.getHealthStatus(taskId, serviceName, account, region);
     String availabilityZone = containerInformationService.getTaskZone(account, region, task);
 
     NetworkInterface networkInterface =
-      !task.getContainers().isEmpty()
-        && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-        ? task.getContainers().get(0).getNetworkInterfaces().get(0) : null;
+        !task.getContainers().isEmpty()
+                && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
+            ? task.getContainers().get(0).getNetworkInterfaces().get(0)
+            : null;
 
-    return new EcsTask(taskId, launchTime, task.getLastStatus(), task.getDesiredStatus(), availabilityZone, healthStatus, address, networkInterface);
+    return new EcsTask(
+        taskId,
+        launchTime,
+        task.getLastStatus(),
+        task.getDesiredStatus(),
+        availabilityZone,
+        healthStatus,
+        address,
+        networkInterface);
   }
 
-  private TaskDefinition buildTaskDefinition(com.amazonaws.services.ecs.model.TaskDefinition taskDefinition) {
+  private TaskDefinition buildTaskDefinition(
+      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition) {
     String roleArn = taskDefinition.getTaskRoleArn();
     String iamRole = roleArn != null ? StringUtils.substringAfterLast(roleArn, "/") : "None";
     ContainerDefinition containerDefinition = taskDefinition.getContainerDefinitions().get(0);
@@ -215,14 +249,17 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     }
 
     return new TaskDefinition()
-      .setContainerImage(containerDefinition.getImage())
-      .setContainerPort(containerDefinition.getPortMappings().isEmpty() ? 0 : containerDefinition.getPortMappings().get(0).getContainerPort())
-      .setCpuUnits(cpu)
-      .setMemoryReservation(memoryReservation)
-      .setMemoryLimit(memoryLimit)
-      .setIamRole(iamRole)
-      .setTaskName(StringUtils.substringAfterLast(taskDefinition.getTaskDefinitionArn(), "/"))
-      .setEnvironmentVariables(containerDefinition.getEnvironment());
+        .setContainerImage(containerDefinition.getImage())
+        .setContainerPort(
+            containerDefinition.getPortMappings().isEmpty()
+                ? 0
+                : containerDefinition.getPortMappings().get(0).getContainerPort())
+        .setCpuUnits(cpu)
+        .setMemoryReservation(memoryReservation)
+        .setMemoryLimit(memoryLimit)
+        .setIamRole(iamRole)
+        .setTaskName(StringUtils.substringAfterLast(taskDefinition.getTaskDefinitionArn(), "/"))
+        .setEnvironmentVariables(containerDefinition.getEnvironment());
   }
 
   private ServerGroup.Capacity buildServerGroupCapacity(int desiredCount, ScalableTarget target) {
@@ -232,33 +269,35 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       capacity.setMin(target.getMinCapacity());
       capacity.setMax(target.getMaxCapacity());
     } else {
-      //TODO: Min/Max should be based on (desired count * min/max precent).
+      // TODO: Min/Max should be based on (desired count * min/max precent).
       capacity.setMin(desiredCount);
       capacity.setMax(desiredCount);
     }
     return capacity;
   }
 
-  private EcsServerCluster buildSpinnakerServerCluster(AmazonCredentials credentials,
-                                                       Set<LoadBalancer> loadBalancers,
-                                                       EcsServerGroup ecsServerGroup) {
+  private EcsServerCluster buildSpinnakerServerCluster(
+      AmazonCredentials credentials,
+      Set<LoadBalancer> loadBalancers,
+      EcsServerGroup ecsServerGroup) {
     return new EcsServerCluster()
-      .setAccountName(credentials.getName())
-      .setName(StringUtils.substringBeforeLast(ecsServerGroup.getName(), "-"))
-      .setLoadBalancers(loadBalancers)
-      .setServerGroups(Sets.newHashSet(ecsServerGroup));
+        .setAccountName(credentials.getName())
+        .setName(StringUtils.substringBeforeLast(ecsServerGroup.getName(), "-"))
+        .setLoadBalancers(loadBalancers)
+        .setServerGroups(Sets.newHashSet(ecsServerGroup));
   }
 
-  private EcsServerGroup buildEcsServerGroup(String account,
-                                             String region,
-                                             String serviceName,
-                                             int desiredCount,
-                                             Set<Instance> instances,
-                                             long creationTime,
-                                             String ecsCluster,
-                                             com.amazonaws.services.ecs.model.TaskDefinition taskDefinition,
-                                             List<String> eniSubnets,
-                                             List<String> eniSecurityGroups) {
+  private EcsServerGroup buildEcsServerGroup(
+      String account,
+      String region,
+      String serviceName,
+      int desiredCount,
+      Set<Instance> instances,
+      long creationTime,
+      String ecsCluster,
+      com.amazonaws.services.ecs.model.TaskDefinition taskDefinition,
+      List<String> eniSubnets,
+      List<String> eniSecurityGroups) {
     ServerGroup.InstanceCounts instanceCounts = buildInstanceCount(instances);
     TaskDefinition ecsTaskDefinition = buildTaskDefinition(taskDefinition);
 
@@ -279,9 +318,13 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       String taskKey = Keys.getTaskKey(account, region, taskId);
       Task task = taskCacheClient.get(taskKey);
 
-      com.amazonaws.services.ec2.model.Instance ec2Instance = containerInformationService.getEc2Instance(account, region, task);
+      com.amazonaws.services.ec2.model.Instance ec2Instance =
+          containerInformationService.getEc2Instance(account, region, task);
 
-      if (eniSubnets != null && !eniSubnets.isEmpty() && eniSecurityGroups != null && !eniSecurityGroups.isEmpty()) {
+      if (eniSubnets != null
+          && !eniSubnets.isEmpty()
+          && eniSecurityGroups != null
+          && !eniSecurityGroups.isEmpty()) {
         securityGroups = eniSecurityGroups.stream().collect(Collectors.toSet());
 
         Collection<String> vpcIds = subnetSelector.getSubnetVpcIds(account, region, eniSubnets);
@@ -295,40 +338,43 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         }
       } else if (ec2Instance != null) {
         vpcId = ec2Instance.getVpcId();
-        securityGroups = ec2Instance.getSecurityGroups().stream()
-          .map(GroupIdentifier::getGroupId)
-          .collect(Collectors.toSet());
+        securityGroups =
+            ec2Instance.getSecurityGroups().stream()
+                .map(GroupIdentifier::getGroupId)
+                .collect(Collectors.toSet());
       }
     }
 
+    Set<String> metricAlarmNames =
+        ecsCloudWatchAlarmCacheClient.getMetricAlarms(serviceName, account, region).stream()
+            .map(EcsMetricAlarm::getAlarmName)
+            .collect(Collectors.toSet());
 
-    Set<String> metricAlarmNames = ecsCloudWatchAlarmCacheClient.getMetricAlarms(serviceName, account, region).stream()
-      .map(EcsMetricAlarm::getAlarmName)
-      .collect(Collectors.toSet());
+    EcsServerGroup serverGroup =
+        new EcsServerGroup()
+            .setDisabled(capacity.getDesired() == 0)
+            .setName(serviceName)
+            .setCloudProvider(EcsCloudProvider.ID)
+            .setType(EcsCloudProvider.ID)
+            .setRegion(region)
+            .setInstances(instances)
+            .setCapacity(capacity)
+            .setInstanceCounts(instanceCounts)
+            .setCreatedTime(creationTime)
+            .setEcsCluster(ecsCluster)
+            .setTaskDefinition(ecsTaskDefinition)
+            .setVpcId(vpcId)
+            .setSecurityGroups(securityGroups)
+            .setMetricAlarms(metricAlarmNames);
 
-    EcsServerGroup serverGroup = new EcsServerGroup()
-      .setDisabled(capacity.getDesired() == 0)
-      .setName(serviceName)
-      .setCloudProvider(EcsCloudProvider.ID)
-      .setType(EcsCloudProvider.ID)
-      .setRegion(region)
-      .setInstances(instances)
-      .setCapacity(capacity)
-      .setInstanceCounts(instanceCounts)
-      .setCreatedTime(creationTime)
-      .setEcsCluster(ecsCluster)
-      .setTaskDefinition(ecsTaskDefinition)
-      .setVpcId(vpcId)
-      .setSecurityGroups(securityGroups)
-      .setMetricAlarms(metricAlarmNames);
-
-    EcsServerGroup.AutoScalingGroup asg = new EcsServerGroup.AutoScalingGroup()
-      .setDesiredCapacity(scalableTarget.getMaxCapacity())
-      .setMaxSize(scalableTarget.getMaxCapacity())
-      .setMinSize(scalableTarget.getMinCapacity());
+    EcsServerGroup.AutoScalingGroup asg =
+        new EcsServerGroup.AutoScalingGroup()
+            .setDesiredCapacity(scalableTarget.getMaxCapacity())
+            .setMaxSize(scalableTarget.getMaxCapacity())
+            .setMinSize(scalableTarget.getMinCapacity());
 
     // TODO: Update Deck to handle an asg. Current Deck implementation uses a EC2 AutoScaling Group
-    //serverGroup.setAsg(asg);
+    // serverGroup.setAsg(asg);
 
     return serverGroup;
   }
@@ -359,10 +405,10 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
           instanceCounts.setUp(instanceCounts.getUp());
           break;
         default:
-          throw new Error(String.format(
-            "Unexpected health state: %s.  Don't know how to proceed - update %s",
-            instance.getHealthState(),
-            this.getClass().getSimpleName()));
+          throw new Error(
+              String.format(
+                  "Unexpected health state: %s.  Don't know how to proceed - update %s",
+                  instance.getHealthState(), this.getClass().getSimpleName()));
       }
       instanceCounts.setTotal(instanceCounts.getTotal() + 1);
     }
@@ -372,7 +418,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private List<AmazonCredentials> getEcsCredentials() {
     List<AmazonCredentials> ecsCredentialsList = new ArrayList<>();
     for (AccountCredentials credentials : accountCredentialsProvider.getAll()) {
-      if (credentials instanceof AmazonCredentials && credentials.getCloudProvider().equals(EcsCloudProvider.ID)) {
+      if (credentials instanceof AmazonCredentials
+          && credentials.getCloudProvider().equals(EcsCloudProvider.ID)) {
         ecsCredentialsList.add((AmazonCredentials) credentials);
       }
     }
@@ -382,10 +429,12 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   private AmazonCredentials getEcsCredentials(String account) {
     try {
       return getEcsCredentials().stream()
-        .filter(credentials -> credentials.getName().equals(account))
-        .findFirst().get();
+          .filter(credentials -> credentials.getName().equals(account))
+          .findFirst()
+          .get();
     } catch (NoSuchElementException exception) {
-      throw new NoSuchElementException(String.format("There is no ECS account by the name of '%s'", account));
+      throw new NoSuchElementException(
+          String.format("There is no ECS account by the name of '%s'", account));
     }
   }
 
@@ -405,7 +454,6 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return clusterMap;
   }
 
-
   @Override
   public Map<String, Set<EcsServerCluster>> getClusters() {
     Map<String, Set<EcsServerCluster>> clusterMap = new HashMap<>();
@@ -416,25 +464,21 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     return clusterMap;
   }
 
-  /**
-   * Gets Spinnaker clusters for a given Spinnaker application and ECS account.
-   */
+  /** Gets Spinnaker clusters for a given Spinnaker application and ECS account. */
   @Override
   public Set<EcsServerCluster> getClusters(String application, String account) {
     try {
       AmazonCredentials credentials = getEcsCredentials(account);
-      return findClusters(new HashMap<>(), credentials, application)
-        .get(application);
+      return findClusters(new HashMap<>(), credentials, application).get(application);
     } catch (NoSuchElementException exception) {
       log.info("No ECS Credentials were found for account " + account);
       return null;
     }
-
   }
 
-
   /**
-   * Gets a Spinnaker clusters for a given Spinnaker application, ECS account, and the Spinnaker cluster name.
+   * Gets a Spinnaker clusters for a given Spinnaker application, ECS account, and the Spinnaker
+   * cluster name.
    */
   @Override
   public EcsServerCluster getCluster(String application, String account, String name) {
@@ -450,19 +494,22 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
   }
 
   /**
-   * Gets a Spinnaker clusters for a given Spinnaker application, ECS account, and the Spinnaker cluster name.
-   * TODO: Make includeDetails actually function.
+   * Gets a Spinnaker clusters for a given Spinnaker application, ECS account, and the Spinnaker
+   * cluster name. TODO: Make includeDetails actually function.
    */
   @Override
-  public EcsServerCluster getCluster(String application, String account, String name, boolean includeDetails) {
+  public EcsServerCluster getCluster(
+      String application, String account, String name, boolean includeDetails) {
     return getCluster(application, account, name);
   }
 
   /**
-   * Gets a Spinnaker server group for a given Spinnaker application, ECS account, and the Spinnaker server group name.
+   * Gets a Spinnaker server group for a given Spinnaker application, ECS account, and the Spinnaker
+   * server group name.
    */
   @Override
-  public ServerGroup getServerGroup(String account, String region, String serverGroupName, boolean includeDetails) {
+  public ServerGroup getServerGroup(
+      String account, String region, String serverGroupName, boolean includeDetails) {
     if (serverGroupName == null) {
       throw new Error("Invalid Server Group");
     }
@@ -475,9 +522,9 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       clusterMap = findClusters(clusterMap, credentials, application);
     } catch (NoSuchElementException exception) {
       /* This is ugly, but not sure how else to do it. If we don't have creds due
-      *  to not being an ECS account, there's nothing to do here, and we should
-      *  just continue on.
-      */
+       *  to not being an ECS account, there's nothing to do here, and we should
+       *  just continue on.
+       */
       log.info("No ECS credentials were found for the account " + account);
     }
 
@@ -485,14 +532,15 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       for (EcsServerCluster ecsServerCluster : entry.getValue()) {
         for (ServerGroup serverGroup : ecsServerCluster.getServerGroups()) {
           if (region.equals(serverGroup.getRegion())
-            && serverGroupName.equals(serverGroup.getName())) {
+              && serverGroupName.equals(serverGroup.getName())) {
             return serverGroup;
           }
         }
       }
     }
 
-    // I don't think this should throw an error.. other classes (such as the AmazonClusterProvider return null
+    // I don't think this should throw an error.. other classes (such as the AmazonClusterProvider
+    // return null
     // if it isn't found..)
     log.info("No ECS Server Groups were found with the name " + serverGroupName);
     return null;
@@ -509,7 +557,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
   @Override
   public boolean supportsMinimalClusters() {
-    //TODO: Implement if needed.
+    // TODO: Implement if needed.
     return false;
   }
 }

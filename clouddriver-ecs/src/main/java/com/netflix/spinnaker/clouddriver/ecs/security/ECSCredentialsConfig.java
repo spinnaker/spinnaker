@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security;
 
-
-import lombok.Data;
-
 import java.util.List;
-
+import lombok.Data;
 
 @Data
 public class ECSCredentialsConfig {

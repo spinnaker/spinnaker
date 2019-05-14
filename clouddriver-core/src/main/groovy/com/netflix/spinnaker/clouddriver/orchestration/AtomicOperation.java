@@ -17,19 +17,19 @@
 package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * An AtomicOperation is the most fundamental, low-level unit of work in a workflow. Implementations of this interface
- * should perform the simplest form of work possible, often described by a description object (like {@link com.netflix.spinnaker.clouddriver.deploy.DeployDescription}
+ * An AtomicOperation is the most fundamental, low-level unit of work in a workflow. Implementations
+ * of this interface should perform the simplest form of work possible, often described by a
+ * description object (like {@link com.netflix.spinnaker.clouddriver.deploy.DeployDescription}
  */
 public interface AtomicOperation<R> {
   /**
-   * This method will initiate the operation's work. In this, operation's can get a handle on prior output results
-   * from the requiremed method argument.
+   * This method will initiate the operation's work. In this, operation's can get a handle on prior
+   * output results from the requiremed method argument.
    *
    * @param priorOutputs
    * @return parameterized type
@@ -40,4 +40,3 @@ public interface AtomicOperation<R> {
     return Collections.emptyList();
   }
 }
-

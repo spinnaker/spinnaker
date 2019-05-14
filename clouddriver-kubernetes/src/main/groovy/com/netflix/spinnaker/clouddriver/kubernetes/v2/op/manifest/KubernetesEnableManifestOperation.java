@@ -21,11 +21,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesEnableDisableManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
-
 import java.util.List;
 
-public class KubernetesEnableManifestOperation extends AbstractKubernetesEnableDisableManifestOperation {
-  public KubernetesEnableManifestOperation(KubernetesEnableDisableManifestDescription description,
+public class KubernetesEnableManifestOperation
+    extends AbstractKubernetesEnableDisableManifestOperation {
+  public KubernetesEnableManifestOperation(
+      KubernetesEnableDisableManifestDescription description,
       KubernetesResourcePropertyRegistry registry) {
     super(description, registry);
   }
@@ -36,7 +37,10 @@ public class KubernetesEnableManifestOperation extends AbstractKubernetesEnableD
   }
 
   @Override
-  protected List<JsonPatch> patchResource(CanLoadBalance loadBalancerHandler, KubernetesManifest loadBalancer, KubernetesManifest target) {
+  protected List<JsonPatch> patchResource(
+      CanLoadBalance loadBalancerHandler,
+      KubernetesManifest loadBalancer,
+      KubernetesManifest target) {
     return loadBalancerHandler.attachPatch(loadBalancer, target);
   }
 }

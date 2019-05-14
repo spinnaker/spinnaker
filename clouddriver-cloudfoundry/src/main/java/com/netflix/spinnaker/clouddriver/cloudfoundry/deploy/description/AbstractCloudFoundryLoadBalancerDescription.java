@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public abstract class AbstractCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryDescription {
+public abstract class AbstractCloudFoundryLoadBalancerDescription
+    extends AbstractCloudFoundryDescription {
   CloudFoundrySpace space;
 }

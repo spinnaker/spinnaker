@@ -21,17 +21,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class NamedThreadFactory implements ThreadFactory {
-    private final AtomicLong threadNumber = new AtomicLong();
-    private final String baseName;
+  private final AtomicLong threadNumber = new AtomicLong();
+  private final String baseName;
 
-    public NamedThreadFactory(String baseName) {
-        this.baseName = baseName;
-    }
+  public NamedThreadFactory(String baseName) {
+    this.baseName = baseName;
+  }
 
-    @Override
-    public Thread newThread(Runnable r) {
-        Thread t = Executors.defaultThreadFactory().newThread(r);
-        t.setName(baseName + "-" + threadNumber.incrementAndGet());
-        return t;
-    }
+  @Override
+  public Thread newThread(Runnable r) {
+    Thread t = Executors.defaultThreadFactory().newThread(r);
+    t.setName(baseName + "-" + threadNumber.incrementAndGet());
+    return t;
+  }
 }

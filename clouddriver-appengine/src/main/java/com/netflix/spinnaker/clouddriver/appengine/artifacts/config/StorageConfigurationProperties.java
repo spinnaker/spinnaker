@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.clouddriver.appengine.artifacts.config;
 
 import groovy.transform.ToString;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Data
 @ConfigurationProperties("artifacts.gcs")

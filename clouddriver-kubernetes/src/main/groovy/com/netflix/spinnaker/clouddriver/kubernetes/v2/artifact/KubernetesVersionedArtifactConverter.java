@@ -22,21 +22,21 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
-  final private static ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
-  public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest, String account) {
+  public Artifact toArtifact(
+      ArtifactProvider provider, KubernetesManifest manifest, String account) {
     String type = getType(manifest);
     String name = manifest.getName();
     String location = manifest.getNamespace();
@@ -71,7 +71,12 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
     return String.join("-", name, version);
   }
 
-  private String getVersion(ArtifactProvider provider, String type, String name, String location, KubernetesManifest manifest) {
+  private String getVersion(
+      ArtifactProvider provider,
+      String type,
+      String name,
+      String location,
+      KubernetesManifest manifest) {
     List<Artifact> priorVersions = provider.getArtifacts(type, name, location);
 
     Optional<String> maybeVersion = findMatchingVersion(priorVersions, manifest);
@@ -85,26 +90,28 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
   }
 
   private String findGreatestUnusedVersion(List<Artifact> priorVersions) {
-    List<Integer> taken = priorVersions.stream()
-        .map(Artifact::getVersion)
-        .filter(Objects::nonNull)
-        .filter(v -> v.startsWith("v"))
-        .map(v -> v.substring(1))
-        .map(v -> {
-          try {
-            return Integer.valueOf(v);
-          } catch (NumberFormatException e) {
-            return null;
-          }
-        } )
-        .filter(Objects::nonNull)
-        .filter(i -> i >= 0)
-        .collect(Collectors.toList());
+    List<Integer> taken =
+        priorVersions.stream()
+            .map(Artifact::getVersion)
+            .filter(Objects::nonNull)
+            .filter(v -> v.startsWith("v"))
+            .map(v -> v.substring(1))
+            .map(
+                v -> {
+                  try {
+                    return Integer.valueOf(v);
+                  } catch (NumberFormatException e) {
+                    return null;
+                  }
+                })
+            .filter(Objects::nonNull)
+            .filter(i -> i >= 0)
+            .collect(Collectors.toList());
 
     taken.sort(Integer::compareTo);
     int sequence = 0;
     if (!taken.isEmpty()) {
-      sequence = taken.get(taken.size() - 1)  + 1;
+      sequence = taken.get(taken.size() - 1) + 1;
     }
 
     // Match vNNN pattern until impossible
@@ -115,11 +122,14 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
     }
   }
 
-  private Optional<String> findMatchingVersion(List<Artifact> priorVersions, KubernetesManifest manifest) {
+  private Optional<String> findMatchingVersion(
+      List<Artifact> priorVersions, KubernetesManifest manifest) {
     return priorVersions.stream()
-        .filter(a -> getLastAppliedConfiguration(a)
-            .map(c -> c.nonMetadataEquals(manifest))
-            .orElse(false))
+        .filter(
+            a ->
+                getLastAppliedConfiguration(a)
+                    .map(c -> c.nonMetadataEquals(manifest))
+                    .orElse(false))
         .findFirst()
         .map(Artifact::getVersion);
   }
@@ -136,7 +146,8 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
     }
 
     try {
-      KubernetesManifest manifest = objectMapper.convertValue(rawLastAppliedConfiguration, KubernetesManifest.class);
+      KubernetesManifest manifest =
+          objectMapper.convertValue(rawLastAppliedConfiguration, KubernetesManifest.class);
       return Optional.of(manifest);
     } catch (Exception e) {
       log.warn("Malformed lastAppliedConfiguration entry in {}: ", artifact, e);

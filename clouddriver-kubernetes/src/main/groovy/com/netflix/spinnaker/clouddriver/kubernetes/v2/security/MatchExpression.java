@@ -17,9 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class MatchExpression {
@@ -28,6 +27,9 @@ public class MatchExpression {
   List<String> values;
 
   public enum Operator {
-    In, NotIn, Exists, DoesNotExist
+    In,
+    NotIn,
+    Exists,
+    DoesNotExist
   }
 }

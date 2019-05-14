@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanResumeRollo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class KubernetesResumeRolloutManifestOperation implements AtomicOperation<Void> {
@@ -37,7 +36,9 @@ public class KubernetesResumeRolloutManifestOperation implements AtomicOperation
   private final String accountName;
   private static final String OP_NAME = "RESUME_ROLLOUT_KUBERNETES_MANIFEST";
 
-  public KubernetesResumeRolloutManifestOperation(KubernetesResumeRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesResumeRolloutManifestOperation(
+      KubernetesResumeRolloutManifestDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -58,15 +59,14 @@ public class KubernetesResumeRolloutManifestOperation implements AtomicOperation
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanResumeRollout)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support resume rollout");
+      throw new IllegalArgumentException(
+          "Resource with " + coordinates + " does not support resume rollout");
     }
 
     CanResumeRollout canResumeRollout = (CanResumeRollout) deployer;
 
     getTask().updateStatus(OP_NAME, "Calling resume rollout operation...");
-    canResumeRollout.resumeRollout(credentials,
-        coordinates.getNamespace(),
-        coordinates.getName());
+    canResumeRollout.resumeRollout(credentials, coordinates.getNamespace(), coordinates.getName());
 
     return null;
   }

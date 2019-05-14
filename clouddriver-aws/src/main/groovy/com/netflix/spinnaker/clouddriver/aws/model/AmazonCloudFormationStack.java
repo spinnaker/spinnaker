@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.clouddriver.aws.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Date;
 import java.util.Map;
 

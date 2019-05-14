@@ -34,13 +34,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHand
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
@@ -50,11 +49,10 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   private final String accountName;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-  public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description,
-    KubernetesResourcePropertyRegistry registry) {
+  public KubernetesPatchManifestOperation(
+      KubernetesPatchManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
@@ -79,17 +77,31 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
 
     if (mergeStrategy == MergeStrategy.json) {
       // Skip artifact replacement for json patches
-      updateStatus("Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
-      List<JsonPatch> jsonPatches = objectMapper.convertValue(description.getPatchBody(), new TypeReference<List<JsonPatch>>(){});
-      result.merge(patchHandler.patchWithJson(credentials, objToPatch.getNamespace(),
-        objToPatch.getName(), description.getOptions(), jsonPatches));
+      updateStatus(
+          "Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
+      List<JsonPatch> jsonPatches =
+          objectMapper.convertValue(
+              description.getPatchBody(), new TypeReference<List<JsonPatch>>() {});
+      result.merge(
+          patchHandler.patchWithJson(
+              credentials,
+              objToPatch.getNamespace(),
+              objToPatch.getName(),
+              description.getOptions(),
+              jsonPatches));
     } else {
       updateStatus("Swapping out artifacts in " + objToPatch + " from context...");
       ReplaceResult replaceResult = replaceArtifacts(objToPatch, patchHandler);
 
-      updateStatus("Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
-      result.merge(patchHandler.patchWithManifest(credentials, objToPatch.getNamespace(),
-        objToPatch.getName(), description.getOptions(), replaceResult.getManifest()));
+      updateStatus(
+          "Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
+      result.merge(
+          patchHandler.patchWithManifest(
+              credentials,
+              objToPatch.getNamespace(),
+              objToPatch.getName(),
+              description.getOptions(),
+              replaceResult.getManifest()));
       result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
     }
 
@@ -101,21 +113,26 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
     getTask().updateStatus(OP_NAME, status);
   }
 
-  private ReplaceResult replaceArtifacts(KubernetesCoordinates objToPatch,
-    KubernetesHandler patchHandler) {
-    List<Artifact> allArtifacts = description.getAllArtifacts() == null ? new ArrayList<>() :
-      description.getAllArtifacts();
+  private ReplaceResult replaceArtifacts(
+      KubernetesCoordinates objToPatch, KubernetesHandler patchHandler) {
+    List<Artifact> allArtifacts =
+        description.getAllArtifacts() == null ? new ArrayList<>() : description.getAllArtifacts();
 
-    KubernetesManifest manifest = objectMapper.convertValue(description.getPatchBody(), KubernetesManifest.class);
-    ReplaceResult replaceResult = patchHandler.replaceArtifacts(manifest,
-      allArtifacts, objToPatch.getNamespace(), description.getAccount());
+    KubernetesManifest manifest =
+        objectMapper.convertValue(description.getPatchBody(), KubernetesManifest.class);
+    ReplaceResult replaceResult =
+        patchHandler.replaceArtifacts(
+            manifest, allArtifacts, objToPatch.getNamespace(), description.getAccount());
 
     if (description.getRequiredArtifacts() != null) {
-      Set<Artifact> unboundArtifacts = Sets.difference(new HashSet<>(description.getRequiredArtifacts()),
-        replaceResult.getBoundArtifacts());
+      Set<Artifact> unboundArtifacts =
+          Sets.difference(
+              new HashSet<>(description.getRequiredArtifacts()), replaceResult.getBoundArtifacts());
       if (!unboundArtifacts.isEmpty()) {
-        throw new IllegalArgumentException("The following required artifacts could not be bound: '" +
-          unboundArtifacts + "' . Failing the stage as this is likely a configuration error.");
+        throw new IllegalArgumentException(
+            "The following required artifacts could not be bound: '"
+                + unboundArtifacts
+                + "' . Failing the stage as this is likely a configuration error.");
       }
     }
     return replaceResult;
@@ -124,13 +141,15 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   private KubernetesHandler findPatchHandler(KubernetesCoordinates objToPatch) {
     KubernetesResourceProperties properties = registry.get(accountName, objToPatch.getKind());
     if (properties == null) {
-      throw new IllegalArgumentException("Unsupported Kubernetes object kind '" +
-        objToPatch.getKind() + "', unable to continue");
+      throw new IllegalArgumentException(
+          "Unsupported Kubernetes object kind '" + objToPatch.getKind() + "', unable to continue");
     }
     KubernetesHandler patchHandler = properties.getHandler();
     if (patchHandler == null) {
-      throw new IllegalArgumentException("No patch handler available for Kubernetes object kind ' "
-        + objToPatch.getKind() + "', unable to continue");
+      throw new IllegalArgumentException(
+          "No patch handler available for Kubernetes object kind ' "
+              + objToPatch.getKind()
+              + "', unable to continue");
     }
     return patchHandler;
   }

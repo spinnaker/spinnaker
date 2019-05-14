@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.cache;
 
+import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID;
+
 import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
-
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
-
-import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID;
 
 public class Keys implements KeyParser {
   public enum Namespace {
@@ -80,7 +77,8 @@ public class Keys implements KeyParser {
     result.put("type", parts[1]);
     result.put("account", parts[2]);
 
-    Namespace namespace = Namespace.valueOf(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, parts[1]));
+    Namespace namespace =
+        Namespace.valueOf(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, parts[1]));
 
     switch (namespace) {
       case LAMBDA_FUNCTIONS:
@@ -104,13 +102,10 @@ public class Keys implements KeyParser {
 
   public static String getLambdaFunctionKey(String account, String region, String functionName) {
     return String.format(
-      "%s:%s:%s:%s:%s", ID, Namespace.LAMBDA_FUNCTIONS, account, region, functionName
-    );
+        "%s:%s:%s:%s:%s", ID, Namespace.LAMBDA_FUNCTIONS, account, region, functionName);
   }
 
   public static String getIamRoleKey(String account, String iamRoleName) {
-    return String.format(
-      "%s:%s:%s:%s", ID, Namespace.IAM_ROLE, account, iamRoleName
-    );
+    return String.format("%s:%s:%s:%s", ID, Namespace.IAM_ROLE, account, iamRoleName);
   }
 }

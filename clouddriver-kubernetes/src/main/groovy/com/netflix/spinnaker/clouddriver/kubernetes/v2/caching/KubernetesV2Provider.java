@@ -22,12 +22,11 @@ import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import groovy.util.logging.Slf4j;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Slf4j

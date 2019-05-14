@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
-import org.springframework.validation.Errors;
-
 import java.util.Collections;
 import java.util.List;
+import org.springframework.validation.Errors;
 
 public class ServerGroupDescriptionValidator extends CommonValidator {
 
@@ -35,7 +34,8 @@ public class ServerGroupDescriptionValidator extends CommonValidator {
     boolean validCredentials = validateCredentials(typeDescription, errors, "credentials");
 
     if (validCredentials) {
-      validateRegions(typeDescription, Collections.singleton(typeDescription.getRegion()), errors, "region");
+      validateRegions(
+          typeDescription, Collections.singleton(typeDescription.getRegion()), errors, "region");
     }
 
     if (typeDescription.getServerGroupName() == null) {

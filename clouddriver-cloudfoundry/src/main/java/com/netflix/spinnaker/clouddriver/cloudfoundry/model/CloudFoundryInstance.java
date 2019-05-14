@@ -21,17 +21,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 
 @Value
-@EqualsAndHashCode(of = {"appGuid", "key"}, callSuper = false)
+@EqualsAndHashCode(
+    of = {"appGuid", "key"},
+    callSuper = false)
 @Builder
 @JsonDeserialize(builder = CloudFoundryInstance.CloudFoundryInstanceBuilder.class)
 public class CloudFoundryInstance extends CloudFoundryModel implements Instance {

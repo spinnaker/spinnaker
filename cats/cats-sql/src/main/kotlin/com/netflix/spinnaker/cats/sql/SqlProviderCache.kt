@@ -1,12 +1,17 @@
 package com.netflix.spinnaker.cats.sql
 
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.cache.*
 import com.netflix.spinnaker.cats.cache.Cache.StoreType
 import com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import kotlin.contracts.ExperimentalContracts
@@ -68,9 +73,11 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return backingStore.getAll(type, cacheFilter)
   }
 
-  override fun getAll(type: String,
-                      identifiers: MutableCollection<String>?,
-                      cacheFilter: CacheFilter?): MutableCollection<CacheData> {
+  override fun getAll(
+    type: String,
+    identifiers: MutableCollection<String>?,
+    cacheFilter: CacheFilter?
+  ): MutableCollection<CacheData> {
     validateTypes(type)
     return backingStore.getAll(type, identifiers, cacheFilter)
   }
@@ -79,16 +86,20 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return getAllByApplication(type, application, null)
   }
 
-  override fun getAllByApplication(type: String,
-                                   application: String,
-                                   cacheFilter: CacheFilter?): Map<String, MutableCollection<CacheData>> {
+  override fun getAllByApplication(
+    type: String,
+    application: String,
+    cacheFilter: CacheFilter?
+  ): Map<String, MutableCollection<CacheData>> {
     validateTypes(type)
     return backingStore.getAllByApplication(type, application, cacheFilter)
   }
 
-  override fun getAllByApplication(types: Collection<String>,
-                                   application: String,
-                                   filters: Map<String, CacheFilter?>): Map<String, MutableCollection<CacheData>> {
+  override fun getAllByApplication(
+    types: Collection<String>,
+    application: String,
+    filters: Map<String, CacheFilter?>
+  ): Map<String, MutableCollection<CacheData>> {
     validateTypes(types)
     return backingStore.getAllByApplication(types, application, filters)
   }
@@ -96,7 +107,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   /**
    * Retrieves the items for the specified type matching the provided identifiers
    *
-   * @param type        the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param identifiers the identifiers
    * @return the items matching the type and identifiers
    */
@@ -108,7 +119,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * Gets a single item from the cache by type and id
    *
    * @param type the type of the item
-   * @param id   the id of the item
+   * @param id the id of the item
    * @return the item matching the type and id
    */
   override fun get(type: String, id: String?): CacheData? {
@@ -146,9 +157,11 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return backingStore.getIdentifiers(type)
   }
 
-  override fun putCacheResult(source: String,
-                              authoritativeTypes: MutableCollection<String>,
-                              cacheResult: CacheResult) {
+  override fun putCacheResult(
+    source: String,
+    authoritativeTypes: MutableCollection<String>,
+    cacheResult: CacheResult
+  ) {
     try {
       MDC.put("agentClass", "$source putCacheResult")
 
@@ -231,9 +244,11 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     }
   }
 
-  override fun addCacheResult(source: String,
-                              authoritativeTypes: MutableCollection<String>,
-                              cacheResult: CacheResult): Unit {
+  override fun addCacheResult(
+    source: String,
+    authoritativeTypes: MutableCollection<String>,
+    cacheResult: CacheResult
+  ) {
     try {
       MDC.put("agentClass", "$source putCacheResult")
 
@@ -292,11 +307,13 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     cacheDataType(type, agent, items, authoritative, cleanup = true)
   }
 
-  private fun cacheDataType(type: String,
-                            agent: String,
-                            items: Collection<CacheData>,
-                            authoritative: Boolean,
-                            cleanup: Boolean) {
+  private fun cacheDataType(
+    type: String,
+    agent: String,
+    items: Collection<CacheData>,
+    authoritative: Boolean,
+    cleanup: Boolean
+  ) {
     val toStore = ArrayList<CacheData>(items.size + 1)
     items.forEach {
       toStore.add(uniqueifyRelationships(it, agent))

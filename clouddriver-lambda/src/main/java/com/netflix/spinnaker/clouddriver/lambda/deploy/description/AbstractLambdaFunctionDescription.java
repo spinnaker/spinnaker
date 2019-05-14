@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class AbstractLambdaFunctionDescription extends AbstractAmazonCredentialsDescription {
+public abstract class AbstractLambdaFunctionDescription
+    extends AbstractAmazonCredentialsDescription {
   String region;
 }

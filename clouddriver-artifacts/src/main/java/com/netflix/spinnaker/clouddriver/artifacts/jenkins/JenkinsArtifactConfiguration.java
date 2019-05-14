@@ -17,16 +17,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("jenkins.enabled")
@@ -38,18 +37,20 @@ public class JenkinsArtifactConfiguration {
 
   @Bean
   List<? extends JenkinsArtifactCredentials> jenkinsArtifactCredentials(OkHttpClient okHttpClient) {
-    return jenkinsProperties.getMasters()
-      .stream()
-      .map(m -> {
-        try {
-          return new JenkinsArtifactCredentials(new JenkinsArtifactAccount(m.getName(), m.getUsername(), m.getPassword(), m.getAddress()),
-          okHttpClient);
-        } catch (Exception e) {
-          log.warn("Failure instantiating jenkins artifact account {}: ", m, e);
-          return null;
-        }
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+    return jenkinsProperties.getMasters().stream()
+        .map(
+            m -> {
+              try {
+                return new JenkinsArtifactCredentials(
+                    new JenkinsArtifactAccount(
+                        m.getName(), m.getUsername(), m.getPassword(), m.getAddress()),
+                    okHttpClient);
+              } catch (Exception e) {
+                log.warn("Failure instantiating jenkins artifact account {}: ", m, e);
+                return null;
+              }
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

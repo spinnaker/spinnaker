@@ -22,12 +22,11 @@ import com.amazonaws.services.lambda.model.DeleteFunctionResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeleteLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class DeleteLambdaAtomicOperation
-  extends AbstractLambdaAtomicOperation<DeleteLambdaFunctionDescription, DeleteFunctionResult>
-  implements AtomicOperation<DeleteFunctionResult> {
+    extends AbstractLambdaAtomicOperation<DeleteLambdaFunctionDescription, DeleteFunctionResult>
+    implements AtomicOperation<DeleteFunctionResult> {
 
   public DeleteLambdaAtomicOperation(DeleteLambdaFunctionDescription description) {
     super(description, "DELETE_LAMBDA_FUNCTION_CODE");
@@ -44,11 +43,12 @@ public class DeleteLambdaAtomicOperation
     String region = description.getRegion();
     String account = description.getAccount();
 
-    LambdaFunction cache = (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
+    LambdaFunction cache =
+        (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
 
     AWSLambda client = getLambdaClient();
-    DeleteFunctionRequest request = new DeleteFunctionRequest()
-      .withFunctionName(cache.getFunctionArn());
+    DeleteFunctionRequest request =
+        new DeleteFunctionRequest().withFunctionName(cache.getFunctionArn());
 
     DeleteFunctionResult result = client.deleteFunction(request);
     updateTaskStatus("Finished deletion of AWS Lambda Function  Operation...");

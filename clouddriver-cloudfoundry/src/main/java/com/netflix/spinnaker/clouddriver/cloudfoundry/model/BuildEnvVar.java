@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 public enum BuildEnvVar {
-
   JobName(BuildEnvVar.PREFIX + "BUILD_JOB_NAME"),
   JobNumber(BuildEnvVar.PREFIX + "BUILD_JOB_NUMBER"),
   JobUrl(BuildEnvVar.PREFIX + "BUILD_JOB_URL"),

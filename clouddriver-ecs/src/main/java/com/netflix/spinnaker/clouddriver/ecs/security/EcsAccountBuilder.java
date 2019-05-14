@@ -22,18 +22,19 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCre
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-
 import java.util.LinkedList;
 import java.util.List;
 
 public class EcsAccountBuilder {
 
-  public static CredentialsConfig.Account build(NetflixAmazonCredentials netflixAmazonCredentials, String accountName, String accountType) {
+  public static CredentialsConfig.Account build(
+      NetflixAmazonCredentials netflixAmazonCredentials, String accountName, String accountType) {
     CredentialsConfig.Account account = new CredentialsConfig.Account();
     account.setName(accountName);
     account.setAccountType(accountType);
     account.setAccountId(netflixAmazonCredentials.getAccountId());
-    account.setAllowPrivateThirdPartyImages(netflixAmazonCredentials.getAllowPrivateThirdPartyImages());
+    account.setAllowPrivateThirdPartyImages(
+        netflixAmazonCredentials.getAllowPrivateThirdPartyImages());
     account.setBastionEnabled(netflixAmazonCredentials.getBastionEnabled());
     account.setBastionHost(netflixAmazonCredentials.getBastionHost());
     account.setEdda(account.getEdda());
@@ -48,11 +49,14 @@ public class EcsAccountBuilder {
     account.setFront50Enabled(netflixAmazonCredentials.getFront50Enabled());
     account.setRequiredGroupMembership(netflixAmazonCredentials.getRequiredGroupMembership());
 
-    //TODO - The lines below should be conditional on having an AssumeRole
-    if (netflixAmazonCredentials instanceof NetflixAssumeRoleAmazonCredentials &&
-      ((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getAssumeRole() != null) {
-      account.setSessionName(((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getSessionName());
-      account.setAssumeRole(((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getAssumeRole());
+    // TODO - The lines below should be conditional on having an AssumeRole
+    if (netflixAmazonCredentials instanceof NetflixAssumeRoleAmazonCredentials
+        && ((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getAssumeRole()
+            != null) {
+      account.setSessionName(
+          ((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getSessionName());
+      account.setAssumeRole(
+          ((NetflixAssumeRoleAmazonCredentials) netflixAmazonCredentials).getAssumeRole());
     }
 
     List<CredentialsConfig.Region> regions = new LinkedList<>();
@@ -81,7 +85,8 @@ public class EcsAccountBuilder {
     for (String group : netflixAmazonCredentials.getPermissions().allGroups()) {
       List<String> roles = new LinkedList<>();
       roles.add(group);
-      for (Authorization auth : netflixAmazonCredentials.getPermissions().getAuthorizations(roles)) {
+      for (Authorization auth :
+          netflixAmazonCredentials.getPermissions().getAuthorizations(roles)) {
         permBuilder.add(auth, group);
       }
     }

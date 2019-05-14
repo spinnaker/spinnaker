@@ -16,90 +16,109 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import lombok.RequiredArgsConstructor;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class Organizations {
   private final OrganizationService api;
 
-  private final LoadingCache<String, CloudFoundryOrganization> organizationCache = CacheBuilder.newBuilder()
-    .expireAfterWrite(5, TimeUnit.MINUTES)
-    .build(new CacheLoader<String, CloudFoundryOrganization>() {
-      @Override
-      public CloudFoundryOrganization load(@Nonnull String guid) throws CloudFoundryApiException, ResourceNotFoundException {
-        return safelyCall(() -> api.findById(guid))
-          .map(org -> CloudFoundryOrganization.builder()
-            .id(org.getMetadata().getGuid())
-            .name(org.getEntity().getName())
-            .build())
-          .orElseThrow(ResourceNotFoundException::new);
-      }
-    });
+  private final LoadingCache<String, CloudFoundryOrganization> organizationCache =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .build(
+              new CacheLoader<String, CloudFoundryOrganization>() {
+                @Override
+                public CloudFoundryOrganization load(@Nonnull String guid)
+                    throws CloudFoundryApiException, ResourceNotFoundException {
+                  return safelyCall(() -> api.findById(guid))
+                      .map(
+                          org ->
+                              CloudFoundryOrganization.builder()
+                                  .id(org.getMetadata().getGuid())
+                                  .name(org.getEntity().getName())
+                                  .build())
+                      .orElseThrow(ResourceNotFoundException::new);
+                }
+              });
 
   @Nullable
   public CloudFoundryOrganization findById(String orgId) throws CloudFoundryApiException {
     try {
       return organizationCache.get(orgId);
     } catch (ExecutionException e) {
-      if (e.getCause() instanceof ResourceNotFoundException)
-        return null;
+      if (e.getCause() instanceof ResourceNotFoundException) return null;
       throw new CloudFoundryApiException(e.getCause(), "Unable to find organization by id");
     }
   }
 
-  public Optional<CloudFoundryOrganization> findByName(String orgName) throws CloudFoundryApiException {
+  public Optional<CloudFoundryOrganization> findByName(String orgName)
+      throws CloudFoundryApiException {
     return safelyCall(() -> api.all(null, Collections.singletonList("name:" + orgName)))
-      .flatMap(page -> page.getResources().stream().findAny()
-        .map(org -> CloudFoundryOrganization.builder()
-          .id(org.getMetadata().getGuid())
-          .name(org.getEntity().getName())
-          .build())
-      );
+        .flatMap(
+            page ->
+                page.getResources().stream()
+                    .findAny()
+                    .map(
+                        org ->
+                            CloudFoundryOrganization.builder()
+                                .id(org.getMetadata().getGuid())
+                                .name(org.getEntity().getName())
+                                .build()));
   }
 
   public Optional<CloudFoundrySpace> findSpaceByRegion(String region) {
     CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
 
-    // fully populates the space guid which is what Cloud Foundry's API expects as an input, not the name.
+    // fully populates the space guid which is what Cloud Foundry's API expects as an input, not the
+    // name.
     Optional<CloudFoundryOrganization> organization = findByName(space.getOrganization().getName());
 
-    Optional<CloudFoundrySpace> spaceOptional = organization
-      .map(org -> findSpaceByName(org, space.getName()));
+    Optional<CloudFoundrySpace> spaceOptional =
+        organization.map(org -> findSpaceByName(org, space.getName()));
 
-    spaceOptional.ifPresent(spaceCase -> {
-      if (!(space.getName().equals(spaceCase.getName()) &&
-        space.getOrganization().getName().equals(spaceCase.getOrganization().getName()))) {
-        throw new CloudFoundryApiException("Org or Space name not in correct case");
-      }
-    });
+    spaceOptional.ifPresent(
+        spaceCase -> {
+          if (!(space.getName().equals(spaceCase.getName())
+              && space.getOrganization().getName().equals(spaceCase.getOrganization().getName()))) {
+            throw new CloudFoundryApiException("Org or Space name not in correct case");
+          }
+        });
 
     return spaceOptional;
   }
 
   @Nullable
-  private CloudFoundrySpace findSpaceByName(CloudFoundryOrganization organization, String spaceName) {
-    return safelyCall(() -> api.getSpaceByName(organization.getId(), null, Collections.singletonList("name:" + spaceName)))
-      .flatMap(page -> page.getResources().stream().findAny()
-        .map(resource -> CloudFoundrySpace.builder()
-            .id(resource.getMetadata().getGuid())
-            .name(resource.getEntity().getName())
-            .organization(organization)
-            .build()))
-      .orElse(null);
+  private CloudFoundrySpace findSpaceByName(
+      CloudFoundryOrganization organization, String spaceName) {
+    return safelyCall(
+            () ->
+                api.getSpaceByName(
+                    organization.getId(), null, Collections.singletonList("name:" + spaceName)))
+        .flatMap(
+            page ->
+                page.getResources().stream()
+                    .findAny()
+                    .map(
+                        resource ->
+                            CloudFoundrySpace.builder()
+                                .id(resource.getMetadata().getGuid())
+                                .name(resource.getEntity().getName())
+                                .organization(organization)
+                                .build()))
+        .orElse(null);
   }
 }

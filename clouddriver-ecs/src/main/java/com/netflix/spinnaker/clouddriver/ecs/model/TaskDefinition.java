@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
 import com.amazonaws.services.ecs.model.KeyValuePair;
+import java.util.Collection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Collection;
 
 @Data
 @NoArgsConstructor
@@ -34,5 +33,4 @@ public class TaskDefinition {
   int memoryLimit;
 
   Collection<KeyValuePair> environmentVariables;
-
 }

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -28,40 +32,34 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
 import io.vavr.collection.HashMap;
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
 
-  private CloudFoundrySpace cloudFoundrySpace = CloudFoundrySpace.builder()
-    .id("space-guid")
-    .name("space")
-    .organization(CloudFoundryOrganization.builder()
-      .id("org-guid")
-      .name("org")
-      .build())
-    .build();
+  private CloudFoundrySpace cloudFoundrySpace =
+      CloudFoundrySpace.builder()
+          .id("space-guid")
+          .name("space")
+          .organization(CloudFoundryOrganization.builder().id("org-guid").name("org").build())
+          .build();
 
   {
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.of(cloudFoundrySpace));
+        .thenReturn(Optional.of(cloudFoundrySpace));
   }
 
-  private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-    "my-account", "", "", "", "", "", "") {
-    public CloudFoundryClient getClient() {
-      return cloudFoundryClient;
-    }
-  };
+  private final CloudFoundryCredentials cloudFoundryCredentials =
+      new CloudFoundryCredentials("my-account", "", "", "", "", "", "") {
+        public CloudFoundryClient getClient() {
+          return cloudFoundryClient;
+        }
+      };
 
-  private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
+  private final AccountCredentialsRepository accountCredentialsRepository =
+      new MapBackedAccountCredentialsRepository();
   private final String accountName = "my-account";
 
   {
@@ -69,31 +67,34 @@ class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
   }
 
   private final AccountCredentialsProvider accountCredentialsProvider =
-    new DefaultAccountCredentialsProvider(accountCredentialsRepository);
+      new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   @Test
   void convertDescriptionSucceeds() {
     CreateCloudFoundryServiceKeyAtomicOperationConverter converter =
-      new CreateCloudFoundryServiceKeyAtomicOperationConverter();
+        new CreateCloudFoundryServiceKeyAtomicOperationConverter();
     converter.setAccountCredentialsProvider(accountCredentialsProvider);
     converter.setObjectMapper(new ObjectMapper());
 
     String serviceKeyName = "service-key-name";
     String serviceInstanceName = "service-instance-name";
     String region = "org > space";
-    Map input = HashMap.of(
-      "credentials", accountName,
-      "region", region,
-      "serviceInstanceName", serviceInstanceName,
-      "serviceKeyName", serviceKeyName
-    ).toJavaMap();
+    Map input =
+        HashMap.of(
+                "credentials", accountName,
+                "region", region,
+                "serviceInstanceName", serviceInstanceName,
+                "serviceKeyName", serviceKeyName)
+            .toJavaMap();
 
-    CreateCloudFoundryServiceKeyDescription expectedResult = (CreateCloudFoundryServiceKeyDescription) new CreateCloudFoundryServiceKeyDescription()
-      .setServiceKeyName(serviceKeyName)
-      .setServiceInstanceName(serviceInstanceName)
-      .setSpace(cloudFoundrySpace)
-      .setRegion(region)
-      .setClient(cloudFoundryClient);
+    CreateCloudFoundryServiceKeyDescription expectedResult =
+        (CreateCloudFoundryServiceKeyDescription)
+            new CreateCloudFoundryServiceKeyDescription()
+                .setServiceKeyName(serviceKeyName)
+                .setServiceInstanceName(serviceInstanceName)
+                .setSpace(cloudFoundrySpace)
+                .setRegion(region)
+                .setClient(cloudFoundryClient);
 
     CreateCloudFoundryServiceKeyDescription result = converter.convertDescription(input);
 

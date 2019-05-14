@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.annotation.Nullable;
-import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -29,6 +28,5 @@ import java.util.Map;
 public class CreateServiceInstance extends AbstractCreateServiceInstance {
   private String servicePlanGuid;
 
-  @Nullable
-  private Map<String, Object> parameters;
+  @Nullable private Map<String, Object> parameters;
 }

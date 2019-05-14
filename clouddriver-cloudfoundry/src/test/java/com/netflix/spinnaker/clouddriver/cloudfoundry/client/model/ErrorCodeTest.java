@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class ErrorCodeTest {
   @Test
   void deserialize() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     assertThat(mapper.readValue("\"CF-RouteHostTaken\"", ErrorDescription.Code.class))
-      .isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
+        .isEqualTo(ErrorDescription.Code.ROUTE_HOST_TAKEN);
   }
 }

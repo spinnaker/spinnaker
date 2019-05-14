@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
   @Override
-  public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest, String account) {
+  public Artifact toArtifact(
+      ArtifactProvider provider, KubernetesManifest manifest, String account) {
     String type = getType(manifest);
     String name = manifest.getName();
     String location = manifest.getNamespace();

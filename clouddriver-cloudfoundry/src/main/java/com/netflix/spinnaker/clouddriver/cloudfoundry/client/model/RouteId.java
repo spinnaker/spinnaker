@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,8 +28,7 @@ public class RouteId {
   private String host;
   private String path;
 
-  @Nullable
-  private Integer port;
+  @Nullable private Integer port;
 
   private String domainGuid;
 }

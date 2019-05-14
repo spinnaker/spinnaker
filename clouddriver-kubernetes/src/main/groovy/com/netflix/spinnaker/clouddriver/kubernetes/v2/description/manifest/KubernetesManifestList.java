@@ -17,9 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class KubernetesManifestList {

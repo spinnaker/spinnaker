@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 class LinkTest {
   @Test
   void getGuid() {
     Link link = new Link();
-    link.setHref("https://api.sys.calabasas.cf-app.com/v3/spaces/72d50cd9-434e-4738-9349-cb146987b963");
+    link.setHref(
+        "https://api.sys.calabasas.cf-app.com/v3/spaces/72d50cd9-434e-4738-9349-cb146987b963");
     assertThat(link.getGuid()).isEqualTo("72d50cd9-434e-4738-9349-cb146987b963");
   }
 }

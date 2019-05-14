@@ -24,23 +24,24 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<KubernetesV2SecurityGroup> {
+public class KubernetesV2SecurityGroupProvider
+    implements SecurityGroupProvider<KubernetesV2SecurityGroup> {
   private final KubernetesCacheUtils cacheUtils;
   private final KubernetesSpinnakerKindMap kindMap;
 
   @Autowired
-  KubernetesV2SecurityGroupProvider(KubernetesCacheUtils cacheUtils, KubernetesSpinnakerKindMap kindMap) {
+  KubernetesV2SecurityGroupProvider(
+      KubernetesCacheUtils cacheUtils, KubernetesSpinnakerKindMap kindMap) {
     this.cacheUtils = cacheUtils;
     this.kindMap = kindMap;
   }
@@ -65,10 +66,11 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
   public Set<KubernetesV2SecurityGroup> getAllByRegion(boolean includeRules, String namespace) {
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
-        .map(k -> {
-          String key = Keys.infrastructure(k, "*", namespace, "*");
-          return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
-        })
+        .map(
+            k -> {
+              String key = Keys.infrastructure(k, "*", namespace, "*");
+              return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
+            })
         .flatMap(Collection::stream)
         .map(KubernetesV2SecurityGroup::fromCacheData)
         .collect(Collectors.toSet());
@@ -78,17 +80,19 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
   public Set<KubernetesV2SecurityGroup> getAllByAccount(boolean includeRules, String account) {
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
-        .map(k -> {
-          String key = Keys.infrastructure(k, account, "*", "*");
-          return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
-        })
+        .map(
+            k -> {
+              String key = Keys.infrastructure(k, account, "*", "*");
+              return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
+            })
         .flatMap(Collection::stream)
         .map(KubernetesV2SecurityGroup::fromCacheData)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public Set<KubernetesV2SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String fullName) {
+  public Set<KubernetesV2SecurityGroup> getAllByAccountAndName(
+      boolean includeRules, String account, String fullName) {
     String name;
     try {
       name = KubernetesManifest.fromFullResourceName(fullName).getRight();
@@ -98,30 +102,34 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
-        .map(k -> {
-          String key = Keys.infrastructure(k, account, "*", name);
-          return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
-        })
+        .map(
+            k -> {
+              String key = Keys.infrastructure(k, account, "*", name);
+              return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
+            })
         .flatMap(Collection::stream)
         .map(KubernetesV2SecurityGroup::fromCacheData)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public Set<KubernetesV2SecurityGroup> getAllByAccountAndRegion(boolean includeRule, String account, String namespace) {
+  public Set<KubernetesV2SecurityGroup> getAllByAccountAndRegion(
+      boolean includeRule, String account, String namespace) {
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
-        .map(k -> {
-          String key = Keys.infrastructure(k, account, namespace, "*");
-          return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
-        })
+        .map(
+            k -> {
+              String key = Keys.infrastructure(k, account, namespace, "*");
+              return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
+            })
         .flatMap(Collection::stream)
         .map(KubernetesV2SecurityGroup::fromCacheData)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public KubernetesV2SecurityGroup get(String account, String namespace, String fullName, String _unused) {
+  public KubernetesV2SecurityGroup get(
+      String account, String namespace, String fullName, String _unused) {
     String name;
     try {
       name = KubernetesManifest.fromFullResourceName(fullName).getRight();
@@ -131,10 +139,11 @@ public class KubernetesV2SecurityGroupProvider implements SecurityGroupProvider<
 
     return kindMap.translateSpinnakerKind(KubernetesSpinnakerKindMap.SpinnakerKind.SECURITY_GROUPS)
         .stream()
-        .map(k -> {
-          String key = Keys.infrastructure(k, account, namespace, name);
-          return cacheUtils.getSingleEntry(k.toString(), key).orElse(null);
-        })
+        .map(
+            k -> {
+              String key = Keys.infrastructure(k, account, namespace, name);
+              return cacheUtils.getSingleEntry(k.toString(), key).orElse(null);
+            })
         .filter(Objects::nonNull)
         .map(KubernetesV2SecurityGroup::fromCacheData)
         .findFirst()

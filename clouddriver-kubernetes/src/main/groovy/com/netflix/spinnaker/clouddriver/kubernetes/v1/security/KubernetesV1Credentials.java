@@ -32,10 +32,6 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.ConstraintViolationException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -44,6 +40,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KubernetesV1Credentials implements KubernetesCredentials {
   private final KubernetesApiAdaptor apiAdaptor;
@@ -73,13 +72,18 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
       Registry spectatorRegistry,
       AccountCredentialsRepository accountCredentialsRepository) {
     if (dockerRegistries == null || dockerRegistries.size() == 0) {
-      throw new IllegalArgumentException("Docker registries for Kubernetes account " + name + " are required.");
+      throw new IllegalArgumentException(
+          "Docker registries for Kubernetes account " + name + " are required.");
     }
 
-    Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces, serviceAccount);
+    Config config =
+        KubernetesConfigParser.parse(
+            kubeconfigFile, context, cluster, user, namespaces, serviceAccount);
     config.setUserAgent(userAgent);
 
-    KubernetesApiClientConfig configClient = new KubernetesApiClientConfig(kubeconfigFile, context, cluster, user, userAgent, serviceAccount);
+    KubernetesApiClientConfig configClient =
+        new KubernetesApiClientConfig(
+            kubeconfigFile, context, cluster, user, userAgent, serviceAccount);
 
     this.apiAdaptor = new KubernetesApiAdaptor(name, config, spectatorRegistry);
     this.apiClientAdaptor = new KubernetesClientApiAdapter(name, configClient, spectatorRegistry);
@@ -115,18 +119,19 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     oldNamespaces = namespaces;
 
     for (LinkedDockerRegistryConfiguration dockerRegistryConfiguration : dockerRegistries) {
-      if (dockerRegistryConfiguration.getNamespaces() == null || dockerRegistryConfiguration.getNamespaces().isEmpty()) {
+      if (dockerRegistryConfiguration.getNamespaces() == null
+          || dockerRegistryConfiguration.getNamespaces().isEmpty()) {
         dynamicRegistries.add(dockerRegistryConfiguration.getAccountName());
       }
     }
 
     try {
-      List<String> knownNamespaces = !namespaces.isEmpty() ? namespaces : apiAdaptor.getNamespacesByName();
+      List<String> knownNamespaces =
+          !namespaces.isEmpty() ? namespaces : apiAdaptor.getNamespacesByName();
       reconfigureRegistries(knownNamespaces);
     } catch (Exception e) {
       LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
     }
-
   }
 
   public List<String> getDeclaredNamespaces() {
@@ -141,7 +146,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
 
         List<String> resultNamespaces = new ArrayList<>(addedNamespaces);
 
-        // Find the namespaces that were added, and add docker secrets to them. No need to track deleted
+        // Find the namespaces that were added, and add docker secrets to them. No need to track
+        // deleted
         // namespaces since they delete their secrets automatically.
         addedNamespaces.removeAll(oldNamespaces);
         reconfigureRegistries(resultNamespaces);
@@ -168,7 +174,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     for (int i = 0; i < dockerRegistries.size(); i++) {
       LinkedDockerRegistryConfiguration registry = dockerRegistries.get(i);
       List<String> registryNamespaces = registry.getNamespaces();
-      // If a registry was not initially configured with any namespace, it can deploy to any namespace, otherwise
+      // If a registry was not initially configured with any namespace, it can deploy to any
+      // namespace, otherwise
       // restrict the deploy to the registryNamespaces
       if (!dynamicRegistries.contains(registry.getAccountName())) {
         affectedNamespaces = registryNamespaces;
@@ -177,13 +184,20 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
       }
 
       if (affectedNamespaces != null && !affectedNamespaces.isEmpty()) {
-        LOG.debug("Adding secrets for docker registry {} in {}", registry.getAccountName(), affectedNamespaces);
+        LOG.debug(
+            "Adding secrets for docker registry {} in {}",
+            registry.getAccountName(),
+            affectedNamespaces);
       }
 
-      DockerRegistryNamedAccountCredentials account = (DockerRegistryNamedAccountCredentials) repository.getOne(registry.getAccountName());
+      DockerRegistryNamedAccountCredentials account =
+          (DockerRegistryNamedAccountCredentials) repository.getOne(registry.getAccountName());
 
       if (account == null) {
-        LOG.warn("The account " + registry.getAccountName() + " was not yet loaded inside Clouddriver. If you are seeing this message repeatedly, it likely cannot be loaded.");
+        LOG.warn(
+            "The account "
+                + registry.getAccountName()
+                + " was not yet loaded inside Clouddriver. If you are seeing this message repeatedly, it likely cannot be loaded.");
         continue;
       }
 
@@ -191,20 +205,26 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
         Namespace res = apiAdaptor.getNamespace(namespace);
         if (res == null) {
           NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
-          Namespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build();
+          Namespace newNamespace =
+              namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build();
           apiAdaptor.createNamespace(newNamespace);
         }
 
         SecretBuilder secretBuilder = new SecretBuilder();
         String secretName = registry.getAccountName();
 
-        secretBuilder = secretBuilder.withNewMetadata().withName(secretName).withNamespace(namespace).endMetadata();
+        secretBuilder =
+            secretBuilder
+                .withNewMetadata()
+                .withName(secretName)
+                .withNamespace(namespace)
+                .endMetadata();
 
         HashMap<String, String> secretData = new HashMap<>(1);
-        String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }",
-                                         account.getAddress(),
-                                         account.getBasicAuth(),
-                                         account.getEmail());
+        String dockerCfg =
+            String.format(
+                "{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }",
+                account.getAddress(), account.getBasicAuth(), account.getEmail());
 
         try {
           dockerCfg = new String(Base64.getEncoder().encode(dockerCfg.getBytes("UTF-8")), "UTF-8");
@@ -219,7 +239,11 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
           Secret oldSecret = apiAdaptor.getSecret(namespace, secretName);
           if (oldSecret != null) {
             if (oldSecret.getData().equals(newSecret.getData())) {
-              LOG.debug("Skipping creation of duplicate secret " + secretName + " in namespace " + namespace);
+              LOG.debug(
+                  "Skipping creation of duplicate secret "
+                      + secretName
+                      + " in namespace "
+                      + namespace);
             } else {
               apiAdaptor.editSecret(namespace, secretName).addToData(newSecret.getData()).done();
             }
@@ -227,9 +251,12 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
             apiAdaptor.createSecret(namespace, secretBuilder.build());
           }
         } catch (ConstraintViolationException cve) {
-          throw new IllegalStateException("Unable to build secret: " + cve.getMessage() +
-                                          " due to violations " + cve.getConstraintViolations(),
-                                          cve);
+          throw new IllegalStateException(
+              "Unable to build secret: "
+                  + cve.getMessage()
+                  + " due to violations "
+                  + cve.getConstraintViolations(),
+              cve);
         }
 
         Set<String> existingSecrets = imagePullSecrets.get(namespace);
@@ -247,7 +274,6 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   public KubernetesClientApiAdapter getClientApiAdaptor() {
     return apiClientAdaptor;
   }
-
 
   public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
     return dockerRegistries;

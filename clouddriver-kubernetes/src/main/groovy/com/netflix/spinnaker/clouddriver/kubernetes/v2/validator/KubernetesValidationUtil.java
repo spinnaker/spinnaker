@@ -22,19 +22,18 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.validation.Errors;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.validation.Errors;
 
 @Slf4j
 public class KubernetesValidationUtil {
-  final private String context;
-  final private Errors errors;
+  private final String context;
+  private final Errors errors;
 
   public KubernetesValidationUtil(String context, Errors errors) {
     this.context = context;
@@ -81,13 +80,18 @@ public class KubernetesValidationUtil {
     return true;
   }
 
-  public boolean validateV2Credentials(AccountCredentialsProvider provider, String accountName, KubernetesManifest manifest) {
+  public boolean validateV2Credentials(
+      AccountCredentialsProvider provider, String accountName, KubernetesManifest manifest) {
     KubernetesKind kind = manifest.getKind();
     String namespace = manifest.getNamespace();
     return validateV2Credentials(provider, accountName, kind, namespace);
   }
 
-  public boolean validateV2Credentials(AccountCredentialsProvider provider, String accountName, KubernetesKind kind, String namespace) {
+  public boolean validateV2Credentials(
+      AccountCredentialsProvider provider,
+      String accountName,
+      KubernetesKind kind,
+      String namespace) {
     log.info("Validating credentials for {} {} {}", accountName, kind, namespace);
     if (!validateNotEmpty("account", accountName)) {
       return false;
@@ -121,7 +125,8 @@ public class KubernetesValidationUtil {
 
   private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
     if (!credentials.isValidKind(kind)) {
-      KubernetesV2Credentials.InvalidKindReason invalidReason = credentials.getInvalidKindReason(kind);
+      KubernetesV2Credentials.InvalidKindReason invalidReason =
+          credentials.getInvalidKindReason(kind);
       if (invalidReason != null) {
         reject(invalidReason.getErrorMessage(kind), kind.toString());
       } else {
@@ -137,9 +142,10 @@ public class KubernetesValidationUtil {
     final List<String> configuredNamespaces = credentials.getDeclaredNamespaces();
     if (!configuredNamespaces.contains(namespace)) {
       reject(
-        String.format("Account %s is not configured to deploy to namespace %s", credentials.getAccountName(), namespace),
-        namespace
-      );
+          String.format(
+              "Account %s is not configured to deploy to namespace %s",
+              credentials.getAccountName(), namespace),
+          namespace);
       return false;
     }
     return true;

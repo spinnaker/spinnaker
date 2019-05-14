@@ -23,6 +23,9 @@ public class ProcessStats {
   private State state;
 
   public enum State {
-    RUNNING, CRASHED, STARTING, DOWN
+    RUNNING,
+    CRASHED,
+    STARTING,
+    DOWN
   }
 }

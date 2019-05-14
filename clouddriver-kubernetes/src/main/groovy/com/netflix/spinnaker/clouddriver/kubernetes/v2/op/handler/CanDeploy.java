@@ -25,10 +25,19 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import io.kubernetes.client.models.V1DeleteOptions;
 
 public interface CanDeploy {
-  default OperationResult deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest, boolean recreate, boolean replace) {
+  default OperationResult deploy(
+      KubernetesV2Credentials credentials,
+      KubernetesManifest manifest,
+      boolean recreate,
+      boolean replace) {
     if (recreate) {
       try {
-        credentials.delete(manifest.getKind(), manifest.getNamespace(), manifest.getName(), new KubernetesSelectorList(), new V1DeleteOptions());
+        credentials.delete(
+            manifest.getKind(),
+            manifest.getNamespace(),
+            manifest.getName(),
+            new KubernetesSelectorList(),
+            new V1DeleteOptions());
       } catch (KubectlJobExecutor.KubectlException ignored) {
       }
     }

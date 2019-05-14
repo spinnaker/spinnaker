@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
@@ -29,8 +31,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -41,7 +41,8 @@ public class KubernetesResourceProperties {
   KubernetesVersionedArtifactConverter versionedConverter;
   KubernetesUnversionedArtifactConverter unversionedConverter;
 
-  public static KubernetesResourceProperties fromCustomResource(CustomKubernetesResource customResource) {
+  public static KubernetesResourceProperties fromCustomResource(
+      CustomKubernetesResource customResource) {
     String deployPriority = customResource.getDeployPriority();
     int deployPriorityValue;
     if (StringUtils.isEmpty(deployPriority)) {
@@ -50,16 +51,18 @@ public class KubernetesResourceProperties {
       try {
         deployPriorityValue = Integer.valueOf(deployPriority);
       } catch (NumberFormatException e) {
-        deployPriorityValue = KubernetesHandler.DeployPriority.fromString(deployPriority).getValue();
+        deployPriorityValue =
+            KubernetesHandler.DeployPriority.fromString(deployPriority).getValue();
       }
     }
 
-    KubernetesHandler handler = CustomKubernetesHandlerFactory.create(
-        KubernetesKind.fromString(customResource.getKubernetesKind(), true, customResource.isNamespaced()),
-        KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
-        customResource.isVersioned(),
-        deployPriorityValue
-    );
+    KubernetesHandler handler =
+        CustomKubernetesHandlerFactory.create(
+            KubernetesKind.fromString(
+                customResource.getKubernetesKind(), true, customResource.isNamespaced()),
+            KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
+            customResource.isVersioned(),
+            deployPriorityValue);
 
     return KubernetesResourceProperties.builder()
         .handler(handler)

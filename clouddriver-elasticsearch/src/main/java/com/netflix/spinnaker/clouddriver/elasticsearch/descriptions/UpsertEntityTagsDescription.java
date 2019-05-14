@@ -21,6 +21,5 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed;
 
 public class UpsertEntityTagsDescription extends EntityTags implements NonCredentialed {
-  @JsonProperty
-  public boolean isPartial = true;
+  @JsonProperty public boolean isPartial = true;
 }

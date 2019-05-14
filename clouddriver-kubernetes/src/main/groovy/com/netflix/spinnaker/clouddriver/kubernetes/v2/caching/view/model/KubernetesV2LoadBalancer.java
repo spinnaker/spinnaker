@@ -25,10 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,22 +32,30 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class KubernetesV2LoadBalancer extends ManifestBasedModel implements LoadBalancer, LoadBalancerProvider.Details {
+public class KubernetesV2LoadBalancer extends ManifestBasedModel
+    implements LoadBalancer, LoadBalancerProvider.Details {
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
-  private KubernetesV2LoadBalancer(KubernetesManifest manifest, String key, Set<LoadBalancerServerGroup> serverGroups) {
+  private KubernetesV2LoadBalancer(
+      KubernetesManifest manifest, String key, Set<LoadBalancerServerGroup> serverGroups) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.serverGroups = serverGroups;
   }
 
-  public static KubernetesV2LoadBalancer fromCacheData(CacheData cd, List<CacheData> serverGroupData, Map<String, List<CacheData>> serverGroupToInstanceData) {
+  public static KubernetesV2LoadBalancer fromCacheData(
+      CacheData cd,
+      List<CacheData> serverGroupData,
+      Map<String, List<CacheData>> serverGroupToInstanceData) {
     if (cd == null) {
       return null;
     }
@@ -63,17 +67,20 @@ public class KubernetesV2LoadBalancer extends ManifestBasedModel implements Load
       return null;
     }
 
-    Set<LoadBalancerServerGroup> serverGroups = serverGroupData.stream()
-        // ignoring load balancers here since they are discarded by ::toLoadBalancerServerGroup
-        .map(d -> KubernetesV2ServerGroup.fromCacheData(
-          KubernetesV2ServerGroupCacheData.builder()
-            .serverGroupData(d)
-            .instanceData(serverGroupToInstanceData.get(d.getId()))
-            .loadBalancerData(new ArrayList<>())
-            .build()))
-        .filter(Objects::nonNull)
-        .map(KubernetesV2ServerGroup::toLoadBalancerServerGroup)
-        .collect(Collectors.toSet());
+    Set<LoadBalancerServerGroup> serverGroups =
+        serverGroupData.stream()
+            // ignoring load balancers here since they are discarded by ::toLoadBalancerServerGroup
+            .map(
+                d ->
+                    KubernetesV2ServerGroup.fromCacheData(
+                        KubernetesV2ServerGroupCacheData.builder()
+                            .serverGroupData(d)
+                            .instanceData(serverGroupToInstanceData.get(d.getId()))
+                            .loadBalancerData(new ArrayList<>())
+                            .build()))
+            .filter(Objects::nonNull)
+            .map(KubernetesV2ServerGroup::toLoadBalancerServerGroup)
+            .collect(Collectors.toSet());
 
     return new KubernetesV2LoadBalancer(manifest, cd.getId(), serverGroups);
   }

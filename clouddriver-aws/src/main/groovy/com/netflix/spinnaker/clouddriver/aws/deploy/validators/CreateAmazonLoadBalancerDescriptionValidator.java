@@ -19,27 +19,32 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 import com.amazonaws.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
 
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("createAmazonLoadBalancerDescriptionValidator")
-class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
-  private void validateActions(List<UpsertAmazonLoadBalancerV2Description.Action> actions, Set<String> allTargetGroupNames, Set<String> unusedTargetGroupNames, Errors errors) {
+class CreateAmazonLoadBalancerDescriptionValidator
+    extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
+  private void validateActions(
+      List<UpsertAmazonLoadBalancerV2Description.Action> actions,
+      Set<String> allTargetGroupNames,
+      Set<String> unusedTargetGroupNames,
+      Errors errors) {
     for (UpsertAmazonLoadBalancerV2Description.Action action : actions) {
       if (action.getType().equals("forward")) {
         String targetGroupName = action.getTargetGroupName();
         if (!allTargetGroupNames.contains(targetGroupName)) {
-          errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
+          errors.rejectValue(
+              "listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
         }
         unusedTargetGroupNames.remove(action.getTargetGroupName());
       }
@@ -47,20 +52,25 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
       if (action.getType().equals("authenticate-oidc")) {
         AuthenticateOidcActionConfig config = action.getAuthenticateOidcActionConfig();
         if (config.getClientId() == null) {
-          errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.oidcConfig");
+          errors.rejectValue(
+              "listeners", "createAmazonLoadBalancerDescription.listeners.invalid.oidcConfig");
         }
       }
     }
   }
 
   @Override
-  public void validate(List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
+  public void validate(
+      List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
     // Common fields to validate
     if (description.getName() == null && description.getClusterName() == null) {
-      errors.rejectValue("clusterName", "createAmazonLoadBalancerDescription.missing.name.or.clusterName");
+      errors.rejectValue(
+          "clusterName", "createAmazonLoadBalancerDescription.missing.name.or.clusterName");
     }
     if (description.getSubnetType() == null && description.getAvailabilityZones() == null) {
-      errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones");
+      errors.rejectValue(
+          "availabilityZones",
+          "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones");
     }
 
     if (description.getAvailabilityZones() != null) {
@@ -68,51 +78,73 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
         String region = entry.getKey();
         List<String> azs = entry.getValue();
 
-        AmazonCredentials.AWSRegion acctRegion = description.getCredentials().getRegions().stream().filter(r -> r.getName().equals(region)).findFirst().orElse(null);
+        AmazonCredentials.AWSRegion acctRegion =
+            description.getCredentials().getRegions().stream()
+                .filter(r -> r.getName().equals(region))
+                .findFirst()
+                .orElse(null);
         if (acctRegion == null) {
-          errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.region.not.configured");
+          errors.rejectValue(
+              "availabilityZones", "createAmazonLoadBalancerDescription.region.not.configured");
         }
         if (description.getSubnetType() == null && azs == null) {
-          errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones");
+          errors.rejectValue(
+              "availabilityZones",
+              "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones");
           break;
         }
-        if (description.getSubnetType() == null && acctRegion != null && !acctRegion.getAvailabilityZones().containsAll(azs)) {
-          errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.zone.not.configured");
+        if (description.getSubnetType() == null
+            && acctRegion != null
+            && !acctRegion.getAvailabilityZones().containsAll(azs)) {
+          errors.rejectValue(
+              "availabilityZones", "createAmazonLoadBalancerDescription.zone.not.configured");
         }
       }
     }
 
     switch (description.getLoadBalancerType()) {
       case CLASSIC:
-        UpsertAmazonLoadBalancerClassicDescription classicDescription = (UpsertAmazonLoadBalancerClassicDescription) description;
-        if (classicDescription.getListeners() == null || classicDescription.getListeners().size() == 0) {
+        UpsertAmazonLoadBalancerClassicDescription classicDescription =
+            (UpsertAmazonLoadBalancerClassicDescription) description;
+        if (classicDescription.getListeners() == null
+            || classicDescription.getListeners().size() == 0) {
           errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.empty");
         }
 
         if (classicDescription.getDeregistrationDelay() != null) {
-          if (classicDescription.getDeregistrationDelay() < 1 || classicDescription.getDeregistrationDelay() > 3600) {
-            errors.rejectValue("deregistrationDelay", "createAmazonLoadBalancerDescription.deregistrationDelay.invalid");
+          if (classicDescription.getDeregistrationDelay() < 1
+              || classicDescription.getDeregistrationDelay() > 3600) {
+            errors.rejectValue(
+                "deregistrationDelay",
+                "createAmazonLoadBalancerDescription.deregistrationDelay.invalid");
           }
         }
         break;
       case APPLICATION:
       case NETWORK:
-        UpsertAmazonLoadBalancerV2Description albDescription = (UpsertAmazonLoadBalancerV2Description) description;
+        UpsertAmazonLoadBalancerV2Description albDescription =
+            (UpsertAmazonLoadBalancerV2Description) description;
         if (albDescription.targetGroups == null || albDescription.targetGroups.size() == 0) {
-          errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.empty");
+          errors.rejectValue(
+              "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.empty");
         }
 
         Set<String> allTargetGroupNames = new HashSet<>();
-        for (UpsertAmazonLoadBalancerV2Description.TargetGroup targetGroup : albDescription.targetGroups) {
+        for (UpsertAmazonLoadBalancerV2Description.TargetGroup targetGroup :
+            albDescription.targetGroups) {
           allTargetGroupNames.add(targetGroup.getName());
           if (targetGroup.getName() == null || targetGroup.getName().isEmpty()) {
-            errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.name.missing");
+            errors.rejectValue(
+                "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.name.missing");
           }
           if (targetGroup.getProtocol() == null) {
-            errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.protocol.missing");
+            errors.rejectValue(
+                "targetGroups",
+                "createAmazonLoadBalancerDescription.targetGroups.protocol.missing");
           }
           if (targetGroup.getPort() == null) {
-            errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.port.missing");
+            errors.rejectValue(
+                "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.port.missing");
           }
         }
         Set<String> unusedTargetGroupNames = new HashSet<>();
@@ -120,19 +152,24 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
 
         for (UpsertAmazonLoadBalancerV2Description.Listener listener : albDescription.listeners) {
           if (listener.getDefaultActions().size() == 0) {
-            errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.missing.defaultAction");
+            errors.rejectValue(
+                "listeners", "createAmazonLoadBalancerDescription.listeners.missing.defaultAction");
           }
-          this.validateActions(listener.getDefaultActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
+          this.validateActions(
+              listener.getDefaultActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
           for (UpsertAmazonLoadBalancerV2Description.Rule rule : listener.getRules()) {
-            this.validateActions(rule.getActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
+            this.validateActions(
+                rule.getActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
           }
         }
         if (unusedTargetGroupNames.size() > 0) {
-          errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.unused");
+          errors.rejectValue(
+              "targetGroups", "createAmazonLoadBalancerDescription.targetGroups.unused");
         }
         break;
       default:
-          errors.rejectValue("loadBalancerType", "createAmazonLoadBalancerDescription.loadBalancerType.invalid");
+        errors.rejectValue(
+            "loadBalancerType", "createAmazonLoadBalancerDescription.loadBalancerType.invalid");
         break;
     }
   }

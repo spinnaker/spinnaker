@@ -36,22 +36,25 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
-
 @Slf4j
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
-  protected final static ObjectMapper objectMapper = new ObjectMapper();
+  protected static final ObjectMapper objectMapper = new ObjectMapper();
 
   private final ArtifactReplacer artifactReplacer = new ArtifactReplacer();
 
-  abstract public int deployPriority();
-  abstract public KubernetesKind kind();
-  abstract public boolean versioned();
-  abstract public SpinnakerKind spinnakerKind();
-  abstract public Status status(KubernetesManifest manifest);
+  public abstract int deployPriority();
+
+  public abstract KubernetesKind kind();
+
+  public abstract boolean versioned();
+
+  public abstract SpinnakerKind spinnakerKind();
+
+  public abstract Status status(KubernetesManifest manifest);
 
   public List<Warning> listWarnings(KubernetesManifest manifest) {
     return new ArrayList<>();
@@ -65,11 +68,13 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     artifactReplacer.addReplacer(replacer);
   }
 
-  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts, String account) {
+  public ReplaceResult replaceArtifacts(
+      KubernetesManifest manifest, List<Artifact> artifacts, String account) {
     return artifactReplacer.replaceAll(manifest, artifacts, manifest.getNamespace(), account);
   }
 
-  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts, String namespace, String account) {
+  public ReplaceResult replaceArtifacts(
+      KubernetesManifest manifest, List<Artifact> artifacts, String namespace, String account) {
     return artifactReplacer.replaceAll(manifest, artifacts, namespace, account);
   }
 
@@ -86,17 +91,16 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       Registry registry,
       int agentIndex,
       int agentCount,
-      Long agentInterval
-  ) {
-    return cachingAgentFactory().buildCachingAgent(
-      namedAccountCredentials,
-      propertyRegistry,
-      objectMapper,
-      registry,
-      agentIndex,
-      agentCount,
-      agentInterval
-    );
+      Long agentInterval) {
+    return cachingAgentFactory()
+        .buildCachingAgent(
+            namedAccountCredentials,
+            propertyRegistry,
+            objectMapper,
+            registry,
+            agentIndex,
+            agentCount,
+            agentInterval);
   }
 
   // used for stripping sensitive values
@@ -105,14 +109,19 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     sensitiveKeys.forEach(manifest::remove);
   }
 
-  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
-    Map<String, Object> result = objectMapper.convertValue(key, new TypeReference<Map<String, Object>>() {});
+  public Map<String, Object> hydrateSearchResult(
+      Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+    Map<String, Object> result =
+        objectMapper.convertValue(key, new TypeReference<Map<String, Object>>() {});
     result.put("region", key.getNamespace());
-    result.put("name", KubernetesManifest.getFullResourceName(key.getKubernetesKind(), key.getName()));
+    result.put(
+        "name", KubernetesManifest.getFullResourceName(key.getKubernetesKind(), key.getName()));
     return result;
   }
 
-  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) { }
+  public void addRelationships(
+      Map<KubernetesKind, List<KubernetesManifest>> allResources,
+      Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {}
 
   // lower "value" is deployed before higher "value"
   public enum DeployPriority {
@@ -134,8 +143,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     ROLE_PRIORITY(20),
     NAMESPACE_PRIORITY(0);
 
-    @Getter
-    private final int value;
+    @Getter private final int value;
 
     DeployPriority(int value) {
       this.value = value;

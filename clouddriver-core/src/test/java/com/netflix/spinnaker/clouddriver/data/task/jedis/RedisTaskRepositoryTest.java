@@ -18,10 +18,9 @@ package com.netflix.spinnaker.clouddriver.data.task.jedis;
 import com.netflix.spinnaker.clouddriver.core.test.TaskRepositoryTck;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
+import java.util.Optional;
 import org.junit.After;
 import redis.clients.jedis.JedisPool;
-
-import java.util.Optional;
 
 public class RedisTaskRepositoryTest extends TaskRepositoryTck<RedisTaskRepository> {
 

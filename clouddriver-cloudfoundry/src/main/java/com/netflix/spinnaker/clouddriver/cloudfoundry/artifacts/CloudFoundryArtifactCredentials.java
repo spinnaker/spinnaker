@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts;
 
+import static java.util.Collections.singletonList;
+
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.io.InputStream;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter

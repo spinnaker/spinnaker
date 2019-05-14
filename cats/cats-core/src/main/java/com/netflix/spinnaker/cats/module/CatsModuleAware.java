@@ -17,22 +17,18 @@
 package com.netflix.spinnaker.cats.module;
 
 /**
- * This class is used to identify classes (typically Schedulers) that are capable of returning the cats module they are
- * associated with.
+ * This class is used to identify classes (typically Schedulers) that are capable of returning the
+ * cats module they are associated with.
  */
 public abstract class CatsModuleAware {
   private CatsModule catsModule;
 
-  /**
-   * Set this object's cats module.
-   */
+  /** Set this object's cats module. */
   public void setCatsModule(CatsModule catsModule) {
     this.catsModule = catsModule;
   }
 
-  /**
-   * Get this object's cats module.
-   */
+  /** Get this object's cats module. */
   public CatsModule getCatsModule() {
     return catsModule;
   }

@@ -17,16 +17,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.gitlab.enabled")
@@ -38,17 +37,17 @@ public class GitlabArtifactConfiguration {
 
   @Bean
   List<? extends GitlabArtifactCredentials> gitlabArtifactCredentials(OkHttpClient okHttpClient) {
-    return gitlabArtifactProviderProperties.getAccounts()
-      .stream()
-      .map(a -> {
-        try {
-          return new GitlabArtifactCredentials(a, okHttpClient);
-        } catch (Exception e) {
-          log.warn("Failure instantiating Gitlab artifact account {}: ", a, e);
-          return null;
-        }
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+    return gitlabArtifactProviderProperties.getAccounts().stream()
+        .map(
+            a -> {
+              try {
+                return new GitlabArtifactCredentials(a, okHttpClient);
+              } catch (Exception e) {
+                log.warn("Failure instantiating Gitlab artifact account {}: ", a, e);
+                return null;
+              }
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

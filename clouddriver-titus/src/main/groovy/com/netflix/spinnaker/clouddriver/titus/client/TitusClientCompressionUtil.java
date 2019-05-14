@@ -23,12 +23,12 @@ import io.grpc.stub.MetadataUtils;
 public class TitusClientCompressionUtil {
 
   private static String COMPRESSION_HEADER = "X-Titus-Compression";
-  private static Metadata.Key<String> COMPRESSION_KEY = Metadata.Key.of(COMPRESSION_HEADER, Metadata.ASCII_STRING_MARSHALLER);
+  private static Metadata.Key<String> COMPRESSION_KEY =
+      Metadata.Key.of(COMPRESSION_HEADER, Metadata.ASCII_STRING_MARSHALLER);
 
   public static <STUB extends AbstractStub<STUB>> STUB attachCaller(STUB serviceStub) {
     Metadata metadata = new Metadata();
     metadata.put(COMPRESSION_KEY, "gzip");
     return serviceStub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
-
 }

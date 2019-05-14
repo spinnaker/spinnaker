@@ -19,17 +19,17 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.TerminateInstancesDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
 
 @EcsOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component("ecsTerminateInstancesDescriptionValidator")
 public class TerminateInstancesDescriptionValidator extends CommonValidator {
-  public static final Pattern TASK_ID_PATTERN = Pattern.compile("[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}");
+  public static final Pattern TASK_ID_PATTERN =
+      Pattern.compile("[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}");
 
   public TerminateInstancesDescriptionValidator() {
     super("terminateInstancesDescription");
@@ -41,16 +41,19 @@ public class TerminateInstancesDescriptionValidator extends CommonValidator {
     boolean validCredentials = validateCredentials(typedDescription, errors, "credentials");
 
     if (validCredentials) {
-      validateRegions(typedDescription, Collections.singleton(typedDescription.getRegion()), errors, "region");
+      validateRegions(
+          typedDescription, Collections.singleton(typedDescription.getRegion()), errors, "region");
     }
 
     if (typedDescription.getEcsTaskIds() != null) {
-      typedDescription.getEcsTaskIds().forEach(taskId -> {
-          if (!TASK_ID_PATTERN.matcher(taskId).find()) {
-            rejectValue(errors, "ecsTaskIds." + taskId, "invalid");
-          }
-        }
-      );
+      typedDescription
+          .getEcsTaskIds()
+          .forEach(
+              taskId -> {
+                if (!TASK_ID_PATTERN.matcher(taskId).find()) {
+                  rejectValue(errors, "ecsTaskIds." + taskId, "invalid");
+                }
+              });
     } else {
       rejectValue(errors, "ecsTaskIds", "not.nullable");
     }

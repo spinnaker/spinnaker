@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-
 import javax.annotation.Nullable;
 
-public abstract class AbstractCloudFoundryServerGroupAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public abstract class AbstractCloudFoundryServerGroupAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Nullable
-  protected String getServerGroupId(String serverGroupName, String region, CloudFoundryClient client) {
+  protected String getServerGroupId(
+      String serverGroupName, String region, CloudFoundryClient client) {
     return findSpace(region, client)
-      .map(space -> client.getApplications().findServerGroupId(serverGroupName, space.getId()))
-      .orElse(null);
+        .map(space -> client.getApplications().findServerGroupId(serverGroupName, space.getId()))
+        .orElse(null);
   }
 }

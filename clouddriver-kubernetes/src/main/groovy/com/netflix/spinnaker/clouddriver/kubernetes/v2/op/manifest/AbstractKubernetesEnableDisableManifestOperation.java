@@ -32,21 +32,28 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.HasPods;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import java.util.List;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
-
-public abstract class AbstractKubernetesEnableDisableManifestOperation implements AtomicOperation<OperationResult> {
+public abstract class AbstractKubernetesEnableDisableManifestOperation
+    implements AtomicOperation<OperationResult> {
   private final KubernetesEnableDisableManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
   private final String OP_NAME = getVerbName().toUpperCase() + "_MANIFEST";
-  protected abstract String getVerbName();
-  protected abstract List<JsonPatch> patchResource(CanLoadBalance loadBalancerHandler, KubernetesManifest loadBalancer, KubernetesManifest target);
 
-  public AbstractKubernetesEnableDisableManifestOperation(KubernetesEnableDisableManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  protected abstract String getVerbName();
+
+  protected abstract List<JsonPatch> patchResource(
+      CanLoadBalance loadBalancerHandler,
+      KubernetesManifest loadBalancer,
+      KubernetesManifest target);
+
+  public AbstractKubernetesEnableDisableManifestOperation(
+      KubernetesEnableDisableManifestDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -76,16 +83,25 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation implement
     try {
       name = KubernetesManifest.fromFullResourceName(loadBalancerName);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'", e);
+      throw new IllegalArgumentException(
+          "Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'",
+          e);
     }
 
-    CanLoadBalance loadBalancerHandler = CanLoadBalance.lookupProperties(registry, accountName, name);
-    KubernetesManifest loadBalancer = credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
+    CanLoadBalance loadBalancerHandler =
+        CanLoadBalance.lookupProperties(registry, accountName, name);
+    KubernetesManifest loadBalancer =
+        credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
 
     List<JsonPatch> patch = patchResource(loadBalancerHandler, loadBalancer, target);
 
     getTask().updateStatus(OP_NAME, "Patching target for '" + loadBalancerName + '"');
-    credentials.patch(target.getKind(), target.getNamespace(), target.getName(), KubernetesPatchOptions.json(), patch);
+    credentials.patch(
+        target.getKind(),
+        target.getNamespace(),
+        target.getName(),
+        KubernetesPatchOptions.json(),
+        patch);
 
     HasPods podHandler = null;
     try {
@@ -100,7 +116,8 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation implement
       // todo(lwander) parallelize, this will get slow for large workloads
       for (KubernetesManifest pod : pods) {
         patch = patchResource(loadBalancerHandler, loadBalancer, pod);
-        credentials.patch(pod.getKind(), pod.getNamespace(), pod.getName(), KubernetesPatchOptions.json(), patch);
+        credentials.patch(
+            pod.getKind(), pod.getNamespace(), pod.getName(), KubernetesPatchOptions.json(), patch);
       }
     }
   }
@@ -109,10 +126,14 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation implement
   public OperationResult operate(List priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting " + getVerbName() + " operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
-    KubernetesManifest target = credentials.get(coordinates.getKind(), coordinates.getNamespace(), coordinates.getName());
+    KubernetesManifest target =
+        credentials.get(coordinates.getKind(), coordinates.getNamespace(), coordinates.getName());
     determineLoadBalancers(target).forEach(l -> op(l, target));
 
-    getTask().updateStatus(OP_NAME, WordUtils.capitalize(getVerbName()) + " operation for " + coordinates + " succeeded");
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            WordUtils.capitalize(getVerbName()) + " operation for " + coordinates + " succeeded");
     return null;
   }
 }

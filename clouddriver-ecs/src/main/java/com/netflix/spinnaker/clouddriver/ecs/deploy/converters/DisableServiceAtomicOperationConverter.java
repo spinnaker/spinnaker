@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.DisableServiceAtomicOper
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.DISABLE_SERVER_GROUP)
 @Component("ecsDisableServerGroup")
-public class DisableServiceAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class DisableServiceAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -37,10 +37,10 @@ public class DisableServiceAtomicOperationConverter extends AbstractAtomicOperat
 
   @Override
   public ModifyServiceDescription convertDescription(Map input) {
-    ModifyServiceDescription converted = getObjectMapper().convertValue(input, ModifyServiceDescription.class);
+    ModifyServiceDescription converted =
+        getObjectMapper().convertValue(input, ModifyServiceDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;
   }
-
 }

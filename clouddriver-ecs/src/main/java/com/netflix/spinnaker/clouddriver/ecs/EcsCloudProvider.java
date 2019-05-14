@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs;
 
-import org.springframework.stereotype.Component;
 import com.netflix.spinnaker.clouddriver.core.CloudProvider;
-
 import java.lang.annotation.Annotation;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsCloudProvider implements CloudProvider {

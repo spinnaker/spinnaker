@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer;
 
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class EcsTargetGroup implements LoadBalancerProvider.Details {
@@ -42,5 +41,4 @@ public class EcsTargetGroup implements LoadBalancerProvider.Details {
   String vpcId;
   Integer unhealthyThresholdCount;
   Map<String, String> attributes;
-
 }

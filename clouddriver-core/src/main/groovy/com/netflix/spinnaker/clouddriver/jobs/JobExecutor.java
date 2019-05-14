@@ -20,8 +20,8 @@ import com.netflix.spinnaker.clouddriver.jobs.local.ReaderConsumer;
 /**
  * Executes a job defined by a JobRequest, returning the results as a JobResult.
  *
- * The caller can optionally supply a ReaderConsumer, in which case the output from the job will be
- * transformed by the ReaderConsumer before being returned in JobResult.
+ * <p>The caller can optionally supply a ReaderConsumer, in which case the output from the job will
+ * be transformed by the ReaderConsumer before being returned in JobResult.
  *
  * @see JobRequest
  * @see JobResult
@@ -29,14 +29,16 @@ import com.netflix.spinnaker.clouddriver.jobs.local.ReaderConsumer;
 public interface JobExecutor {
   /**
    * Runs the specified JobRequest, returning the job's standard output in a JobResult.
+   *
    * @param jobRequest The job request
    * @return The result of the job
    */
   JobResult<String> runJob(JobRequest jobRequest);
 
   /**
-   * Runs the specified JobRequest, transforming the job's standard output with the supplied ReaderConsumer, and
-   * returning the transformed result in a JobResult.
+   * Runs the specified JobRequest, transforming the job's standard output with the supplied
+   * ReaderConsumer, and returning the transformed result in a JobResult.
+   *
    * @param jobRequest The job request
    * @param readerConsumer A function that transforms the job's standard output
    * @return The result of the job

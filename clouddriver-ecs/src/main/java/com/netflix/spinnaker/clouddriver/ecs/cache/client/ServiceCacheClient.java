@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+
 import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceCacheClient extends AbstractCacheClient<Service> {
@@ -58,16 +57,18 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
     service.setDesiredCount((Integer) attributes.get("desiredCount"));
     service.setMaximumPercent((Integer) attributes.get("maximumPercent"));
     service.setMinimumHealthyPercent((Integer) attributes.get("minimumHealthyPercent"));
-    service.setSubnets((List<String>)attributes.get("subnets"));
-    service.setSecurityGroups((List<String>)attributes.get("securityGroups"));
+    service.setSubnets((List<String>) attributes.get("subnets"));
+    service.setSecurityGroups((List<String>) attributes.get("securityGroups"));
 
     if (attributes.containsKey("loadBalancers")) {
-      List<Map<String, Object>> loadBalancers = (List<Map<String, Object>>) attributes.get("loadBalancers");
+      List<Map<String, Object>> loadBalancers =
+          (List<Map<String, Object>>) attributes.get("loadBalancers");
       List<LoadBalancer> deserializedLoadbalancers = new ArrayList<>(loadBalancers.size());
 
       for (Map<String, Object> serializedLoadbalancer : loadBalancers) {
         if (serializedLoadbalancer != null) {
-          deserializedLoadbalancers.add(objectMapper.convertValue(serializedLoadbalancer, LoadBalancer.class));
+          deserializedLoadbalancers.add(
+              objectMapper.convertValue(serializedLoadbalancer, LoadBalancer.class));
         }
       }
 
@@ -75,7 +76,6 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
     } else {
       service.setLoadBalancers(Collections.emptyList());
     }
-
 
     service.setCreatedAt((Long) attributes.get("createdAt"));
 

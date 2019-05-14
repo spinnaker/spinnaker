@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
+import static java.lang.String.format;
+
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -23,13 +25,10 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import retrofit.RetrofitError;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import retrofit.RetrofitError;
 
 public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "ENTITY_TAGS";
@@ -38,9 +37,10 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final DeleteEntityTagsDescription entityTagsDescription;
 
-  public DeleteEntityTagsAtomicOperation(Front50Service front50Service,
-                                         ElasticSearchEntityTagsProvider entityTagsProvider,
-                                         DeleteEntityTagsDescription entityTagsDescription) {
+  public DeleteEntityTagsAtomicOperation(
+      Front50Service front50Service,
+      ElasticSearchEntityTagsProvider entityTagsProvider,
+      DeleteEntityTagsDescription entityTagsDescription) {
     this.front50Service = front50Service;
     this.entityTagsProvider = entityTagsProvider;
     this.entityTagsDescription = entityTagsDescription;
@@ -48,39 +48,59 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(BASE_PHASE, format("Retrieving %s from Front50", entityTagsDescription.getId()));
+    getTask()
+        .updateStatus(
+            BASE_PHASE, format("Retrieving %s from Front50", entityTagsDescription.getId()));
     EntityTags currentTags;
     try {
       currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
     } catch (RetrofitError e) {
-      getTask().updateStatus(BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
 
-      getTask().updateStatus(BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
       entityTagsProvider.delete(entityTagsDescription.getId());
-      getTask().updateStatus(BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
 
       return null;
     }
 
-    Collection<String> currentTagNames = currentTags.getTags().stream()
-      .map(EntityTags.EntityTag::getName)
-      .collect(Collectors.toSet());
+    Collection<String> currentTagNames =
+        currentTags.getTags().stream()
+            .map(EntityTags.EntityTag::getName)
+            .collect(Collectors.toSet());
 
-    if (entityTagsDescription.isDeleteAll() || entityTagsDescription.getTags().containsAll(currentTagNames)) {
-      getTask().updateStatus(BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
+    if (entityTagsDescription.isDeleteAll()
+        || entityTagsDescription.getTags().containsAll(currentTagNames)) {
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
       entityTagsProvider.delete(entityTagsDescription.getId());
-      getTask().updateStatus(BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
 
-      getTask().updateStatus(BASE_PHASE, format("Deleting %s from Front50", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleting %s from Front50", entityTagsDescription.getId()));
       front50Service.deleteEntityTags(entityTagsDescription.getId());
-      getTask().updateStatus(BASE_PHASE, format("Deleted %s from Front50", entityTagsDescription.getId()));
+      getTask()
+          .updateStatus(
+              BASE_PHASE, format("Deleted %s from Front50", entityTagsDescription.getId()));
       return null;
     }
 
-    getTask().updateStatus(
-      BASE_PHASE,
-      format("Removing tags from %s (tags: %s)", entityTagsDescription.getId(), entityTagsDescription.getTags())
-    );
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            format(
+                "Removing tags from %s (tags: %s)",
+                entityTagsDescription.getId(), entityTagsDescription.getTags()));
     entityTagsDescription.getTags().forEach(currentTags::removeEntityTag);
 
     EntityTags durableEntityTags = front50Service.saveEntityTags(currentTags);
@@ -92,7 +112,9 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
     entityTagsProvider.index(currentTags);
     entityTagsProvider.verifyIndex(currentTags);
 
-    getTask().updateStatus(BASE_PHASE, format("Updated %s in ElasticSearch", entityTagsDescription.getId()));
+    getTask()
+        .updateStatus(
+            BASE_PHASE, format("Updated %s in ElasticSearch", entityTagsDescription.getId()));
 
     return null;
   }

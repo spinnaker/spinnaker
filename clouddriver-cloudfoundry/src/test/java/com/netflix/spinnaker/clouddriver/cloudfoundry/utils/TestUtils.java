@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.utils;
 
-import java.util.function.Supplier;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.function.Supplier;
 
 public class TestUtils {
   public static void assertThrows(Supplier<?> s, Class clazz, String errorString) {

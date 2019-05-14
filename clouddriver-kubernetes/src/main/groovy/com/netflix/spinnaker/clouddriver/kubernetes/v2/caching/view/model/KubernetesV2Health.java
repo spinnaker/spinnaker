@@ -21,14 +21,13 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.model.Health;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import io.kubernetes.client.models.V1ContainerStatus;
-import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodStatus;
+import java.util.Map;
 import lombok.Data;
 
-import java.util.Map;
-
 @Data
-// TODO(lwander): match spec described here https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
+// TODO(lwander): match spec described here
+// https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
 public class KubernetesV2Health implements Health {
   private final HealthState state;
   private final String source;

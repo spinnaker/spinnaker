@@ -22,20 +22,18 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 @Slf4j
-public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount> implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("gitlab/file");
+public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount>
+    implements ArtifactCredentials {
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("gitlab/file");
 
   GitlabArtifactCredentials(GitlabArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);
@@ -62,9 +60,6 @@ public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<Git
       log.info("No version specified for artifact {}, using 'master'.", version);
       version = "master";
     }
-    return parseUrl(artifact.getReference())
-      .newBuilder()
-      .addQueryParameter("ref", version)
-      .build();
+    return parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
   }
 }

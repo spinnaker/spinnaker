@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-import lombok.Data;
-
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class SharedTo {

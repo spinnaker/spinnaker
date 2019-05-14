@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.EVENT;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
@@ -27,18 +29,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest;
 import io.kubernetes.client.models.V1Event;
 import io.kubernetes.client.models.V1ObjectReference;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.EVENT;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesEventHandler extends KubernetesHandler {
@@ -72,14 +71,22 @@ public class KubernetesEventHandler extends KubernetesHandler {
     return KubernetesCoreCachingAgent::new;
   }
 
-
   @Override
-  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
-    relationshipMap.putAll(allResources.getOrDefault(EVENT, new ArrayList<>())
-        .stream()
-        .map(m -> ImmutablePair.of(m, involvedManifest(KubernetesCacheDataConverter.getResource(m, V1Event.class))))
-        .filter(p -> p.getRight() != null)
-        .collect(Collectors.toMap(ImmutablePair::getLeft, p -> Collections.singletonList(p.getRight()))));
+  public void addRelationships(
+      Map<KubernetesKind, List<KubernetesManifest>> allResources,
+      Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+    relationshipMap.putAll(
+        allResources.getOrDefault(EVENT, new ArrayList<>()).stream()
+            .map(
+                m ->
+                    ImmutablePair.of(
+                        m,
+                        involvedManifest(
+                            KubernetesCacheDataConverter.getResource(m, V1Event.class))))
+            .filter(p -> p.getRight() != null)
+            .collect(
+                Collectors.toMap(
+                    ImmutablePair::getLeft, p -> Collections.singletonList(p.getRight()))));
   }
 
   private KubernetesManifest involvedManifest(V1Event event) {

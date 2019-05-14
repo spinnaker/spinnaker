@@ -16,19 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
+
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsCloudWatchAlarmCacheClient extends AbstractCacheClient<EcsMetricAlarm> {
@@ -60,8 +59,10 @@ public class EcsCloudWatchAlarmCacheClient extends AbstractCacheClient<EcsMetric
       metricAlarm.setOKActions(Collections.emptyList());
     }
 
-    if (attributes.containsKey("insufficientDataActions") && attributes.get("insufficientDataActions") != null) {
-      metricAlarm.setInsufficientDataActions((Collection<String>) attributes.get("insufficientDataActions"));
+    if (attributes.containsKey("insufficientDataActions")
+        && attributes.get("insufficientDataActions") != null) {
+      metricAlarm.setInsufficientDataActions(
+          (Collection<String>) attributes.get("insufficientDataActions"));
     } else {
       metricAlarm.setInsufficientDataActions(Collections.emptyList());
     }
@@ -69,7 +70,8 @@ public class EcsCloudWatchAlarmCacheClient extends AbstractCacheClient<EcsMetric
     return metricAlarm;
   }
 
-  public List<EcsMetricAlarm> getMetricAlarms(String serviceName, String accountName, String region) {
+  public List<EcsMetricAlarm> getMetricAlarms(
+      String serviceName, String accountName, String region) {
     List<EcsMetricAlarm> metricAlarms = new LinkedList<>();
     Collection<EcsMetricAlarm> allMetricAlarms = getAll(accountName, region);
 

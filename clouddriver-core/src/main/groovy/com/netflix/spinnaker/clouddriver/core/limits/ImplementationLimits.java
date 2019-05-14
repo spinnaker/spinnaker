@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.core.limits;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -28,14 +27,14 @@ public class ImplementationLimits {
 
   public ImplementationLimits(ServiceLimits defaults, Map<String, ServiceLimits> accountOverrides) {
     this.defaults = defaults == null ? new ServiceLimits(null) : defaults;
-    this.accountOverrides = accountOverrides == null ? Collections.emptyMap() : ImmutableMap.copyOf(accountOverrides);
+    this.accountOverrides =
+        accountOverrides == null ? Collections.emptyMap() : ImmutableMap.copyOf(accountOverrides);
   }
 
   public Double getLimit(String limit, String account) {
-    return Optional
-      .ofNullable(account)
-      .map(accountOverrides::get)
-      .map(sl -> sl.getLimit(limit))
-      .orElse(defaults.getLimit(limit));
+    return Optional.ofNullable(account)
+        .map(accountOverrides::get)
+        .map(sl -> sl.getLimit(limit))
+        .orElse(defaults.getLimit(limit));
   }
 }

@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-/**
- * Distribution policy for selecting zones in a regional MIG.
- */
+/** Distribution policy for selecting zones in a regional MIG. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

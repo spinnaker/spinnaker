@@ -18,9 +18,7 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 
 import java.util.Collection;
 
-/**
- * Denotes an operation description operates on one or more specific application resources.
- */
+/** Denotes an operation description operates on one or more specific application resources. */
 public interface ApplicationNameable {
   Collection<String> getApplications();
 }

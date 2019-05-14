@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static java.util.stream.Collectors.toSet;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ShareCloudFoundryServiceAtomicOperation implements AtomicOperation<ServiceInstanceResponse> {
+public class ShareCloudFoundryServiceAtomicOperation
+    implements AtomicOperation<ServiceInstanceResponse> {
   private static final String PHASE = "SHARE_SERVICE";
   private final ShareCloudFoundryServiceDescription description;
 
@@ -44,11 +44,20 @@ public class ShareCloudFoundryServiceAtomicOperation implements AtomicOperation<
     String serviceInstanceName = description.getServiceInstanceName();
     String region = description.getRegion();
     Set<String> shareToRegions = description.getShareToRegions();
-    task.updateStatus(PHASE, "Sharing service instance '" + serviceInstanceName +
-      "' from '" + region + "' into " +
-      String.join(", ", shareToRegions.stream().map(s -> "'" + s + "'").collect(toSet())));
+    task.updateStatus(
+        PHASE,
+        "Sharing service instance '"
+            + serviceInstanceName
+            + "' from '"
+            + region
+            + "' into "
+            + String.join(", ", shareToRegions.stream().map(s -> "'" + s + "'").collect(toSet())));
 
-    ServiceInstanceResponse results = description.getClient().getServiceInstances().shareServiceInstance(region, serviceInstanceName, shareToRegions);
+    ServiceInstanceResponse results =
+        description
+            .getClient()
+            .getServiceInstances()
+            .shareServiceInstance(region, serviceInstanceName, shareToRegions);
 
     task.updateStatus(PHASE, "Finished sharing service instance '" + serviceInstanceName + "'");
 

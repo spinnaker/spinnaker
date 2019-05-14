@@ -2,17 +2,12 @@ package com.netflix.spinnaker.cats.sql.cache
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.SqlProviderCache
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
-import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
-import sun.awt.AppContext
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts

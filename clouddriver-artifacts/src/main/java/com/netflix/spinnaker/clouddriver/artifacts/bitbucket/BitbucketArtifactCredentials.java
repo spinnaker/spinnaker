@@ -20,18 +20,16 @@ package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.Collections;
+import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-
 @Slf4j
-public class BitbucketArtifactCredentials extends SimpleHttpArtifactCredentials<BitbucketArtifactAccount> implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("bitbucket/file");
+public class BitbucketArtifactCredentials
+    extends SimpleHttpArtifactCredentials<BitbucketArtifactAccount> implements ArtifactCredentials {
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("bitbucket/file");
 
   BitbucketArtifactCredentials(BitbucketArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);

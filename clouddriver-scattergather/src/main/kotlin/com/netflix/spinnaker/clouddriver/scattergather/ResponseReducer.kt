@@ -28,4 +28,3 @@ interface ResponseReducer {
 
   fun reduce(responses: List<Response>): ReducedResponse
 }
-

@@ -16,27 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * A server group provides a relationship to many instances, and exists within a defined region and one or more zones.
+ * A server group provides a relationship to many instances, and exists within a defined region and
+ * one or more zones.
  */
 public interface ServerGroup {
   /**
@@ -56,15 +56,15 @@ public interface ServerGroup {
   }
 
   /**
-   * Some arbitrary identifying type for this server group. May provide vendor-specific identification or data-center awareness to callers.
+   * Some arbitrary identifying type for this server group. May provide vendor-specific
+   * identification or data-center awareness to callers.
+   *
    * @deprecated use #getCloudProvider
    * @return type
    */
   String getType();
 
-  /**
-   * Provider-specific identifier
-   */
+  /** Provider-specific identifier */
   String getCloudProvider();
 
   /**
@@ -85,15 +85,16 @@ public interface ServerGroup {
   /**
    * Timestamp indicating when the server group was created
    *
-   * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when
-   * this server group was created
+   * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when this
+   *     server group was created
    */
   Long getCreatedTime();
 
   /**
    * The zones within a region that the instances within this server group occupy.
    *
-   * @return zones of a region for which this server group has presence or is capable of having presence, or an empty set if none exist
+   * @return zones of a region for which this server group has presence or is capable of having
+   *     presence, or an empty set if none exist
    */
   @Empty
   Set<String> getZones();
@@ -141,7 +142,8 @@ public interface ServerGroup {
   }
 
   /**
-   * A data structure with the total number of instances, and the number of instances reporting each status
+   * A data structure with the total number of instances, and the number of instances reporting each
+   * status
    *
    * @return a data structure
    */
@@ -155,16 +157,17 @@ public interface ServerGroup {
   Capacity getCapacity();
 
   /**
-   * This represents all images deployed to the server group. For most providers, this will be a singleton.
+   * This represents all images deployed to the server group. For most providers, this will be a
+   * singleton.
    */
   @JsonIgnore
   ImagesSummary getImagesSummary();
 
   /**
-   * An ImageSummary is collection of data related to the build and VM image of the server group. This is merely a view
-   * of data from other parts of this object.
-   * <p>
-   * Deprecated in favor of getImagesSummary, which is a more generic getImageSummary.
+   * An ImageSummary is collection of data related to the build and VM image of the server group.
+   * This is merely a view of data from other parts of this object.
+   *
+   * <p>Deprecated in favor of getImagesSummary, which is a more generic getImageSummary.
    */
   @JsonIgnore
   @Deprecated
@@ -183,28 +186,25 @@ public interface ServerGroup {
   @AllArgsConstructor
   @Data
   static class InstanceCounts {
-    /**
-     * Total number of instances in the server group
-     */
+    /** Total number of instances in the server group */
     private Integer total = 0;
-    /**
-     * Total number of "Up" instances (all health indicators report "Up" or "Unknown")
-     */
+    /** Total number of "Up" instances (all health indicators report "Up" or "Unknown") */
     private Integer up = 0;
-    /**
-     * Total number of "Down" instances (at least one health indicator reports "Down")
-     */
+    /** Total number of "Down" instances (at least one health indicator reports "Down") */
     private Integer down = 0;
     /**
-     * Total number of "Unknown" instances (all health indicators report "Unknown", or no health indicators reported)
+     * Total number of "Unknown" instances (all health indicators report "Unknown", or no health
+     * indicators reported)
      */
     private Integer unknown = 0;
     /**
-     * Total number of "OutOfService" instances (at least one health indicator reports "OutOfService", none are "Down"
+     * Total number of "OutOfService" instances (at least one health indicator reports
+     * "OutOfService", none are "Down"
      */
     private Integer outOfService = 0;
     /**
-     * Total number of "Starting" instances (where any health indicator reports "Starting" and none are "Down" or "OutOfService")
+     * Total number of "Starting" instances (where any health indicator reports "Starting" and none
+     * are "Down" or "OutOfService")
      */
     private Integer starting = 0;
   }
@@ -215,24 +215,22 @@ public interface ServerGroup {
   @Data
   public static class Capacity {
     /**
-     * Minimum number of instances required in this server group. If provider specific {@code ServerGroup} does not have
-     * a notion of min then this should be same as {@code desired}
+     * Minimum number of instances required in this server group. If provider specific {@code
+     * ServerGroup} does not have a notion of min then this should be same as {@code desired}
      */
     private Integer min;
     /**
-     * Max number of instances required in this server group. If provider specific {@code ServerGroup} does not have
-     * a notion of max then this should be same as {@code desired}
+     * Max number of instances required in this server group. If provider specific {@code
+     * ServerGroup} does not have a notion of max then this should be same as {@code desired}
      */
     private Integer max;
-    /**
-     * Desired number of instances required in this server group
-     */
+    /** Desired number of instances required in this server group */
     private Integer desired;
   }
 
   /**
-   * Cloud provider-specific data related to the build and VM image of the server group.
-   * Deprecated in favor of Images summary
+   * Cloud provider-specific data related to the build and VM image of the server group. Deprecated
+   * in favor of Images summary
    */
   @JsonInclude(NON_NULL)
   public static interface ImageSummary extends Summary {
@@ -248,9 +246,7 @@ public interface ServerGroup {
     Map<String, Object> getBuildInfo();
   }
 
-  /**
-   * Cloud provider-specific data related to the build and VM image of the server group.
-   */
+  /** Cloud provider-specific data related to the build and VM image of the server group. */
   @JsonInclude(NON_NULL)
   public static interface ImagesSummary extends Summary {
     List<? extends ImageSummary> getSummaries();

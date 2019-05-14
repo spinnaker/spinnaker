@@ -16,39 +16,55 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-
-import java.util.Optional;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+
 class AbstractCloudFoundryAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
-  private final DestroyCloudFoundryServerGroupAtomicOperationConverter converter = new DestroyCloudFoundryServerGroupAtomicOperationConverter();
+  private final DestroyCloudFoundryServerGroupAtomicOperationConverter converter =
+      new DestroyCloudFoundryServerGroupAtomicOperationConverter();
 
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenReturn(Optional.of(CloudFoundryOrganization.builder().id("org-guid").name("org").build()));
+        .thenReturn(
+            Optional.of(CloudFoundryOrganization.builder().id("org-guid").name("org").build()));
   }
 
   @Test
   void expectFindSpaceSucceeds() {
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenAnswer((Answer<Optional<CloudFoundrySpace>>) invocation -> Optional.of(
-      CloudFoundrySpace.builder().id("space-guid").name("space")
-        .organization(CloudFoundryOrganization.builder()
-          .id("org-guid").name("org").build()).build()
-    ));
+        .thenAnswer(
+            (Answer<Optional<CloudFoundrySpace>>)
+                invocation ->
+                    Optional.of(
+                        CloudFoundrySpace.builder()
+                            .id("space-guid")
+                            .name("space")
+                            .organization(
+                                CloudFoundryOrganization.builder()
+                                    .id("org-guid")
+                                    .name("org")
+                                    .build())
+                            .build()));
 
-    CloudFoundryOrganization expectedOrg = CloudFoundryOrganization.builder().id("org-guid").name("org").build();
-    CloudFoundrySpace expectedSpace = CloudFoundrySpace.builder().id("space-guid").name("space").organization(expectedOrg).build();
-    assertThat(converter.findSpace("org > space", cloudFoundryClient)).isEqualTo(Optional.of(expectedSpace));
+    CloudFoundryOrganization expectedOrg =
+        CloudFoundryOrganization.builder().id("org-guid").name("org").build();
+    CloudFoundrySpace expectedSpace =
+        CloudFoundrySpace.builder()
+            .id("space-guid")
+            .name("space")
+            .organization(expectedOrg)
+            .build();
+    assertThat(converter.findSpace("org > space", cloudFoundryClient))
+        .isEqualTo(Optional.of(expectedSpace));
   }
 }

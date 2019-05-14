@@ -33,5 +33,4 @@ public class JobDisruptionBudgetUpdateRequest {
     this.disruptionBudget = disruptionBudget;
     return this;
   }
-
 }

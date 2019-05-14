@@ -27,7 +27,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchClient
-import com.netflix.spinnaker.clouddriver.elasticsearch.model.*
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.AccountModel
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.InstanceModel
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.InstanceTypeModel
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.LocationModel
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.ModelType
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.TagModel
 import com.netflix.spinnaker.kork.core.RetrySupport
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -104,11 +109,11 @@ class ElasticSearchAmazonInstanceCachingAgent(
   private fun fetchInstanceModels(credentials: NetflixAmazonCredentials, region: String): List<InstanceModel> {
     val amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
 
-    log.debug("Describing All Instances in ${credentials.name}:${region}")
+    log.debug("Describing All Instances in ${credentials.name}:$region")
 
     return fetchAllInstances(amazonEC2).map { instance ->
       InstanceModel(
-        "${credentials.accountId}:${region}:${instance.instanceId}".toLowerCase(),
+        "${credentials.accountId}:$region:${instance.instanceId}".toLowerCase(),
         instance.instanceId,
         InstanceTypeModel(instance.instanceType),
         LocationModel("availabilityZone", instance.placement.availabilityZone),
@@ -135,6 +140,6 @@ class ElasticSearchAmazonInstanceCachingAgent(
       }
     }
 
-    return instances;
+    return instances
   }
 }

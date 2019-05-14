@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsClusterProvider;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collection;
 
 @RestController
 public class EcsClusterController {
@@ -34,10 +33,8 @@ public class EcsClusterController {
     this.ecsClusterProvider = ecsClusterProvider;
   }
 
-
   @RequestMapping(value = {"/ecs/ecsClusters"})
   public Collection<EcsCluster> getAllEcsClusters() {
     return ecsClusterProvider.getAllEcsClusters();
   }
-
 }

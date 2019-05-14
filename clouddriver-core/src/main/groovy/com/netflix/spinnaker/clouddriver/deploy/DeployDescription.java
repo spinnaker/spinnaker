@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.deploy;
 
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
-
 import java.util.Collection;
 import java.util.Collections;
 

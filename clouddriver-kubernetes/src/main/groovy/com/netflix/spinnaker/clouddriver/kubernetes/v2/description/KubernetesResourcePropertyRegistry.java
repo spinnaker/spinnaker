@@ -21,30 +21,29 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnvers
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class KubernetesResourcePropertyRegistry {
   @Autowired
-  public KubernetesResourcePropertyRegistry(List<KubernetesHandler> handlers,
-      KubernetesSpinnakerKindMap kindMap
-  ) {
+  public KubernetesResourcePropertyRegistry(
+      List<KubernetesHandler> handlers, KubernetesSpinnakerKindMap kindMap) {
     for (KubernetesHandler handler : handlers) {
-      KubernetesResourceProperties properties = KubernetesResourceProperties.builder()
-          .handler(handler)
-          .versioned(handler.versioned())
-          .versionedConverter(new KubernetesVersionedArtifactConverter())
-          .unversionedConverter(new KubernetesUnversionedArtifactConverter())
-          .build();
+      KubernetesResourceProperties properties =
+          KubernetesResourceProperties.builder()
+              .handler(handler)
+              .versioned(handler.versioned())
+              .versionedConverter(new KubernetesVersionedArtifactConverter())
+              .unversionedConverter(new KubernetesUnversionedArtifactConverter())
+              .build();
 
       kindMap.addRelationship(handler.spinnakerKind(), handler.kind());
       put(handler.kind(), properties);
@@ -52,7 +51,8 @@ public class KubernetesResourcePropertyRegistry {
   }
 
   public KubernetesResourceProperties get(String account, KubernetesKind kind) {
-    ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap = accountProperties.get(account);
+    ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap =
+        accountProperties.get(account);
     KubernetesResourceProperties properties = null;
 
     if (!kind.isRegistered()) {
@@ -69,7 +69,10 @@ public class KubernetesResourcePropertyRegistry {
     }
 
     if (properties == null) {
-      log.warn("Unable to find kind in either account properties ({}) or global properties ({})", propertyMap, globalProperties);
+      log.warn(
+          "Unable to find kind in either account properties ({}) or global properties ({})",
+          propertyMap,
+          globalProperties);
     }
 
     return properties;
@@ -79,8 +82,10 @@ public class KubernetesResourcePropertyRegistry {
     globalProperties.put(kind, properties);
   }
 
-  public synchronized void registerAccountProperty(String account, KubernetesResourceProperties properties) {
-    ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap = accountProperties.get(account);
+  public synchronized void registerAccountProperty(
+      String account, KubernetesResourceProperties properties) {
+    ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap =
+        accountProperties.get(account);
     if (propertyMap == null) {
       propertyMap = new ConcurrentHashMap<>();
     }
@@ -92,17 +97,19 @@ public class KubernetesResourcePropertyRegistry {
 
   public Collection<KubernetesResourceProperties> values() {
     Collection<KubernetesResourceProperties> result = new ArrayList<>(globalProperties.values());
-    result.addAll(accountProperties.values()
-        .stream()
-        .map(ConcurrentHashMap::values)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList())
-    );
+    result.addAll(
+        accountProperties.values().stream()
+            .map(ConcurrentHashMap::values)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
 
     return result;
   }
 
-  private final ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> globalProperties = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> globalProperties =
+      new ConcurrentHashMap<>();
 
-  private final ConcurrentHashMap<String, ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties>> accountProperties = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<
+          String, ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties>>
+      accountProperties = new ConcurrentHashMap<>();
 }

@@ -27,16 +27,15 @@ import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodStatus;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -57,12 +56,11 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
     if (status != null) {
       health.add(new KubernetesV2Health(status).toMap());
       if (status.getContainerStatuses() != null) {
-        health.addAll(status
-            .getContainerStatuses()
-            .stream()
-            .map(KubernetesV2Health::new)
-            .map(KubernetesV2Health::toMap)
-            .collect(Collectors.toList()));
+        health.addAll(
+            status.getContainerStatuses().stream()
+                .map(KubernetesV2Health::new)
+                .map(KubernetesV2Health::toMap)
+                .collect(Collectors.toList()));
       }
     }
   }
@@ -84,12 +82,16 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
 
   public LoadBalancerInstance toLoadBalancerInstance() {
     return LoadBalancerInstance.builder()
-        .health(health.stream().reduce(new HashMap<>(), (a, b) -> {
-          Map<String, Object> result = new HashMap<>();
-          result.putAll(a);
-          result.putAll(b);
-          return result;
-        }))
+        .health(
+            health.stream()
+                .reduce(
+                    new HashMap<>(),
+                    (a, b) -> {
+                      Map<String, Object> result = new HashMap<>();
+                      result.putAll(a);
+                      result.putAll(b);
+                      return result;
+                    }))
         .id(getName())
         .zone(getZone())
         .name(getHumanReadableName())

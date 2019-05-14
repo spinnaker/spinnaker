@@ -26,7 +26,8 @@ public class NoopManifestProvider implements ManifestProvider<Manifest> {
   }
 
   @Override
-  public List<Manifest> getClusterAndSortAscending(String account, String location, String kind, String app, String cluster, Sort sort) {
+  public List<Manifest> getClusterAndSortAscending(
+      String account, String location, String kind, String app, String cluster, Sort sort) {
     return null;
   }
 }

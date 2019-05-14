@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static java.util.stream.Collectors.joining;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.TerminateCloudFoundryInstancesDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.List;
-
-import static java.util.stream.Collectors.joining;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOperation<Void> {
@@ -50,7 +49,8 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
         client.getApplications().deleteAppInstance(serverGroupId, instanceIndex);
         getTask().updateStatus(PHASE, "Terminated " + instanceDescription());
       } catch (CloudFoundryApiException e) {
-        throw new CloudFoundryApiException("Failed to terminate '" + instance + "': " + e.getMessage());
+        throw new CloudFoundryApiException(
+            "Failed to terminate '" + instance + "': " + e.getMessage());
       }
     }
 
@@ -58,9 +58,12 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
   }
 
   private String instanceDescription() {
-    return description.getInstanceIds().length == 1 ?
-      "application instance '" + description.getInstanceIds()[0] + "'" :
-      "application instances [" + Arrays.stream(description.getInstanceIds())
-        .map(id -> "'" + id + "'").collect(joining(", ")) + "]";
+    return description.getInstanceIds().length == 1
+        ? "application instance '" + description.getInstanceIds()[0] + "'"
+        : "application instances ["
+            + Arrays.stream(description.getInstanceIds())
+                .map(id -> "'" + id + "'")
+                .collect(joining(", "))
+            + "]";
   }
 }

@@ -23,13 +23,25 @@ import org.slf4j.Logger;
 
 public interface DriftMetric {
   Registry getRegistry();
+
   NetflixAmazonCredentials getAccount();
+
   String getRegion();
+
   Logger getLog();
+
   String getAgentType();
 
   default Id getDriftMetricId() {
-    return getRegistry().createId("cache.drift", "agent", getClass().getSimpleName(), "account", getAccount().getName(), "region", getRegion());
+    return getRegistry()
+        .createId(
+            "cache.drift",
+            "agent",
+            getClass().getSimpleName(),
+            "account",
+            getAccount().getName(),
+            "region",
+            getRegion());
   }
 
   default void recordDrift(Long start) {

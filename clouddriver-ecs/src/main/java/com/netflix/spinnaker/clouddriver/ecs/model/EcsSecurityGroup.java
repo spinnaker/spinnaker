@@ -21,9 +21,8 @@ import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
-import lombok.Data;
-
 import java.util.Set;
+import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -41,16 +40,17 @@ public class EcsSecurityGroup implements SecurityGroup {
   final Set<Rule> inboundRules;
   final Set<Rule> outboundRules;
 
-  public EcsSecurityGroup(String id,
-                          String name,
-                          String vpcId,
-                          String description,
-                          String application,
-                          String accountName,
-                          String accountId,
-                          String region,
-                          Set<Rule> inboundRules,
-                          Set<Rule> outboundRules) {
+  public EcsSecurityGroup(
+      String id,
+      String name,
+      String vpcId,
+      String description,
+      String application,
+      String accountName,
+      String accountId,
+      String region,
+      Set<Rule> inboundRules,
+      Set<Rule> outboundRules) {
     this.id = id;
     this.name = name;
     this.vpcId = vpcId;

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
@@ -28,16 +27,18 @@ import org.apache.commons.lang3.StringUtils;
 public class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
   private String name;
   /*
-    One of the following are required for auth:
-     - username and password
-     - usernamePasswordFile : path to file containing "username:password"
-   */
+   One of the following are required for auth:
+    - username and password
+    - usernamePasswordFile : path to file containing "username:password"
+  */
   private String username;
   private String password;
   private String usernamePasswordFile;
 
   @JsonIgnore
   public boolean usesAuth() {
-    return !(StringUtils.isEmpty(username) && StringUtils.isEmpty(password) && StringUtils.isEmpty(usernamePasswordFile));
+    return !(StringUtils.isEmpty(username)
+        && StringUtils.isEmpty(password)
+        && StringUtils.isEmpty(usernamePasswordFile));
   }
 }

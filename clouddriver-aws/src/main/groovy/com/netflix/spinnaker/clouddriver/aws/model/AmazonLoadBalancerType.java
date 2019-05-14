@@ -22,7 +22,7 @@ public enum AmazonLoadBalancerType {
   NETWORK;
 
   public static AmazonLoadBalancerType getByValue(String value) {
-    for(AmazonLoadBalancerType lbt: values()) {
+    for (AmazonLoadBalancerType lbt : values()) {
       if (lbt.toString().equals(value)) {
         return lbt;
       }

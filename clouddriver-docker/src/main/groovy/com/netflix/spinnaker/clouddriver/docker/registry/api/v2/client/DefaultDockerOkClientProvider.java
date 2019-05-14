@@ -17,14 +17,13 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
 import com.netflix.spinnaker.clouddriver.docker.registry.security.TrustAllX509TrustManager;
 import com.squareup.okhttp.OkHttpClient;
-import retrofit.client.OkClient;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import retrofit.client.OkClient;
 
 public class DefaultDockerOkClientProvider implements DockerOkClientProvider {
 
@@ -39,7 +38,7 @@ public class DefaultDockerOkClientProvider implements DockerOkClientProvider {
         sslContext = SSLContext.getInstance("SSL");
         TrustManager[] trustManagers = {new TrustAllX509TrustManager()};
         sslContext.init(null, trustManagers, new SecureRandom());
-      } catch (NoSuchAlgorithmException|KeyManagementException e) {
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
         throw new IllegalStateException("Failed configuring insecure SslSocketFactory", e);
       }
       client.setSslSocketFactory(sslContext.getSocketFactory());

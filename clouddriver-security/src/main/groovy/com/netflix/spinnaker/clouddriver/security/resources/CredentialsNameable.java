@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
 /**
- * Convenience trait for extracting the account name from a credential, which all
- * descriptions should have.
+ * Convenience trait for extracting the account name from a credential, which all descriptions
+ * should have.
  */
 public interface CredentialsNameable extends AccountNameable {
   AccountCredentials getCredentials();

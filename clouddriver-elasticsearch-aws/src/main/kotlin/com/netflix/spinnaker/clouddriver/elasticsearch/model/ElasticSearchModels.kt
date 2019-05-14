@@ -35,25 +35,30 @@ data class BlockDeviceModel(val type: String)
 
 data class TagModel(val key: String, val value: Any)
 
-data class Moniker(val application: String,
-                   val stack: String?,
-                   val details: String?,
-                   val cluster: String)
+data class Moniker(
+  val application: String,
+  val stack: String?,
+  val details: String?,
+  val cluster: String
+)
 
+data class ServerGroupModel(
+  override val id: String,
+  val name: String,
+  val moniker: Moniker,
+  val location: LocationModel,
+  val account: AccountModel,
+  val instanceTypes: Collection<InstanceTypeModel>,
+  val blockDevice: BlockDeviceModel
+) : Model
 
-data class ServerGroupModel(override val id: String,
-                            val name: String,
-                            val moniker: Moniker,
-                            val location: LocationModel,
-                            val account: AccountModel,
-                            val instanceTypes: Collection<InstanceTypeModel>,
-                            val blockDevice: BlockDeviceModel) : Model
-
-data class InstanceModel(override val id: String,
-                         val instanceId: String,
-                         val instanceType: InstanceTypeModel,
-                         val location: LocationModel,
-                         val account: AccountModel,
-                         val ipAddresses: Collection<String>,
-                         val launchTime: java.util.Date,
-                         val tags: Collection<TagModel>) : Model
+data class InstanceModel(
+  override val id: String,
+  val instanceId: String,
+  val instanceType: InstanceTypeModel,
+  val location: LocationModel,
+  val account: AccountModel,
+  val ipAddresses: Collection<String>,
+  val launchTime: java.util.Date,
+  val tags: Collection<TagModel>
+) : Model

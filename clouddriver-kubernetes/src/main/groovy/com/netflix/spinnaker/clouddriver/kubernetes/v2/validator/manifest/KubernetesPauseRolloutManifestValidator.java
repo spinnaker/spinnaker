@@ -17,30 +17,37 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.PAUSE_ROLLOUT_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesPauseRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.PAUSE_ROLLOUT_MANIFEST;
-
 @KubernetesOperation(PAUSE_ROLLOUT_MANIFEST)
 @Component
-public class KubernetesPauseRolloutManifestValidator extends DescriptionValidator<KubernetesPauseRolloutManifestDescription> {
-  @Autowired
-  AccountCredentialsProvider provider;
+public class KubernetesPauseRolloutManifestValidator
+    extends DescriptionValidator<KubernetesPauseRolloutManifestDescription> {
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesPauseRolloutManifestDescription description, Errors errors) {
-    KubernetesValidationUtil util = new KubernetesValidationUtil("pauseRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
+  public void validate(
+      List priorDescriptions,
+      KubernetesPauseRolloutManifestDescription description,
+      Errors errors) {
+    KubernetesValidationUtil util =
+        new KubernetesValidationUtil("pauseRolloutKubernetesManifest", errors);
+    if (!util.validateV2Credentials(
+        provider,
+        description.getAccount(),
+        description.getPointCoordinates().getKind(),
+        description.getPointCoordinates().getNamespace())) {
       return;
     }
   }

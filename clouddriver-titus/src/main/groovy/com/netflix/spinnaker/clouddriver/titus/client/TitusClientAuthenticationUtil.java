@@ -25,8 +25,10 @@ public class TitusClientAuthenticationUtil {
 
   private static String CALLER_ID_HEADER = "X-Titus-CallerId";
   private static String CALL_REASON = "X-Titus-CallReason";
-  private static Metadata.Key<String> CALLER_ID_KEY = Metadata.Key.of(CALLER_ID_HEADER, Metadata.ASCII_STRING_MARSHALLER);
-  private static Metadata.Key<String> CALL_REASON_KEY = Metadata.Key.of(CALL_REASON, Metadata.ASCII_STRING_MARSHALLER);
+  private static Metadata.Key<String> CALLER_ID_KEY =
+      Metadata.Key.of(CALLER_ID_HEADER, Metadata.ASCII_STRING_MARSHALLER);
+  private static Metadata.Key<String> CALL_REASON_KEY =
+      Metadata.Key.of(CALL_REASON, Metadata.ASCII_STRING_MARSHALLER);
 
   public static <STUB extends AbstractStub<STUB>> STUB attachCaller(STUB serviceStub) {
     Metadata metadata = new Metadata();
@@ -34,5 +36,4 @@ public class TitusClientAuthenticationUtil {
     metadata.put(CALL_REASON_KEY, AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown"));
     return serviceStub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
-
 }

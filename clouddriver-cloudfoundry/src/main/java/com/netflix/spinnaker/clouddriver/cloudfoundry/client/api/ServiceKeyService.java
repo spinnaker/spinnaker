@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import java.util.List;
 import retrofit.client.Response;
 import retrofit.http.*;
-
-import java.util.List;
 
 public interface ServiceKeyService {
   @POST("/v2/service_keys")

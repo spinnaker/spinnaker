@@ -26,5 +26,4 @@ import java.lang.annotation.Target;
 public @interface EcsOperation {
 
   String value();
-
 }

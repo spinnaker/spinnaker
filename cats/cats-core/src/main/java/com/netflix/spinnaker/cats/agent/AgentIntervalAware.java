@@ -15,19 +15,16 @@
  */
 
 /**
- * Identifies an entity (usually an Agent) that can report what interval it wants to be scheduled at.
+ * Identifies an entity (usually an Agent) that can report what interval it wants to be scheduled
+ * at.
  */
 package com.netflix.spinnaker.cats.agent;
 
 public interface AgentIntervalAware {
-  /**
-   * @return Agent's interval to be scheduled at in milliseconds.
-   */
+  /** @return Agent's interval to be scheduled at in milliseconds. */
   Long getAgentInterval();
 
-  /**
-   * @return Agent's error interval to be scheduled at in milliseconds.
-   */
+  /** @return Agent's error interval to be scheduled at in milliseconds. */
   default Long getAgentErrorInterval() {
     return getAgentInterval();
   }

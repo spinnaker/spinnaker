@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCl
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.ShareCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.SHARE_SERVICE)
 @Component
-public class ShareCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class ShareCloudFoundryServiceAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new ShareCloudFoundryServiceAtomicOperation(convertDescription(input));
@@ -35,7 +35,8 @@ public class ShareCloudFoundryServiceAtomicOperationConverter extends AbstractCl
 
   @Override
   public ShareCloudFoundryServiceDescription convertDescription(Map input) {
-    ShareCloudFoundryServiceDescription converted = getObjectMapper().convertValue(input, ShareCloudFoundryServiceDescription.class);
+    ShareCloudFoundryServiceDescription converted =
+        getObjectMapper().convertValue(input, ShareCloudFoundryServiceDescription.class);
     converted.setClient(getClient(input));
     return converted;
   }

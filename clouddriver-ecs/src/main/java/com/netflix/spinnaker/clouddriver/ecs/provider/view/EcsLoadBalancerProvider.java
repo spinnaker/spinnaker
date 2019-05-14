@@ -24,14 +24,13 @@ import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsLoadBalancerD
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsLoadBalancerSummary;
 import com.netflix.spinnaker.clouddriver.ecs.security.ECSCredentialsConfig;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
@@ -40,8 +39,9 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
   private final ECSCredentialsConfig ecsCredentialsConfig;
 
   @Autowired
-  public EcsLoadBalancerProvider(EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
-                                 ECSCredentialsConfig ecsCredentialsConfig) {
+  public EcsLoadBalancerProvider(
+      EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
+      ECSCredentialsConfig ecsCredentialsConfig) {
     this.ecsLoadbalancerCacheClient = ecsLoadbalancerCacheClient;
     this.ecsCredentialsConfig = ecsCredentialsConfig;
   }
@@ -80,8 +80,11 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
       loadBalancer.setLoadBalancerType(lb.getLoadBalancerType());
       loadBalancer.setTargetGroups(lb.getTargetGroups());
 
-
-      summary.getOrCreateAccount(account).getOrCreateRegion(region).getLoadBalancers().add(loadBalancer);
+      summary
+          .getOrCreateAccount(account)
+          .getOrCreateRegion(region)
+          .getLoadBalancers()
+          .add(loadBalancer);
     }
 
     return new ArrayList<>(map.values());
@@ -89,17 +92,19 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
 
   @Override
   public Item get(String name) {
-    return null;  //TODO - Implement this.
+    return null; // TODO - Implement this.
   }
 
   @Override
   public List<Details> byAccountAndRegionAndName(String account, String region, String name) {
-    return null;  //TODO - Implement this.  This is used to show the details view of a load balancer which is not even implemented yet
+    return null; // TODO - Implement this.  This is used to show the details view of a load balancer
+    // which is not even implemented yet
   }
 
   @Override
   public Set<AmazonLoadBalancer> getApplicationLoadBalancers(String application) {
-    return null;  //TODO - Implement this.  This is used to show load balancers and reveals other buttons
+    return null; // TODO - Implement this.  This is used to show load balancers and reveals other
+    // buttons
   }
 
   private String getEcsAccountName(String awsAccountName) {

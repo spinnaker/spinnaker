@@ -17,15 +17,11 @@
 package com.netflix.spinnaker.cats.provider;
 
 import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.CachingAgent;
-
 import java.util.Collection;
 
-/**
- * A Provider has many Agents.
- */
+/** A Provider has many Agents. */
 public interface Provider {
-    String getProviderName();
+  String getProviderName();
 
-    Collection<Agent> getAgents();
+  Collection<Agent> getAgents();
 }

@@ -19,8 +19,6 @@ import com.netflix.spinnaker.clouddriver.scattergather.ScatterGather
 import com.netflix.spinnaker.clouddriver.scattergather.client.ScatteredOkHttpCallFactory
 import com.netflix.spinnaker.clouddriver.scattergather.naive.NaiveScatterGather
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

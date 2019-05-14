@@ -28,14 +28,14 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.util.Collection;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Map;
-
 @Component("upsertEntityTags")
-public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class UpsertEntityTagsAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
   private final Front50Service front50Service;
@@ -43,14 +43,17 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
-  public UpsertEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
-                                                  RetrySupport retrySupport,
-                                                  Front50Service front50Service,
-                                                  AccountCredentialsProvider accountCredentialsProvider,
-                                                  ElasticSearchEntityTagsProvider entityTagsProvider) {
-    this.objectMapper = objectMapper.copy()
-      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  public UpsertEntityTagsAtomicOperationConverter(
+      ObjectMapper objectMapper,
+      RetrySupport retrySupport,
+      Front50Service front50Service,
+      AccountCredentialsProvider accountCredentialsProvider,
+      ElasticSearchEntityTagsProvider entityTagsProvider) {
+    this.objectMapper =
+        objectMapper
+            .copy()
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     this.retrySupport = retrySupport;
     this.front50Service = front50Service;
@@ -65,23 +68,21 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   public AtomicOperation buildOperation(UpsertEntityTagsDescription description) {
     description.getTags().forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType);
     return new UpsertEntityTagsAtomicOperation(
-      retrySupport,
-      front50Service,
-      accountCredentialsProvider,
-      entityTagsProvider,
-      description
-    );
+        retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, description);
   }
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
-    UpsertEntityTagsDescription upsertEntityTagsDescription = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+    UpsertEntityTagsDescription upsertEntityTagsDescription =
+        objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
     return upsertEntityTagsDescription;
   }
 
   static void setTagValueType(EntityTags.EntityTag entityTag) {
     if (entityTag.getValueType() == null) {
-      boolean isObject = entityTag.getValue() instanceof Map || entityTag.getValue() instanceof Collection;
-      entityTag.setValueType(isObject ? EntityTags.EntityTagValueType.object : EntityTags.EntityTagValueType.literal);
+      boolean isObject =
+          entityTag.getValue() instanceof Map || entityTag.getValue() instanceof Collection;
+      entityTag.setValueType(
+          isObject ? EntityTags.EntityTagValueType.object : EntityTags.EntityTagValueType.literal);
     }
   }
 }

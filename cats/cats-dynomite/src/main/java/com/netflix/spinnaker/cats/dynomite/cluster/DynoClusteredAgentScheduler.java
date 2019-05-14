@@ -22,19 +22,12 @@ import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
-import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeIdentity;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
+import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.exceptions.JedisException;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,21 +38,31 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.exceptions.JedisException;
 
 /**
- * Temporary clustered agent scheduler while we're waiting for Dyno client support of evalsha and loadscript.
+ * Temporary clustered agent scheduler while we're waiting for Dyno client support of evalsha and
+ * loadscript.
  *
- * Shares a similar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and less safe. Dynomite
- * support for Lua is in-progress, so this class is rather temporary, then we can move to ClusteredSortAgentScheduler.
+ * <p>Shares a similar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and less
+ * safe. Dynomite support for Lua is in-progress, so this class is rather temporary, then we can
+ * move to ClusteredSortAgentScheduler.
  */
-public class DynoClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
+public class DynoClusteredAgentScheduler extends CatsModuleAware
+    implements AgentScheduler<AgentLock>, Runnable {
 
-  private final static Logger log = LoggerFactory.getLogger(DynoClusteredAgentScheduler.class);
+  private static final Logger log = LoggerFactory.getLogger(DynoClusteredAgentScheduler.class);
 
-  private final static RetryPolicy ACQUIRE_LOCK_RETRY_POLICY = new RetryPolicy()
-    .retryOn(Arrays.asList(DynoException.class, JedisException.class))
-    .withMaxRetries(3)
-    .withDelay(25, TimeUnit.MILLISECONDS);
+  private static final RetryPolicy ACQUIRE_LOCK_RETRY_POLICY =
+      new RetryPolicy()
+          .retryOn(Arrays.asList(DynoException.class, JedisException.class))
+          .withMaxRetries(3)
+          .withDelay(25, TimeUnit.MILLISECONDS);
 
   private static enum Status {
     SUCCESS,
@@ -74,11 +77,29 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
   private final Map<String, NextAttempt> activeAgents = new ConcurrentHashMap<>();
   private final NodeStatusProvider nodeStatusProvider;
 
-  public DynoClusteredAgentScheduler(DynomiteClientDelegate redisClientDelegate, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, NodeStatusProvider nodeStatusProvider) {
-    this(redisClientDelegate, nodeIdentity, intervalProvider, nodeStatusProvider, Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(DynoClusteredAgentScheduler.class.getSimpleName())), Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
+  public DynoClusteredAgentScheduler(
+      DynomiteClientDelegate redisClientDelegate,
+      NodeIdentity nodeIdentity,
+      AgentIntervalProvider intervalProvider,
+      NodeStatusProvider nodeStatusProvider) {
+    this(
+        redisClientDelegate,
+        nodeIdentity,
+        intervalProvider,
+        nodeStatusProvider,
+        Executors.newSingleThreadScheduledExecutor(
+            new NamedThreadFactory(DynoClusteredAgentScheduler.class.getSimpleName())),
+        Executors.newCachedThreadPool(
+            new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
   }
 
-  public DynoClusteredAgentScheduler(DynomiteClientDelegate redisClientDelegate, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, NodeStatusProvider nodeStatusProvider, ScheduledExecutorService lockPollingScheduler, ExecutorService agentExecutionPool) {
+  public DynoClusteredAgentScheduler(
+      DynomiteClientDelegate redisClientDelegate,
+      NodeIdentity nodeIdentity,
+      AgentIntervalProvider intervalProvider,
+      NodeStatusProvider nodeStatusProvider,
+      ScheduledExecutorService lockPollingScheduler,
+      ExecutorService agentExecutionPool) {
     this.redisClientDelegate = redisClientDelegate;
     this.nodeIdentity = nodeIdentity;
     this.intervalProvider = intervalProvider;
@@ -88,12 +109,16 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
   }
 
   @Override
-  public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+  public void schedule(
+      Agent agent,
+      AgentExecution agentExecution,
+      ExecutionInstrumentation executionInstrumentation) {
     if (agent instanceof AgentSchedulerAware) {
       ((AgentSchedulerAware) agent).setAgentScheduler(this);
     }
 
-    final AgentExecutionAction agentExecutionAction = new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
+    final AgentExecutionAction agentExecutionAction =
+        new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
     agents.put(agent.getAgentType(), agentExecutionAction);
   }
 
@@ -119,39 +144,50 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     Map<String, NextAttempt> acquired = new HashMap<>(agents.size());
     Set<String> skip = new HashSet<>(activeAgents.keySet());
     agents.entrySet().stream()
-      .filter(a -> !skip.contains(a.getKey()))
-      .forEach(a -> {
-        final String agentType = a.getKey();
-        AgentIntervalProvider.Interval interval = intervalProvider.getInterval(a.getValue().getAgent());
-        if (acquireRunKey(agentType, interval.getTimeout())) {
-          acquired.put(agentType, new NextAttempt(System.currentTimeMillis(), interval.getInterval(), interval.getErrorInterval()));
-        }
-      });
+        .filter(a -> !skip.contains(a.getKey()))
+        .forEach(
+            a -> {
+              final String agentType = a.getKey();
+              AgentIntervalProvider.Interval interval =
+                  intervalProvider.getInterval(a.getValue().getAgent());
+              if (acquireRunKey(agentType, interval.getTimeout())) {
+                acquired.put(
+                    agentType,
+                    new NextAttempt(
+                        System.currentTimeMillis(),
+                        interval.getInterval(),
+                        interval.getErrorInterval()));
+              }
+            });
     return acquired;
   }
 
   private boolean acquireRunKey(String agentType, long timeout) {
-    // This isn't as safe as the vanilla Redis impl because the call isn't atomic, but it's the best we can do until
-    // dynomite adds support for `String set(String key, String value, String nxxx, String expx, long time)` (which
+    // This isn't as safe as the vanilla Redis impl because the call isn't atomic, but it's the best
+    // we can do until
+    // dynomite adds support for `String set(String key, String value, String nxxx, String expx,
+    // long time)` (which
     // they are working on).
     String identity = nodeIdentity.getNodeIdentity();
-    return redisClientDelegate.withCommandsClient(client -> {
-      return Failsafe
-        .with(ACQUIRE_LOCK_RETRY_POLICY)
-        .get(() -> {
-          String response = client.get(agentType);
-          if (response == null && client.setnx(agentType, identity) == 1) {
-            client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
-            return true;
-          }
+    return redisClientDelegate.withCommandsClient(
+        client -> {
+          return Failsafe.with(ACQUIRE_LOCK_RETRY_POLICY)
+              .get(
+                  () -> {
+                    String response = client.get(agentType);
+                    if (response == null && client.setnx(agentType, identity) == 1) {
+                      client.pexpireAt(agentType, System.currentTimeMillis() + timeout);
+                      return true;
+                    }
 
-          if (client.ttl(agentType) == -1) {
-            log.warn("Detected potential deadlocked agent, removing lock key: " + agentType);
-            client.del(agentType);
-          }
-          return false;
+                    if (client.ttl(agentType) == -1) {
+                      log.warn(
+                          "Detected potential deadlocked agent, removing lock key: " + agentType);
+                      client.del(agentType);
+                    }
+                    return false;
+                  });
         });
-    });
   }
 
   private void runAgents() {
@@ -174,13 +210,14 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
   private void releaseRunKey(String agentType, long when) {
     final long newTtl = when - System.currentTimeMillis();
     final boolean delete = newTtl < 2500L;
-    redisClientDelegate.withCommandsClient(client -> {
-      if (delete) {
-        deleteLock(client, agentType);
-      } else {
-        ttlLock(client, agentType, newTtl);
-      }
-    });
+    redisClientDelegate.withCommandsClient(
+        client -> {
+          if (delete) {
+            deleteLock(client, agentType);
+          } else {
+            ttlLock(client, agentType, newTtl);
+          }
+        });
   }
 
   private void deleteLock(JedisCommands client, String agentType) {
@@ -219,7 +256,10 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     private final AgentExecutionAction action;
     private final DynoClusteredAgentScheduler scheduler;
 
-    public AgentJob(NextAttempt lockReleaseTime, AgentExecutionAction action, DynoClusteredAgentScheduler scheduler) {
+    public AgentJob(
+        NextAttempt lockReleaseTime,
+        AgentExecutionAction action,
+        DynoClusteredAgentScheduler scheduler) {
       this.lockReleaseTime = lockReleaseTime;
       this.action = action;
       this.scheduler = scheduler;
@@ -231,7 +271,8 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
       try {
         status = action.execute();
       } finally {
-        scheduler.agentCompleted(action.getAgent().getAgentType(), lockReleaseTime.getNextTime(status));
+        scheduler.agentCompleted(
+            action.getAgent().getAgentType(), lockReleaseTime.getNextTime(status));
       }
     }
   }
@@ -241,7 +282,10 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     private final AgentExecution agentExecution;
     private final ExecutionInstrumentation executionInstrumentation;
 
-    public AgentExecutionAction(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+    public AgentExecutionAction(
+        Agent agent,
+        AgentExecution agentExecution,
+        ExecutionInstrumentation executionInstrumentation) {
       this.agent = agent;
       this.agentExecution = agentExecution;
       this.executionInstrumentation = executionInstrumentation;
@@ -256,13 +300,13 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
         executionInstrumentation.executionStarted(agent);
         long startTime = System.nanoTime();
         agentExecution.executeAgent(agent);
-        executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        executionInstrumentation.executionCompleted(
+            agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
         return Status.SUCCESS;
       } catch (Throwable cause) {
         executionInstrumentation.executionFailed(agent, cause);
         return Status.FAILURE;
       }
     }
-
   }
 }

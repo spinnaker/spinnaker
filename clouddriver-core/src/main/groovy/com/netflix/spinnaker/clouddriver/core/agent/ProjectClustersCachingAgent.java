@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.core.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.PROJECT_CLUSTERS;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -23,33 +26,29 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
+import com.netflix.spinnaker.clouddriver.config.ProjectClustersCachingAgentProperties;
 import com.netflix.spinnaker.clouddriver.core.ProjectClustersService;
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider;
-import com.netflix.spinnaker.clouddriver.config.ProjectClustersCachingAgentProperties;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.PROJECT_CLUSTERS;
-
 public class ProjectClustersCachingAgent implements CachingAgent, CustomScheduledAgent {
 
   private static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1);
   private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(30);
 
-  private final Collection<AgentDataType> types = Collections.singletonList(
-    AUTHORITATIVE.forType(PROJECT_CLUSTERS.ns)
-  );
+  private final Collection<AgentDataType> types =
+      Collections.singletonList(AUTHORITATIVE.forType(PROJECT_CLUSTERS.ns));
 
   private final ProjectClustersService projectClustersService;
   private final ProjectClustersCachingAgentProperties properties;
 
-  public ProjectClustersCachingAgent(ProjectClustersService projectClustersService,
-                                     ProjectClustersCachingAgentProperties properties) {
+  public ProjectClustersCachingAgent(
+      ProjectClustersService projectClustersService,
+      ProjectClustersCachingAgentProperties properties) {
     this.projectClustersService = projectClustersService;
     this.properties = properties;
   }
@@ -61,16 +60,16 @@ public class ProjectClustersCachingAgent implements CachingAgent, CustomSchedule
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    return new DefaultCacheResult(Collections.singletonMap(
-      PROJECT_CLUSTERS.ns,
-      Collections.singletonList(
-        new MutableCacheData(
-          "v1",
-          new HashMap<>(projectClustersService.getProjectClusters(properties.getNormalizedAllowList())),
-          Collections.emptyMap()
-        )
-      )
-    ));
+    return new DefaultCacheResult(
+        Collections.singletonMap(
+            PROJECT_CLUSTERS.ns,
+            Collections.singletonList(
+                new MutableCacheData(
+                    "v1",
+                    new HashMap<>(
+                        projectClustersService.getProjectClusters(
+                            properties.getNormalizedAllowList())),
+                    Collections.emptyMap()))));
   }
 
   static class MutableCacheData implements CacheData {
@@ -85,9 +84,8 @@ public class ProjectClustersCachingAgent implements CachingAgent, CustomSchedule
     }
 
     @JsonCreator
-    public MutableCacheData(String id,
-                            Map<String, Object> attributes,
-                            Map<String, Collection<String>> relationships) {
+    public MutableCacheData(
+        String id, Map<String, Object> attributes, Map<String, Collection<String>> relationships) {
       this.id = id;
       this.attributes.putAll(attributes);
       this.relationships.putAll(relationships);

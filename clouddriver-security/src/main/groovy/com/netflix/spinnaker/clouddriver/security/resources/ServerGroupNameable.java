@@ -18,10 +18,7 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.frigga.Names;
-
 import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Convenience trait for parsing application name out of a description with one server group name.

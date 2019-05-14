@@ -17,17 +17,16 @@
 package com.netflix.spinnaker.clouddriver.appengine.artifacts.controllers;
 
 import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties;
-
 import groovy.util.logging.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-
-// TODO(jacobkiefer): Refactor this Controller into a common controller with injected StorageService(s) when we
+// TODO(jacobkiefer): Refactor this Controller into a common controller with injected
+// StorageService(s) when we
 // add another storage account service. Leaving this in Appengine's scope for now.
 @Slf4j
 @RestController
@@ -44,7 +43,7 @@ class AppengineStorageController {
     }
     List<String> results = new ArrayList<String>(storageAccountInfo.getAccounts().size());
     for (StorageConfigurationProperties.ManagedAccount account : storageAccountInfo.getAccounts()) {
-        results.add(account.getName());
+      results.add(account.getName());
     }
     return results;
   }

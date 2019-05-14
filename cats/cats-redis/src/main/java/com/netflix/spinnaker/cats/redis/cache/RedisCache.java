@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.cats.redis.cache;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
@@ -23,7 +25,6 @@ import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,54 +42,59 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 public class RedisCache extends AbstractRedisCache {
 
   public interface CacheMetrics {
-    default void merge(String prefix,
-                       String type,
-                       int itemCount,
-                       int keysWritten,
-                       int relationshipCount,
-                       int hashMatches,
-                       int hashUpdates,
-                       int saddOperations,
-                       int msetOperations,
-                       int hmsetOperations,
-                       int pipelineOperations,
-                       int expireOperations) {
-      //noop
+    default void merge(
+        String prefix,
+        String type,
+        int itemCount,
+        int keysWritten,
+        int relationshipCount,
+        int hashMatches,
+        int hashUpdates,
+        int saddOperations,
+        int msetOperations,
+        int hmsetOperations,
+        int pipelineOperations,
+        int expireOperations) {
+      // noop
     }
 
-    default void evict(String prefix,
-                       String type,
-                       int itemCount,
-                       int keysDeleted,
-                       int hashesDeleted,
-                       int delOperations,
-                       int hdelOperations,
-                       int sremOperations) {
-      //noop
+    default void evict(
+        String prefix,
+        String type,
+        int itemCount,
+        int keysDeleted,
+        int hashesDeleted,
+        int delOperations,
+        int hdelOperations,
+        int sremOperations) {
+      // noop
     }
 
-    default void get(String prefix,
-                     String type,
-                     int itemCount,
-                     int requestedSize,
-                     int keysRequested,
-                     int relationshipsRequested,
-                     int mgetOperations) {
-      //noop
+    default void get(
+        String prefix,
+        String type,
+        int itemCount,
+        int requestedSize,
+        int keysRequested,
+        int relationshipsRequested,
+        int mgetOperations) {
+      // noop
     }
 
-    class NOOP implements CacheMetrics {
-    }
+    class NOOP implements CacheMetrics {}
   }
 
   private final CacheMetrics cacheMetrics;
 
-  public RedisCache(String prefix, RedisClientDelegate redisClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
+  public RedisCache(
+      String prefix,
+      RedisClientDelegate redisClientDelegate,
+      ObjectMapper objectMapper,
+      RedisCacheOptions options,
+      CacheMetrics cacheMetrics) {
     super(prefix, redisClientDelegate, objectMapper, options);
     this.cacheMetrics = cacheMetrics == null ? new CacheMetrics.NOOP() : cacheMetrics;
   }
@@ -130,65 +136,75 @@ public class RedisCache extends AbstractRedisCache {
     AtomicInteger pipelineOperations = new AtomicInteger();
     AtomicInteger expireOperations = new AtomicInteger();
     if (keysToSet.size() > 0) {
-      redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-        for (List<String> idPart : Iterables.partition(idSet, options.getMaxSaddSize())) {
-          final String[] ids = idPart.toArray(new String[idPart.size()]);
-          pipeline.sadd(allOfTypeId(type), ids);
-          saddOperations.incrementAndGet();
-        }
+      redisClientDelegate.withMultiKeyPipeline(
+          pipeline -> {
+            for (List<String> idPart : Iterables.partition(idSet, options.getMaxSaddSize())) {
+              final String[] ids = idPart.toArray(new String[idPart.size()]);
+              pipeline.sadd(allOfTypeId(type), ids);
+              saddOperations.incrementAndGet();
+            }
 
-        for (List<String> keys : Lists.partition(keysToSet, options.getMaxMsetSize())) {
-          pipeline.mset(keys.toArray(new String[keys.size()]));
-          msetOperations.incrementAndGet();
-        }
+            for (List<String> keys : Lists.partition(keysToSet, options.getMaxMsetSize())) {
+              pipeline.mset(keys.toArray(new String[keys.size()]));
+              msetOperations.incrementAndGet();
+            }
 
-        if (!relationshipNames.isEmpty()) {
-          for (List<String> relNamesPart : Iterables.partition(relationshipNames, options.getMaxSaddSize())) {
-            pipeline.sadd(allRelationshipsId(type), relNamesPart.toArray(new String[relNamesPart.size()]));
-            saddOperations.incrementAndGet();
-          }
-        }
+            if (!relationshipNames.isEmpty()) {
+              for (List<String> relNamesPart :
+                  Iterables.partition(relationshipNames, options.getMaxSaddSize())) {
+                pipeline.sadd(
+                    allRelationshipsId(type),
+                    relNamesPart.toArray(new String[relNamesPart.size()]));
+                saddOperations.incrementAndGet();
+              }
+            }
 
-        if (!updatedHashes.isEmpty()) {
-          for (List<String> hashPart : Iterables.partition(updatedHashes.keySet(), options.getMaxHmsetSize())) {
-            pipeline.hmset(hashesId(type), updatedHashes.subMap(hashPart.get(0), true, hashPart.get(hashPart.size() - 1), true));
-            hmsetOperations.incrementAndGet();
-          }
-        }
-        pipeline.sync();
-        pipelineOperations.incrementAndGet();
-      });
+            if (!updatedHashes.isEmpty()) {
+              for (List<String> hashPart :
+                  Iterables.partition(updatedHashes.keySet(), options.getMaxHmsetSize())) {
+                pipeline.hmset(
+                    hashesId(type),
+                    updatedHashes.subMap(
+                        hashPart.get(0), true, hashPart.get(hashPart.size() - 1), true));
+                hmsetOperations.incrementAndGet();
+              }
+            }
+            pipeline.sync();
+            pipelineOperations.incrementAndGet();
+          });
 
-      redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-        for (List<Map.Entry<String, Integer>> ttlPart : Iterables.partition(ttlSecondsByKey.entrySet(), options.getMaxPipelineSize())) {
-          for (Map.Entry<String, Integer> ttlEntry : ttlPart) {
-            pipeline.expire(ttlEntry.getKey(), ttlEntry.getValue());
-          }
-          expireOperations.addAndGet(ttlPart.size());
-          pipeline.sync();
-          pipelineOperations.incrementAndGet();
-        }
-      });
+      redisClientDelegate.withMultiKeyPipeline(
+          pipeline -> {
+            for (List<Map.Entry<String, Integer>> ttlPart :
+                Iterables.partition(ttlSecondsByKey.entrySet(), options.getMaxPipelineSize())) {
+              for (Map.Entry<String, Integer> ttlEntry : ttlPart) {
+                pipeline.expire(ttlEntry.getKey(), ttlEntry.getValue());
+              }
+              expireOperations.addAndGet(ttlPart.size());
+              pipeline.sync();
+              pipelineOperations.incrementAndGet();
+            }
+          });
     }
 
     cacheMetrics.merge(
-      prefix,
-      type,
-      items.size(),
-      keysToSet.size() / 2,
-      relationshipNames.size(),
-      skippedWrites,
-      updatedHashes.size(),
-      saddOperations.get(),
-      msetOperations.get(),
-      hmsetOperations.get(),
-      pipelineOperations.get(),
-      expireOperations.get()
-    );
+        prefix,
+        type,
+        items.size(),
+        keysToSet.size() / 2,
+        relationshipNames.size(),
+        skippedWrites,
+        updatedHashes.size(),
+        saddOperations.get(),
+        msetOperations.get(),
+        hmsetOperations.get(),
+        pipelineOperations.get(),
+        expireOperations.get());
   }
 
   @Override
-  protected void evictItems(String type, List<String> identifiers, Collection<String> allRelationships) {
+  protected void evictItems(
+      String type, List<String> identifiers, Collection<String> allRelationships) {
     List<String> delKeys = new ArrayList<>((allRelationships.size() + 1) * identifiers.size());
     for (String id : identifiers) {
       for (String relationship : allRelationships) {
@@ -200,33 +216,33 @@ public class RedisCache extends AbstractRedisCache {
     AtomicInteger delOperations = new AtomicInteger();
     AtomicInteger hdelOperations = new AtomicInteger();
     AtomicInteger sremOperations = new AtomicInteger();
-    redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-      for (List<String> delPartition : Lists.partition(delKeys, options.getMaxDelSize())) {
-        pipeline.del(delPartition.toArray(new String[delPartition.size()]));
-        delOperations.incrementAndGet();
-        pipeline.hdel(hashesId(type), delPartition.toArray(new String[delPartition.size()]));
-        hdelOperations.incrementAndGet();
-      }
+    redisClientDelegate.withMultiKeyPipeline(
+        pipeline -> {
+          for (List<String> delPartition : Lists.partition(delKeys, options.getMaxDelSize())) {
+            pipeline.del(delPartition.toArray(new String[delPartition.size()]));
+            delOperations.incrementAndGet();
+            pipeline.hdel(hashesId(type), delPartition.toArray(new String[delPartition.size()]));
+            hdelOperations.incrementAndGet();
+          }
 
-      for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
-        String[] ids = idPartition.toArray(new String[idPartition.size()]);
-        pipeline.srem(allOfTypeId(type), ids);
-        sremOperations.incrementAndGet();
-      }
+          for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
+            String[] ids = idPartition.toArray(new String[idPartition.size()]);
+            pipeline.srem(allOfTypeId(type), ids);
+            sremOperations.incrementAndGet();
+          }
 
-      pipeline.sync();
-    });
+          pipeline.sync();
+        });
 
     cacheMetrics.evict(
-      prefix,
-      type,
-      identifiers.size(),
-      delKeys.size(),
-      delKeys.size(),
-      delOperations.get(),
-      hdelOperations.get(),
-      sremOperations.get()
-    );
+        prefix,
+        type,
+        identifiers.size(),
+        delKeys.size(),
+        delKeys.size(),
+        delOperations.get(),
+        hdelOperations.get(),
+        sremOperations.get());
   }
 
   @Override
@@ -243,14 +259,16 @@ public class RedisCache extends AbstractRedisCache {
 
     final List<String> keyResult = new ArrayList<>(keysToGet.size());
 
-    int mgetOperations = redisClientDelegate.withMultiClient(c -> {
-      int ops = 0;
-      for (List<String> part : Lists.partition(keysToGet, options.getMaxMgetSize())) {
-        ops++;
-        keyResult.addAll(c.mget(part.toArray(new String[part.size()])));
-      }
-      return ops;
-    });
+    int mgetOperations =
+        redisClientDelegate.withMultiClient(
+            c -> {
+              int ops = 0;
+              for (List<String> part : Lists.partition(keysToGet, options.getMaxMgetSize())) {
+                ops++;
+                keyResult.addAll(c.mget(part.toArray(new String[part.size()])));
+              }
+              return ops;
+            });
 
     if (keyResult.size() != keysToGet.size()) {
       throw new RuntimeException("Expected same size result as request");
@@ -259,13 +277,21 @@ public class RedisCache extends AbstractRedisCache {
     Collection<CacheData> results = new ArrayList<>(ids.size());
     Iterator<String> idIterator = ids.iterator();
     for (int ofs = 0; ofs < keyResult.size(); ofs += singleResultSize) {
-      CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs + singleResultSize), knownRels);
+      CacheData item =
+          extractItem(idIterator.next(), keyResult.subList(ofs, ofs + singleResultSize), knownRels);
       if (item != null) {
         results.add(item);
       }
     }
 
-    cacheMetrics.get(prefix, type, results.size(), ids.size(), keysToGet.size(), knownRels.size(), mgetOperations);
+    cacheMetrics.get(
+        prefix,
+        type,
+        results.size(),
+        ids.size(),
+        keysToGet.size(),
+        knownRels.size(),
+        mgetOperations);
     return results;
   }
 
@@ -281,10 +307,8 @@ public class RedisCache extends AbstractRedisCache {
         String rel = keyResult.get(relIdx);
         if (rel != null) {
           String relType = knownRels.get(relIdx - 1);
-          Collection<String> deserializedRel = objectMapper.readValue(
-            rel,
-            getRelationshipsTypeReference()
-          );
+          Collection<String> deserializedRel =
+              objectMapper.readValue(rel, getRelationshipsTypeReference());
           relationships.put(relType, deserializedRel);
         }
       }
@@ -302,7 +326,11 @@ public class RedisCache extends AbstractRedisCache {
     public final Map<String, String> hashesToSet;
     public final int skippedWrites;
 
-    MergeOp(Set<String> relNames, List<String> keysToSet, Map<String, String> hashesToSet, int skippedWrites) {
+    MergeOp(
+        Set<String> relNames,
+        List<String> keysToSet,
+        Map<String, String> hashesToSet,
+        int skippedWrites) {
       this.relNames = relNames;
       this.keysToSet = keysToSet;
       this.hashesToSet = hashesToSet;
@@ -326,26 +354,41 @@ public class RedisCache extends AbstractRedisCache {
 
     final Map<String, String> hashesToSet = new HashMap<>();
     final List<String> keysToSet = new ArrayList<>((cacheData.getRelationships().size() + 1) * 2);
-    if (serializedAttributes != null &&
-      hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, keysToSet, hashesToSet, hasTtl)) {
+    if (serializedAttributes != null
+        && hashCheck(
+            hashes,
+            attributesId(type, cacheData.getId()),
+            serializedAttributes,
+            keysToSet,
+            hashesToSet,
+            hasTtl)) {
       skippedWrites++;
     }
 
     if (!cacheData.getRelationships().isEmpty()) {
-      for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
+      for (Map.Entry<String, Collection<String>> relationship :
+          cacheData.getRelationships().entrySet()) {
         final String relationshipValue;
         try {
-          relationshipValue = objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue()));
+          relationshipValue =
+              objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue()));
         } catch (JsonProcessingException serializationException) {
           throw new RuntimeException("Relationship serialization failed", serializationException);
         }
-        if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, keysToSet, hashesToSet, hasTtl)) {
+        if (hashCheck(
+            hashes,
+            relationshipId(type, cacheData.getId(), relationship.getKey()),
+            relationshipValue,
+            keysToSet,
+            hashesToSet,
+            hasTtl)) {
           skippedWrites++;
         }
       }
     }
 
-    return new MergeOp(cacheData.getRelationships().keySet(), keysToSet, hashesToSet, skippedWrites);
+    return new MergeOp(
+        cacheData.getRelationships().keySet(), keysToSet, hashesToSet, skippedWrites);
   }
 
   private List<String> getKeys(String type, Collection<CacheData> cacheDatas) {
@@ -365,11 +408,14 @@ public class RedisCache extends AbstractRedisCache {
 
   private List<String> getHashValues(List<String> hashKeys, String hashesId) {
     final List<String> hashValues = new ArrayList<>(hashKeys.size());
-    redisClientDelegate.withCommandsClient(c -> {
-      for (List<String> hashPart : Lists.partition(hashKeys, options.getMaxHmgetSize())) {
-        hashValues.addAll(c.hmget(hashesId, Arrays.copyOf(hashPart.toArray(), hashPart.size(), String[].class)));
-      }
-    });
+    redisClientDelegate.withCommandsClient(
+        c -> {
+          for (List<String> hashPart : Lists.partition(hashKeys, options.getMaxHmgetSize())) {
+            hashValues.addAll(
+                c.hmget(
+                    hashesId, Arrays.copyOf(hashPart.toArray(), hashPart.size(), String[].class)));
+          }
+        });
     return hashValues;
   }
 
@@ -377,17 +423,26 @@ public class RedisCache extends AbstractRedisCache {
    * Compares the hash of serializedValue against an existing hash, if they do not match adds
    * serializedValue to keys and the new hash to updatedHashes.
    *
-   * @param hashes          the existing hash values
-   * @param id              the id of the item
+   * @param hashes the existing hash values
+   * @param id the id of the item
    * @param serializedValue the serialized value
-   * @param keys            values to persist - if the hash does not match id and serializedValue are appended
-   * @param updatedHashes   hashes to persist - if the hash does not match adds an entry of id -> computed hash
-   * @param hasTtl          if the key has a ttl - generally this means the key should not be hashed due to consistency issues between the hash key, and the key itself
+   * @param keys values to persist - if the hash does not match id and serializedValue are appended
+   * @param updatedHashes hashes to persist - if the hash does not match adds an entry of id ->
+   *     computed hash
+   * @param hasTtl if the key has a ttl - generally this means the key should not be hashed due to
+   *     consistency issues between the hash key, and the key itself
    * @return true if the hash matched, false otherwise
    */
-  private boolean hashCheck(Map<String, String> hashes, String id, String serializedValue, List<String> keys, Map<String, String> updatedHashes, boolean hasTtl) {
+  private boolean hashCheck(
+      Map<String, String> hashes,
+      String id,
+      String serializedValue,
+      List<String> keys,
+      Map<String, String> updatedHashes,
+      boolean hasTtl) {
     if (options.isHashingEnabled() && !hasTtl) {
-      final String hash = Hashing.sha1().newHasher().putString(serializedValue, UTF_8).hash().toString();
+      final String hash =
+          Hashing.sha1().newHasher().putString(serializedValue, UTF_8).hash().toString();
       final String existingHash = hashes.get(id);
       if (hash.equals(existingHash)) {
         return true;

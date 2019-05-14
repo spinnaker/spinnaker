@@ -23,26 +23,26 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundr
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 @Configuration
 public class CloudFoundryProviderConfig {
 
   @Bean
   @DependsOn("cloudFoundryAccountCredentials")
-  public CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository, Registry registry) {
-    CloudFoundryProvider provider = new CloudFoundryProvider(
-      Collections.newSetFromMap(new ConcurrentHashMap<>()));
+  public CloudFoundryProvider cloudFoundryProvider(
+      AccountCredentialsRepository accountCredentialsRepository, Registry registry) {
+    CloudFoundryProvider provider =
+        new CloudFoundryProvider(Collections.newSetFromMap(new ConcurrentHashMap<>()));
     synchronizeCloudFoundryProvider(provider, accountCredentialsRepository, registry);
     return provider;
   }
@@ -54,19 +54,27 @@ public class CloudFoundryProviderConfig {
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  public CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(CloudFoundryProvider cloudFoundryProvider,
-                                                                          AccountCredentialsRepository accountCredentialsRepository,
-                                                                          Registry registry) {
+  public CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(
+      CloudFoundryProvider cloudFoundryProvider,
+      AccountCredentialsRepository accountCredentialsRepository,
+      Registry registry) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(cloudFoundryProvider);
-    Set<CloudFoundryCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
-      CloudFoundryCredentials.class);
+    Set<CloudFoundryCredentials> allAccounts =
+        ProviderUtils.buildThreadSafeSetOfAccounts(
+            accountCredentialsRepository, CloudFoundryCredentials.class);
 
-    cloudFoundryProvider.getAgents().addAll(allAccounts.stream()
-      .map(credentials -> !scheduledAccounts.contains(credentials.getName()) ?
-        new CloudFoundryCachingAgent(credentials.getName(), credentials.getClient(), registry) :
-        null)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList()));
+    cloudFoundryProvider
+        .getAgents()
+        .addAll(
+            allAccounts.stream()
+                .map(
+                    credentials ->
+                        !scheduledAccounts.contains(credentials.getName())
+                            ? new CloudFoundryCachingAgent(
+                                credentials.getName(), credentials.getClient(), registry)
+                            : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
 
     return new CloudFoundryProviderSynchronizer();
   }
@@ -78,6 +86,5 @@ public class CloudFoundryProviderConfig {
     }
   }
 
-  class CloudFoundryProviderSynchronizer {
-  }
+  class CloudFoundryProviderSynchronizer {}
 }

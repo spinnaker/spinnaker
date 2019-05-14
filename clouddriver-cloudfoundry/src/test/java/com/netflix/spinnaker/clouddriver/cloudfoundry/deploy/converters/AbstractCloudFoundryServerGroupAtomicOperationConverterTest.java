@@ -16,66 +16,73 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+
 class AbstractCloudFoundryServerGroupAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
-  private final DestroyCloudFoundryServerGroupAtomicOperationConverter converter = new DestroyCloudFoundryServerGroupAtomicOperationConverter();
-
+  private final DestroyCloudFoundryServerGroupAtomicOperationConverter converter =
+      new DestroyCloudFoundryServerGroupAtomicOperationConverter();
 
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "ID").name(args[0].toString()).build());
-      });
+        .thenAnswer(
+            (Answer<Optional<CloudFoundryOrganization>>)
+                invocation -> {
+                  Object[] args = invocation.getArguments();
+                  return Optional.of(
+                      CloudFoundryOrganization.builder()
+                          .id(args[0].toString() + "ID")
+                          .name(args[0].toString())
+                          .build());
+                });
 
     when(cloudFoundryClient.getApplications().findServerGroupId(any(), any()))
-      .thenAnswer((Answer<String>) invocation -> {
-        Object[] args = invocation.getArguments();
+        .thenAnswer(
+            (Answer<String>)
+                invocation -> {
+                  Object[] args = invocation.getArguments();
 
-        if (args[0].equals("bad-servergroup-name")) {
-          return null;
-        } else {
-          return "servergroup-id";
-        }
-      });
+                  if (args[0].equals("bad-servergroup-name")) {
+                    return null;
+                  } else {
+                    return "servergroup-id";
+                  }
+                });
   }
 
   @Test
   void getServerGroupIdSuccess() {
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.of(
-        CloudFoundrySpace.builder().build()
-      ));
-    assertThat(converter.getServerGroupId("server", "region > space", cloudFoundryClient)).isEqualTo("servergroup-id");
+        .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
+    assertThat(converter.getServerGroupId("server", "region > space", cloudFoundryClient))
+        .isEqualTo("servergroup-id");
   }
 
   @Test
   void getServerGroupIdFindFails() {
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.of(
-        CloudFoundrySpace.builder().build()
-      ));
-    assertThat(converter.getServerGroupId("bad-servergroup-name", "region > space", cloudFoundryClient)).isNull();
+        .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
+    assertThat(
+            converter.getServerGroupId(
+                "bad-servergroup-name", "region > space", cloudFoundryClient))
+        .isNull();
   }
 
   @Test
   void getServerGroupIdSpaceInvalid() {
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.empty());
-    assertThat(converter.getServerGroupId("server", "region > region", cloudFoundryClient)).isNull();
+        .thenReturn(Optional.empty());
+    assertThat(converter.getServerGroupId("server", "region > region", cloudFoundryClient))
+        .isNull();
   }
 }

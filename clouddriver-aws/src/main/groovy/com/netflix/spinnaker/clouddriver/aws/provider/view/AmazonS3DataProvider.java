@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view;
 
+import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.*;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,12 +30,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.model.DataProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -43,8 +39,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3StaticDataProviderConfiguration.*;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AmazonS3DataProvider implements DataProvider {
@@ -55,42 +54,47 @@ public class AmazonS3DataProvider implements DataProvider {
 
   private final Set<String> supportedIdentifiers;
 
-  private final LoadingCache<String, Object> staticCache = CacheBuilder.newBuilder()
-    .expireAfterWrite(1, TimeUnit.MINUTES)
-    .recordStats()
-    .build(
-      new CacheLoader<String, Object>() {
-        public Object load(String id) throws IOException {
-          StaticRecord record = configuration.getStaticRecord(id);
-          S3Object s3Object = fetchObject(
-            record.getBucketAccount(), record.getBucketRegion(), record.getBucketName(), record.getBucketKey()
-          );
+  private final LoadingCache<String, Object> staticCache =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(1, TimeUnit.MINUTES)
+          .recordStats()
+          .build(
+              new CacheLoader<String, Object>() {
+                public Object load(String id) throws IOException {
+                  StaticRecord record = configuration.getStaticRecord(id);
+                  S3Object s3Object =
+                      fetchObject(
+                          record.getBucketAccount(),
+                          record.getBucketRegion(),
+                          record.getBucketName(),
+                          record.getBucketKey());
 
-          switch (record.getType()) {
-            case list:
-              return objectMapper.readValue(s3Object.getObjectContent(), List.class);
-            case object:
-              return objectMapper.readValue(s3Object.getObjectContent(), Map.class);
-          }
+                  switch (record.getType()) {
+                    case list:
+                      return objectMapper.readValue(s3Object.getObjectContent(), List.class);
+                    case object:
+                      return objectMapper.readValue(s3Object.getObjectContent(), Map.class);
+                  }
 
-          return IOUtils.toString(s3Object.getObjectContent());
-        }
-      });
+                  return IOUtils.toString(s3Object.getObjectContent());
+                }
+              });
 
   @Autowired
-  public AmazonS3DataProvider(@Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
-                              AmazonClientProvider amazonClientProvider,
-                              AccountCredentialsRepository accountCredentialsRepository,
-                              AmazonS3StaticDataProviderConfiguration configuration) {
+  public AmazonS3DataProvider(
+      @Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      AccountCredentialsRepository accountCredentialsRepository,
+      AmazonS3StaticDataProviderConfiguration configuration) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.configuration = configuration;
 
-    this.supportedIdentifiers = configuration.getStaticRecords()
-      .stream()
-      .map(r -> r.getId().toLowerCase())
-      .collect(Collectors.toSet());
+    this.supportedIdentifiers =
+        configuration.getStaticRecords().stream()
+            .map(r -> r.getId().toLowerCase())
+            .collect(Collectors.toSet());
   }
 
   @Override
@@ -102,24 +106,27 @@ public class AmazonS3DataProvider implements DataProvider {
       }
 
       return ((List<Map>) contents)
-        .stream()
-        .filter(r -> {
-          // currently only support filtering against first level attributes (TBD whether this is even necessary)
-          return filters.entrySet()
-            .stream()
-            .anyMatch(f -> r.get(f.getKey()).equals(f.getValue()));
-        })
-        .collect(Collectors.toList());
+          .stream()
+              .filter(
+                  r -> {
+                    // currently only support filtering against first level attributes (TBD whether
+                    // this is even necessary)
+                    return filters.entrySet().stream()
+                        .anyMatch(f -> r.get(f.getKey()).equals(f.getValue()));
+                  })
+              .collect(Collectors.toList());
     } catch (ExecutionException e) {
       throw new IllegalStateException(e);
     }
   }
 
   @Override
-  public void getAdhocData(String groupId, String bucketId, String objectId, OutputStream outputStream) {
+  public void getAdhocData(
+      String groupId, String bucketId, String objectId, OutputStream outputStream) {
     String[] bucketCoordinates = bucketId.split(":");
     if (bucketCoordinates.length != 3) {
-      throw new IllegalArgumentException("'bucketId' must be of the form {account}:{region}:{name}");
+      throw new IllegalArgumentException(
+          "'bucketId' must be of the form {account}:{region}:{name}");
     }
 
     String bucketAccount = getAccountName(bucketCoordinates[0]);
@@ -131,7 +138,8 @@ public class AmazonS3DataProvider implements DataProvider {
     Matcher objectKeyMatcher = record.getObjectKeyPattern().matcher(objectId);
 
     if (!bucketNameMatcher.matches() || !objectKeyMatcher.matches()) {
-      throw new AccessDeniedException("Access denied (bucket: " + bucketName + ", object: " + objectId + ")");
+      throw new AccessDeniedException(
+          "Access denied (bucket: " + bucketName + ", object: " + objectId + ")");
     }
 
     try {
@@ -160,9 +168,8 @@ public class AmazonS3DataProvider implements DataProvider {
       case Static:
         return supportedIdentifiers.contains(id.toLowerCase());
       case Adhoc:
-        return configuration.getAdhocRecords()
-          .stream()
-          .anyMatch(r -> r.getId().equalsIgnoreCase(id));
+        return configuration.getAdhocRecords().stream()
+            .anyMatch(r -> r.getId().equalsIgnoreCase(id));
     }
 
     throw new IllegalArgumentException("Unsupported identifierType (" + identifierType + ")");
@@ -172,19 +179,26 @@ public class AmazonS3DataProvider implements DataProvider {
     return staticCache.stats();
   }
 
-  protected S3Object fetchObject(String bucketAccount, String bucketRegion, String bucketName, String objectId) {
-    NetflixAmazonCredentials account = (NetflixAmazonCredentials) accountCredentialsRepository.getOne(bucketAccount);
+  protected S3Object fetchObject(
+      String bucketAccount, String bucketRegion, String bucketName, String objectId) {
+    NetflixAmazonCredentials account =
+        (NetflixAmazonCredentials) accountCredentialsRepository.getOne(bucketAccount);
 
     AmazonS3 amazonS3 = amazonClientProvider.getAmazonS3(account, bucketRegion);
     return amazonS3.getObject(bucketName, objectId);
   }
 
   private String getAccountName(String accountIdOrName) {
-    return accountCredentialsRepository.getAll()
-      .stream()
-      .filter(c -> accountIdOrName.equalsIgnoreCase(c.getAccountId()) || accountIdOrName.equalsIgnoreCase(c.getName()))
-      .map(AccountCredentials::getName)
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unsupported account identifier (accountId: " + accountIdOrName + ")"));
+    return accountCredentialsRepository.getAll().stream()
+        .filter(
+            c ->
+                accountIdOrName.equalsIgnoreCase(c.getAccountId())
+                    || accountIdOrName.equalsIgnoreCase(c.getName()))
+        .map(AccountCredentials::getName)
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported account identifier (accountId: " + accountIdOrName + ")"));
   }
 }

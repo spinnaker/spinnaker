@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESUME_ROLLOUT_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
@@ -25,18 +27,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesRes
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESUME_ROLLOUT_MANIFEST;
-
 @KubernetesOperation(RESUME_ROLLOUT_MANIFEST)
 @Component
-public class KubernetesResumeRolloutManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  private KubernetesResourcePropertyRegistry registry;
+public class KubernetesResumeRolloutManifestConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -45,8 +44,9 @@ public class KubernetesResumeRolloutManifestConverter extends AbstractAtomicOper
 
   @Override
   public KubernetesResumeRolloutManifestDescription convertDescription(Map input) {
-    return (KubernetesResumeRolloutManifestDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesResumeRolloutManifestDescription.class);
+    return (KubernetesResumeRolloutManifestDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesResumeRolloutManifestDescription.class);
   }
 
   @Override

@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -33,66 +38,71 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 
 class AbstractLoadBalancersAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
 
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "ID").name(args[0].toString()).build());
-      });
+        .thenAnswer(
+            (Answer<Optional<CloudFoundryOrganization>>)
+                invocation -> {
+                  Object[] args = invocation.getArguments();
+                  return Optional.of(
+                      CloudFoundryOrganization.builder()
+                          .id(args[0].toString() + "ID")
+                          .name(args[0].toString())
+                          .build());
+                });
 
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.of(
-        CloudFoundrySpace.builder().build()
-      ));
+        .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
 
-    when(cloudFoundryClient.getRoutes().toRouteId(any())).thenAnswer((Answer<RouteId>) invocation -> {
-      Object[] args = invocation.getArguments();
-      if (args[0].equals("foo")) {
-        return null;
-      }
-      return new RouteId("host", "index", null, "some-guid");
-    });
+    when(cloudFoundryClient.getRoutes().toRouteId(any()))
+        .thenAnswer(
+            (Answer<RouteId>)
+                invocation -> {
+                  Object[] args = invocation.getArguments();
+                  if (args[0].equals("foo")) {
+                    return null;
+                  }
+                  return new RouteId("host", "index", null, "some-guid");
+                });
 
-    when(cloudFoundryClient.getRoutes().find(any(), any())).thenReturn(CloudFoundryLoadBalancer.builder()
-      .host("host").path("index").domain(
-        CloudFoundryDomain.builder().name("domain.com").build()
-      ).build());
+    when(cloudFoundryClient.getRoutes().find(any(), any()))
+        .thenReturn(
+            CloudFoundryLoadBalancer.builder()
+                .host("host")
+                .path("index")
+                .domain(CloudFoundryDomain.builder().name("domain.com").build())
+                .build());
   }
 
-  private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-    "test", "", "", "", "", "", "") {
-    public CloudFoundryClient getClient() {
-      return cloudFoundryClient;
-    }
-  };
+  private final CloudFoundryCredentials cloudFoundryCredentials =
+      new CloudFoundryCredentials("test", "", "", "", "", "", "") {
+        public CloudFoundryClient getClient() {
+          return cloudFoundryClient;
+        }
+      };
 
-  private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
+  private final AccountCredentialsRepository accountCredentialsRepository =
+      new MapBackedAccountCredentialsRepository();
 
   {
     accountCredentialsRepository.update("test", cloudFoundryCredentials);
   }
 
   private final AccountCredentialsProvider accountCredentialsProvider =
-    new DefaultAccountCredentialsProvider(accountCredentialsRepository);
+      new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
-  private final TestAbstractLoadBalancersAtomicOperationConverter converter = new TestAbstractLoadBalancersAtomicOperationConverter();
+  private final TestAbstractLoadBalancersAtomicOperationConverter converter =
+      new TestAbstractLoadBalancersAtomicOperationConverter();
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -102,36 +112,36 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
 
   @Test
   void convertValidDescription() {
-    final Map input = HashMap.of(
-      "credentials", "test",
-      "region", "org > space",
-      "loadBalancerNames", List.of(
-        "foo.host.com/index", "bar.host.com"
-      ).asJava(),
-      "serverGroupName", "serverGroupName"
-    ).toJavaMap();
+    final Map input =
+        HashMap.of(
+                "credentials", "test",
+                "region", "org > space",
+                "loadBalancerNames", List.of("foo.host.com/index", "bar.host.com").asJava(),
+                "serverGroupName", "serverGroupName")
+            .toJavaMap();
 
     final LoadBalancersDescription result = converter.convertDescription(input);
 
-    assertThat(result.getRoutes()).isEqualTo(List.of(
-      "foo.host.com/index", "bar.host.com"
-    ).asJava());
+    assertThat(result.getRoutes())
+        .isEqualTo(List.of("foo.host.com/index", "bar.host.com").asJava());
     assertThat(result.getRegion()).isEqualTo("org > space");
   }
 
   @Test
   void convertWithRoutesNotFound() {
-    final Map input = HashMap.of(
-      "credentials", "test",
-      "region", "org > space",
-      "loadBalancerNames", Collections.EMPTY_LIST,
-      "serverGroupName", "serverGroupName"
-    ).toJavaMap();
+    final Map input =
+        HashMap.of(
+                "credentials", "test",
+                "region", "org > space",
+                "loadBalancerNames", Collections.EMPTY_LIST,
+                "serverGroupName", "serverGroupName")
+            .toJavaMap();
 
     assertThrows(IllegalArgumentException.class, () -> converter.convertDescription(input));
   }
 
-  private class TestAbstractLoadBalancersAtomicOperationConverter extends AbstractLoadBalancersAtomicOperationConverter {
+  private class TestAbstractLoadBalancersAtomicOperationConverter
+      extends AbstractLoadBalancersAtomicOperationConverter {
     @Override
     public AtomicOperation convertOperation(Map input) {
       return null;

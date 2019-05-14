@@ -16,38 +16,40 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider;
 
-import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
-import com.netflix.spinnaker.cats.cache.Cache;
-import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 
+import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
+import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 @RequiredArgsConstructor
 @Getter
 public class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProvider {
-  private final Set<String> defaultCaches = Stream.of(
-    APPLICATIONS.getNs(),
-    CLUSTERS.getNs(),
-    SERVER_GROUPS.getNs(),
-    INSTANCES.getNs(),
-    LOAD_BALANCERS.getNs()
-  ).collect(toSet());
+  private final Set<String> defaultCaches =
+      Stream.of(
+              APPLICATIONS.getNs(),
+              CLUSTERS.getNs(),
+              SERVER_GROUPS.getNs(),
+              INSTANCES.getNs(),
+              LOAD_BALANCERS.getNs())
+          .collect(toSet());
 
   private final Map<SearchableResource, SearchResultHydrator> searchResultHydrators =
-    singletonMap(new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry"), new ApplicationSearchResultHydrator());
+      singletonMap(
+          new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry"),
+          new ApplicationSearchResultHydrator());
 
   private final Map<String, String> urlMappingTemplates = emptyMap();
   public static final String PROVIDER_ID = "cloudfoundry";
@@ -57,7 +59,8 @@ public class CloudFoundryProvider extends AgentSchedulerAware implements Searcha
 
   static class ApplicationSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
     @Override
-    public Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+    public Map<String, String> hydrateResult(
+        Cache cacheView, Map<String, String> result, String id) {
       // needed by deck to render correctly in infrastructure search results
       result.put("application", result.get("name"));
       return result;

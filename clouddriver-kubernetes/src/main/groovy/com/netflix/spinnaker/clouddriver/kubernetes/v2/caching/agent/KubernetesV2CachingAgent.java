@@ -35,10 +35,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,20 +42,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
+public abstract class KubernetesV2CachingAgent
+    extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
   protected KubectlJobExecutor jobExecutor;
 
-  @Getter
-  protected String providerName = KubernetesCloudProvider.getID();
+  @Getter protected String providerName = KubernetesCloudProvider.getID();
 
-  @Getter
-  final protected Long agentInterval;
+  @Getter protected final Long agentInterval;
 
   private final KubernetesResourcePropertyRegistry propertyRegistry;
 
-  protected KubernetesV2CachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+  protected KubernetesV2CachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
@@ -81,18 +80,26 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   protected abstract List<KubernetesKind> primaryKinds();
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
-    Map<KubernetesKind, List<KubernetesManifest>> result = namespaces.parallelStream()
-        .map(n -> {
-          try {
-            return credentials.list(primaryKinds(), n);
-          } catch (KubectlException e) {
-            log.warn("{}: Failed to read kind {} from namespace {}: {}", getAgentType(), primaryKinds(), n, e.getMessage());
-            throw e;
-          }
-        })
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .collect(Collectors.groupingBy(KubernetesManifest::getKind));
+    Map<KubernetesKind, List<KubernetesManifest>> result =
+        namespaces
+            .parallelStream()
+            .map(
+                n -> {
+                  try {
+                    return credentials.list(primaryKinds(), n);
+                  } catch (KubectlException e) {
+                    log.warn(
+                        "{}: Failed to read kind {} from namespace {}: {}",
+                        getAgentType(),
+                        primaryKinds(),
+                        n,
+                        e.getMessage());
+                    throw e;
+                  }
+                })
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .collect(Collectors.groupingBy(KubernetesManifest::getKind));
 
     for (KubernetesCachingPolicy policy : credentials.getCachingPolicies()) {
       KubernetesKind policyKind = KubernetesKind.fromString(policy.getKubernetesKind());
@@ -106,7 +113,11 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
       }
 
       if (entries.size() > policy.getMaxEntriesPerAgent()) {
-        log.warn("{}: Pruning {} entries from kind {}", getAgentType(), entries.size() - policy.getMaxEntriesPerAgent(), policyKind);
+        log.warn(
+            "{}: Pruning {} entries from kind {}",
+            getAgentType(),
+            entries.size() - policy.getMaxEntriesPerAgent(),
+            policyKind);
         entries = entries.subList(0, policy.getMaxEntriesPerAgent());
         result.put(policyKind, entries);
       }
@@ -115,7 +126,8 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     return result;
   }
 
-  protected KubernetesManifest loadPrimaryResource(KubernetesKind kind, String namespace, String name) {
+  protected KubernetesManifest loadPrimaryResource(
+      KubernetesKind kind, String namespace, String name) {
     return credentials.get(kind, namespace, name);
   }
 
@@ -131,72 +143,89 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
       details.put("timeSpentInKubectlMs", System.currentTimeMillis() - start);
       return buildCacheResult(primaryResourceList);
     } catch (KubectlJobExecutor.NoResourceTypeException e) {
-      log.warn(getAgentType() + ": resource for this caching agent is not supported for this cluster");
+      log.warn(
+          getAgentType() + ": resource for this caching agent is not supported for this cluster");
       return new DefaultCacheResult(new HashMap<>());
     }
   }
 
   protected CacheResult buildCacheResult(KubernetesManifest resource) {
-    return buildCacheResult(Collections.singletonMap(resource.getKind(), Collections.singletonList(resource)));
+    return buildCacheResult(
+        Collections.singletonMap(resource.getKind(), Collections.singletonList(resource)));
   }
 
   protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {
-    Map<KubernetesManifest, List<KubernetesManifest>> relationships = loadSecondaryResourceRelationships(resources);
+    Map<KubernetesManifest, List<KubernetesManifest>> relationships =
+        loadSecondaryResourceRelationships(resources);
 
-    List<CacheData> resourceData = resources.values()
-        .stream()
-        .flatMap(Collection::stream)
-        .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
-        .map(rs -> {
-          try {
-            CacheData cacheData = KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs));
-            if (credentials.isOnlySpinnakerManaged() && StringUtils.isEmpty((String) cacheData.getAttributes().get("application"))) {
-              return null;
-            } else {
-              return cacheData;
-            }
-          } catch (Exception e) {
-            log.warn("{}: Failure converting {} as resource", getAgentType(), rs, e);
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    List<CacheData> resourceData =
+        resources.values().stream()
+            .flatMap(Collection::stream)
+            .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
+            .map(
+                rs -> {
+                  try {
+                    CacheData cacheData =
+                        KubernetesCacheDataConverter.convertAsResource(
+                            accountName, rs, relationships.get(rs));
+                    if (credentials.isOnlySpinnakerManaged()
+                        && StringUtils.isEmpty(
+                            (String) cacheData.getAttributes().get("application"))) {
+                      return null;
+                    } else {
+                      return cacheData;
+                    }
+                  } catch (Exception e) {
+                    log.warn("{}: Failure converting {} as resource", getAgentType(), rs, e);
+                    return null;
+                  }
+                })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-    List<CacheData> invertedRelationships = resourceData.stream()
-        .map(KubernetesCacheDataConverter::invertRelationships)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<CacheData> invertedRelationships =
+        resourceData.stream()
+            .map(KubernetesCacheDataConverter::invertRelationships)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    resourceData.addAll(resources.values()
-        .stream()
-        .flatMap(Collection::stream)
-        .map(rs -> KubernetesCacheDataConverter.convertAsArtifact(accountName, rs))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList()));
+    resourceData.addAll(
+        resources.values().stream()
+            .flatMap(Collection::stream)
+            .map(rs -> KubernetesCacheDataConverter.convertAsArtifact(accountName, rs))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
 
     resourceData.addAll(invertedRelationships);
 
-    resourceData.addAll(resourceData.stream()
-      .map(rs -> KubernetesCacheDataConverter.getClusterRelationships(accountName, rs))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList()));
+    resourceData.addAll(
+        resourceData.stream()
+            .map(rs -> KubernetesCacheDataConverter.getClusterRelationships(accountName, rs))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
 
-    Map<String, Collection<CacheData>> entries = KubernetesCacheDataConverter.stratifyCacheDataByGroup(KubernetesCacheDataConverter.dedupCacheData(resourceData));
+    Map<String, Collection<CacheData>> entries =
+        KubernetesCacheDataConverter.stratifyCacheDataByGroup(
+            KubernetesCacheDataConverter.dedupCacheData(resourceData));
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);
   }
 
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(
+      Map<KubernetesKind, List<KubernetesManifest>> allResources) {
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
-    allResources.keySet().forEach(k -> {
-      try {
-        RegistryUtils.addRelationships(propertyRegistry, accountName, k, allResources, result);
-      } catch (Exception e) {
-        log.warn("{}: Failure adding relationships for {}", getAgentType(), k, e);
-      }
-    });
+    allResources
+        .keySet()
+        .forEach(
+            k -> {
+              try {
+                RegistryUtils.addRelationships(
+                    propertyRegistry, accountName, k, allResources, result);
+              } catch (Exception e) {
+                log.warn("{}: Failure adding relationships for {}", getAgentType(), k, e);
+              }
+            });
     return result;
   }
 }

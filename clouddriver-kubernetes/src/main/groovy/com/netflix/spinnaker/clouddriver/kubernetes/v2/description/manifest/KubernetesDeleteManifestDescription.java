@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesDeleteManifestDescription extends KubernetesMultiManifestOperationDescription {
+public class KubernetesDeleteManifestDescription
+    extends KubernetesMultiManifestOperationDescription {
   V1DeleteOptions options;
 }

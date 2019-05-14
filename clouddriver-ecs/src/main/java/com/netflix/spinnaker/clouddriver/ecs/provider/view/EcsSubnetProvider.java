@@ -20,10 +20,9 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSubnetProvider;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsSubnet;
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @Component
 public class EcsSubnetProvider implements SubnetProvider<EcsSubnet> {
@@ -32,7 +31,9 @@ public class EcsSubnetProvider implements SubnetProvider<EcsSubnet> {
   final AmazonPrimitiveConverter amazonPrimitiveConverter;
 
   @Autowired
-  public EcsSubnetProvider(AmazonSubnetProvider amazonSubnetProvider, AmazonPrimitiveConverter amazonPrimitiveConverter) {
+  public EcsSubnetProvider(
+      AmazonSubnetProvider amazonSubnetProvider,
+      AmazonPrimitiveConverter amazonPrimitiveConverter) {
     this.amazonSubnetProvider = amazonSubnetProvider;
     this.amazonPrimitiveConverter = amazonPrimitiveConverter;
   }

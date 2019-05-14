@@ -13,26 +13,24 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.sun.jersey.api.client.UniformInterfaceException;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import javax.ws.rs.core.UriBuilder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class OracleArtifactCredentials implements ArtifactCredentials {
   private static final String ARTIFACT_REFERENCE_PREFIX = "oci://";
 
-  private static final String ARTIFACT_URI = "https://objectstorage.{arg0}.oraclecloud.com/n/{arg1}/b/{arg2}/o/{arg3}";
+  private static final String ARTIFACT_URI =
+      "https://objectstorage.{arg0}.oraclecloud.com/n/{arg1}/b/{arg2}/o/{arg3}";
 
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("oracle/object");
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("oracle/object");
 
   private final String namespace;
   private final String region;
@@ -42,8 +40,7 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
   private final String privateKeyPassphrase;
   private final String tenancyId;
 
-  @JsonIgnore
-  private final OracleArtifactClient client;
+  @JsonIgnore private final OracleArtifactClient client;
 
   OracleArtifactCredentials(String applicationName, OracleArtifactAccount account) {
     this.name = account.getName();
@@ -55,7 +52,9 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
     this.privateKeyPassphrase = account.getPrivateKeyPassphrase();
     this.tenancyId = account.getTenancyId();
 
-    this.client = new OracleArtifactClient(userId, sshPrivateKeyFilePath, privateKeyPassphrase, fingerprint, tenancyId);
+    this.client =
+        new OracleArtifactClient(
+            userId, sshPrivateKeyFilePath, privateKeyPassphrase, fingerprint, tenancyId);
   }
 
   public InputStream download(Artifact artifact) throws IOException {
@@ -66,7 +65,8 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
 
     int slash = reference.indexOf("/");
     if (slash <= 0) {
-      throw new IllegalArgumentException("Oracle references must be of the format oci://<bucket>/<file-path>, got: " + artifact);
+      throw new IllegalArgumentException(
+          "Oracle references must be of the format oci://<bucket>/<file-path>, got: " + artifact);
     }
 
     String bucketName = reference.substring(0, slash);

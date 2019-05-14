@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
+import static com.netflix.spinnaker.clouddriver.elasticsearch.ops.BulkUpsertEntityTagsAtomicOperation.entityRefId;
+
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.elasticsearch.EntityRefIdBuilder;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.BulkUpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
@@ -27,13 +28,10 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.elasticsearch.ops.BulkUpsertEntityTagsAtomicOperation.entityRefId;
 
 public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "ENTITY_TAGS";
@@ -44,11 +42,12 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final UpsertEntityTagsDescription entityTagsDescription;
 
-  public UpsertEntityTagsAtomicOperation(RetrySupport retrySupport,
-                                         Front50Service front50Service,
-                                         AccountCredentialsProvider accountCredentialsProvider,
-                                         ElasticSearchEntityTagsProvider entityTagsProvider,
-                                         UpsertEntityTagsDescription tagEntityDescription) {
+  public UpsertEntityTagsAtomicOperation(
+      RetrySupport retrySupport,
+      Front50Service front50Service,
+      AccountCredentialsProvider accountCredentialsProvider,
+      ElasticSearchEntityTagsProvider entityTagsProvider,
+      UpsertEntityTagsDescription tagEntityDescription) {
     this.retrySupport = retrySupport;
     this.front50Service = front50Service;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -61,25 +60,25 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     bulkDescription.isPartial = entityTagsDescription.isPartial;
     bulkDescription.entityTags = Collections.singletonList(entityTagsDescription);
 
-    getTask().updateStatus(
-      BASE_PHASE,
-      String.format(
-        "Updating entity tags for %s (isPartial: %s, tags: %s)",
-        Optional
-          .ofNullable(entityTagsDescription.getId())
-          .orElse(entityRefId(accountCredentialsProvider, entityTagsDescription).id),
-        entityTagsDescription.isPartial,
-        entityTagsDescription.getTags().stream().map(EntityTags.EntityTag::getName).collect(Collectors.joining(", "))
-      )
-    );
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            String.format(
+                "Updating entity tags for %s (isPartial: %s, tags: %s)",
+                Optional.ofNullable(entityTagsDescription.getId())
+                    .orElse(entityRefId(accountCredentialsProvider, entityTagsDescription).id),
+                entityTagsDescription.isPartial,
+                entityTagsDescription.getTags().stream()
+                    .map(EntityTags.EntityTag::getName)
+                    .collect(Collectors.joining(", "))));
 
     new BulkUpsertEntityTagsAtomicOperation(
-      retrySupport,
-      front50Service,
-      accountCredentialsProvider,
-      entityTagsProvider,
-      bulkDescription
-    ).operate(priorOutputs);
+            retrySupport,
+            front50Service,
+            accountCredentialsProvider,
+            entityTagsProvider,
+            bulkDescription)
+        .operate(priorOutputs);
 
     return null;
   }

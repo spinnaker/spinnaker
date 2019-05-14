@@ -16,12 +16,9 @@
 package com.netflix.spinnaker.clouddriver.aws.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
-/**
- * A representation of a CloudFormation stack
- */
+/** A representation of a CloudFormation stack */
 public interface CloudFormationStack {
 
   String getStackId();

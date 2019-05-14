@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NONE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
@@ -25,10 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,45 +35,63 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NONE;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgentDispatcher {
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-  @Autowired
-  private Registry registry;
+  @Autowired private Registry registry;
 
-  @Autowired
-  private KubernetesResourcePropertyRegistry propertyRegistry;
+  @Autowired private KubernetesResourcePropertyRegistry propertyRegistry;
 
   @Override
-  public Collection<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
+  public Collection<KubernetesCachingAgent> buildAllCachingAgents(
+      KubernetesNamedAccountCredentials credentials) {
     KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
     List<KubernetesCachingAgent> result = new ArrayList<>();
-    Long agentInterval = Optional.ofNullable(credentials.getCacheIntervalSeconds())
-        .map(TimeUnit.SECONDS::toMillis)
-        .orElse(null);
+    Long agentInterval =
+        Optional.ofNullable(credentials.getCacheIntervalSeconds())
+            .map(TimeUnit.SECONDS::toMillis)
+            .orElse(null);
 
     IntStream.range(0, credentials.getCacheThreads())
         .boxed()
-        .forEach(i -> propertyRegistry.values()
-            .stream()
-            .map(KubernetesResourceProperties::getHandler)
-            .filter(Objects::nonNull)
-            .filter(h -> v2Credentials.isValidKind(h.kind()) || h.kind() == NONE)
-            .map(h -> h.buildCachingAgent(credentials, propertyRegistry, objectMapper, registry, i, credentials.getCacheThreads(), agentInterval))
-            .filter(Objects::nonNull)
-            .forEach(c -> result.add((KubernetesCachingAgent) c))
-        );
+        .forEach(
+            i ->
+                propertyRegistry.values().stream()
+                    .map(KubernetesResourceProperties::getHandler)
+                    .filter(Objects::nonNull)
+                    .filter(h -> v2Credentials.isValidKind(h.kind()) || h.kind() == NONE)
+                    .map(
+                        h ->
+                            h.buildCachingAgent(
+                                credentials,
+                                propertyRegistry,
+                                objectMapper,
+                                registry,
+                                i,
+                                credentials.getCacheThreads(),
+                                agentInterval))
+                    .filter(Objects::nonNull)
+                    .forEach(c -> result.add((KubernetesCachingAgent) c)));
 
     if (v2Credentials.isMetrics()) {
       IntStream.range(0, credentials.getCacheThreads())
           .boxed()
-          .forEach(i -> result.add(new KubernetesMetricCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads(), agentInterval)));
+          .forEach(
+              i ->
+                  result.add(
+                      new KubernetesMetricCachingAgent(
+                          credentials,
+                          objectMapper,
+                          registry,
+                          i,
+                          credentials.getCacheThreads(),
+                          agentInterval)));
     }
 
     return result.stream()

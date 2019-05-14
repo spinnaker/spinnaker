@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.description;
 
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
-import com.amazonaws.services.ecs.model.PlacementStrategy;
 import com.amazonaws.services.ecs.model.PlacementConstraint;
+import com.amazonaws.services.ecs.model.PlacementStrategy;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -71,7 +69,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
 
   @Override
   public String getRegion() {
-    //CreateServerGroupDescription does not contain a region. Instead it has AvailabilityZones
+    // CreateServerGroupDescription does not contain a region. Instead it has AvailabilityZones
     return getAvailabilityZones().keySet().iterator().next();
   }
 

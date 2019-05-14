@@ -23,9 +23,11 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 public class AddSpinnakerUserToUserAgentRequestHandler extends RequestHandler2 {
   @Override
   public AmazonWebServiceRequest beforeMarshalling(AmazonWebServiceRequest request) {
-    final String userAgent = String.format("spinnaker-user/%s spinnaker-executionId/%s",
-      AuthenticatedRequest.getSpinnakerUser().orElse("unknown"),
-      AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown"));
+    final String userAgent =
+        String.format(
+            "spinnaker-user/%s spinnaker-executionId/%s",
+            AuthenticatedRequest.getSpinnakerUser().orElse("unknown"),
+            AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown"));
 
     final AmazonWebServiceRequest cloned = request.clone();
 

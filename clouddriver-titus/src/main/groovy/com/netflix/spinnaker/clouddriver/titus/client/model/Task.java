@@ -17,19 +17,19 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.netflix.titus.grpc.protogen.TaskStatus;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Task {
 
-  public Task() {
-  }
+  public Task() {}
 
   public Task(com.netflix.titus.grpc.protogen.Task grpcTask) {
     id = grpcTask.getId();
-    state = TaskState.from(grpcTask.getStatus().getState().name(), grpcTask.getStatus().getReasonCode());
+    state =
+        TaskState.from(
+            grpcTask.getStatus().getState().name(), grpcTask.getStatus().getReasonCode());
     jobId = grpcTask.getJobId();
     instanceId = grpcTask.getTaskContextOrDefault("v2.taskInstanceId", id);
     host = grpcTask.getTaskContextOrDefault("agent.host", null);
@@ -52,8 +52,13 @@ public class Task {
     logLocation.put("s3", s3);
   }
 
-  private Date getTimestampFromStatus(com.netflix.titus.grpc.protogen.Task grpcTask, TaskStatus.TaskState state) {
-    return grpcTask.getStatusHistoryList().stream().filter(status -> status.getState().equals(state)).findFirst().map(status -> new Date(status.getTimestamp())).orElse(null);
+  private Date getTimestampFromStatus(
+      com.netflix.titus.grpc.protogen.Task grpcTask, TaskStatus.TaskState state) {
+    return grpcTask.getStatusHistoryList().stream()
+        .filter(status -> status.getState().equals(state))
+        .findFirst()
+        .map(status -> new Date(status.getTimestamp()))
+        .orElse(null);
   }
 
   private String id;
@@ -215,5 +220,4 @@ public class Task {
   public Map<String, Object> getLogLocation() {
     return logLocation;
   }
-
 }

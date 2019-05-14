@@ -27,20 +27,20 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoun
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
 @Component
-public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+public class DeployCloudFoundryServiceAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
+  private static final ObjectMapper objectMapper =
+      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   private final ArtifactDownloader artifactDownloader;
 
   public DeployCloudFoundryServiceAtomicOperationConverter(ArtifactDownloader artifactDownloader) {
@@ -54,24 +54,34 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   @Override
   public DeployCloudFoundryServiceDescription convertDescription(Map input) {
-    DeployCloudFoundryServiceDescription converted = getObjectMapper().convertValue(input, DeployCloudFoundryServiceDescription.class);
+    DeployCloudFoundryServiceDescription converted =
+        getObjectMapper().convertValue(input, DeployCloudFoundryServiceDescription.class);
     converted.setClient(getClient(input));
-    converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
+    converted.setSpace(
+        findSpace(converted.getRegion(), converted.getClient())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Unable to find space '" + converted.getRegion() + "'.")));
 
     Map manifest = (Map) input.get("manifest");
     if (manifest.get("artifact") != null) {
-      Artifact manifestArtifact = objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
-      downloadAndProcessManifest(artifactDownloader, manifestArtifact, myMap -> {
-        if (converted.isUserProvided()) {
-          converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap));
-        } else {
-          converted.setServiceAttributes(convertManifest(myMap));
-        }
-      });
+      Artifact manifestArtifact =
+          objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
+      downloadAndProcessManifest(
+          artifactDownloader,
+          manifestArtifact,
+          myMap -> {
+            if (converted.isUserProvided()) {
+              converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap));
+            } else {
+              converted.setServiceAttributes(convertManifest(myMap));
+            }
+          });
     } else if (manifest.get("direct") != null) {
       if (converted.isUserProvided()) {
-        converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(manifest.get("direct")));
+        converted.setUserProvidedServiceAttributes(
+            convertUserProvidedServiceManifest(manifest.get("direct")));
       } else {
         converted.setServiceAttributes(convertManifest(manifest.get("direct")));
       }
@@ -81,8 +91,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   // visible for testing
   DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Object manifestMap) {
-    ServiceManifest manifest = objectMapper.convertValue(manifestMap, new TypeReference<ServiceManifest>() {
-    });
+    ServiceManifest manifest =
+        objectMapper.convertValue(manifestMap, new TypeReference<ServiceManifest>() {});
     if (manifest.getService() == null) {
       throw new IllegalArgumentException("Manifest is missing the service");
     } else if (manifest.getServiceInstanceName() == null) {
@@ -90,7 +100,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     } else if (manifest.getServicePlan() == null) {
       throw new IllegalArgumentException("Manifest is missing the service plan");
     }
-    DeployCloudFoundryServiceDescription.ServiceAttributes attrs = new DeployCloudFoundryServiceDescription.ServiceAttributes();
+    DeployCloudFoundryServiceDescription.ServiceAttributes attrs =
+        new DeployCloudFoundryServiceDescription.ServiceAttributes();
     attrs.setService(manifest.getService());
     attrs.setServiceInstanceName(manifest.getServiceInstanceName());
     attrs.setServicePlan(manifest.getServicePlan());
@@ -101,13 +112,15 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
   }
 
   // visible for testing
-  DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes convertUserProvidedServiceManifest(Object manifestMap) {
-    UserProvidedServiceManifest manifest = objectMapper.convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {
-    });
+  DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes
+      convertUserProvidedServiceManifest(Object manifestMap) {
+    UserProvidedServiceManifest manifest =
+        objectMapper.convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {});
     if (manifest.getServiceInstanceName() == null) {
       throw new IllegalArgumentException("Manifest is missing the service name");
     }
-    DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes attrs = new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes();
+    DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes attrs =
+        new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes();
     attrs.setServiceInstanceName(manifest.getServiceInstanceName());
     attrs.setSyslogDrainUrl(manifest.getSyslogDrainUrl());
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
@@ -121,10 +134,10 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     if (!StringUtils.isBlank(parameterString)) {
       try {
         return getObjectMapper()
-          .readValue(parameterString, new TypeReference<Map<String, Object>>() {
-          });
+            .readValue(parameterString, new TypeReference<Map<String, Object>>() {});
       } catch (IOException e) {
-        throw new IllegalArgumentException("Unable to convert parameters to map: '" + e.getMessage() + "'.");
+        throw new IllegalArgumentException(
+            "Unable to convert parameters to map: '" + e.getMessage() + "'.");
       }
     }
     return null;
@@ -141,11 +154,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     @JsonAlias("service_plan")
     private String servicePlan;
 
-    @Nullable
-    private Set<String> tags;
+    @Nullable private Set<String> tags;
 
-    @Nullable
-    private String parameters;
+    @Nullable private String parameters;
   }
 
   @Data
@@ -163,8 +174,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     @JsonAlias("route_service_url")
     private String routeServiceUrl;
 
-    @Nullable
-    private Set<String> tags;
+    @Nullable private Set<String> tags;
 
     @Nullable
     @JsonAlias("credentials_map")

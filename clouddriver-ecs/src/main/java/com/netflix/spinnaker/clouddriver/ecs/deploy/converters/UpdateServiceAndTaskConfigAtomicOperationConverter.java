@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.UpdateServiceAndTaskConf
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.UPDATE_LAUNCH_CONFIG)
 @Component("ecsUpdateServiceAndTaskConfig")
-public class UpdateServiceAndTaskConfigAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class UpdateServiceAndTaskConfigAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -37,10 +37,10 @@ public class UpdateServiceAndTaskConfigAtomicOperationConverter extends Abstract
 
   @Override
   public UpdateServiceAndTaskConfigDescription convertDescription(Map input) {
-    UpdateServiceAndTaskConfigDescription converted = getObjectMapper().convertValue(input, UpdateServiceAndTaskConfigDescription.class);
+    UpdateServiceAndTaskConfigDescription converted =
+        getObjectMapper().convertValue(input, UpdateServiceAndTaskConfigDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;
   }
-
 }

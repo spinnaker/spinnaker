@@ -27,7 +27,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KubernetesAtomicOperationDescription implements DeployDescription, CredentialsNameable {
+public class KubernetesAtomicOperationDescription
+    implements DeployDescription, CredentialsNameable {
   String account;
   KubernetesNamedAccountCredentials credentials;
 }

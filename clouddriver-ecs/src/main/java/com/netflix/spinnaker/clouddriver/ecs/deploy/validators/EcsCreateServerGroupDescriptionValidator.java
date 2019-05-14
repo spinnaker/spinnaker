@@ -22,32 +22,27 @@ import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("ecsCreateServerGroupDescriptionValidator")
 public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
 
   private static final Set<String> BINPACK_VALUES = Sets.newHashSet("cpu", "memory");
-  private static final Set<String> SPREAD_VALUES = Sets.newHashSet(
-    "instanceId",
-    "attribute:ecs.availability-zone",
-    "attribute:ecs.instance-type",
-    "attribute:ecs.os-type",
-    "attribute:ecs.ami-id"
-  );
+  private static final Set<String> SPREAD_VALUES =
+      Sets.newHashSet(
+          "instanceId",
+          "attribute:ecs.availability-zone",
+          "attribute:ecs.instance-type",
+          "attribute:ecs.os-type",
+          "attribute:ecs.ami-id");
 
-  private static final Set<String> RESERVED_ENVIRONMENT_VARIABLES = Sets.newHashSet(
-    "SERVER_GROUP",
-    "CLOUD_STACK",
-    "CLOUD_DETAIL"
-  );
+  private static final Set<String> RESERVED_ENVIRONMENT_VARIABLES =
+      Sets.newHashSet("SERVER_GROUP", "CLOUD_STACK", "CLOUD_DETAIL");
 
   public EcsCreateServerGroupDescriptionValidator() {
     super("createServerGroupDescription");
@@ -55,7 +50,8 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
 
   @Override
   public void validate(List priorDescriptions, Object description, Errors errors) {
-    CreateServerGroupDescription createServerGroupDescription = (CreateServerGroupDescription) description;
+    CreateServerGroupDescription createServerGroupDescription =
+        (CreateServerGroupDescription) description;
 
     validateCredentials(createServerGroupDescription, errors, "credentials");
     validateCapacity(errors, createServerGroupDescription.getCapacity());
@@ -69,7 +65,8 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     }
 
     if (createServerGroupDescription.getPlacementStrategySequence() != null) {
-      for (PlacementStrategy placementStrategy : createServerGroupDescription.getPlacementStrategySequence()) {
+      for (PlacementStrategy placementStrategy :
+          createServerGroupDescription.getPlacementStrategySequence()) {
         PlacementStrategyType type;
         try {
           type = PlacementStrategyType.fromValue(placementStrategy.getType());
@@ -92,7 +89,6 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
             }
             break;
         }
-
       }
     } else {
       rejectValue(errors, "placementStrategySequence", "not.nullable");
@@ -111,10 +107,12 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     }
 
     if (createServerGroupDescription.getContainerPort() != null) {
-      if (createServerGroupDescription.getContainerPort() < 0 || createServerGroupDescription.getContainerPort() > 65535) {
+      if (createServerGroupDescription.getContainerPort() < 0
+          || createServerGroupDescription.getContainerPort() > 65535) {
         rejectValue(errors, "containerPort", "invalid");
       }
-    } else if (createServerGroupDescription.getTargetGroup() != null && !createServerGroupDescription.getTargetGroup().isEmpty()) {
+    } else if (createServerGroupDescription.getTargetGroup() != null
+        && !createServerGroupDescription.getTargetGroup().isEmpty()) {
       rejectValue(errors, "containerPort", "not.nullable");
     }
 
@@ -136,11 +134,11 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
 
     // Verify that the environment variables set by the user do not contain reserved values
     if (createServerGroupDescription.getEnvironmentVariables() != null) {
-      if(!Collections.disjoint(createServerGroupDescription.getEnvironmentVariables().keySet(),
-        RESERVED_ENVIRONMENT_VARIABLES)) {
+      if (!Collections.disjoint(
+          createServerGroupDescription.getEnvironmentVariables().keySet(),
+          RESERVED_ENVIRONMENT_VARIABLES)) {
         rejectValue(errors, "environmentVariables", "invalid");
       }
     }
-
   }
 }

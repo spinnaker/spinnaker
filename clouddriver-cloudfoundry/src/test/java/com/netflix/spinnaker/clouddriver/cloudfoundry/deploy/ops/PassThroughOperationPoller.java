@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import groovy.lang.Closure;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -29,12 +28,24 @@ public class PassThroughOperationPoller extends OperationPoller {
   }
 
   @Override
-  public Object waitForOperation(Closure operation, Closure ifDone, Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+  public Object waitForOperation(
+      Closure operation,
+      Closure ifDone,
+      Long timeoutSeconds,
+      Task task,
+      String resourceString,
+      String basePhase) {
     return operation.call();
   }
 
   @Override
-  public <T> T waitForOperation(Supplier<T> operation, Function<T, Boolean> ifDone, Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+  public <T> T waitForOperation(
+      Supplier<T> operation,
+      Function<T, Boolean> ifDone,
+      Long timeoutSeconds,
+      Task task,
+      String resourceString,
+      String basePhase) {
     return operation.get();
   }
 }

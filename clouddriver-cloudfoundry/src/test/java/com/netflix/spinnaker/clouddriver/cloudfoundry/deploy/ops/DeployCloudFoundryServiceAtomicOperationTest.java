@@ -16,13 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE;
@@ -33,26 +26,36 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
 class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
   private DeployCloudFoundryServiceDescription desc = new DeployCloudFoundryServiceDescription();
 
   @Test
   void deployService() {
     desc.setClient(client);
-    desc.setServiceAttributes(new DeployCloudFoundryServiceDescription.ServiceAttributes()
-      .setServiceInstanceName("some-service-name")
-      .setService("some-service")
-      .setServicePlan("some-service-plan")
-    );
+    desc.setServiceAttributes(
+        new DeployCloudFoundryServiceDescription.ServiceAttributes()
+            .setServiceInstanceName("some-service-name")
+            .setService("some-service")
+            .setServicePlan("some-service-plan"));
 
-    ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
-      .setServiceInstanceName("some-service-name")
-      .setType(UPDATE)
-      .setState(IN_PROGRESS);
-    when(client.getServiceInstances().createServiceInstance(any(), any(), any(), any(), any(), anyBoolean(), any()))
-      .thenReturn(serviceInstanceResponse);
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("some-service-name")
+            .setType(UPDATE)
+            .setState(IN_PROGRESS);
+    when(client
+            .getServiceInstances()
+            .createServiceInstance(any(), any(), any(), any(), any(), anyBoolean(), any()))
+        .thenReturn(serviceInstanceResponse);
 
-    DeployCloudFoundryServiceAtomicOperation op = new DeployCloudFoundryServiceAtomicOperation(desc);
+    DeployCloudFoundryServiceAtomicOperation op =
+        new DeployCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
     List<Object> resultObjects = task.getResultObjects();
@@ -62,25 +65,33 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
     assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
     assertThat(task.getHistory())
-      .has(status("Updating service instance 'some-service-name' from service some-service and service plan some-service-plan"), atIndex(1));
+        .has(
+            status(
+                "Updating service instance 'some-service-name' from service some-service and service plan some-service-plan"),
+            atIndex(1));
   }
 
   @Test
   void deployUserProvidedService() {
     desc.setUserProvided(true);
     desc.setClient(client);
-    desc.setUserProvidedServiceAttributes(new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
-      .setServiceInstanceName("some-up-service-name")
-    );
+    desc.setUserProvidedServiceAttributes(
+        new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
+            .setServiceInstanceName("some-up-service-name"));
 
-    ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
-      .setServiceInstanceName("some-up-service-name")
-      .setType(CREATE)
-      .setState(SUCCEEDED);
-    when(client.getServiceInstances().createUserProvidedServiceInstance(any(), any(), any(), any(), any(), anyBoolean(), any()))
-      .thenReturn(serviceInstanceResponse);
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("some-up-service-name")
+            .setType(CREATE)
+            .setState(SUCCEEDED);
+    when(client
+            .getServiceInstances()
+            .createUserProvidedServiceInstance(
+                any(), any(), any(), any(), any(), anyBoolean(), any()))
+        .thenReturn(serviceInstanceResponse);
 
-    DeployCloudFoundryServiceAtomicOperation op = new DeployCloudFoundryServiceAtomicOperation(desc);
+    DeployCloudFoundryServiceAtomicOperation op =
+        new DeployCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
     List<Object> resultObjects = task.getResultObjects();
@@ -90,7 +101,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
     assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
     assertThat(task.getHistory())
-      .has(status("Creating user-provided service instance 'some-up-service-name'"), atIndex(1))
-      .has(status("Created user-provided service instance 'some-up-service-name'"), atIndex(2));
+        .has(status("Creating user-provided service instance 'some-up-service-name'"), atIndex(1))
+        .has(status("Created user-provided service instance 'some-up-service-name'"), atIndex(2));
   }
 }

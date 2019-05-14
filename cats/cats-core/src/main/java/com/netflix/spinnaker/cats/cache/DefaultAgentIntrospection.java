@@ -18,11 +18,10 @@ package com.netflix.spinnaker.cats.cache;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.CacheResult;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -41,8 +40,11 @@ public class DefaultAgentIntrospection implements AgentIntrospection {
   public void finish(CacheResult result) {
     lastExecutionDurationMs = System.currentTimeMillis() - lastExecutionStartMs;
     details = result.getIntrospectionDetails();
-    totalAdditions = result.getCacheResults().values().stream().reduce(0, (a, b) -> a + b.size(), (a, b) -> a + b);
-    totalEvictions = result.getEvictions().values().stream().reduce(0, (a, b) -> a + b.size(), (a, b) -> a + b);
+    totalAdditions =
+        result.getCacheResults().values().stream()
+            .reduce(0, (a, b) -> a + b.size(), (a, b) -> a + b);
+    totalEvictions =
+        result.getEvictions().values().stream().reduce(0, (a, b) -> a + b.size(), (a, b) -> a + b);
   }
 
   private String id;

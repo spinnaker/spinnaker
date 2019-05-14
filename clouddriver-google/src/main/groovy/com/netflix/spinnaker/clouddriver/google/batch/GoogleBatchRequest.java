@@ -23,10 +23,6 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.ComputeRequest;
 import com.google.common.collect.Lists;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,14 +30,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * Helper class for sending batch requests to GCE.
- */
+/** Helper class for sending batch requests to GCE. */
 @Slf4j
 public class GoogleBatchRequest {
 
-  private static final int MAX_BATCH_SIZE = 100; // Platform specified max to not overwhelm batch backends.
+  private static final int MAX_BATCH_SIZE =
+      100; // Platform specified max to not overwhelm batch backends.
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = (int) TimeUnit.MINUTES.toMillis(2);
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = (int) TimeUnit.MINUTES.toMillis(2);
 
@@ -63,22 +61,26 @@ public class GoogleBatchRequest {
 
     List<BatchRequest> queuedBatches = new ArrayList<>();
     List<List<QueuedRequest>> requestPartitions = Lists.partition(queuedRequests, MAX_BATCH_SIZE);
-    requestPartitions.forEach(requestPart -> {
-      BatchRequest newBatch = newBatch();
-      requestPart.forEach(qr -> {
-        try {
-          qr.getRequest().queue(newBatch, qr.getCallback());
-        } catch (IOException ioe) {
-          log.error("Queueing request {} in batch failed.", qr);
-          throw new RuntimeException(ioe);
-        }
-      });
-      queuedBatches.add(newBatch);
-    });
+    requestPartitions.forEach(
+        requestPart -> {
+          BatchRequest newBatch = newBatch();
+          requestPart.forEach(
+              qr -> {
+                try {
+                  qr.getRequest().queue(newBatch, qr.getCallback());
+                } catch (IOException ioe) {
+                  log.error("Queueing request {} in batch failed.", qr);
+                  throw new RuntimeException(ioe);
+                }
+              });
+          queuedBatches.add(newBatch);
+        });
 
     ExecutorService threadPool = new ForkJoinPool(10);
     try {
-      threadPool.submit(() -> queuedBatches.stream().parallel().forEach(this::executeInternalBatch)).get();
+      threadPool
+          .submit(() -> queuedBatches.stream().parallel().forEach(this::executeInternalBatch))
+          .get();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -96,15 +98,14 @@ public class GoogleBatchRequest {
 
   private BatchRequest newBatch() {
     return compute.batch(
-      new HttpRequestInitializer() {
-        @Override
-        public void initialize(HttpRequest request) {
-          request.getHeaders().setUserAgent(clouddriverUserAgentApplicationName);
-          request.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
-          request.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
-        }
-      }
-    );
+        new HttpRequestInitializer() {
+          @Override
+          public void initialize(HttpRequest request) {
+            request.getHeaders().setUserAgent(clouddriverUserAgentApplicationName);
+            request.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
+            request.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
+          }
+        });
   }
 
   public void queue(ComputeRequest request, JsonBatchCallback callback) {

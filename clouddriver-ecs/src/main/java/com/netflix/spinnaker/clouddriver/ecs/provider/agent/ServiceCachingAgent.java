@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.DescribeServicesRequest;
@@ -30,10 +35,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,26 +43,34 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(SERVICES.toString()),
-    INFORMATIVE.forType(ECS_CLUSTERS.toString())
-  ));
+  private static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(
+          Arrays.asList(
+              AUTHORITATIVE.forType(SERVICES.toString()),
+              INFORMATIVE.forType(ECS_CLUSTERS.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public ServiceCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+  public ServiceCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      Registry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 
-  public static Map<String, Object> convertServiceToAttributes(String accountName, String region, Service service) {
+  public static Map<String, Object> convertServiceToAttributes(
+      String accountName, String region, Service service) {
     Map<String, Object> attributes = new HashMap<>();
-    String applicationName = service.getServiceName().contains("-") ? StringUtils.substringBefore(service.getServiceName(), "-") : service.getServiceName();
+    String applicationName =
+        service.getServiceName().contains("-")
+            ? StringUtils.substringBefore(service.getServiceName(), "-")
+            : service.getServiceName();
     String clusterName = StringUtils.substringAfterLast(service.getClusterArn(), "/");
 
     attributes.put("account", accountName);
@@ -75,13 +84,17 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     attributes.put("taskDefinition", service.getTaskDefinition());
     attributes.put("desiredCount", service.getDesiredCount());
     attributes.put("maximumPercent", service.getDeploymentConfiguration().getMaximumPercent());
-    attributes.put("minimumHealthyPercent", service.getDeploymentConfiguration().getMinimumHealthyPercent());
+    attributes.put(
+        "minimumHealthyPercent", service.getDeploymentConfiguration().getMinimumHealthyPercent());
     attributes.put("loadBalancers", service.getLoadBalancers());
 
-    if (service.getNetworkConfiguration() != null &&
-        service.getNetworkConfiguration().getAwsvpcConfiguration() != null) {
-      attributes.put("subnets", service.getNetworkConfiguration().getAwsvpcConfiguration().getSubnets());
-      attributes.put("securityGroups", service.getNetworkConfiguration().getAwsvpcConfiguration().getSecurityGroups());
+    if (service.getNetworkConfiguration() != null
+        && service.getNetworkConfiguration().getAwsvpcConfiguration() != null) {
+      attributes.put(
+          "subnets", service.getNetworkConfiguration().getAwsvpcConfiguration().getSubnets());
+      attributes.put(
+          "securityGroups",
+          service.getNetworkConfiguration().getAwsvpcConfiguration().getSecurityGroups());
     }
 
     attributes.put("createdAt", service.getCreatedAt().getTime());
@@ -117,7 +130,10 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
           continue;
         }
 
-        List<Service> services = ecs.describeServices(new DescribeServicesRequest().withCluster(cluster).withServices(serviceArns)).getServices();
+        List<Service> services =
+            ecs.describeServices(
+                    new DescribeServicesRequest().withCluster(cluster).withServices(serviceArns))
+                .getServices();
         serviceList.addAll(services);
 
         nextToken = listServicesResult.getNextToken();
@@ -137,10 +153,13 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
       String key = Keys.getServiceKey(accountName, region, service.getServiceName());
       dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));
 
-      Map<String, Object> clusterAttributes = EcsClusterCachingAgent.convertClusterArnToAttributes(accountName, region, service.getClusterArn());
+      Map<String, Object> clusterAttributes =
+          EcsClusterCachingAgent.convertClusterArnToAttributes(
+              accountName, region, service.getClusterArn());
       String clusterName = StringUtils.substringAfterLast(service.getClusterArn(), "/");
       key = Keys.getClusterKey(accountName, region, clusterName);
-      clusterDataPoints.put(key, new DefaultCacheData(key, clusterAttributes, Collections.emptyMap()));
+      clusterDataPoints.put(
+          key, new DefaultCacheData(key, clusterAttributes, Collections.emptyMap()));
     }
 
     log.info("Caching " + dataPoints.size() + " services in " + getAgentType());

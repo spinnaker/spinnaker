@@ -25,16 +25,15 @@ public class RelationshipCacheFilter implements CacheFilter {
     this.allowableRelationshipPrefixes = allowableRelationshipPrefixes;
   }
 
-  /**
-   * @return CacheFilter that will filter out all relationships
-   */
+  /** @return CacheFilter that will filter out all relationships */
   public static RelationshipCacheFilter none() {
     return new RelationshipCacheFilter(Collections.<String>emptyList());
   }
 
   /**
    * @param relationshipPrefixes Allowable relationship prefixes
-   * @return CacheFilter that will filter out all relationships not prefixed with one of the <code>relationshipPrefixes</code>
+   * @return CacheFilter that will filter out all relationships not prefixed with one of the <code>
+   *     relationshipPrefixes</code>
    */
   public static RelationshipCacheFilter include(String... relationshipPrefixes) {
     return new RelationshipCacheFilter(Arrays.asList(relationshipPrefixes));

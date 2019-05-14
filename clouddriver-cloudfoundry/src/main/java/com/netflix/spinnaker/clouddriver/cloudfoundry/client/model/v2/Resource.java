@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-import lombok.Data;
-
 import java.time.ZonedDateTime;
+import lombok.Data;
 
 @Data
 public class Resource<T> {

@@ -21,11 +21,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomic
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -47,10 +46,9 @@ public class KubernetesPatchManifestDescription extends KubernetesAtomicOperatio
     Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(manifestName);
 
     return KubernetesCoordinates.builder()
-      .namespace(location)
-      .kind(parsedName.getLeft())
-      .name(parsedName.getRight())
-      .build();
+        .namespace(location)
+        .kind(parsedName.getLeft())
+        .name(parsedName.getRight())
+        .build();
   }
 }
-

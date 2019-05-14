@@ -17,20 +17,19 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Data;
 
 @Data
 public class KubernetesSelectorList {
   private final List<KubernetesSelector> selectors = new ArrayList<>();
 
-  public KubernetesSelectorList() { }
+  public KubernetesSelectorList() {}
 
   public KubernetesSelectorList(List<KubernetesSelector> selectors) {
     this.selectors.addAll(selectors);
@@ -60,20 +59,28 @@ public class KubernetesSelectorList {
 
   @Override
   public String toString() {
-    return String.join(",", selectors.stream().map(KubernetesSelector::toString).collect(Collectors.toList()));
+    return String.join(
+        ",", selectors.stream().map(KubernetesSelector::toString).collect(Collectors.toList()));
   }
 
   public static KubernetesSelectorList fromMatchLabels(Map<String, String> matchLabels) {
-    return new KubernetesSelectorList(matchLabels.entrySet()
-        .stream()
-        .map(kv -> new KubernetesSelector(KubernetesSelector.Kind.EQUALS, kv.getKey(), Collections.singletonList(kv.getValue())))
-        .collect(Collectors.toList()));
+    return new KubernetesSelectorList(
+        matchLabels.entrySet().stream()
+            .map(
+                kv ->
+                    new KubernetesSelector(
+                        KubernetesSelector.Kind.EQUALS,
+                        kv.getKey(),
+                        Collections.singletonList(kv.getValue())))
+            .collect(Collectors.toList()));
   }
 
-  public static KubernetesSelectorList fromMatchExpressions(List<MatchExpression> matchExpressions) {
-    return new KubernetesSelectorList(matchExpressions.stream()
-        .map(KubernetesSelectorList::fromMatchExpression)
-        .collect(Collectors.toList()));
+  public static KubernetesSelectorList fromMatchExpressions(
+      List<MatchExpression> matchExpressions) {
+    return new KubernetesSelectorList(
+        matchExpressions.stream()
+            .map(KubernetesSelectorList::fromMatchExpression)
+            .collect(Collectors.toList()));
   }
 
   public static KubernetesSelector fromMatchExpression(MatchExpression matchExpression) {

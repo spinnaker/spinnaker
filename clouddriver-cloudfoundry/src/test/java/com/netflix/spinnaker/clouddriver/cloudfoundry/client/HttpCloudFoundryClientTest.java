@@ -16,29 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
-import com.squareup.okhttp.ResponseBody;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static com.squareup.okhttp.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
+
 class HttpCloudFoundryClientTest {
   @Test
   void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
-    Response response502 = new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
-    Response response503 = new Response.Builder().code(503).request(request).protocol(HTTP_1_1).build();
-    Response response504 = new Response.Builder().code(504).request(request).protocol(HTTP_1_1).build();
-    Response response200 = new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
+    Response response502 =
+        new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
+    Response response503 =
+        new Response.Builder().code(503).request(request).protocol(HTTP_1_1).build();
+    Response response504 =
+        new Response.Builder().code(504).request(request).protocol(HTTP_1_1).build();
+    Response response200 =
+        new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
     Interceptor.Chain chain = mock(Interceptor.Chain.class);
 
     when(chain.request()).thenReturn(request);
@@ -48,7 +51,9 @@ class HttpCloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "appsManUri", "metricsUri","host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient =
+        new HttpCloudFoundryClient(
+            "account", "appsManUri", "metricsUri", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -62,8 +67,10 @@ class HttpCloudFoundryClientTest {
   @Test
   void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
-    ResponseBody body = ResponseBody.create(MediaType.parse("application/octet-stream"), "Bad credentials");
-    Response response401 = new Response.Builder().code(401).request(request).body(body).protocol(HTTP_1_1).build();
+    ResponseBody body =
+        ResponseBody.create(MediaType.parse("application/octet-stream"), "Bad credentials");
+    Response response401 =
+        new Response.Builder().code(401).request(request).body(body).protocol(HTTP_1_1).build();
     Interceptor.Chain chain = mock(Interceptor.Chain.class);
 
     when(chain.request()).thenReturn(request);
@@ -73,7 +80,9 @@ class HttpCloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "appsManUri", "metricsUri", "host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient =
+        new HttpCloudFoundryClient(
+            "account", "appsManUri", "metricsUri", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -87,8 +96,10 @@ class HttpCloudFoundryClientTest {
   @Test
   void createRetryInterceptorShouldReturnOnEverythingElse() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
-    Response response502 = new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
-    Response response200 = new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
+    Response response502 =
+        new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
+    Response response200 =
+        new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();
     Interceptor.Chain chain = mock(Interceptor.Chain.class);
 
     when(chain.request()).thenReturn(request);
@@ -98,7 +109,9 @@ class HttpCloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "appsManUri", "metricsUri", "host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient =
+        new HttpCloudFoundryClient(
+            "account", "appsManUri", "metricsUri", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {

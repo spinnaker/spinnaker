@@ -22,5 +22,6 @@ public interface ServiceProvider {
   String getCloudProvider();
 
   Collection<? extends Service> getServices(String account, String region);
+
   ServiceInstance getServiceInstance(String account, String region, String serviceInstanceName);
 }

@@ -27,5 +27,4 @@ public class TitusError {
   }
 
   private String message;
-
 }

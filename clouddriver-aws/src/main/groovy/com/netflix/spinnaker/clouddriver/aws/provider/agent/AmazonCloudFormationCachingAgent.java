@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
+
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.*;
 import com.amazonaws.services.cloudformation.model.Stack;
@@ -34,13 +37,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
@@ -49,19 +48,22 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
   private final String region;
   private final OnDemandMetricsSupport metricsSupport;
 
-  static final Set<AgentDataType> types = new HashSet<>(
-    Collections.singletonList(AUTHORITATIVE.forType(STACKS.getNs()))
-  );
+  static final Set<AgentDataType> types =
+      new HashSet<>(Collections.singletonList(AUTHORITATIVE.forType(STACKS.getNs())));
 
-  public AmazonCloudFormationCachingAgent(AmazonClientProvider amazonClientProvider,
-                                          NetflixAmazonCredentials account,
-                                          String region,
-                                          Registry registry) {
+  public AmazonCloudFormationCachingAgent(
+      AmazonClientProvider amazonClientProvider,
+      NetflixAmazonCredentials account,
+      String region,
+      Registry registry) {
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this,
-      String.format("%s:%s", AmazonCloudProvider.ID, OnDemandType.CloudFormation));
+    this.metricsSupport =
+        new OnDemandMetricsSupport(
+            registry,
+            this,
+            String.format("%s:%s", AmazonCloudProvider.ID, OnDemandType.CloudFormation));
   }
 
   @Override
@@ -87,10 +89,13 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
   @Override
   public OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
     if (shouldHandle(data)) {
-      log.info("Updating CloudFormation cache for account: {} and region: {}", account.getName(), this.region);
-      return new OnDemandResult(getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
-    }
-    else {
+      log.info(
+          "Updating CloudFormation cache for account: {} and region: {}",
+          account.getName(),
+          this.region);
+      return new OnDemandResult(
+          getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
+    } else {
       return null;
     }
   }
@@ -98,8 +103,10 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
   private boolean shouldHandle(Map<String, ?> data) {
     String credentials = (String) data.get("credentials");
     List<String> region = (List<String>) data.get("region");
-    return data.isEmpty() ||
-      (account.getName().equals(credentials) && region != null && region.contains(this.region));
+    return data.isEmpty()
+        || (account.getName().equals(credentials)
+            && region != null
+            && region.contains(this.region));
   }
 
   @Override
@@ -109,7 +116,9 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
 
   @Override
   public String getAgentType() {
-    return String.format("%s/%s/%s", account.getName(), region, AmazonCloudFormationCachingAgent.class.getSimpleName());
+    return String.format(
+        "%s/%s/%s",
+        account.getName(), region, AmazonCloudFormationCachingAgent.class.getSimpleName());
   }
 
   @Override
@@ -125,7 +134,8 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in {}", getAgentType());
-    AmazonCloudFormation cloudformation = amazonClientProvider.getAmazonCloudFormation(account, region);
+    AmazonCloudFormation cloudformation =
+        amazonClientProvider.getAmazonCloudFormation(account, region);
 
     Collection<CacheData> stackCacheData = new ArrayList<>();
 
@@ -135,10 +145,12 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
       for (Stack stack : stacks) {
         Map<String, Object> stackAttributes = new HashMap<>();
         stackAttributes.put("stackId", stack.getStackId());
-        stackAttributes.put("tags",
-          stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
-        stackAttributes.put("outputs",
-          stack.getOutputs().stream().collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
+        stackAttributes.put(
+            "tags", stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
+        stackAttributes.put(
+            "outputs",
+            stack.getOutputs().stream()
+                .collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
         stackAttributes.put("stackName", stack.getStackName());
         stackAttributes.put("region", region);
         stackAttributes.put("accountName", account.getName());
@@ -147,15 +159,16 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
         stackAttributes.put("creationTime", stack.getCreationTime());
 
         if (stack.getStackStatus().endsWith("ROLLBACK_COMPLETE")) {
-          DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stack.getStackName());
-          cloudformation.describeStackEvents(request).getStackEvents()
-            .stream()
-            .filter(e -> e.getResourceStatus().endsWith("FAILED"))
-            .findFirst()
-            .map(StackEvent::getResourceStatusReason)
-            .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
+          DescribeStackEventsRequest request =
+              new DescribeStackEventsRequest().withStackName(stack.getStackName());
+          cloudformation.describeStackEvents(request).getStackEvents().stream()
+              .filter(e -> e.getResourceStatus().endsWith("FAILED"))
+              .findFirst()
+              .map(StackEvent::getResourceStatusReason)
+              .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
         }
-        String stackCacheKey = Keys.getCloudFormationKey(stack.getStackId(), region, account.getName());
+        String stackCacheKey =
+            Keys.getCloudFormationKey(stack.getStackId(), region, account.getName());
         Map<String, Collection<String>> relationships = new HashMap<>();
         relationships.put(STACKS.getNs(), Collections.singletonList(stackCacheKey));
         stackCacheData.add(new DefaultCacheData(stackCacheKey, stackAttributes, relationships));

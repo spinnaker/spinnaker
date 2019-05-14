@@ -25,6 +25,9 @@ public class InstanceStatus {
   private String details;
 
   public enum State {
-    RUNNING, STARTING, CRASHED, DOWN;
+    RUNNING,
+    STARTING,
+    CRASHED,
+    DOWN;
   }
 }

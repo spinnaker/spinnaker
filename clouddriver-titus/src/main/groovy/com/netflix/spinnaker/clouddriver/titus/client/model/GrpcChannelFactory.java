@@ -22,10 +22,9 @@ import io.grpc.ManagedChannel;
 
 public interface GrpcChannelFactory {
   public ManagedChannel build(
-    TitusRegion titusRegion,
-    String environment,
-    String eurekaName,
-    long defaultConnectTimeOut,
-    Registry registry
-  );
+      TitusRegion titusRegion,
+      String environment,
+      String eurekaName,
+      long defaultConnectTimeOut,
+      Registry registry);
 }

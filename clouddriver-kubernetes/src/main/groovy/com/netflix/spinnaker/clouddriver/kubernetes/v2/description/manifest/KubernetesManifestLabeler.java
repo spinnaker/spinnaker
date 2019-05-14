@@ -19,11 +19,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesManifestLabeler {
@@ -61,17 +60,22 @@ public class KubernetesManifestLabeler {
     labels.put(key, value);
   }
 
-  public static void labelManifest(String managedBySuffix, KubernetesManifest manifest, Moniker moniker) {
+  public static void labelManifest(
+      String managedBySuffix, KubernetesManifest manifest, Moniker moniker) {
     Map<String, String> labels = manifest.getLabels();
     storeLabels(managedBySuffix, labels, moniker);
 
-    manifest.getSpecTemplateLabels().flatMap(l -> {
-      storeLabels(managedBySuffix, l, moniker);
-      return Optional.empty();
-    });
+    manifest
+        .getSpecTemplateLabels()
+        .flatMap(
+            l -> {
+              storeLabels(managedBySuffix, l, moniker);
+              return Optional.empty();
+            });
   }
 
-  public static void storeLabels(String managedBySuffix, Map<String, String> labels, Moniker moniker) {
+  public static void storeLabels(
+      String managedBySuffix, Map<String, String> labels, Moniker moniker) {
     if (moniker == null) {
       return;
     }
@@ -90,7 +94,8 @@ public class KubernetesManifestLabeler {
     }
   }
 
-  public static KubernetesApplicationProperties getApplicationProperties(KubernetesManifest manifest) {
+  public static KubernetesApplicationProperties getApplicationProperties(
+      KubernetesManifest manifest) {
     Map<String, String> labels = manifest.getLabels();
 
     return new KubernetesApplicationProperties()

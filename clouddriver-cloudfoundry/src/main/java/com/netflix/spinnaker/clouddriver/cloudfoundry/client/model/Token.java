@@ -22,13 +22,9 @@ import lombok.Data;
 public class Token {
   private String accessToken;
 
-  /**
-   * Dimensioned in seconds
-   */
+  /** Dimensioned in seconds */
   private long expiresIn;
 
-  /**
-   * A globally unique identifier for this token
-   */
+  /** A globally unique identifier for this token */
   private String jti;
 }

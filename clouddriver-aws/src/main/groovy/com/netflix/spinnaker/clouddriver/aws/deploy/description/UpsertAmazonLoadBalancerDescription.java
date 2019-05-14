@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription implements ResourcesNameable {
+public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription
+    implements ResourcesNameable {
   private AmazonLoadBalancerType loadBalancerType = AmazonLoadBalancerType.CLASSIC;
 
   private String clusterName;
@@ -111,9 +111,13 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
     this.shieldProtectionEnabled = shieldProtectionEnabled;
   }
 
-  public Integer getIdleTimeout() { return idleTimeout; }
+  public Integer getIdleTimeout() {
+    return idleTimeout;
+  }
 
-  public void setIdleTimeout(Integer idleTimeout) { this.idleTimeout = idleTimeout; }
+  public void setIdleTimeout(Integer idleTimeout) {
+    this.idleTimeout = idleTimeout;
+  }
 
   @Override
   public Collection<String> getNames() {

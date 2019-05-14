@@ -20,11 +20,6 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-
-import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -36,10 +31,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 public class PooledRequestQueue implements RequestQueue {
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private final ConcurrentMap<String, Queue<PooledRequest<?>>> partitionedRequests = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, Queue<PooledRequest<?>>> partitionedRequests =
+      new ConcurrentHashMap<>();
   private final PollCoordinator pollCoordinator = new PollCoordinator();
 
   private final long defaultStartWorkTimeout;
@@ -55,11 +55,12 @@ public class PooledRequestQueue implements RequestQueue {
 
   private final AtomicBoolean isEnabled = new AtomicBoolean(true);
 
-  public PooledRequestQueue(DynamicConfigService dynamicConfigService,
-                            Registry registry,
-                            long defaultStartWorkTimeout,
-                            long defaultTimeout,
-                            int requestPoolSize) {
+  public PooledRequestQueue(
+      DynamicConfigService dynamicConfigService,
+      Registry registry,
+      long defaultStartWorkTimeout,
+      long defaultTimeout,
+      int requestPoolSize) {
 
     if (defaultStartWorkTimeout <= 0) {
       throw new IllegalArgumentException("defaultStartWorkTimeout");
@@ -84,11 +85,15 @@ public class PooledRequestQueue implements RequestQueue {
     registry.gauge("pooledRequestQueue.executorQueue.size", submittedRequests, Queue::size);
 
     final int actualThreads = requestPoolSize + 1;
-    this.executorService = new ThreadPoolExecutor(actualThreads, actualThreads, 0, TimeUnit.MILLISECONDS, submittedRequests);
-    registry.gauge("pooledRequestQueue.corePoolSize", executorService, ThreadPoolExecutor::getCorePoolSize);
+    this.executorService =
+        new ThreadPoolExecutor(
+            actualThreads, actualThreads, 0, TimeUnit.MILLISECONDS, submittedRequests);
+    registry.gauge(
+        "pooledRequestQueue.corePoolSize", executorService, ThreadPoolExecutor::getCorePoolSize);
 
     this.requestQueues = new CopyOnWriteArrayList<>();
-    this.requestDistributor = new RequestDistributor(registry, pollCoordinator, executorService, requestQueues);
+    this.requestDistributor =
+        new RequestDistributor(registry, pollCoordinator, executorService, requestQueues);
     executorService.submit(requestDistributor);
 
     registry.gauge("pooledRequestQueue.enabled", isEnabled, value -> value.get() ? 1.0 : 0.0);
@@ -115,7 +120,9 @@ public class PooledRequestQueue implements RequestQueue {
   }
 
   @Override
-  public <T> T execute(String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable {
+  public <T> T execute(
+      String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit)
+      throws Throwable {
     if (!isEnabled.get()) {
       return operation.call();
     }
@@ -128,7 +135,10 @@ public class PooledRequestQueue implements RequestQueue {
       if (existing == null) {
         requestQueues.add(newQueue);
         queue = newQueue;
-        registry.gauge(registry.createId("pooledRequestQueue.partition.size", "partition", partition), queue, Queue::size);
+        registry.gauge(
+            registry.createId("pooledRequestQueue.partition.size", "partition", partition),
+            queue,
+            Queue::size);
       } else {
         queue = existing;
       }
@@ -157,18 +167,15 @@ public class PooledRequestQueue implements RequestQueue {
   @Scheduled(fixedDelayString = "${request-queue.core-pool-size-refresh-ms:120000}")
   public void refreshCorePoolSize() {
     int currentCorePoolSize = executorService.getCorePoolSize();
-    int desiredCorePoolSize = dynamicConfigService.getConfig(
-      Integer.class,
-      "requestQueue.poolSize",
-      defaultCorePoolSize
-    ) + 1;
+    int desiredCorePoolSize =
+        dynamicConfigService.getConfig(Integer.class, "requestQueue.poolSize", defaultCorePoolSize)
+            + 1;
 
     if (desiredCorePoolSize != currentCorePoolSize) {
       log.info(
-        "Updating core pool size (original: {}, updated: {})",
-        currentCorePoolSize,
-        desiredCorePoolSize
-      );
+          "Updating core pool size (original: {}, updated: {})",
+          currentCorePoolSize,
+          desiredCorePoolSize);
       executorService.setCorePoolSize(desiredCorePoolSize);
       executorService.setMaximumPoolSize(desiredCorePoolSize);
     }

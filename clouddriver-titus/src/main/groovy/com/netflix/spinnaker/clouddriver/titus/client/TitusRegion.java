@@ -39,23 +39,24 @@ public class TitusRegion {
     return val;
   }
 
-  public TitusRegion(String name,
-                     String account,
-                     String endpoint,
-                     Boolean autoscalingEnabled,
-                     Boolean loadBalancingEnabled,
-                     List<TitusFaultDomain> faultDomains,
-                     String applicationName,
-                     String url,
-                     Integer port,
-                     List<String> featureFlags
-  ) {
+  public TitusRegion(
+      String name,
+      String account,
+      String endpoint,
+      Boolean autoscalingEnabled,
+      Boolean loadBalancingEnabled,
+      List<TitusFaultDomain> faultDomains,
+      String applicationName,
+      String url,
+      Integer port,
+      List<String> featureFlags) {
     this.name = notNull(name, "name");
     this.account = notNull(account, "account");
     this.endpoint = EndpointValidator.validateEndpoint(endpoint);
     this.autoscalingEnabled = autoscalingEnabled;
     this.loadBalancingEnabled = loadBalancingEnabled;
-    this.faultDomains = faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
+    this.faultDomains =
+        faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
     this.applicationName = applicationName;
     this.url = url;
     if (port != null) {
@@ -70,8 +71,27 @@ public class TitusRegion {
     }
   }
 
-  public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, Boolean loadBalancingEnabled, String applicationName, String url, Integer port, List<String> featureFlags) {
-    this(name, account, endpoint, autoscalingEnabled, loadBalancingEnabled, Collections.emptyList(), applicationName, url, port, featureFlags);
+  public TitusRegion(
+      String name,
+      String account,
+      String endpoint,
+      Boolean autoscalingEnabled,
+      Boolean loadBalancingEnabled,
+      String applicationName,
+      String url,
+      Integer port,
+      List<String> featureFlags) {
+    this(
+        name,
+        account,
+        endpoint,
+        autoscalingEnabled,
+        loadBalancingEnabled,
+        Collections.emptyList(),
+        applicationName,
+        url,
+        port,
+        featureFlags);
   }
 
   public String getAccount() {
@@ -102,9 +122,13 @@ public class TitusRegion {
     return applicationName;
   }
 
-  public Integer getPort() { return port; }
+  public Integer getPort() {
+    return port;
+  }
 
-  public String getUrl() { return url; }
+  public String getUrl() {
+    return url;
+  }
 
   public List<String> getFeatureFlags() {
     return featureFlags;
@@ -121,7 +145,6 @@ public class TitusRegion {
     if (!account.equals(that.account)) return false;
     if (!endpoint.equals(that.endpoint)) return false;
     return faultDomains.equals(that.faultDomains);
-
   }
 
   @Override

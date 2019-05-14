@@ -16,8 +16,5 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.security;
 
-/**
- * Marker interface (for now) for titus credentials
- */
-public interface TitusCredentials {
-}
+/** Marker interface (for now) for titus credentials */
+public interface TitusCredentials {}

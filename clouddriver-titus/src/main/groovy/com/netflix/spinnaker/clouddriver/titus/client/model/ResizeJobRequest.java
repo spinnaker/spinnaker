@@ -22,8 +22,7 @@ public class ResizeJobRequest extends AbstractJobRequest {
   private int instancesMax;
   private int instancesMin;
 
-  public ResizeJobRequest() {
-  }
+  public ResizeJobRequest() {}
 
   public int getInstancesDesired() {
     return instancesDesired;
@@ -51,5 +50,4 @@ public class ResizeJobRequest extends AbstractJobRequest {
     this.instancesMin = instancesMin;
     return this;
   }
-
 }

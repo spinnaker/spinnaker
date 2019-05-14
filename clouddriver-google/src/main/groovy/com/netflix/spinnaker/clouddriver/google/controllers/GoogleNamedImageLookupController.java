@@ -60,7 +60,8 @@ public class GoogleNamedImageLookupController {
 
   private final Cache cacheView;
   private final JacksonFactory jsonMapper = new JacksonFactory();
-  private final ObjectMapper objectMapper = new ObjectMapper().configure(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS, true);
+  private final ObjectMapper objectMapper =
+      new ObjectMapper().configure(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS, true);
 
   @Autowired
   private GoogleNamedImageLookupController(Cache cacheView) {
@@ -69,10 +70,9 @@ public class GoogleNamedImageLookupController {
 
   @RequestMapping(value = "/find", method = RequestMethod.GET)
   public List<NamedImage> list(
-    @RequestParam(required = false) String q,
-    @RequestParam(required = false) String account,
-    HttpServletRequest request
-  ) {
+      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String account,
+      HttpServletRequest request) {
     Map<String, List<Image>> imageMap = listImagesByAccount();
 
     // Set of accounts for which we should return images: either the supplied account, or default
@@ -92,7 +92,8 @@ public class GoogleNamedImageLookupController {
       for (Image i : imageMap.get(imageAccount)) {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("creationDate", i.get("creationTimestamp"));
-        NamedImage newImage = new NamedImage(imageAccount, i.getName(), attributes, buildTagsMap(i));
+        NamedImage newImage =
+            new NamedImage(imageAccount, i.getName(), attributes, buildTagsMap(i));
         results.add(newImage);
       }
     }
@@ -101,7 +102,10 @@ public class GoogleNamedImageLookupController {
     if (q != null && q.trim().length() > 0) {
       String glob = q.trim();
       // Wrap in '*' if there are no glob-style characters in the query string.
-      if (!glob.contains("*") && !glob.contains("?") && !glob.contains("[") && !glob.contains("\\")) {
+      if (!glob.contains("*")
+          && !glob.contains("?")
+          && !glob.contains("[")
+          && !glob.contains("\\")) {
         glob = "*" + glob + "*";
       }
       Pattern pattern = new InMemoryCache.Glob(glob).toPattern();
@@ -109,32 +113,34 @@ public class GoogleNamedImageLookupController {
     }
 
     return results.stream()
-      .filter(queryFilter)
-      .filter(namedImage -> matchesTagFilters(namedImage, extractTagFilters(request)))
-      .sorted(Comparator.comparing(image -> image.imageName))
-      .collect(Collectors.toList());
+        .filter(queryFilter)
+        .filter(namedImage -> matchesTagFilters(namedImage, extractTagFilters(request)))
+        .sorted(Comparator.comparing(image -> image.imageName))
+        .collect(Collectors.toList());
   }
 
   private Map<String, List<Image>> listImagesByAccount() {
-    Collection<String> identifiers = cacheView.filterIdentifiers(IMAGES.getNs(), GoogleCloudProvider.getID() + ":*");
+    Collection<String> identifiers =
+        cacheView.filterIdentifiers(IMAGES.getNs(), GoogleCloudProvider.getID() + ":*");
     Map<String, List<Image>> result = new HashMap<>();
 
-    Collection<CacheData> allCacheData = cacheView.getAll(IMAGES.getNs(), identifiers, RelationshipCacheFilter.none());
+    Collection<CacheData> allCacheData =
+        cacheView.getAll(IMAGES.getNs(), identifiers, RelationshipCacheFilter.none());
     allCacheData.forEach(
-      cacheData -> {
-        String account = Keys.parse(cacheData.getId()).get("account");
-        if (!result.containsKey(account)) {
-          result.put(account, new ArrayList<>());
-        }
-        Object hashImage = cacheData.getAttributes().get("image");
-        try {
-          Image myImage = jsonMapper.fromString(objectMapper.writeValueAsString(hashImage), Image.class);
-          result.get(account).add(myImage);
-        } catch (IOException e) {
-          throw new RuntimeException("Image deserialization failed");
-        }
-      }
-    );
+        cacheData -> {
+          String account = Keys.parse(cacheData.getId()).get("account");
+          if (!result.containsKey(account)) {
+            result.put(account, new ArrayList<>());
+          }
+          Object hashImage = cacheData.getAttributes().get("image");
+          try {
+            Image myImage =
+                jsonMapper.fromString(objectMapper.writeValueAsString(hashImage), Image.class);
+            result.get(account).add(myImage);
+          } catch (IOException e) {
+            throw new RuntimeException("Image deserialization failed");
+          }
+        });
 
     return result;
   }
@@ -149,14 +155,13 @@ public class GoogleNamedImageLookupController {
     // we'll build a map associating each key with
     // its associated value
     if (description != null) {
-      tags = Arrays.stream(description.split(","))
-        .filter(token -> token.contains(": "))
-        .map(token -> token.split(": ", 2))
-        .collect(Collectors.toMap(
-          token -> token[0].trim(),
-          token -> token[1].trim(),
-          (a, b) -> b
-        ));
+      tags =
+          Arrays.stream(description.split(","))
+              .filter(token -> token.contains(": "))
+              .map(token -> token.split(": ", 2))
+              .collect(
+                  Collectors.toMap(
+                      token -> token[0].trim(), token -> token[1].trim(), (a, b) -> b));
     }
 
     Map<String, String> labels = image.getLabels();
@@ -170,33 +175,35 @@ public class GoogleNamedImageLookupController {
   /**
    * Apply tag-based filtering to the list of named images.
    *
-   * For example: /gce/images/find?q=PackageName&tag:stage=released&tag:somekey=someval
+   * <p>For example: /gce/images/find?q=PackageName&tag:stage=released&tag:somekey=someval
    */
-  private static List<NamedImage> filter(List<NamedImage> namedImages, Map<String, String> tagFilters) {
+  private static List<NamedImage> filter(
+      List<NamedImage> namedImages, Map<String, String> tagFilters) {
     return namedImages.stream()
-      .filter(namedImage -> matchesTagFilters(namedImage, tagFilters))
-      .collect(Collectors.toList());
+        .filter(namedImage -> matchesTagFilters(namedImage, tagFilters))
+        .collect(Collectors.toList());
   }
 
   private static boolean matchesTagFilters(NamedImage namedImage, Map<String, String> tagFilters) {
     Map<String, String> tags = namedImage.tags;
     return tagFilters.keySet().stream()
-      .allMatch(
-        tag -> tags.containsKey(tag.toLowerCase()) && tags.get(tag.toLowerCase()).equalsIgnoreCase(tagFilters.get(tag))
-      );
+        .allMatch(
+            tag ->
+                tags.containsKey(tag.toLowerCase())
+                    && tags.get(tag.toLowerCase()).equalsIgnoreCase(tagFilters.get(tag)));
   }
 
   private static Map<String, String> extractTagFilters(HttpServletRequest httpServletRequest) {
     List<String> parameterNames = Collections.list(httpServletRequest.getParameterNames());
 
     return parameterNames.stream()
-      .filter(Objects::nonNull)
-      .filter(parameter -> parameter.toLowerCase().startsWith("tag:"))
-      .collect(Collectors.toMap(
-        tagParameter -> tagParameter.replaceAll("tag:", "").toLowerCase(),
-        httpServletRequest::getParameter,
-        (a, b) -> b
-      ));
+        .filter(Objects::nonNull)
+        .filter(parameter -> parameter.toLowerCase().startsWith("tag:"))
+        .collect(
+            Collectors.toMap(
+                tagParameter -> tagParameter.replaceAll("tag:", "").toLowerCase(),
+                httpServletRequest::getParameter,
+                (a, b) -> b));
   }
 
   @VisibleForTesting
@@ -206,7 +213,11 @@ public class GoogleNamedImageLookupController {
     public Map<String, Object> attributes = new HashMap<>();
     public Map<String, String> tags = new HashMap<>();
 
-    private NamedImage(String account, String imageName, Map<String, Object> attributes, Map<String, String> tags) {
+    private NamedImage(
+        String account,
+        String imageName,
+        Map<String, Object> attributes,
+        Map<String, String> tags) {
       this.account = account;
       this.imageName = imageName;
       this.attributes = attributes;

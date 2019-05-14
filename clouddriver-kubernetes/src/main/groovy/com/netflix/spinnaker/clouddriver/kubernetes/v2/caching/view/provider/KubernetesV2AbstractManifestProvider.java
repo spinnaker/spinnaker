@@ -30,19 +30,20 @@ import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public abstract class KubernetesV2AbstractManifestProvider implements ManifestProvider<KubernetesV2Manifest> {
+public abstract class KubernetesV2AbstractManifestProvider
+    implements ManifestProvider<KubernetesV2Manifest> {
   protected abstract AccountCredentialsRepository getCredentialsRepository();
+
   protected abstract KubernetesResourcePropertyRegistry getRegistry();
 
   protected Optional<KubernetesV2Credentials> getCredentials(String account) {
@@ -64,10 +65,19 @@ public abstract class KubernetesV2AbstractManifestProvider implements ManifestPr
   }
 
   protected boolean makesLiveCalls(String account) {
-    return getCredentials(account).map(KubernetesV2Credentials::isLiveManifestCalls).orElseThrow(() -> new IllegalArgumentException("Account " + account + " is not a Kubernetess v2 account"));
+    return getCredentials(account)
+        .map(KubernetesV2Credentials::isLiveManifestCalls)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Account " + account + " is not a Kubernetess v2 account"));
   }
 
-  protected KubernetesV2Manifest buildManifest(String account, KubernetesManifest manifest, List<KubernetesManifest> events, List<KubernetesPodMetric.ContainerMetric> metrics) {
+  protected KubernetesV2Manifest buildManifest(
+      String account,
+      KubernetesManifest manifest,
+      List<KubernetesManifest> events,
+      List<KubernetesPodMetric.ContainerMetric> metrics) {
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
 
@@ -76,17 +86,20 @@ public abstract class KubernetesV2AbstractManifestProvider implements ManifestPr
       return null;
     }
 
-    Function<KubernetesManifest, String> lastEventTimestamp = (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
+    Function<KubernetesManifest, String> lastEventTimestamp =
+        (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
 
-    events = events.stream()
-        .sorted(Comparator.comparing(lastEventTimestamp))
-        .collect(Collectors.toList());
+    events =
+        events.stream()
+            .sorted(Comparator.comparing(lastEventTimestamp))
+            .collect(Collectors.toList());
 
     Moniker moniker = KubernetesManifestAnnotater.getMoniker(manifest);
 
     KubernetesHandler handler = properties.getHandler();
 
-    return new KubernetesV2Manifest().builder()
+    return new KubernetesV2Manifest()
+        .builder()
         .account(account)
         .name(manifest.getFullResourceName())
         .location(namespace)
@@ -98,6 +111,5 @@ public abstract class KubernetesV2AbstractManifestProvider implements ManifestPr
         .warnings(handler.listWarnings(manifest))
         .metrics(metrics)
         .build();
-
   }
 }

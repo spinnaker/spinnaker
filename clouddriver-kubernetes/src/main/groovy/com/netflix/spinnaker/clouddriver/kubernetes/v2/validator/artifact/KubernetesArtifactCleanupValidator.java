@@ -17,28 +17,27 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.artifact;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
+
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
-
 @KubernetesOperation(CLEANUP_ARTIFACTS)
 @Component
-public class KubernetesArtifactCleanupValidator extends DescriptionValidator<KubernetesCleanupArtifactsDescription> {
-  @Autowired
-  AccountCredentialsProvider provider;
+public class KubernetesArtifactCleanupValidator
+    extends DescriptionValidator<KubernetesCleanupArtifactsDescription> {
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesCleanupArtifactsDescription description, Errors errors) {
-  }
+  public void validate(
+      List priorDescriptions, KubernetesCleanupArtifactsDescription description, Errors errors) {}
 
   @Override
   public boolean acceptsVersion(ProviderVersion version) {

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
+import static java.util.Objects.requireNonNull;
+
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -23,12 +25,9 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTemplater;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import org.apache.http.client.HttpClient;
-
 import java.lang.reflect.Proxy;
 import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
+import org.apache.http.client.HttpClient;
 
 /**
  * Constructs a JDK dynamic proxy for an AWS service interface that (if enabled for an account) will
@@ -42,7 +41,13 @@ public class ProxyHandlerBuilder {
   private final EddaTimeoutConfig eddaTimeoutConfig;
   private final Registry registry;
 
-  public ProxyHandlerBuilder(AwsSdkClientSupplier awsSdkClientSupplier, HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, EddaTimeoutConfig eddaTimeoutConfig, Registry registry) {
+  public ProxyHandlerBuilder(
+      AwsSdkClientSupplier awsSdkClientSupplier,
+      HttpClient httpClient,
+      ObjectMapper objectMapper,
+      EddaTemplater eddaTemplater,
+      EddaTimeoutConfig eddaTimeoutConfig,
+      Registry registry) {
     this.awsSdkClientSupplier = requireNonNull(awsSdkClientSupplier);
     this.httpClient = requireNonNull(httpClient);
     this.objectMapper = requireNonNull(objectMapper);
@@ -51,19 +56,40 @@ public class ProxyHandlerBuilder {
     this.registry = requireNonNull(registry);
   }
 
-  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
+  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(
+      Class<U> interfaceKlazz,
+      Class<T> impl,
+      NetflixAmazonCredentials amazonCredentials,
+      String region) {
     return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, false);
   }
 
-  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(
+      Class<U> interfaceKlazz,
+      Class<T> impl,
+      NetflixAmazonCredentials amazonCredentials,
+      String region,
+      boolean skipEdda) {
     requireNonNull(amazonCredentials, "Credentials cannot be null");
     try {
-      U delegate = awsSdkClientSupplier.getClient(impl, interfaceKlazz, amazonCredentials.getName(), amazonCredentials.getCredentialsProvider(), region);
-      if (skipEdda || !amazonCredentials.getEddaEnabled() || eddaTimeoutConfig.getDisabledRegions().contains(region)) {
+      U delegate =
+          awsSdkClientSupplier.getClient(
+              impl,
+              interfaceKlazz,
+              amazonCredentials.getName(),
+              amazonCredentials.getCredentialsProvider(),
+              region);
+      if (skipEdda
+          || !amazonCredentials.getEddaEnabled()
+          || eddaTimeoutConfig.getDisabledRegions().contains(region)) {
         return delegate;
       }
-      return interfaceKlazz.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
-        getInvocationHandler(delegate, interfaceKlazz.getSimpleName(), region, amazonCredentials)));
+      return interfaceKlazz.cast(
+          Proxy.newProxyInstance(
+              getClass().getClassLoader(),
+              new Class[] {interfaceKlazz},
+              getInvocationHandler(
+                  delegate, interfaceKlazz.getSimpleName(), region, amazonCredentials)));
     } catch (RuntimeException re) {
       throw re;
     } catch (Exception e) {
@@ -71,13 +97,24 @@ public class ProxyHandlerBuilder {
     }
   }
 
-  protected AmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
-    final Map<String, String> baseTags = ImmutableMap.of(
-      "account", amazonCredentials.getName(),
-      "region", region,
-      "serviceName", serviceName);
-    return new AmazonClientInvocationHandler(client, serviceName, eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
-      this.httpClient, objectMapper, eddaTimeoutConfig, registry, baseTags);
+  protected AmazonClientInvocationHandler getInvocationHandler(
+      Object client,
+      String serviceName,
+      String region,
+      NetflixAmazonCredentials amazonCredentials) {
+    final Map<String, String> baseTags =
+        ImmutableMap.of(
+            "account", amazonCredentials.getName(),
+            "region", region,
+            "serviceName", serviceName);
+    return new AmazonClientInvocationHandler(
+        client,
+        serviceName,
+        eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
+        this.httpClient,
+        objectMapper,
+        eddaTimeoutConfig,
+        registry,
+        baseTags);
   }
-
 }

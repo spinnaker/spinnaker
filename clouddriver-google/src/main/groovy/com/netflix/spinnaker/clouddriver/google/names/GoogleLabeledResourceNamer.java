@@ -21,11 +21,10 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledResource> {
@@ -44,11 +43,17 @@ public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledR
   public void applyMoniker(GoogleLabeledResource labeledResource, Moniker moniker) {
     Map<String, String> templateLabels = labeledResource.getLabels();
     setIfPresent(value -> templateLabels.putIfAbsent(APP, value.toLowerCase()), moniker.getApp());
-    setIfPresent(value -> templateLabels.putIfAbsent(CLUSTER, value.toLowerCase()), moniker.getCluster());
-    setIfPresent(value -> templateLabels.putIfAbsent(DETAIL, value.toLowerCase()), moniker.getDetail());
-    setIfPresent(value -> templateLabels.putIfAbsent(STACK, value.toLowerCase()), moniker.getStack());
-    setIfPresent(value -> templateLabels.put(SEQUENCE, value),
-      moniker.getSequence() != null ? moniker.getSequence().toString() : null); // Always overwrite sequence
+    setIfPresent(
+        value -> templateLabels.putIfAbsent(CLUSTER, value.toLowerCase()), moniker.getCluster());
+    setIfPresent(
+        value -> templateLabels.putIfAbsent(DETAIL, value.toLowerCase()), moniker.getDetail());
+    setIfPresent(
+        value -> templateLabels.putIfAbsent(STACK, value.toLowerCase()), moniker.getStack());
+    setIfPresent(
+        value -> templateLabels.put(SEQUENCE, value),
+        moniker.getSequence() != null
+            ? moniker.getSequence().toString()
+            : null); // Always overwrite sequence
   }
 
   @Override
@@ -56,13 +61,14 @@ public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledR
     String name = labeledResource.getName();
     Names parsed = Names.parseName(name);
 
-    Moniker moniker = Moniker.builder()
-      .app(parsed.getApp())
-      .cluster(parsed.getCluster())
-      .detail(parsed.getDetail())
-      .stack(parsed.getStack())
-      .sequence(parsed.getSequence())
-      .build();
+    Moniker moniker =
+        Moniker.builder()
+            .app(parsed.getApp())
+            .cluster(parsed.getCluster())
+            .detail(parsed.getDetail())
+            .stack(parsed.getStack())
+            .sequence(parsed.getSequence())
+            .build();
 
     Map<String, String> labels = labeledResource.getLabels();
     if (moniker.getApp() != null && labels != null) {
@@ -72,7 +78,8 @@ public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledR
       String detail = labels.get(DETAIL);
       String sequence = labels.get(SEQUENCE);
       if (cluster == null && (detail != null || stack != null)) {
-        // If detail or stack is set and not cluster, we generate the cluster name using frigga convention (app-stack-detail)
+        // If detail or stack is set and not cluster, we generate the cluster name using frigga
+        // convention (app-stack-detail)
         cluster = getClusterName(moniker.getApp(), stack, detail);
       }
       setIfPresent(moniker::setStack, stack);

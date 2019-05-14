@@ -23,15 +23,17 @@ class SpectatorSqlCacheMetrics(
   private val registry: Registry
 ) : SqlCacheMetrics {
 
-  override fun merge(prefix: String,
-                     type: String,
-                     itemCount: Int,
-                     itemsStored: Int,
-                     relationshipCount: Int,
-                     relationshipsStored: Int,
-                     selectOperations: Int,
-                     writeOperations: Int,
-                     deleteOperations: Int) {
+  override fun merge(
+    prefix: String,
+    type: String,
+    itemCount: Int,
+    itemsStored: Int,
+    relationshipCount: Int,
+    relationshipsStored: Int,
+    selectOperations: Int,
+    writeOperations: Int,
+    deleteOperations: Int
+  ) {
     val tags = tags(prefix, type)
     registry.counter(id("cats.sqlCache.merge", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.merge", "itemsStored", tags)).increment(itemsStored.toLong())
@@ -42,11 +44,13 @@ class SpectatorSqlCacheMetrics(
     registry.counter(id("cats.sqlCache.merge", "deleteOperations", tags)).increment(deleteOperations.toLong())
   }
 
-  override fun evict(prefix: String,
-                     type: String,
-                     itemCount: Int,
-                     itemsDeleted: Int,
-                     deleteOperations: Int) {
+  override fun evict(
+    prefix: String,
+    type: String,
+    itemCount: Int,
+    itemsDeleted: Int,
+    deleteOperations: Int
+  ) {
     val tags = tags(prefix, type)
     registry.counter(id("cats.sqlCache.evict", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.evict", "itemsDeleted", tags)).increment(itemsDeleted.toLong())
@@ -54,13 +58,15 @@ class SpectatorSqlCacheMetrics(
     super.evict(prefix, type, itemCount, itemsDeleted, deleteOperations)
   }
 
-  override fun get(prefix: String,
-                   type: String,
-                   itemCount: Int,
-                   requestedSize: Int,
-                   relationshipsRequested: Int,
-                   selectOperations: Int,
-                   async: Boolean) {
+  override fun get(
+    prefix: String,
+    type: String,
+    itemCount: Int,
+    requestedSize: Int,
+    relationshipsRequested: Int,
+    selectOperations: Int,
+    async: Boolean
+  ) {
     val tags = tags(prefix, type, async)
     registry.counter(id("cats.sqlCache.get", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.get", "requestedSize", tags)).increment(requestedSize.toLong())

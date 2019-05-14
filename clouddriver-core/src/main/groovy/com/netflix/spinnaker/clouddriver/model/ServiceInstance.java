@@ -18,5 +18,6 @@ package com.netflix.spinnaker.clouddriver.model;
 
 public interface ServiceInstance {
   String getServiceInstanceName();
+
   String getStatus();
 }

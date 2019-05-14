@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.atIndex;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.matches;
+import static org.mockito.Mockito.*;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
@@ -25,20 +32,11 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBala
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import io.vavr.collection.List;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.atIndex;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.matches;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
-
-class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest{
+class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
   private final LoadBalancersDescription desc;
   private final CloudFoundrySpace space;
 
@@ -64,7 +62,8 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
     assertThat(o).isInstanceOf(Map.class);
     Object ex = ((Map) o).get("EXCEPTION");
     assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
-    assertThat(((CloudFoundryApiException) ex).getMessage()).isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
   }
 
   @Test
@@ -79,15 +78,13 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
     assertThat(o).isInstanceOf(Map.class);
     Object ex = ((Map) o).get("EXCEPTION");
     assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
-    assertThat(((CloudFoundryApiException) ex).getMessage()).isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
   }
 
   @Test
   void operateWithMultipleBadRoutes() {
-    desc.setRoutes(List.of(
-      "bad.route-1.example.com",
-      "bad.route 2.example.com"
-    ).asJava());
+    desc.setRoutes(List.of("bad.route-1.example.com", "bad.route 2.example.com").asJava());
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
     Task task = runOperation(op);
     java.util.List<Object> resultObjects = task.getResultObjects();
@@ -96,50 +93,44 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
     assertThat(o).isInstanceOf(Map.class);
     Object ex = ((Map) o).get("EXCEPTION");
     assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
-    assertThat(((CloudFoundryApiException) ex).getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer 'bad.route-1.example.com' does not exist");
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .isEqualTo(
+            "Cloud Foundry API returned with error(s): Load balancer 'bad.route-1.example.com' does not exist");
   }
 
   @Test
   void operateWithGoodRoutes() {
-    desc.setRoutes(List.of(
-      "good.route-1.example.com",
-      "good.route-2.example.com"
-    ).asJava());
-    CloudFoundryDomain domain = CloudFoundryDomain.builder()
-      .id("domain-id")
-      .name("domain.com")
-      .build();
-    CloudFoundryLoadBalancer lb1 = CloudFoundryLoadBalancer.builder()
-      .account("account")
-      .id("lb1-id")
-      .host("host1")
-      .space(space)
-      .domain(domain)
-      .build();
-    CloudFoundryLoadBalancer lb2 = CloudFoundryLoadBalancer.builder()
-      .account("account")
-      .id("lb2-id")
-      .host("host2")
-      .space(space)
-      .domain(domain)
-      .build();
-    when(client.getRoutes().find(any(), any()))
-      .thenReturn(lb1)
-      .thenReturn(lb2);
+    desc.setRoutes(List.of("good.route-1.example.com", "good.route-2.example.com").asJava());
+    CloudFoundryDomain domain =
+        CloudFoundryDomain.builder().id("domain-id").name("domain.com").build();
+    CloudFoundryLoadBalancer lb1 =
+        CloudFoundryLoadBalancer.builder()
+            .account("account")
+            .id("lb1-id")
+            .host("host1")
+            .space(space)
+            .domain(domain)
+            .build();
+    CloudFoundryLoadBalancer lb2 =
+        CloudFoundryLoadBalancer.builder()
+            .account("account")
+            .id("lb2-id")
+            .host("host2")
+            .space(space)
+            .domain(domain)
+            .build();
+    when(client.getRoutes().find(any(), any())).thenReturn(lb1).thenReturn(lb2);
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
 
     Task task = runOperation(op);
 
     assertThat(task.getHistory())
-      .has(status("Unmapping 'myapp' from load balancer(s)."), atIndex(1))
-      .has(status("Unmapping load balancer 'good.route-1.example.com'") , atIndex(2))
-      .has(status("Unmapped load balancer 'good.route-1.example.com'"), atIndex(3))
-      .has(status("Unmapping load balancer 'good.route-2.example.com'"), atIndex(4))
-      .has(status("Unmapped load balancer 'good.route-2.example.com'"), atIndex(5));
-    verify(client.getApplications(), times(1))
-      .unmapRoute(matches("myapp-id"), matches("lb1-id"));
-    verify(client.getApplications(), times(1))
-      .unmapRoute(matches("myapp-id"), matches("lb2-id"));
+        .has(status("Unmapping 'myapp' from load balancer(s)."), atIndex(1))
+        .has(status("Unmapping load balancer 'good.route-1.example.com'"), atIndex(2))
+        .has(status("Unmapped load balancer 'good.route-1.example.com'"), atIndex(3))
+        .has(status("Unmapping load balancer 'good.route-2.example.com'"), atIndex(4))
+        .has(status("Unmapped load balancer 'good.route-2.example.com'"), atIndex(5));
+    verify(client.getApplications(), times(1)).unmapRoute(matches("myapp-id"), matches("lb1-id"));
+    verify(client.getApplications(), times(1)).unmapRoute(matches("myapp-id"), matches("lb2-id"));
   }
-
 }

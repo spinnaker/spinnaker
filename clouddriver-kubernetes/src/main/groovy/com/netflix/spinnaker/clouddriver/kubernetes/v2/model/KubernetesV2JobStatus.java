@@ -24,10 +24,9 @@ import io.kubernetes.client.models.V1Job;
 import io.kubernetes.client.models.V1JobCondition;
 import io.kubernetes.client.models.V1JobSpec;
 import io.kubernetes.client.models.V1JobStatus;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.*;
+import lombok.Data;
 
 @Data
 public class KubernetesV2JobStatus implements JobStatus, Serializable {
@@ -45,23 +44,22 @@ public class KubernetesV2JobStatus implements JobStatus, Serializable {
   Integer exitCode;
   Integer signal;
   String logs;
-  @JsonIgnore
-  V1Job job;
+  @JsonIgnore V1Job job;
 
   public KubernetesV2JobStatus(V1Job job, String account) {
     this.job = job;
     this.account = account;
     this.name = job.getMetadata().getName();
     this.location = job.getMetadata().getNamespace();
-    this.createdTime = KubernetesModelUtil.translateTime(
-      job.getMetadata().getCreationTimestamp().toString(), "yyyy-MM-dd'T'HH:mm:ss"
-    );
+    this.createdTime =
+        KubernetesModelUtil.translateTime(
+            job.getMetadata().getCreationTimestamp().toString(), "yyyy-MM-dd'T'HH:mm:ss");
   }
 
   public Map<String, String> getCompletionDetails() {
     Map<String, String> details = new HashMap<>();
     details.put("exitCode", this.exitCode != null ? this.exitCode.toString() : "");
-    details.put("signal", this.signal != null ? this.signal.toString(): "");
+    details.put("signal", this.signal != null ? this.signal.toString() : "");
     details.put("message", this.message != null ? this.message : "");
     details.put("reason", this.reason != null ? this.reason : "");
     return details;
@@ -85,7 +83,7 @@ public class KubernetesV2JobStatus implements JobStatus, Serializable {
   }
 
   private boolean jobFailed(V1JobCondition condition) {
-    return "Failed".equalsIgnoreCase(condition.getType()) && "True".equalsIgnoreCase(condition.getStatus());
+    return "Failed".equalsIgnoreCase(condition.getType())
+        && "True".equalsIgnoreCase(condition.getStatus());
   }
-
 }

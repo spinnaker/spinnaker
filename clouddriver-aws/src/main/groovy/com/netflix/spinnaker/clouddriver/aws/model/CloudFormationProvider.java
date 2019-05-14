@@ -23,5 +23,4 @@ public interface CloudFormationProvider<T extends CloudFormationStack> {
   List<T> list(String account, String region);
 
   Optional<T> get(String stackId);
-
 }

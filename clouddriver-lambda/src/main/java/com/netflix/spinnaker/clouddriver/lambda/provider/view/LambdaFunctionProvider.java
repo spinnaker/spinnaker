@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.view;
 
 import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.cache.client.LambdaCacheClient;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import com.netflix.spinnaker.clouddriver.model.FunctionProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LambdaFunctionProvider implements FunctionProvider {

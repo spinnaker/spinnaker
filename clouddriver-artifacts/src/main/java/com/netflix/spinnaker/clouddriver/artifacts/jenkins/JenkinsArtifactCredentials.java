@@ -16,27 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 
-
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.Collections;
+import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-
 @Slf4j
-public class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount> implements ArtifactCredentials {
+public class JenkinsArtifactCredentials
+    extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount> implements ArtifactCredentials {
   public static final String TYPE = "jenkins/file";
 
-  @Getter
-  private final String name;
+  @Getter private final String name;
 
-  @Getter
-  private final List<String> types = Collections.singletonList(TYPE);
+  @Getter private final List<String> types = Collections.singletonList(TYPE);
 
   private final JenkinsArtifactAccount jenkinsArtifactAccount;
 
@@ -48,14 +45,29 @@ public class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<Je
 
   @Override
   protected HttpUrl getDownloadUrl(Artifact artifact) {
-    String formattedJenkinsAddress = jenkinsArtifactAccount.getAddress().endsWith("/") ? jenkinsArtifactAccount.getAddress() : jenkinsArtifactAccount.getAddress() + "/";
-    String formattedReference = artifact.getReference().startsWith("/") ? artifact.getReference() : "/" + artifact.getReference();
-    String buildUrl = formattedJenkinsAddress + "job/" + artifact.getName() + "/" + artifact.getVersion() + "/artifact" + formattedReference;
+    String formattedJenkinsAddress =
+        jenkinsArtifactAccount.getAddress().endsWith("/")
+            ? jenkinsArtifactAccount.getAddress()
+            : jenkinsArtifactAccount.getAddress() + "/";
+    String formattedReference =
+        artifact.getReference().startsWith("/")
+            ? artifact.getReference()
+            : "/" + artifact.getReference();
+    String buildUrl =
+        formattedJenkinsAddress
+            + "job/"
+            + artifact.getName()
+            + "/"
+            + artifact.getVersion()
+            + "/artifact"
+            + formattedReference;
     HttpUrl url = HttpUrl.parse(buildUrl);
     if (url == null) {
-      throw new IllegalArgumentException("Malformed content URL in reference: " + buildUrl + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
+      throw new IllegalArgumentException(
+          "Malformed content URL in reference: "
+              + buildUrl
+              + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
     }
     return url;
   }
-
 }

@@ -20,10 +20,9 @@ import com.netflix.spinnaker.clouddriver.aws.model.RoleProvider;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.IamRoleCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 public class EcsRoleProvider implements RoleProvider {

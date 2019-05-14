@@ -16,13 +16,12 @@
 package com.netflix.spinnaker.clouddriver.core;
 
 import com.netflix.spectator.api.Registry;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AlwaysUpHealthIndicator implements HealthIndicator {
 
@@ -40,7 +39,8 @@ public abstract class AlwaysUpHealthIndicator implements HealthIndicator {
   @Override
   public Health health() {
     if (hasInitialized.get() == Boolean.TRUE) {
-      // avoid being marked unhealthy once connectivity to all accounts has been verified at least once
+      // avoid being marked unhealthy once connectivity to all accounts has been verified at least
+      // once
       return new Health.Builder().up().build();
     }
 

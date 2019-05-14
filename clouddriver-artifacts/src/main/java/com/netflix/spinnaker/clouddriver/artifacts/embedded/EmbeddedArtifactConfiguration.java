@@ -17,13 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor

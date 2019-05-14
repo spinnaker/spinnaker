@@ -27,28 +27,25 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public class GcsArtifactCredentials implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("gcs/object");
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("gcs/object");
 
-  @JsonIgnore
-  private final Storage storage;
+  @JsonIgnore private final Storage storage;
 
-  GcsArtifactCredentials(String applicationName, GcsArtifactAccount account) throws IOException, GeneralSecurityException {
+  GcsArtifactCredentials(String applicationName, GcsArtifactAccount account)
+      throws IOException, GeneralSecurityException {
     HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String credentialsPath = account.getJsonPath();
@@ -57,20 +54,23 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
     if (!StringUtils.isEmpty(credentialsPath)) {
       FileInputStream stream = new FileInputStream(credentialsPath);
-      credential = GoogleCredential.fromStream(stream, transport, jsonFactory)
-          .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
+      credential =
+          GoogleCredential.fromStream(stream, transport, jsonFactory)
+              .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
 
       log.info("Loaded credentials from {}", credentialsPath);
     } else {
-      log.info("artifacts.gcs.enabled without artifacts.gcs.[].jsonPath. Using default application credentials.");
+      log.info(
+          "artifacts.gcs.enabled without artifacts.gcs.[].jsonPath. Using default application credentials.");
 
       credential = GoogleCredential.getApplicationDefault();
     }
 
     name = account.getName();
-    storage = new Storage.Builder(transport, jsonFactory, credential)
-        .setApplicationName(applicationName)
-        .build();
+    storage =
+        new Storage.Builder(transport, jsonFactory, credential)
+            .setApplicationName(applicationName)
+            .build();
   }
 
   public InputStream download(Artifact artifact) throws IOException {
@@ -82,7 +82,8 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
     int slash = reference.indexOf("/");
     if (slash <= 0) {
-      throw new IllegalArgumentException("GCS references must be of the format gs://<bucket>/<file-path>, got: " + artifact);
+      throw new IllegalArgumentException(
+          "GCS references must be of the format gs://<bucket>/<file-path>, got: " + artifact);
     }
 
     String bucketName = reference.substring(0, slash);
@@ -94,9 +95,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
       path = path.substring(0, pound);
     }
 
-    Storage.Objects.Get get = storage.objects()
-        .get(bucketName, path)
-        .setGeneration(generation);
+    Storage.Objects.Get get = storage.objects().get(bucketName, path).setGeneration(generation);
 
     return get.executeMediaAsInputStream();
   }

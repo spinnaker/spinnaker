@@ -17,22 +17,18 @@
 package com.netflix.spinnaker.cats.agent;
 
 /**
- * This class is used to identify classes (typically Providers or Agents) that are capable of returning the agent
- * scheduler they are associated with.
+ * This class is used to identify classes (typically Providers or Agents) that are capable of
+ * returning the agent scheduler they are associated with.
  */
 public abstract class AgentSchedulerAware {
   private AgentScheduler agentScheduler;
 
-  /**
-   * Set this object's agent scheduler.
-   */
+  /** Set this object's agent scheduler. */
   public void setAgentScheduler(AgentScheduler agentScheduler) {
     this.agentScheduler = agentScheduler;
   };
 
-  /**
-   * Get this object's agent scheduler.
-   */
+  /** Get this object's agent scheduler. */
   public AgentScheduler getAgentScheduler() {
     return agentScheduler;
   };

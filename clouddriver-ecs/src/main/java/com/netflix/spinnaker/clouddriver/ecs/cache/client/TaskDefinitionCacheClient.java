@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
+
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinition> {
@@ -52,12 +51,15 @@ public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinitio
     taskDefinition.setMemory((String) attributes.get("memory"));
 
     if (attributes.containsKey("containerDefinitions")) {
-      List<Map<String, Object>> containerDefinitions = (List<Map<String, Object>>) attributes.get("containerDefinitions");
-      List<ContainerDefinition> deserializedContainerDefinitions = new ArrayList<>(containerDefinitions.size());
+      List<Map<String, Object>> containerDefinitions =
+          (List<Map<String, Object>>) attributes.get("containerDefinitions");
+      List<ContainerDefinition> deserializedContainerDefinitions =
+          new ArrayList<>(containerDefinitions.size());
 
       for (Map<String, Object> serializedContainerDefinitions : containerDefinitions) {
         if (serializedContainerDefinitions != null) {
-          deserializedContainerDefinitions.add(objectMapper.convertValue(serializedContainerDefinitions, ContainerDefinition.class));
+          deserializedContainerDefinitions.add(
+              objectMapper.convertValue(serializedContainerDefinitions, ContainerDefinition.class));
         }
       }
 

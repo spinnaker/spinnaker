@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.netflix.spinnaker.clouddriver.artifacts.CredentialReader;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 public interface TokenAuth {
   String getToken();

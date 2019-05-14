@@ -17,31 +17,27 @@
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.annotation.Nullable;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class BintrayResolver extends Resolver<org.apache.ivy.plugins.resolver.BintrayResolver> {
-  /**
-   * Bintray username of a repository owner.
-   */
+  /** Bintray username of a repository owner. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private String subject;
 
-  /**
-   * User’s repository name.
-   */
+  /** User’s repository name. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private String repo;
 
   @Override
   public org.apache.ivy.plugins.resolver.BintrayResolver toIvyModel() {
-    org.apache.ivy.plugins.resolver.BintrayResolver bintrayResolver = new org.apache.ivy.plugins.resolver.BintrayResolver();
+    org.apache.ivy.plugins.resolver.BintrayResolver bintrayResolver =
+        new org.apache.ivy.plugins.resolver.BintrayResolver();
     bintrayResolver.setRepo(repo);
     bintrayResolver.setSubject(subject);
     return super.toIvyModel(bintrayResolver);

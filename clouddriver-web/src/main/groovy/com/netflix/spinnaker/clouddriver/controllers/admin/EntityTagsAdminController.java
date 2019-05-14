@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.controllers.admin;
 
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin/tags")
@@ -52,32 +51,34 @@ public class EntityTagsAdminController {
   }
 
   @RequestMapping(value = "/reconcile", method = RequestMethod.POST)
-  Map reconcile(@RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
-                @RequestParam(name = "cloudProvider") String cloudProvider,
-                @RequestParam(name = "account", required = false) String account,
-                @RequestParam(name = "region", required = false) String region) {
-    return entityTagsProvider.reconcile(cloudProvider, account, region, Optional.ofNullable(dryRun).orElse(true));
+  Map reconcile(
+      @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+      @RequestParam(name = "cloudProvider") String cloudProvider,
+      @RequestParam(name = "account", required = false) String account,
+      @RequestParam(name = "region", required = false) String region) {
+    return entityTagsProvider.reconcile(
+        cloudProvider, account, region, Optional.ofNullable(dryRun).orElse(true));
   }
 
   @RequestMapping(value = "/deleteByNamespace/{namespace}", method = RequestMethod.POST)
-  Map deleteByNamespace(@PathVariable("namespace") String namespace,
-                        @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
-                        @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
+  Map deleteByNamespace(
+      @PathVariable("namespace") String namespace,
+      @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+      @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
     return entityTagsProvider.deleteByNamespace(
-      namespace,
-      Optional.ofNullable(dryRun).orElse(true),
-      Optional.ofNullable(deleteFromSource).orElse(false)
-    );
+        namespace,
+        Optional.ofNullable(dryRun).orElse(true),
+        Optional.ofNullable(deleteFromSource).orElse(false));
   }
 
   @RequestMapping(value = "/deleteByTag/{tag}", method = RequestMethod.POST)
-  Map deleteByTag(@PathVariable("tag") String namespace,
-                  @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
-                  @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
+  Map deleteByTag(
+      @PathVariable("tag") String namespace,
+      @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+      @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
     return entityTagsProvider.deleteByTag(
-      namespace,
-      Optional.ofNullable(dryRun).orElse(true),
-      Optional.ofNullable(deleteFromSource).orElse(false)
-    );
+        namespace,
+        Optional.ofNullable(dryRun).orElse(true),
+        Optional.ofNullable(deleteFromSource).orElse(false));
   }
 }

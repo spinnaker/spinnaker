@@ -21,9 +21,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Destroy
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {

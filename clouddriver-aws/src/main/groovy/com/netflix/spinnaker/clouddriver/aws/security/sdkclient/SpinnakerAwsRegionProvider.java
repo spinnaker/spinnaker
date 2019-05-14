@@ -26,11 +26,10 @@ public class SpinnakerAwsRegionProvider extends AwsRegionProviderChain {
 
   public SpinnakerAwsRegionProvider() {
     super(
-      new Ec2RegionEnvVarRegionProvider(),
-      new DefaultAwsRegionProviderChain(),
-      new RegionsCurrentRegionProvider(),
-      new DefaultRegionProvider()
-    );
+        new Ec2RegionEnvVarRegionProvider(),
+        new DefaultAwsRegionProviderChain(),
+        new RegionsCurrentRegionProvider(),
+        new DefaultRegionProvider());
   }
 
   private static class Ec2RegionEnvVarRegionProvider extends AwsRegionProvider {

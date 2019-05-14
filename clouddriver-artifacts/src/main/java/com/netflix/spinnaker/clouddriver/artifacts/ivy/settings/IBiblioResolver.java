@@ -17,24 +17,21 @@
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.annotation.Nullable;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class IBiblioResolver extends Resolver<org.apache.ivy.plugins.resolver.IBiblioResolver> {
-  /**
-   * The root of the artifact repository.
-   */
+  /** The root of the artifact repository. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private String root;
 
   /**
-   * A pattern describing the layout of the artifact repository. For example:
-   * {@code https://repo1.maven.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]}
+   * A pattern describing the layout of the artifact repository. For example: {@code
+   * https://repo1.maven.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]}
    */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
@@ -44,15 +41,14 @@ public class IBiblioResolver extends Resolver<org.apache.ivy.plugins.resolver.IB
   @Nullable
   private Boolean m2compatible;
 
-  /**
-   * If this resolver should use Maven POMs when it is already in {@link #m2compatible} mode.
-   */
+  /** If this resolver should use Maven POMs when it is already in {@link #m2compatible} mode. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private Boolean useMavenMetadata;
 
   /**
-   * If this resolver should use maven-metadata.xml files to list available revisions, otherwise use directory listing.
+   * If this resolver should use maven-metadata.xml files to list available revisions, otherwise use
+   * directory listing.
    */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
@@ -60,7 +56,8 @@ public class IBiblioResolver extends Resolver<org.apache.ivy.plugins.resolver.IB
 
   @Override
   public org.apache.ivy.plugins.resolver.IBiblioResolver toIvyModel() {
-    org.apache.ivy.plugins.resolver.IBiblioResolver biblioResolver = new org.apache.ivy.plugins.resolver.IBiblioResolver();
+    org.apache.ivy.plugins.resolver.IBiblioResolver biblioResolver =
+        new org.apache.ivy.plugins.resolver.IBiblioResolver();
     if (pattern != null) {
       biblioResolver.setPattern(pattern);
     }

@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 
 @Component
 public class LambdaCacheClient extends AbstractCacheClient<LambdaFunction> {

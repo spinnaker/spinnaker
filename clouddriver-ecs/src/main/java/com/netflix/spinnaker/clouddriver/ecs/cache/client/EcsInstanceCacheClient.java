@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES;
+
 import com.amazonaws.services.ec2.model.Instance;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsInstanceCacheClient {
@@ -52,8 +51,7 @@ public class EcsInstanceCacheClient {
     Collection<String> instanceKeys = cacheView.filterIdentifiers(INSTANCES.getNs(), searchKey);
 
     return cacheView.getAll(INSTANCES.getNs(), instanceKeys).stream()
-      .map(cacheData -> objectMapper.convertValue(cacheData.getAttributes(), Instance.class))
-      .collect(Collectors.toSet());
+        .map(cacheData -> objectMapper.convertValue(cacheData.getAttributes(), Instance.class))
+        .collect(Collectors.toSet());
   }
-
 }

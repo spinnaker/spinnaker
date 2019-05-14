@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
 
 @Data
 @Builder
@@ -40,7 +39,7 @@ public class LoadBalancerInstance {
     this.health = health;
   }
 
-  public String getName()  {
+  public String getName() {
     if (StringUtils.isEmpty(name)) {
       return id;
     } else {

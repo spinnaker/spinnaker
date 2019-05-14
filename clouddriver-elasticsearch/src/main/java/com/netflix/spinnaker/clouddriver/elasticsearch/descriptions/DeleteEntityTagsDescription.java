@@ -18,18 +18,14 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.descriptions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed;
-
 import java.util.List;
 
 public class DeleteEntityTagsDescription implements NonCredentialed {
-  @JsonProperty
-  private String id;
+  @JsonProperty private String id;
 
-  @JsonProperty
-  private List<String> tags;
+  @JsonProperty private List<String> tags;
 
-  @JsonProperty
-  private boolean deleteAll = false;
+  @JsonProperty private boolean deleteAll = false;
 
   public String getId() {
     return id;

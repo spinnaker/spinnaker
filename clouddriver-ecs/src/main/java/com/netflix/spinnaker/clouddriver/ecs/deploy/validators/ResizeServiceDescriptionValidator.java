@@ -19,11 +19,10 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-
 import java.util.Collections;
 import java.util.List;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
 
 @EcsOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeServiceAtomicOperationValidator")
@@ -40,7 +39,8 @@ public class ResizeServiceDescriptionValidator extends CommonValidator {
     boolean validCredentials = validateCredentials(typedDescription, errors, "credentials");
 
     if (validCredentials) {
-      validateRegions(typedDescription, Collections.singleton(typedDescription.getRegion()), errors, "region");
+      validateRegions(
+          typedDescription, Collections.singleton(typedDescription.getRegion()), errors, "region");
     }
 
     if (typedDescription.getServerGroupName() == null) {
@@ -49,5 +49,4 @@ public class ResizeServiceDescriptionValidator extends CommonValidator {
 
     validateCapacity(errors, typedDescription.getCapacity());
   }
-
 }

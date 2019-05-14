@@ -16,27 +16,35 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CloudFoundryLoadBalancerTest {
-  private CloudFoundryOrganization org = CloudFoundryOrganization.builder().id("orgId").name("org").build();
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 
-  private CloudFoundryLoadBalancer loadBalancer = CloudFoundryLoadBalancer.builder()
-    .account("dev")
-    .id("id")
-    .host("host")
-    .path("path")
-    .port(8080)
-    .space(CloudFoundrySpace.builder().id("spaceId").name("space").organization(org).build())
-    .domain(CloudFoundryDomain.builder().id("domainId").name("domain").organization(org).build())
-    .mappedApps(singleton(CloudFoundryServerGroup.builder().name("demo-dev-v001").instances(emptySet()).build()))
-    .build();
+class CloudFoundryLoadBalancerTest {
+  private CloudFoundryOrganization org =
+      CloudFoundryOrganization.builder().id("orgId").name("org").build();
+
+  private CloudFoundryLoadBalancer loadBalancer =
+      CloudFoundryLoadBalancer.builder()
+          .account("dev")
+          .id("id")
+          .host("host")
+          .path("path")
+          .port(8080)
+          .space(CloudFoundrySpace.builder().id("spaceId").name("space").organization(org).build())
+          .domain(
+              CloudFoundryDomain.builder().id("domainId").name("domain").organization(org).build())
+          .mappedApps(
+              singleton(
+                  CloudFoundryServerGroup.builder()
+                      .name("demo-dev-v001")
+                      .instances(emptySet())
+                      .build()))
+          .build();
 
   @Test
   void serialization() throws JsonProcessingException {
@@ -46,45 +54,50 @@ class CloudFoundryLoadBalancerTest {
 
   @Test
   void getNameWithoutPortWithoutPath() {
-    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
-      .host("hostname")
-      .domain(CloudFoundryDomain.builder().name("example.com").build())
-      .build();
+    CloudFoundryLoadBalancer testLoadBalancer =
+        CloudFoundryLoadBalancer.builder()
+            .host("hostname")
+            .domain(CloudFoundryDomain.builder().name("example.com").build())
+            .build();
 
     assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com");
   }
 
   @Test
   void getNameWithoutPortWithPath() {
-    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
-      .host("hostname")
-      .path("/my-path")
-      .domain(CloudFoundryDomain.builder().name("example.com").build())
-      .build();
+    CloudFoundryLoadBalancer testLoadBalancer =
+        CloudFoundryLoadBalancer.builder()
+            .host("hostname")
+            .path("/my-path")
+            .domain(CloudFoundryDomain.builder().name("example.com").build())
+            .build();
 
     assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com/my-path");
   }
 
   @Test
   void getNameWithPortWithoutPath() {
-    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
-      .host("hostname")
-      .port(9999)
-      .domain(CloudFoundryDomain.builder().name("example.com").build())
-      .build();
+    CloudFoundryLoadBalancer testLoadBalancer =
+        CloudFoundryLoadBalancer.builder()
+            .host("hostname")
+            .port(9999)
+            .domain(CloudFoundryDomain.builder().name("example.com").build())
+            .build();
 
     assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com-9999");
   }
 
   @Test
   void getNameWithPortWithPath() {
-    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
-      .host("hostname")
-      .path("/my-path")
-      .port(9999)
-      .domain(CloudFoundryDomain.builder().name("example.com").build())
-      .build();
+    CloudFoundryLoadBalancer testLoadBalancer =
+        CloudFoundryLoadBalancer.builder()
+            .host("hostname")
+            .path("/my-path")
+            .port(9999)
+            .domain(CloudFoundryDomain.builder().name("example.com").build())
+            .build();
 
-    assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com-9999/my-path");
+    assertThat(testLoadBalancer.getName())
+        .isEqualToIgnoringCase("hostname.example.com-9999/my-path");
   }
 }

@@ -20,13 +20,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.UnmapLoadBalancersAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.UNMAP_LOAD_BALANCERS)
 @Component
-public class UnmapLoadBalancersAtomicOperationConverter extends AbstractLoadBalancersAtomicOperationConverter {
+public class UnmapLoadBalancersAtomicOperationConverter
+    extends AbstractLoadBalancersAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new UnmapLoadBalancersAtomicOperation(convertDescription(input));

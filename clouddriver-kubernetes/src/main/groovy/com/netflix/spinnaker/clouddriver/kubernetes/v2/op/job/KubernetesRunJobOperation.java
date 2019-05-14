@@ -33,9 +33,8 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResult> {
@@ -46,17 +45,19 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
   private final Namer namer;
   private final ArtifactProvider provider;
 
-  public KubernetesRunJobOperation(KubernetesRunJobOperationDescription description,
-                                   KubernetesResourcePropertyRegistry registry,
-                                   ArtifactProvider provider) {
+  public KubernetesRunJobOperation(
+      KubernetesRunJobOperationDescription description,
+      KubernetesResourcePropertyRegistry registry,
+      ArtifactProvider provider) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
     this.provider = provider;
-    this.namer = NamerRegistry.lookup()
-      .withProvider(KubernetesCloudProvider.getID())
-      .withAccount(description.getCredentials().getName())
-      .withResource(KubernetesManifest.class);
+    this.namer =
+        NamerRegistry.lookup()
+            .withProvider(KubernetesCloudProvider.getID())
+            .withAccount(description.getCredentials().getName())
+            .withResource(KubernetesManifest.class);
   }
 
   private static Task getTask() {
@@ -68,14 +69,15 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     KubernetesManifest jobSpec = this.description.getManifest();
     KubernetesKind kind = jobSpec.getKind();
     if (kind != KubernetesKind.JOB) {
-      throw new IllegalArgumentException("Only kind of Job is accepted for the V2 Run Job operation.");
+      throw new IllegalArgumentException(
+          "Only kind of Job is accepted for the V2 Run Job operation.");
     }
 
     if (jobSpec.get("metadata") == null) {
       jobSpec.put("metadata", new HashMap<>());
     }
 
-    if (!this.description.getNamespace().isEmpty()){
+    if (!this.description.getNamespace().isEmpty()) {
       jobSpec.setNamespace(this.description.getNamespace());
     }
     // append a random string to the job name to avoid collision
@@ -83,7 +85,8 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     String postfix = Long.toHexString(Double.doubleToLongBits(Math.random()));
     jobSpec.setName(currentName + "-" + postfix);
 
-    KubernetesDeployManifestDescription deployManifestDescription = new KubernetesDeployManifestDescription();
+    KubernetesDeployManifestDescription deployManifestDescription =
+        new KubernetesDeployManifestDescription();
     // setup description
     List<KubernetesManifest> manifests = new ArrayList<>();
     manifests.add(jobSpec);
@@ -96,11 +99,13 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     deployManifestDescription.setMoniker(moniker);
     deployManifestDescription.setCredentials(description.getCredentials());
 
-    KubernetesDeployManifestOperation deployManifestOperation = new KubernetesDeployManifestOperation(deployManifestDescription, registry, provider);
+    KubernetesDeployManifestOperation deployManifestOperation =
+        new KubernetesDeployManifestOperation(deployManifestDescription, registry, provider);
     OperationResult operationResult = deployManifestOperation.operate(new ArrayList());
     DeploymentResult deploymentResult = new DeploymentResult();
     Map<String, List<String>> deployedNames = deploymentResult.getDeployedNamesByLocation();
-    for (Map.Entry<String, Set<String>> e : operationResult.getManifestNamesByNamespace().entrySet()) {
+    for (Map.Entry<String, Set<String>> e :
+        operationResult.getManifestNamesByNamespace().entrySet()) {
       deployedNames.put(e.getKey(), new ArrayList(e.getValue()));
     }
     deploymentResult.setDeployedNamesByLocation(deployedNames);

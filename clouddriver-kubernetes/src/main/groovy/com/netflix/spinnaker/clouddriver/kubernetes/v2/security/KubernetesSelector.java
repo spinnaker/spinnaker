@@ -19,14 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class KubernetesSelector {
@@ -40,16 +37,15 @@ public class KubernetesSelector {
     NOT_EXISTS,
   }
 
-  final private Kind kind;
-  final private String key;
-  final private List<String> values;
+  private final Kind kind;
+  private final String key;
+  private final List<String> values;
 
   @JsonCreator
   public KubernetesSelector(
       @JsonProperty("kind") @NotNull Kind kind,
       @JsonProperty("key") String key,
-      @JsonProperty("values") List<String> values
-  ) {
+      @JsonProperty("values") List<String> values) {
     if (StringUtils.isEmpty(key) && kind != Kind.ANY) {
       throw new IllegalArgumentException("Only an 'any' selector can have no key specified");
     }
@@ -95,7 +91,8 @@ public class KubernetesSelector {
 
   public static KubernetesSelector contains(String key, List<String> values) {
     if (values == null || values.isEmpty()) {
-      throw new IllegalArgumentException("At least one value must be supplied to a 'contains' selector");
+      throw new IllegalArgumentException(
+          "At least one value must be supplied to a 'contains' selector");
     }
 
     return new KubernetesSelector(Kind.CONTAINS, key, values);
@@ -103,7 +100,8 @@ public class KubernetesSelector {
 
   public static KubernetesSelector notContains(String key, List<String> values) {
     if (values == null || values.isEmpty()) {
-      throw new IllegalArgumentException("At least one value must be supplied to a 'notcontains' selector");
+      throw new IllegalArgumentException(
+          "At least one value must be supplied to a 'notcontains' selector");
     }
 
     return new KubernetesSelector(Kind.NOT_CONTAINS, key, values);

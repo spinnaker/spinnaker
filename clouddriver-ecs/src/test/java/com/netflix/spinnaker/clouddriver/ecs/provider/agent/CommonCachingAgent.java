@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.netflix.spectator.api.Registry;
@@ -23,12 +29,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import org.junit.BeforeClass;
-
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class CommonCachingAgent {
   static final String REGION = "us-west-2";
@@ -53,8 +53,10 @@ public class CommonCachingAgent {
   static final String TASK_ARN_1 = ECS_SERIVCE + "task/" + TASK_ID_1;
   static final String TASK_ARN_2 = ECS_SERIVCE + "task/" + TASK_ID_2;
 
-  static final String CONTAINER_INSTANCE_ARN_1 = ECS_SERIVCE + "container-instance/14e8cce9-0b16-4af4-bfac-a85f7587aa98";
-  static final String CONTAINER_INSTANCE_ARN_2 = ECS_SERIVCE + "container-instance/deadbeef-0b16-4af4-bfac-a85f7587aa98";
+  static final String CONTAINER_INSTANCE_ARN_1 =
+      ECS_SERIVCE + "container-instance/14e8cce9-0b16-4af4-bfac-a85f7587aa98";
+  static final String CONTAINER_INSTANCE_ARN_2 =
+      ECS_SERIVCE + "container-instance/deadbeef-0b16-4af4-bfac-a85f7587aa98";
 
   static final String EC2_INSTANCE_ID_1 = "i-042f39dc";
   static final String EC2_INSTANCE_ID_2 = "i-deadbeef";
@@ -79,7 +81,7 @@ public class CommonCachingAgent {
 
   @BeforeClass
   public static void setUp() {
-    when(clientProvider.getAmazonEcs(eq(netflixAmazonCredentials), anyString(), anyBoolean())).thenReturn(ecs);
+    when(clientProvider.getAmazonEcs(eq(netflixAmazonCredentials), anyString(), anyBoolean()))
+        .thenReturn(ecs);
   }
-
 }

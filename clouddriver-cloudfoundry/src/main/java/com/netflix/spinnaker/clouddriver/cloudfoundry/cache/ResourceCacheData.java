@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode
@@ -32,7 +31,8 @@ public class ResourceCacheData implements CacheData {
   final Map<String, Object> attributes;
   final int ttlSeconds = -1;
 
-  public ResourceCacheData(String id, Object resource, Map<String, Collection<String>> relationships) {
+  public ResourceCacheData(
+      String id, Object resource, Map<String, Collection<String>> relationships) {
     this.id = id;
 
     this.attributes = new HashMap<>();

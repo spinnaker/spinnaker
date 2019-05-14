@@ -18,15 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 public class Views {
   /**
-   * A minimal set of fields to be cached. Generally fields that
-   * are expressed as relationships are NOT marked with this view.
+   * A minimal set of fields to be cached. Generally fields that are expressed as relationships are
+   * NOT marked with this view.
    */
-  public static class Cache {
-  }
+  public static class Cache {}
 
-  /**
-   * Populated via a cache relationship and exposed through clouddriver APIs.
-   */
-  public static class Relationship {
-  }
+  /** Populated via a cache relationship and exposed through clouddriver APIs. */
+  public static class Relationship {}
 }

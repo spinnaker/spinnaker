@@ -21,9 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-/**
- * Helper class for locally resolving queued backend service group health requests.
- */
+/** Helper class for locally resolving queued backend service group health requests. */
 @Data
 @EqualsAndHashCode
 @AllArgsConstructor

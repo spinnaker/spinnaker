@@ -18,12 +18,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.provider.view;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PropertyParser {
@@ -31,7 +30,8 @@ public class PropertyParser {
   private static final String MAGIC_SEARCH_STRING = "SPINNAKER_PROPERTY_";
   private static final Pattern MAGIC_SEARCH_PATTERN = Pattern.compile(MAGIC_SEARCH_STRING);
   private static final String MAGIC_JSON_SEARCH_STRING = "SPINNAKER_CONFIG_JSON=";
-  private static final Pattern MAGIC_JSON_SEARCH_PATTERN = Pattern.compile("^\\s*" + MAGIC_JSON_SEARCH_STRING);
+  private static final Pattern MAGIC_JSON_SEARCH_PATTERN =
+      Pattern.compile("^\\s*" + MAGIC_JSON_SEARCH_STRING);
 
   public static Map<String, Object> extractPropertiesFromLog(String buildLog) throws IOException {
     final Map<String, Object> map = new HashMap<>();
@@ -51,9 +51,13 @@ public class PropertyParser {
         final String jsonContent = line.replaceFirst(MAGIC_JSON_SEARCH_STRING, "");
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-          map.putAll(objectMapper.readValue(jsonContent, new TypeReference<Map<String, Object>>() {}));
+          map.putAll(
+              objectMapper.readValue(jsonContent, new TypeReference<Map<String, Object>>() {}));
         } catch (IOException e) {
-          log.error("Unable to parse content from {}. Content is: {}", MAGIC_JSON_SEARCH_STRING, jsonContent);
+          log.error(
+              "Unable to parse content from {}. Content is: {}",
+              MAGIC_JSON_SEARCH_STRING,
+              jsonContent);
           throw e;
         }
       }

@@ -24,17 +24,17 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import groovy.util.logging.Slf4j;
+import java.util.Map;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Slf4j
 @AzureOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeAzureServerGroupDescription")
-public class ResizeAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class ResizeAzureServerGroupAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public ResizeAzureServerGroupAtomicOperationConverter() {
@@ -48,6 +48,9 @@ public class ResizeAzureServerGroupAtomicOperationConverter extends AbstractAtom
 
   @Override
   public ResizeAzureServerGroupDescription convertDescription(Map input) {
-    return DefaultGroovyMethods.asType(AzureAtomicOperationConverterHelper.convertDescription(input, this, ResizeAzureServerGroupDescription.class), ResizeAzureServerGroupDescription.class);
+    return DefaultGroovyMethods.asType(
+        AzureAtomicOperationConverterHelper.convertDescription(
+            input, this, ResizeAzureServerGroupDescription.class),
+        ResizeAzureServerGroupDescription.class);
   }
 }

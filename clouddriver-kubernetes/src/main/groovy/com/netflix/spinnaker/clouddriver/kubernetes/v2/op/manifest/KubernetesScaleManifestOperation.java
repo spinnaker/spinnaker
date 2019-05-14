@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
@@ -37,7 +36,8 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
   private final String accountName;
   private static final String OP_NAME = "SCALE_KUBERNETES_MANIFEST";
 
-  public KubernetesScaleManifestOperation(KubernetesScaleManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesScaleManifestOperation(
+      KubernetesScaleManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -58,18 +58,16 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanScale)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support scale");
+      throw new IllegalArgumentException(
+          "Resource with " + coordinates + " does not support scale");
     }
 
     CanScale canScale = (CanScale) deployer;
 
     getTask().updateStatus(OP_NAME, "Calling scale operation...");
-    canScale.scale(credentials,
-        coordinates.getNamespace(),
-        coordinates.getName(),
-        description.getReplicas());
+    canScale.scale(
+        credentials, coordinates.getNamespace(), coordinates.getName(), description.getReplicas());
 
     return null;
   }
 }
-

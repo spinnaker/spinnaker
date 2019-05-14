@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertC
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.UpsertCloudFoundryLoadBalancerAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component
-public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new UpsertCloudFoundryLoadBalancerAtomicOperation(convertDescription(input));
@@ -36,15 +36,23 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends Abst
 
   @Override
   public UpsertCloudFoundryLoadBalancerDescription convertDescription(Map input) {
-    UpsertCloudFoundryLoadBalancerDescription converted = getObjectMapper().convertValue(input, UpsertCloudFoundryLoadBalancerDescription.class);
+    UpsertCloudFoundryLoadBalancerDescription converted =
+        getObjectMapper().convertValue(input, UpsertCloudFoundryLoadBalancerDescription.class);
     CloudFoundryClient client = getClient(input);
     converted.setClient(client);
     findSpace(converted.getRegion(), client)
-      .map(converted::setSpace)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'"));
+        .map(converted::setSpace)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unable to find space '" + converted.getRegion() + "'"));
     String domainName = input.get("domain").toString();
-    converted.setDomain(client.getDomains().findByName(domainName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find domain '" + domainName + "'")));
+    converted.setDomain(
+        client
+            .getDomains()
+            .findByName(domainName)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Unable to find domain '" + domainName + "'")));
     return converted;
   }
 }

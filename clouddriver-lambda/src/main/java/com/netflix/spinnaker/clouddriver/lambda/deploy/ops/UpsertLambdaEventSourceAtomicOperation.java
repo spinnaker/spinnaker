@@ -21,15 +21,14 @@ import com.amazonaws.services.lambda.model.*;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class UpsertLambdaEventSourceAtomicOperation
-  extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
-  implements AtomicOperation<Object> {
+    extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
+    implements AtomicOperation<Object> {
 
-  public UpsertLambdaEventSourceAtomicOperation(UpsertLambdaFunctionEventMappingDescription description) {
+  public UpsertLambdaEventSourceAtomicOperation(
+      UpsertLambdaFunctionEventMappingDescription description) {
     super(description, "UPSERT_LAMBDA_FUNCTION_EVENT_MAPPING");
   }
 
@@ -39,11 +38,16 @@ public class UpsertLambdaEventSourceAtomicOperation
     String region = description.getRegion();
     String account = description.getAccount();
 
-    LambdaFunction cache = (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
+    LambdaFunction cache =
+        (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
 
-    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations = cache.getEventSourceMappings();
-    for (EventSourceMappingConfiguration eventSourceMappingConfiguration : eventSourceMappingConfigurations) {
-      if (eventSourceMappingConfiguration.getEventSourceArn().equalsIgnoreCase(description.getEventSourceArn())) {
+    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations =
+        cache.getEventSourceMappings();
+    for (EventSourceMappingConfiguration eventSourceMappingConfiguration :
+        eventSourceMappingConfigurations) {
+      if (eventSourceMappingConfiguration
+          .getEventSourceArn()
+          .equalsIgnoreCase(description.getEventSourceArn())) {
         description.setProperty("uuid", eventSourceMappingConfiguration.getUUID());
         return updateEventSourceMappingResult(cache);
       }
@@ -56,11 +60,12 @@ public class UpsertLambdaEventSourceAtomicOperation
     updateTaskStatus("Initializing Updating of AWS Lambda Function Event Mapping Operation...");
 
     AWSLambda client = getLambdaClient();
-    UpdateEventSourceMappingRequest request = new UpdateEventSourceMappingRequest()
-      .withFunctionName(cache.getFunctionArn())
-      .withBatchSize(description.getBatchsize())
-      .withEnabled(description.getEnabled())
-      .withUUID(description.getUuid());
+    UpdateEventSourceMappingRequest request =
+        new UpdateEventSourceMappingRequest()
+            .withFunctionName(cache.getFunctionArn())
+            .withBatchSize(description.getBatchsize())
+            .withEnabled(description.getEnabled())
+            .withUUID(description.getUuid());
 
     UpdateEventSourceMappingResult result = client.updateEventSourceMapping(request);
     updateTaskStatus("Finished Updating of AWS Lambda Function Event Mapping Operation...");
@@ -72,12 +77,13 @@ public class UpsertLambdaEventSourceAtomicOperation
     updateTaskStatus("Initializing Creation of AWS Lambda Function Event Source Mapping...");
 
     AWSLambda client = getLambdaClient();
-    CreateEventSourceMappingRequest request = new CreateEventSourceMappingRequest()
-      .withFunctionName(cache.getFunctionArn())
-      .withBatchSize(description.getBatchsize())
-      .withEnabled(description.getEnabled())
-      .withStartingPosition("LATEST")
-      .withEventSourceArn(description.getEventSourceArn());
+    CreateEventSourceMappingRequest request =
+        new CreateEventSourceMappingRequest()
+            .withFunctionName(cache.getFunctionArn())
+            .withBatchSize(description.getBatchsize())
+            .withEnabled(description.getEnabled())
+            .withStartingPosition("LATEST")
+            .withEventSourceArn(description.getEventSourceArn());
 
     CreateEventSourceMappingResult result = client.createEventSourceMapping(request);
     updateTaskStatus("Finished Creation of AWS Lambda Function Event Mapping Operation...");

@@ -21,16 +21,14 @@ import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCreden
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
 @Component
 @DependsOn("netflixECSCredentials")
@@ -47,10 +45,10 @@ public class EcsAccountMapper {
     Set<? extends AccountCredentials> allAccounts = accountCredentialsProvider.getAll();
 
     Collection<NetflixAssumeRoleEcsCredentials> ecsAccounts =
-      (Collection<NetflixAssumeRoleEcsCredentials>) allAccounts
-        .stream()
-        .filter(credentials -> credentials instanceof NetflixAssumeRoleEcsCredentials)
-        .collect(Collectors.toSet());
+        (Collection<NetflixAssumeRoleEcsCredentials>)
+            allAccounts.stream()
+                .filter(credentials -> credentials instanceof NetflixAssumeRoleEcsCredentials)
+                .collect(Collectors.toSet());
 
     ecsCredentialsMap = new HashMap<>();
     awsCredentialsMap = new HashMap<>();
@@ -58,11 +56,11 @@ public class EcsAccountMapper {
     for (NetflixAssumeRoleEcsCredentials ecsAccount : ecsAccounts) {
       ecsCredentialsMap.put(ecsAccount.getAwsAccount(), ecsAccount);
 
-      allAccounts
-        .stream()
-        .filter(credentials -> credentials.getName().equals(ecsAccount.getAwsAccount()))
-        .findFirst()
-        .ifPresent(v -> awsCredentialsMap.put(ecsAccount.getName(), (NetflixAmazonCredentials) v));
+      allAccounts.stream()
+          .filter(credentials -> credentials.getName().equals(ecsAccount.getAwsAccount()))
+          .findFirst()
+          .ifPresent(
+              v -> awsCredentialsMap.put(ecsAccount.getName(), (NetflixAmazonCredentials) v));
     }
   }
 

@@ -21,5 +21,6 @@ import java.util.List;
 
 public interface ArtifactProvider<A extends ArtifactAccount> {
   boolean isEnabled();
+
   List<A> getAccounts();
 }

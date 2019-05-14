@@ -20,9 +20,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * Transforms a stream into an object of arbitrary type using a supplied BufferReader for the stream.
+ * Transforms a stream into an object of arbitrary type using a supplied BufferReader for the
+ * stream.
  *
- * Implementations are responsible for closing the supplied BufferReader.
+ * <p>Implementations are responsible for closing the supplied BufferReader.
  */
 public interface ReaderConsumer<T> {
   T consume(BufferedReader r) throws IOException;

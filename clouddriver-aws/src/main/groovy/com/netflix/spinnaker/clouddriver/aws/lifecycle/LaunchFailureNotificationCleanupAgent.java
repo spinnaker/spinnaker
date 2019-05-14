@@ -31,15 +31,14 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, CustomScheduledAgent {
   private static final Logger log = LoggerFactory.getLogger(LaunchFailureNotificationAgent.class);
@@ -51,9 +50,10 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final EntityTagger serverGroupTagger;
 
-  LaunchFailureNotificationCleanupAgent(AmazonClientProvider amazonClientProvider,
-                                        AccountCredentialsProvider accountCredentialsProvider,
-                                        EntityTagger serverGroupTagger) {
+  LaunchFailureNotificationCleanupAgent(
+      AmazonClientProvider amazonClientProvider,
+      AccountCredentialsProvider accountCredentialsProvider,
+      EntityTagger serverGroupTagger) {
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.serverGroupTagger = serverGroupTagger;
@@ -81,65 +81,72 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
 
   @Override
   public void run() {
-    Collection<EntityTags> taggedEntities = serverGroupTagger.taggedEntities(
-      AmazonCloudProvider.ID,
-      null, // all accounts
-      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
-      TAG_NAME,
-      MAX_RESULTS
-    );
+    Collection<EntityTags> taggedEntities =
+        serverGroupTagger.taggedEntities(
+            AmazonCloudProvider.ID,
+            null, // all accounts
+            EntityTagger.ENTITY_TYPE_SERVER_GROUP,
+            TAG_NAME,
+            MAX_RESULTS);
 
-    taggedEntities.forEach(entityTags -> {
-      EntityTags.EntityRef entityRef = entityTags.getEntityRef();
-      Optional<NetflixAmazonCredentials> credentials = Optional.ofNullable(
-          accountCredentialsProvider.getCredentials(entityRef.getAccount()))
-          .filter((c) -> c instanceof NetflixAmazonCredentials)
-          .map(NetflixAmazonCredentials.class::cast);
+    taggedEntities.forEach(
+        entityTags -> {
+          EntityTags.EntityRef entityRef = entityTags.getEntityRef();
+          Optional<NetflixAmazonCredentials> credentials =
+              Optional.ofNullable(accountCredentialsProvider.getCredentials(entityRef.getAccount()))
+                  .filter((c) -> c instanceof NetflixAmazonCredentials)
+                  .map(NetflixAmazonCredentials.class::cast);
 
-      if (!credentials.isPresent()) {
-        log.warn("No account configuration for {}. Unable to determine if '{}' has launch failures", entityRef.getAccount(), entityTags.getId());
-        return;
-      }
+          if (!credentials.isPresent()) {
+            log.warn(
+                "No account configuration for {}. Unable to determine if '{}' has launch failures",
+                entityRef.getAccount(),
+                entityTags.getId());
+            return;
+          }
 
-      AmazonAutoScaling amazonAutoScaling = amazonClientProvider.getAutoScaling(
-        credentials.get(),
-        entityRef.getRegion()
-      );
+          AmazonAutoScaling amazonAutoScaling =
+              amazonClientProvider.getAutoScaling(credentials.get(), entityRef.getRegion());
 
-      try {
-        if (hasLaunchFailures(amazonAutoScaling, entityTags)) {
-          return;
-        }
+          try {
+            if (hasLaunchFailures(amazonAutoScaling, entityTags)) {
+              return;
+            }
 
-        serverGroupTagger.delete(
-          AmazonCloudProvider.ID,
-          entityRef.getAccountId(),
-          entityRef.getRegion(),
-          EntityTagger.ENTITY_TYPE_SERVER_GROUP,
-          entityRef.getEntityId(),
-          TAG_NAME
-        );
-      } catch (Exception e) {
-        log.error("Unable to determine if '{}' has launch failures", entityTags.getId(), e);
-      }
-    });
+            serverGroupTagger.delete(
+                AmazonCloudProvider.ID,
+                entityRef.getAccountId(),
+                entityRef.getRegion(),
+                EntityTagger.ENTITY_TYPE_SERVER_GROUP,
+                entityRef.getEntityId(),
+                TAG_NAME);
+          } catch (Exception e) {
+            log.error("Unable to determine if '{}' has launch failures", entityTags.getId(), e);
+          }
+        });
   }
 
   /**
    * Fetch scaling activities and determine if the most recent activity was successful.
    *
-   * A successful scaling activity is sufficient to indicate that a server group is no longer having launch failures.
+   * <p>A successful scaling activity is sufficient to indicate that a server group is no longer
+   * having launch failures.
    */
   protected boolean hasLaunchFailures(AmazonAutoScaling amazonAutoScaling, EntityTags entityTags) {
     EntityTags.EntityRef entityRef = entityTags.getEntityRef();
 
     try {
-      DescribeScalingActivitiesResult describeScalingActivitiesResult = amazonAutoScaling.describeScalingActivities(
-        new DescribeScalingActivitiesRequest().withAutoScalingGroupName(entityRef.getEntityId())
-      );
+      DescribeScalingActivitiesResult describeScalingActivitiesResult =
+          amazonAutoScaling.describeScalingActivities(
+              new DescribeScalingActivitiesRequest()
+                  .withAutoScalingGroupName(entityRef.getEntityId()));
 
       List<Activity> activities = describeScalingActivitiesResult.getActivities();
-      return !activities.isEmpty() && !activities.get(0).getStatusCode().equals(ScalingActivityStatusCode.Successful.toString());
+      return !activities.isEmpty()
+          && !activities
+              .get(0)
+              .getStatusCode()
+              .equals(ScalingActivityStatusCode.Successful.toString());
     } catch (Exception e) {
       AmazonServiceException amazonServiceException = amazonServiceException(e);
       if (amazonServiceException != null) {

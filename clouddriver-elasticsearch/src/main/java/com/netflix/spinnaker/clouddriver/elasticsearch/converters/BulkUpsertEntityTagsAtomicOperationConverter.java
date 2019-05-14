@@ -25,13 +25,13 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component("bulkUpsertEntityTagsDescription")
-public class BulkUpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class BulkUpsertEntityTagsAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
@@ -40,11 +40,12 @@ public class BulkUpsertEntityTagsAtomicOperationConverter extends AbstractAtomic
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
-  public BulkUpsertEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
-                                                      RetrySupport retrySupport,
-                                                      Front50Service front50Service,
-                                                      AccountCredentialsProvider accountCredentialsProvider,
-                                                      ElasticSearchEntityTagsProvider entityTagsProvider) {
+  public BulkUpsertEntityTagsAtomicOperationConverter(
+      ObjectMapper objectMapper,
+      RetrySupport retrySupport,
+      Front50Service front50Service,
+      AccountCredentialsProvider accountCredentialsProvider,
+      ElasticSearchEntityTagsProvider entityTagsProvider) {
     this.objectMapper = objectMapper;
     this.retrySupport = retrySupport;
     this.front50Service = front50Service;
@@ -54,15 +55,21 @@ public class BulkUpsertEntityTagsAtomicOperationConverter extends AbstractAtomic
 
   public AtomicOperation convertOperation(Map input) {
     return new BulkUpsertEntityTagsAtomicOperation(
-      retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
-    );
+        retrySupport,
+        front50Service,
+        accountCredentialsProvider,
+        entityTagsProvider,
+        this.convertDescription(input));
   }
 
   public BulkUpsertEntityTagsDescription convertDescription(Map input) {
-    BulkUpsertEntityTagsDescription description = objectMapper.convertValue(input, BulkUpsertEntityTagsDescription.class);
-    description.entityTags.forEach(upsertEntityTagsDescription ->
-      upsertEntityTagsDescription.getTags().forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType)
-    );
+    BulkUpsertEntityTagsDescription description =
+        objectMapper.convertValue(input, BulkUpsertEntityTagsDescription.class);
+    description.entityTags.forEach(
+        upsertEntityTagsDescription ->
+            upsertEntityTagsDescription
+                .getTags()
+                .forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType));
     return description;
   }
 }

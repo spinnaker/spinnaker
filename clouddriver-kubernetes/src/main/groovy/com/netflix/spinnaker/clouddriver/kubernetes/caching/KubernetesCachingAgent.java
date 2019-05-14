@@ -23,19 +23,19 @@ import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import lombok.Getter;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
-public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> implements CachingAgent, AccountAware {
-  @Getter final protected String accountName;
-  final protected Registry registry;
-  final protected C credentials;
-  final protected ObjectMapper objectMapper;
+public abstract class KubernetesCachingAgent<C extends KubernetesCredentials>
+    implements CachingAgent, AccountAware {
+  @Getter protected final String accountName;
+  protected final Registry registry;
+  protected final C credentials;
+  protected final ObjectMapper objectMapper;
 
-  final protected int agentIndex;
-  final protected int agentCount;
+  protected final int agentIndex;
+  protected final int agentCount;
 
   protected List<String> namespaces;
 
@@ -43,7 +43,8 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> im
     return namespaces;
   }
 
-  protected KubernetesCachingAgent(KubernetesNamedAccountCredentials<C> namedAccountCredentials,
+  protected KubernetesCachingAgent(
+      KubernetesNamedAccountCredentials<C> namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -61,13 +62,14 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> im
 
   @Override
   public String getAgentType() {
-    return String.format("%s/%s[%d/%d]", accountName, this.getClass().getSimpleName(), agentIndex + 1, agentCount);
+    return String.format(
+        "%s/%s[%d/%d]", accountName, this.getClass().getSimpleName(), agentIndex + 1, agentCount);
   }
 
   protected void reloadNamespaces() {
-    namespaces = credentials.getDeclaredNamespaces()
-        .stream()
-        .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
-        .collect(Collectors.toList());
+    namespaces =
+        credentials.getDeclaredNamespaces().stream()
+            .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
+            .collect(Collectors.toList());
   }
 }

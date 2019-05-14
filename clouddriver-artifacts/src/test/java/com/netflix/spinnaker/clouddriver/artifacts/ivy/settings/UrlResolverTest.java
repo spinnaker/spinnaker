@@ -16,21 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class UrlResolverTest {
   @Test
   void patternsAreDeserialized() throws IOException {
-    UrlResolver urlResolver = new XmlMapper().readValue(
-      "<url name=\"main\">\n" +
-        "  <ivy pattern=\"http://repo/[module]/[revision]/ivy-[revision].xml\"/>\n" +
-        "  <artifact pattern=\"http://repo/[module]/[revision]/[artifact]-[revision].[ext]\"/>\n" +
-        "</url>", UrlResolver.class);
+    UrlResolver urlResolver =
+        new XmlMapper()
+            .readValue(
+                "<url name=\"main\">\n"
+                    + "  <ivy pattern=\"http://repo/[module]/[revision]/ivy-[revision].xml\"/>\n"
+                    + "  <artifact pattern=\"http://repo/[module]/[revision]/[artifact]-[revision].[ext]\"/>\n"
+                    + "</url>",
+                UrlResolver.class);
 
     assertThat(urlResolver.getIvy()).hasSize(1);
     assertThat(urlResolver.getArtifact()).hasSize(1);

@@ -17,6 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -32,23 +36,15 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.models.V1beta2ReplicaSet;
 import io.kubernetes.client.models.V1beta2ReplicaSetStatus;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesReplicaSetHandler extends KubernetesHandler implements
-    CanResize,
-    CanScale,
-    HasPods,
-    ServerGroupHandler {
+public class KubernetesReplicaSetHandler extends KubernetesHandler
+    implements CanResize, CanScale, HasPods, ServerGroupHandler {
 
   public KubernetesReplicaSetHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
@@ -87,8 +83,10 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1) || manifest.getApiVersion().equals(APPS_V1BETA2)) {
-      V1beta2ReplicaSet v1beta2ReplicaSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2ReplicaSet.class);
+    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)
+        || manifest.getApiVersion().equals(APPS_V1BETA2)) {
+      V1beta2ReplicaSet v1beta2ReplicaSet =
+          KubernetesCacheDataConverter.getResource(manifest, V1beta2ReplicaSet.class);
       return status(v1beta2ReplicaSet);
     } else {
       throw new UnsupportedVersionException(manifest);
@@ -99,13 +97,13 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     Status result = new Status();
     V1beta2ReplicaSetStatus status = replicaSet.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet")
-          .unavailable("No availability reported");
+      result.unstable("No status reported yet").unavailable("No availability reported");
       return result;
     }
 
     Long observedGeneration = status.getObservedGeneration();
-    if (observedGeneration != null && observedGeneration != replicaSet.getMetadata().getGeneration()) {
+    if (observedGeneration != null
+        && observedGeneration != replicaSet.getMetadata().getGeneration()) {
       result.unstable("Waiting for replicaset spec update to be observed");
     }
 
@@ -119,12 +117,14 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     }
 
     if (desired > fullyLabeled) {
-      return result.unstable("Waiting for all replicas to be fully-labeled")
+      return result
+          .unstable("Waiting for all replicas to be fully-labeled")
           .unavailable("Not all replicas have become labeled yet");
     }
 
     if (desired > available) {
-      return result.unstable("Waiting for all replicas to be available")
+      return result
+          .unstable("Waiting for all replicas to be available")
           .unavailable("Not all replicas have become available yet");
     }
 
@@ -137,10 +137,12 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
 
   public static Map<String, String> getPodTemplateLabels(KubernetesManifest manifest) {
     if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
-      V1beta1ReplicaSet v1beta1ReplicaSet = KubernetesCacheDataConverter.getResource(manifest, V1beta1ReplicaSet.class);
+      V1beta1ReplicaSet v1beta1ReplicaSet =
+          KubernetesCacheDataConverter.getResource(manifest, V1beta1ReplicaSet.class);
       return getPodTemplateLabels(v1beta1ReplicaSet);
     } else if (manifest.getApiVersion().equals(APPS_V1BETA2)) {
-      V1beta2ReplicaSet v1beta2ReplicaSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2ReplicaSet.class);
+      V1beta2ReplicaSet v1beta2ReplicaSet =
+          KubernetesCacheDataConverter.getResource(manifest, V1beta2ReplicaSet.class);
       return getPodTemplateLabels(v1beta2ReplicaSet);
     } else {
       throw new UnsupportedVersionException(manifest);
@@ -156,7 +158,8 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
   }
 
   @Override
-  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+  public Map<String, Object> hydrateSearchResult(
+      Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
     result.put("serverGroup", result.get("name"));
 
@@ -164,11 +167,15 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
   }
 
   @Override
-  public List<KubernetesManifest> pods(KubernetesV2Credentials credentials, KubernetesManifest object) {
+  public List<KubernetesManifest> pods(
+      KubernetesV2Credentials credentials, KubernetesManifest object) {
     KubernetesManifestSelector selector = object.getManifestSelector();
     return credentials.list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList())
         .stream()
-        .filter(p -> p.getOwnerReferences().stream().anyMatch(or -> or.getName().equals(object.getName())))
+        .filter(
+            p ->
+                p.getOwnerReferences().stream()
+                    .anyMatch(or -> or.getName().equals(object.getName())))
         .collect(Collectors.toList());
   }
 }

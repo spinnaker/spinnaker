@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
@@ -32,9 +35,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,14 +43,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
-  static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(ALARMS.toString())
-  ));
+  static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(Arrays.asList(AUTHORITATIVE.forType(ALARMS.toString())));
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private AmazonClientProvider amazonClientProvider;
@@ -59,9 +57,11 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
   private String accountName;
   private String region;
 
-  public EcsCloudMetricAlarmCachingAgent(NetflixAmazonCredentials account, String region,
-                                         AmazonClientProvider amazonClientProvider,
-                                         AWSCredentialsProvider awsCredentialsProvider) {
+  public EcsCloudMetricAlarmCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider) {
     this.region = region;
     this.account = account;
     this.accountName = account.getName();
@@ -69,7 +69,8 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
     this.awsCredentialsProvider = awsCredentialsProvider;
   }
 
-  public static Map<String, Object> convertMetricAlarmToAttributes(MetricAlarm metricAlarm, String accountName, String region) {
+  public static Map<String, Object> convertMetricAlarmToAttributes(
+      MetricAlarm metricAlarm, String accountName, String region) {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("alarmArn", metricAlarm.getAlarmArn());
     attributes.put("alarmName", metricAlarm.getAlarmName());
@@ -94,19 +95,22 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableMetricAlarm);
     Collection<CacheData> newData = newDataMap.get(ALARMS.toString());
 
-    Set<String> oldKeys = providerCache.getAll(ALARMS.toString()).stream()
-      .map(CacheData::getId)
-      .filter(this::keyAccountRegionFilter)
-      .collect(Collectors.toSet());
+    Set<String> oldKeys =
+        providerCache.getAll(ALARMS.toString()).stream()
+            .map(CacheData::getId)
+            .filter(this::keyAccountRegionFilter)
+            .collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
     return new DefaultCacheResult(newDataMap, evictionsByKey);
   }
 
-  private Map<String, Collection<String>> computeEvictableData(Collection<CacheData> newData, Collection<String> oldKeys) {
+  private Map<String, Collection<String>> computeEvictableData(
+      Collection<CacheData> newData, Collection<String> oldKeys) {
     Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
-    Set<String> evictedKeys = oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
+    Set<String> evictedKeys =
+        oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
     evictionsByKey.put(ALARMS.toString(), evictedKeys);
@@ -120,7 +124,8 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
 
     for (MetricAlarm metricAlarm : cacheableMetricAlarm) {
       String key = Keys.getAlarmKey(accountName, region, metricAlarm.getAlarmArn());
-      Map<String, Object> attributes = convertMetricAlarmToAttributes(metricAlarm, accountName, region);
+      Map<String, Object> attributes =
+          convertMetricAlarmToAttributes(metricAlarm, accountName, region);
 
       CacheData data = new DefaultCacheData(key, attributes, Collections.emptyMap());
       dataPoints.add(data);
@@ -151,9 +156,9 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
 
   private boolean keyAccountRegionFilter(String key) {
     Map<String, String> keyParts = Keys.parse(key);
-    return keyParts != null &&
-      keyParts.get("account").equals(accountName) &&
-      keyParts.get("region").equals(region);
+    return keyParts != null
+        && keyParts.get("account").equals(accountName)
+        && keyParts.get("region").equals(region);
   }
 
   @Override

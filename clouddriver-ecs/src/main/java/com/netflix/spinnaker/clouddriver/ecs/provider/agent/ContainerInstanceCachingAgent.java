@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.Attribute;
@@ -31,9 +34,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,17 +42,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<ContainerInstance> {
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(CONTAINER_INSTANCES.toString())
-  ));
+  private static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(
+          Arrays.asList(AUTHORITATIVE.forType(CONTAINER_INSTANCES.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public ContainerInstanceCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+  public ContainerInstanceCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      Registry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 
@@ -74,19 +78,26 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
     for (String cluster : clusters) {
       String nextToken = null;
       do {
-        ListContainerInstancesRequest listContainerInstancesRequest = new ListContainerInstancesRequest().withCluster(cluster);
+        ListContainerInstancesRequest listContainerInstancesRequest =
+            new ListContainerInstancesRequest().withCluster(cluster);
         if (nextToken != null) {
           listContainerInstancesRequest.setNextToken(nextToken);
         }
 
-        ListContainerInstancesResult listContainerInstancesResult = ecs.listContainerInstances(listContainerInstancesRequest);
-        List<String> containerInstanceArns = listContainerInstancesResult.getContainerInstanceArns();
+        ListContainerInstancesResult listContainerInstancesResult =
+            ecs.listContainerInstances(listContainerInstancesRequest);
+        List<String> containerInstanceArns =
+            listContainerInstancesResult.getContainerInstanceArns();
         if (containerInstanceArns.size() == 0) {
           continue;
         }
 
-        List<ContainerInstance> containerInstances = ecs.describeContainerInstances(new DescribeContainerInstancesRequest()
-          .withCluster(cluster).withContainerInstances(containerInstanceArns)).getContainerInstances();
+        List<ContainerInstance> containerInstances =
+            ecs.describeContainerInstances(
+                    new DescribeContainerInstancesRequest()
+                        .withCluster(cluster)
+                        .withContainerInstances(containerInstanceArns))
+                .getContainerInstances();
         containerInstanceList.addAll(containerInstances);
 
         nextToken = listContainerInstancesResult.getNextToken();
@@ -96,13 +107,16 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
   }
 
   @Override
-  protected Map<String, Collection<CacheData>> generateFreshData(Collection<ContainerInstance> containerInstances) {
+  protected Map<String, Collection<CacheData>> generateFreshData(
+      Collection<ContainerInstance> containerInstances) {
     Collection<CacheData> dataPoints = new LinkedList<>();
 
     for (ContainerInstance containerInstance : containerInstances) {
       Map<String, Object> attributes = convertContainerInstanceToAttributes(containerInstance);
 
-      String key = Keys.getContainerInstanceKey(accountName, region, containerInstance.getContainerInstanceArn());
+      String key =
+          Keys.getContainerInstanceKey(
+              accountName, region, containerInstance.getContainerInstanceArn());
       dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));
     }
 
@@ -113,7 +127,8 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
     return dataMap;
   }
 
-  public static Map<String, Object> convertContainerInstanceToAttributes(ContainerInstance containerInstance) {
+  public static Map<String, Object> convertContainerInstanceToAttributes(
+      ContainerInstance containerInstance) {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("containerInstanceArn", containerInstance.getContainerInstanceArn());
     attributes.put("ec2InstanceId", containerInstance.getEc2InstanceId());

@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesResizeServerGroupDescription extends KubernetesServerGroupOperationDescription {
+public class KubernetesResizeServerGroupDescription
+    extends KubernetesServerGroupOperationDescription {
   Capacity capacity;
 }

@@ -21,11 +21,10 @@ import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import lombok.Data;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class EcsServerCluster implements Cluster {
@@ -36,11 +35,11 @@ public class EcsServerCluster implements Cluster {
 
   private String accountName;
 
-  private Set<AmazonTargetGroup> targetGroups = Collections.synchronizedSet(new HashSet<AmazonTargetGroup>());
+  private Set<AmazonTargetGroup> targetGroups =
+      Collections.synchronizedSet(new HashSet<AmazonTargetGroup>());
   private Set<ServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<ServerGroup>());
-  private Set<LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<LoadBalancer>());
+  private Set<LoadBalancer> loadBalancers =
+      Collections.synchronizedSet(new HashSet<LoadBalancer>());
 
-  public EcsServerCluster() {
-  }
-
+  public EcsServerCluster() {}
 }

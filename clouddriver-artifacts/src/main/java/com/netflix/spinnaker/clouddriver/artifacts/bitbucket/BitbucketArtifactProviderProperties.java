@@ -18,15 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @ConfigurationProperties("artifacts.bitbucket")
-public class BitbucketArtifactProviderProperties implements ArtifactProvider<BitbucketArtifactAccount> {
+public class BitbucketArtifactProviderProperties
+    implements ArtifactProvider<BitbucketArtifactAccount> {
   private boolean enabled;
   private List<BitbucketArtifactAccount> accounts = new ArrayList<>();
 }

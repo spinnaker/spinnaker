@@ -19,9 +19,7 @@ package com.netflix.spinnaker.cats.agent;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 
 public interface Agent {
-  /**
-   * @return the type of this agent.
-   */
+  /** @return the type of this agent. */
   String getAgentType();
 
   /**
@@ -32,9 +30,9 @@ public interface Agent {
 
   AgentExecution getAgentExecution(ProviderRegistry providerRegistry);
 
-  default public boolean handlesAccount(String accountName) {
+  public default boolean handlesAccount(String accountName) {
     if (this instanceof AccountAware) {
-      return accountName.equals(((AccountAware)this).getAccountName());
+      return accountName.equals(((AccountAware) this).getAccountName());
     }
 
     return false;

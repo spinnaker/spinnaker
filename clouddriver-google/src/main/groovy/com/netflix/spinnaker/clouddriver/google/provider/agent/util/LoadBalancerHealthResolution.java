@@ -20,9 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/**
- * Helper class to resolve locally cached backend service get health call results.
- */
+/** Helper class to resolve locally cached backend service get health call results. */
 @Data
 @AllArgsConstructor
 public class LoadBalancerHealthResolution {

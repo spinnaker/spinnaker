@@ -20,13 +20,12 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.experimental.FieldDefaults;
-
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -49,11 +48,14 @@ public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupName
   @Override
   public List<TakenSlot> getTakenSlots(String clusterName) {
     return client.getApplications().getTakenSlots(clusterName, space.getId()).stream()
-      .map(app -> {
-        Names names = Names.parseName(app.getEntity().getName());
-        return new TakenSlot(names.getCluster(), names.getSequence(),
-          Date.from(app.getMetadata().getCreatedAt().toInstant()));
-      })
-      .collect(Collectors.toList());
+        .map(
+            app -> {
+              Names names = Names.parseName(app.getEntity().getName());
+              return new TakenSlot(
+                  names.getCluster(),
+                  names.getSequence(),
+                  Date.from(app.getMetadata().getCreatedAt().toInstant()));
+            })
+        .collect(Collectors.toList());
   }
 }

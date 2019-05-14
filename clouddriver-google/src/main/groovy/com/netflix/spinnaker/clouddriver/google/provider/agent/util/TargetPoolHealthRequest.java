@@ -21,9 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-/**
- * Helper class for locally resolving queued target pool health requests.
- */
+/** Helper class for locally resolving queued target pool health requests. */
 @Data
 @EqualsAndHashCode
 @AllArgsConstructor

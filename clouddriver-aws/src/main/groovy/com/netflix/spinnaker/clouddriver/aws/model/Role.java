@@ -21,6 +21,8 @@ import java.util.Collection;
 public interface Role {
 
   String getName();
+
   String getId();
+
   Collection<? extends TrustRelationship> getTrustRelationships();
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
-import lombok.Data;
-
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions.MergeStrategy.json;
+
+import lombok.Data;
 
 @Data
 public class KubernetesPatchOptions {

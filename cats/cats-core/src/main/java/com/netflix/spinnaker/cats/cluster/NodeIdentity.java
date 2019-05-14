@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.cats.cluster;
 
 public interface NodeIdentity {
-    String getNodeIdentity();
+  String getNodeIdentity();
 }

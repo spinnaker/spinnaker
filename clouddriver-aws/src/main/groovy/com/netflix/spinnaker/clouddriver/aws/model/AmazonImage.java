@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.model;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.netflix.spinnaker.clouddriver.model.Image;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -31,8 +30,7 @@ public class AmazonImage implements Image {
 
   String region;
   List<AmazonServerGroup> serverGroups = new ArrayList<>();
-  @JsonUnwrapped
-  com.amazonaws.services.ec2.model.Image image;
+  @JsonUnwrapped com.amazonaws.services.ec2.model.Image image;
 
   public String getName() {
     return image.getName();

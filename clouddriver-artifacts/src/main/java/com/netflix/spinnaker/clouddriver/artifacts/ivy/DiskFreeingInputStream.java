@@ -23,9 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
-/**
- * An {@link java.io.InputStream} that frees local disk resources when closed.
- */
+/** An {@link java.io.InputStream} that frees local disk resources when closed. */
 public class DiskFreeingInputStream extends InputStream {
   private final InputStream delegate;
   private final Path deleteOnClose;
@@ -45,9 +43,9 @@ public class DiskFreeingInputStream extends InputStream {
     super.close();
     if (Files.exists(deleteOnClose)) {
       Files.walk(deleteOnClose)
-        .map(Path::toFile)
-        .sorted(Comparator.reverseOrder())
-        .forEach(File::delete);
+          .map(Path::toFile)
+          .sorted(Comparator.reverseOrder())
+          .forEach(File::delete);
     }
   }
 }

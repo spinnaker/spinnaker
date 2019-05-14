@@ -20,10 +20,9 @@ import com.amazonaws.services.elasticloadbalancingv2.model.Listener;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class EcsLoadBalancerCache implements LoadBalancer {
@@ -45,7 +44,7 @@ public class EcsLoadBalancerCache implements LoadBalancer {
   private List<String> subnets;
   private List<String> securityGroups;
   private List<String> targetGroups;
-  //private List<Object> state;
+  // private List<Object> state;
   private Set<LoadBalancerServerGroup> serverGroups;
 
   @Override

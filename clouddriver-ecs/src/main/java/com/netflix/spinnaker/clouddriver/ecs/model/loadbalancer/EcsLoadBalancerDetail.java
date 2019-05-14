@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer;
 
-import lombok.Data;
+import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.Details;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.Details;
+import lombok.Data;
 
 @Data
 public class EcsLoadBalancerDetail implements Details {

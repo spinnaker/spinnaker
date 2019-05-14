@@ -18,14 +18,12 @@
 package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class VersionedOperationHelper {
-  static <T extends VersionedCloudProviderOperation> List<T> findVersionMatches(ProviderVersion version, List<T> operations) {
-    return operations.stream()
-        .filter(o -> o.acceptsVersion(version))
-        .collect(Collectors.toList());
+  static <T extends VersionedCloudProviderOperation> List<T> findVersionMatches(
+      ProviderVersion version, List<T> operations) {
+    return operations.stream().filter(o -> o.acceptsVersion(version)).collect(Collectors.toList());
   }
 }

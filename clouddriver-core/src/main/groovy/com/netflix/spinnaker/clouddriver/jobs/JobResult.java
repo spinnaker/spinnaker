@@ -28,6 +28,7 @@ public class JobResult<T> {
   private final boolean killed;
 
   public enum Result {
-    SUCCESS, FAILURE;
+    SUCCESS,
+    FAILURE;
   }
 }

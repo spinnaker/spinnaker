@@ -20,16 +20,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class KubernetesManifest extends HashMap<String, Object> {
   private static ObjectMapper mapper = new ObjectMapper();
@@ -50,8 +49,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public KubernetesKind getKind() {
-    //using ApiVersion here allows a translation from a kind of NetworkPolicy in the manifest to something
-    //like  NetworkPolicy.crd.projectcalico.org for custom resources
+    // using ApiVersion here allows a translation from a kind of NetworkPolicy in the manifest to
+    // something
+    // like  NetworkPolicy.crd.projectcalico.org for custom resources
     String kindName = getRequiredField(this, "kind");
     KubernetesApiGroup kubernetesApiGroup;
     if (this.containsKey("apiVersion")) {
@@ -111,8 +111,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public String getCreationTimestamp() {
     return getMetadata().containsKey("creationTimestamp")
-      ? getMetadata().get("creationTimestamp").toString()
-      : "";
+        ? getMetadata().get("creationTimestamp").toString()
+        : "";
   }
 
   @JsonIgnore
@@ -139,7 +139,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
     Map<String, Object> selector = (Map<String, Object>) spec.get("selector");
     if (!selector.containsKey("matchExpressions") && !selector.containsKey("matchLabels")) {
-      return new KubernetesManifestSelector().setMatchLabels((Map<String, String>) spec.get("selector"));
+      return new KubernetesManifestSelector()
+          .setMatchLabels((Map<String, String>) spec.get("selector"));
     } else {
       return mapper.convertValue(selector, KubernetesManifestSelector.class);
     }
@@ -263,7 +264,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
   public Double getObservedGeneration() {
     Object statusObj = getStatus();
     if (!(statusObj instanceof Map)) {
-      throw new IllegalStateException("Expected status to be a Map but was actually a " + statusObj.getClass());
+      throw new IllegalStateException(
+          "Expected status to be a Map but was actually a " + statusObj.getClass());
     }
 
     Map<String, Object> status = (Map<String, Object>) statusObj;
@@ -271,7 +273,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
     Object observedGenObj = status.get("observedGeneration");
 
     if (!(observedGenObj instanceof Double)) {
-      throw new IllegalStateException("Expected status.observedGeneration to be an Double but was actually a " + observedGenObj.getClass());
+      throw new IllegalStateException(
+          "Expected status.observedGeneration to be an Double but was actually a "
+              + observedGenObj.getClass());
     }
     return (Double) observedGenObj;
   }
@@ -281,7 +285,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
     Object generationObj = getMetadata().get("generation");
 
     if (!(generationObj instanceof Double)) {
-      throw new IllegalStateException("Expected metadata.generation to be an Double but was actually a " + generationObj.getClass());
+      throw new IllegalStateException(
+          "Expected metadata.generation to be an Double but was actually a "
+              + generationObj.getClass());
     }
     return (Double) generationObj;
   }
@@ -318,7 +324,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
     cloneThis.remove("metadata");
     cloneOther.remove("metadata");
 
-    return  cloneThis.equals(cloneOther);
+    return cloneThis.equals(cloneOther);
   }
 
   public static Pair<KubernetesKind, String> fromFullResourceName(String fullResourceName) {

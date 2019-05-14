@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
-/**
- * Denotes an operation description operates on a specific account.
- */
+/** Denotes an operation description operates on a specific account. */
 public interface AccountNameable {
   String getAccount();
 
   /**
-   * @return whether or not this operation description expects to be further restricted by one or more applications
+   * @return whether or not this operation description expects to be further restricted by one or
+   *     more applications
    */
   default boolean requiresApplicationRestriction() {
     return true;

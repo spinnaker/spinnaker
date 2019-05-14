@@ -31,7 +31,7 @@ import io.searchbox.indices.aliases.GetAliases
 import io.searchbox.indices.aliases.ModifyAliases
 import java.io.IOException
 
-class ElasticSearchClient(private val objectMapper : ObjectMapper, private val jestClient: JestClient) {
+class ElasticSearchClient(private val objectMapper: ObjectMapper, private val jestClient: JestClient) {
   fun getPreviousIndexes(prefix: String): Set<String> {
     try {
       val result = jestClient.execute(GetAliases.Builder().build())

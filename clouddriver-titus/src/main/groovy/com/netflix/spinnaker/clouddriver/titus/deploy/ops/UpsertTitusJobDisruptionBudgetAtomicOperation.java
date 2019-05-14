@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops;
 
-import java.util.List;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
 import com.netflix.spinnaker.clouddriver.titus.client.model.JobDisruptionBudgetUpdateRequest;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription;
+import java.util.List;
 
 public class UpsertTitusJobDisruptionBudgetAtomicOperation implements AtomicOperation<Void> {
 
@@ -31,25 +31,28 @@ public class UpsertTitusJobDisruptionBudgetAtomicOperation implements AtomicOper
   private final TitusClientProvider titusClientProvider;
   private final UpsertJobDisruptionBudgetDescription description;
 
-  public UpsertTitusJobDisruptionBudgetAtomicOperation(TitusClientProvider titusClientProvider, UpsertJobDisruptionBudgetDescription description) {
+  public UpsertTitusJobDisruptionBudgetAtomicOperation(
+      TitusClientProvider titusClientProvider, UpsertJobDisruptionBudgetDescription description) {
     this.titusClientProvider = titusClientProvider;
     this.description = description;
   }
 
-  @Override public Void operate(List priorOutputs) {
+  @Override
+  public Void operate(List priorOutputs) {
 
-    TitusClient titusClient = titusClientProvider.getTitusClient(description.getCredentials(), description.getRegion());
-    getTask().updateStatus(PHASE, "Updating Titus Job Disruption: " + description.getJobId() + "...");
+    TitusClient titusClient =
+        titusClientProvider.getTitusClient(description.getCredentials(), description.getRegion());
+    getTask()
+        .updateStatus(PHASE, "Updating Titus Job Disruption: " + description.getJobId() + "...");
 
-    titusClient.updateDisruptionBudget(new JobDisruptionBudgetUpdateRequest()
-      .withJobId(description.getJobId())
-      .withDisruptionBudget(description.getDisruptionBudget())
-    );
+    titusClient.updateDisruptionBudget(
+        new JobDisruptionBudgetUpdateRequest()
+            .withJobId(description.getJobId())
+            .withDisruptionBudget(description.getDisruptionBudget()));
     return null;
   }
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
   }
-
 }

@@ -26,10 +26,13 @@ public class ElasticSearchConfigProperties {
   private int readTimeout = 30000;
   private int connectionTimeout = 10000;
 
-  // As of Elasticsearch 6.0, new indices can only contain a single mapping type. Setting singleMappingType to true
-  // will index all documents under a single mapping type.  When singleMappingType is false (which is the default),
+  // As of Elasticsearch 6.0, new indices can only contain a single mapping type. Setting
+  // singleMappingType to true
+  // will index all documents under a single mapping type.  When singleMappingType is false (which
+  // is the default),
   // the mapping type of each document is set to the type of the entity being tagged.
-  // The name of the unique mapping type is configurable as mappingTypeName, but is defaulted to "_doc", which is
+  // The name of the unique mapping type is configurable as mappingTypeName, but is defaulted to
+  // "_doc", which is
   // recommended for forward compatibility with Elasticsearch 7.0.
   private boolean singleMappingType = false;
   private String mappingTypeName = "_doc";

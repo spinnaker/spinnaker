@@ -55,7 +55,7 @@ internal object ReducedResponseSpec : Spek({
         verify(servletResponse).status = eq(200)
         verify(servletResponse).contentType = eq("application/json")
         verify(servletResponse).characterEncoding = eq("UTF-8")
-        verify(servletResponse).setContentLength(eq(reducedResponse.body!!.length ))
+        verify(servletResponse).setContentLength(eq(reducedResponse.body!!.length))
 
         expectThat(byteArrayOutputStream) {
           get { byteArrayOutputStream.toString() }.isEqualTo("Hello world!")

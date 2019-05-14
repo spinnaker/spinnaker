@@ -17,6 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.INSTANCES;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.LOAD_BALANCERS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;
+
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -25,13 +30,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,20 +39,23 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.INSTANCES;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.LOAD_BALANCERS;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<KubernetesV2LoadBalancer> {
-  final private KubernetesCacheUtils cacheUtils;
-  final private KubernetesSpinnakerKindMap kindMap;
+public class KubernetesV2LoadBalancerProvider
+    implements LoadBalancerProvider<KubernetesV2LoadBalancer> {
+  private final KubernetesCacheUtils cacheUtils;
+  private final KubernetesSpinnakerKindMap kindMap;
 
   @Autowired
-  KubernetesV2LoadBalancerProvider(KubernetesCacheUtils cacheUtils, KubernetesSpinnakerKindMap kindMap) {
+  KubernetesV2LoadBalancerProvider(
+      KubernetesCacheUtils cacheUtils, KubernetesSpinnakerKindMap kindMap) {
     this.cacheUtils = cacheUtils;
     this.kindMap = kindMap;
   }
@@ -75,7 +76,8 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
   }
 
   @Override
-  public List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String namespace, String fullName) {
+  public List<LoadBalancerProvider.Details> byAccountAndRegionAndName(
+      String account, String namespace, String fullName) {
     Pair<KubernetesKind, String> parsedName;
     try {
       parsedName = KubernetesManifest.fromFullResourceName(fullName);
@@ -99,38 +101,46 @@ public class KubernetesV2LoadBalancerProvider implements LoadBalancerProvider<Ku
 
   @Override
   public Set<KubernetesV2LoadBalancer> getApplicationLoadBalancers(String application) {
-    List<CacheData> loadBalancerData = kindMap.translateSpinnakerKind(LOAD_BALANCERS)
-        .stream()
-        .map(kind -> cacheUtils.getTransitiveRelationship(APPLICATIONS.toString(),
-            Collections.singletonList(Keys.application(application)),
-            kind.toString())
-        )
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<CacheData> loadBalancerData =
+        kindMap.translateSpinnakerKind(LOAD_BALANCERS).stream()
+            .map(
+                kind ->
+                    cacheUtils.getTransitiveRelationship(
+                        APPLICATIONS.toString(),
+                        Collections.singletonList(Keys.application(application)),
+                        kind.toString()))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     return fromLoadBalancerCacheData(loadBalancerData);
   }
 
-  private Set<KubernetesV2LoadBalancer> fromLoadBalancerCacheData(List<CacheData> loadBalancerData) {
-    List<CacheData> serverGroupData = kindMap.translateSpinnakerKind(SERVER_GROUPS)
-        .stream()
-        .map(kind -> cacheUtils.loadRelationshipsFromCache(loadBalancerData, kind.toString()))
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+  private Set<KubernetesV2LoadBalancer> fromLoadBalancerCacheData(
+      List<CacheData> loadBalancerData) {
+    List<CacheData> serverGroupData =
+        kindMap.translateSpinnakerKind(SERVER_GROUPS).stream()
+            .map(kind -> cacheUtils.loadRelationshipsFromCache(loadBalancerData, kind.toString()))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    List<CacheData> instanceData = kindMap.translateSpinnakerKind(INSTANCES)
-        .stream()
-        .map(kind -> cacheUtils.loadRelationshipsFromCache(serverGroupData, kind.toString()))
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<CacheData> instanceData =
+        kindMap.translateSpinnakerKind(INSTANCES).stream()
+            .map(kind -> cacheUtils.loadRelationshipsFromCache(serverGroupData, kind.toString()))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    Map<String, List<CacheData>> loadBalancerToServerGroups = cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
-    Map<String, List<CacheData>> serverGroupToInstances = cacheUtils.mapByRelationship(instanceData, SERVER_GROUPS);
+    Map<String, List<CacheData>> loadBalancerToServerGroups =
+        cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
+    Map<String, List<CacheData>> serverGroupToInstances =
+        cacheUtils.mapByRelationship(instanceData, SERVER_GROUPS);
 
     return loadBalancerData.stream()
-        .map(cd -> KubernetesV2LoadBalancer.fromCacheData(cd,
-            loadBalancerToServerGroups.getOrDefault(cd.getId(), new ArrayList<>()),
-            serverGroupToInstances))
+        .map(
+            cd ->
+                KubernetesV2LoadBalancer.fromCacheData(
+                    cd,
+                    loadBalancerToServerGroups.getOrDefault(cd.getId(), new ArrayList<>()),
+                    serverGroupToInstances))
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }

@@ -44,7 +44,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Getter
-public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> implements AccountCredentials<C> {
+public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
+    implements AccountCredentials<C> {
   private final String cloudProvider = "kubernetes";
   private final String name;
   private final ProviderVersion providerVersion;
@@ -59,15 +60,18 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
 
   public KubernetesNamedAccountCredentials(
-    KubernetesConfigurationProperties.ManagedAccount managedAccount,
-    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-    CredentialFactory factory
-  ) {
+      KubernetesConfigurationProperties.ManagedAccount managedAccount,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      CredentialFactory factory) {
     this.name = managedAccount.getName();
     this.providerVersion = managedAccount.getProviderVersion();
-    this.environment = Optional.ofNullable(managedAccount.getEnvironment()).orElse(managedAccount.getName());
-    this.accountType = Optional.ofNullable(managedAccount.getAccountType()).orElse(managedAccount.getName());
-    this.skin = Optional.ofNullable(managedAccount.getSkin()).orElse(managedAccount.getProviderVersion().toString());
+    this.environment =
+        Optional.ofNullable(managedAccount.getEnvironment()).orElse(managedAccount.getName());
+    this.accountType =
+        Optional.ofNullable(managedAccount.getAccountType()).orElse(managedAccount.getName());
+    this.skin =
+        Optional.ofNullable(managedAccount.getSkin())
+            .orElse(managedAccount.getProviderVersion().toString());
     this.cacheThreads = managedAccount.getCacheThreads();
     this.cacheIntervalSeconds = managedAccount.getCacheIntervalSeconds();
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
@@ -78,7 +82,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       this.requiredGroupMembership = Collections.emptyList();
     } else {
       this.permissions = null;
-      this.requiredGroupMembership = Collections.unmodifiableList(managedAccount.getRequiredGroupMembership());
+      this.requiredGroupMembership =
+          Collections.unmodifiableList(managedAccount.getRequiredGroupMembership());
     }
 
     switch (managedAccount.getProviderVersion()) {
@@ -89,7 +94,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         this.credentials = (C) factory.buildV2Credentials(managedAccount);
         break;
       default:
-        throw new IllegalArgumentException("Unknown provider type: " + managedAccount.getProviderVersion());
+        throw new IllegalArgumentException(
+            "Unknown provider type: " + managedAccount.getProviderVersion());
     }
   }
 
@@ -101,12 +107,16 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     if (kubernetesSpinnakerKindMap == null) {
       return Collections.emptyMap();
     }
-    Map<String, String> kindMap = new HashMap<>(kubernetesSpinnakerKindMap.kubernetesToSpinnakerKindStringMap());
+    Map<String, String> kindMap =
+        new HashMap<>(kubernetesSpinnakerKindMap.kubernetesToSpinnakerKindStringMap());
     C creds = getCredentials();
     if (creds instanceof KubernetesV2Credentials) {
-      ((KubernetesV2Credentials) creds).getCustomResources().forEach(customResource -> {
-        kindMap.put(customResource.getKubernetesKind(), customResource.getSpinnakerKind());
-      });
+      ((KubernetesV2Credentials) creds)
+          .getCustomResources()
+          .forEach(
+              customResource -> {
+                kindMap.put(customResource.getKubernetesKind(), customResource.getSpinnakerKind());
+              });
     }
     return kindMap;
   }
@@ -120,31 +130,34 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     private final AccountCredentialsRepository accountCredentialsRepository;
     private final KubectlJobExecutor jobExecutor;
 
-    public KubernetesV1Credentials buildV1Credentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+    public KubernetesV1Credentials buildV1Credentials(
+        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       validateAccount(managedAccount);
       return new KubernetesV1Credentials(
-        managedAccount.getName(),
-        getKubeconfigFile(managedAccount),
-        managedAccount.getContext(),
-        managedAccount.getCluster(),
-        managedAccount.getUser(),
-        userAgent,
-        managedAccount.getServiceAccount(),
-        managedAccount.getConfigureImagePullSecrets(),
-        managedAccount.getNamespaces(),
-        managedAccount.getOmitNamespaces(),
-        managedAccount.getDockerRegistries(),
-        spectatorRegistry,
-        accountCredentialsRepository
-      );
+          managedAccount.getName(),
+          getKubeconfigFile(managedAccount),
+          managedAccount.getContext(),
+          managedAccount.getCluster(),
+          managedAccount.getUser(),
+          userAgent,
+          managedAccount.getServiceAccount(),
+          managedAccount.getConfigureImagePullSecrets(),
+          managedAccount.getNamespaces(),
+          managedAccount.getOmitNamespaces(),
+          managedAccount.getDockerRegistries(),
+          spectatorRegistry,
+          accountCredentialsRepository);
     }
 
-    public KubernetesV2Credentials buildV2Credentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+    public KubernetesV2Credentials buildV2Credentials(
+        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       validateAccount(managedAccount);
       NamerRegistry.lookup()
-        .withProvider(KubernetesCloudProvider.getID())
-        .withAccount(managedAccount.getName())
-        .setNamer(KubernetesManifest.class, namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
+          .withProvider(KubernetesCloudProvider.getID())
+          .withAccount(managedAccount.getName())
+          .setNamer(
+              KubernetesManifest.class,
+              namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
       return new KubernetesV2Credentials(spectatorRegistry, jobExecutor, managedAccount);
     }
 
@@ -153,16 +166,20 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
       }
 
-      if (!managedAccount.getOmitNamespaces().isEmpty() && !managedAccount.getNamespaces().isEmpty()) {
-        throw new IllegalArgumentException("At most one of 'namespaces' and 'omitNamespaces' can be specified");
+      if (!managedAccount.getOmitNamespaces().isEmpty()
+          && !managedAccount.getNamespaces().isEmpty()) {
+        throw new IllegalArgumentException(
+            "At most one of 'namespaces' and 'omitNamespaces' can be specified");
       }
 
       if (!managedAccount.getOmitKinds().isEmpty() && !managedAccount.getKinds().isEmpty()) {
-        throw new IllegalArgumentException("At most one of 'kinds' and 'omitKinds' can be specified");
+        throw new IllegalArgumentException(
+            "At most one of 'kinds' and 'omitKinds' can be specified");
       }
     }
 
-    private String getKubeconfigFile(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+    private String getKubeconfigFile(
+        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       String kubeconfigFile = managedAccount.getKubeconfigFile();
       if (StringUtils.isEmpty(kubeconfigFile)) {
         if (StringUtils.isEmpty(managedAccount.getKubeconfigContents())) {
@@ -175,7 +192,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
             writer.close();
             kubeconfigFile = temp.getAbsolutePath();
           } catch (IOException e) {
-            throw new RuntimeException("Unable to persist 'kubeconfigContents' parameter to disk: " + e.getMessage(), e);
+            throw new RuntimeException(
+                "Unable to persist 'kubeconfigContents' parameter to disk: " + e.getMessage(), e);
           }
         }
       }

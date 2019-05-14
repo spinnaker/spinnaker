@@ -16,22 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security;
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import org.junit.Test;
 
-import java.util.Collections;
-
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class EcsAccountBuilderTest {
 
   @Test
   public void shouldBuildAccount() {
-    //Given
+    // Given
     String accountName = "ecs-test-account";
     String accountType = "ecs";
 
@@ -39,17 +37,29 @@ public class EcsAccountBuilderTest {
     when(netflixAmazonCredentials.getPermissions()).thenReturn(mock(Permissions.class));
     when(netflixAmazonCredentials.getAccountId()).thenReturn("id-1234567890");
 
-    //When
-    CredentialsConfig.Account account = EcsAccountBuilder.build(netflixAmazonCredentials, accountName, accountType);
+    // When
+    CredentialsConfig.Account account =
+        EcsAccountBuilder.build(netflixAmazonCredentials, accountName, accountType);
 
-    //Then
-    assertTrue("The new account should not be of the same type as the old account (" + netflixAmazonCredentials.getAccountType() + ").",
-      !account.getAccountType().equals(netflixAmazonCredentials.getAccountType()));
+    // Then
+    assertTrue(
+        "The new account should not be of the same type as the old account ("
+            + netflixAmazonCredentials.getAccountType()
+            + ").",
+        !account.getAccountType().equals(netflixAmazonCredentials.getAccountType()));
 
-    assertTrue("The new account should not have the same name as the old account (" + netflixAmazonCredentials.getName() + ").",
-      !account.getName().equals(netflixAmazonCredentials.getName()));
+    assertTrue(
+        "The new account should not have the same name as the old account ("
+            + netflixAmazonCredentials.getName()
+            + ").",
+        !account.getName().equals(netflixAmazonCredentials.getName()));
 
-    assertTrue("The new account should have the same account ID as the old one (" + netflixAmazonCredentials.getAccountId() +
-        ") but has " + account.getAccountId() + " as the ID.", account.getAccountId().equals(netflixAmazonCredentials.getAccountId()));
+    assertTrue(
+        "The new account should have the same account ID as the old one ("
+            + netflixAmazonCredentials.getAccountId()
+            + ") but has "
+            + account.getAccountId()
+            + " as the ID.",
+        account.getAccountId().equals(netflixAmazonCredentials.getAccountId()));
   }
 }

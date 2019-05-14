@@ -27,9 +27,7 @@ import lombok.experimental.Delegate;
 @AllArgsConstructor
 @Data
 public class Route {
-  @JsonIgnore
-  @Delegate
-  private RouteId routeId = new RouteId();
+  @JsonIgnore @Delegate private RouteId routeId = new RouteId();
 
   private String spaceGuid;
 }

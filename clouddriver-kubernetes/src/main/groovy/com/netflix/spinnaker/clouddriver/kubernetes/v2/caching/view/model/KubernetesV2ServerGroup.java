@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import static java.util.Collections.singletonList;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
@@ -37,10 +39,6 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,8 +48,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.singletonList;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -70,8 +69,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
-  @JsonIgnore
-  private static final ArtifactReplacer dockerImageReplacer;
+  @JsonIgnore private static final ArtifactReplacer dockerImageReplacer;
 
   static {
     dockerImageReplacer = new ArtifactReplacer();
@@ -82,20 +80,39 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   public ServerGroup.InstanceCounts getInstanceCounts() {
     return ServerGroup.InstanceCounts.builder()
         .total(Ints.checkedCast(instances.size()))
-        .up(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Up)).count()))
-        .down(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Down)).count()))
-        .unknown(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Unknown)).count()))
-        .outOfService(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.OutOfService)).count()))
-        .starting(Ints.checkedCast(instances.stream().filter(i -> i.getHealthState().equals(HealthState.Starting)).count()))
+        .up(
+            Ints.checkedCast(
+                instances.stream().filter(i -> i.getHealthState().equals(HealthState.Up)).count()))
+        .down(
+            Ints.checkedCast(
+                instances.stream()
+                    .filter(i -> i.getHealthState().equals(HealthState.Down))
+                    .count()))
+        .unknown(
+            Ints.checkedCast(
+                instances.stream()
+                    .filter(i -> i.getHealthState().equals(HealthState.Unknown))
+                    .count()))
+        .outOfService(
+            Ints.checkedCast(
+                instances.stream()
+                    .filter(i -> i.getHealthState().equals(HealthState.OutOfService))
+                    .count()))
+        .starting(
+            Ints.checkedCast(
+                instances.stream()
+                    .filter(i -> i.getHealthState().equals(HealthState.Starting))
+                    .count()))
         .build();
   }
 
   public Map<String, Object> getBuildInfo() {
     return new ImmutableMap.Builder<String, Object>()
-        .put("images", dockerImageReplacer.findAll(getManifest())
-            .stream()
-            .map(Artifact::getReference)
-            .collect(Collectors.toSet()))
+        .put(
+            "images",
+            dockerImageReplacer.findAll(getManifest()).stream()
+                .map(Artifact::getReference)
+                .collect(Collectors.toSet()))
         .build();
   }
 
@@ -104,7 +121,13 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers, List<ServerGroupManagerSummary> serverGroupManagers, Boolean disabled) {
+  protected KubernetesV2ServerGroup(
+      KubernetesManifest manifest,
+      String key,
+      List<KubernetesV2Instance> instances,
+      Set<String> loadBalancers,
+      List<ServerGroupManagerSummary> serverGroupManagers,
+      Boolean disabled) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.instances = new HashSet<>(instances);
@@ -112,9 +135,9 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     this.serverGroupManagers = serverGroupManagers;
     this.disabled = disabled;
 
-    Object odesired = ((Map<String, Object>) manifest
-        .getOrDefault("spec", new HashMap<String, Object>()))
-        .getOrDefault("replicas", 0);
+    Object odesired =
+        ((Map<String, Object>) manifest.getOrDefault("spec", new HashMap<String, Object>()))
+            .getOrDefault("replicas", 0);
     Integer desired = 0;
 
     if (odesired instanceof Number) {
@@ -123,12 +146,14 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       log.warn("Unable to cast replica count from unexpected type: {}", odesired.getClass());
     }
 
-    this.capacity = Capacity.builder()
-        .desired(desired)
-        .build();
+    this.capacity = Capacity.builder().desired(desired).build();
   }
 
-  private static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData, List<CacheData> loadBalancerData, List<Keys.InfrastructureCacheKey> serverGroupManagerKeys) {
+  private static KubernetesV2ServerGroup fromCacheData(
+      CacheData cd,
+      List<CacheData> instanceData,
+      List<CacheData> loadBalancerData,
+      List<Keys.InfrastructureCacheKey> serverGroupManagerKeys) {
     if (cd == null) {
       return null;
     }
@@ -141,13 +166,16 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       serverGroupManagerKeys = new ArrayList<>();
     }
 
-    List<ServerGroupManagerSummary> serverGroupManagers = serverGroupManagerKeys.stream()
-        .map(k -> ServerGroupManagerSummary.builder()
-            .account(k.getAccount())
-            .location(k.getNamespace())
-            .name(k.getName())
-            .build()
-        ).collect(Collectors.toList());
+    List<ServerGroupManagerSummary> serverGroupManagers =
+        serverGroupManagerKeys.stream()
+            .map(
+                k ->
+                    ServerGroupManagerSummary.builder()
+                        .account(k.getAccount())
+                        .location(k.getNamespace())
+                        .name(k.getName())
+                        .build())
+            .collect(Collectors.toList());
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cd);
 
@@ -156,35 +184,47 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       return null;
     }
 
-    List<KubernetesV2Instance> instances = instanceData.stream()
-        .map(KubernetesV2Instance::fromCacheData)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
+    List<KubernetesV2Instance> instances =
+        instanceData.stream()
+            .map(KubernetesV2Instance::fromCacheData)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
     KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
-    Set<String> explicitLoadBalancers = traffic.getLoadBalancers().stream()
-        .map(KubernetesManifest::fromFullResourceName)
-        .map(p -> KubernetesManifest.getFullResourceName(p.getLeft(), p.getRight())) // this ensures the names are serialized correctly when the get merged below
-        .collect(Collectors.toSet());
+    Set<String> explicitLoadBalancers =
+        traffic.getLoadBalancers().stream()
+            .map(KubernetesManifest::fromFullResourceName)
+            .map(
+                p ->
+                    KubernetesManifest.getFullResourceName(
+                        p.getLeft(),
+                        p.getRight())) // this ensures the names are serialized correctly when
+            // the get merged below
+            .collect(Collectors.toSet());
 
-    Set<String> loadBalancers = loadBalancerData.stream()
-        .map(CacheData::getId)
-        .map(Keys::parseKey)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(k -> (Keys.InfrastructureCacheKey) k)
-        .map(k -> KubernetesManifest.getFullResourceName(k.getKubernetesKind(), k.getName()))
-        .collect(Collectors.toSet());
+    Set<String> loadBalancers =
+        loadBalancerData.stream()
+            .map(CacheData::getId)
+            .map(Keys::parseKey)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(k -> (Keys.InfrastructureCacheKey) k)
+            .map(k -> KubernetesManifest.getFullResourceName(k.getKubernetesKind(), k.getName()))
+            .collect(Collectors.toSet());
 
     Boolean disabled = loadBalancers.isEmpty() && !explicitLoadBalancers.isEmpty();
     loadBalancers.addAll(explicitLoadBalancers);
 
-    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers, serverGroupManagers, disabled);
+    return new KubernetesV2ServerGroup(
+        manifest, cd.getId(), instances, loadBalancers, serverGroupManagers, disabled);
   }
 
   public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {
-    return fromCacheData(cacheData.getServerGroupData(), cacheData.getInstanceData(), cacheData.getLoadBalancerData(), cacheData.getServerGroupManagerKeys());
+    return fromCacheData(
+        cacheData.getServerGroupData(),
+        cacheData.getInstanceData(),
+        cacheData.getLoadBalancerData(),
+        cacheData.getServerGroupManagerKeys());
   }
 
   public ServerGroupSummary toServerGroupSummary() {
@@ -198,16 +238,17 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
 
   public LoadBalancerServerGroup toLoadBalancerServerGroup() {
     return LoadBalancerServerGroup.builder()
-      .account(getAccount())
-      .detachedInstances(new HashSet<>())
-      .instances(instances.stream()
-          .map(i -> ((KubernetesV2Instance) i).toLoadBalancerInstance())
-          .collect(Collectors.toSet()))
-      .name(getName())
-      .region(getRegion())
-      .isDisabled(isDisabled())
-      .cloudProvider(KubernetesCloudProvider.getID())
-      .build();
+        .account(getAccount())
+        .detachedInstances(new HashSet<>())
+        .instances(
+            instances.stream()
+                .map(i -> ((KubernetesV2Instance) i).toLoadBalancerInstance())
+                .collect(Collectors.toSet()))
+        .name(getName())
+        .region(getRegion())
+        .isDisabled(isDisabled())
+        .cloudProvider(KubernetesCloudProvider.getID())
+        .build();
   }
 
   @Override
@@ -218,36 +259,35 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       @Override
       public List<? extends ImageSummary> getSummaries() {
         return singletonList(
-          new ImageSummary() {
+            new ImageSummary() {
 
-            @Override
-            public String getServerGroupName() {
-              return getManifest().getName();
-            }
+              @Override
+              public String getServerGroupName() {
+                return getManifest().getName();
+              }
 
-            @Override
-            public String getImageId() {
-              return null;
-            }
+              @Override
+              public String getImageId() {
+                return null;
+              }
 
-            @Override
-            public String getImageName() {
-              return null;
-            }
+              @Override
+              public String getImageName() {
+                return null;
+              }
 
-            @Override
-            public Map<String, Object> getImage() {
-              return null;
-            }
+              @Override
+              public Map<String, Object> getImage() {
+                return null;
+              }
 
-            @Override
-            public Map<String, Object> getBuildInfo() {
-              return new ImmutableMap.Builder<String, Object>()
-                .put("images", new ArrayList<>(images))
-                .build();
-            }
-          }
-        );
+              @Override
+              public Map<String, Object> getBuildInfo() {
+                return new ImmutableMap.Builder<String, Object>()
+                    .put("images", new ArrayList<>(images))
+                    .build();
+              }
+            });
       }
     };
   }

@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-
 import java.util.List;
 
 public interface CanRollout {
   KubernetesKind kind();
 
-  default List<Integer> historyRollout(KubernetesV2Credentials credentials, String namespace, String name) {
+  default List<Integer> historyRollout(
+      KubernetesV2Credentials credentials, String namespace, String name) {
     return credentials.historyRollout(kind(), namespace, name);
   }
 }

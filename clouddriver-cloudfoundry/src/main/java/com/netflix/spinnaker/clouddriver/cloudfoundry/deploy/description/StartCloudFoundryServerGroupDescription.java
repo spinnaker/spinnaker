@@ -16,5 +16,5 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
-public class StartCloudFoundryServerGroupDescription extends AbstractCloudFoundryServerGroupDescription {
-}
+public class StartCloudFoundryServerGroupDescription
+    extends AbstractCloudFoundryServerGroupDescription {}

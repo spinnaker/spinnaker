@@ -16,41 +16,35 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.provider.view;
 
-import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.KubernetesV2JobStatus;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
-import com.netflix.spinnaker.clouddriver.model.JobState;
 import com.netflix.spinnaker.clouddriver.model.Manifest;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.models.V1Job;
-import lombok.Data;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Component
 public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatus> {
 
-  @Getter
-  private String platform = "kubernetes";
+  @Getter private String platform = "kubernetes";
   private AccountCredentialsProvider accountCredentialsProvider;
   private List<ManifestProvider> manifestProviderList;
 
-  KubernetesV2JobProvider(AccountCredentialsProvider accountCredentialsProvider, List<ManifestProvider> manifestProviderList) {
+  KubernetesV2JobProvider(
+      AccountCredentialsProvider accountCredentialsProvider,
+      List<ManifestProvider> manifestProviderList) {
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.manifestProviderList = manifestProviderList;
   }
@@ -61,14 +55,17 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     return jobStatus;
   }
 
-  public Map<String, Object> getFileContents(String account, String location, String id, String filename) {
-    KubernetesV2Credentials credentials = (KubernetesV2Credentials) accountCredentialsProvider.getCredentials(account).getCredentials();
+  public Map<String, Object> getFileContents(
+      String account, String location, String id, String filename) {
+    KubernetesV2Credentials credentials =
+        (KubernetesV2Credentials)
+            accountCredentialsProvider.getCredentials(account).getCredentials();
     Map props = null;
     try {
       V1Job job = getKubernetesJob(account, location, id);
       String logContents = credentials.jobLogs(location, job.getMetadata().getName());
       props = PropertyParser.extractPropertiesFromLog(logContents);
-    } catch(Exception e) {
+    } catch (Exception e) {
       log.error("Couldn't parse properties for account {} at {}", account, location);
     }
 
@@ -76,25 +73,27 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   }
 
   public void cancelJob(String account, String location, String id) {
-    throw new NotImplementedException("cancelJob is not implemented for the V2 Kubrenetes provider");
+    throw new NotImplementedException(
+        "cancelJob is not implemented for the V2 Kubrenetes provider");
   }
 
-
   private V1Job getKubernetesJob(String account, String location, String id) {
-    KubernetesV2Credentials credentials = (KubernetesV2Credentials) accountCredentialsProvider.getCredentials(account).getCredentials();
+    KubernetesV2Credentials credentials =
+        (KubernetesV2Credentials)
+            accountCredentialsProvider.getCredentials(account).getCredentials();
 
-    List<Manifest> manifests = manifestProviderList.stream()
-      .map(p -> p.getManifest(account, location, id))
-      .filter( m -> m != null)
-      .collect(Collectors.toList());
+    List<Manifest> manifests =
+        manifestProviderList.stream()
+            .map(p -> p.getManifest(account, location, id))
+            .filter(m -> m != null)
+            .collect(Collectors.toList());
 
     if (manifests.isEmpty()) {
-      throw new IllegalStateException("Could not find Kubernetes manifest " + id + " in namespace " + location);
+      throw new IllegalStateException(
+          "Could not find Kubernetes manifest " + id + " in namespace " + location);
     }
 
     KubernetesManifest jobManifest = ((KubernetesV2Manifest) manifests.get(0)).getManifest();
     return KubernetesCacheDataConverter.getResource(jobManifest, V1Job.class);
   }
-
-
 }

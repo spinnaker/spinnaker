@@ -24,5 +24,4 @@ public class UpsertJobDisruptionBudgetDescription extends AbstractTitusCredentia
   String jobId;
   String region;
   DisruptionBudget disruptionBudget;
-
 }

@@ -19,13 +19,11 @@ package com.netflix.spinnaker.clouddriver.aws.event;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksRequest;
-import com.amazonaws.services.autoscaling.model.DescribeLifecycleHooksResult;
 import com.amazonaws.services.autoscaling.model.LifecycleHook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,58 +44,58 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
       return;
     }
 
-    if (!autoScalingGroup.getLoadBalancerNames().isEmpty() || !autoScalingGroup.getTargetGroupARNs().isEmpty()) {
-      event.getTask().updateStatus(
-        PHASE,
-        "Skipping explicit instance termination, server group is attached to one or more load balancers"
-      );
+    if (!autoScalingGroup.getLoadBalancerNames().isEmpty()
+        || !autoScalingGroup.getTargetGroupARNs().isEmpty()) {
+      event
+          .getTask()
+          .updateStatus(
+              PHASE,
+              "Skipping explicit instance termination, server group is attached to one or more load balancers");
       return;
     }
 
     try {
-      List<LifecycleHook> existingLifecycleHooks = fetchTerminatingLifecycleHooks(
-        event.getAmazonAutoScaling(),
-        autoScalingGroup.getAutoScalingGroupName()
-      );
+      List<LifecycleHook> existingLifecycleHooks =
+          fetchTerminatingLifecycleHooks(
+              event.getAmazonAutoScaling(), autoScalingGroup.getAutoScalingGroupName());
       if (!existingLifecycleHooks.isEmpty()) {
-        event.getTask().updateStatus(
-          PHASE,
-          "Skipping explicit instance termination, server group has one or more lifecycle hooks"
-        );
+        event
+            .getTask()
+            .updateStatus(
+                PHASE,
+                "Skipping explicit instance termination, server group has one or more lifecycle hooks");
         return;
       }
     } catch (Exception e) {
       log.error(
-        "Unable to fetch lifecycle hooks (serverGroupName: {}, arn: {})",
-        autoScalingGroup.getAutoScalingGroupName(),
-        autoScalingGroup.getAutoScalingGroupARN(),
-        e
-      );
+          "Unable to fetch lifecycle hooks (serverGroupName: {}, arn: {})",
+          autoScalingGroup.getAutoScalingGroupName(),
+          autoScalingGroup.getAutoScalingGroupARN(),
+          e);
 
-      event.getTask().updateStatus(
-        PHASE,
-        String.format(
-          "Skipping explicit instance termination, unable to fetch lifecycle hooks (reason: '%s')",
-          e.getMessage()
-        )
-      );
+      event
+          .getTask()
+          .updateStatus(
+              PHASE,
+              String.format(
+                  "Skipping explicit instance termination, unable to fetch lifecycle hooks (reason: '%s')",
+                  e.getMessage()));
       return;
     }
 
     terminateInstancesInAutoScalingGroup(
-      event.getTask(), event.getAmazonEC2(), event.getAutoScalingGroup()
-    );
+        event.getTask(), event.getAmazonEC2(), event.getAutoScalingGroup());
   }
 
-  private static List<LifecycleHook> fetchTerminatingLifecycleHooks(AmazonAutoScaling amazonAutoScaling,
-                                                                    String serverGroupName) {
-    DescribeLifecycleHooksRequest request = new DescribeLifecycleHooksRequest()
-      .withAutoScalingGroupName(serverGroupName);
+  private static List<LifecycleHook> fetchTerminatingLifecycleHooks(
+      AmazonAutoScaling amazonAutoScaling, String serverGroupName) {
+    DescribeLifecycleHooksRequest request =
+        new DescribeLifecycleHooksRequest().withAutoScalingGroupName(serverGroupName);
 
-    return amazonAutoScaling.describeLifecycleHooks(request)
-      .getLifecycleHooks()
-      .stream()
-      .filter(h -> "autoscaling:EC2_INSTANCE_TERMINATING".equalsIgnoreCase(h.getLifecycleTransition()))
-      .collect(Collectors.toList());
+    return amazonAutoScaling.describeLifecycleHooks(request).getLifecycleHooks().stream()
+        .filter(
+            h ->
+                "autoscaling:EC2_INSTANCE_TERMINATING".equalsIgnoreCase(h.getLifecycleTransition()))
+        .collect(Collectors.toList());
   }
 }

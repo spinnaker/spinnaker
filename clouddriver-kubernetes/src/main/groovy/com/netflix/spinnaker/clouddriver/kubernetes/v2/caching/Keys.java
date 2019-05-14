@@ -17,27 +17,26 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Keys {
   /**
-   * Keys are split into "logical" and "infrastructure" kinds. "logical" keys
-   * are for spinnaker groupings that exist by naming/moniker convention, whereas
-   * "infrastructure" keys correspond to real resources (e.g. replica set, service, ...).
+   * Keys are split into "logical" and "infrastructure" kinds. "logical" keys are for spinnaker
+   * groupings that exist by naming/moniker convention, whereas "infrastructure" keys correspond to
+   * real resources (e.g. replica set, service, ...).
    */
   public enum Kind {
     LOGICAL,
@@ -55,7 +54,8 @@ public class Keys {
       return Arrays.stream(values())
           .filter(k -> k.toString().equalsIgnoreCase(name))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
+          .orElseThrow(
+              () -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
     }
   }
 
@@ -82,17 +82,19 @@ public class Keys {
       return Arrays.stream(values())
           .filter(k -> k.toString().equalsIgnoreCase(name))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
+          .orElseThrow(
+              () -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
     }
   }
 
   private static final String provider = "kubernetes.v2";
 
   private static String createKey(Object... elems) {
-    List<String> components = Arrays.stream(elems)
-        .map(s -> s == null ? "" : s.toString())
-        .map(s -> s.replaceAll(":", ";"))
-        .collect(Collectors.toList());
+    List<String> components =
+        Arrays.stream(elems)
+            .map(s -> s == null ? "" : s.toString())
+            .map(s -> s.replaceAll(":", ";"))
+            .collect(Collectors.toList());
     components.add(0, provider);
     return String.join(":", components);
   }
@@ -109,7 +111,8 @@ public class Keys {
     return createKey(Kind.LOGICAL, LogicalKind.CLUSTERS, account, application, name);
   }
 
-  public static String infrastructure(KubernetesKind kind, String account, String namespace, String name) {
+  public static String infrastructure(
+      KubernetesKind kind, String account, String namespace, String name) {
     return createKey(Kind.INFRASTRUCTURE, kind, account, namespace, name);
   }
 
@@ -147,13 +150,17 @@ public class Keys {
           throw new IllegalArgumentException("Unknown kind " + kind);
       }
     } catch (IllegalArgumentException e) {
-      log.warn("Kubernetes owned kind with unknown key structure '{}': {} (perhaps try flushing all clouddriver:* redis keys)", key, parts, e);
+      log.warn(
+          "Kubernetes owned kind with unknown key structure '{}': {} (perhaps try flushing all clouddriver:* redis keys)",
+          key,
+          parts,
+          e);
       return Optional.empty();
     }
   }
 
   private static CacheKey parseLogicalKey(String[] parts) {
-    assert(parts.length >= 3);
+    assert (parts.length >= 3);
 
     LogicalKind logicalKind = LogicalKind.fromString(parts[2]);
 
@@ -168,18 +175,21 @@ public class Keys {
   }
 
   @Data
-  public static abstract class CacheKey {
+  public abstract static class CacheKey {
     private Kind kind;
     private String provider = KubernetesCloudProvider.getID();
     private String type;
+
     public abstract String getGroup();
+
     public abstract String getName();
   }
 
   @EqualsAndHashCode(callSuper = true)
   @Data
-  public static abstract class LogicalKey extends CacheKey {
+  public abstract static class LogicalKey extends CacheKey {
     private Kind kind = Kind.LOGICAL;
+
     public abstract LogicalKind getLogicalKind();
   }
 
@@ -279,7 +289,8 @@ public class Keys {
 
     public InfrastructureCacheKey(String[] parts) {
       if (parts.length != 6) {
-        throw new IllegalArgumentException("Malformed infrastructure key " + Arrays.toString(parts));
+        throw new IllegalArgumentException(
+            "Malformed infrastructure key " + Arrays.toString(parts));
       }
 
       kubernetesKind = KubernetesKind.fromString(parts[2]);

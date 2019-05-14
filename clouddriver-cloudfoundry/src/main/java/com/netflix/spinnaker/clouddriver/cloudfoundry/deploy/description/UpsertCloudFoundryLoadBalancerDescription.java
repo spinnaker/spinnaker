@@ -23,7 +23,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class UpsertCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryLoadBalancerDescription {
+public class UpsertCloudFoundryLoadBalancerDescription
+    extends AbstractCloudFoundryLoadBalancerDescription {
   private String host;
   private String path;
   private int port;

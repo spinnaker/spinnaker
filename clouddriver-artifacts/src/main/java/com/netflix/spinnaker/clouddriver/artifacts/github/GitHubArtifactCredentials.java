@@ -27,26 +27,24 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.ResponseBody;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
 @Slf4j
-public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount> implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("github/file");
+public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount>
+    implements ArtifactCredentials {
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("github/file");
 
-  @JsonIgnore
-  private final ObjectMapper objectMapper;
+  @JsonIgnore private final ObjectMapper objectMapper;
 
-  GitHubArtifactCredentials(GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+  GitHubArtifactCredentials(
+      GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
     super(okHttpClient, account);
     this.name = account.getName();
     this.objectMapper = objectMapper;
@@ -59,10 +57,7 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
       version = "master";
     }
 
-    return parseUrl(artifact.getReference())
-      .newBuilder()
-      .addQueryParameter("ref", version)
-      .build();
+    return parseUrl(artifact.getReference()).newBuilder().addQueryParameter("ref", version).build();
   }
 
   @Override
@@ -71,12 +66,17 @@ public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<Git
     try {
       metadataResponse = fetchUrl(getMetadataUrl(artifact));
     } catch (IOException e) {
-      throw new FailedDownloadException("Unable to determine the download URL of artifact " + artifact + ": " + e.getMessage(), e);
+      throw new FailedDownloadException(
+          "Unable to determine the download URL of artifact " + artifact + ": " + e.getMessage(),
+          e);
     }
 
-    ContentMetadata metadata = objectMapper.readValue(metadataResponse.string(), ContentMetadata.class);
+    ContentMetadata metadata =
+        objectMapper.readValue(metadataResponse.string(), ContentMetadata.class);
     if (StringUtils.isEmpty(metadata.downloadUrl)) {
-      throw new FailedDownloadException("Failed to retrieve your github artifact's download URL. This is likely due to incorrect auth setup. Artifact: " + artifact);
+      throw new FailedDownloadException(
+          "Failed to retrieve your github artifact's download URL. This is likely due to incorrect auth setup. Artifact: "
+              + artifact);
     }
     return parseUrl(metadata.getDownloadUrl());
   }

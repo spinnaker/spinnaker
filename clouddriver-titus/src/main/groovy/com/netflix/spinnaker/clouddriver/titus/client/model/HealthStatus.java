@@ -17,5 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public enum HealthStatus {
-  HEALTHY, UNHEALTHY
+  HEALTHY,
+  UNHEALTHY
 }

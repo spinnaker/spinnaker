@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.cats.cache;
 
-/**
- * Produces writeable caches by name.
- */
+/** Produces writeable caches by name. */
 public interface NamedCacheFactory {
-    WriteableCache getCache(String name);
+  WriteableCache getCache(String name);
 }

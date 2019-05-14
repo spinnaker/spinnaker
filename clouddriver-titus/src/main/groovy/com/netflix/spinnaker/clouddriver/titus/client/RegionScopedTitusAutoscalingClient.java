@@ -20,57 +20,63 @@ import com.google.protobuf.Empty;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.titus.grpc.protogen.*;
-
 import java.util.List;
 
 public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClient {
 
-  /**
-   * Default connect timeout in milliseconds
-   */
+  /** Default connect timeout in milliseconds */
   private static final long DEFAULT_CONNECT_TIMEOUT = 60000;
 
-  private final AutoScalingServiceGrpc.AutoScalingServiceBlockingStub autoScalingServiceBlockingStub;
+  private final AutoScalingServiceGrpc.AutoScalingServiceBlockingStub
+      autoScalingServiceBlockingStub;
 
-  public RegionScopedTitusAutoscalingClient(TitusRegion titusRegion,
-                                            Registry registry,
-                                            String environment,
-                                            String eurekaName,
-                                            GrpcChannelFactory channelFactory) {
-    this.autoScalingServiceBlockingStub = AutoScalingServiceGrpc.newBlockingStub(channelFactory.build(titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
+  public RegionScopedTitusAutoscalingClient(
+      TitusRegion titusRegion,
+      Registry registry,
+      String environment,
+      String eurekaName,
+      GrpcChannelFactory channelFactory) {
+    this.autoScalingServiceBlockingStub =
+        AutoScalingServiceGrpc.newBlockingStub(
+            channelFactory.build(
+                titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
   }
 
   @Override
   public List<ScalingPolicyResult> getAllScalingPolicies() {
-    return autoScalingServiceBlockingStub.getAllScalingPolicies(Empty.newBuilder().build()).getItemsList();
+    return autoScalingServiceBlockingStub
+        .getAllScalingPolicies(Empty.newBuilder().build())
+        .getItemsList();
   }
 
   @Override
   public List<ScalingPolicyResult> getJobScalingPolicies(String jobId) {
     JobId request = JobId.newBuilder().setId(jobId).build();
-    return autoScalingServiceBlockingStub
-      .getJobScalingPolicies(request).getItemsList();
+    return autoScalingServiceBlockingStub.getJobScalingPolicies(request).getItemsList();
   }
 
   @Override
   public ScalingPolicyResult getScalingPolicy(String policyId) {
-    return autoScalingServiceBlockingStub.getScalingPolicy(ScalingPolicyID.newBuilder().setId(policyId).build()).getItems(0);
+    return autoScalingServiceBlockingStub
+        .getScalingPolicy(ScalingPolicyID.newBuilder().setId(policyId).build())
+        .getItems(0);
   }
 
   @Override
   public ScalingPolicyID createScalingPolicy(PutPolicyRequest policy) {
     return TitusClientAuthenticationUtil.attachCaller(autoScalingServiceBlockingStub)
-      .setAutoScalingPolicy(policy);
+        .setAutoScalingPolicy(policy);
   }
 
   @Override
   public void updateScalingPolicy(UpdatePolicyRequest policy) {
-    TitusClientAuthenticationUtil.attachCaller(autoScalingServiceBlockingStub).updateAutoScalingPolicy(policy);
+    TitusClientAuthenticationUtil.attachCaller(autoScalingServiceBlockingStub)
+        .updateAutoScalingPolicy(policy);
   }
 
   @Override
   public void deleteScalingPolicy(DeletePolicyRequest request) {
-    TitusClientAuthenticationUtil.attachCaller(autoScalingServiceBlockingStub).deleteAutoScalingPolicy(request);
+    TitusClientAuthenticationUtil.attachCaller(autoScalingServiceBlockingStub)
+        .deleteAutoScalingPolicy(request);
   }
-
 }

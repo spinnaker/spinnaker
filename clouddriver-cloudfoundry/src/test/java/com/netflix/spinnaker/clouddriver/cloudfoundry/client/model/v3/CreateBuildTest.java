@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class CreateBuildTest {
   @Test
   void serialize() throws JsonProcessingException {
     assertThat(new ObjectMapper().writeValueAsString(new CreateBuild("123")))
-      .isEqualTo("{\"package\":{\"guid\":\"123\"}}");
+        .isEqualTo("{\"package\":{\"guid\":\"123\"}}");
   }
 }

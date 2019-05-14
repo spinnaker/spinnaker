@@ -23,19 +23,18 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.Map;
 
 public abstract class KubernetesArtifactConverter {
-  abstract public Artifact toArtifact(ArtifactProvider artifactProvider, KubernetesManifest manifest, String account);
-  abstract public KubernetesCoordinates toCoordinates(Artifact artifact);
-  abstract public String getDeployedName(Artifact artifact);
+  public abstract Artifact toArtifact(
+      ArtifactProvider artifactProvider, KubernetesManifest manifest, String account);
+
+  public abstract KubernetesCoordinates toCoordinates(Artifact artifact);
+
+  public abstract String getDeployedName(Artifact artifact);
 
   protected String getType(KubernetesManifest manifest) {
-    return String.join("/",
-        KubernetesCloudProvider.getID(),
-        manifest.getKind().toString()
-    );
+    return String.join("/", KubernetesCloudProvider.getID(), manifest.getKind().toString());
   }
 
   protected KubernetesKind getKind(Artifact artifact) {

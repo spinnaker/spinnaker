@@ -16,22 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
-import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * A DeployHandler takes a parameterized description object and performs some deployment operation based off of its
- * detail. These objects may most often be derived from a {@link DeployHandlerRegistry} implementation.
+ * A DeployHandler takes a parameterized description object and performs some deployment operation
+ * based off of its detail. These objects may most often be derived from a {@link
+ * DeployHandlerRegistry} implementation.
  *
- * @param <T>      the type of the {@link DeployDescription}
+ * @param <T> the type of the {@link DeployDescription}
  * @see DeployDescription
- *
  */
 public interface DeployHandler<T> {
   /**
-   * A method that performs the deployment action described by the description object and returns its results as an
-   * implementation of {@link DeploymentResult}
+   * A method that performs the deployment action described by the description object and returns
+   * its results as an implementation of {@link DeploymentResult}
    *
    * @param description
    * @param priorOutputs from prior operations

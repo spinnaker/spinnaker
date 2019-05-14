@@ -18,10 +18,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.SecretCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Secret;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 public class EcsSecretProvider {
@@ -36,5 +35,4 @@ public class EcsSecretProvider {
   public Collection<Secret> getAllSecrets() {
     return secretCacheClient.getAll();
   }
-
 }

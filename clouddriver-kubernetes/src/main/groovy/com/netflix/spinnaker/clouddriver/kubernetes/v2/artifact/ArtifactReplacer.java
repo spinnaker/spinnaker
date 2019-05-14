@@ -30,14 +30,6 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,14 +42,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public class ArtifactReplacer {
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final Configuration configuration = Configuration.builder()
-      .jsonProvider(new JacksonJsonNodeJsonProvider())
-      .mappingProvider(new JacksonMappingProvider())
-      .build();
+  private static final Configuration configuration =
+      Configuration.builder()
+          .jsonProvider(new JacksonJsonNodeJsonProvider())
+          .mappingProvider(new JacksonMappingProvider())
+          .build();
 
   List<Replacer> replacers = new ArrayList<>();
 
@@ -66,42 +66,49 @@ public class ArtifactReplacer {
     return this;
   }
 
-  private static List<Artifact> filterKubernetesArtifactsByNamespaceAndAccount(String namespace, String account, List<Artifact> artifacts) {
+  private static List<Artifact> filterKubernetesArtifactsByNamespaceAndAccount(
+      String namespace, String account, List<Artifact> artifacts) {
     return artifacts.stream()
-        // Keep artifacts that either aren't k8s, or are in the same namespace and account as our manifest
-        .filter(a -> {
-          String type = a.getType();
-          if (StringUtils.isEmpty(type)) {
-            log.warn("Artifact {} without a type, ignoring", a);
-            return false;
-          }
+        // Keep artifacts that either aren't k8s, or are in the same namespace and account as our
+        // manifest
+        .filter(
+            a -> {
+              String type = a.getType();
+              if (StringUtils.isEmpty(type)) {
+                log.warn("Artifact {} without a type, ignoring", a);
+                return false;
+              }
 
-          if (!type.startsWith("kubernetes/")) {
-            return true;
-          }
+              if (!type.startsWith("kubernetes/")) {
+                return true;
+              }
 
-          boolean locationMatches;
-          String location = a.getLocation();
-          if (StringUtils.isEmpty(location)) {
-            locationMatches = StringUtils.isEmpty(namespace);
-          } else {
-            locationMatches = location.equals(namespace);
-          }
+              boolean locationMatches;
+              String location = a.getLocation();
+              if (StringUtils.isEmpty(location)) {
+                locationMatches = StringUtils.isEmpty(namespace);
+              } else {
+                locationMatches = location.equals(namespace);
+              }
 
-          boolean accountMatches;
-          String artifactAccount = KubernetesArtifactConverter.getAccount(a);
-          // If the artifact fails to provide an account, we'll assume this was unintentional and match anyways
-          accountMatches = StringUtils.isEmpty(artifactAccount) || artifactAccount.equals(account);
+              boolean accountMatches;
+              String artifactAccount = KubernetesArtifactConverter.getAccount(a);
+              // If the artifact fails to provide an account, we'll assume this was unintentional
+              // and match anyways
+              accountMatches =
+                  StringUtils.isEmpty(artifactAccount) || artifactAccount.equals(account);
 
-          return accountMatches && locationMatches;
-        })
+              return accountMatches && locationMatches;
+            })
         .collect(Collectors.toList());
   }
 
-  public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts, String namespace, String account) {
+  public ReplaceResult replaceAll(
+      KubernetesManifest input, List<Artifact> artifacts, String namespace, String account) {
     log.debug("Doing replacement on {} using {}", input, artifacts);
     // final to use in below lambda
-    final List<Artifact> finalArtifacts = filterKubernetesArtifactsByNamespaceAndAccount(namespace, account, artifacts);
+    final List<Artifact> finalArtifacts =
+        filterKubernetesArtifactsByNamespaceAndAccount(namespace, account, artifacts);
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
@@ -110,12 +117,15 @@ public class ArtifactReplacer {
       throw new RuntimeException(e);
     }
 
-    Set<Artifact> replacedArtifacts = replacers.stream()
-        .map(r -> finalArtifacts.stream()
-            .filter(a -> r.replaceIfPossible(document, a))
-            .collect(Collectors.toSet()))
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
+    Set<Artifact> replacedArtifacts =
+        replacers.stream()
+            .map(
+                r ->
+                    finalArtifacts.stream()
+                        .filter(a -> r.replaceIfPossible(document, a))
+                        .collect(Collectors.toSet()))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
 
     try {
       return ReplaceResult.builder()
@@ -137,31 +147,40 @@ public class ArtifactReplacer {
     }
 
     return replacers.stream()
-        .map(r -> {
+        .map(
+            r -> {
               try {
-                return ((List<String>) mapper.convertValue(r.findAll(document), new TypeReference<List<String>>() { }))
+                return ((List<String>)
+                        mapper.convertValue(
+                            r.findAll(document), new TypeReference<List<String>>() {}))
                     .stream()
-                    .map(s -> {
-                          String nameFromReference = r.getNameFromReference(s);
-                          String name = nameFromReference == null ? s : nameFromReference;
-                          if (r.namePattern == null || nameFromReference != null) {
-                            return Artifact.builder()
-                              .type(r.getType().getType())
-                              .reference(s)
-                              .name(name)
-                              .build();
-                          } else {
-                            return null;
-                          }
-                        }
-                    ).filter(Objects::nonNull);
+                        .map(
+                            s -> {
+                              String nameFromReference = r.getNameFromReference(s);
+                              String name = nameFromReference == null ? s : nameFromReference;
+                              if (r.namePattern == null || nameFromReference != null) {
+                                return Artifact.builder()
+                                    .type(r.getType().getType())
+                                    .reference(s)
+                                    .name(name)
+                                    .build();
+                              } else {
+                                return null;
+                              }
+                            })
+                        .filter(Objects::nonNull);
               } catch (Exception e) {
-                // This happens when a manifest isn't fully defined (e.g. not all properties are there)
-                log.debug("Failure converting artifacts for {} using {} (skipping)", input.getFullResourceName(), r, e);
-                return Stream.<Artifact> empty();
+                // This happens when a manifest isn't fully defined (e.g. not all properties are
+                // there)
+                log.debug(
+                    "Failure converting artifacts for {} using {} (skipping)",
+                    input.getFullResourceName(),
+                    r,
+                    e);
+                return Stream.<Artifact>empty();
               }
-            }
-        ).flatMap(x -> x)
+            })
+        .flatMap(x -> x)
         .collect(Collectors.toSet());
   }
 
@@ -174,8 +193,7 @@ public class ArtifactReplacer {
     private final Pattern namePattern; // the first group should be the artifact name
     private final Function<String, String> nameFromReference;
 
-    @Getter
-    private final KubernetesArtifactType type;
+    @Getter private final KubernetesArtifactType type;
 
     private static String substituteField(String result, String fieldName, String field) {
       field = field == null ? "" : field;
@@ -191,7 +209,7 @@ public class ArtifactReplacer {
     }
 
     ArrayNode findAll(DocumentContext obj) {
-       return obj.read(findPath);
+      return obj.read(findPath);
     }
 
     String getNameFromReference(String reference) {

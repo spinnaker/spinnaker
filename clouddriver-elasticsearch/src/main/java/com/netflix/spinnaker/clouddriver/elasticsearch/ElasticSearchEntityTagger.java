@@ -28,10 +28,9 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntity
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class ElasticSearchEntityTagger implements EntityTagger {
   private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityTagger.class);
@@ -47,175 +46,195 @@ public class ElasticSearchEntityTagger implements EntityTagger {
   private final UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter;
   private final DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter;
 
-  public ElasticSearchEntityTagger(ElasticSearchEntityTagsProvider entityTagsProvider,
-                                   UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter,
-                                   DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter) {
+  public ElasticSearchEntityTagger(
+      ElasticSearchEntityTagsProvider entityTagsProvider,
+      UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter,
+      DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter) {
     this.entityTagsProvider = entityTagsProvider;
     this.upsertEntityTagsAtomicOperationConverter = upsertEntityTagsAtomicOperationConverter;
     this.deleteEntityTagsAtomicOperationConverter = deleteEntityTagsAtomicOperationConverter;
   }
 
   @Override
-  public void alert(String cloudProvider,
-                    String accountId,
-                    String region,
-                    String category,
-                    String entityType,
-                    String entityId,
-                    String key,
-                    String value,
-                    Long timestamp) {
+  public void alert(
+      String cloudProvider,
+      String accountId,
+      String region,
+      String category,
+      String entityType,
+      String entityId,
+      String key,
+      String value,
+      Long timestamp) {
     upsertEntityTags(
-      ALERT_TYPE, ALERT_KEY_PREFIX,
-      cloudProvider,
-      accountId,
-      region,
-      category,
-      entityType,
-      entityId,
-      key,
-      value,
-      timestamp
-    );
+        ALERT_TYPE,
+        ALERT_KEY_PREFIX,
+        cloudProvider,
+        accountId,
+        region,
+        category,
+        entityType,
+        entityId,
+        key,
+        value,
+        timestamp);
   }
 
   @Override
-  public void notice(String cloudProvider,
-                     String accountId,
-                     String region,
-                     String category,
-                     String entityType,
-                     String entityId,
-                     String key,
-                     String value,
-                     Long timestamp) {
+  public void notice(
+      String cloudProvider,
+      String accountId,
+      String region,
+      String category,
+      String entityType,
+      String entityId,
+      String key,
+      String value,
+      Long timestamp) {
     upsertEntityTags(
-      NOTICE_TYPE,
-      NOTICE_KEY_PREFIX,
-      cloudProvider,
-      accountId,
-      region,
-      category,
-      entityType,
-      entityId,
-      key,
-      value,
-      timestamp
-    );
+        NOTICE_TYPE,
+        NOTICE_KEY_PREFIX,
+        cloudProvider,
+        accountId,
+        region,
+        category,
+        entityType,
+        entityId,
+        key,
+        value,
+        timestamp);
   }
 
   @Override
-  public void tag(String cloudProvider,
-                  String accountId,
-                  String region,
-                  String namespace,
-                  String entityType,
-                  String entityId,
-                  String tagName,
-                  Object value,
-                  Long timestamp) {
+  public void tag(
+      String cloudProvider,
+      String accountId,
+      String region,
+      String namespace,
+      String entityType,
+      String entityId,
+      String tagName,
+      Object value,
+      Long timestamp) {
     upsertEntityTags(
-      tagName,
-      cloudProvider,
-      accountId,
-      region,
-      namespace,
-      entityType,
-      entityId,
-      value,
-      timestamp);
+        tagName,
+        cloudProvider,
+        accountId,
+        region,
+        namespace,
+        entityType,
+        entityId,
+        value,
+        timestamp);
   }
 
   @Override
-  public Collection<EntityTags> taggedEntities(String cloudProvider,
-                                               String accountId,
-                                               String entityType,
-                                               String tagName,
-                                               int maxResults) {
+  public Collection<EntityTags> taggedEntities(
+      String cloudProvider, String accountId, String entityType, String tagName, int maxResults) {
     return entityTagsProvider.getAll(
-      cloudProvider,
-      null,
-      entityType,
-      null,
-      null,
-      accountId,
-      null,
-      null,
-      Collections.singletonMap(tagName, "*"),
-      maxResults
-    );
+        cloudProvider,
+        null,
+        entityType,
+        null,
+        null,
+        accountId,
+        null,
+        null,
+        Collections.singletonMap(tagName, "*"),
+        maxResults);
   }
 
   @Override
-  public void deleteAll(String cloudProvider, String accountId, String region, String entityType, String entityId) {
-    DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
-      cloudProvider,
-      accountId,
-      region,
-      entityType,
-      entityId,
-      null
-    );
+  public void deleteAll(
+      String cloudProvider, String accountId, String region, String entityType, String entityId) {
+    DeleteEntityTagsDescription deleteEntityTagsDescription =
+        deleteEntityTagsDescription(cloudProvider, accountId, region, entityType, entityId, null);
     log.info("Removing all entity tags for '{}'", deleteEntityTagsDescription.getId());
 
     delete(deleteEntityTagsDescription);
   }
 
   @Override
-  public void delete(String cloudProvider,
-                     String accountId,
-                     String region,
-                     String entityType,
-                     String entityId,
-                     String tagName) {
-    DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
-      cloudProvider,
-      accountId,
-      region,
-      entityType,
-      entityId,
-      Collections.singletonList(tagName)
-    );
+  public void delete(
+      String cloudProvider,
+      String accountId,
+      String region,
+      String entityType,
+      String entityId,
+      String tagName) {
+    DeleteEntityTagsDescription deleteEntityTagsDescription =
+        deleteEntityTagsDescription(
+            cloudProvider,
+            accountId,
+            region,
+            entityType,
+            entityId,
+            Collections.singletonList(tagName));
     log.info("Removing '{}' for '{}'", tagName, deleteEntityTagsDescription.getId());
 
     delete(deleteEntityTagsDescription);
   }
 
   private void delete(DeleteEntityTagsDescription deleteEntityTagsDescription) {
-    AtomicOperation<?> operation = deleteEntityTagsAtomicOperationConverter.buildOperation(deleteEntityTagsDescription);
+    AtomicOperation<?> operation =
+        deleteEntityTagsAtomicOperationConverter.buildOperation(deleteEntityTagsDescription);
     operate(operation);
   }
 
-  private void upsertEntityTags(String type,
-                                String prefix,
-                                String cloudProvider,
-                                String accountId,
-                                String region,
-                                String category,
-                                String entityType,
-                                String entityId,
-                                String key,
-                                String value,
-                                Long timestamp) {
+  private void upsertEntityTags(
+      String type,
+      String prefix,
+      String cloudProvider,
+      String accountId,
+      String region,
+      String category,
+      String entityType,
+      String entityId,
+      String key,
+      String value,
+      Long timestamp) {
     upsertEntityTags(
-      upsertCategorizedEntityTagsDescription(type, prefix, cloudProvider, accountId, region, category, entityType, entityId, key, value, timestamp));
+        upsertCategorizedEntityTagsDescription(
+            type,
+            prefix,
+            cloudProvider,
+            accountId,
+            region,
+            category,
+            entityType,
+            entityId,
+            key,
+            value,
+            timestamp));
   }
 
-  private void upsertEntityTags(String name,
-                                String cloudProvider,
-                                String accountId,
-                                String region,
-                                String namespace,
-                                String entityType,
-                                String entityId,
-                                Object tagValue,
-                                Long timestamp) {
+  private void upsertEntityTags(
+      String name,
+      String cloudProvider,
+      String accountId,
+      String region,
+      String namespace,
+      String entityType,
+      String entityId,
+      Object tagValue,
+      Long timestamp) {
     upsertEntityTags(
-      upsertEntityTagsDescription(name, cloudProvider, accountId, region, namespace, null, entityType, entityId, tagValue, timestamp));
+        upsertEntityTagsDescription(
+            name,
+            cloudProvider,
+            accountId,
+            region,
+            namespace,
+            null,
+            entityType,
+            entityId,
+            tagValue,
+            timestamp));
   }
 
   private void upsertEntityTags(UpsertEntityTagsDescription description) {
-    AtomicOperation<?> operation = upsertEntityTagsAtomicOperationConverter.buildOperation(description);
+    AtomicOperation<?> operation =
+        upsertEntityTagsAtomicOperationConverter.buildOperation(description);
 
     operate(operation);
   }
@@ -224,8 +243,8 @@ public class ElasticSearchEntityTagger implements EntityTagger {
     Task originalTask = TaskRepository.threadLocalTask.get();
     try {
       TaskRepository.threadLocalTask.set(
-        Optional.ofNullable(originalTask).orElse(new DefaultTask(ElasticSearchEntityTagger.class.getSimpleName()))
-      );
+          Optional.ofNullable(originalTask)
+              .orElse(new DefaultTask(ElasticSearchEntityTagger.class.getSimpleName())));
       run(operation);
     } finally {
       TaskRepository.threadLocalTask.set(originalTask);
@@ -237,34 +256,46 @@ public class ElasticSearchEntityTagger implements EntityTagger {
     operation.operate(Collections.emptyList());
   }
 
-  private static UpsertEntityTagsDescription upsertCategorizedEntityTagsDescription(String type,
-                                                                                    String prefix,
-                                                                                    String cloudProvider,
-                                                                                    String accountId,
-                                                                                    String region,
-                                                                                    String category,
-                                                                                    String entityType,
-                                                                                    String entityId,
-                                                                                    String key,
-                                                                                    String value,
-                                                                                    Long timestamp) {
+  private static UpsertEntityTagsDescription upsertCategorizedEntityTagsDescription(
+      String type,
+      String prefix,
+      String cloudProvider,
+      String accountId,
+      String region,
+      String category,
+      String entityType,
+      String entityId,
+      String key,
+      String value,
+      Long timestamp) {
     String name = prefix + key;
     Map<String, String> tagValue = new HashMap<>();
     tagValue.put("message", value);
     tagValue.put("type", type);
-    return upsertEntityTagsDescription(name, cloudProvider, accountId, region, null, category, entityType, entityId, tagValue, timestamp);
+    return upsertEntityTagsDescription(
+        name,
+        cloudProvider,
+        accountId,
+        region,
+        null,
+        category,
+        entityType,
+        entityId,
+        tagValue,
+        timestamp);
   }
 
-  private static UpsertEntityTagsDescription upsertEntityTagsDescription(String name,
-                                                                         String cloudProvider,
-                                                                         String accountId,
-                                                                         String region,
-                                                                         String namespace,
-                                                                         String category,
-                                                                         String entityType,
-                                                                         String entityId,
-                                                                         Object entityTagValue,
-                                                                         Long timestamp) {
+  private static UpsertEntityTagsDescription upsertEntityTagsDescription(
+      String name,
+      String cloudProvider,
+      String accountId,
+      String region,
+      String namespace,
+      String category,
+      String entityType,
+      String entityId,
+      Object entityTagValue,
+      Long timestamp) {
     EntityTags.EntityRef entityRef = new EntityTags.EntityRef();
     entityRef.setEntityType(entityType);
     entityRef.setEntityId(entityId);
@@ -287,15 +318,15 @@ public class ElasticSearchEntityTagger implements EntityTagger {
     return upsertEntityTagsDescription;
   }
 
-  private static DeleteEntityTagsDescription deleteEntityTagsDescription(String cloudProvider,
-                                                                         String accountId,
-                                                                         String region,
-                                                                         String entityType,
-                                                                         String entityId,
-                                                                         List<String> tags) {
-    EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
-      cloudProvider, entityType, entityId, accountId, region
-    );
+  private static DeleteEntityTagsDescription deleteEntityTagsDescription(
+      String cloudProvider,
+      String accountId,
+      String region,
+      String entityType,
+      String entityId,
+      List<String> tags) {
+    EntityRefIdBuilder.EntityRefId entityRefId =
+        EntityRefIdBuilder.buildId(cloudProvider, entityType, entityId, accountId, region);
 
     DeleteEntityTagsDescription deleteEntityTagsDescription = new DeleteEntityTagsDescription();
     deleteEntityTagsDescription.setId(entityRefId.id);

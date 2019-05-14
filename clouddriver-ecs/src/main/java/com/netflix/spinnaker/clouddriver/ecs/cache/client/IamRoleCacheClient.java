@@ -16,21 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
+
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
@@ -56,15 +55,16 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
     Set<IamRole> result = new HashSet<>();
 
     for (CacheData cacheData : allData) {
-      List<Map<String, String>> trustRelationships = (List<Map<String, String>>) cacheData.getAttributes().get("trustRelationships");
+      List<Map<String, String>> trustRelationships =
+          (List<Map<String, String>>) cacheData.getAttributes().get("trustRelationships");
       for (Map<String, String> trustRelationship : trustRelationships) {
-        if (trustRelationship.get("type").equals("Service") && trustRelationship.get("value").equals("ecs-tasks.amazonaws.com")) {
+        if (trustRelationship.get("type").equals("Service")
+            && trustRelationship.get("value").equals("ecs-tasks.amazonaws.com")) {
 
           result.add(convert(cacheData));
           continue;
         }
       }
-
     }
 
     return result;
@@ -73,7 +73,8 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
   @Override
   protected IamRole convert(CacheData cacheData) {
 
-    List<Map<String, String>> trustRelationships = (List<Map<String, String>>) cacheData.getAttributes().get("trustRelationships");
+    List<Map<String, String>> trustRelationships =
+        (List<Map<String, String>>) cacheData.getAttributes().get("trustRelationships");
     Set<IamTrustRelationship> iamTrustRelationships = new HashSet<>();
 
     IamRole iamRole = new IamRole();
@@ -90,19 +91,19 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
 
     iamRole.setTrustRelationships(iamTrustRelationships);
 
-
     return iamRole;
   }
 
   /**
    * @param account name of the AWS account, as defined in clouddriver.yml
-   * @param region  is not used in AWS as IAM is region-agnostic
+   * @param region is not used in AWS as IAM is region-agnostic
    * @return
    */
   private Collection<CacheData> fetchFromCache(String account, String region) {
-    Set<String> keys = cacheView.filterIdentifiers(IAM_ROLE.ns, "*:" + account + ":*").stream()
-      .distinct()
-      .collect(Collectors.toSet());
+    Set<String> keys =
+        cacheView.filterIdentifiers(IAM_ROLE.ns, "*:" + account + ":*").stream()
+            .distinct()
+            .collect(Collectors.toSet());
     return cacheView.getAll(IAM_ROLE.ns, keys);
   }
 }

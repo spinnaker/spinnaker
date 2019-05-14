@@ -23,13 +23,12 @@ import com.amazonaws.services.ecs.model.DeregisterTaskDefinitionRequest;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-public class DestroyServiceAtomicOperation extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
-  @Autowired
-  EcsCloudMetricService ecsCloudMetricService;
+public class DestroyServiceAtomicOperation
+    extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
+  @Autowired EcsCloudMetricService ecsCloudMetricService;
 
   public DestroyServiceAtomicOperation(ModifyServiceDescription description) {
     super(description, "DESTROY_ECS_SERVER_GROUP");
@@ -40,10 +39,13 @@ public class DestroyServiceAtomicOperation extends AbstractEcsAtomicOperation<Mo
     updateTaskStatus("Initializing Destroy Amazon ECS Server Group Operation...");
     AmazonECS ecs = getAmazonEcsClient();
 
-    String ecsClusterName = containerInformationService.getClusterName(description.getServerGroupName(), description.getAccount(), description.getRegion());
+    String ecsClusterName =
+        containerInformationService.getClusterName(
+            description.getServerGroupName(), description.getAccount(), description.getRegion());
 
     updateTaskStatus("Removing MetricAlarms from " + description.getServerGroupName() + ".");
-    ecsCloudMetricService.deleteMetrics(description.getServerGroupName(), description.getAccount(), description.getRegion());
+    ecsCloudMetricService.deleteMetrics(
+        description.getServerGroupName(), description.getAccount(), description.getRegion());
     updateTaskStatus("Done removing MetricAlarms from " + description.getServerGroupName() + ".");
 
     UpdateServiceRequest updateServiceRequest = new UpdateServiceRequest();
@@ -61,8 +63,13 @@ public class DestroyServiceAtomicOperation extends AbstractEcsAtomicOperation<Mo
     updateTaskStatus("Deleting " + description.getServerGroupName() + " server group.");
     DeleteServiceResult deleteServiceResult = ecs.deleteService(deleteServiceRequest);
 
-    updateTaskStatus("Deleting " + deleteServiceResult.getService().getTaskDefinition() + " task definition belonging to the server group.");
-    ecs.deregisterTaskDefinition(new DeregisterTaskDefinitionRequest().withTaskDefinition(deleteServiceResult.getService().getTaskDefinition()));
+    updateTaskStatus(
+        "Deleting "
+            + deleteServiceResult.getService().getTaskDefinition()
+            + " task definition belonging to the server group.");
+    ecs.deregisterTaskDefinition(
+        new DeregisterTaskDefinitionRequest()
+            .withTaskDefinition(deleteServiceResult.getService().getTaskDefinition()));
 
     return null;
   }

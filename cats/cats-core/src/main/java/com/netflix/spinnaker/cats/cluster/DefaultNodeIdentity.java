@@ -34,107 +34,107 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultNodeIdentity implements NodeIdentity {
 
-    public static final String UNKNOWN_HOST = "UnknownHost";
-    private static final long REFRESH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+  public static final String UNKNOWN_HOST = "UnknownHost";
+  private static final long REFRESH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
 
-    private static String getHostName(String validationHost, int validationPort) {
-        final Enumeration<NetworkInterface> interfaces;
+  private static String getHostName(String validationHost, int validationPort) {
+    final Enumeration<NetworkInterface> interfaces;
+    try {
+      interfaces = NetworkInterface.getNetworkInterfaces();
+    } catch (SocketException ignored) {
+      return UNKNOWN_HOST;
+    }
+    if (interfaces == null || validationHost == null) {
+      return UNKNOWN_HOST;
+    }
+
+    for (NetworkInterface networkInterface : Collections.list(interfaces)) {
+      try {
+        if (networkInterface.isLoopback()
+            && !validationHost.equals("localhost")
+            && !validationHost.startsWith("127.")) {
+          continue;
+        }
+
+        if (!networkInterface.isUp()) {
+          continue;
+        }
+      } catch (SocketException ignored) {
+        continue;
+      }
+
+      for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+        Socket socket = null;
         try {
-            interfaces = NetworkInterface.getNetworkInterfaces();
-        } catch (SocketException ignored) {
-            return UNKNOWN_HOST;
-        }
-        if (interfaces == null || validationHost == null) {
-            return UNKNOWN_HOST;
-        }
-
-        for (NetworkInterface networkInterface : Collections.list(interfaces)) {
+          socket = new Socket();
+          socket.bind(new InetSocketAddress(address, 0));
+          socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
+          return address.getHostName();
+        } catch (IOException ignored) {
+          // ignored
+        } finally {
+          if (socket != null) {
             try {
-                if (networkInterface.isLoopback() &&
-                  !validationHost.equals("localhost") &&
-                  !validationHost.startsWith("127.")) {
-                    continue;
-                }
-
-                if (!networkInterface.isUp()) {
-                    continue;
-                }
-            } catch (SocketException ignored) {
-                continue;
+              socket.close();
+            } catch (IOException ignored) {
+              // ignored
             }
-
-            for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
-                Socket socket = null;
-                try {
-                    socket = new Socket();
-                    socket.bind(new InetSocketAddress(address, 0));
-                    socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
-                    return address.getHostName();
-                } catch (IOException ignored) {
-                    //ignored
-                } finally {
-                    if (socket != null) {
-                        try {
-                            socket.close();
-                        } catch (IOException ignored) {
-                            //ignored
-                        }
-                    }
-                }
-            }
+          }
         }
-
-        return UNKNOWN_HOST;
+      }
     }
 
-    private final String validationAddress;
-    private final int validationPort;
-    private final String runtimeName;
-    private final AtomicReference<String> identity = new AtomicReference<>(null);
-    private final AtomicBoolean validIdentity = new AtomicBoolean(false);
-    private final AtomicLong refreshTime = new AtomicLong(0);
-    private final Lock refreshLock = new ReentrantLock();
-    private final long refreshInterval;
+    return UNKNOWN_HOST;
+  }
 
-    public DefaultNodeIdentity() {
-        this("www.google.com", 80);
-    }
+  private final String validationAddress;
+  private final int validationPort;
+  private final String runtimeName;
+  private final AtomicReference<String> identity = new AtomicReference<>(null);
+  private final AtomicBoolean validIdentity = new AtomicBoolean(false);
+  private final AtomicLong refreshTime = new AtomicLong(0);
+  private final Lock refreshLock = new ReentrantLock();
+  private final long refreshInterval;
 
-    public DefaultNodeIdentity(String validationAddress, int validationPort) {
-        this(validationAddress, validationPort, REFRESH_INTERVAL);
-    }
+  public DefaultNodeIdentity() {
+    this("www.google.com", 80);
+  }
 
-    public DefaultNodeIdentity(String validationAddress, int validationPort, long refreshInterval) {
-        this.validationAddress = validationAddress;
-        this.validationPort = validationPort;
-        this.runtimeName = ManagementFactory.getRuntimeMXBean().getName();
-        this.refreshInterval = refreshInterval;
-        loadIdentity();
+  public DefaultNodeIdentity(String validationAddress, int validationPort) {
+    this(validationAddress, validationPort, REFRESH_INTERVAL);
+  }
 
-    }
+  public DefaultNodeIdentity(String validationAddress, int validationPort, long refreshInterval) {
+    this.validationAddress = validationAddress;
+    this.validationPort = validationPort;
+    this.runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+    this.refreshInterval = refreshInterval;
+    loadIdentity();
+  }
 
-    @Override
-    public String getNodeIdentity() {
+  @Override
+  public String getNodeIdentity() {
+    if (!validIdentity.get() && shouldRefresh()) {
+      refreshLock.lock();
+      try {
         if (!validIdentity.get() && shouldRefresh()) {
-            refreshLock.lock();
-            try {
-                if (!validIdentity.get() && shouldRefresh()) {
-                    loadIdentity();
-                }
-            } finally {
-                refreshLock.unlock();
-            }
+          loadIdentity();
         }
-        return identity.get();
+      } finally {
+        refreshLock.unlock();
+      }
     }
+    return identity.get();
+  }
 
-    private boolean shouldRefresh() {
-        return System.currentTimeMillis() - refreshTime.get() > refreshInterval;
-    }
+  private boolean shouldRefresh() {
+    return System.currentTimeMillis() - refreshTime.get() > refreshInterval;
+  }
 
-    private void loadIdentity() {
-        identity.set(String.format("%s:%s", getHostName(validationAddress, validationPort), runtimeName));
-        validIdentity.set(!identity.get().contains(UNKNOWN_HOST));
-        refreshTime.set(System.currentTimeMillis());
-    }
+  private void loadIdentity() {
+    identity.set(
+        String.format("%s:%s", getHostName(validationAddress, validationPort), runtimeName));
+    validIdentity.set(!identity.get().contains(UNKNOWN_HOST));
+    refreshTime.set(System.currentTimeMillis());
+  }
 }

@@ -22,5 +22,5 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesResumeRolloutManifestDescription extends KubernetesManifestOperationDescription {
-}
+public class KubernetesResumeRolloutManifestDescription
+    extends KubernetesManifestOperationDescription {}

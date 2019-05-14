@@ -21,13 +21,12 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSecurityGroupPr
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsSecurityGroup;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.AmazonPrimitiveConverter;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsAccountMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SecurityGroupSelector {
@@ -37,34 +36,39 @@ public class SecurityGroupSelector {
   EcsAccountMapper ecsAccountMapper;
 
   @Autowired
-  public SecurityGroupSelector(AmazonSecurityGroupProvider amazonSecurityGroupProvider,
-                               AmazonPrimitiveConverter converter,
-                               EcsAccountMapper ecsAccountMapper) {
+  public SecurityGroupSelector(
+      AmazonSecurityGroupProvider amazonSecurityGroupProvider,
+      AmazonPrimitiveConverter converter,
+      EcsAccountMapper ecsAccountMapper) {
     this.amazonSecurityGroupProvider = amazonSecurityGroupProvider;
     this.converter = converter;
     this.ecsAccountMapper = ecsAccountMapper;
   }
 
-  public Collection<String> resolveSecurityGroupNames(String ecsAccountName,
-                                                      String region,
-                                                      Collection<String> securityGroupNames,
-                                                      Collection<String> vpcIds) {
-    String correspondingAwsAccountName = ecsAccountMapper.fromEcsAccountNameToAws(ecsAccountName).getName();
+  public Collection<String> resolveSecurityGroupNames(
+      String ecsAccountName,
+      String region,
+      Collection<String> securityGroupNames,
+      Collection<String> vpcIds) {
+    String correspondingAwsAccountName =
+        ecsAccountMapper.fromEcsAccountNameToAws(ecsAccountName).getName();
 
-    Collection<AmazonSecurityGroup> amazonSecurityGroups = amazonSecurityGroupProvider.getAllByAccountAndRegion(
-      true, correspondingAwsAccountName, region);
+    Collection<AmazonSecurityGroup> amazonSecurityGroups =
+        amazonSecurityGroupProvider.getAllByAccountAndRegion(
+            true, correspondingAwsAccountName, region);
 
-    Collection<EcsSecurityGroup> ecsSecurityGroups = converter.convertToEcsSecurityGroup(amazonSecurityGroups);
+    Collection<EcsSecurityGroup> ecsSecurityGroups =
+        converter.convertToEcsSecurityGroup(amazonSecurityGroups);
 
     Set<String> securityGroupNamesSet = new HashSet<String>(securityGroupNames);
     Set<String> vpcIdsSet = new HashSet<String>(vpcIds);
 
-    Set<String> filteredSecurityGroupIds = ecsSecurityGroups
-      .stream()
-      .filter(group -> securityGroupNamesSet.contains(group.getName()))
-      .filter(group -> vpcIdsSet.contains(group.getVpcId()))
-      .map(EcsSecurityGroup::getId)
-      .collect(Collectors.toSet());
+    Set<String> filteredSecurityGroupIds =
+        ecsSecurityGroups.stream()
+            .filter(group -> securityGroupNamesSet.contains(group.getName()))
+            .filter(group -> vpcIdsSet.contains(group.getVpcId()))
+            .map(EcsSecurityGroup::getId)
+            .collect(Collectors.toSet());
 
     return filteredSecurityGroupIds;
   }

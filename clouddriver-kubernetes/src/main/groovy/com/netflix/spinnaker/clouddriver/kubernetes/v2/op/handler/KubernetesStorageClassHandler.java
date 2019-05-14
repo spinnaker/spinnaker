@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.STORAGE_CLASS_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
@@ -24,8 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.STORAGE_CLASS_PRIORITY;
 
 @Component
 public class KubernetesStorageClassHandler extends KubernetesHandler {
@@ -50,7 +50,9 @@ public class KubernetesStorageClassHandler extends KubernetesHandler {
   }
 
   @Override
-  public Status status(KubernetesManifest manifest) { return new Status(); }
+  public Status status(KubernetesManifest manifest) {
+    return new Status();
+  }
 
   @Override
   protected KubernetesV2CachingAgentFactory cachingAgentFactory() {

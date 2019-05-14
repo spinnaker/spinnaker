@@ -24,7 +24,8 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 public interface CanResize {
   KubernetesKind kind();
 
-  default void resize(KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
+  default void resize(
+      KubernetesV2Credentials credentials, String namespace, String name, Capacity capacity) {
     credentials.scale(kind(), namespace, name, capacity.getDesired());
   }
 }

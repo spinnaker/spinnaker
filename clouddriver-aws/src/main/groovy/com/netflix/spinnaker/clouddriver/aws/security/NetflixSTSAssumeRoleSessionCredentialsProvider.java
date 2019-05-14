@@ -19,19 +19,21 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 
-public class NetflixSTSAssumeRoleSessionCredentialsProvider extends STSAssumeRoleSessionCredentialsProvider {
+public class NetflixSTSAssumeRoleSessionCredentialsProvider
+    extends STSAssumeRoleSessionCredentialsProvider {
   private final String accountId;
 
-  public NetflixSTSAssumeRoleSessionCredentialsProvider(AWSCredentialsProvider longLivedCredentialsProvider,
-                                                        String roleArn,
-                                                        String roleSessionName,
-                                                        String accountId) {
+  public NetflixSTSAssumeRoleSessionCredentialsProvider(
+      AWSCredentialsProvider longLivedCredentialsProvider,
+      String roleArn,
+      String roleSessionName,
+      String accountId) {
     super(longLivedCredentialsProvider, roleArn, roleSessionName);
     this.accountId = accountId;
 
     /**
-     Need to explicitly set sts region if GovCloud or China as per
-     https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/STSAssumeRoleSessionCredentialsProvider.html
+     * Need to explicitly set sts region if GovCloud or China as per
+     * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/STSAssumeRoleSessionCredentialsProvider.html
      */
     if (roleArn.contains("aws-us-gov")) {
       setSTSClientEndpoint("sts.us-gov-west-1.amazonaws.com");

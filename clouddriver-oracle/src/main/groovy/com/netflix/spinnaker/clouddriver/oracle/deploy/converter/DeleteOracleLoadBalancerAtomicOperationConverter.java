@@ -22,7 +22,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @OracleOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteOracleLoadBalancerDescription")
-public class DeleteOracleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class DeleteOracleLoadBalancerAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   @SuppressWarnings("rawtypes")
   @Override
@@ -33,7 +34,8 @@ public class DeleteOracleLoadBalancerAtomicOperationConverter extends AbstractAt
   @SuppressWarnings("rawtypes")
   @Override
   public DeleteLoadBalancerDescription convertDescription(Map input) {
-    return OracleAtomicOperationConverterHelper.convertDescription(input, this, DeleteLoadBalancerDescription.class);
+    return OracleAtomicOperationConverterHelper.convertDescription(
+        input, this, DeleteLoadBalancerDescription.class);
   }
 
   @Override

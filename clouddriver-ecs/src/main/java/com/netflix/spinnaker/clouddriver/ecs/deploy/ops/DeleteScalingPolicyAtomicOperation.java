@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.DeleteScalingPolicyDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class DeleteScalingPolicyAtomicOperation implements AtomicOperation<Void> {
@@ -37,5 +35,4 @@ public class DeleteScalingPolicyAtomicOperation implements AtomicOperation<Void>
 
     return null;
   }
-
 }

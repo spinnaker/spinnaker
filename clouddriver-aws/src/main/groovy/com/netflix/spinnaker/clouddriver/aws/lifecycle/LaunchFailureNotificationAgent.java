@@ -40,9 +40,6 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -51,14 +48,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * An Agent that subscribes to a particular SQS queue and tags any server groups that had launch errors.
+ * An Agent that subscribes to a particular SQS queue and tags any server groups that had launch
+ * errors.
  */
 class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAgent {
   private static final Logger log = LoggerFactory.getLogger(LaunchFailureNotificationAgent.class);
 
-  private static final String SUPPORTED_LIFECYCLE_TRANSITION = "autoscaling:EC2_INSTANCE_LAUNCH_ERROR";
+  private static final String SUPPORTED_LIFECYCLE_TRANSITION =
+      "autoscaling:EC2_INSTANCE_LAUNCH_ERROR";
   private static final int AWS_MAX_NUMBER_OF_MESSAGES = 10;
 
   private final ObjectMapper objectMapper;
@@ -73,11 +74,12 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   private String topicId = null; // the ARN for the topic
   private String queueId = null; // the URL for the queue
 
-  LaunchFailureNotificationAgent(ObjectMapper objectMapper,
-                                 AmazonClientProvider amazonClientProvider,
-                                 AccountCredentialsProvider accountCredentialsProvider,
-                                 LaunchFailureConfigurationProperties properties,
-                                 EntityTagger serverGroupTagger) {
+  LaunchFailureNotificationAgent(
+      ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      AccountCredentialsProvider accountCredentialsProvider,
+      LaunchFailureConfigurationProperties properties,
+      EntityTagger serverGroupTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -91,7 +93,11 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
 
   @Override
   public String getAgentType() {
-    return queueARN.account.getName() + "/" + queueARN.region + "/" + LaunchFailureNotificationAgent.class.getSimpleName();
+    return queueARN.account.getName()
+        + "/"
+        + queueARN.region
+        + "/"
+        + LaunchFailureNotificationAgent.class.getSimpleName();
   }
 
   @Override
@@ -111,10 +117,11 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
 
   @Override
   public void run() {
-    List<String> allAccountIds = accountCredentialsProvider.getAll().stream()
-      .filter(c -> c instanceof NetflixAmazonCredentials)
-      .map(AccountCredentials::getAccountId)
-      .collect(Collectors.toList());
+    List<String> allAccountIds =
+        accountCredentialsProvider.getAll().stream()
+            .filter(c -> c instanceof NetflixAmazonCredentials)
+            .map(AccountCredentials::getAccountId)
+            .collect(Collectors.toList());
 
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
     this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN);
@@ -124,33 +131,36 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
     while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
-      ReceiveMessageResult receiveMessageResult = amazonSQS.receiveMessage(
-        new ReceiveMessageRequest(queueId)
-          .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
-          .withVisibilityTimeout(properties.getVisibilityTimeout())
-          .withWaitTimeSeconds(properties.getWaitTimeSeconds())
-      );
+      ReceiveMessageResult receiveMessageResult =
+          amazonSQS.receiveMessage(
+              new ReceiveMessageRequest(queueId)
+                  .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
+                  .withVisibilityTimeout(properties.getVisibilityTimeout())
+                  .withWaitTimeSeconds(properties.getWaitTimeSeconds()));
 
-      receiveMessageResult.getMessages().forEach(message -> {
-        try {
-          NotificationMessageWrapper notificationMessageWrapper = objectMapper.readValue(
-            message.getBody(), NotificationMessageWrapper.class
-          );
+      receiveMessageResult
+          .getMessages()
+          .forEach(
+              message -> {
+                try {
+                  NotificationMessageWrapper notificationMessageWrapper =
+                      objectMapper.readValue(message.getBody(), NotificationMessageWrapper.class);
 
-          NotificationMessage notificationMessage = objectMapper.readValue(
-            notificationMessageWrapper.message, NotificationMessage.class
-          );
+                  NotificationMessage notificationMessage =
+                      objectMapper.readValue(
+                          notificationMessageWrapper.message, NotificationMessage.class);
 
-          if (SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(notificationMessage.event)) {
-            handleMessage(serverGroupTagger, notificationMessage);
-          }
-        } catch (IOException e) {
-          log.error("Unable to convert NotificationMessage (body: {})", message.getBody(), e);
-        }
+                  if (SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(notificationMessage.event)) {
+                    handleMessage(serverGroupTagger, notificationMessage);
+                  }
+                } catch (IOException e) {
+                  log.error(
+                      "Unable to convert NotificationMessage (body: {})", message.getBody(), e);
+                }
 
-        deleteMessage(amazonSQS, queueId, message);
-        messagesProcessed.incrementAndGet();
-      });
+                deleteMessage(amazonSQS, queueId, message);
+                messagesProcessed.incrementAndGet();
+              });
 
       if (receiveMessageResult.getMessages().isEmpty()) {
         // no messages received, stop polling.
@@ -161,49 +171,48 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn);
   }
 
-  private static void handleMessage(EntityTagger serverGroupTagger, NotificationMessage notificationMessage) {
+  private static void handleMessage(
+      EntityTagger serverGroupTagger, NotificationMessage notificationMessage) {
     log.info(
-      "Failed to launch instance (asgName: {}, reason: {})",
-      notificationMessage.autoScalingGroupName,
-      notificationMessage.statusMessage
-    );
+        "Failed to launch instance (asgName: {}, reason: {})",
+        notificationMessage.autoScalingGroupName,
+        notificationMessage.statusMessage);
 
     Matcher sqsMatcher = ARN.PATTERN.matcher(notificationMessage.autoScalingGroupARN);
     if (!sqsMatcher.matches()) {
-      throw new IllegalArgumentException(notificationMessage.autoScalingGroupARN + " is not a valid ARN");
+      throw new IllegalArgumentException(
+          notificationMessage.autoScalingGroupARN + " is not a valid ARN");
     }
 
     String region = sqsMatcher.group(1);
     String accountId = sqsMatcher.group(2);
 
     serverGroupTagger.alert(
-      AmazonCloudProvider.ID,
-      accountId,
-      region,
-      null, // no category
-      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
-      notificationMessage.autoScalingGroupName,
-      notificationMessage.event,
-      notificationMessage.statusMessage,
-      null // no last modified timestamp
-    );
+        AmazonCloudProvider.ID,
+        accountId,
+        region,
+        null, // no category
+        EntityTagger.ENTITY_TYPE_SERVER_GROUP,
+        notificationMessage.autoScalingGroupName,
+        notificationMessage.event,
+        notificationMessage.statusMessage,
+        null // no last modified timestamp
+        );
   }
 
   /**
-   * Ensure that the topic exists and has a policy granting all accounts permission to publish messages to it
+   * Ensure that the topic exists and has a policy granting all accounts permission to publish
+   * messages to it
    */
-  private static String ensureTopicExists(AmazonSNS amazonSNS,
-                                          ARN topicARN,
-                                          List<String> allAccountIds,
-                                          ARN queueARN) {
+  private static String ensureTopicExists(
+      AmazonSNS amazonSNS, ARN topicARN, List<String> allAccountIds, ARN queueARN) {
     topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
 
     amazonSNS.setTopicAttributes(
-      new SetTopicAttributesRequest()
-        .withTopicArn(topicARN.arn)
-        .withAttributeName("Policy")
-        .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
-    );
+        new SetTopicAttributesRequest()
+            .withTopicArn(topicARN.arn)
+            .withAttributeName("Policy")
+            .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson()));
 
     amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
 
@@ -211,7 +220,8 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   }
 
   /**
-   * Ensure that the queue exists and has a policy granting the source topic permission to send messages to it
+   * Ensure that the queue exists and has a policy granting the source topic permission to send
+   * messages to it
    */
   private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN) {
     String queueUrl;
@@ -223,15 +233,15 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     }
 
     amazonSQS.setQueueAttributes(
-      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson())
-    );
+        queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson()));
 
     return queueUrl;
   }
 
   private static Policy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
     Statement statement = new Statement(Statement.Effect.Allow).withActions(SNSActions.Publish);
-    statement.setPrincipals(allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
+    statement.setPrincipals(
+        allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
     statement.setResources(Collections.singletonList(new Resource(topicARN.arn)));
 
     return new Policy("allow-remote-account-send", Collections.singletonList(statement));
@@ -241,9 +251,12 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     Statement statement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
     statement.setPrincipals(Principal.All);
     statement.setResources(Collections.singletonList(new Resource(queue.arn)));
-    statement.setConditions(Collections.singletonList(
-      new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.arn)
-    ));
+    statement.setConditions(
+        Collections.singletonList(
+            new Condition()
+                .withType("ArnEquals")
+                .withConditionKey("aws:SourceArn")
+                .withValues(topic.arn)));
 
     return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
   }
@@ -252,7 +265,10 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     try {
       amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
     } catch (ReceiptHandleIsInvalidException e) {
-      log.warn("Error deleting lifecycle message, reason: {} (receiptHandle: {})", e.getMessage(), message.getReceiptHandle());
+      log.warn(
+          "Error deleting lifecycle message, reason: {} (receiptHandle: {})",
+          e.getMessage(),
+          message.getReceiptHandle());
     }
   }
 }

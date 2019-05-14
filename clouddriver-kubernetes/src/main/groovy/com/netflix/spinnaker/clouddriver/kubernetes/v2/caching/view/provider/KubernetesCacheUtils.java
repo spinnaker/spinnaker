@@ -31,10 +31,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.ModelHandler;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +40,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -54,10 +53,9 @@ public class KubernetesCacheUtils {
 
   @Autowired
   public KubernetesCacheUtils(
-    Cache cache,
-    KubernetesSpinnakerKindMap kindMap,
-    KubernetesResourcePropertyRegistry resourcePropertyRegistry
-  ) {
+      Cache cache,
+      KubernetesSpinnakerKindMap kindMap,
+      KubernetesResourcePropertyRegistry resourcePropertyRegistry) {
     this.cache = cache;
     this.kindMap = kindMap;
     this.registry = resourcePropertyRegistry;
@@ -80,14 +78,15 @@ public class KubernetesCacheUtils {
     return result == null ? Optional.empty() : Optional.of(result);
   }
 
-  public Optional<CacheData> getSingleEntryWithRelationships(String type, String key, String... to) {
+  public Optional<CacheData> getSingleEntryWithRelationships(
+      String type, String key, String... to) {
     CacheData result = cache.get(type, key, RelationshipCacheFilter.include(to));
     return Optional.ofNullable(result);
   }
 
-  public Collection<String> aggregateRelationshipsBySpinnakerKind(CacheData source, SpinnakerKind kind) {
-    return kindMap.translateSpinnakerKind(kind)
-        .stream()
+  public Collection<String> aggregateRelationshipsBySpinnakerKind(
+      CacheData source, SpinnakerKind kind) {
+    return kindMap.translateSpinnakerKind(kind).stream()
         .map(g -> source.getRelationships().get(g.toString()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
@@ -95,37 +94,45 @@ public class KubernetesCacheUtils {
         .collect(Collectors.toList());
   }
 
-  public Collection<CacheData> getTransitiveRelationship(String from, List<String> sourceKeys, String to) {
-    Collection<CacheData> sourceData = cleanupCollection(cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to)));
-    return cleanupCollection(cache.getAll(to, sourceData.stream()
-        .map(CacheData::getRelationships)
-        .filter(Objects::nonNull)
-        .map(r -> r.get(to))
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList())));
+  public Collection<CacheData> getTransitiveRelationship(
+      String from, List<String> sourceKeys, String to) {
+    Collection<CacheData> sourceData =
+        cleanupCollection(cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to)));
+    return cleanupCollection(
+        cache.getAll(
+            to,
+            sourceData.stream()
+                .map(CacheData::getRelationships)
+                .filter(Objects::nonNull)
+                .map(r -> r.get(to))
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList())));
   }
 
-  public Collection<CacheData> getAllRelationshipsOfSpinnakerKind(Collection<CacheData> cacheData, SpinnakerKind spinnakerKind) {
-    return kindMap.translateSpinnakerKind(spinnakerKind)
-        .stream()
+  public Collection<CacheData> getAllRelationshipsOfSpinnakerKind(
+      Collection<CacheData> cacheData, SpinnakerKind spinnakerKind) {
+    return kindMap.translateSpinnakerKind(spinnakerKind).stream()
         .map(kind -> loadRelationshipsFromCache(cacheData, kind.toString()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
 
-  public Collection<CacheData> loadRelationshipsFromCache(CacheData source, String relationshipType) {
+  public Collection<CacheData> loadRelationshipsFromCache(
+      CacheData source, String relationshipType) {
     return loadRelationshipsFromCache(Collections.singleton(source), relationshipType);
   }
 
-  public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {
-    List<String> keys = cleanupCollection(sources).stream()
-        .map(CacheData::getRelationships)
-        .filter(Objects::nonNull)
-        .map(r -> r.get(relationshipType))
-        .filter(Objects::nonNull)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+  public Collection<CacheData> loadRelationshipsFromCache(
+      Collection<CacheData> sources, String relationshipType) {
+    List<String> keys =
+        cleanupCollection(sources).stream()
+            .map(CacheData::getRelationships)
+            .filter(Objects::nonNull)
+            .map(r -> r.get(relationshipType))
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     return cleanupCollection(cache.getAll(relationshipType, keys));
   }
@@ -135,15 +142,14 @@ public class KubernetesCacheUtils {
       return new ArrayList<>();
     }
 
-    return items.stream()
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return items.stream().filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   /*
    * Builds a map of all keys belonging to `sourceKind` that are related to any entries in `targetData`
    */
-  public Map<String, List<CacheData>> mapByRelationship(Collection<CacheData> targetData, SpinnakerKind sourceKind) {
+  public Map<String, List<CacheData>> mapByRelationship(
+      Collection<CacheData> targetData, SpinnakerKind sourceKind) {
     Map<String, List<CacheData>> result = new HashMap<>();
 
     for (CacheData datum : targetData) {
@@ -160,8 +166,10 @@ public class KubernetesCacheUtils {
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends ManifestBasedModel> T resourceModelFromCacheData(KubernetesV2CacheData cacheData) {
-    Keys.InfrastructureCacheKey key = (Keys.InfrastructureCacheKey) Keys.parseKey(cacheData.primaryData().getId()).get();
+  public <T extends ManifestBasedModel> T resourceModelFromCacheData(
+      KubernetesV2CacheData cacheData) {
+    Keys.InfrastructureCacheKey key =
+        (Keys.InfrastructureCacheKey) Keys.parseKey(cacheData.primaryData().getId()).get();
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cacheData.primaryData());
 
     KubernetesResourceProperties properties = registry.get(key.getAccount(), manifest.getKind());

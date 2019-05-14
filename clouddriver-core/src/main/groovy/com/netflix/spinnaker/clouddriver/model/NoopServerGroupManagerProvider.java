@@ -19,7 +19,8 @@ package com.netflix.spinnaker.clouddriver.model;
 
 import java.util.Set;
 
-public class NoopServerGroupManagerProvider implements ServerGroupManagerProvider<ServerGroupManager> {
+public class NoopServerGroupManagerProvider
+    implements ServerGroupManagerProvider<ServerGroupManager> {
   @Override
   public Set<ServerGroupManager> getServerGroupManagersByApplication(String application) {
     return null;

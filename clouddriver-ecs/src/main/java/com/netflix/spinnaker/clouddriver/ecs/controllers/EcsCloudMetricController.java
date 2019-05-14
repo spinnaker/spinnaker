@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcsCloudMetricProvider;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collection;
 
 @RestController
 @RequestMapping("/ecs/cloudMetrics")
@@ -33,7 +32,6 @@ public class EcsCloudMetricController {
   public EcsCloudMetricController(EcsCloudMetricProvider provider) {
     this.provider = provider;
   }
-
 
   @RequestMapping(value = {"/alarms"})
   public Collection<EcsMetricAlarm> findAllMetricAlarms() {

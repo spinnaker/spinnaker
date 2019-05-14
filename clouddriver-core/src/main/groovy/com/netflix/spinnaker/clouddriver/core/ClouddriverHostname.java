@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.core;
 
-
 import java.net.InetAddress;
 import java.util.UUID;
 
 public class ClouddriverHostname {
-  public final static String ID = id();
+  public static final String ID = id();
 
   private static String id() {
     String hostname;
@@ -33,5 +32,4 @@ public class ClouddriverHostname {
 
     return UUID.randomUUID() + "@" + hostname;
   }
-
 }

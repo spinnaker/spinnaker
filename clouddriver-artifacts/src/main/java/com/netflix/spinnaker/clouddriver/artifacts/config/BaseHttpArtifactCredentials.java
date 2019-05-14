@@ -18,18 +18,15 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.squareup.okhttp.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
-  @JsonIgnore
-  private final Headers headers;
+  @JsonIgnore private final Headers headers;
 
-  @JsonIgnore
-  private final OkHttpClient okHttpClient;
+  @JsonIgnore private final OkHttpClient okHttpClient;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
     this.okHttpClient = okHttpClient;
@@ -76,10 +73,7 @@ public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
   }
 
   protected ResponseBody fetchUrl(HttpUrl url) throws IOException {
-    Request request = new Request.Builder()
-      .headers(headers)
-      .url(url)
-      .build();
+    Request request = new Request.Builder().headers(headers).url(url).build();
 
     Response downloadResponse = okHttpClient.newCall(request).execute();
     return downloadResponse.body();

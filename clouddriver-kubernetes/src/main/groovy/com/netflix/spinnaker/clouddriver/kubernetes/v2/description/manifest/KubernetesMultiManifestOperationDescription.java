@@ -21,18 +21,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesMultiManifestOperationDescription extends KubernetesAtomicOperationDescription {
+public class KubernetesMultiManifestOperationDescription
+    extends KubernetesAtomicOperationDescription {
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();
@@ -45,10 +45,12 @@ public class KubernetesMultiManifestOperationDescription extends KubernetesAtomi
 
   public List<KubernetesCoordinates> getAllCoordinates() {
     return kinds.stream()
-        .map(k -> KubernetesCoordinates.builder()
-            .namespace(location)
-            .kind(KubernetesKind.fromString(k))
-            .build())
+        .map(
+            k ->
+                KubernetesCoordinates.builder()
+                    .namespace(location)
+                    .kind(KubernetesKind.fromString(k))
+                    .build())
         .collect(Collectors.toList());
   }
 

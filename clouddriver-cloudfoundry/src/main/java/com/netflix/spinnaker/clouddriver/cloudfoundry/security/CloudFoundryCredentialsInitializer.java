@@ -22,25 +22,29 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigu
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Configuration
 public class CloudFoundryCredentialsInitializer implements CredentialsInitializerSynchronizable {
 
   @Bean
-  public List<? extends CloudFoundryCredentials> cloudFoundryAccountCredentials(CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
-                                                                                AccountCredentialsRepository accountCredentialsRepository,
-                                                                                ApplicationContext applicationContext,
-                                                                                List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
-    return synchronizeCloudFoundryAccounts(cloudFoundryConfigurationProperties, null, accountCredentialsRepository,
-      applicationContext, providerSynchronizerTypeWrappers);
+  public List<? extends CloudFoundryCredentials> cloudFoundryAccountCredentials(
+      CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
+      AccountCredentialsRepository accountCredentialsRepository,
+      ApplicationContext applicationContext,
+      List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    return synchronizeCloudFoundryAccounts(
+        cloudFoundryConfigurationProperties,
+        null,
+        accountCredentialsRepository,
+        applicationContext,
+        providerSynchronizerTypeWrappers);
   }
 
   @Override
@@ -51,27 +55,32 @@ public class CloudFoundryCredentialsInitializer implements CredentialsInitialize
   @SuppressWarnings("unchecked")
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  public List<? extends CloudFoundryCredentials> synchronizeCloudFoundryAccounts(CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
-                                                                                 CatsModule catsModule,
-                                                                                 AccountCredentialsRepository accountCredentialsRepository,
-                                                                                 ApplicationContext applicationContext,
-                                                                                 List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
-    List<?> deltas = ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, CloudFoundryCredentials.class,
-      cloudFoundryConfigurationProperties.getAccounts());
+  public List<? extends CloudFoundryCredentials> synchronizeCloudFoundryAccounts(
+      CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
+      CatsModule catsModule,
+      AccountCredentialsRepository accountCredentialsRepository,
+      ApplicationContext applicationContext,
+      List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    List<?> deltas =
+        ProviderUtils.calculateAccountDeltas(
+            accountCredentialsRepository,
+            CloudFoundryCredentials.class,
+            cloudFoundryConfigurationProperties.getAccounts());
 
-    List<CloudFoundryConfigurationProperties.ManagedAccount> accountsToAdd = (List<CloudFoundryConfigurationProperties.ManagedAccount>) deltas.get(0);
+    List<CloudFoundryConfigurationProperties.ManagedAccount> accountsToAdd =
+        (List<CloudFoundryConfigurationProperties.ManagedAccount>) deltas.get(0);
     List<String> namesOfDeletedAccounts = (List<String>) deltas.get(1);
 
     for (CloudFoundryConfigurationProperties.ManagedAccount managedAccount : accountsToAdd) {
-      CloudFoundryCredentials cloudFoundryAccountCredentials = new CloudFoundryCredentials(
-        managedAccount.getName(),
-        managedAccount.getAppsManagerUri(),
-        managedAccount.getMetricsUri(),
-        managedAccount.getApi(),
-        managedAccount.getUser(),
-        managedAccount.getPassword(),
-        managedAccount.getEnvironment()
-      );
+      CloudFoundryCredentials cloudFoundryAccountCredentials =
+          new CloudFoundryCredentials(
+              managedAccount.getName(),
+              managedAccount.getAppsManagerUri(),
+              managedAccount.getMetricsUri(),
+              managedAccount.getApi(),
+              managedAccount.getUser(),
+              managedAccount.getPassword(),
+              managedAccount.getEnvironment());
       accountCredentialsRepository.save(managedAccount.getName(), cloudFoundryAccountCredentials);
     }
 
@@ -82,8 +91,8 @@ public class CloudFoundryCredentialsInitializer implements CredentialsInitialize
     }
 
     return accountCredentialsRepository.getAll().stream()
-      .filter(CloudFoundryCredentials.class::isInstance)
-      .map(CloudFoundryCredentials.class::cast)
-      .collect(Collectors.toList());
+        .filter(CloudFoundryCredentials.class::isInstance)
+        .map(CloudFoundryCredentials.class::cast)
+        .collect(Collectors.toList());
   }
 }

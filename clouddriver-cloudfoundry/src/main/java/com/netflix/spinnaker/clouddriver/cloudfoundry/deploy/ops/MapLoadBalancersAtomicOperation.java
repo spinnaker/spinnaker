@@ -18,14 +18,12 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class MapLoadBalancersAtomicOperation
-  extends AbstractCloudFoundryLoadBalancerMappingOperation
-  implements AtomicOperation<Void> {
+    extends AbstractCloudFoundryLoadBalancerMappingOperation implements AtomicOperation<Void> {
 
   public static final String PHASE = "MAP_LOAD_BALANCERS";
 
@@ -33,14 +31,23 @@ public class MapLoadBalancersAtomicOperation
   protected String getPhase() {
     return PHASE;
   }
+
   private final LoadBalancersDescription description;
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(PHASE, "Mapping '" + description.getServerGroupName() +  "' with loadbalancer(s).");
+    getTask()
+        .updateStatus(
+            PHASE, "Mapping '" + description.getServerGroupName() + "' with loadbalancer(s).");
 
-    if (mapRoutes(description, description.getRoutes(), description.getSpace(), description.getServerGroupId())) {
-      getTask().updateStatus(PHASE, "Mapped '" + description.getServerGroupName() + "' with loadbalancer(s).");
+    if (mapRoutes(
+        description,
+        description.getRoutes(),
+        description.getSpace(),
+        description.getServerGroupId())) {
+      getTask()
+          .updateStatus(
+              PHASE, "Mapped '" + description.getServerGroupName() + "' with loadbalancer(s).");
     }
 
     return null;

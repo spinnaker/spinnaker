@@ -16,52 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Setter;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-/**
- * This is a union type of the code/description mechanisms
- * for Cloud Foundry API v2 and v3.
- */
+import com.fasterxml.jackson.annotation.JsonCreator;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import lombok.Setter;
+
+/** This is a union type of the code/description mechanisms for Cloud Foundry API v2 and v3. */
 @Setter
 public class ErrorDescription {
-  /**
-   * Cloud Foundry API v2.
-   */
-  @Nullable
-  private String description;
+  /** Cloud Foundry API v2. */
+  @Nullable private String description;
 
-  /**
-   * Cloud Foundry API v2.
-   */
-  @Nullable
-  private Code code;
+  /** Cloud Foundry API v2. */
+  @Nullable private Code code;
 
-  /**
-   * UAA API
-   */
-  @Nullable
-  private String errorDescription;
+  /** UAA API */
+  @Nullable private String errorDescription;
 
-  /**
-   * Cloud Foundry API v3.
-   */
-  @Nullable
-  private List<Detail> errors;
+  /** Cloud Foundry API v3. */
+  @Nullable private List<Detail> errors;
 
-  /**
-   * Cloud Foundry API v3.
-   */
-  @Nullable
-  private Code errorCode;
+  /** Cloud Foundry API v3. */
+  @Nullable private Code errorCode;
 
   @Setter
   public static class Detail {

@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.FULL;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.NAMES_ONLY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.LOAD_BALANCERS;
+import static java.util.stream.Collectors.toSet;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.frigga.Names;
@@ -26,17 +31,11 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
+import java.util.*;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.util.*;
-
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.FULL;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.NAMES_ONLY;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.LOAD_BALANCERS;
-import static java.util.stream.Collectors.toSet;
 
 @RequiredArgsConstructor
 @Component
@@ -51,7 +50,10 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
 
   @Override
   public List<CloudFoundryLoadBalancerSummary> list() {
-    return new ArrayList<>(summarizeLoadBalancers(cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), Keys.getAllLoadBalancers())).values());
+    return new ArrayList<>(
+        summarizeLoadBalancers(
+                cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), Keys.getAllLoadBalancers()))
+            .values());
   }
 
   @Nullable
@@ -62,38 +64,54 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
 
   @Nullable
   @Override
-  public List<CloudFoundryLoadBalancerDetail> byAccountAndRegionAndName(String account, String region, String name) {
+  public List<CloudFoundryLoadBalancerDetail> byAccountAndRegionAndName(
+      String account, String region, String name) {
     return null; // intentionally null, unused
   }
 
   /**
-   * @return The set of CF routes that are mapped to CF apps representing server groups inside of this application.
-   * Once a route is unmapped from the app, it will no longer show up as a load balancer for the app.
+   * @return The set of CF routes that are mapped to CF apps representing server groups inside of
+   *     this application. Once a route is unmapped from the app, it will no longer show up as a
+   *     load balancer for the app.
    */
   @Override
   public Set<CloudFoundryLoadBalancer> getApplicationLoadBalancers(String application) {
-    return repository.findLoadBalancersByKeys(cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), Keys.getAllLoadBalancers()), NAMES_ONLY).stream()
-      .filter(lb -> lb.getServerGroups().stream().anyMatch(serverGroup -> application.equals(Names.parseName(serverGroup.getName()).getApp())))
-      .collect(toSet());
+    return repository
+        .findLoadBalancersByKeys(
+            cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), Keys.getAllLoadBalancers()),
+            NAMES_ONLY)
+        .stream()
+        .filter(
+            lb ->
+                lb.getServerGroups().stream()
+                    .anyMatch(
+                        serverGroup ->
+                            application.equals(Names.parseName(serverGroup.getName()).getApp())))
+        .collect(toSet());
   }
 
-  private Map<String, CloudFoundryLoadBalancerSummary> summarizeLoadBalancers(Collection<String> loadBalancerKeys) {
+  private Map<String, CloudFoundryLoadBalancerSummary> summarizeLoadBalancers(
+      Collection<String> loadBalancerKeys) {
     Map<String, CloudFoundryLoadBalancerSummary> summariesByAccount = new HashMap<>();
 
-    for (CloudFoundryLoadBalancer loadBalancer : repository.findLoadBalancersByKeys(loadBalancerKeys, FULL)) {
+    for (CloudFoundryLoadBalancer loadBalancer :
+        repository.findLoadBalancersByKeys(loadBalancerKeys, FULL)) {
       String account = loadBalancer.getAccount();
-      CloudFoundryLoadBalancerSummary summary = summariesByAccount.computeIfAbsent(account, CloudFoundryLoadBalancerSummary::new);
+      CloudFoundryLoadBalancerSummary summary =
+          summariesByAccount.computeIfAbsent(account, CloudFoundryLoadBalancerSummary::new);
 
-      CloudFoundryLoadBalancerDetail detail = new CloudFoundryLoadBalancerDetail(
-        account,
-        loadBalancer.getName(),
-        loadBalancer.getSpace()
-      );
+      CloudFoundryLoadBalancerDetail detail =
+          new CloudFoundryLoadBalancerDetail(
+              account, loadBalancer.getName(), loadBalancer.getSpace());
 
       summary
-        .accounts.computeIfAbsent(account, CloudFoundryLoadBalancerAccount::new)
-        .regions.computeIfAbsent(loadBalancer.getSpace().getRegion(), CloudFoundryLoadBalancerAccountRegion::new)
-        .loadBalancers.add(detail);
+          .accounts
+          .computeIfAbsent(account, CloudFoundryLoadBalancerAccount::new)
+          .regions
+          .computeIfAbsent(
+              loadBalancer.getSpace().getRegion(), CloudFoundryLoadBalancerAccountRegion::new)
+          .loadBalancers
+          .add(detail);
     }
 
     return summariesByAccount;

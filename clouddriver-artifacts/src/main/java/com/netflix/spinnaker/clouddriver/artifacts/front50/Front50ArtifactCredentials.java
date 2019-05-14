@@ -21,12 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,24 +28,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public class Front50ArtifactCredentials implements ArtifactCredentials {
   public static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
-  @Getter
-  private final String name = ACCOUNT_NAME;
-  @Getter
-  private final List<String> types = Collections.singletonList("front50/pipelineTemplate");
+  @Getter private final String name = ACCOUNT_NAME;
+  @Getter private final List<String> types = Collections.singletonList("front50/pipelineTemplate");
 
-  @JsonIgnore
-  private final Front50Service front50Service;
-  @JsonIgnore
-  private final ObjectMapper objectMapper;
+  @JsonIgnore private final Front50Service front50Service;
+  @JsonIgnore private final ObjectMapper objectMapper;
 
-  Front50ArtifactCredentials(ObjectMapper objectMapper,
-                             Front50Service front50Service) {
+  Front50ArtifactCredentials(ObjectMapper objectMapper, Front50Service front50Service) {
     this.objectMapper = objectMapper;
     this.front50Service = front50Service;
   }
@@ -60,18 +54,23 @@ public class Front50ArtifactCredentials implements ArtifactCredentials {
   public InputStream download(Artifact artifact) throws IOException {
     String reference = artifact.getReference();
     if (StringUtils.isEmpty(reference) || !reference.startsWith(URL_PREFIX)) {
-      throw new IllegalArgumentException(String.format("'front50/pipelineTemplate' artifacts must be specified with a " +
-        "'reference' starting with %s, got: %s'", URL_PREFIX, artifact));
+      throw new IllegalArgumentException(
+          String.format(
+              "'front50/pipelineTemplate' artifacts must be specified with a "
+                  + "'reference' starting with %s, got: %s'",
+              URL_PREFIX, artifact));
     }
 
     Map pipelineTemplate;
     reference = reference.substring(URL_PREFIX.length());
     if (reference.contains("@sha256:")) {
       SplitResult result = splitReferenceOnToken(reference, "@sha256:");
-      pipelineTemplate = front50Service.getV2PipelineTemplate(result.pipelineTemplateId, "", result.version);
+      pipelineTemplate =
+          front50Service.getV2PipelineTemplate(result.pipelineTemplateId, "", result.version);
     } else if (reference.contains(":")) {
       SplitResult result = splitReferenceOnToken(reference, ":");
-      pipelineTemplate = front50Service.getV2PipelineTemplate(result.pipelineTemplateId, result.version, "");
+      pipelineTemplate =
+          front50Service.getV2PipelineTemplate(result.pipelineTemplateId, result.version, "");
     } else {
       pipelineTemplate = front50Service.getV2PipelineTemplate(reference, "", "");
     }
@@ -81,11 +80,10 @@ public class Front50ArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public List<String> getArtifactNames() {
-    return front50Service.listV2PipelineTemplates(Collections.singletonList("global"))
-      .stream()
-      .map(t -> (String) t.get("id"))
-      .distinct()
-      .collect(Collectors.toList());
+    return front50Service.listV2PipelineTemplates(Collections.singletonList("global")).stream()
+        .map(t -> (String) t.get("id"))
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   private SplitResult splitReferenceOnToken(String reference, String token) {

@@ -19,5 +19,4 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 /**
  * Marker interface indicating that a description does not have account-level credentials specified.
  */
-public interface NonCredentialed {
-}
+public interface NonCredentialed {}

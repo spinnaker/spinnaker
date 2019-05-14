@@ -18,16 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.bitbucket.enabled")
@@ -38,18 +37,19 @@ public class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
 
   @Bean
-  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials(OkHttpClient okHttpClient) {
-    return bitbucketArtifactProviderProperties.getAccounts()
-      .stream()
-      .map(a -> {
-        try {
-          return new BitbucketArtifactCredentials(a, okHttpClient);
-        } catch (Exception e) {
-          log.warn("Failure instantiating Bitbucket artifact account {}: ", a, e);
-          return null;
-        }
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials(
+      OkHttpClient okHttpClient) {
+    return bitbucketArtifactProviderProperties.getAccounts().stream()
+        .map(
+            a -> {
+              try {
+                return new BitbucketArtifactCredentials(a, okHttpClient);
+              } catch (Exception e) {
+                log.warn("Failure instantiating Bitbucket artifact account {}: ", a, e);
+                return null;
+              }
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

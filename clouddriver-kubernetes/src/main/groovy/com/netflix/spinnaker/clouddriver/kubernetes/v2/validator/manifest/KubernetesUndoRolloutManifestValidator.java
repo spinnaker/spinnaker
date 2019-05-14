@@ -17,30 +17,35 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.UNDO_ROLLOUT_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesUndoRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.UNDO_ROLLOUT_MANIFEST;
-
 @KubernetesOperation(UNDO_ROLLOUT_MANIFEST)
 @Component
-public class KubernetesUndoRolloutManifestValidator extends DescriptionValidator<KubernetesUndoRolloutManifestDescription> {
-  @Autowired
-  AccountCredentialsProvider provider;
+public class KubernetesUndoRolloutManifestValidator
+    extends DescriptionValidator<KubernetesUndoRolloutManifestDescription> {
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesUndoRolloutManifestDescription description, Errors errors) {
-    KubernetesValidationUtil util = new KubernetesValidationUtil("undoRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
+  public void validate(
+      List priorDescriptions, KubernetesUndoRolloutManifestDescription description, Errors errors) {
+    KubernetesValidationUtil util =
+        new KubernetesValidationUtil("undoRolloutKubernetesManifest", errors);
+    if (!util.validateV2Credentials(
+        provider,
+        description.getAccount(),
+        description.getPointCoordinates().getKind(),
+        description.getPointCoordinates().getNamespace())) {
       return;
     }
 

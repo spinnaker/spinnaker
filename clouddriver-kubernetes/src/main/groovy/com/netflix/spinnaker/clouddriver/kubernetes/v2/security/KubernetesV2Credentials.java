@@ -57,7 +57,8 @@ import org.apache.commons.lang3.StringUtils;
 public class KubernetesV2Credentials implements KubernetesCredentials {
   private static final int CRD_EXPIRY_SECONDS = 30;
   private static final int NAMESPACE_EXPIRY_SECONDS = 30;
-  private static final Path SERVICE_ACCOUNT_NAMESPACE_PATH = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+  private static final Path SERVICE_ACCOUNT_NAMESPACE_PATH =
+      Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
   private static final String DEFAULT_NAMESPACE = "default";
 
   private final Registry registry;
@@ -93,10 +94,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final com.google.common.base.Supplier<List<KubernetesKind>> liveCrdSupplier;
 
   public KubernetesV2Credentials(
-    Registry registry,
-    KubectlJobExecutor jobExecutor,
-    KubernetesConfigurationProperties.ManagedAccount managedAccount
-  ) {
+      Registry registry,
+      KubectlJobExecutor jobExecutor,
+      KubernetesConfigurationProperties.ManagedAccount managedAccount) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
@@ -105,8 +105,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.namespaces = managedAccount.getNamespaces();
     this.omitNamespaces = managedAccount.getOmitNamespaces();
     this.kinds = KubernetesKind.registeredStringList(managedAccount.getKinds());
-    this.omitKinds = managedAccount.getOmitKinds().stream().map(KubernetesKind::fromString)
-      .collect(Collectors.toMap(k -> k, k -> InvalidKindReason.EXPLICITLY_OMITTED_BY_CONFIGURATION));
+    this.omitKinds =
+        managedAccount.getOmitKinds().stream()
+            .map(KubernetesKind::fromString)
+            .collect(
+                Collectors.toMap(
+                    k -> k, k -> InvalidKindReason.EXPLICITLY_OMITTED_BY_CONFIGURATION));
     this.customResources = managedAccount.getCustomResources();
 
     this.kubectlExecutable = managedAccount.getKubectlExecutable();
@@ -126,42 +130,63 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.metrics = managedAccount.getMetrics();
     this.debug = managedAccount.getDebug();
 
-    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "", new KubernetesSelectorList())
-      .stream()
-      .map(KubernetesManifest::getName)
-      .collect(Collectors.toList()), NAMESPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
+    this.liveNamespaceSupplier =
+        Suppliers.memoizeWithExpiration(
+            () ->
+                jobExecutor
+                    .list(
+                        this,
+                        Collections.singletonList(KubernetesKind.NAMESPACE),
+                        "",
+                        new KubernetesSelectorList())
+                    .stream()
+                    .map(KubernetesManifest::getName)
+                    .collect(Collectors.toList()),
+            NAMESPACE_EXPIRY_SECONDS,
+            TimeUnit.SECONDS);
 
-    this.liveCrdSupplier = Suppliers.memoizeWithExpiration(() -> {
-      try {
-        return this.list(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, "")
-          .stream()
-          .map(c -> {
-            Map<String, Object> spec = (Map) c.getOrDefault("spec", new HashMap<>());
-            String scope = (String) spec.getOrDefault("scope", "");
-            Map<String, String> names = (Map) spec.getOrDefault("names", new HashMap<>());
-            String name = names.get("kind");
+    this.liveCrdSupplier =
+        Suppliers.memoizeWithExpiration(
+            () -> {
+              try {
+                return this.list(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, "").stream()
+                    .map(
+                        c -> {
+                          Map<String, Object> spec = (Map) c.getOrDefault("spec", new HashMap<>());
+                          String scope = (String) spec.getOrDefault("scope", "");
+                          Map<String, String> names =
+                              (Map) spec.getOrDefault("names", new HashMap<>());
+                          String name = names.get("kind");
 
-            String group = (String) spec.getOrDefault("group", "");
-            KubernetesApiGroup kubernetesApiGroup = KubernetesApiGroup.fromString(group);
-            boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
+                          String group = (String) spec.getOrDefault("group", "");
+                          KubernetesApiGroup kubernetesApiGroup =
+                              KubernetesApiGroup.fromString(group);
+                          boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
 
-            return KubernetesKind.getOrRegisterKind(name, false, isNamespaced, kubernetesApiGroup);
-          })
-          .collect(Collectors.toList());
-      } catch (KubectlException e) {
-        // not logging here -- it will generate a lot of noise in cases where crds aren't available/registered in the first place
-        return new ArrayList<>();
-      }
-    }, CRD_EXPIRY_SECONDS, TimeUnit.SECONDS);
+                          return KubernetesKind.getOrRegisterKind(
+                              name, false, isNamespaced, kubernetesApiGroup);
+                        })
+                    .collect(Collectors.toList());
+              } catch (KubectlException e) {
+                // not logging here -- it will generate a lot of noise in cases where crds aren't
+                // available/registered in the first place
+                return new ArrayList<>();
+              }
+            },
+            CRD_EXPIRY_SECONDS,
+            TimeUnit.SECONDS);
   }
 
   public enum InvalidKindReason {
     KIND_NONE("Kind [%s] is invalid"),
-    EXPLICITLY_OMITTED_BY_CONFIGURATION("Kind [%s] included in 'omitKinds' of kubernetes account configuration"),
+    EXPLICITLY_OMITTED_BY_CONFIGURATION(
+        "Kind [%s] included in 'omitKinds' of kubernetes account configuration"),
     MISSING_FROM_ALLOWED_KINDS("Kind [%s] missing in 'kinds' of kubernetes account configuration"),
-    READ_ERROR("Error reading kind [%s]. Please check connectivity and access permissions to the cluster");
+    READ_ERROR(
+        "Error reading kind [%s]. Please check connectivity and access permissions to the cluster");
 
     private String errorMessage;
+
     InvalidKindReason(String errorMessage) {
       this.errorMessage = errorMessage;
     }
@@ -219,14 +244,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         return kubectlNamespace().orElse(DEFAULT_NAMESPACE);
       }
     } catch (Exception e) {
-      log.debug("Error encountered looking up default namespace, defaulting to {}",
-        DEFAULT_NAMESPACE, e);
+      log.debug(
+          "Error encountered looking up default namespace, defaulting to {}", DEFAULT_NAMESPACE, e);
       return DEFAULT_NAMESPACE;
     }
   }
 
   public void initialize() {
-    // ensure this is called at least once before the credentials object is created to ensure all crds are registered
+    // ensure this is called at least once before the credentials object is created to ensure all
+    // crds are registered
     this.liveCrdSupplier.get();
 
     if (checkPermissionsOnStartup) {
@@ -254,9 +280,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
 
     if (!omitNamespaces.isEmpty()) {
-      result = result.stream()
-          .filter(n -> !omitNamespaces.contains(n))
-          .collect(Collectors.toList());
+      result =
+          result.stream().filter(n -> !omitNamespaces.contains(n)).collect(Collectors.toList());
     }
 
     return result;
@@ -266,22 +291,29 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> namespaces = getDeclaredNamespaces();
 
     if (namespaces.isEmpty()) {
-      log.warn("There are no namespaces configured (or loadable) -- please check that the list of 'omitNamespaces' for account '"
-          + accountName + "' doesn't prevent access from all namespaces in this cluster, or that the cluster is reachable.");
+      log.warn(
+          "There are no namespaces configured (or loadable) -- please check that the list of 'omitNamespaces' for account '"
+              + accountName
+              + "' doesn't prevent access from all namespaces in this cluster, or that the cluster is reachable.");
       return;
     }
 
-    // we are making the assumption that the roles granted to spinnaker for this account in all namespaces are identical.
-    // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine a cluster with 100s of namespaces).
+    // we are making the assumption that the roles granted to spinnaker for this account in all
+    // namespaces are identical.
+    // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine
+    // a cluster with 100s of namespaces).
     String checkNamespace = namespaces.get(0);
     List<KubernetesKind> allKinds = KubernetesKind.getValues();
 
-    log.info("Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
-    Map<KubernetesKind, InvalidKindReason> unreadableKinds = allKinds.parallelStream()
-      .filter(k -> k != KubernetesKind.NONE)
-      .filter(k -> !omitKinds.keySet().contains(k))
-      .filter(k -> !canReadKind(k, checkNamespace))
-      .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
+    log.info(
+        "Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
+    Map<KubernetesKind, InvalidKindReason> unreadableKinds =
+        allKinds
+            .parallelStream()
+            .filter(k -> k != KubernetesKind.NONE)
+            .filter(k -> !omitKinds.keySet().contains(k))
+            .filter(k -> !canReadKind(k, checkNamespace))
+            .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
     omitKinds.putAll(unreadableKinds);
 
     if (metrics) {
@@ -289,7 +321,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         log.info("Checking if pod metrics are readable...");
         topPod(checkNamespace, null);
       } catch (Exception e) {
-        log.warn("Could not read pod metrics in account '{}' for reason: {}", accountName, e.getMessage());
+        log.warn(
+            "Could not read pod metrics in account '{}' for reason: {}",
+            accountName,
+            e.getMessage());
         log.debug("Reading logs failed with exception: ", e);
         metrics = false;
       }
@@ -306,93 +341,177 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       }
       return true;
     } catch (Exception e) {
-      log.info("Kind '{}' will not be cached in account '{}' for reason: '{}'", kind, accountName, e.getMessage());
+      log.info(
+          "Kind '{}' will not be cached in account '{}' for reason: '{}'",
+          kind,
+          accountName,
+          e.getMessage());
       log.debug("Reading kind '{}' failed with exception: ", kind, e);
       return false;
     }
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
-    return runAndRecordMetrics("get", kind, namespace, () -> jobExecutor.get(this, kind, namespace, name));
+    return runAndRecordMetrics(
+        "get", kind, namespace, () -> jobExecutor.get(this, kind, namespace, name));
   }
 
   public List<KubernetesManifest> list(KubernetesKind kind, String namespace) {
-    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, new KubernetesSelectorList()));
+    return runAndRecordMetrics(
+        "list",
+        kind,
+        namespace,
+        () ->
+            jobExecutor.list(
+                this, Collections.singletonList(kind), namespace, new KubernetesSelectorList()));
   }
 
-  public List<KubernetesManifest> list(KubernetesKind kind, String namespace, KubernetesSelectorList selectors) {
-    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, selectors));
+  public List<KubernetesManifest> list(
+      KubernetesKind kind, String namespace, KubernetesSelectorList selectors) {
+    return runAndRecordMetrics(
+        "list",
+        kind,
+        namespace,
+        () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, selectors));
   }
 
   public List<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
     if (kinds.isEmpty()) {
       return new ArrayList<>();
     } else {
-      return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace, new KubernetesSelectorList()));
+      return runAndRecordMetrics(
+          "list",
+          kinds,
+          namespace,
+          () -> jobExecutor.list(this, kinds, namespace, new KubernetesSelectorList()));
     }
   }
 
   public List<KubernetesManifest> eventsFor(KubernetesKind kind, String namespace, String name) {
-    return runAndRecordMetrics("list", KubernetesKind.EVENT, namespace, () -> jobExecutor.eventsFor(this, kind, namespace, name));
+    return runAndRecordMetrics(
+        "list",
+        KubernetesKind.EVENT,
+        namespace,
+        () -> jobExecutor.eventsFor(this, kind, namespace, name));
   }
 
   public String logs(String namespace, String podName, String containerName) {
-    return runAndRecordMetrics("logs", KubernetesKind.POD, namespace, () -> jobExecutor.logs(this, namespace, podName, containerName));
+    return runAndRecordMetrics(
+        "logs",
+        KubernetesKind.POD,
+        namespace,
+        () -> jobExecutor.logs(this, namespace, podName, containerName));
   }
 
   public String jobLogs(String namespace, String jobName) {
-    return runAndRecordMetrics("logs", KubernetesKind.JOB, namespace, () -> jobExecutor.jobLogs(this, namespace, jobName));
+    return runAndRecordMetrics(
+        "logs", KubernetesKind.JOB, namespace, () -> jobExecutor.jobLogs(this, namespace, jobName));
   }
 
   public void scale(KubernetesKind kind, String namespace, String name, int replicas) {
-    runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, replicas));
+    runAndRecordMetrics(
+        "scale", kind, namespace, () -> jobExecutor.scale(this, kind, namespace, name, replicas));
   }
 
-  public List<String> delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
-    return runAndRecordMetrics("delete", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
+  public List<String> delete(
+      KubernetesKind kind,
+      String namespace,
+      String name,
+      KubernetesSelectorList labelSelectors,
+      V1DeleteOptions options) {
+    return runAndRecordMetrics(
+        "delete",
+        kind,
+        namespace,
+        () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
   public Collection<KubernetesPodMetric> topPod(String namespace, String pod) {
-    return runAndRecordMetrics("top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace, pod));
+    return runAndRecordMetrics(
+        "top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace, pod));
   }
 
   public void deploy(KubernetesManifest manifest) {
-    runAndRecordMetrics("deploy", manifest.getKind(), manifest.getNamespace(), () -> jobExecutor.deploy(this, manifest));
+    runAndRecordMetrics(
+        "deploy",
+        manifest.getKind(),
+        manifest.getNamespace(),
+        () -> jobExecutor.deploy(this, manifest));
   }
 
   public void replace(KubernetesManifest manifest) {
-    runAndRecordMetrics("replace", manifest.getKind(), manifest.getNamespace(), () -> jobExecutor.replace(this, manifest));
+    runAndRecordMetrics(
+        "replace",
+        manifest.getKind(),
+        manifest.getNamespace(),
+        () -> jobExecutor.replace(this, manifest));
   }
 
   public List<Integer> historyRollout(KubernetesKind kind, String namespace, String name) {
-    return runAndRecordMetrics("historyRollout", kind, namespace, () -> jobExecutor.historyRollout(this, kind, namespace, name));
+    return runAndRecordMetrics(
+        "historyRollout",
+        kind,
+        namespace,
+        () -> jobExecutor.historyRollout(this, kind, namespace, name));
   }
 
   public void undoRollout(KubernetesKind kind, String namespace, String name, int revision) {
-    runAndRecordMetrics("undoRollout", kind, namespace, () -> jobExecutor.undoRollout(this, kind, namespace, name, revision));
+    runAndRecordMetrics(
+        "undoRollout",
+        kind,
+        namespace,
+        () -> jobExecutor.undoRollout(this, kind, namespace, name, revision));
   }
 
   public void pauseRollout(KubernetesKind kind, String namespace, String name) {
-    runAndRecordMetrics("pauseRollout", kind, namespace, () -> jobExecutor.pauseRollout(this, kind, namespace, name));
+    runAndRecordMetrics(
+        "pauseRollout",
+        kind,
+        namespace,
+        () -> jobExecutor.pauseRollout(this, kind, namespace, name));
   }
 
   public void resumeRollout(KubernetesKind kind, String namespace, String name) {
-    runAndRecordMetrics("resumeRollout", kind, namespace, () -> jobExecutor.resumeRollout(this, kind, namespace, name));
+    runAndRecordMetrics(
+        "resumeRollout",
+        kind,
+        namespace,
+        () -> jobExecutor.resumeRollout(this, kind, namespace, name));
   }
 
-  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
-    runAndRecordMetrics("patch", kind, namespace, () -> jobExecutor.patch(this, kind, namespace, name, options, manifest));
+  public void patch(
+      KubernetesKind kind,
+      String namespace,
+      String name,
+      KubernetesPatchOptions options,
+      KubernetesManifest manifest) {
+    runAndRecordMetrics(
+        "patch",
+        kind,
+        namespace,
+        () -> jobExecutor.patch(this, kind, namespace, name, options, manifest));
   }
 
-  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, List<JsonPatch> patches) {
-    runAndRecordMetrics("patch", kind, namespace, () -> jobExecutor.patch(this, kind, namespace, name, options, patches));
+  public void patch(
+      KubernetesKind kind,
+      String namespace,
+      String name,
+      KubernetesPatchOptions options,
+      List<JsonPatch> patches) {
+    runAndRecordMetrics(
+        "patch",
+        kind,
+        namespace,
+        () -> jobExecutor.patch(this, kind, namespace, name, options, patches));
   }
 
-  private <T> T runAndRecordMetrics(String action, KubernetesKind kind, String namespace, Supplier<T> op) {
+  private <T> T runAndRecordMetrics(
+      String action, KubernetesKind kind, String namespace, Supplier<T> op) {
     return runAndRecordMetrics(action, Collections.singletonList(kind), namespace, op);
   }
 
-  private <T> T runAndRecordMetrics(String action, List<KubernetesKind> kinds, String namespace, Supplier<T> op) {
+  private <T> T runAndRecordMetrics(
+      String action, List<KubernetesKind> kinds, String namespace, Supplier<T> op) {
     T result = null;
     Throwable failure = null;
     KubectlException apiException = null;
@@ -409,7 +528,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       if (kinds.size() == 1) {
         tags.put("kind", kinds.get(0).toString());
       } else {
-        tags.put("kinds", String.join(",", kinds.stream().map(KubernetesKind::toString).collect(Collectors.toList())));
+        tags.put(
+            "kinds",
+            String.join(
+                ",", kinds.stream().map(KubernetesKind::toString).collect(Collectors.toList())));
       }
       tags.put("account", accountName);
       tags.put("namespace", StringUtils.isEmpty(namespace) ? "none" : namespace);
@@ -420,11 +542,13 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         tags.put("reason", failure.getClass().getSimpleName() + ": " + failure.getMessage());
       }
 
-      registry.timer(registry.createId("kubernetes.api", tags))
+      registry
+          .timer(registry.createId("kubernetes.api", tags))
           .record(clock.monotonicTime() - startTime, TimeUnit.NANOSECONDS);
 
       if (failure != null) {
-        throw new KubectlJobExecutor.KubectlException("Failure running " + action + " on " + kinds + ": " + failure.getMessage(), failure);
+        throw new KubectlJobExecutor.KubectlException(
+            "Failure running " + action + " on " + kinds + ": " + failure.getMessage(), failure);
       } else if (apiException != null) {
         throw apiException;
       } else {

@@ -18,10 +18,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceDiscoveryCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ServiceDiscoveryRegistry;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 public class EcsServiceDiscoveryProvider {
@@ -36,5 +35,4 @@ public class EcsServiceDiscoveryProvider {
   public Collection<ServiceDiscoveryRegistry> getAllServiceDiscoveryRegistries() {
     return serviceDiscoveryCacheClient.getAll();
   }
-
 }

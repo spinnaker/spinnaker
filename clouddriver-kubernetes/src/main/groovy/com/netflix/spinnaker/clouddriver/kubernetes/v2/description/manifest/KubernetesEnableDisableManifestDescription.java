@@ -17,15 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesEnableDisableManifestDescription extends KubernetesManifestOperationDescription {
+public class KubernetesEnableDisableManifestDescription
+    extends KubernetesManifestOperationDescription {
   int targetPercentage = 100;
   // optional: can be inferred from the annotations as well
   List<String> loadBalancers = new ArrayList<>();

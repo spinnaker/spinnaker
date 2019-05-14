@@ -20,12 +20,11 @@ import com.amazonaws.services.ecs.model.*;
 import com.google.common.collect.Lists;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -69,11 +68,13 @@ public class EcsServerGroupNameResolver extends AbstractServerGroupNameResolver 
     List<TakenSlot> slots = new ArrayList<>();
     List<List<String>> serviceBatches = Lists.partition(relevantServices, 10);
     for (List<String> serviceBatch : serviceBatches) {
-      DescribeServicesRequest request = new DescribeServicesRequest().withCluster(ecsClusterName).withServices(serviceBatch);
+      DescribeServicesRequest request =
+          new DescribeServicesRequest().withCluster(ecsClusterName).withServices(serviceBatch);
       DescribeServicesResult result = ecs.describeServices(request);
       for (Service service : result.getServices()) {
         Names names = Names.parseName(service.getServiceName());
-        slots.add(new TakenSlot(service.getServiceName(), names.getSequence(), service.getCreatedAt()));
+        slots.add(
+            new TakenSlot(service.getServiceName(), names.getSequence(), service.getCreatedAt()));
       }
     }
 
@@ -87,6 +88,7 @@ public class EcsServerGroupNameResolver extends AbstractServerGroupNameResolver 
 
   public static String getEcsContainerName(String serverGroupName) {
     // Format: family-name-v001, container name = v001
-    return serverGroupName.substring(serverGroupName.lastIndexOf('-') + 1, serverGroupName.length());
+    return serverGroupName.substring(
+        serverGroupName.lastIndexOf('-') + 1, serverGroupName.length());
   }
 }

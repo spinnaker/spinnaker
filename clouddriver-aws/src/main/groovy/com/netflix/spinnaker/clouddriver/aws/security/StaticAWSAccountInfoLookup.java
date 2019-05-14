@@ -24,43 +24,44 @@ import java.util.List;
 import java.util.Set;
 
 public class StaticAWSAccountInfoLookup implements AWSAccountInfoLookup {
-    private final String accountId;
-    private final List<AmazonCredentials.AWSRegion> knownRegions;
+  private final String accountId;
+  private final List<AmazonCredentials.AWSRegion> knownRegions;
 
-    public StaticAWSAccountInfoLookup(String accountId, List<AmazonCredentials.AWSRegion> knownRegions) {
-        this.accountId = accountId;
-        this.knownRegions = knownRegions;
-    }
+  public StaticAWSAccountInfoLookup(
+      String accountId, List<AmazonCredentials.AWSRegion> knownRegions) {
+    this.accountId = accountId;
+    this.knownRegions = knownRegions;
+  }
 
-    @Override
-    public String findAccountId() {
-        return accountId;
-    }
+  @Override
+  public String findAccountId() {
+    return accountId;
+  }
 
-    @Override
-    public List<AmazonCredentials.AWSRegion> listRegions(String... regionNames) {
-        return listRegions(Arrays.asList(regionNames));
-    }
+  @Override
+  public List<AmazonCredentials.AWSRegion> listRegions(String... regionNames) {
+    return listRegions(Arrays.asList(regionNames));
+  }
 
-    @Override
-    public List<AmazonCredentials.AWSRegion> listRegions(Collection<String> regionNames) {
-        Set<String> nameSet = new HashSet<>(regionNames);
-        List<AmazonCredentials.AWSRegion> result = new ArrayList<>(nameSet.size());
-        for (AmazonCredentials.AWSRegion region : knownRegions) {
-            if (nameSet.isEmpty() || nameSet.contains(region.getName())) {
-                result.add(region);
-            }
-        }
-        return result;
+  @Override
+  public List<AmazonCredentials.AWSRegion> listRegions(Collection<String> regionNames) {
+    Set<String> nameSet = new HashSet<>(regionNames);
+    List<AmazonCredentials.AWSRegion> result = new ArrayList<>(nameSet.size());
+    for (AmazonCredentials.AWSRegion region : knownRegions) {
+      if (nameSet.isEmpty() || nameSet.contains(region.getName())) {
+        result.add(region);
+      }
     }
+    return result;
+  }
 
-    @Override
-    public List<String> listAvailabilityZones(String regionName) {
-        for (AmazonCredentials.AWSRegion region : knownRegions) {
-            if (region.getName().equals(regionName)) {
-                return new ArrayList<>(region.getAvailabilityZones());
-            }
-        }
-        return null;
+  @Override
+  public List<String> listAvailabilityZones(String regionName) {
+    for (AmazonCredentials.AWSRegion region : knownRegions) {
+      if (region.getName().equals(regionName)) {
+        return new ArrayList<>(region.getAvailabilityZones());
+      }
     }
+    return null;
+  }
 }

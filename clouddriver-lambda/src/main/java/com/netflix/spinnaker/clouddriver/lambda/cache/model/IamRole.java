@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.lambda.cache.model;
 
 import com.netflix.spinnaker.clouddriver.aws.model.Role;
 import com.netflix.spinnaker.clouddriver.aws.model.TrustRelationship;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 @Data
 @AllArgsConstructor

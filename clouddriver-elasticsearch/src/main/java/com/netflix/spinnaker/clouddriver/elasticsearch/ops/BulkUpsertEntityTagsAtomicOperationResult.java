@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
-
 import java.util.ArrayList;
 import java.util.Collection;
 

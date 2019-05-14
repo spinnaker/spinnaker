@@ -21,17 +21,15 @@ import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Component
 public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
@@ -41,9 +39,10 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
   private ContainerInformationService containerInformationService;
 
   @Autowired
-  public EcsInstanceProvider(ContainerInformationService containerInformationService,
-                             TaskCacheClient taskCacheClient,
-                             ContainerInstanceCacheClient containerInstanceCacheClient) {
+  public EcsInstanceProvider(
+      ContainerInformationService containerInformationService,
+      TaskCacheClient taskCacheClient,
+      ContainerInstanceCacheClient containerInstanceCacheClient) {
     this.containerInformationService = containerInformationService;
     this.taskCacheClient = taskCacheClient;
     this.containerInstanceCacheClient = containerInstanceCacheClient;
@@ -56,8 +55,7 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
 
   @Override
   public EcsTask getInstance(String account, String region, String id) {
-    if (!isValidId(id, region))
-      return null;
+    if (!isValidId(id, region)) return null;
 
     EcsTask ecsInstance = null;
 
@@ -70,17 +68,28 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
     String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
     Long launchTime = task.getStartedAt();
 
-    List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(id, serviceName, account, region);
+    List<Map<String, Object>> healthStatus =
+        containerInformationService.getHealthStatus(id, serviceName, account, region);
     String address = containerInformationService.getTaskPrivateAddress(account, region, task);
     String zone = containerInformationService.getTaskZone(account, region, task);
 
     NetworkInterface networkInterface =
-      task.getContainers() != null
-        && !task.getContainers().isEmpty()
-        && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-        ? task.getContainers().get(0).getNetworkInterfaces().get(0) : null;
+        task.getContainers() != null
+                && !task.getContainers().isEmpty()
+                && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
+            ? task.getContainers().get(0).getNetworkInterfaces().get(0)
+            : null;
 
-    ecsInstance = new EcsTask(id, launchTime, task.getLastStatus(), task.getDesiredStatus(), zone, healthStatus, address, networkInterface);
+    ecsInstance =
+        new EcsTask(
+            id,
+            launchTime,
+            task.getLastStatus(),
+            task.getDesiredStatus(),
+            zone,
+            healthStatus,
+            address,
+            networkInterface);
 
     return ecsInstance;
   }
@@ -96,6 +105,4 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
     String arn = String.format("arn:aws:ecs:%s:\\d*:task/%s", region, idRegex);
     return id.matches(idOnly) || id.matches(arn);
   }
-
 }
-

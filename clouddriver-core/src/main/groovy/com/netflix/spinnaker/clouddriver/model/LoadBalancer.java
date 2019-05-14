@@ -19,16 +19,14 @@ package com.netflix.spinnaker.clouddriver.model;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * A representation of a network load balancer, which is indirectly correlated to a {@link Cluster} through its relationship to {@link ServerGroup} objects. This interface provides a contract for
+ * A representation of a network load balancer, which is indirectly correlated to a {@link Cluster}
+ * through its relationship to {@link ServerGroup} objects. This interface provides a contract for
  * retrieving the name of the load balancer and the names of the server groups that it is servicing.
- *
- *
  */
 public interface LoadBalancer {
   /**
@@ -48,19 +46,20 @@ public interface LoadBalancer {
   }
 
   /**
-   * The type of this load balancer. Can indicate some vendor-specific designation, or cloud provider
+   * The type of this load balancer. Can indicate some vendor-specific designation, or cloud
+   * provider
+   *
    * @deprecated use #getCloudProvider
    * @return type
    */
   String getType();
 
-  /**
-   * Provider-specific identifier
-   */
+  /** Provider-specific identifier */
   String getCloudProvider();
 
   /**
    * Account under which this load balancer exists.
+   *
    * @return
    */
   String getAccount();

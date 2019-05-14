@@ -24,20 +24,24 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 
 public class RedisNamedCacheFactory implements NamedCacheFactory {
 
-    private final RedisClientDelegate redisClientDelegate;
-    private final ObjectMapper objectMapper;
-    private final RedisCacheOptions options;
-    private final CacheMetrics cacheMetrics;
+  private final RedisClientDelegate redisClientDelegate;
+  private final ObjectMapper objectMapper;
+  private final RedisCacheOptions options;
+  private final CacheMetrics cacheMetrics;
 
-    public RedisNamedCacheFactory(RedisClientDelegate redisClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
-        this.redisClientDelegate = redisClientDelegate;
-        this.objectMapper = objectMapper;
-        this.options = options;
-        this.cacheMetrics = cacheMetrics;
-    }
+  public RedisNamedCacheFactory(
+      RedisClientDelegate redisClientDelegate,
+      ObjectMapper objectMapper,
+      RedisCacheOptions options,
+      CacheMetrics cacheMetrics) {
+    this.redisClientDelegate = redisClientDelegate;
+    this.objectMapper = objectMapper;
+    this.options = options;
+    this.cacheMetrics = cacheMetrics;
+  }
 
-    @Override
-    public WriteableCache getCache(String name) {
-        return new RedisCache(name, redisClientDelegate, objectMapper, options, cacheMetrics);
-    }
+  @Override
+  public WriteableCache getCache(String name) {
+    return new RedisCache(name, redisClientDelegate, objectMapper, options, cacheMetrics);
+  }
 }

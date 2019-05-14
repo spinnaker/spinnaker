@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Domain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
-import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryClientUtilsTest {
 
@@ -44,7 +43,9 @@ class CloudFoundryClientUtilsTest {
 
     when(applicationService.all(null, null, null)).thenReturn(pageOne);
 
-    List results = CloudFoundryClientUtils.collectPages("applications", page -> applicationService.all(page, null, null));
+    List results =
+        CloudFoundryClientUtils.collectPages(
+            "applications", page -> applicationService.all(page, null, null));
 
     assertThat(results).containsExactly(applicationOne);
   }
@@ -66,11 +67,12 @@ class CloudFoundryClientUtilsTest {
     when(applicationService.all(null, null, null)).thenReturn(pageOne);
     when(applicationService.all(2, null, null)).thenReturn(pageTwo);
 
-    List results = CloudFoundryClientUtils.collectPages("applications", page -> applicationService.all(page, null, null));
+    List results =
+        CloudFoundryClientUtils.collectPages(
+            "applications", page -> applicationService.all(page, null, null));
 
     assertThat(results).containsExactly(applicationOne, applicationTwo);
   }
-
 
   @Test
   void collectPageResourcesIteratesOverOnePage() {
@@ -80,7 +82,8 @@ class CloudFoundryClientUtilsTest {
 
     when(domainService.allShared(null)).thenReturn(pageOne);
 
-    List results = CloudFoundryClientUtils.collectPageResources("shared domains",  domainService::allShared);
+    List results =
+        CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);
 
     assertThat(results).containsExactly(pageOne.getResources().get(0));
   }
@@ -96,8 +99,10 @@ class CloudFoundryClientUtilsTest {
     when(domainService.allShared(null)).thenReturn(pageOne);
     when(domainService.allShared(2)).thenReturn(pageTwo);
 
-    List results = CloudFoundryClientUtils.collectPageResources("shared domains",  domainService::allShared);
+    List results =
+        CloudFoundryClientUtils.collectPageResources("shared domains", domainService::allShared);
 
-    assertThat(results).containsExactly(pageOne.getResources().get(0), pageTwo.getResources().get(0));
+    assertThat(results)
+        .containsExactly(pageOne.getResources().get(0), pageTwo.getResources().get(0));
   }
 }

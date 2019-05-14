@@ -22,9 +22,9 @@ public class MalformedManifestException extends IllegalStateException {
     super(msg);
   }
 
-  public static MalformedManifestException missingField(KubernetesManifest manifest, String fieldName) {
+  public static MalformedManifestException missingField(
+      KubernetesManifest manifest, String fieldName) {
     return new MalformedManifestException(
-        String.format("Missing required field '%s' on manifest:\n%s", fieldName, manifest)
-    );
+        String.format("Missing required field '%s' on manifest:\n%s", fieldName, manifest));
   }
 }

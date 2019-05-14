@@ -17,6 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.STATEFUL_SET;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -30,28 +34,23 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta2RollingUpdateStatefulSetStrategy;
 import io.kubernetes.client.models.V1beta2StatefulSet;
 import io.kubernetes.client.models.V1beta2StatefulSetStatus;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.STATEFUL_SET;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesStatefulSetHandler extends KubernetesHandler implements
-    CanResize,
-    CanScale,
-    CanPauseRollout,
-    CanResumeRollout,
-    CanUndoRollout,
-    ServerGroupHandler {
+public class KubernetesStatefulSetHandler extends KubernetesHandler
+    implements CanResize,
+        CanScale,
+        CanPauseRollout,
+        CanResumeRollout,
+        CanUndoRollout,
+        ServerGroupHandler {
 
   public KubernetesStatefulSetHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
@@ -93,7 +92,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     if (manifest.isNewerThanObservedGeneration()) {
       return (new Status()).unknown();
     }
-    V1beta2StatefulSet v1beta2StatefulSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2StatefulSet.class);
+    V1beta2StatefulSet v1beta2StatefulSet =
+        KubernetesCacheDataConverter.getResource(manifest, V1beta2StatefulSet.class);
     return status(v1beta2StatefulSet);
   }
 
@@ -104,7 +104,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
   }
 
   @Override
-  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+  public Map<String, Object> hydrateSearchResult(
+      Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
     result.put("serverGroup", result.get("name"));
 
@@ -120,8 +121,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
 
     V1beta2StatefulSetStatus status = statefulSet.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet")
-          .unavailable("No availability reported");
+      result.unstable("No status reported yet").unavailable("No availability reported");
       return result;
     }
 
@@ -137,7 +137,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     }
 
     String updateType = statefulSet.getSpec().getUpdateStrategy().getType();
-    V1beta2RollingUpdateStatefulSetStrategy rollingUpdate = statefulSet.getSpec().getUpdateStrategy().getRollingUpdate();
+    V1beta2RollingUpdateStatefulSetStrategy rollingUpdate =
+        statefulSet.getSpec().getUpdateStrategy().getRollingUpdate();
 
     Integer updated = status.getUpdatedReplicas();
 
@@ -147,7 +148,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
       if (replicas != null && partition != null && (updated < (replicas - partition))) {
         return result.unstable("Waiting for partitioned roll out to finish");
       }
-      result.setStable(new Status.Condition(true,"Partitioned roll out complete"));
+      result.setStable(new Status.Condition(true, "Partitioned roll out complete"));
       return result;
     }
 
@@ -164,12 +165,16 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
   }
 
   @Override
-  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+  public void addRelationships(
+      Map<KubernetesKind, List<KubernetesManifest>> allResources,
+      Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
     BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
 
-    Map<String, KubernetesManifest> services = allResources.getOrDefault(SERVICE, new ArrayList<>())
-        .stream()
-        .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
+    Map<String, KubernetesManifest> services =
+        allResources.getOrDefault(SERVICE, new ArrayList<>()).stream()
+            .collect(
+                Collectors.toMap(
+                    (m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
 
     for (KubernetesManifest manifest : allResources.getOrDefault(STATEFUL_SET, new ArrayList<>())) {
       String serviceName = KubernetesStatefulSetHandler.serviceName(manifest);

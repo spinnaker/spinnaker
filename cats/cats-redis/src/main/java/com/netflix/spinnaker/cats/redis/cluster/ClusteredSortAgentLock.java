@@ -22,7 +22,8 @@ import com.netflix.spinnaker.cats.agent.AgentLock;
 public class ClusteredSortAgentLock extends AgentLock {
   // The score the agent was acquired with (Used to ensure we own this agent on release).
   private final String acquireScore;
-  // The score the agent was release from the WAITING set with (Used to ensure it is readded to the WAITING set with the right score).
+  // The score the agent was release from the WAITING set with (Used to ensure it is readded to the
+  // WAITING set with the right score).
   private final String releaseScore;
 
   public ClusteredSortAgentLock(Agent agent, String acquireScore, String releaseScore) {

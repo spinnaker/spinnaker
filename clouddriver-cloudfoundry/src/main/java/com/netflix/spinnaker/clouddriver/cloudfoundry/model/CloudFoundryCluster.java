@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import static java.util.Collections.emptySet;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,17 +25,16 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
 
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
-
 @Value
-@EqualsAndHashCode(of = {"name", "accountName"}, callSuper = false)
+@EqualsAndHashCode(
+    of = {"name", "accountName"},
+    callSuper = false)
 @Builder
 @JsonDeserialize(builder = CloudFoundryCluster.CloudFoundryClusterBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -50,8 +51,8 @@ public class CloudFoundryCluster extends CloudFoundryModel implements Cluster {
   Set<CloudFoundryServerGroup> serverGroups;
 
   /**
-   * Load balancers are read from the server group model, and don't make sense on cluster.
-   * There is no practical impact to leaving this empty.
+   * Load balancers are read from the server group model, and don't make sense on cluster. There is
+   * no practical impact to leaving this empty.
    */
   @Override
   public Set<? extends LoadBalancer> getLoadBalancers() {

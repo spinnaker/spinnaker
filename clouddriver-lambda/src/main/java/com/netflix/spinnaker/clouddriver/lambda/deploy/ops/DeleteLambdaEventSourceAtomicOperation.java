@@ -21,28 +21,32 @@ import com.amazonaws.services.lambda.model.*;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class DeleteLambdaEventSourceAtomicOperation
-  extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
-  implements AtomicOperation<Object> {
+    extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
+    implements AtomicOperation<Object> {
 
-  public DeleteLambdaEventSourceAtomicOperation(UpsertLambdaFunctionEventMappingDescription description) {
+  public DeleteLambdaEventSourceAtomicOperation(
+      UpsertLambdaFunctionEventMappingDescription description) {
     super(description, "DELETE_LAMBDA_FUNCTION_EVENT_MAPPING");
   }
 
   @Override
   public Object operate(List priorOutputs) {
-    LambdaFunction lambdaFunction = (LambdaFunction) lambdaFunctionProvider.getFunction(
-      description.getAccount(), description.getRegion(), description.getFunctionName()
-    );
+    LambdaFunction lambdaFunction =
+        (LambdaFunction)
+            lambdaFunctionProvider.getFunction(
+                description.getAccount(), description.getRegion(), description.getFunctionName());
 
-    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations = lambdaFunction.getEventSourceMappings();
+    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations =
+        lambdaFunction.getEventSourceMappings();
 
-    for (EventSourceMappingConfiguration eventSourceMappingConfiguration : eventSourceMappingConfigurations) {
-      if (eventSourceMappingConfiguration.getEventSourceArn().equalsIgnoreCase(description.getEventSourceArn())) {
+    for (EventSourceMappingConfiguration eventSourceMappingConfiguration :
+        eventSourceMappingConfigurations) {
+      if (eventSourceMappingConfiguration
+          .getEventSourceArn()
+          .equalsIgnoreCase(description.getEventSourceArn())) {
         description.setUuid(eventSourceMappingConfiguration.getUUID());
         return deleteEventSourceMappingResult();
       }
@@ -55,7 +59,8 @@ public class DeleteLambdaEventSourceAtomicOperation
     updateTaskStatus("Initializing Deleting of AWS Lambda Function Event Mapping Operation...");
 
     AWSLambda client = getLambdaClient();
-    DeleteEventSourceMappingRequest request = new DeleteEventSourceMappingRequest().withUUID(description.getUuid());
+    DeleteEventSourceMappingRequest request =
+        new DeleteEventSourceMappingRequest().withUUID(description.getUuid());
 
     DeleteEventSourceMappingResult result = client.deleteEventSourceMapping(request);
     updateTaskStatus("Finished Deleting of AWS Lambda Function Event Mapping Operation...");

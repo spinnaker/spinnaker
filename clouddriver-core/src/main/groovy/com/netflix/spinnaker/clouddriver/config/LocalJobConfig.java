@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Configuration;
 public class LocalJobConfig {
   @Bean
   @ConditionalOnMissingBean(JobExecutor.class)
-  public JobExecutor jobExecutorLocal(@Value("${jobs.local.timeout-minutes:10}") long timeoutMinutes) {
+  public JobExecutor jobExecutorLocal(
+      @Value("${jobs.local.timeout-minutes:10}") long timeoutMinutes) {
     return new JobExecutorLocal(timeoutMinutes);
   }
 }

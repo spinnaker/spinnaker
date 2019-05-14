@@ -23,6 +23,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan("com.netflix.spinnaker.clouddriver.lambda")
 @ConditionalOnProperty("aws.lambda.enabled")
-public class LambdaConfiguration {
-
-}
+public class LambdaConfiguration {}

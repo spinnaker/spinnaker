@@ -19,12 +19,10 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.descriptions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class BulkUpsertEntityTagsDescription implements NonCredentialed {
-  @JsonProperty
-  public boolean isPartial = true;
+  @JsonProperty public boolean isPartial = true;
   public List<EntityTags> entityTags = new ArrayList<>();
 }

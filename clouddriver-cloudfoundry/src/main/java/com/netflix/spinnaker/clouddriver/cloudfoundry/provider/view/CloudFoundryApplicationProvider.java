@@ -16,19 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.APPLICATIONS;
+
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryApplication;
 import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
+import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.util.Set;
-
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.APPLICATIONS;
 
 @RequiredArgsConstructor
 @Component
@@ -38,13 +37,16 @@ public class CloudFoundryApplicationProvider implements ApplicationProvider {
 
   @Override
   public Set<? extends Application> getApplications(boolean expand) {
-    return repository.findApplicationsByKeys(cacheView.filterIdentifiers(APPLICATIONS.getNs(), Keys.getApplicationKey("*")),
-      expand ? CacheRepository.Detail.NAMES_ONLY : CacheRepository.Detail.NONE);
+    return repository.findApplicationsByKeys(
+        cacheView.filterIdentifiers(APPLICATIONS.getNs(), Keys.getApplicationKey("*")),
+        expand ? CacheRepository.Detail.NAMES_ONLY : CacheRepository.Detail.NONE);
   }
 
   @Nullable
   @Override
   public CloudFoundryApplication getApplication(String name) {
-    return repository.findApplicationByKey(Keys.getApplicationKey(name), CacheRepository.Detail.NAMES_ONLY).orElse(null);
+    return repository
+        .findApplicationByKey(Keys.getApplicationKey(name), CacheRepository.Detail.NAMES_ONLY)
+        .orElse(null);
   }
 }

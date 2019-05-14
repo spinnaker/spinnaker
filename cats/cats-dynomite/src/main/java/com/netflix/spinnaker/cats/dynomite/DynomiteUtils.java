@@ -17,11 +17,10 @@ package com.netflix.spinnaker.cats.dynomite;
 
 import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
-import net.jodah.failsafe.RetryPolicy;
-import redis.clients.jedis.exceptions.JedisException;
-
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import net.jodah.failsafe.RetryPolicy;
+import redis.clients.jedis.exceptions.JedisException;
 
 public class DynomiteUtils {
 
@@ -29,12 +28,12 @@ public class DynomiteUtils {
 
   public static RetryPolicy greedyRetryPolicy(long delayMs) {
     return new RetryPolicy()
-      .retryOn(Arrays.asList(
-        JedisException.class,
-        DynoException.class,
-        DynomiteClientDelegate.ClientDelegateException.class
-      ))
-      .withDelay(delayMs, TimeUnit.MILLISECONDS)
-      .withMaxRetries(3);
+        .retryOn(
+            Arrays.asList(
+                JedisException.class,
+                DynoException.class,
+                DynomiteClientDelegate.ClientDelegateException.class))
+        .withDelay(delayMs, TimeUnit.MILLISECONDS)
+        .withMaxRetries(3);
   }
 }

@@ -24,8 +24,7 @@ public class TerminateTasksAndShrinkJobRequest {
   private List<String> taskIds;
   private boolean shrink = true;
 
-  public TerminateTasksAndShrinkJobRequest() {
-  }
+  public TerminateTasksAndShrinkJobRequest() {}
 
   public String getUser() {
     return user;
@@ -53,5 +52,4 @@ public class TerminateTasksAndShrinkJobRequest {
     this.shrink = shrink;
     return this;
   }
-
 }

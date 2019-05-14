@@ -22,9 +22,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 @Data
 public abstract class Resolver<M extends DependencyResolver> {
-  /**
-   * The name which identifies the resolver.
-   */
+  /** The name which identifies the resolver. */
   @JacksonXmlProperty(isAttribute = true)
   private String name;
 

@@ -23,5 +23,6 @@ public interface GoogleLabeledResource {
   default String getName() {
     return null;
   }
+
   Map<String, String> getLabels();
 }

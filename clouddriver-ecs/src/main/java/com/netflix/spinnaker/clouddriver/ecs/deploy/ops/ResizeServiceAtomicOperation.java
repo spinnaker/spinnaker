@@ -28,13 +28,13 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-public class ResizeServiceAtomicOperation extends AbstractEcsAtomicOperation<ResizeServiceDescription, Void> implements AtomicOperation<Void> {
-  @Autowired
-  ContainerInformationService containerInformationService;
+public class ResizeServiceAtomicOperation
+    extends AbstractEcsAtomicOperation<ResizeServiceDescription, Void>
+    implements AtomicOperation<Void> {
+  @Autowired ContainerInformationService containerInformationService;
 
   public ResizeServiceAtomicOperation(ResizeServiceDescription description) {
     super(description, "RESIZE_ECS_SERVER_GROUP");
@@ -55,12 +55,15 @@ public class ResizeServiceAtomicOperation extends AbstractEcsAtomicOperation<Res
 
     String serviceName = description.getServerGroupName();
     Integer desiredCount = description.getCapacity().getDesired();
-    String ecsClusterName = containerInformationService.getClusterName(serviceName, description.getAccount(), description.getRegion());
+    String ecsClusterName =
+        containerInformationService.getClusterName(
+            serviceName, description.getAccount(), description.getRegion());
 
-    UpdateServiceRequest updateServiceRequest = new UpdateServiceRequest()
-      .withCluster(ecsClusterName)
-      .withService(serviceName)
-      .withDesiredCount(desiredCount);
+    UpdateServiceRequest updateServiceRequest =
+        new UpdateServiceRequest()
+            .withCluster(ecsClusterName)
+            .withService(serviceName)
+            .withDesiredCount(desiredCount);
     updateTaskStatus(String.format("Resizing %s to %s instances.", serviceName, desiredCount));
     Service service = amazonECS.updateService(updateServiceRequest).getService();
     updateTaskStatus(String.format("Done resizing %s to %s", serviceName, desiredCount));
@@ -71,19 +74,29 @@ public class ResizeServiceAtomicOperation extends AbstractEcsAtomicOperation<Res
     AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
 
     Integer desiredCount = description.getCapacity().getDesired();
-    String ecsClusterName = containerInformationService.getClusterName(service.getServiceName(), description.getAccount(), description.getRegion());
+    String ecsClusterName =
+        containerInformationService.getClusterName(
+            service.getServiceName(), description.getAccount(), description.getRegion());
 
-    RegisterScalableTargetRequest request = new RegisterScalableTargetRequest()
-      .withServiceNamespace(ServiceNamespace.Ecs)
-      .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-      .withResourceId(String.format("service/%s/%s", ecsClusterName, service.getServiceName()))
-      .withRoleARN(service.getRoleArn())
-      .withMinCapacity(description.getCapacity().getMin())
-      .withMaxCapacity(description.getCapacity().getMax());
+    RegisterScalableTargetRequest request =
+        new RegisterScalableTargetRequest()
+            .withServiceNamespace(ServiceNamespace.Ecs)
+            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+            .withResourceId(
+                String.format("service/%s/%s", ecsClusterName, service.getServiceName()))
+            .withRoleARN(service.getRoleArn())
+            .withMinCapacity(description.getCapacity().getMin())
+            .withMaxCapacity(description.getCapacity().getMax());
 
-    updateTaskStatus(String.format("Resizing Scalable Target of %s to %s instances", service.getServiceName(), desiredCount));
+    updateTaskStatus(
+        String.format(
+            "Resizing Scalable Target of %s to %s instances",
+            service.getServiceName(), desiredCount));
     autoScalingClient.registerScalableTarget(request);
-    updateTaskStatus(String.format("Done resizing Scalable Target of %s to %s instances", service.getServiceName(), desiredCount));
+    updateTaskStatus(
+        String.format(
+            "Done resizing Scalable Target of %s to %s instances",
+            service.getServiceName(), desiredCount));
   }
 
   private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {

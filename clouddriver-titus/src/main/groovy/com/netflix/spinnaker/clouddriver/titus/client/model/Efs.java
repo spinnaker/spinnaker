@@ -53,5 +53,4 @@ public class Efs {
   public void setEfsRelativeMountPoint(String efsRelativeMountPoint) {
     this.efsRelativeMountPoint = efsRelativeMountPoint;
   }
-
 }

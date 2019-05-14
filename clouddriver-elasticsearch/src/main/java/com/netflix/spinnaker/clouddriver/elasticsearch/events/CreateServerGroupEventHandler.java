@@ -47,11 +47,10 @@ public class CreateServerGroupEventHandler implements OperationEventHandler {
 
     CreateServerGroupEvent createServerGroupEvent = (CreateServerGroupEvent) operationEvent;
     serverGroupTagger.deleteAll(
-      createServerGroupEvent.getCloudProvider(),
-      createServerGroupEvent.getAccountId(),
-      createServerGroupEvent.getRegion(),
-      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
-      createServerGroupEvent.getName()
-    );
+        createServerGroupEvent.getCloudProvider(),
+        createServerGroupEvent.getAccountId(),
+        createServerGroupEvent.getRegion(),
+        EntityTagger.ENTITY_TYPE_SERVER_GROUP,
+        createServerGroupEvent.getName());
   }
 }

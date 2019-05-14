@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.DescribeTasksRequest;
@@ -30,10 +37,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,22 +46,24 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(TASKS.toString()),
-    INFORMATIVE.forType(ECS_CLUSTERS.toString())
-  ));
+  private static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(
+          Arrays.asList(
+              AUTHORITATIVE.forType(TASKS.toString()),
+              INFORMATIVE.forType(ECS_CLUSTERS.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public TaskCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+  public TaskCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      Registry registry) {
     super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 
@@ -89,7 +94,9 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
         if (taskArns.size() == 0) {
           continue;
         }
-        List<Task> tasks = ecs.describeTasks(new DescribeTasksRequest().withCluster(cluster).withTasks(taskArns)).getTasks();
+        List<Task> tasks =
+            ecs.describeTasks(new DescribeTasksRequest().withCluster(cluster).withTasks(taskArns))
+                .getTasks();
         taskList.addAll(tasks);
         nextToken = listTasksResult.getNextToken();
       } while (nextToken != null && nextToken.length() != 0);
@@ -103,9 +110,12 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
     List<Map> returnResults = new LinkedList<>();
     for (CacheData onDemand : allOnDemand) {
       Map<String, String> parsedKey = Keys.parse(onDemand.getId());
-      if (parsedKey != null && parsedKey.get("type") != null &&
-        (parsedKey.get("type").equals(SERVICES.toString()) || parsedKey.get("type").equals(TASKS.toString()) &&
-          parsedKey.get("account").equals(accountName) && parsedKey.get("region").equals(region))) {
+      if (parsedKey != null
+          && parsedKey.get("type") != null
+          && (parsedKey.get("type").equals(SERVICES.toString())
+              || parsedKey.get("type").equals(TASKS.toString())
+                  && parsedKey.get("account").equals(accountName)
+                  && parsedKey.get("region").equals(region))) {
 
         parsedKey.put("type", "serverGroup");
         parsedKey.put("serverGroup", parsedKey.get("serviceName"));
@@ -116,8 +126,16 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
 
         result.put("cacheTime", onDemand.getAttributes().get("cacheTime"));
         result.put("cacheExpiry", onDemand.getAttributes().get("cacheExpiry"));
-        result.put("processedCount", (onDemand.getAttributes().get("processedCount") != null ? onDemand.getAttributes().get("processedCount") : 1));
-        result.put("processedTime", onDemand.getAttributes().get("processedTime") != null ? onDemand.getAttributes().get("processedTime") : new Date());
+        result.put(
+            "processedCount",
+            (onDemand.getAttributes().get("processedCount") != null
+                ? onDemand.getAttributes().get("processedCount")
+                : 1));
+        result.put(
+            "processedTime",
+            onDemand.getAttributes().get("processedTime") != null
+                ? onDemand.getAttributes().get("processedTime")
+                : new Date());
 
         returnResults.add(result);
       }
@@ -127,14 +145,16 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
 
   @Override
   void storeOnDemand(ProviderCache providerCache, Map<String, ?> data) {
-    metricsSupport.onDemandStore(() ->{
-        String keyString = Keys.getServiceKey(accountName, region, (String) data.get("serverGroupName"));
-        Map<String, Object> att = new HashMap<>();
-        att.put("cacheTime", new Date());
-        CacheData cacheData = new DefaultCacheData(keyString, att, Collections.emptyMap());
-        providerCache.putCacheData(ON_DEMAND.toString(), cacheData);
-        return null;
-      });
+    metricsSupport.onDemandStore(
+        () -> {
+          String keyString =
+              Keys.getServiceKey(accountName, region, (String) data.get("serverGroupName"));
+          Map<String, Object> att = new HashMap<>();
+          att.put("cacheTime", new Date());
+          CacheData cacheData = new DefaultCacheData(keyString, att, Collections.emptyMap());
+          providerCache.putCacheData(ON_DEMAND.toString(), cacheData);
+          return null;
+        });
   }
 
   @Override
@@ -150,9 +170,12 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
       dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));
 
       String clusterName = StringUtils.substringAfterLast(task.getClusterArn(), "/");
-      Map<String, Object> clusterAttributes = EcsClusterCachingAgent.convertClusterArnToAttributes(accountName, region, task.getClusterArn());
+      Map<String, Object> clusterAttributes =
+          EcsClusterCachingAgent.convertClusterArnToAttributes(
+              accountName, region, task.getClusterArn());
       key = Keys.getClusterKey(accountName, region, clusterName);
-      clusterDataPoints.put(key, new DefaultCacheData(key, clusterAttributes, Collections.emptyMap()));
+      clusterDataPoints.put(
+          key, new DefaultCacheData(key, clusterAttributes, Collections.emptyMap()));
     }
 
     log.info("Caching " + dataPoints.size() + " tasks in " + getAgentType());

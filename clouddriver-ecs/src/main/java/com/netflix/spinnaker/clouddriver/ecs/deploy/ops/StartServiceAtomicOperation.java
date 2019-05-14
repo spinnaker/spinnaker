@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.StartServiceDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class StartServiceAtomicOperation implements AtomicOperation<Void> {
@@ -37,5 +35,4 @@ public class StartServiceAtomicOperation implements AtomicOperation<Void> {
 
     return null;
   }
-
 }

@@ -23,7 +23,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 public interface CanUndoRollout extends CanRollout {
   KubernetesKind kind();
 
-  default void undoRollout(KubernetesV2Credentials credentials, String namespace, String name, int revision) {
+  default void undoRollout(
+      KubernetesV2Credentials credentials, String namespace, String name, int revision) {
     credentials.undoRollout(kind(), namespace, name, revision);
   }
 }

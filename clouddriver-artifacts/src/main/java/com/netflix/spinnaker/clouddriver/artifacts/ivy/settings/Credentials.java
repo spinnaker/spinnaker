@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import lombok.Data;
-
 import javax.annotation.Nullable;
+import lombok.Data;
 
 @Data
 public class Credentials {

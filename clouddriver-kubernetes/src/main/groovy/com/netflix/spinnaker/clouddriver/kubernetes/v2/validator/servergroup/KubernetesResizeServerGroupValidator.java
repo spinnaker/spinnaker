@@ -17,30 +17,35 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.servergroup;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
+
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup.KubernetesResizeServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
-
 @KubernetesOperation(RESIZE_SERVER_GROUP)
 @Component
-public class KubernetesResizeServerGroupValidator extends DescriptionValidator<KubernetesResizeServerGroupDescription> {
-  @Autowired
-  AccountCredentialsProvider provider;
+public class KubernetesResizeServerGroupValidator
+    extends DescriptionValidator<KubernetesResizeServerGroupDescription> {
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesResizeServerGroupDescription description, Errors errors) {
-    KubernetesValidationUtil util = new KubernetesValidationUtil("deployKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getCoordinates().getKind(), description.getCoordinates().getNamespace())) {
+  public void validate(
+      List priorDescriptions, KubernetesResizeServerGroupDescription description, Errors errors) {
+    KubernetesValidationUtil util =
+        new KubernetesValidationUtil("deployKubernetesManifest", errors);
+    if (!util.validateV2Credentials(
+        provider,
+        description.getAccount(),
+        description.getCoordinates().getKind(),
+        description.getCoordinates().getNamespace())) {
       return;
     }
 
@@ -52,5 +57,3 @@ public class KubernetesResizeServerGroupValidator extends DescriptionValidator<K
     return version == ProviderVersion.v2;
   }
 }
-
-

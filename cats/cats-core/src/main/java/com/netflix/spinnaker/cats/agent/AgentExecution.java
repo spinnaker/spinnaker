@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.cats.agent;
 
 public interface AgentExecution {
-    void executeAgent(Agent agent);
+  void executeAgent(Agent agent);
 }

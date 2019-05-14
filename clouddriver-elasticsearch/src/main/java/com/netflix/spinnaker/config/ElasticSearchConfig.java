@@ -40,21 +40,24 @@ public class ElasticSearchConfig {
 
     JestClientFactory factory = new JestClientFactory();
 
-    HttpClientConfig.Builder builder = new HttpClientConfig.Builder(elasticSearchConnection)
-      .readTimeout(elasticSearchConfigProperties.getReadTimeout())
-      .connTimeout(elasticSearchConfigProperties.getConnectionTimeout())
-      .multiThreaded(true);
+    HttpClientConfig.Builder builder =
+        new HttpClientConfig.Builder(elasticSearchConnection)
+            .readTimeout(elasticSearchConfigProperties.getReadTimeout())
+            .connTimeout(elasticSearchConfigProperties.getConnectionTimeout())
+            .multiThreaded(true);
 
     factory.setHttpClientConfig(builder.build());
     return factory.getObject();
   }
 
   @Bean
-  ElasticSearchEntityTagger elasticSearchEntityTagger(ElasticSearchEntityTagsProvider elasticSearchEntityTagsProvider,
-                                                      UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter,
-                                                      DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter) {
+  ElasticSearchEntityTagger elasticSearchEntityTagger(
+      ElasticSearchEntityTagsProvider elasticSearchEntityTagsProvider,
+      UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter,
+      DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter) {
     return new ElasticSearchEntityTagger(
-      elasticSearchEntityTagsProvider, upsertEntityTagsAtomicOperationConverter, deleteEntityTagsAtomicOperationConverter
-    );
+        elasticSearchEntityTagsProvider,
+        upsertEntityTagsAtomicOperationConverter,
+        deleteEntityTagsAtomicOperationConverter);
   }
 }

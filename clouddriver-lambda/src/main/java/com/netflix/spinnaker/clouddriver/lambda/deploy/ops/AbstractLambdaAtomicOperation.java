@@ -28,15 +28,13 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunctionDescription, K> implements AtomicOperation<K> {
-  @Autowired
-  AmazonClientProvider amazonClientProvider;
+public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunctionDescription, K>
+    implements AtomicOperation<K> {
+  @Autowired AmazonClientProvider amazonClientProvider;
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider;
+  @Autowired AccountCredentialsProvider accountCredentialsProvider;
 
-  @Autowired
-  LambdaFunctionProvider lambdaFunctionProvider;
+  @Autowired LambdaFunctionProvider lambdaFunctionProvider;
 
   private final String basePhase;
 
@@ -55,7 +53,7 @@ public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunc
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonLambda(credentialAccount,region);
+    return amazonClientProvider.getAmazonLambda(credentialAccount, region);
   }
 
   protected String getRegion() {
@@ -63,7 +61,8 @@ public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunc
   }
 
   protected AmazonCredentials getCredentials() {
-    return (AmazonCredentials) accountCredentialsProvider.getCredentials(description.getCredentialAccount());
+    return (AmazonCredentials)
+        accountCredentialsProvider.getCredentials(description.getCredentialAccount());
   }
 
   void updateTaskStatus(String status) {

@@ -52,13 +52,11 @@ public class CloudFoundryConfiguration {
   @Bean
   OperationPoller cloudFoundryOperationPoller(CloudFoundryConfigurationProperties properties) {
     return new OperationPoller(
-      properties.getAsyncOperationTimeoutMillisecondsDefault(),
-      properties.getAsyncOperationMaxPollingIntervalMilliseconds()
-    );
+        properties.getAsyncOperationTimeoutMillisecondsDefault(),
+        properties.getAsyncOperationMaxPollingIntervalMilliseconds());
   }
 
-  public static class CloudFoundryProviderSynchronizer {
-  }
+  public static class CloudFoundryProviderSynchronizer {}
 
   class CloudFoundrySynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
     @Override

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
@@ -24,11 +26,8 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {
@@ -49,13 +48,21 @@ public class StartCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
     client.getApplications().startApplication(description.getServerGroupId());
 
-    ProcessStats.State state = operationPoller.waitForOperation(
-      () -> client.getApplications().getProcessState(description.getServerGroupId()),
-      inProgressState -> inProgressState != ProcessStats.State.STARTING,
-      null, getTask(), description.getServerGroupName(), PHASE);
+    ProcessStats.State state =
+        operationPoller.waitForOperation(
+            () -> client.getApplications().getProcessState(description.getServerGroupId()),
+            inProgressState -> inProgressState != ProcessStats.State.STARTING,
+            null,
+            getTask(),
+            description.getServerGroupName(),
+            PHASE);
 
     if (state != ProcessStats.State.RUNNING) {
-      throw new CloudFoundryApiException("Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
+      throw new CloudFoundryApiException(
+          "Failed to start '"
+              + description.getServerGroupName()
+              + "' which instead "
+              + describeProcessState(state));
     }
 
     getTask().updateStatus(PHASE, "Started '" + description.getServerGroupName() + "'");

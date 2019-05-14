@@ -22,15 +22,15 @@ import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.TerminateInstancesAtomic
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component("ecsTerminateInstances")
-public class TerminateInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class TerminateInstancesAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new TerminateInstancesAtomicOperation(convertDescription(input));

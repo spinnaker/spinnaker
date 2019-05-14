@@ -26,16 +26,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesPat
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 @Component
 @KubernetesOperation(PATCH_MANIFEST)
 public class KubernetesPatchManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  private KubernetesResourcePropertyRegistry registry;
+  @Autowired private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -44,8 +42,9 @@ public class KubernetesPatchManifestConverter extends AbstractAtomicOperationsCr
 
   @Override
   public KubernetesPatchManifestDescription convertDescription(Map input) {
-    return (KubernetesPatchManifestDescription) KubernetesAtomicOperationConverterHelper
-      .convertDescription(input, this, KubernetesPatchManifestDescription.class);
+    return (KubernetesPatchManifestDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesPatchManifestDescription.class);
   }
 
   @Override

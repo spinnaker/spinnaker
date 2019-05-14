@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,20 +25,20 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @Data
 @ConfigurationProperties("cloudfoundry")
 public class CloudFoundryConfigurationProperties {
   static final int POLLING_INTERVAL_MILLISECONDS_DEFAULT = 300 * 1000;
-  static final int ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT = (int) (POLLING_INTERVAL_MILLISECONDS_DEFAULT * 1.5);
+  static final int ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT =
+      (int) (POLLING_INTERVAL_MILLISECONDS_DEFAULT * 1.5);
   static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS = 8 * 1000;
 
   private int pollingIntervalMilliseconds = POLLING_INTERVAL_MILLISECONDS_DEFAULT;
-  private int asyncOperationTimeoutMillisecondsDefault = ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT;
-  private int asyncOperationMaxPollingIntervalMilliseconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS;
+  private int asyncOperationTimeoutMillisecondsDefault =
+      ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT;
+  private int asyncOperationMaxPollingIntervalMilliseconds =
+      ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS;
 
   private List<ManagedAccount> accounts = new ArrayList<>();
 

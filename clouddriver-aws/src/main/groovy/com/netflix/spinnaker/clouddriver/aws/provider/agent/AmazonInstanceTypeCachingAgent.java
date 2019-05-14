@@ -32,6 +32,11 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -39,16 +44,10 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES
-    = new TypeReference<Map<String, Object>>() {};
+  private static final TypeReference<Map<String, Object>> ATTRIBUTES =
+      new TypeReference<Map<String, Object>>() {};
 
   // https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/us-west-2/index.json
   private final String region;
@@ -57,18 +56,18 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
   private final HttpHost pricingHost;
   private final HttpClient httpClient;
   private final ObjectMapper objectMapper =
-    new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-
-  public AmazonInstanceTypeCachingAgent(String region,
-                                        AccountCredentialsRepository accountCredentialsRepository) {
+  public AmazonInstanceTypeCachingAgent(
+      String region, AccountCredentialsRepository accountCredentialsRepository) {
     this(region, accountCredentialsRepository, HttpClients.createDefault());
   }
 
-  //VisibleForTesting
-  AmazonInstanceTypeCachingAgent(String region,
-                                 AccountCredentialsRepository accountCredentialsRepository,
-                                 HttpClient httpClient) {
+  // VisibleForTesting
+  AmazonInstanceTypeCachingAgent(
+      String region,
+      AccountCredentialsRepository accountCredentialsRepository,
+      HttpClient httpClient) {
     this.region = region;
     this.accountCredentialsRepository = accountCredentialsRepository;
     pricingHost = HttpHost.create("https://pricing.us-east-1.amazonaws.com");
@@ -79,48 +78,49 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
   @Override
   public Collection<AgentDataType> getProvidedDataTypes() {
     return Collections.unmodifiableList(
-      Arrays.asList(
-        new AgentDataType(
-          Keys.Namespace.INSTANCE_TYPES.getNs(), AgentDataType.Authority.AUTHORITATIVE),
-        new AgentDataType(
-          getAgentType(), AgentDataType.Authority.AUTHORITATIVE)));
+        Arrays.asList(
+            new AgentDataType(
+                Keys.Namespace.INSTANCE_TYPES.getNs(), AgentDataType.Authority.AUTHORITATIVE),
+            new AgentDataType(getAgentType(), AgentDataType.Authority.AUTHORITATIVE)));
   }
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     try {
-      Set<String> matchingAccounts = accountCredentialsRepository.getAll()
-        .stream()
-        .filter(AmazonCredentials.class::isInstance)
-        .map(AmazonCredentials.class::cast)
-        .filter(ac -> ac.getRegions().stream().anyMatch(r -> region.equals(r.getName())))
-        .map(AccountCredentials::getName)
-        .collect(Collectors.toSet());
+      Set<String> matchingAccounts =
+          accountCredentialsRepository.getAll().stream()
+              .filter(AmazonCredentials.class::isInstance)
+              .map(AmazonCredentials.class::cast)
+              .filter(ac -> ac.getRegions().stream().anyMatch(r -> region.equals(r.getName())))
+              .map(AccountCredentials::getName)
+              .collect(Collectors.toSet());
 
       if (matchingAccounts.isEmpty()) {
         return new DefaultCacheResult(Collections.emptyMap());
       }
 
-      CacheData metadata = providerCache.get(
-        getAgentType(),
-        "metadata",
-        RelationshipCacheFilter.none());
+      CacheData metadata =
+          providerCache.get(getAgentType(), "metadata", RelationshipCacheFilter.none());
       MetadataAttributes metadataAttributes = null;
       if (metadata != null) {
-        metadataAttributes = objectMapper.convertValue(metadata.getAttributes(), MetadataAttributes.class);
+        metadataAttributes =
+            objectMapper.convertValue(metadata.getAttributes(), MetadataAttributes.class);
       }
 
       Set<String> instanceTypes = null;
       if (metadataAttributes != null
-        && metadataAttributes.etag != null
-        && metadataAttributes.cachedInstanceTypes != null) {
+          && metadataAttributes.etag != null
+          && metadataAttributes.cachedInstanceTypes != null) {
 
-        //we have enough from a previous request to not re-request if the etag is unchanged..
+        // we have enough from a previous request to not re-request if the etag is unchanged..
         HttpResponse headResponse = httpClient.execute(pricingHost, new HttpHead(pricingUri));
         EntityUtils.consumeQuietly(headResponse.getEntity());
         if (headResponse.getStatusLine().getStatusCode() != 200) {
-          throw new Exception("failed to read instance type metadata for " + region + ": "
-            + headResponse.getStatusLine().toString());
+          throw new Exception(
+              "failed to read instance type metadata for "
+                  + region
+                  + ": "
+                  + headResponse.getStatusLine().toString());
         }
 
         Optional<String> etag = getEtagHeader(headResponse);
@@ -133,8 +133,11 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
         HttpResponse getResponse = httpClient.execute(pricingHost, new HttpGet(pricingUri));
         if (getResponse.getStatusLine().getStatusCode() != 200) {
           EntityUtils.consumeQuietly(getResponse.getEntity());
-          throw new Exception("failed to read instance type data for " + region + ": "
-            + getResponse.getStatusLine().toString());
+          throw new Exception(
+              "failed to read instance type data for "
+                  + region
+                  + ": "
+                  + getResponse.getStatusLine().toString());
         }
         Optional<String> etag = getEtagHeader(getResponse);
         HttpEntity entity = getResponse.getEntity();
@@ -144,10 +147,11 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
           metadataAttributes = new MetadataAttributes();
           metadataAttributes.etag = etag.get();
           metadataAttributes.cachedInstanceTypes = new HashSet<>(instanceTypes);
-          metadata = new DefaultCacheData(
-            "metadata",
-            objectMapper.convertValue(metadataAttributes, ATTRIBUTES),
-            Collections.emptyMap());
+          metadata =
+              new DefaultCacheData(
+                  "metadata",
+                  objectMapper.convertValue(metadataAttributes, ATTRIBUTES),
+                  Collections.emptyMap());
         } else {
           metadata = null;
         }
@@ -169,10 +173,10 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
           instanceTypeAttributes.put("region", region);
           instanceTypeAttributes.put("name", instanceType);
           instanceTypeData.add(
-            new DefaultCacheData(
-              Keys.getInstanceTypeKey(instanceType, region, account),
-              instanceTypeAttributes,
-              Collections.emptyMap()));
+              new DefaultCacheData(
+                  Keys.getInstanceTypeKey(instanceType, region, account),
+                  instanceTypeAttributes,
+                  Collections.emptyMap()));
         }
       }
 
@@ -184,10 +188,10 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
   Optional<String> getEtagHeader(HttpResponse response) {
     return Optional.ofNullable(response)
-      .map(r -> r.getFirstHeader("ETag"))
-      .map(Header::getElements)
-      .filter(e -> e.length > 0)
-      .map(e -> e[0].getName());
+        .map(r -> r.getFirstHeader("ETag"))
+        .map(Header::getElements)
+        .filter(e -> e.length > 0)
+        .map(e -> e[0].getName());
   }
 
   @Override
@@ -223,16 +227,15 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
     public Set<String> cachedInstanceTypes;
   }
 
-
-  //visible for testing
+  // visible for testing
   Set<String> fromStream(InputStream is) throws IOException {
     Offerings offerings = objectMapper.readValue(is, Offerings.class);
-    Set<String> instanceTypes = offerings.products.values()
-      .stream()
-      .filter(o -> o.productFamily != null && o.productFamily.startsWith("Compute Instance"))
-      .map(o -> o.attributes.instanceType)
-      .filter(it -> it != null && !it.isEmpty())
-      .collect(Collectors.toSet());
+    Set<String> instanceTypes =
+        offerings.products.values().stream()
+            .filter(o -> o.productFamily != null && o.productFamily.startsWith("Compute Instance"))
+            .map(o -> o.attributes.instanceType)
+            .filter(it -> it != null && !it.isEmpty())
+            .collect(Collectors.toSet());
 
     return instanceTypes;
   }

@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration;
 
-/**
- * A class that holds the names of ALL the kato operations as constants
- *
- */
+/** A class that holds the names of ALL the kato operations as constants */
 public final class AtomicOperations {
 
   // Server Group operations
@@ -43,10 +40,13 @@ public final class AtomicOperations {
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances";
   public static final String TERMINATE_INSTANCES = "terminateInstances";
-  public static final String TERMINATE_INSTANCE_AND_DECREMENT = "terminateInstanceAndDecrementServerGroup";
+  public static final String TERMINATE_INSTANCE_AND_DECREMENT =
+      "terminateInstanceAndDecrementServerGroup";
   public static final String ATTACH_CLASSIC_LINK_VPC = "attachClassicLinkVpc";
-  public static final String REGISTER_INSTANCES_WITH_LOAD_BALANCER = "registerInstancesWithLoadBalancer";
-  public static final String DEREGISTER_INSTANCES_FROM_LOAD_BALANCER = "deregisterInstancesFromLoadBalancer";
+  public static final String REGISTER_INSTANCES_WITH_LOAD_BALANCER =
+      "registerInstancesWithLoadBalancer";
+  public static final String DEREGISTER_INSTANCES_FROM_LOAD_BALANCER =
+      "deregisterInstancesFromLoadBalancer";
   public static final String MAP_LOAD_BALANCERS = "mapLoadBalancers";
   public static final String UNMAP_LOAD_BALANCERS = "unmapLoadBalancers";
   public static final String ENABLE_INSTANCES_IN_DISCOVERY = "enableInstancesInDiscovery";

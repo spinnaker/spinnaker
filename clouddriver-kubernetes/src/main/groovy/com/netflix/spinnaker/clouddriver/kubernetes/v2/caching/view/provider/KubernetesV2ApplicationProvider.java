@@ -17,22 +17,21 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ClusterCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Application;
 import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesV2ApplicationProvider implements ApplicationProvider {
@@ -45,37 +44,39 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
 
   @Override
   public Set<? extends Application> getApplications(boolean expand) {
-    // TODO(lwander) performance optimization: rely on expand parameter to make a more cache-efficient call
+    // TODO(lwander) performance optimization: rely on expand parameter to make a more
+    // cache-efficient call
     String clusterGlobKey = Keys.cluster("*", "*", "*");
-    Map<String, Set<ClusterCacheKey>> keysByApplication = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
-        .map(Keys::parseKey)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(ClusterCacheKey.class::isInstance)
-        .map(k -> (ClusterCacheKey) k)
-        .collect(Collectors.groupingBy(
-            ClusterCacheKey::getApplication, Collectors.toSet())
-        );
+    Map<String, Set<ClusterCacheKey>> keysByApplication =
+        cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
+            .map(Keys::parseKey)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(ClusterCacheKey.class::isInstance)
+            .map(k -> (ClusterCacheKey) k)
+            .collect(Collectors.groupingBy(ClusterCacheKey::getApplication, Collectors.toSet()));
 
-    return keysByApplication.entrySet()
-        .stream()
-        .map(e -> KubernetesV2Application.builder()
-            .name(e.getKey())
-            .clusterNames(groupClustersByAccount(e.getValue())).build())
+    return keysByApplication.entrySet().stream()
+        .map(
+            e ->
+                KubernetesV2Application.builder()
+                    .name(e.getKey())
+                    .clusterNames(groupClustersByAccount(e.getValue()))
+                    .build())
         .collect(Collectors.toSet());
   }
 
   @Override
   public Application getApplication(String name) {
     String clusterGlobKey = Keys.cluster("*", name, "*");
-    List<ClusterCacheKey> keys = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey)
-        .stream()
-        .map(Keys::parseKey)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(ClusterCacheKey.class::isInstance)
-        .map(k -> (ClusterCacheKey) k)
-        .collect(Collectors.toList());
+    List<ClusterCacheKey> keys =
+        cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
+            .map(Keys::parseKey)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(ClusterCacheKey.class::isInstance)
+            .map(k -> (ClusterCacheKey) k)
+            .collect(Collectors.toList());
 
     if (keys.isEmpty()) {
       return null;
@@ -89,8 +90,9 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
 
   private Map<String, Set<String>> groupClustersByAccount(Collection<ClusterCacheKey> keys) {
     return keys.stream()
-        .collect(Collectors.groupingBy(
-            ClusterCacheKey::getAccount, Collectors.mapping(ClusterCacheKey::getName, Collectors.toSet())
-        ));
+        .collect(
+            Collectors.groupingBy(
+                ClusterCacheKey::getAccount,
+                Collectors.mapping(ClusterCacheKey::getName, Collectors.toSet())));
   }
 }

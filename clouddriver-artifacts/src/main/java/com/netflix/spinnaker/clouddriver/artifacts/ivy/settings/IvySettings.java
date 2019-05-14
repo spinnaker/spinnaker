@@ -19,16 +19,15 @@ package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import lombok.Data;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.url.CredentialsStore;
-
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.List;
+import javax.annotation.Nullable;
+import lombok.Data;
+import org.apache.ivy.Ivy;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.util.url.CredentialsStore;
 
 @JacksonXmlRootElement(localName = "ivysettings")
 @Data
@@ -36,14 +35,13 @@ public class IvySettings {
   private Resolvers resolvers = new Resolvers();
   private Settings settings = new Settings();
 
-  @Nullable
-  private Credentials credentials;
+  @Nullable private Credentials credentials;
 
   public static IvySettings parse(String xml) {
     try {
       return new XmlMapper()
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .readValue(xml, IvySettings.class);
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .readValue(xml, IvySettings.class);
     } catch (IOException e) {
       throw new UncheckedIOException("Unable to read Ivy settings", e);
     }
@@ -54,7 +52,8 @@ public class IvySettings {
   }
 
   org.apache.ivy.core.settings.IvySettings toIvySettings(Path cache) {
-    org.apache.ivy.core.settings.IvySettings ivySettings = new org.apache.ivy.core.settings.IvySettings();
+    org.apache.ivy.core.settings.IvySettings ivySettings =
+        new org.apache.ivy.core.settings.IvySettings();
     List<DependencyResolver> dependencyResolvers = resolvers.toDependencyResolvers();
     if (dependencyResolvers.isEmpty()) {
       throw new IllegalArgumentException("At least one ivy resolver is required");
@@ -62,10 +61,16 @@ public class IvySettings {
 
     dependencyResolvers.forEach(ivySettings::addResolver);
     String defaultResolver = settings.getDefaultResolver();
-    ivySettings.setDefaultResolver(defaultResolver == null ? dependencyResolvers.iterator().next().getName() : defaultResolver);
+    ivySettings.setDefaultResolver(
+        defaultResolver == null
+            ? dependencyResolvers.iterator().next().getName()
+            : defaultResolver);
     if (credentials != null) {
-      CredentialsStore.INSTANCE.addCredentials(credentials.getRealm(), credentials.getHost(),
-        credentials.getUsername(), credentials.getPassword());
+      CredentialsStore.INSTANCE.addCredentials(
+          credentials.getRealm(),
+          credentials.getHost(),
+          credentials.getUsername(),
+          credentials.getPassword());
     }
     ivySettings.setDefaultCache(cache.toFile());
     ivySettings.validate();

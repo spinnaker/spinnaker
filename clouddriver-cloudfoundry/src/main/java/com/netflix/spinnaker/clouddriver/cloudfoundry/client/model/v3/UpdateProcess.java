@@ -17,24 +17,13 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.singletonList;
+import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateProcess {
-  @Nullable
-  private final String command;
+  @Nullable private final String command;
 
-  @Nullable
-  private final Process.HealthCheck healthCheck;
+  @Nullable private final Process.HealthCheck healthCheck;
 }

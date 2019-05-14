@@ -21,6 +21,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSuppo
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
+import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,20 +34,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Provider;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.regex.Pattern;
-
 @Component
-@ConditionalOnExpression("${aws.lifecycle-subscribers.instance-termination.enabled:false} && ${caching.write-enabled:true}")
+@ConditionalOnExpression(
+    "${aws.lifecycle-subscribers.instance-termination.enabled:false} && ${caching.write-enabled:true}")
 public class InstanceTerminationLifecycleWorkerProvider {
-  private final static String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");
-  private final static String ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}");
+  private static final String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");
+  private static final String ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}");
 
-  private static final Logger log = LoggerFactory.getLogger(InstanceTerminationLifecycleWorkerProvider.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(InstanceTerminationLifecycleWorkerProvider.class);
 
   private final ObjectMapper objectMapper;
   private final AmazonClientProvider amazonClientProvider;
@@ -51,12 +52,13 @@ public class InstanceTerminationLifecycleWorkerProvider {
   private final Registry registry;
 
   @Autowired
-  InstanceTerminationLifecycleWorkerProvider(@Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
-                                             AmazonClientProvider amazonClientProvider,
-                                             AccountCredentialsProvider accountCredentialsProvider,
-                                             InstanceTerminationConfigurationProperties properties,
-                                             Provider<AwsEurekaSupport> discoverySupport,
-                                             Registry registry) {
+  InstanceTerminationLifecycleWorkerProvider(
+      @Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      AccountCredentialsProvider accountCredentialsProvider,
+      InstanceTerminationConfigurationProperties properties,
+      Provider<AwsEurekaSupport> discoverySupport,
+      Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -67,38 +69,41 @@ public class InstanceTerminationLifecycleWorkerProvider {
 
   @PostConstruct
   public void start() {
-    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(
-      properties.getAccountName()
-    );
+    NetflixAmazonCredentials credentials =
+        (NetflixAmazonCredentials)
+            accountCredentialsProvider.getCredentials(properties.getAccountName());
     ExecutorService executorService = Executors.newFixedThreadPool(credentials.getRegions().size());
 
-    credentials.getRegions().forEach(region -> {
-      InstanceTerminationLifecycleWorker worker = new InstanceTerminationLifecycleWorker(
-        objectMapper,
-        amazonClientProvider,
-        accountCredentialsProvider,
-        new InstanceTerminationConfigurationProperties(
-          properties.getAccountName(),
-          properties
-            .getQueueARN()
-            .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
-            .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
-          properties.getTopicARN()
-            .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
-            .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
-          properties.getVisibilityTimeout(),
-          properties.getWaitTimeSeconds(),
-          properties.getSqsMessageRetentionPeriodSeconds(),
-          properties.getEurekaUpdateStatusRetryMax()
-        ),
-        discoverySupport,
-        registry
-      );
-      try {
-        executorService.submit(worker);
-      } catch (RejectedExecutionException e) {
-        log.error("Could not start " + worker.getWorkerName(), e);
-      }
-    });
+    credentials
+        .getRegions()
+        .forEach(
+            region -> {
+              InstanceTerminationLifecycleWorker worker =
+                  new InstanceTerminationLifecycleWorker(
+                      objectMapper,
+                      amazonClientProvider,
+                      accountCredentialsProvider,
+                      new InstanceTerminationConfigurationProperties(
+                          properties.getAccountName(),
+                          properties
+                              .getQueueARN()
+                              .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
+                              .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
+                          properties
+                              .getTopicARN()
+                              .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
+                              .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
+                          properties.getVisibilityTimeout(),
+                          properties.getWaitTimeSeconds(),
+                          properties.getSqsMessageRetentionPeriodSeconds(),
+                          properties.getEurekaUpdateStatusRetryMax()),
+                      discoverySupport,
+                      registry);
+              try {
+                executorService.submit(worker);
+              } catch (RejectedExecutionException e) {
+                log.error("Could not start " + worker.getWorkerName(), e);
+              }
+            });
   }
 }

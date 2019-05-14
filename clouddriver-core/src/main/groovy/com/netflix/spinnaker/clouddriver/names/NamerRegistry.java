@@ -19,20 +19,18 @@ package com.netflix.spinnaker.clouddriver.names;
 
 import com.netflix.spinnaker.moniker.Namer;
 import com.netflix.spinnaker.moniker.frigga.FriggaReflectiveNamer;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * The idea is each provider can register (per-account) based on config naming
- * strategy. This assigns a `moniker` to any named resource which is then pushed
- * through the rest of Spinnaker and can be handled without prior knowledge of what
- * naming strategy was used. This is the only place the mapping from (provider, account, resource) -&lt; namer
- * must happen within Spinnaker.
+ * The idea is each provider can register (per-account) based on config naming strategy. This
+ * assigns a `moniker` to any named resource which is then pushed through the rest of Spinnaker and
+ * can be handled without prior knowledge of what naming strategy was used. This is the only place
+ * the mapping from (provider, account, resource) -&lt; namer must happen within Spinnaker.
  */
 public class NamerRegistry {
-  final private List<NamingStrategy> namingStrategies;
+  private final List<NamingStrategy> namingStrategies;
   private static Namer defaultNamer = new FriggaReflectiveNamer();
   private static ProviderLookup providerLookup = new ProviderLookup();
 
@@ -50,9 +48,12 @@ public class NamerRegistry {
 
   public Namer getNamingStrategy(String strategyName) {
     return this.namingStrategies.stream()
-      .filter(strategy -> strategy.getName().equalsIgnoreCase(strategyName))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Could not find naming strategy '" + strategyName + "'"));
+        .filter(strategy -> strategy.getName().equalsIgnoreCase(strategyName))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Could not find naming strategy '" + strategyName + "'"));
   }
 
   @Slf4j

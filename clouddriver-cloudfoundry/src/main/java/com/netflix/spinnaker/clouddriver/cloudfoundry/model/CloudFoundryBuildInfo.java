@@ -22,9 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Value;
 
-/**
- * The CI build metadata for an app artifact based on the build info produced by Artifactory
- */
+/** The CI build metadata for an app artifact based on the build info produced by Artifactory */
 @Value
 @Builder
 @JsonDeserialize(builder = CloudFoundryBuildInfo.CloudFoundryBuildInfoBuilder.class)

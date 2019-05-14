@@ -51,8 +51,9 @@ public class CloudFoundrySpace {
     CloudFoundrySpace that = (CloudFoundrySpace) o;
 
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
-    return organization != null ? organization.getName().equals(that.organization.getName()) :
-      that.organization == null;
+    return organization != null
+        ? organization.getName().equals(that.organization.getName())
+        : that.organization == null;
   }
 
   @Override

@@ -29,10 +29,12 @@ public class AfterResizeEvent {
   private final AutoScalingGroup autoScalingGroup;
   private final ServerGroup.Capacity capacity;
 
-  public AfterResizeEvent(Task task,
-                          AmazonEC2 amazonEC2,
-                          AmazonAutoScaling amazonAutoScaling, AutoScalingGroup autoScalingGroup,
-                          ServerGroup.Capacity capacity) {
+  public AfterResizeEvent(
+      Task task,
+      AmazonEC2 amazonEC2,
+      AmazonAutoScaling amazonAutoScaling,
+      AutoScalingGroup autoScalingGroup,
+      ServerGroup.Capacity capacity) {
     this.task = task;
     this.amazonEC2 = amazonEC2;
     this.amazonAutoScaling = amazonAutoScaling;

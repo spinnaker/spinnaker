@@ -24,12 +24,12 @@ public class EcsMetricAlarm extends MetricAlarm {
   private String accountName;
   private String region;
 
-  public EcsMetricAlarm withAccountName(String accountName){
+  public EcsMetricAlarm withAccountName(String accountName) {
     setAccountName(accountName);
     return this;
   }
 
-  public EcsMetricAlarm withRegion(String region){
+  public EcsMetricAlarm withRegion(String region) {
     setRegion(region);
     return this;
   }

@@ -20,20 +20,22 @@ public interface Image {
 
   /**
    * Returns an image identifier.
+   *
    * @return image id
    */
   String getId();
 
   /**
    * Returns an image name.
+   *
    * @return image name
    */
   String getName();
 
   /**
    * Returns the region the image exists in.
+   *
    * @return image region
    */
   String getRegion();
-
 }

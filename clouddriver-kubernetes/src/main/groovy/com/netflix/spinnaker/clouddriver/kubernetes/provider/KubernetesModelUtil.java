@@ -18,14 +18,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.provider;
 
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public class KubernetesModelUtil {
@@ -35,7 +34,9 @@ public class KubernetesModelUtil {
 
   public static long translateTime(String time, String format) {
     try {
-      return StringUtils.isNotEmpty(time) ? (new SimpleDateFormat(format).parse(time)).getTime() : 0;
+      return StringUtils.isNotEmpty(time)
+          ? (new SimpleDateFormat(format).parse(time)).getTime()
+          : 0;
     } catch (ParseException e) {
       log.error("Failed to parse kubernetes timestamp", e);
       return 0;
@@ -43,13 +44,17 @@ public class KubernetesModelUtil {
   }
 
   public static HealthState getHealthState(List<Map<String, Object>> health) {
-    return someUpRemainingUnknown(health) ? HealthState.Up :
-        someSucceededRemainingUnknown(health) ? HealthState.Succeeded :
-            anyStarting(health) ? HealthState.Starting :
-                anyDown(health) ? HealthState.Down :
-                    anyFailed(health) ? HealthState.Failed :
-                        anyOutOfService(health) ? HealthState.OutOfService :
-                            HealthState.Unknown;
+    return someUpRemainingUnknown(health)
+        ? HealthState.Up
+        : someSucceededRemainingUnknown(health)
+            ? HealthState.Succeeded
+            : anyStarting(health)
+                ? HealthState.Starting
+                : anyDown(health)
+                    ? HealthState.Down
+                    : anyFailed(health)
+                        ? HealthState.Failed
+                        : anyOutOfService(health) ? HealthState.OutOfService : HealthState.Unknown;
   }
 
   private static boolean stateEquals(Map<String, Object> health, HealthState state) {
@@ -58,19 +63,23 @@ public class KubernetesModelUtil {
   }
 
   private static boolean someUpRemainingUnknown(List<Map<String, Object>> healthsList) {
-    List<Map<String, Object>> knownHealthList = healthsList.stream()
-        .filter(h -> !stateEquals(h, HealthState.Unknown))
-        .collect(Collectors.toList());
+    List<Map<String, Object>> knownHealthList =
+        healthsList.stream()
+            .filter(h -> !stateEquals(h, HealthState.Unknown))
+            .collect(Collectors.toList());
 
-    return !knownHealthList.isEmpty() && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Up));
+    return !knownHealthList.isEmpty()
+        && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Up));
   }
 
   private static boolean someSucceededRemainingUnknown(List<Map<String, Object>> healthsList) {
-    List<Map<String, Object>> knownHealthList = healthsList.stream()
-        .filter(h -> !stateEquals(h, HealthState.Unknown))
-        .collect(Collectors.toList());
+    List<Map<String, Object>> knownHealthList =
+        healthsList.stream()
+            .filter(h -> !stateEquals(h, HealthState.Unknown))
+            .collect(Collectors.toList());
 
-    return !knownHealthList.isEmpty() && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Succeeded));
+    return !knownHealthList.isEmpty()
+        && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Succeeded));
   }
 
   private static boolean anyDown(List<Map<String, Object>> healthsList) {

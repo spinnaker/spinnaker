@@ -19,30 +19,30 @@ package com.netflix.spinnaker.cats.agent;
 import java.util.Collection;
 
 public class CompositeExecutionInstrumentation implements ExecutionInstrumentation {
-    private final Collection<ExecutionInstrumentation> instrumentations;
+  private final Collection<ExecutionInstrumentation> instrumentations;
 
-    public CompositeExecutionInstrumentation(Collection<ExecutionInstrumentation> instrumentations) {
-        this.instrumentations = instrumentations;
-    }
+  public CompositeExecutionInstrumentation(Collection<ExecutionInstrumentation> instrumentations) {
+    this.instrumentations = instrumentations;
+  }
 
-    @Override
-    public void executionStarted(Agent agent) {
-        for (ExecutionInstrumentation exec : instrumentations) {
-            exec.executionStarted(agent);
-        }
+  @Override
+  public void executionStarted(Agent agent) {
+    for (ExecutionInstrumentation exec : instrumentations) {
+      exec.executionStarted(agent);
     }
+  }
 
-    @Override
-    public void executionCompleted(Agent agent, long elapsedMs) {
-        for (ExecutionInstrumentation exec : instrumentations) {
-            exec.executionCompleted(agent, elapsedMs);
-        }
+  @Override
+  public void executionCompleted(Agent agent, long elapsedMs) {
+    for (ExecutionInstrumentation exec : instrumentations) {
+      exec.executionCompleted(agent, elapsedMs);
     }
+  }
 
-    @Override
-    public void executionFailed(Agent agent, Throwable cause) {
-        for (ExecutionInstrumentation exec : instrumentations) {
-            exec.executionFailed(agent, cause);
-        }
+  @Override
+  public void executionFailed(Agent agent, Throwable cause) {
+    for (ExecutionInstrumentation exec : instrumentations) {
+      exec.executionFailed(agent, cause);
     }
+  }
 }

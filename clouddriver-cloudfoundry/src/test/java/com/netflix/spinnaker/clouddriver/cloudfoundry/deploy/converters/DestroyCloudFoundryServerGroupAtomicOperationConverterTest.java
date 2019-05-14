@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class DestroyCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
-  void convertDescription() {
-  }
+  void convertDescription() {}
 }

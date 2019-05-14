@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Destroy
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DestroyCloudFoundryServerGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component
-public class DestroyCloudFoundryServerGroupAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
+public class DestroyCloudFoundryServerGroupAtomicOperationConverter
+    extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new DestroyCloudFoundryServerGroupAtomicOperation(convertDescription(input));
@@ -35,9 +35,12 @@ public class DestroyCloudFoundryServerGroupAtomicOperationConverter extends Abst
 
   @Override
   public DestroyCloudFoundryServerGroupDescription convertDescription(Map input) {
-    DestroyCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, DestroyCloudFoundryServerGroupDescription.class);
+    DestroyCloudFoundryServerGroupDescription converted =
+        getObjectMapper().convertValue(input, DestroyCloudFoundryServerGroupDescription.class);
     converted.setClient(getClient(input));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
+    converted.setServerGroupId(
+        getServerGroupId(
+            converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

@@ -18,17 +18,16 @@ package com.netflix.spinnaker.clouddriver.aws.controllers;
 
 import com.netflix.spinnaker.clouddriver.aws.model.Role;
 import com.netflix.spinnaker.clouddriver.aws.model.RoleProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/roles")
@@ -43,10 +42,11 @@ public class RoleController {
       return Collections.emptyList();
     }
 
-    Set<Role> roles = roleProviders.stream()
-      .filter(roleProvider -> roleProvider.getCloudProvider().equals(cloudProvider))
-      .flatMap(roleProvider -> roleProvider.getAll().stream())
-      .collect(Collectors.toSet());
+    Set<Role> roles =
+        roleProviders.stream()
+            .filter(roleProvider -> roleProvider.getCloudProvider().equals(cloudProvider))
+            .flatMap(roleProvider -> roleProvider.getAll().stream())
+            .collect(Collectors.toSet());
 
     return roles;
   }

@@ -20,16 +20,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 /**
- * A cluster is an object that provides an association between an account, many server groups, and many load balancers.
- *
- *
+ * A cluster is an object that provides an association between an account, many server groups, and
+ * many load balancers.
  */
 public interface Cluster {
   /**

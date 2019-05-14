@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import java.io.OutputStream;
-import java.util.Collection;
 import java.util.Map;
 
 public interface DataProvider {
@@ -29,7 +28,7 @@ public interface DataProvider {
   /**
    * Fetch a specific object from a bucket that has been explicitly configured.
    *
-   * Filters are supported if the configured object is of type `list`.
+   * <p>Filters are supported if the configured object is of type `list`.
    *
    * @return string/list/map depending on type of configured object
    */
@@ -38,17 +37,13 @@ public interface DataProvider {
   /**
    * Stream a specified object from a bucket.
    *
-   * Both the object key and bucket name must be whitelisted.
+   * <p>Both the object key and bucket name must be whitelisted.
    */
   void getAdhocData(String groupId, String bucketId, String objectId, OutputStream outputStream);
 
-  /**
-   * @return true if this identifier is supported by the data provider
-   */
+  /** @return true if this identifier is supported by the data provider */
   boolean supportsIdentifier(IdentifierType identifierType, String id);
 
-  /**
-   * @return the account name corresponding to the provided identifier
-   */
+  /** @return the account name corresponding to the provided identifier */
   String getAccountForIdentifier(IdentifierType identifierType, String id);
 }

@@ -21,37 +21,30 @@ import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.provider.Provider;
 import groovy.transform.Canonical;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public interface SearchableProvider extends Provider {
 
-  /**
-   * Names of caches to search by default
-   */
+  /** Names of caches to search by default */
   Set<String> getDefaultCaches();
 
   /**
    * Map keyed by named cache to a template that produces a url for a search result.
    *
-   * The template will be supplied the result from calling parseKey on the search key
+   * <p>The template will be supplied the result from calling parseKey on the search key
    */
   Map<String, String> getUrlMappingTemplates();
 
-  /**
-   * SearchResultHydrators for cache types
-   */
+  /** SearchResultHydrators for cache types */
   Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators();
 
-  /**
-   * The parts of the key, if this Provider supports keys of this type, otherwise null.
-   */
+  /** The parts of the key, if this Provider supports keys of this type, otherwise null. */
   Map<String, String> parseKey(String key);
 
   default Optional<KeyParser> getKeyParser() {
@@ -61,12 +54,11 @@ public interface SearchableProvider extends Provider {
   /**
    * Build a search term for querying.
    *
-   * If this SearchableProvider supplies a KeyParser then the
-   * search term is scoped to that KeyParsers cloudProvider,
-   * otherwise injects a wildcard glob at the start.
+   * <p>If this SearchableProvider supplies a KeyParser then the search term is scoped to that
+   * KeyParsers cloudProvider, otherwise injects a wildcard glob at the start.
    *
-   * Supplying a KeyParser to provide a CloudProviderId to scope
-   * the search more narrowly results in improved search performance.
+   * <p>Supplying a KeyParser to provide a CloudProviderId to scope the search more narrowly results
+   * in improved search performance.
    */
   default String buildSearchTerm(String type, String queryTerm) {
     String prefix = getKeyParser().map(KeyParser::getCloudProvider).orElse("*");
@@ -78,28 +70,30 @@ public interface SearchableProvider extends Provider {
     if (filters == null || !filters.containsKey("cloudProvider")) {
       filterMatch = true;
     } else {
-      filterMatch = getKeyParser()
-        .map(kp -> kp.canParseType(type) && kp.getCloudProvider().equals(filters.get("cloudProvider")))
-        .orElse(true);
+      filterMatch =
+          getKeyParser()
+              .map(
+                  kp ->
+                      kp.canParseType(type)
+                          && kp.getCloudProvider().equals(filters.get("cloudProvider")))
+              .orElse(true);
     }
 
     return filterMatch && hasAgentForType(type, getAgents());
   }
 
   static boolean hasAgentForType(String type, Collection<Agent> agents) {
-    return agents
-      .stream()
-      .filter(CachingAgent.class::isInstance)
-      .map(CachingAgent.class::cast)
-      .anyMatch(ca ->
-        ca.getProvidedDataTypes()
-          .stream()
-          .anyMatch(pdt -> pdt.getTypeName().equals(type))
-      );
+    return agents.stream()
+        .filter(CachingAgent.class::isInstance)
+        .map(CachingAgent.class::cast)
+        .anyMatch(
+            ca ->
+                ca.getProvidedDataTypes().stream().anyMatch(pdt -> pdt.getTypeName().equals(type)));
   }
 
   /**
-   * A SearchResultHydrator provides a custom strategy for enhancing result data for a particular cache type.
+   * A SearchResultHydrator provides a custom strategy for enhancing result data for a particular
+   * cache type.
    */
   public static interface SearchResultHydrator {
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id);
@@ -110,16 +104,10 @@ public interface SearchableProvider extends Provider {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class SearchableResource {
-    /**
-     * Lowercase name of a resource type.
-     * e.g. 'instances', 'load_balancers'
-     */
+    /** Lowercase name of a resource type. e.g. 'instances', 'load_balancers' */
     String resourceType;
 
-    /**
-     * Lowercase name of the platform.
-     * e.g. 'aws', 'gce'
-     */
+    /** Lowercase name of the platform. e.g. 'aws', 'gce' */
     String platform;
   }
 }

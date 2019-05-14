@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +29,8 @@ class PooledRequest<T> implements Runnable {
   private final long startTime = System.nanoTime();
 
   PooledRequest(Registry registry, String partition, Callable<T> work) {
-    this.timer = registry.timer(registry.createId("pooledRequestQueue.enqueueTime", "partition", partition));
+    this.timer =
+        registry.timer(registry.createId("pooledRequestQueue.enqueueTime", "partition", partition));
     this.result = new Promise<>(registry, partition);
     this.work = work;
   }
@@ -46,7 +46,7 @@ class PooledRequest<T> implements Runnable {
   @Override
   public void run() {
     timer.record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
-    //request may have expired with a timeout prior to this point, lets not
+    // request may have expired with a timeout prior to this point, lets not
     // issue the work if that is the case as the caller has already moved on
     if (result.shouldStart()) {
       try {

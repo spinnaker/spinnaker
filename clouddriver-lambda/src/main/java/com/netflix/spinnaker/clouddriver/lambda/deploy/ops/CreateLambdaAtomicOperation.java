@@ -22,15 +22,14 @@ import com.amazonaws.services.lambda.model.CreateFunctionResult;
 import com.amazonaws.services.lambda.model.FunctionCode;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class CreateLambdaAtomicOperation
-  extends AbstractLambdaAtomicOperation<CreateLambdaFunctionDescription, CreateFunctionResult>
-  implements AtomicOperation<CreateFunctionResult> {
+    extends AbstractLambdaAtomicOperation<CreateLambdaFunctionDescription, CreateFunctionResult>
+    implements AtomicOperation<CreateFunctionResult> {
 
   public CreateLambdaAtomicOperation(CreateLambdaFunctionDescription description) {
     super(description, "CREATE_LAMBDA_FUNCTION");
@@ -43,9 +42,10 @@ public class CreateLambdaAtomicOperation
   }
 
   private CreateFunctionResult createFunction() {
-    FunctionCode code = new FunctionCode()
-      .withS3Bucket(description.getProperty("s3bucket").toString())
-      .withS3Key(description.getProperty("s3key").toString());
+    FunctionCode code =
+        new FunctionCode()
+            .withS3Bucket(description.getProperty("s3bucket").toString())
+            .withS3Key(description.getProperty("s3key").toString());
 
     Map<String, String> objTag = new HashMap<>();
     for (Map<String, String> tags : description.getTags()) {

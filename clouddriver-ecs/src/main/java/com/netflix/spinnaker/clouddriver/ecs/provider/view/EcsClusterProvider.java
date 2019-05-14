@@ -19,10 +19,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsClusterCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 public class EcsClusterProvider {
@@ -37,5 +36,4 @@ public class EcsClusterProvider {
   public Collection<EcsCluster> getAllEcsClusters() {
     return ecsClusterCacheClient.getAll();
   }
-
 }

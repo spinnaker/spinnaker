@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import static com.netflix.spinnaker.clouddriver.model.HealthState.*;
+import static java.util.Collections.*;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -29,18 +32,14 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import io.vavr.collection.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.netflix.spinnaker.clouddriver.model.HealthState.*;
-import static java.util.Collections.*;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -122,55 +121,53 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
       @Override
       public List<? extends ImageSummary> getSummaries() {
         return singletonList(
-          new ImageSummary() {
-            @Override
-            public String getServerGroupName() {
-              return name;
-            }
+            new ImageSummary() {
+              @Override
+              public String getServerGroupName() {
+                return name;
+              }
 
-            @Override
-            public String getImageName() {
-              return name + "-droplet";
-            }
+              @Override
+              public String getImageName() {
+                return name + "-droplet";
+              }
 
-            @Override
-            public String getImageId() {
-              return droplet == null ? "unknown" : droplet.getId();
-            }
+              @Override
+              public String getImageId() {
+                return droplet == null ? "unknown" : droplet.getId();
+              }
 
-            @Override
-            public Map<String, Object> getImage() {
-              return IMAGE_MAPPER.convertValue(this, new TypeReference<Map<String, Object>>() {
-              });
-            }
+              @Override
+              public Map<String, Object> getImage() {
+                return IMAGE_MAPPER.convertValue(this, new TypeReference<Map<String, Object>>() {});
+              }
 
-            @Override
-            public Map<String, Object> getBuildInfo() {
-              return emptyMap();
-            }
-          }
-        );
+              @Override
+              public Map<String, Object> getBuildInfo() {
+                return emptyMap();
+              }
+            });
       }
     };
   }
 
   public Image getImage() {
     return CloudFoundryImage.builder()
-      .id(droplet == null ? "unknown" : droplet.getId())
-      .name(name + "-droplet")
-      .region(getRegion())
-      .build();
+        .id(droplet == null ? "unknown" : droplet.getId())
+        .name(name + "-droplet")
+        .region(getRegion())
+        .build();
   }
 
   public Map getBuildInfo() {
     return HashMap.<Object, Object>of(
-      "appsManagerUri", appsManagerUri,
-      "metricsUri", metricsUri,
-      "droplet", droplet,
-      "id", id,
-      "serviceInstances", serviceInstances,
-      "ciBuild", ciBuild)
-      .toJavaMap();
+            "appsManagerUri", appsManagerUri,
+            "metricsUri", metricsUri,
+            "droplet", droplet,
+            "id", id,
+            "serviceInstances", serviceInstances,
+            "ciBuild", ciBuild)
+        .toJavaMap();
   }
 
   @Deprecated
@@ -207,13 +204,12 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @Override
   public InstanceCounts getInstanceCounts() {
     return new InstanceCounts(
-      instances.size(),
-      (int) instances.stream().filter(in -> Up.equals(in.getHealthState())).count(),
-      (int) instances.stream().filter(in -> Down.equals(in.getHealthState())).count(),
-      (int) instances.stream().filter(in -> Unknown.equals(in.getHealthState())).count(),
-      (int) instances.stream().filter(in -> OutOfService.equals(in.getHealthState())).count(),
-      (int) instances.stream().filter(in -> Starting.equals(in.getHealthState())).count()
-    );
+        instances.size(),
+        (int) instances.stream().filter(in -> Up.equals(in.getHealthState())).count(),
+        (int) instances.stream().filter(in -> Down.equals(in.getHealthState())).count(),
+        (int) instances.stream().filter(in -> Unknown.equals(in.getHealthState())).count(),
+        (int) instances.stream().filter(in -> OutOfService.equals(in.getHealthState())).count(),
+        (int) instances.stream().filter(in -> Starting.equals(in.getHealthState())).count());
   }
 
   @Override
@@ -232,8 +228,12 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @SuppressWarnings("unchecked")
   public Moniker getMoniker() {
     Moniker moniker = NamerRegistry.getDefaultNamer().deriveMoniker(this);
-    return new Moniker(moniker.getApp(), moniker.getCluster(), moniker.getDetail(), moniker.getStack(),
-      moniker.getSequence() == null ? 0 : moniker.getSequence());
+    return new Moniker(
+        moniker.getApp(),
+        moniker.getCluster(),
+        moniker.getDetail(),
+        moniker.getStack(),
+        moniker.getSequence() == null ? 0 : moniker.getSequence());
   }
 
   @Deprecated

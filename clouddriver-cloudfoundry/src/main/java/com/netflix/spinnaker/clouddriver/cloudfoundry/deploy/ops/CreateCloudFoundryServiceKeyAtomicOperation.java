@@ -22,12 +22,12 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
 @RequiredArgsConstructor
-public class CreateCloudFoundryServiceKeyAtomicOperation implements AtomicOperation<ServiceKeyResponse> {
+public class CreateCloudFoundryServiceKeyAtomicOperation
+    implements AtomicOperation<ServiceKeyResponse> {
   private static final String PHASE = "CREATE_SERVICE_KEY";
   private final CreateCloudFoundryServiceKeyDescription description;
 
@@ -42,9 +42,21 @@ public class CreateCloudFoundryServiceKeyAtomicOperation implements AtomicOperat
     CloudFoundrySpace space = description.getSpace();
     String serviceInstanceName = description.getServiceInstanceName();
     String serviceKeyName = description.getServiceKeyName();
-    task.updateStatus(PHASE, "Creating service key '" + serviceKeyName + "' for service '" + serviceInstanceName + "' in '" + space.getRegion() + "'");
+    task.updateStatus(
+        PHASE,
+        "Creating service key '"
+            + serviceKeyName
+            + "' for service '"
+            + serviceInstanceName
+            + "' in '"
+            + space.getRegion()
+            + "'");
 
-    ServiceKeyResponse results = description.getClient().getServiceKeys().createServiceKey(space, serviceInstanceName, serviceKeyName);
+    ServiceKeyResponse results =
+        description
+            .getClient()
+            .getServiceKeys()
+            .createServiceKey(space, serviceInstanceName, serviceKeyName);
 
     task.updateStatus(PHASE, "Finished creating service key '" + serviceKeyName + "'");
 

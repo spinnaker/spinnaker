@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+
 import com.amazonaws.services.ecs.model.Container;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TaskCacheClient extends AbstractCacheClient<Task> {
@@ -57,12 +56,14 @@ public class TaskCacheClient extends AbstractCacheClient<Task> {
     }
 
     if (attributes.containsKey("containers")) {
-      List<Map<String, Object>> containers = (List<Map<String, Object>>) attributes.get("containers");
+      List<Map<String, Object>> containers =
+          (List<Map<String, Object>>) attributes.get("containers");
       List<Container> deserializedLoadbalancers = new ArrayList<>(containers.size());
 
       for (Map<String, Object> serializedContainer : containers) {
         if (serializedContainer != null) {
-          deserializedLoadbalancers.add(objectMapper.convertValue(serializedContainer, Container.class));
+          deserializedLoadbalancers.add(
+              objectMapper.convertValue(serializedContainer, Container.class));
         }
       }
 

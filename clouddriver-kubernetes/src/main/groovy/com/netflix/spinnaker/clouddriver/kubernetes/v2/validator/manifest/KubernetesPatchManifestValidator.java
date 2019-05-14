@@ -31,21 +31,22 @@ import org.springframework.validation.Errors;
 
 @KubernetesOperation(PATCH_MANIFEST)
 @Component
-public class KubernetesPatchManifestValidator extends DescriptionValidator<KubernetesPatchManifestDescription> {
+public class KubernetesPatchManifestValidator
+    extends DescriptionValidator<KubernetesPatchManifestDescription> {
 
-  @Autowired
-  AccountCredentialsProvider provider;
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesPatchManifestDescription description,
-    Errors errors) {
+  public void validate(
+      List priorDescriptions, KubernetesPatchManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("patchKubernetesManifest", errors);
 
     if (!util.validateNotEmpty("patchBody", description.getPatchBody())) {
       return;
     }
 
-    if (!util.validateNotEmpty("options.mergeStrategy", description.getOptions().getMergeStrategy())){
+    if (!util.validateNotEmpty(
+        "options.mergeStrategy", description.getOptions().getMergeStrategy())) {
       return;
     }
 
@@ -53,7 +54,11 @@ public class KubernetesPatchManifestValidator extends DescriptionValidator<Kuber
       return;
     }
 
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(
+        provider,
+        description.getAccount(),
+        description.getPointCoordinates().getKind(),
+        description.getPointCoordinates().getNamespace())) {
       return;
     }
   }

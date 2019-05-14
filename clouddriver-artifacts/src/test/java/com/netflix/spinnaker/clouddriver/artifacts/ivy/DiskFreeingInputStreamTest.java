@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junitpioneer.jupiter.TempDirectory;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.TempDirectory;
 
 @ExtendWith(TempDirectory.class)
 class DiskFreeingInputStreamTest {
@@ -38,7 +37,8 @@ class DiskFreeingInputStreamTest {
     Files.write(test, "hello world".getBytes());
     FileInputStream fis = new FileInputStream(test.toFile());
     DiskFreeingInputStream dfis = new DiskFreeingInputStream(fis, temp);
-    assertThat(dfis).hasSameContentAs(new ByteArrayInputStream("hello world".getBytes())); // closes once
+    assertThat(dfis)
+        .hasSameContentAs(new ByteArrayInputStream("hello world".getBytes())); // closes once
     dfis.close();
   }
 }

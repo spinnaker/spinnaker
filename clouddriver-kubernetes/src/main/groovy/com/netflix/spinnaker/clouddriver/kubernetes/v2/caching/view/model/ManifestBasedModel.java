@@ -23,16 +23,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
-abstract public class ManifestBasedModel {
+public abstract class ManifestBasedModel {
   public String getName() {
     return getManifest().getFullResourceName();
   }
@@ -84,7 +83,8 @@ abstract public class ManifestBasedModel {
   }
 
   public Long getCreatedTime() {
-    Map<String, String> metadata = (Map<String, String>) getManifest().getOrDefault("metadata", new HashMap<>());
+    Map<String, String> metadata =
+        (Map<String, String>) getManifest().getOrDefault("metadata", new HashMap<>());
     String timestamp = metadata.get("creationTimestamp");
     try {
       if (StringUtils.isNotEmpty(timestamp)) {
@@ -101,6 +101,7 @@ abstract public class ManifestBasedModel {
     return getManifest().getKind();
   }
 
-  abstract protected KubernetesManifest getManifest();
-  abstract protected Keys.InfrastructureCacheKey getKey();
+  protected abstract KubernetesManifest getManifest();
+
+  protected abstract Keys.InfrastructureCacheKey getKey();
 }

@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
@@ -34,9 +37,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,15 +46,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IamRoleCachingAgent implements CachingAgent {
 
-  static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(IAM_ROLE.toString())
-  ));
+  static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(Arrays.asList(AUTHORITATIVE.forType(IAM_ROLE.toString())));
   private final Logger log = LoggerFactory.getLogger(getClass());
   private AmazonClientProvider amazonClientProvider;
   private AWSCredentialsProvider awsCredentialsProvider;
@@ -62,11 +60,11 @@ public class IamRoleCachingAgent implements CachingAgent {
   private String accountName;
   private IamPolicyReader iamPolicyReader;
 
-
-  public IamRoleCachingAgent(NetflixAmazonCredentials account,
-                             AmazonClientProvider amazonClientProvider,
-                             AWSCredentialsProvider awsCredentialsProvider,
-                             IamPolicyReader iamPolicyReader) {
+  public IamRoleCachingAgent(
+      NetflixAmazonCredentials account,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      IamPolicyReader iamPolicyReader) {
     this.account = account;
     this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
@@ -85,16 +83,18 @@ public class IamRoleCachingAgent implements CachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonIdentityManagement iam = amazonClientProvider.getIam(account, Regions.DEFAULT_REGION.getName(), false);
+    AmazonIdentityManagement iam =
+        amazonClientProvider.getIam(account, Regions.DEFAULT_REGION.getName(), false);
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
     Collection<CacheData> newData = newDataMap.get(IAM_ROLE.toString());
 
-    Set<String> oldKeys = providerCache.getAll(IAM_ROLE.toString()).stream()
-      .map(CacheData::getId)
-      .filter(this::keyAccountFilter)
-      .collect(Collectors.toSet());
+    Set<String> oldKeys =
+        providerCache.getAll(IAM_ROLE.toString()).stream()
+            .map(CacheData::getId)
+            .filter(this::keyAccountFilter)
+            .collect(Collectors.toSet());
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
     logUpcomingActions(newDataMap, evictionsByKey);
@@ -102,27 +102,26 @@ public class IamRoleCachingAgent implements CachingAgent {
     return new DefaultCacheResult(newDataMap, evictionsByKey);
   }
 
-  private void logUpcomingActions(Map<String, Collection<CacheData>> newDataMap, Map<String, Collection<String>> evictionsByKey) {
-    log.info(String.format("Caching %s IAM roles in %s for account %s",
-      newDataMap.get(IAM_ROLE.toString()).size(),
-      getAgentType(),
-      accountName)
-    );
+  private void logUpcomingActions(
+      Map<String, Collection<CacheData>> newDataMap,
+      Map<String, Collection<String>> evictionsByKey) {
+    log.info(
+        String.format(
+            "Caching %s IAM roles in %s for account %s",
+            newDataMap.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
 
     if (evictionsByKey.get(IAM_ROLE.toString()).size() > 0) {
-      log.info(String.format("Evicting %s IAM roles in %s for account %s",
-        evictionsByKey.get(IAM_ROLE.toString()).size(),
-        getAgentType(),
-        accountName)
-      );
+      log.info(
+          String.format(
+              "Evicting %s IAM roles in %s for account %s",
+              evictionsByKey.get(IAM_ROLE.toString()).size(), getAgentType(), accountName));
     }
   }
 
-  private Map<String, Collection<String>> computeEvictableData(Collection<CacheData> newData, Collection<String> oldKeys) {
+  private Map<String, Collection<String>> computeEvictableData(
+      Collection<CacheData> newData, Collection<String> oldKeys) {
 
-    Set<String> newKeys = newData.stream()
-      .map(CacheData::getId)
-      .collect(Collectors.toSet());
+    Set<String> newKeys = newData.stream().map(CacheData::getId).collect(Collectors.toSet());
 
     Set<String> evictedKeys = new HashSet<>();
     for (String oldKey : oldKeys) {
@@ -164,11 +163,11 @@ public class IamRoleCachingAgent implements CachingAgent {
       List<Role> roles = listRolesResult.getRoles();
       for (Role role : roles) {
         cacheableRoles.add(
-          new IamRole(role.getArn(),
-            role.getRoleName(),
-            accountName,
-            iamPolicyReader.getTrustedEntities(role.getAssumeRolePolicyDocument()))
-        );
+            new IamRole(
+                role.getArn(),
+                role.getRoleName(),
+                accountName,
+                iamPolicyReader.getTrustedEntities(role.getAssumeRolePolicyDocument())));
       }
 
       if (listRolesResult.isTruncated()) {
@@ -184,8 +183,7 @@ public class IamRoleCachingAgent implements CachingAgent {
 
   private boolean keyAccountFilter(String key) {
     Map<String, String> keyParts = Keys.parse(key);
-    return keyParts != null &&
-      keyParts.get("account").equals(accountName);
+    return keyParts != null && keyParts.get("account").equals(accountName);
   }
 
   @Override

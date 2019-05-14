@@ -16,17 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IamPolicyReader {
   private static final Logger logger = LoggerFactory.getLogger(IamPolicyReader.class);
@@ -45,26 +43,33 @@ public class IamPolicyReader {
     Map<String, Object> policyDocument;
     try {
       policyDocument = mapper.readValue(decodedPolicyDocument, Map.class);
-      List<Map<String, Object>> statementItems = (List<Map<String, Object>>) policyDocument.get("Statement");
+      List<Map<String, Object>> statementItems =
+          (List<Map<String, Object>>) policyDocument.get("Statement");
       for (Map<String, Object> statementItem : statementItems) {
         if ("sts:AssumeRole".equals(statementItem.get("Action"))) {
           Map<String, Object> principal = (Map<String, Object>) statementItem.get("Principal");
 
           for (Map.Entry<String, Object> principalEntry : principal.entrySet()) {
             if (principalEntry.getValue() instanceof List) {
-              ((List) principalEntry.getValue()).stream()
-                .forEach(o -> trustedEntities.add(new IamTrustRelationship(principalEntry.getKey(), o.toString())));
+              ((List) principalEntry.getValue())
+                  .stream()
+                      .forEach(
+                          o ->
+                              trustedEntities.add(
+                                  new IamTrustRelationship(principalEntry.getKey(), o.toString())));
             } else {
-              trustedEntities.add(new IamTrustRelationship(principalEntry.getKey(), principalEntry.getValue().toString()));
+              trustedEntities.add(
+                  new IamTrustRelationship(
+                      principalEntry.getKey(), principalEntry.getValue().toString()));
             }
           }
         }
       }
     } catch (IOException e) {
-      logger.error("Unable to extract trusted entities (policyDocument: {})", urlEncodedPolicyDocument, e);
+      logger.error(
+          "Unable to extract trusted entities (policyDocument: {})", urlEncodedPolicyDocument, e);
     }
 
     return trustedEntities;
   }
-
 }

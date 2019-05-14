@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteC
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeleteCloudFoundryServiceKeyAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.DELETE_SERVICE_KEY)
 @Component
-public class DeleteCloudFoundryServiceKeyAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class DeleteCloudFoundryServiceKeyAtomicOperationConverter
+    extends AbstractCloudFoundryAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new DeleteCloudFoundryServiceKeyAtomicOperation(convertDescription(input));
@@ -36,7 +36,8 @@ public class DeleteCloudFoundryServiceKeyAtomicOperationConverter extends Abstra
 
   @Override
   public DeleteCloudFoundryServiceKeyDescription convertDescription(Map input) {
-    DeleteCloudFoundryServiceKeyDescription converted = getObjectMapper().convertValue(input, DeleteCloudFoundryServiceKeyDescription.class);
+    DeleteCloudFoundryServiceKeyDescription converted =
+        getObjectMapper().convertValue(input, DeleteCloudFoundryServiceKeyDescription.class);
     CloudFoundryClient client = getClient(input);
     converted.setClient(client);
     findSpace(converted.getRegion(), client).ifPresent(converted::setSpace);

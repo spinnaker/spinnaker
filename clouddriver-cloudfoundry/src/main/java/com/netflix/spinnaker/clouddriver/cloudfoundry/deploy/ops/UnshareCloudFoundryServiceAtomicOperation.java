@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static java.util.stream.Collectors.toSet;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UnshareCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class UnshareCloudFoundryServiceAtomicOperation implements AtomicOperation<ServiceInstanceResponse> {
+public class UnshareCloudFoundryServiceAtomicOperation
+    implements AtomicOperation<ServiceInstanceResponse> {
   private static final String PHASE = "UNSHARE_SERVICE";
   private final UnshareCloudFoundryServiceDescription description;
 
@@ -43,10 +43,19 @@ public class UnshareCloudFoundryServiceAtomicOperation implements AtomicOperatio
 
     String serviceInstanceName = description.getServiceInstanceName();
     Set<String> unshareFromRegions = description.getUnshareFromRegions();
-    task.updateStatus(PHASE, "Unsharing service instance '" + serviceInstanceName +
-      "' from '" + String.join(", ", unshareFromRegions.stream().map(s -> "'" + s + "'").collect(toSet())));
+    task.updateStatus(
+        PHASE,
+        "Unsharing service instance '"
+            + serviceInstanceName
+            + "' from '"
+            + String.join(
+                ", ", unshareFromRegions.stream().map(s -> "'" + s + "'").collect(toSet())));
 
-    ServiceInstanceResponse results = description.getClient().getServiceInstances().unshareServiceInstance(serviceInstanceName, unshareFromRegions);
+    ServiceInstanceResponse results =
+        description
+            .getClient()
+            .getServiceInstances()
+            .unshareServiceInstance(serviceInstanceName, unshareFromRegions);
 
     task.updateStatus(PHASE, "Finished unsharing service instance '" + serviceInstanceName + "'");
 

@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer;
 
-
-import lombok.Data;
+import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.Item;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.Item;
-
+import lombok.Data;
 
 @Data
 public class EcsLoadBalancerSummary implements Item {

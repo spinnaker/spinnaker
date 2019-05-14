@@ -36,12 +36,14 @@ class SqlAgentSchedulerConfiguration {
     "sql.enabled",
     "sql.scheduler.enabled"
   ])
-  fun sqlAgentScheduler(jooq: DSLContext,
-                        agentIntervalProvider: AgentIntervalProvider,
-                        nodeStatusProvider: NodeStatusProvider,
-                        dynamicConfigService: DynamicConfigService,
-                        @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?,
-                        sqlAgentProperties: SqlAgentProperties): AgentScheduler<*> {
+  fun sqlAgentScheduler(
+    jooq: DSLContext,
+    agentIntervalProvider: AgentIntervalProvider,
+    nodeStatusProvider: NodeStatusProvider,
+    dynamicConfigService: DynamicConfigService,
+    @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?,
+    sqlAgentProperties: SqlAgentProperties
+  ): AgentScheduler<*> {
     return SqlClusteredAgentScheduler(
       jooq = jooq,
       nodeIdentity = DefaultNodeIdentity(),

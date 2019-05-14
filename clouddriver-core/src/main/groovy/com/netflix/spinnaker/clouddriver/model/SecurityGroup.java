@@ -20,27 +20,23 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * A representation of a security group
- */
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+/** A representation of a security group */
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
 public interface SecurityGroup {
 
   /**
    * The type of this security group. May reference the cloud provider to which it is associated
+   *
    * @deprecated use #getCloudProvider
    * @return
    */
   String getType();
 
-  /**
-   * Provider-specific identifier
-   */
+  /** Provider-specific identifier */
   String getCloudProvider();
 
   /**
@@ -69,7 +65,7 @@ public interface SecurityGroup {
   /**
    * The application associated with this security group.
    *
-   * Deprecated in favor of getMoniker().getApp()
+   * <p>Deprecated in favor of getMoniker().getApp()
    *
    * @return
    */

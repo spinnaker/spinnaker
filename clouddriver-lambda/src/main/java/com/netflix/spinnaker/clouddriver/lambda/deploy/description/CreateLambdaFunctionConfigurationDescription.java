@@ -21,7 +21,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CreateLambdaFunctionConfigurationDescription extends AbstractLambdaFunctionDescription {
+public class CreateLambdaFunctionConfigurationDescription
+    extends AbstractLambdaFunctionDescription {
   String functionName;
   String description;
   String handler;

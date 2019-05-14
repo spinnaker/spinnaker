@@ -17,14 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
-import java.util.List;
 
 @Configuration
 @ConditionalOnProperty("kubernetes.enabled")

@@ -32,14 +32,13 @@ import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.kubernetes.client.models.V1DeleteOptions;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Void> {
@@ -50,7 +49,10 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Void
   private final KubernetesResourcePropertyRegistry registry;
   private static final String OP_NAME = "CLEANUP_KUBERNETES_ARTIFACTS";
 
-  public KubernetesCleanupArtifactsOperation(KubernetesCleanupArtifactsDescription description, ArtifactProvider artifactProvider, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesCleanupArtifactsOperation(
+      KubernetesCleanupArtifactsDescription description,
+      ArtifactProvider artifactProvider,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -64,33 +66,36 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Void
 
   @Override
   public Void operate(List priorOutputs) {
-    List<Artifact> artifacts = description.getManifests().stream()
-        .map(this::artifactsToDelete)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    List<Artifact> artifacts =
+        description.getManifests().stream()
+            .map(this::artifactsToDelete)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    artifacts.forEach(a -> {
-      String type = a.getType();
-      if (!type.startsWith("kubernetes/")) {
-        log.warn("Non-kubernetes type deletion requested...");
-        return;
-      }
-      String kind = type.substring("kubernetes/".length());
-      KubernetesResourceProperties properties = registry.get(accountName, KubernetesKind.fromString(kind));
-      if (properties == null) {
-        log.warn("No properties for artifact {}, ignoring", a);
-        return;
-      }
+    artifacts.forEach(
+        a -> {
+          String type = a.getType();
+          if (!type.startsWith("kubernetes/")) {
+            log.warn("Non-kubernetes type deletion requested...");
+            return;
+          }
+          String kind = type.substring("kubernetes/".length());
+          KubernetesResourceProperties properties =
+              registry.get(accountName, KubernetesKind.fromString(kind));
+          if (properties == null) {
+            log.warn("No properties for artifact {}, ignoring", a);
+            return;
+          }
 
-      getTask().updateStatus(OP_NAME, "Deleting artifact '" + a + '"');
-      KubernetesHandler handler = properties.getHandler();
-      String name = a.getName();
-      if (StringUtils.isNotEmpty(a.getVersion())) {
-        name = String.join("-", name, a.getVersion());
-      }
-      // todo add to outputs
-      handler.delete(credentials, a.getLocation(), name, null, new V1DeleteOptions());
-    });
+          getTask().updateStatus(OP_NAME, "Deleting artifact '" + a + '"');
+          KubernetesHandler handler = properties.getHandler();
+          String name = a.getName();
+          if (StringUtils.isNotEmpty(a.getVersion())) {
+            name = String.join("-", name, a.getVersion());
+          }
+          // todo add to outputs
+          handler.delete(credentials, a.getLocation(), name, null, new V1DeleteOptions());
+        });
 
     return null;
   }
@@ -109,11 +114,13 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Void
 
     Artifact artifact = optional.get();
 
-    List<Artifact> artifacts = artifactProvider.getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation())
-        .stream()
-        .filter(a -> a.getMetadata() != null && accountName.equals(a.getMetadata().get("account")))
-        .collect(Collectors.toList());
-    
+    List<Artifact> artifacts =
+        artifactProvider
+            .getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation()).stream()
+            .filter(
+                a -> a.getMetadata() != null && accountName.equals(a.getMetadata().get("account")))
+            .collect(Collectors.toList());
+
     if (maxVersionHistory >= artifacts.size()) {
       return new ArrayList<>();
     } else {

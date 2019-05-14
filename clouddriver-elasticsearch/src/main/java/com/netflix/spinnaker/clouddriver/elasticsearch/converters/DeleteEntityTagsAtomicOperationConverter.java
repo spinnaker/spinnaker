@@ -25,24 +25,27 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component("deleteEntityTags")
-public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class DeleteEntityTagsAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
-  public DeleteEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
-                                                  Front50Service front50Service,
-                                                  ElasticSearchEntityTagsProvider entityTagsProvider) {
-    this.objectMapper = objectMapper.copy()
-      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  public DeleteEntityTagsAtomicOperationConverter(
+      ObjectMapper objectMapper,
+      Front50Service front50Service,
+      ElasticSearchEntityTagsProvider entityTagsProvider) {
+    this.objectMapper =
+        objectMapper
+            .copy()
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     this.front50Service = front50Service;
     this.entityTagsProvider = entityTagsProvider;
@@ -53,9 +56,7 @@ public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public AtomicOperation buildOperation(DeleteEntityTagsDescription description) {
-    return new DeleteEntityTagsAtomicOperation(
-      front50Service, entityTagsProvider, description
-    );
+    return new DeleteEntityTagsAtomicOperation(front50Service, entityTagsProvider, description);
   }
 
   public DeleteEntityTagsDescription convertDescription(Map input) {

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -25,17 +29,12 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
-
-import javax.annotation.Nullable;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -74,7 +73,11 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
 
   @JsonProperty
   public String getName() {
-    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (isEmpty(path) ? "" : path);
+    return host
+        + "."
+        + domain.getName()
+        + (port == null ? "" : "-" + port)
+        + (isEmpty(path) ? "" : path);
   }
 
   @Override
@@ -84,20 +87,23 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
 
   @Override
   public Set<LoadBalancerServerGroup> getServerGroups() {
-    return mappedApps.stream().map(app ->
-      new LoadBalancerServerGroup(
-        app.getName(),
-        account,
-        app.getRegion(),
-        app.getState() == CloudFoundryServerGroup.State.STOPPED,
-        emptySet(),
-        app.getInstances()
-          .stream()
-          .map(it -> new LoadBalancerInstance(it.getId(), it.getName(), null, it.getHealth().get(0)))
-          .collect(toSet()),
-        CloudFoundryCloudProvider.ID
-      )
-    ).collect(toSet());
+    return mappedApps.stream()
+        .map(
+            app ->
+                new LoadBalancerServerGroup(
+                    app.getName(),
+                    account,
+                    app.getRegion(),
+                    app.getState() == CloudFoundryServerGroup.State.STOPPED,
+                    emptySet(),
+                    app.getInstances().stream()
+                        .map(
+                            it ->
+                                new LoadBalancerInstance(
+                                    it.getId(), it.getName(), null, it.getHealth().get(0)))
+                        .collect(toSet()),
+                    CloudFoundryCloudProvider.ID))
+        .collect(toSet());
   }
 
   @Deprecated

@@ -18,35 +18,36 @@ package com.netflix.spinnaker.cats.provider;
 
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultProviderRegistry implements ProviderRegistry {
-    private final ConcurrentMap<String, ProviderCache> providerCaches = new ConcurrentHashMap<>();
-    private final Collection<Provider> providers;
+  private final ConcurrentMap<String, ProviderCache> providerCaches = new ConcurrentHashMap<>();
+  private final Collection<Provider> providers;
 
-    public DefaultProviderRegistry(Collection<Provider> providers, NamedCacheFactory cacheFactory) {
-        this.providers = Collections.unmodifiableCollection(providers);
-        for (Provider provider : providers) {
-            providerCaches.put(provider.getProviderName(), new DefaultProviderCache(cacheFactory.getCache(provider.getProviderName())));
-        }
+  public DefaultProviderRegistry(Collection<Provider> providers, NamedCacheFactory cacheFactory) {
+    this.providers = Collections.unmodifiableCollection(providers);
+    for (Provider provider : providers) {
+      providerCaches.put(
+          provider.getProviderName(),
+          new DefaultProviderCache(cacheFactory.getCache(provider.getProviderName())));
     }
+  }
 
-    @Override
-    public Collection<Provider> getProviders() {
-        return providers;
-    }
+  @Override
+  public Collection<Provider> getProviders() {
+    return providers;
+  }
 
-    @Override
-    public Collection<Cache> getProviderCaches() {
-        return Collections.<Cache>unmodifiableCollection(providerCaches.values());
-    }
+  @Override
+  public Collection<Cache> getProviderCaches() {
+    return Collections.<Cache>unmodifiableCollection(providerCaches.values());
+  }
 
-    @Override
-    public ProviderCache getProviderCache(String providerName) {
-        return providerCaches.get(providerName);
-    }
+  @Override
+  public ProviderCache getProviderCache(String providerName) {
+    return providerCaches.get(providerName);
+  }
 }

@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.model;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
-
 import java.util.Collection;
 import java.util.Map;
 
 public interface TargetGroupServerGroupProvider {
 
-  Map<String, AmazonTargetGroup> getServerGroups(String applicationName, Map<String, AmazonTargetGroup> allTargetGroups, Collection<CacheData> targetGroupData);
-
+  Map<String, AmazonTargetGroup> getServerGroups(
+      String applicationName,
+      Map<String, AmazonTargetGroup> allTargetGroups,
+      Collection<CacheData> targetGroupData);
 }

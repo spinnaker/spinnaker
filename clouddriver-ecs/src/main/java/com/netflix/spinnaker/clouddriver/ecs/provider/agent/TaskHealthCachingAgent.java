@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.LoadBalancer;
@@ -43,10 +49,6 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,18 +56,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-
-public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> implements HealthProvidingCachingAgent {
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
-    AUTHORITATIVE.forType(HEALTH.toString())
-  ));
-  private final static String HEALTH_ID = "ecs-task-instance-health";
+public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
+    implements HealthProvidingCachingAgent {
+  private static final Collection<AgentDataType> types =
+      Collections.unmodifiableCollection(Arrays.asList(AUTHORITATIVE.forType(HEALTH.toString())));
+  private static final String HEALTH_ID = "ecs-task-instance-health";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Collection<String> taskEvictions;
@@ -73,10 +72,12 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   private Collection<String> taskDefEvictions;
   private ObjectMapper objectMapper;
 
-  public TaskHealthCachingAgent(NetflixAmazonCredentials account, String region,
-                                AmazonClientProvider amazonClientProvider,
-                                AWSCredentialsProvider awsCredentialsProvider,
-                                ObjectMapper objectMapper) {
+  public TaskHealthCachingAgent(
+      NetflixAmazonCredentials account,
+      String region,
+      AmazonClientProvider amazonClientProvider,
+      AWSCredentialsProvider awsCredentialsProvider,
+      ObjectMapper objectMapper) {
     super(account, region, amazonClientProvider, awsCredentialsProvider);
     this.objectMapper = objectMapper;
   }
@@ -96,12 +97,15 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   @Override
   protected List<TaskHealth> getItems(AmazonECS ecs, ProviderCache providerCache) {
     TaskCacheClient taskCacheClient = new TaskCacheClient(providerCache, objectMapper);
-    TaskDefinitionCacheClient taskDefinitionCacheClient = new TaskDefinitionCacheClient(providerCache, objectMapper);
+    TaskDefinitionCacheClient taskDefinitionCacheClient =
+        new TaskDefinitionCacheClient(providerCache, objectMapper);
     ServiceCacheClient serviceCacheClient = new ServiceCacheClient(providerCache, objectMapper);
 
-    AmazonElasticLoadBalancing amazonloadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
+    AmazonElasticLoadBalancing amazonloadBalancing =
+        amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
 
-    ContainerInstanceCacheClient containerInstanceCacheClient = new ContainerInstanceCacheClient(providerCache);
+    ContainerInstanceCacheClient containerInstanceCacheClient =
+        new ContainerInstanceCacheClient(providerCache);
 
     List<TaskHealth> taskHealthList = new LinkedList<>();
     taskEvictions = new LinkedList<>();
@@ -111,8 +115,10 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
     Collection<Task> tasks = taskCacheClient.getAll(accountName, region);
     if (tasks != null) {
       for (Task task : tasks) {
-        String containerInstanceCacheKey = Keys.getContainerInstanceKey(accountName, region, task.getContainerInstanceArn());
-        ContainerInstance containerInstance = containerInstanceCacheClient.get(containerInstanceCacheKey);
+        String containerInstanceCacheKey =
+            Keys.getContainerInstanceKey(accountName, region, task.getContainerInstanceArn());
+        ContainerInstance containerInstance =
+            containerInstanceCacheClient.get(containerInstanceCacheKey);
 
         String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
         String serviceKey = Keys.getServiceKey(accountName, region, serviceName);
@@ -124,7 +130,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
           continue;
         }
 
-        String taskDefinitionCacheKey = Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
+        String taskDefinitionCacheKey =
+            Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
         TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
 
         if (isContainerMissingNetworking(task)) {
@@ -133,9 +140,13 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
 
         TaskHealth taskHealth;
         if (task.getContainers().get(0).getNetworkBindings().size() >= 1) {
-          taskHealth = inferHealthNetworkBindedContainer(amazonloadBalancing, task, containerInstance, serviceName, service);
+          taskHealth =
+              inferHealthNetworkBindedContainer(
+                  amazonloadBalancing, task, containerInstance, serviceName, service);
         } else {
-          taskHealth = inferHealthNetworkInterfacedContainer(amazonloadBalancing, task, serviceName, service, taskDefinition);
+          taskHealth =
+              inferHealthNetworkInterfacedContainer(
+                  amazonloadBalancing, task, serviceName, service, taskDefinition);
         }
 
         if (taskHealth != null) {
@@ -147,11 +158,12 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
     return taskHealthList;
   }
 
-  private TaskHealth inferHealthNetworkInterfacedContainer(AmazonElasticLoadBalancing amazonloadBalancing,
-                                                           Task task,
-                                                           String serviceName,
-                                                           Service loadBalancerService,
-                                                           TaskDefinition taskDefinition) {
+  private TaskHealth inferHealthNetworkInterfacedContainer(
+      AmazonElasticLoadBalancing amazonloadBalancing,
+      Task task,
+      String serviceName,
+      Service loadBalancerService,
+      TaskDefinition taskDefinition) {
 
     List<LoadBalancer> loadBalancers = loadBalancerService.getLoadBalancers();
 
@@ -161,23 +173,28 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
       }
 
       NetworkInterface networkInterface = task.getContainers().get(0).getNetworkInterfaces().get(0);
-      DescribeTargetHealthResult describeTargetHealthResult = amazonloadBalancing.describeTargetHealth(
-        new DescribeTargetHealthRequest()
-          .withTargetGroupArn(loadBalancer.getTargetGroupArn())
-          .withTargets(
-            new TargetDescription()
-              .withId(networkInterface.getPrivateIpv4Address())
-              .withPort(taskDefinition.getContainerDefinitions().get(0).getPortMappings().get(0).getContainerPort())
-          )
-      );
+      DescribeTargetHealthResult describeTargetHealthResult =
+          amazonloadBalancing.describeTargetHealth(
+              new DescribeTargetHealthRequest()
+                  .withTargetGroupArn(loadBalancer.getTargetGroupArn())
+                  .withTargets(
+                      new TargetDescription()
+                          .withId(networkInterface.getPrivateIpv4Address())
+                          .withPort(
+                              taskDefinition
+                                  .getContainerDefinitions()
+                                  .get(0)
+                                  .getPortMappings()
+                                  .get(0)
+                                  .getContainerPort())));
 
       if (describeTargetHealthResult.getTargetHealthDescriptions().isEmpty()) {
         evictStaleData(task, loadBalancerService);
         continue;
       }
 
-
-      TargetHealthDescription healthDescription = describeTargetHealthResult.getTargetHealthDescriptions().get(0);
+      TargetHealthDescription healthDescription =
+          describeTargetHealthResult.getTargetHealthDescriptions().get(0);
 
       TaskHealth taskHealth = makeTaskHealth(task, serviceName, healthDescription);
       return taskHealth;
@@ -186,7 +203,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   }
 
   private void evictStaleData(Task task, Service loadBalancerService) {
-    String serviceEvictionKey = Keys.getTaskDefinitionKey(accountName, region, loadBalancerService.getServiceName());
+    String serviceEvictionKey =
+        Keys.getTaskDefinitionKey(accountName, region, loadBalancerService.getServiceName());
     serviceEvictions.add(serviceEvictionKey);
     String taskEvictionKey = Keys.getTaskKey(accountName, region, task.getTaskId());
     taskEvictions.add(taskEvictionKey);
@@ -196,8 +214,10 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
     taskDefEvictions.add(taskDefKey);
   }
 
-  private TaskHealth makeTaskHealth(Task task, String serviceName, TargetHealthDescription healthDescription) {
-    String targetHealth = healthDescription.getTargetHealth().getState().equals("healthy") ? "Up" : "Unknown";
+  private TaskHealth makeTaskHealth(
+      Task task, String serviceName, TargetHealthDescription healthDescription) {
+    String targetHealth =
+        healthDescription.getTargetHealth().getState().equals("healthy") ? "Up" : "Unknown";
 
     TaskHealth taskHealth = new TaskHealth();
     taskHealth.setType("loadBalancer");
@@ -209,31 +229,39 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
     return taskHealth;
   }
 
-  private TaskHealth inferHealthNetworkBindedContainer(AmazonElasticLoadBalancing amazonloadBalancing,
-                                                       Task task,
-                                                       ContainerInstance containerInstance,
-                                                       String serviceName,
-                                                       Service loadBalancerService) {
+  private TaskHealth inferHealthNetworkBindedContainer(
+      AmazonElasticLoadBalancing amazonloadBalancing,
+      Task task,
+      ContainerInstance containerInstance,
+      String serviceName,
+      Service loadBalancerService) {
     int port = task.getContainers().get(0).getNetworkBindings().get(0).getHostPort();
 
     List<LoadBalancer> loadBalancers = loadBalancerService.getLoadBalancers();
 
     for (LoadBalancer loadBalancer : loadBalancers) {
-      if (loadBalancer.getTargetGroupArn() == null || containerInstance.getEc2InstanceId() == null) {
+      if (loadBalancer.getTargetGroupArn() == null
+          || containerInstance.getEc2InstanceId() == null) {
         continue;
       }
 
       DescribeTargetHealthResult describeTargetHealthResult;
-      describeTargetHealthResult = amazonloadBalancing.describeTargetHealth(
-        new DescribeTargetHealthRequest().withTargetGroupArn(loadBalancer.getTargetGroupArn()).withTargets(
-          new TargetDescription().withId(containerInstance.getEc2InstanceId()).withPort(port)));
+      describeTargetHealthResult =
+          amazonloadBalancing.describeTargetHealth(
+              new DescribeTargetHealthRequest()
+                  .withTargetGroupArn(loadBalancer.getTargetGroupArn())
+                  .withTargets(
+                      new TargetDescription()
+                          .withId(containerInstance.getEc2InstanceId())
+                          .withPort(port)));
 
       if (describeTargetHealthResult.getTargetHealthDescriptions().isEmpty()) {
         evictStaleData(task, loadBalancerService);
         continue;
       }
 
-      TargetHealthDescription healthDescription = describeTargetHealthResult.getTargetHealthDescriptions().get(0);
+      TargetHealthDescription healthDescription =
+          describeTargetHealthResult.getTargetHealthDescriptions().get(0);
 
       TaskHealth taskHealth = makeTaskHealth(task, serviceName, healthDescription);
       return taskHealth;
@@ -247,8 +275,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
       return true;
     }
 
-    if (isTaskMissingNetworkBindings(task)
-      && isTaskMissingNetworkInterfaces(task)) {
+    if (isTaskMissingNetworkBindings(task) && isTaskMissingNetworkInterfaces(task)) {
       return true;
     } else {
       return false;
@@ -257,20 +284,21 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
 
   private boolean isTaskMissingNetworkBindings(Task task) {
     return task.getContainers().isEmpty()
-      || task.getContainers().get(0).getNetworkBindings() == null
-      || task.getContainers().get(0).getNetworkBindings().isEmpty()
-      || task.getContainers().get(0).getNetworkBindings().get(0) == null;
+        || task.getContainers().get(0).getNetworkBindings() == null
+        || task.getContainers().get(0).getNetworkBindings().isEmpty()
+        || task.getContainers().get(0).getNetworkBindings().get(0) == null;
   }
 
   private boolean isTaskMissingNetworkInterfaces(Task task) {
     return task.getContainers().isEmpty()
-      || task.getContainers().get(0).getNetworkInterfaces() == null
-      || task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-      || task.getContainers().get(0).getNetworkInterfaces().get(0) == null;
+        || task.getContainers().get(0).getNetworkInterfaces() == null
+        || task.getContainers().get(0).getNetworkInterfaces().isEmpty()
+        || task.getContainers().get(0).getNetworkInterfaces().get(0) == null;
   }
 
   @Override
-  protected Map<String, Collection<CacheData>> generateFreshData(Collection<TaskHealth> taskHealthList) {
+  protected Map<String, Collection<CacheData>> generateFreshData(
+      Collection<TaskHealth> taskHealthList) {
     Collection<CacheData> dataPoints = new LinkedList<>();
 
     for (TaskHealth taskHealth : taskHealthList) {
@@ -288,7 +316,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   }
 
   @Override
-  protected Map<String, Collection<String>> addExtraEvictions(Map<String, Collection<String>> evictions) {
+  protected Map<String, Collection<String>> addExtraEvictions(
+      Map<String, Collection<String>> evictions) {
     if (!taskEvictions.isEmpty()) {
       if (evictions.containsKey(TASKS.toString())) {
         evictions.get(TASKS.toString()).addAll(taskEvictions);

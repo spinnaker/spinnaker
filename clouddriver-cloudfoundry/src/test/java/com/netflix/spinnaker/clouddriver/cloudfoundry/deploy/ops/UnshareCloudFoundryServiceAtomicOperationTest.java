@@ -16,16 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UnshareCloudFoundryServiceDescription;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UNSHARE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +25,17 @@ import static org.mockito.Matchers.matches;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
 
-class UnshareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UnshareCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+
+class UnshareCloudFoundryServiceAtomicOperationTest
+    extends AbstractCloudFoundryAtomicOperationTest {
   private UnshareCloudFoundryServiceDescription desc = new UnshareCloudFoundryServiceDescription();
 
   @Test
@@ -49,23 +49,27 @@ class UnshareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundry
     unsharedFromRegions.add("org3 > region3");
     desc.setUnshareFromRegions(unsharedFromRegions);
 
-    ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
-      .setServiceInstanceName("some-service-name")
-      .setType(UNSHARE)
-      .setState(SUCCEEDED);
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("some-service-name")
+            .setType(UNSHARE)
+            .setState(SUCCEEDED);
     when(client.getServiceInstances().unshareServiceInstance(any(), any()))
-      .thenReturn(serviceInstanceResponse);
+        .thenReturn(serviceInstanceResponse);
 
-    UnshareCloudFoundryServiceAtomicOperation op = new UnshareCloudFoundryServiceAtomicOperation(desc);
+    UnshareCloudFoundryServiceAtomicOperation op =
+        new UnshareCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
 
     verify(client.getServiceInstances(), times(1))
-      .unshareServiceInstance(matches("service-instance-name"), same(unsharedFromRegions));
+        .unshareServiceInstance(matches("service-instance-name"), same(unsharedFromRegions));
     assertThat(task.getHistory())
-      .has(statusStartsWith("Unsharing service instance 'service-instance-name' from '"), atIndex(1));
+        .has(
+            statusStartsWith("Unsharing service instance 'service-instance-name' from '"),
+            atIndex(1));
     assertThat(task.getHistory())
-      .has(status("Finished unsharing service instance 'service-instance-name'"), atIndex(2));
+        .has(status("Finished unsharing service instance 'service-instance-name'"), atIndex(2));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(1).isEqualTo(resultObjects.size());
     Object o = resultObjects.get(0);
@@ -86,17 +90,20 @@ class UnshareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundry
     desc.setUnshareFromRegions(unshareFromRegions);
 
     when(client.getServiceInstances().unshareServiceInstance(any(), any()))
-      .thenThrow(new CloudFoundryApiException("Much fail"));
+        .thenThrow(new CloudFoundryApiException("Much fail"));
 
-    UnshareCloudFoundryServiceAtomicOperation op = new UnshareCloudFoundryServiceAtomicOperation(desc);
+    UnshareCloudFoundryServiceAtomicOperation op =
+        new UnshareCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
 
     verify(client.getServiceInstances(), times(1))
-      .unshareServiceInstance(matches("service-instance-name"), same(unshareFromRegions));
+        .unshareServiceInstance(matches("service-instance-name"), same(unshareFromRegions));
     assertThat(task.getHistory().size()).isEqualTo(2);
     assertThat(task.getHistory())
-      .has(statusStartsWith("Unsharing service instance 'service-instance-name' from '"), atIndex(1));
+        .has(
+            statusStartsWith("Unsharing service instance 'service-instance-name' from '"),
+            atIndex(1));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(resultObjects.size()).isEqualTo(1);
     Object o = resultObjects.get(0);

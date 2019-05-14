@@ -22,12 +22,12 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
 @RequiredArgsConstructor
-public class DeleteCloudFoundryServiceKeyAtomicOperation implements AtomicOperation<ServiceKeyResponse> {
+public class DeleteCloudFoundryServiceKeyAtomicOperation
+    implements AtomicOperation<ServiceKeyResponse> {
   private static final String PHASE = "DELETE_SERVICE_KEY";
   private final DeleteCloudFoundryServiceKeyDescription description;
 
@@ -42,9 +42,21 @@ public class DeleteCloudFoundryServiceKeyAtomicOperation implements AtomicOperat
     CloudFoundrySpace space = description.getSpace();
     String serviceInstanceName = description.getServiceInstanceName();
     String serviceKeyName = description.getServiceKeyName();
-    task.updateStatus(PHASE, "Deleting service key '" + serviceKeyName + "' for service '" + serviceInstanceName + "' in '" + space.getRegion() + "'");
+    task.updateStatus(
+        PHASE,
+        "Deleting service key '"
+            + serviceKeyName
+            + "' for service '"
+            + serviceInstanceName
+            + "' in '"
+            + space.getRegion()
+            + "'");
 
-    ServiceKeyResponse results = description.getClient().getServiceKeys().deleteServiceKey(space, serviceInstanceName, serviceKeyName);
+    ServiceKeyResponse results =
+        description
+            .getClient()
+            .getServiceKeys()
+            .deleteServiceKey(space, serviceInstanceName, serviceKeyName);
 
     task.updateStatus(PHASE, "Finished deleting service key '" + serviceKeyName + "'");
 

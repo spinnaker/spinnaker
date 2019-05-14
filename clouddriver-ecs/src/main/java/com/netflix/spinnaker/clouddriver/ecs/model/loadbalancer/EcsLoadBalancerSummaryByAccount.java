@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer;
 
-import lombok.Data;
+import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.ByAccount;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.ByAccount;
+import lombok.Data;
 
 @Data
 public class EcsLoadBalancerSummaryByAccount implements ByAccount {
@@ -31,7 +30,7 @@ public class EcsLoadBalancerSummaryByAccount implements ByAccount {
   private String name;
   private Map<String, EcsLoadBalancerSummaryByRegion> byRegions = new HashMap<>();
 
-  public EcsLoadBalancerSummaryByAccount withName(String name){
+  public EcsLoadBalancerSummaryByAccount withName(String name) {
     setName(name);
     return this;
   }

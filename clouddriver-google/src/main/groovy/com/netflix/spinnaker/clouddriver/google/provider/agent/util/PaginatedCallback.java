@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent.util;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
-
 import java.io.IOException;
 
 public abstract class PaginatedCallback<T> extends JsonBatchCallback<T> {

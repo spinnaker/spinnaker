@@ -23,8 +23,8 @@ public class Link {
   private String href;
 
   /**
-   * If this link's last path segment is a GUID (i.e. it refers to a single resource),
-   * then this extracts that GUID.
+   * If this link's last path segment is a GUID (i.e. it refers to a single resource), then this
+   * extracts that GUID.
    */
   public String getGuid() {
     return href.substring(href.lastIndexOf('/') + 1);

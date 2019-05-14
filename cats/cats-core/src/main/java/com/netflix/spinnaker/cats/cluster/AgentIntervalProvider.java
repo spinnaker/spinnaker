@@ -18,46 +18,41 @@ package com.netflix.spinnaker.cats.cluster;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 
-/**
- * Provides a poll interval and timeout for an Agent.
- */
+/** Provides a poll interval and timeout for an Agent. */
 public interface AgentIntervalProvider {
-    public static class Interval {
-        final long interval;
-        final long errorInterval;
-        final long timeout;
+  public static class Interval {
+    final long interval;
+    final long errorInterval;
+    final long timeout;
 
-        public Interval(long interval, long timeout) {
-            this(interval, interval, timeout);
-        }
-
-        public Interval(long interval, long errorInterval, long timeout) {
-            this.interval = interval;
-            this.errorInterval = errorInterval;
-            this.timeout = timeout;
-        }
-
-        /**
-         * @return how frequently the Agent should run in milliseconds
-         */
-        public long getInterval() {
-            return interval;
-        }
-
-        /**
-         * @return how frequently after an error the Agent should run in milliseconds
-         */
-        public long getErrorInterval() {
-            return errorInterval;
-        }
-
-        /**
-         * @return the maximum amount of time in milliseconds for an Agent to complete its run before the run is rescheduled
-         */
-        public long getTimeout() {
-            return timeout;
-        }
+    public Interval(long interval, long timeout) {
+      this(interval, interval, timeout);
     }
 
-    Interval getInterval(Agent agent);
+    public Interval(long interval, long errorInterval, long timeout) {
+      this.interval = interval;
+      this.errorInterval = errorInterval;
+      this.timeout = timeout;
+    }
+
+    /** @return how frequently the Agent should run in milliseconds */
+    public long getInterval() {
+      return interval;
+    }
+
+    /** @return how frequently after an error the Agent should run in milliseconds */
+    public long getErrorInterval() {
+      return errorInterval;
+    }
+
+    /**
+     * @return the maximum amount of time in milliseconds for an Agent to complete its run before
+     *     the run is rescheduled
+     */
+    public long getTimeout() {
+      return timeout;
+    }
+  }
+
+  Interval getInterval(Agent agent);
 }

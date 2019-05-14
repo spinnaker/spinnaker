@@ -28,5 +28,4 @@ public class ActivateJobRequest extends AbstractJobRequest {
     this.inService = inService;
     return this;
   }
-
 }

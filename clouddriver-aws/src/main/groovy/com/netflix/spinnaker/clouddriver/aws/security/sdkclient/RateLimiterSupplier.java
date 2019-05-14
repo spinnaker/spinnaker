@@ -23,20 +23,20 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
-
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-
-/**
- * Factory for shared RateLimiters by SDK client interface/account/region.
- */
+/** Factory for shared RateLimiters by SDK client interface/account/region. */
 public class RateLimiterSupplier {
 
   private final LoadingCache<RateLimitKey, RateLimiter> rateLimiters;
 
-  public RateLimiterSupplier(ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
-    rateLimiters = CacheBuilder.newBuilder().recordStats().build(new RateLimitCacheLoader(serviceLimitConfiguration));
+  public RateLimiterSupplier(
+      ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
+    rateLimiters =
+        CacheBuilder.newBuilder()
+            .recordStats()
+            .build(new RateLimitCacheLoader(serviceLimitConfiguration));
     LoadingCacheMetrics.instrument("rateLimiterSupplier", registry, rateLimiters);
   }
 
@@ -61,19 +61,21 @@ public class RateLimiterSupplier {
       this(serviceLimitConfiguration, DEFAULT_LIMIT);
     }
 
-    public RateLimitCacheLoader(ServiceLimitConfiguration serviceLimitConfiguration, double defaultLimit) {
+    public RateLimitCacheLoader(
+        ServiceLimitConfiguration serviceLimitConfiguration, double defaultLimit) {
       this.serviceLimitConfiguration = Objects.requireNonNull(serviceLimitConfiguration);
       this.defaultLimit = defaultLimit;
     }
 
     @Override
     public RateLimiter load(RateLimitKey key) throws Exception {
-      double rateLimit = serviceLimitConfiguration.getLimit(
-        ServiceLimitConfiguration.API_RATE_LIMIT,
-        key.implementationClass.getSimpleName(),
-        key.account,
-        AmazonCloudProvider.ID,
-        defaultLimit);
+      double rateLimit =
+          serviceLimitConfiguration.getLimit(
+              ServiceLimitConfiguration.API_RATE_LIMIT,
+              key.implementationClass.getSimpleName(),
+              key.account,
+              AmazonCloudProvider.ID,
+              defaultLimit);
 
       return RateLimiter.create(rateLimit);
     }

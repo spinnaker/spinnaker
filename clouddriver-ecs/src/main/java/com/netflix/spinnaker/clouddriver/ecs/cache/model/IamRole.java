@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
 import com.netflix.spinnaker.clouddriver.aws.model.Role;
 import com.netflix.spinnaker.clouddriver.aws.model.TrustRelationship;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -37,5 +36,4 @@ public class IamRole implements Role {
   String name;
   String accountName;
   Set<? extends TrustRelationship> trustRelationships;
-
 }

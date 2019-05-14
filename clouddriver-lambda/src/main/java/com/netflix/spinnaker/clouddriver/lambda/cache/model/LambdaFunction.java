@@ -20,10 +20,9 @@ import com.amazonaws.services.lambda.model.AliasConfiguration;
 import com.amazonaws.services.lambda.model.EventSourceMappingConfiguration;
 import com.amazonaws.services.lambda.model.FunctionConfiguration;
 import com.netflix.spinnaker.clouddriver.model.Function;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class LambdaFunction extends FunctionConfiguration implements Function {

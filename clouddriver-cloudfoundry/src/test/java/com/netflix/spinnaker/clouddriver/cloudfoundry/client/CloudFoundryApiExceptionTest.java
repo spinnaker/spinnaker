@@ -16,20 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
+import java.util.Arrays;
+import org.junit.jupiter.api.Test;
 
 class CloudFoundryApiExceptionTest {
   @Test
   void constructorWithErrorDescription() {
-    CloudFoundryApiException e = new CloudFoundryApiException(
-      new ErrorDescription().setErrors(Arrays.asList(
-        new ErrorDescription.Detail().setDetail("Main Error"),
-        new ErrorDescription.Detail().setDetail("Foo"))));
+    CloudFoundryApiException e =
+        new CloudFoundryApiException(
+            new ErrorDescription()
+                .setErrors(
+                    Arrays.asList(
+                        new ErrorDescription.Detail().setDetail("Main Error"),
+                        new ErrorDescription.Detail().setDetail("Foo"))));
 
     assertThat(e.getMessage()).contains("Main Error and Foo");
   }

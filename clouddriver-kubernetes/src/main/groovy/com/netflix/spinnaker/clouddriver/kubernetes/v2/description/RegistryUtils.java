@@ -20,15 +20,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RegistryUtils {
-  private static Optional<KubernetesHandler> lookupHandler(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind) {
+  private static Optional<KubernetesHandler> lookupHandler(
+      KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind) {
     if (kind == null) {
       return Optional.empty();
     }
@@ -47,11 +47,21 @@ public class RegistryUtils {
     return Optional.of(handler);
   }
 
-  static public void removeSensitiveKeys(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesManifest manifest) {
-    lookupHandler(propertyRegistry, account, manifest.getKind()).ifPresent(h -> h.removeSensitiveKeys(manifest));
+  public static void removeSensitiveKeys(
+      KubernetesResourcePropertyRegistry propertyRegistry,
+      String account,
+      KubernetesManifest manifest) {
+    lookupHandler(propertyRegistry, account, manifest.getKind())
+        .ifPresent(h -> h.removeSensitiveKeys(manifest));
   }
 
-  static public void addRelationships(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind, Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
-    lookupHandler(propertyRegistry, account, kind).ifPresent(h -> h.addRelationships(allResources, relationshipMap));
+  public static void addRelationships(
+      KubernetesResourcePropertyRegistry propertyRegistry,
+      String account,
+      KubernetesKind kind,
+      Map<KubernetesKind, List<KubernetesManifest>> allResources,
+      Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+    lookupHandler(propertyRegistry, account, kind)
+        .ifPresent(h -> h.addRelationships(allResources, relationshipMap));
   }
 }

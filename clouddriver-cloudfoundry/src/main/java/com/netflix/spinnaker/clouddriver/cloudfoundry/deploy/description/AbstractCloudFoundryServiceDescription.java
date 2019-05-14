@@ -20,10 +20,9 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.time.Duration;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public abstract class AbstractCloudFoundryServiceDescription extends AbstractCloudFoundryDescription {
+public abstract class AbstractCloudFoundryServiceDescription
+    extends AbstractCloudFoundryDescription {
   private CloudFoundrySpace space;
 }

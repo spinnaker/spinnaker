@@ -20,12 +20,12 @@ import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaF
 import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.UpsertLambdaEventSourceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component("upsertLambdaFunctionEventMapping")
-public class UpsertLambdaFunctionEventMappingAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class UpsertLambdaFunctionEventMappingAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new UpsertLambdaEventSourceAtomicOperation(convertDescription(input));
@@ -33,10 +33,8 @@ public class UpsertLambdaFunctionEventMappingAtomicOperationConverter extends Ab
 
   @Override
   public UpsertLambdaFunctionEventMappingDescription convertDescription(Map input) {
-    UpsertLambdaFunctionEventMappingDescription converted = getObjectMapper().convertValue(
-      input,
-      UpsertLambdaFunctionEventMappingDescription.class
-    );
+    UpsertLambdaFunctionEventMappingDescription converted =
+        getObjectMapper().convertValue(input, UpsertLambdaFunctionEventMappingDescription.class);
 
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 

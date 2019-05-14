@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
-import lombok.Data;
-
 import java.util.Collections;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class ServiceKeyResponse extends ServiceInstanceResponse {

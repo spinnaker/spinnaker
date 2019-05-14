@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
 import com.amazonaws.services.ecs.model.LoadBalancer;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class Service {

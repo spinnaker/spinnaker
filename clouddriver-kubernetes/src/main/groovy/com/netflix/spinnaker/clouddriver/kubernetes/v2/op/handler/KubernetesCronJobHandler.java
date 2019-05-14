@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -29,12 +31,9 @@ import io.kubernetes.client.models.V2alpha1CronJob;
 import io.kubernetes.client.models.V2alpha1CronJobStatus;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
-
 @Component
-public class KubernetesCronJobHandler extends KubernetesHandler implements
-  CanDelete,
-  ServerGroupHandler {
+public class KubernetesCronJobHandler extends KubernetesHandler
+    implements CanDelete, ServerGroupHandler {
 
   public KubernetesCronJobHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
@@ -68,7 +67,8 @@ public class KubernetesCronJobHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    V2alpha1CronJob v2alpha1CronJob = KubernetesCacheDataConverter.getResource(manifest, V2alpha1CronJob.class);
+    V2alpha1CronJob v2alpha1CronJob =
+        KubernetesCacheDataConverter.getResource(manifest, V2alpha1CronJob.class);
     return status(v2alpha1CronJob);
   }
 
@@ -81,12 +81,10 @@ public class KubernetesCronJobHandler extends KubernetesHandler implements
     Status result = new Status();
     V2alpha1CronJobStatus status = job.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet")
-          .unavailable("No availability reported");
+      result.unstable("No status reported yet").unavailable("No availability reported");
       return result;
     }
 
     return result;
   }
-
 }

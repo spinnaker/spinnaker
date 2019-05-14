@@ -19,11 +19,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Set;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CreateCloudFoundryServiceKeyDescription extends AbstractCloudFoundryServiceDescription {
+public class CreateCloudFoundryServiceKeyDescription
+    extends AbstractCloudFoundryServiceDescription {
   private String serviceInstanceName;
   private String serviceKeyName;
 }

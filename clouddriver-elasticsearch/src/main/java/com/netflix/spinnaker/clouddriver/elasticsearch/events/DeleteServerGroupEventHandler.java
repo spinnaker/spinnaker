@@ -47,11 +47,10 @@ public class DeleteServerGroupEventHandler implements OperationEventHandler {
 
     DeleteServerGroupEvent deleteServerGroupEvent = (DeleteServerGroupEvent) operationEvent;
     serverGroupTagger.deleteAll(
-      deleteServerGroupEvent.getCloudProvider(),
-      deleteServerGroupEvent.getAccountId(),
-      deleteServerGroupEvent.getRegion(),
-      EntityTagger.ENTITY_TYPE_SERVER_GROUP,
-      deleteServerGroupEvent.getName()
-    );
+        deleteServerGroupEvent.getCloudProvider(),
+        deleteServerGroupEvent.getAccountId(),
+        deleteServerGroupEvent.getRegion(),
+        EntityTagger.ENTITY_TYPE_SERVER_GROUP,
+        deleteServerGroupEvent.getName());
   }
 }

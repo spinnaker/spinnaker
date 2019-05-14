@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
@@ -24,20 +26,17 @@ import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.Errors;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.Errors;
 
 public class DescriptionAuthorizer<T> {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -49,9 +48,10 @@ public class DescriptionAuthorizer<T> {
   private final Id missingApplicationId;
   private final Id authorizationId;
 
-  public DescriptionAuthorizer(Registry registry,
-                               ObjectMapper objectMapper,
-                               Optional<FiatPermissionEvaluator> fiatPermissionEvaluator) {
+  public DescriptionAuthorizer(
+      Registry registry,
+      ObjectMapper objectMapper,
+      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator) {
     this.registry = registry;
     this.objectMapper = objectMapper;
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
@@ -71,7 +71,6 @@ public class DescriptionAuthorizer<T> {
     List<String> applications = new ArrayList<>();
     boolean requiresApplicationRestriction = true;
 
-
     if (description instanceof AccountNameable) {
       AccountNameable accountNameable = (AccountNameable) description;
       account = accountNameable.getAccount();
@@ -82,26 +81,24 @@ public class DescriptionAuthorizer<T> {
     if (description instanceof ApplicationNameable) {
       ApplicationNameable applicationNameable = (ApplicationNameable) description;
       applications.addAll(
-        Optional.ofNullable(applicationNameable.getApplications()).orElse(Collections.emptyList())
-          .stream()
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList())
-      );
+          Optional.ofNullable(applicationNameable.getApplications()).orElse(Collections.emptyList())
+              .stream()
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList()));
     }
 
     if (description instanceof ResourcesNameable) {
       ResourcesNameable resourcesNameable = (ResourcesNameable) description;
       applications.addAll(
-        Optional.ofNullable(resourcesNameable.getResourceApplications()).orElse(Collections.emptyList())
-          .stream()
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList())
-      );
+          Optional.ofNullable(resourcesNameable.getResourceApplications())
+              .orElse(Collections.emptyList()).stream()
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList()));
     }
 
-
     boolean hasPermission = true;
-    if (account != null && !fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", "WRITE")) {
+    if (account != null
+        && !fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", "WRITE")) {
       hasPermission = false;
       errors.reject("authorization", format("Access denied to account %s", account));
     }
@@ -109,7 +106,7 @@ public class DescriptionAuthorizer<T> {
     if (!applications.isEmpty()) {
       fiatPermissionEvaluator.storeWholePermission();
 
-      for (String application: applications) {
+      for (String application : applications) {
         if (!fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
           hasPermission = false;
           errors.reject("authorization", format("Access denied to application %s", application));
@@ -117,29 +114,30 @@ public class DescriptionAuthorizer<T> {
       }
     }
 
-
     if (requiresApplicationRestriction && account != null && applications.isEmpty()) {
-      registry.counter(
-          missingApplicationId
-            .withTag("descriptionClass", description.getClass().getSimpleName())
-        ).increment();
+      registry
+          .counter(
+              missingApplicationId.withTag(
+                  "descriptionClass", description.getClass().getSimpleName()))
+          .increment();
 
       String rawJson = null;
       try {
         rawJson = objectMapper.writeValueAsString(description);
-      } catch (JsonProcessingException ignored) {}
+      } catch (JsonProcessingException ignored) {
+      }
 
       log.warn(
-        "No application(s) specified for operation with account restriction (type: {}, rawJson: {})",
-        description.getClass().getSimpleName(),
-        rawJson
-      );
+          "No application(s) specified for operation with account restriction (type: {}, rawJson: {})",
+          description.getClass().getSimpleName(),
+          rawJson);
     }
 
-    registry.counter(
-      authorizationId
-        .withTag("descriptionClass", description.getClass().getSimpleName())
-        .withTag("success", hasPermission)
-    ).increment();
+    registry
+        .counter(
+            authorizationId
+                .withTag("descriptionClass", description.getClass().getSimpleName())
+                .withTag("success", hasPermission))
+        .increment();
   }
 }

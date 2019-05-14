@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
 import java.util.List;
 
-public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoadBalancerDescription {
+public class UpsertAmazonLoadBalancerClassicDescription
+    extends UpsertAmazonLoadBalancerDescription {
   private List<Listener> listeners;
   private String healthCheck;
   private Integer healthCheckPort;
@@ -122,7 +123,10 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
 
   public static class Listener {
     public enum ListenerType {
-      HTTP, HTTPS, TCP, SSL
+      HTTP,
+      HTTPS,
+      TCP,
+      SSL
     }
 
     private ListenerType externalProtocol;
@@ -132,7 +136,6 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
     private Integer internalPort;
 
     private String sslCertificateId;
-
 
     public ListenerType getExternalProtocol() {
       return externalProtocol;

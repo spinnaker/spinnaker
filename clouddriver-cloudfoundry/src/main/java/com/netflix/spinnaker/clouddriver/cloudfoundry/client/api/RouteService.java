@@ -20,13 +20,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
+import java.util.List;
 import retrofit.client.Response;
 import retrofit.http.*;
 
-import java.util.List;
-
 public interface RouteService {
-  //Mapping to CF API style query params - https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
+  // Mapping to CF API style query params -
+  // https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
   @GET("/v2/routes?results-per-page=100")
   Page<Route> all(@Query("page") Integer page, @Query("q") List<String> queryParams);
 

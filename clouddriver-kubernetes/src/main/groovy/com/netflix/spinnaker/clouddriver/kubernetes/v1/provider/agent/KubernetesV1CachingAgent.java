@@ -25,11 +25,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Prov
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import lombok.Getter;
 
-public abstract class KubernetesV1CachingAgent extends KubernetesCachingAgent<KubernetesV1Credentials> {
-  @Getter
-  final protected String providerName = KubernetesV1Provider.PROVIDER_NAME;
+public abstract class KubernetesV1CachingAgent
+    extends KubernetesCachingAgent<KubernetesV1Credentials> {
+  @Getter protected final String providerName = KubernetesV1Provider.PROVIDER_NAME;
 
-  protected KubernetesV1CachingAgent(KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
+  protected KubernetesV1CachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,

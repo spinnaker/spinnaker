@@ -19,21 +19,38 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.userdata;
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings;
 
 /**
- * Implementations of this interface will provide user data to instances during the deployment process
+ * Implementations of this interface will provide user data to instances during the deployment
+ * process
  */
 public interface UserDataProvider {
   /**
-   * Returns user data that will be applied to a new instance. The launch configuration will not have been created at
-   * this point in the workflow, but the name is provided, as it may be needed when building user data detail.
+   * Returns user data that will be applied to a new instance. The launch configuration will not
+   * have been created at this point in the workflow, but the name is provided, as it may be needed
+   * when building user data detail.
    *
    * @deprecated use getUserData(launchConfigName, settings, legacyUdf) instead
    */
   @Deprecated
-  default String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, Boolean legacyUdf) {
+  default String getUserData(
+      String asgName,
+      String launchConfigName,
+      String region,
+      String account,
+      String environment,
+      String accountType,
+      Boolean legacyUdf) {
     return "";
   }
 
-  default String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
-    return getUserData(settings.getBaseName(), launchConfigName, settings.getRegion(), settings.getAccount(), settings.getEnvironment(), settings.getAccountType(), legacyUdf);
+  default String getUserData(
+      String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
+    return getUserData(
+        settings.getBaseName(),
+        launchConfigName,
+        settings.getRegion(),
+        settings.getAccount(),
+        settings.getEnvironment(),
+        settings.getAccountType(),
+        legacyUdf);
   }
 }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.titus.grpc.protogen.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,10 +65,9 @@ public class JobDescription {
 
   private DisruptionBudget disruptionBudget;
 
-  //Soft/Hard constraints
+  // Soft/Hard constraints
 
-  JobDescription() {
-  }
+  JobDescription() {}
 
   JobDescription(SubmitJobRequest request) {
     type = request.getJobType();
@@ -89,18 +87,23 @@ public class JobDescription {
     appName = request.getApplication();
     jobGroupStack = request.getStack();
     jobGroupDetail = request.getDetail();
-    softConstraints = request.getConstraints().stream()
-      .filter((c) -> c.getConstraintType() == SubmitJobRequest.Constraint.ConstraintType.SOFT)
-      .map(SubmitJobRequest.Constraint::getConstraint)
-      .collect(Collectors.toList());
-    hardConstraints = request.getConstraints().stream()
-      .filter((c) -> c.getConstraintType() == SubmitJobRequest.Constraint.ConstraintType.HARD)
-      .map(SubmitJobRequest.Constraint::getConstraint)
-      .collect(Collectors.toList());
+    softConstraints =
+        request.getConstraints().stream()
+            .filter((c) -> c.getConstraintType() == SubmitJobRequest.Constraint.ConstraintType.SOFT)
+            .map(SubmitJobRequest.Constraint::getConstraint)
+            .collect(Collectors.toList());
+    hardConstraints =
+        request.getConstraints().stream()
+            .filter((c) -> c.getConstraintType() == SubmitJobRequest.Constraint.ConstraintType.HARD)
+            .map(SubmitJobRequest.Constraint::getConstraint)
+            .collect(Collectors.toList());
     user = request.getUser();
     env = request.getEnv() != null ? request.getEnv() : new HashMap<>();
     labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
-    containerAttributes = request.getContainerAttributes() != null ? request.getContainerAttributes() : new HashMap<>();
+    containerAttributes =
+        request.getContainerAttributes() != null
+            ? request.getContainerAttributes()
+            : new HashMap<>();
     entryPoint = request.getEntryPoint();
     iamProfile = request.getIamProfile();
     capacityGroup = request.getCapacityGroup();
@@ -383,9 +386,13 @@ public class JobDescription {
     this.securityGroups = securityGroups;
   }
 
-  public void setDigest(String digest) { this.digest = digest; }
+  public void setDigest(String digest) {
+    this.digest = digest;
+  }
 
-  public String getDigest() { return digest; }
+  public String getDigest() {
+    return digest;
+  }
 
   public DisruptionBudget getDisruptionBudget() {
     return disruptionBudget;
@@ -403,7 +410,8 @@ public class JobDescription {
   @JsonIgnore
   public JobDescriptor getGrpcJobDescriptor() {
 
-    // trying to keep the same order as in the proto definition https://stash.corp.netflix.com/projects/TN/repos/titus-api-definitions/browse/src/main/proto/netflix/titus/titus_job_api.proto
+    // trying to keep the same order as in the proto definition
+    // https://stash.corp.netflix.com/projects/TN/repos/titus-api-definitions/browse/src/main/proto/netflix/titus/titus_job_api.proto
 
     JobDescriptor.Builder jobDescriptorBuilder = JobDescriptor.newBuilder();
 
@@ -415,7 +423,8 @@ public class JobDescription {
     }
 
     Container.Builder containerBuilder = Container.newBuilder();
-    ContainerResources.Builder containerResources = ContainerResources.newBuilder().setAllocateIP(true);
+    ContainerResources.Builder containerResources =
+        ContainerResources.newBuilder().setAllocateIP(true);
 
     if (cpu != 0) {
       containerResources.setCpu(cpu);
@@ -453,11 +462,10 @@ public class JobDescription {
     SecurityProfile.Builder securityProfile = SecurityProfile.newBuilder();
 
     if (securityGroups != null && !securityGroups.isEmpty()) {
-      securityGroups.forEach(sg ->
-        {
-          securityProfile.addSecurityGroups(sg);
-        }
-      );
+      securityGroups.forEach(
+          sg -> {
+            securityProfile.addSecurityGroups(sg);
+          });
     }
 
     if (iamProfile != null) {
@@ -472,7 +480,7 @@ public class JobDescription {
 
     Image.Builder imageBuilder = Image.newBuilder();
     imageBuilder.setName(applicationName);
-    if(digest!=null){
+    if (digest != null) {
       imageBuilder.setDigest(digest);
     } else {
       imageBuilder.setTag(version);
@@ -523,20 +531,32 @@ public class JobDescription {
       com.netflix.titus.grpc.protogen.MigrationPolicy serviceMigrationPolicy;
 
       if (migrationPolicy != null && migrationPolicy.getType().equals("selfManaged")) {
-        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSelfManaged(
-            com.netflix.titus.grpc.protogen.MigrationPolicy.SelfManaged.newBuilder().build()
-        ).build();
+        serviceMigrationPolicy =
+            com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder()
+                .setSelfManaged(
+                    com.netflix.titus.grpc.protogen.MigrationPolicy.SelfManaged.newBuilder()
+                        .build())
+                .build();
       } else {
-        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSystemDefault(
-            com.netflix.titus.grpc.protogen.MigrationPolicy.SystemDefault.newBuilder().build()
-        ).build();
+        serviceMigrationPolicy =
+            com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder()
+                .setSystemDefault(
+                    com.netflix.titus.grpc.protogen.MigrationPolicy.SystemDefault.newBuilder()
+                        .build())
+                .build();
       }
 
       jobDescriptorBuilder.setService(
-        ServiceJobSpec.newBuilder().setEnabled(inService)
-          .setCapacity(jobCapacity)
-          .setMigrationPolicy(serviceMigrationPolicy)
-          .setRetryPolicy(RetryPolicy.newBuilder().setExponentialBackOff(RetryPolicy.ExponentialBackOff.newBuilder().setInitialDelayMs(5000).setMaxDelayIntervalMs(300000))));
+          ServiceJobSpec.newBuilder()
+              .setEnabled(inService)
+              .setCapacity(jobCapacity)
+              .setMigrationPolicy(serviceMigrationPolicy)
+              .setRetryPolicy(
+                  RetryPolicy.newBuilder()
+                      .setExponentialBackOff(
+                          RetryPolicy.ExponentialBackOff.newBuilder()
+                              .setInitialDelayMs(5000)
+                              .setMaxDelayIntervalMs(300000))));
     }
 
     if (type.equals("batch")) {
@@ -545,7 +565,9 @@ public class JobDescription {
       if (runtimeLimitSecs != 0) {
         batchJobSpec.setRuntimeLimitSec(runtimeLimitSecs);
       }
-      batchJobSpec.setRetryPolicy(RetryPolicy.newBuilder().setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
+      batchJobSpec.setRetryPolicy(
+          RetryPolicy.newBuilder()
+              .setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
       jobDescriptorBuilder.setBatch(batchJobSpec);
     }
 
@@ -569,78 +591,86 @@ public class JobDescription {
     JobDisruptionBudget.Builder builder = JobDisruptionBudget.newBuilder();
     if (budget.getAvailabilityPercentageLimit() != null) {
       builder.setAvailabilityPercentageLimit(
-          JobDisruptionBudget.AvailabilityPercentageLimit.newBuilder().setPercentageOfHealthyContainers(
-              budget.availabilityPercentageLimit.getPercentageOfHealthyContainers()
-          ).build()
-      );
+          JobDisruptionBudget.AvailabilityPercentageLimit.newBuilder()
+              .setPercentageOfHealthyContainers(
+                  budget.availabilityPercentageLimit.getPercentageOfHealthyContainers())
+              .build());
     }
-    if (budget.getContainerHealthProviders() != null && !budget.getContainerHealthProviders().isEmpty()) {
-      budget.getContainerHealthProviders().forEach(chp ->
-          builder.addContainerHealthProviders(ContainerHealthProvider.newBuilder().setName(chp.getName()).build()));
+    if (budget.getContainerHealthProviders() != null
+        && !budget.getContainerHealthProviders().isEmpty()) {
+      budget
+          .getContainerHealthProviders()
+          .forEach(
+              chp ->
+                  builder.addContainerHealthProviders(
+                      ContainerHealthProvider.newBuilder().setName(chp.getName()).build()));
     }
 
     if (budget.getSelfManaged() != null) {
       builder.setSelfManaged(
-          JobDisruptionBudget.SelfManaged.newBuilder().setRelocationTimeMs(
-              budget.getSelfManaged().getRelocationTimeMs()
-          ).build()
-      );
+          JobDisruptionBudget.SelfManaged.newBuilder()
+              .setRelocationTimeMs(budget.getSelfManaged().getRelocationTimeMs())
+              .build());
     }
 
     if (budget.getRatePercentagePerHour() != null) {
       builder.setRatePercentagePerHour(
-          JobDisruptionBudget.RatePercentagePerHour.newBuilder().setMaxPercentageOfContainersRelocatedInHour(
-              budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour()
-          ).build()
-      );
+          JobDisruptionBudget.RatePercentagePerHour.newBuilder()
+              .setMaxPercentageOfContainersRelocatedInHour(
+                  budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour())
+              .build());
     }
 
     if (budget.getRatePerInterval() != null) {
       builder.setRatePerInterval(
-        JobDisruptionBudget.RatePerInterval.newBuilder()
-          .setIntervalMs(budget.getRatePerInterval().getIntervalMs())
-          .setLimitPerInterval(budget.getRatePerInterval().getLimitPerInterval())
-          .build()
-      );
+          JobDisruptionBudget.RatePerInterval.newBuilder()
+              .setIntervalMs(budget.getRatePerInterval().getIntervalMs())
+              .setLimitPerInterval(budget.getRatePerInterval().getLimitPerInterval())
+              .build());
     }
 
     if (budget.getRatePercentagePerInterval() != null) {
       builder.setRatePercentagePerInterval(
-        JobDisruptionBudget.RatePercentagePerInterval.newBuilder()
-          .setIntervalMs(budget.getRatePercentagePerInterval().getIntervalMs())
-          .setPercentageLimitPerInterval(budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
-          .build()
-      );
+          JobDisruptionBudget.RatePercentagePerInterval.newBuilder()
+              .setIntervalMs(budget.getRatePercentagePerInterval().getIntervalMs())
+              .setPercentageLimitPerInterval(
+                  budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
+              .build());
     }
 
     if (budget.getRelocationLimit() != null) {
       builder.setRelocationLimit(
-          JobDisruptionBudget.RelocationLimit.newBuilder().setLimit(budget.getRelocationLimit().getLimit())
-      );
+          JobDisruptionBudget.RelocationLimit.newBuilder()
+              .setLimit(budget.getRelocationLimit().getLimit()));
     }
 
     if (budget.getTimeWindows() != null && !budget.getTimeWindows().isEmpty()) {
-      budget.getTimeWindows().forEach(tw -> {
-        TimeWindow.Builder timeWindowBuilder = TimeWindow.newBuilder();
-        tw.getDays().forEach(day -> timeWindowBuilder.addDays(convertDay(day)));
-        tw.getHourlyTimeWindows().forEach(htw -> {
-          timeWindowBuilder.addHourlyTimeWindows(
-              TimeWindow.HourlyTimeWindow.newBuilder().setEndHour(
-                  htw.getEndHour()).setStartHour(htw.getStartHour()
-              ).build()
-          );
-        });
-        timeWindowBuilder.setTimeZone(tw.getTimeZone());
-        builder.addTimeWindows(timeWindowBuilder.build());
-      });
+      budget
+          .getTimeWindows()
+          .forEach(
+              tw -> {
+                TimeWindow.Builder timeWindowBuilder = TimeWindow.newBuilder();
+                tw.getDays().forEach(day -> timeWindowBuilder.addDays(convertDay(day)));
+                tw.getHourlyTimeWindows()
+                    .forEach(
+                        htw -> {
+                          timeWindowBuilder.addHourlyTimeWindows(
+                              TimeWindow.HourlyTimeWindow.newBuilder()
+                                  .setEndHour(htw.getEndHour())
+                                  .setStartHour(htw.getStartHour())
+                                  .build());
+                        });
+                timeWindowBuilder.setTimeZone(tw.getTimeZone());
+                builder.addTimeWindows(timeWindowBuilder.build());
+              });
     }
 
     if (budget.getUnhealthyTasksLimit() != null) {
       builder.setUnhealthyTasksLimit(
-          JobDisruptionBudget.UnhealthyTasksLimit.newBuilder().setLimitOfUnhealthyContainers(
-              budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers()
-          ).build()
-      );
+          JobDisruptionBudget.UnhealthyTasksLimit.newBuilder()
+              .setLimitOfUnhealthyContainers(
+                  budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers())
+              .build());
     }
 
     return builder.build();
@@ -676,16 +706,12 @@ public class JobDescription {
     }
   }
 
-
-
   private Constraints.Builder constraintTransformer(List<String> constraints) {
     Constraints.Builder constraintsBuilder = Constraints.newBuilder();
-    constraints.forEach(constraint ->
-      {
-        constraintsBuilder.putConstraints(constraint, "true");
-      }
-    );
+    constraints.forEach(
+        constraint -> {
+          constraintsBuilder.putConstraints(constraint, "true");
+        });
     return constraintsBuilder;
   }
-
 }

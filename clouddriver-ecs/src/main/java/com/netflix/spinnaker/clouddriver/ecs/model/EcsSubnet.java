@@ -20,38 +20,35 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet;
 
 public class EcsSubnet extends AmazonSubnet {
 
-  public EcsSubnet() {
-  }
+  public EcsSubnet() {}
 
-  public EcsSubnet(String type,
-                   String id,
-                   String state,
-                   String vpcId,
-                   String cidrBlock,
-                   Integer availableIpAddressCount,
-                   String account,
-                   String accountId,
-                   String region,
-                   String availabilityZone,
-                   String purpose,
-                   String target,
-                   boolean deprecated) {
+  public EcsSubnet(
+      String type,
+      String id,
+      String state,
+      String vpcId,
+      String cidrBlock,
+      Integer availableIpAddressCount,
+      String account,
+      String accountId,
+      String region,
+      String availabilityZone,
+      String purpose,
+      String target,
+      boolean deprecated) {
     super(
-      type,
-      id,
-      state,
-      vpcId,
-      cidrBlock,
-      availableIpAddressCount,
-      account,
-      accountId,
-      region,
-      availabilityZone,
-      purpose,
-      target,
-      deprecated
-    );
-
-
+        type,
+        id,
+        state,
+        vpcId,
+        cidrBlock,
+        availableIpAddressCount,
+        account,
+        accountId,
+        region,
+        availabilityZone,
+        purpose,
+        target,
+        deprecated);
   }
 }

@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import org.junit.jupiter.api.Test;
-
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Test;
+
 class CloudFoundryClusterTest {
-  private CloudFoundryCluster cluster = new CloudFoundryCluster("dev", "app-dev-detail", emptySet());
+  private CloudFoundryCluster cluster =
+      new CloudFoundryCluster("dev", "app-dev-detail", emptySet());
 
   @Test
   void getStack() {

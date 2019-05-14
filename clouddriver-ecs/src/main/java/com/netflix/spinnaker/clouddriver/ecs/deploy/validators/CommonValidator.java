@@ -20,11 +20,10 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCr
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import org.springframework.validation.Errors;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.validation.Errors;
 
 abstract class CommonValidator extends DescriptionValidator {
   String errorKey;
@@ -33,13 +32,18 @@ abstract class CommonValidator extends DescriptionValidator {
     this.errorKey = erroryKey;
   }
 
-  void validateRegions(AbstractAmazonCredentialsDescription credentialsDescription, Collection<String> regionNames, Errors errors, String attributeName) {
+  void validateRegions(
+      AbstractAmazonCredentialsDescription credentialsDescription,
+      Collection<String> regionNames,
+      Errors errors,
+      String attributeName) {
     if (regionNames.isEmpty()) {
       rejectValue(errors, attributeName, "empty");
     } else {
-      Set<String> validRegions = credentialsDescription.getCredentials().getRegions().stream()
-        .map(AmazonCredentials.AWSRegion::getName)
-        .collect(Collectors.toSet());
+      Set<String> validRegions =
+          credentialsDescription.getCredentials().getRegions().stream()
+              .map(AmazonCredentials.AWSRegion::getName)
+              .collect(Collectors.toSet());
 
       if (!validRegions.isEmpty() && !validRegions.containsAll(regionNames)) {
         rejectValue(errors, attributeName, "not.configured");
@@ -47,7 +51,10 @@ abstract class CommonValidator extends DescriptionValidator {
     }
   }
 
-  boolean validateCredentials(AbstractAmazonCredentialsDescription credentialsDescription, Errors errors, String attributeName) {
+  boolean validateCredentials(
+      AbstractAmazonCredentialsDescription credentialsDescription,
+      Errors errors,
+      String attributeName) {
     if (credentialsDescription.getCredentials() == null) {
       rejectValue(errors, attributeName, "not.nullable");
       return false;
@@ -75,7 +82,6 @@ abstract class CommonValidator extends DescriptionValidator {
       positivityCheck(minNotNull, capacity.getMin(), "min", errors);
       positivityCheck(maxNotNull, capacity.getMax(), "max", errors);
 
-
       if (minNotNull && maxNotNull) {
         if (capacity.getMin() > capacity.getMax()) {
           rejectValue(errors, "capacity.min.max.range", "invalid");
@@ -99,7 +105,8 @@ abstract class CommonValidator extends DescriptionValidator {
     errors.rejectValue(field, errorKey + "." + field + "." + reason);
   }
 
-  private void positivityCheck(boolean isNotNull, Integer capacity, String fieldName, Errors errors) {
+  private void positivityCheck(
+      boolean isNotNull, Integer capacity, String fieldName, Errors errors) {
     if (isNotNull && capacity < 0) {
       rejectValue(errors, "capacity." + fieldName, "invalid");
     }

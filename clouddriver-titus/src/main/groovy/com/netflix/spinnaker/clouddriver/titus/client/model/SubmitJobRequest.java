@@ -23,7 +23,10 @@ import java.util.Map;
 
 public class SubmitJobRequest {
   public static class Constraint {
-    enum ConstraintType {SOFT, HARD}
+    enum ConstraintType {
+      SOFT,
+      HARD
+    }
 
     public static final String UNIQUE_HOST = "UniqueHost";
     public static final String ZONE_BALANCE = "ZoneBalance";
@@ -269,7 +272,6 @@ public class SubmitJobRequest {
 
   // Getters
 
-
   public String getJobType() {
     return jobType;
   }
@@ -338,7 +340,9 @@ public class SubmitJobRequest {
     return dockerImageVersion;
   }
 
-  public String getDockerDigest() { return dockerDigest; }
+  public String getDockerDigest() {
+    return dockerDigest;
+  }
 
   public boolean getAllocateIpAddress() {
     return allocateIpAddress;
@@ -403,5 +407,4 @@ public class SubmitJobRequest {
   public MigrationPolicy getMigrationPolicy() {
     return migrationPolicy;
   }
-
 }

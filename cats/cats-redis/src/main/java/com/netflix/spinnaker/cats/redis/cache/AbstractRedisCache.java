@@ -17,32 +17,28 @@ package com.netflix.spinnaker.cats.redis.cache;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 public abstract class AbstractRedisCache implements WriteableCache {
 
-  private static final TypeReference<List<String>> RELATIONSHIPS_LIST = new TypeReference<List<String>>() {
-  };
-  private static final TypeReference<Set<String>> RELATIONSHIPS_SET = new TypeReference<Set<String>>() {
-  };
+  private static final TypeReference<List<String>> RELATIONSHIPS_LIST =
+      new TypeReference<List<String>>() {};
+  private static final TypeReference<Set<String>> RELATIONSHIPS_SET =
+      new TypeReference<Set<String>>() {};
 
-  protected static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
-  };
-
+  protected static final TypeReference<Map<String, Object>> ATTRIBUTES =
+      new TypeReference<Map<String, Object>>() {};
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -51,21 +47,24 @@ public abstract class AbstractRedisCache implements WriteableCache {
   protected final ObjectMapper objectMapper;
   protected final RedisCacheOptions options;
 
-  protected AbstractRedisCache(String prefix,
-                               RedisClientDelegate redisClientDelegate,
-                               ObjectMapper objectMapper,
-                               RedisCacheOptions options) {
+  protected AbstractRedisCache(
+      String prefix,
+      RedisClientDelegate redisClientDelegate,
+      ObjectMapper objectMapper,
+      RedisCacheOptions options) {
     this.prefix = prefix;
     this.redisClientDelegate = redisClientDelegate;
     this.objectMapper = objectMapper;
     this.options = options;
   }
 
-  abstract protected void mergeItems(String type, Collection<CacheData> items);
+  protected abstract void mergeItems(String type, Collection<CacheData> items);
 
-  abstract protected void evictItems(String type, List<String> identifiers, Collection<String> allRelationships);
+  protected abstract void evictItems(
+      String type, List<String> identifiers, Collection<String> allRelationships);
 
-  abstract protected Collection<CacheData> getItems(String type, List<String> ids, List<String> knownRels);
+  protected abstract Collection<CacheData> getItems(
+      String type, List<String> ids, List<String> knownRels);
 
   @Override
   public void merge(String type, CacheData item) {
@@ -90,7 +89,8 @@ public abstract class AbstractRedisCache implements WriteableCache {
       return;
     }
     final Collection<String> allRelationships = scanMembers(allRelationshipsId(type));
-    for (List<String> items : Iterables.partition(new HashSet<>(identifiers), options.getMaxEvictBatchSize())) {
+    for (List<String> items :
+        Iterables.partition(new HashSet<>(identifiers), options.getMaxEvictBatchSize())) {
       evictItems(type, items, allRelationships);
     }
   }
@@ -112,18 +112,18 @@ public abstract class AbstractRedisCache implements WriteableCache {
   @Override
   public Collection<String> existingIdentifiers(String type, Collection<String> identifiers) {
     final Map<String, Response<Boolean>> responses = new LinkedHashMap<>();
-    redisClientDelegate.withPipeline(p -> {
-      for (String id : identifiers) {
-        responses.put(id, p.exists(attributesId(type, id)));
-      }
-      redisClientDelegate.syncPipeline(p);
-    });
+    redisClientDelegate.withPipeline(
+        p -> {
+          for (String id : identifiers) {
+            responses.put(id, p.exists(attributesId(type, id)));
+          }
+          redisClientDelegate.syncPipeline(p);
+        });
 
-    return responses.entrySet()
-      .stream()
-      .filter(e -> e.getValue().get())
-      .map(Map.Entry::getKey)
-      .collect(Collectors.toList());
+    return responses.entrySet().stream()
+        .filter(e -> e.getValue().get())
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -148,9 +148,8 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   @Override
-  public Collection<CacheData> getAll(String type,
-                                      Collection<String> identifiers,
-                                      CacheFilter cacheFilter) {
+  public Collection<CacheData> getAll(
+      String type, Collection<String> identifiers, CacheFilter cacheFilter) {
     if (identifiers.isEmpty()) {
       return new ArrayList<>();
     }
@@ -160,7 +159,8 @@ public abstract class AbstractRedisCache implements WriteableCache {
     if (cacheFilter == null) {
       knownRels = new ArrayList<>(allRelationships);
     } else {
-      knownRels = new ArrayList<>(cacheFilter.filter(CacheFilter.Type.RELATIONSHIP, allRelationships));
+      knownRels =
+          new ArrayList<>(cacheFilter.filter(CacheFilter.Type.RELATIONSHIP, allRelationships));
     }
 
     Collection<CacheData> result = new ArrayList<>(ids.size());
@@ -187,29 +187,31 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   protected Set<String> scanMembers(String setKey, Optional<String> glob) {
-    return redisClientDelegate.withCommandsClient(client -> {
-      final Set<String> matches = new HashSet<>();
-      final ScanParams scanParams = new ScanParams().count(options.getScanSize());
-      glob.ifPresent(scanParams::match);
-      String cursor = "0";
-      while (true) {
-        final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
-        matches.addAll(scanResult.getResult());
-        cursor = scanResult.getStringCursor();
-        if ("0".equals(cursor)) {
-          return matches;
-        }
-      }
-    });
+    return redisClientDelegate.withCommandsClient(
+        client -> {
+          final Set<String> matches = new HashSet<>();
+          final ScanParams scanParams = new ScanParams().count(options.getScanSize());
+          glob.ifPresent(scanParams::match);
+          String cursor = "0";
+          while (true) {
+            final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
+            matches.addAll(scanResult.getResult());
+            cursor = scanResult.getStringCursor();
+            if ("0".equals(cursor)) {
+              return matches;
+            }
+          }
+        });
   }
 
   protected boolean isHashingDisabled(String type) {
     if (!options.isHashingEnabled()) {
       return true;
     }
-    return redisClientDelegate.withCommandsClient(client -> {
-      return client.exists(hashesDisabled(type));
-    });
+    return redisClientDelegate.withCommandsClient(
+        client -> {
+          return client.exists(hashesDisabled(type));
+        });
   }
 
   protected String attributesId(String type, String id) {

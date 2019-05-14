@@ -16,24 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
+import javax.annotation.Nullable;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -42,22 +41,28 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   private final String name;
 
-  @Nullable
-  private final String environment;
+  @Nullable private final String environment;
 
   private final String accountType = "cloudfoundry";
 
   private final String cloudProvider = "cloudfoundry";
 
-  @Deprecated
-  private final List<String> requiredGroupMembership = Collections.emptyList();
+  @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
 
   private final CloudFoundryClient credentials;
 
-  public CloudFoundryCredentials(String name, String appsManagerUri, String metricsUri, String apiHost, String userName, String password, String environment) {
+  public CloudFoundryCredentials(
+      String name,
+      String appsManagerUri,
+      String metricsUri,
+      String apiHost,
+      String userName,
+      String password,
+      String environment) {
     this.name = name;
     this.environment = Optional.ofNullable(environment).orElse("dev");
-    this.credentials = new HttpCloudFoundryClient(name, appsManagerUri, metricsUri, apiHost, userName, password);
+    this.credentials =
+        new HttpCloudFoundryClient(name, appsManagerUri, metricsUri, apiHost, userName, password);
   }
 
   public CloudFoundryClient getClient() {
@@ -67,8 +72,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   public Collection<Map<String, String>> getRegions() {
     try {
       return credentials.getSpaces().all().stream()
-        .map(space -> singletonMap("name", space.getRegion()))
-        .collect(toList());
+          .map(space -> singletonMap("name", space.getRegion()))
+          .collect(toList());
     } catch (CloudFoundryApiException e) {
       log.warn("Unable to determine regions for Cloud Foundry account " + name, e);
       return emptyList();

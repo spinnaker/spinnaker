@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.netflix.spinnaker.clouddriver.artifacts.CredentialReader;
+import java.util.Optional;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Optional;
 
 public interface BasicAuth {
   String getUsername();
@@ -38,6 +37,6 @@ public interface BasicAuth {
     }
 
     return Optional.ofNullable(usernamePassword)
-      .map(s -> "Basic " + Base64.encodeBase64String(s.getBytes()));
+        .map(s -> "Basic " + Base64.encodeBase64String(s.getBytes()));
   }
 }

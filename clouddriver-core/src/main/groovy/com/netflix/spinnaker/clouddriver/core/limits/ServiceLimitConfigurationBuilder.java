@@ -23,10 +23,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
-/**
- * Mutable structure for construction of ServiceLimitConfiguration.
- */
+/** Mutable structure for construction of ServiceLimitConfiguration. */
 public class ServiceLimitConfigurationBuilder {
 
   private MutableLimits defaults = new MutableLimits();
@@ -58,11 +55,14 @@ public class ServiceLimitConfigurationBuilder {
     this.cloudProviderOverrides = cloudProviderOverrides;
   }
 
-  public ServiceLimitConfigurationBuilder withCloudProviderOverride(String cloudProvider, String limit, Double value) {
+  public ServiceLimitConfigurationBuilder withCloudProviderOverride(
+      String cloudProvider, String limit, Double value) {
     if (cloudProviderOverrides == null) {
       cloudProviderOverrides = new HashMap<>();
     }
-    cloudProviderOverrides.computeIfAbsent(cloudProvider, k -> new MutableLimits()).setLimit(limit, value);
+    cloudProviderOverrides
+        .computeIfAbsent(cloudProvider, k -> new MutableLimits())
+        .setLimit(limit, value);
     return this;
   }
 
@@ -74,7 +74,8 @@ public class ServiceLimitConfigurationBuilder {
     this.accountOverrides = accountOverrides;
   }
 
-  public ServiceLimitConfigurationBuilder withAccountOverride(String account, String limit, Double value) {
+  public ServiceLimitConfigurationBuilder withAccountOverride(
+      String account, String limit, Double value) {
     if (accountOverrides == null) {
       accountOverrides = new HashMap<>();
     }
@@ -87,33 +88,44 @@ public class ServiceLimitConfigurationBuilder {
     return implementationLimits;
   }
 
-  public void setImplementationLimits(Map<String, MutableImplementationLimits> implementationLimits) {
+  public void setImplementationLimits(
+      Map<String, MutableImplementationLimits> implementationLimits) {
     this.implementationLimits = implementationLimits;
   }
 
-  public ServiceLimitConfigurationBuilder withImplementationDefault(String implementation, String limit, Double value) {
+  public ServiceLimitConfigurationBuilder withImplementationDefault(
+      String implementation, String limit, Double value) {
     if (implementationLimits == null) {
       implementationLimits = new HashMap<>();
     }
-    implementationLimits.computeIfAbsent(implementation, k -> new MutableImplementationLimits()).defaults.setLimit(limit, value);
+    implementationLimits
+        .computeIfAbsent(implementation, k -> new MutableImplementationLimits())
+        .defaults
+        .setLimit(limit, value);
     return this;
   }
 
-  public ServiceLimitConfigurationBuilder withImplementationAccountOverride(String implementation, String account, String limit, Double value) {
+  public ServiceLimitConfigurationBuilder withImplementationAccountOverride(
+      String implementation, String account, String limit, Double value) {
     if (implementationLimits == null) {
       implementationLimits = new HashMap<>();
     }
 
     implementationLimits
-      .computeIfAbsent(implementation, k -> new MutableImplementationLimits())
-      .accountOverrides.computeIfAbsent(account, k -> new MutableLimits())
-      .setLimit(limit, value);
+        .computeIfAbsent(implementation, k -> new MutableImplementationLimits())
+        .accountOverrides
+        .computeIfAbsent(account, k -> new MutableLimits())
+        .setLimit(limit, value);
 
     return this;
   }
 
   public ServiceLimitConfiguration build() {
-    return new ServiceLimitConfiguration(new ServiceLimits(defaults), toServiceLimits(cloudProviderOverrides), toServiceLimits(accountOverrides), toImplementationLimits(implementationLimits));
+    return new ServiceLimitConfiguration(
+        new ServiceLimits(defaults),
+        toServiceLimits(cloudProviderOverrides),
+        toServiceLimits(accountOverrides),
+        toImplementationLimits(implementationLimits));
   }
 
   public static class MutableLimits extends HashMap<String, Double> {
@@ -131,7 +143,8 @@ public class ServiceLimitConfigurationBuilder {
     Map<String, MutableLimits> accountOverrides = new HashMap<>();
 
     public ImplementationLimits toImplementationLimits() {
-      return new ImplementationLimits(new ServiceLimits(defaults), toServiceLimits(accountOverrides));
+      return new ImplementationLimits(
+          new ServiceLimits(defaults), toServiceLimits(accountOverrides));
     }
 
     public MutableLimits getDefaults() {
@@ -151,23 +164,22 @@ public class ServiceLimitConfigurationBuilder {
     }
   }
 
-  private static <S, D> Map<String, D> toImmutable(Map<String, S> src, Function<Map.Entry<String, S>, D> converter) {
+  private static <S, D> Map<String, D> toImmutable(
+      Map<String, S> src, Function<Map.Entry<String, S>, D> converter) {
     return java.util.Optional.ofNullable(src)
-      .map(Map::entrySet)
-      .map(Set::stream)
-      .map(s -> s.collect(
-        Collectors.toMap(
-          Map.Entry::getKey,
-          converter)))
-      .orElse(Collections.emptyMap());
+        .map(Map::entrySet)
+        .map(Set::stream)
+        .map(s -> s.collect(Collectors.toMap(Map.Entry::getKey, converter)))
+        .orElse(Collections.emptyMap());
   }
 
   private static Map<String, ServiceLimits> toServiceLimits(Map<String, MutableLimits> limits) {
     return toImmutable(limits, mapEntry -> new ServiceLimits(mapEntry.getValue()));
   }
 
-  private static Map<String, ImplementationLimits> toImplementationLimits(Map<String, MutableImplementationLimits> implementationLimits) {
-    return toImmutable(implementationLimits, mapEntry -> mapEntry.getValue().toImplementationLimits());
+  private static Map<String, ImplementationLimits> toImplementationLimits(
+      Map<String, MutableImplementationLimits> implementationLimits) {
+    return toImmutable(
+        implementationLimits, mapEntry -> mapEntry.getValue().toImplementationLimits());
   }
-
 }

@@ -17,6 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -30,19 +35,14 @@ import io.kubernetes.client.models.V1beta2DeploymentCondition;
 import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
-
 @Component
-public class KubernetesDeploymentHandler extends KubernetesHandler implements
-    CanResize,
-    CanScale,
-    CanPauseRollout,
-    CanResumeRollout,
-    CanUndoRollout,
-    ServerGroupManagerHandler {
+public class KubernetesDeploymentHandler extends KubernetesHandler
+    implements CanResize,
+        CanScale,
+        CanPauseRollout,
+        CanResumeRollout,
+        CanUndoRollout,
+        ServerGroupManagerHandler {
 
   public KubernetesDeploymentHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
@@ -82,7 +82,8 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
       if (manifest.isNewerThanObservedGeneration()) {
         return (new Status()).unknown();
       }
-      V1beta2Deployment appsV1beta2Deployment = KubernetesCacheDataConverter.getResource(manifest, V1beta2Deployment.class);
+      V1beta2Deployment appsV1beta2Deployment =
+          KubernetesCacheDataConverter.getResource(manifest, V1beta2Deployment.class);
       return status(appsV1beta2Deployment);
     } else {
       throw new UnsupportedVersionException(manifest);
@@ -98,44 +99,43 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     Status result = new Status();
     V1beta2DeploymentStatus status = deployment.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet")
-          .unavailable("No availability reported");
+      result.unstable("No status reported yet").unavailable("No availability reported");
       return result;
     }
 
-    V1beta2DeploymentCondition paused = status.getConditions()
-        .stream()
-        .filter(c -> c.getReason().equalsIgnoreCase("deploymentpaused"))
-        .findAny()
-        .orElse(null);
+    V1beta2DeploymentCondition paused =
+        status.getConditions().stream()
+            .filter(c -> c.getReason().equalsIgnoreCase("deploymentpaused"))
+            .findAny()
+            .orElse(null);
 
-    V1beta2DeploymentCondition available = status.getConditions()
-        .stream()
-        .filter(c -> c.getType().equalsIgnoreCase("available"))
-        .findAny()
-        .orElse(null);
+    V1beta2DeploymentCondition available =
+        status.getConditions().stream()
+            .filter(c -> c.getType().equalsIgnoreCase("available"))
+            .findAny()
+            .orElse(null);
 
     if (paused != null) {
       result.paused(paused.getMessage());
     }
 
     if (available != null && available.getStatus().equalsIgnoreCase("false")) {
-      result.unstable(available.getMessage())
-        .unavailable(available.getMessage());
+      result.unstable(available.getMessage()).unavailable(available.getMessage());
     }
 
-    V1beta2DeploymentCondition condition = status.getConditions()
-      .stream()
-      .filter(c -> c.getType().equalsIgnoreCase("progressing"))
-      .findAny()
-      .orElse(null);
+    V1beta2DeploymentCondition condition =
+        status.getConditions().stream()
+            .filter(c -> c.getType().equalsIgnoreCase("progressing"))
+            .findAny()
+            .orElse(null);
     if (condition != null && condition.getReason().equalsIgnoreCase("progressdeadlineexceeded")) {
       return result.failed("Deployment exceeded its progress deadline");
     }
 
     Integer desiredReplicas = deployment.getSpec().getReplicas();
     Integer statusReplicas = status.getReplicas();
-    if ((desiredReplicas == null || desiredReplicas == 0) && (statusReplicas == null || statusReplicas == 0)) {
+    if ((desiredReplicas == null || desiredReplicas == 0)
+        && (statusReplicas == null || statusReplicas == 0)) {
       return result;
     }
 

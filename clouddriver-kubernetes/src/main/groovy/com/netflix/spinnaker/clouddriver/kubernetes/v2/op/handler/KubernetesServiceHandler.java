@@ -17,6 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch.Op.remove;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.REPLICA_SET;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -29,8 +35,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1Service;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,12 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch.Op.remove;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.REPLICA_SET;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
+import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesServiceHandler extends KubernetesHandler implements CanLoadBalance {
@@ -78,7 +77,8 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
-  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+  public Map<String, Object> hydrateSearchResult(
+      Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
     result.put("loadBalancer", result.get("name"));
 
@@ -86,10 +86,13 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
-  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+  public void addRelationships(
+      Map<KubernetesKind, List<KubernetesManifest>> allResources,
+      Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
     Map<String, Set<KubernetesManifest>> mapLabelToManifest = new HashMap<>();
 
-    allResources.getOrDefault(REPLICA_SET, new ArrayList<>())
+    allResources
+        .getOrDefault(REPLICA_SET, new ArrayList<>())
         .forEach(r -> addAllReplicaSetLabels(mapLabelToManifest, r));
 
     for (KubernetesManifest service : allResources.getOrDefault(SERVICE, new ArrayList<>())) {
@@ -102,15 +105,18 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
       V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
       return v1Service.getSpec().getSelector();
     } else {
-      throw new IllegalArgumentException("No services with version " + manifest.getApiVersion() + " supported");
+      throw new IllegalArgumentException(
+          "No services with version " + manifest.getApiVersion() + " supported");
     }
   }
 
-  private List<KubernetesManifest> getRelatedManifests(KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
+  private List<KubernetesManifest> getRelatedManifests(
+      KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
     return new ArrayList<>(intersectLabels(service, mapLabelToManifest));
   }
 
-  private Set<KubernetesManifest> intersectLabels(KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
+  private Set<KubernetesManifest> intersectLabels(
+      KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
     Map<String, String> selector = getSelector(service);
     if (selector == null || selector.isEmpty()) {
       return new HashSet<>();
@@ -118,7 +124,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
 
     Set<KubernetesManifest> result = null;
     String namespace = service.getNamespace();
-    for (Map.Entry<String, String> label : selector.entrySet())  {
+    for (Map.Entry<String, String> label : selector.entrySet()) {
       String labelKey = podLabelKey(namespace, label);
       Set<KubernetesManifest> manifests = mapLabelToManifest.get(labelKey);
       manifests = manifests == null ? new HashSet<>() : manifests;
@@ -133,7 +139,8 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     return result;
   }
 
-  private void addAllReplicaSetLabels(Map<String, Set<KubernetesManifest>> entries, KubernetesManifest replicaSet) {
+  private void addAllReplicaSetLabels(
+      Map<String, Set<KubernetesManifest>> entries, KubernetesManifest replicaSet) {
     String namespace = replicaSet.getNamespace();
     Map<String, String> podLabels = KubernetesReplicaSetHandler.getPodTemplateLabels(replicaSet);
     if (podLabels == null) {
@@ -146,7 +153,8 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     }
   }
 
-  private void enterManifest(Map<String, Set<KubernetesManifest>> entries, String label, KubernetesManifest manifest) {
+  private void enterManifest(
+      Map<String, Set<KubernetesManifest>> entries, String label, KubernetesManifest manifest) {
     Set<KubernetesManifest> pods = entries.get(label);
     if (pods == null) {
       pods = new HashSet<>();
@@ -191,11 +199,13 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     Map<String, String> labels = labels(target);
 
     return getSelector(loadBalancer).entrySet().stream()
-        .map(kv -> JsonPatch.builder()
-            .op(labels.containsKey(kv.getKey()) ? Op.replace : Op.add)
-            .path(String.join("/", pathPrefix, kv.getKey()))
-            .value(kv.getValue())
-            .build())
+        .map(
+            kv ->
+                JsonPatch.builder()
+                    .op(labels.containsKey(kv.getKey()) ? Op.replace : Op.add)
+                    .path(String.join("/", pathPrefix, kv.getKey()))
+                    .value(kv.getValue())
+                    .build())
         .collect(Collectors.toList());
   }
 

@@ -16,20 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.*;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Application;
+import java.util.Map;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
-
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.*;
 
 @Value
 @EqualsAndHashCode(of = "name")
@@ -46,8 +45,13 @@ public class CloudFoundryApplication implements Application {
 
   @Override
   public Map<String, Set<String>> getClusterNames() {
-    return clusters == null ? emptyMap() : clusters.stream().collect(groupingBy(CloudFoundryCluster::getAccountName,
-      mapping(CloudFoundryCluster::getName, toSet())));
+    return clusters == null
+        ? emptyMap()
+        : clusters.stream()
+            .collect(
+                groupingBy(
+                    CloudFoundryCluster::getAccountName,
+                    mapping(CloudFoundryCluster::getName, toSet())));
   }
 
   @Override

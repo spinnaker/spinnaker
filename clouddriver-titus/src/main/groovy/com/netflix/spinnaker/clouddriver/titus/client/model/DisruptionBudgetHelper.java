@@ -26,78 +26,86 @@ public class DisruptionBudgetHelper {
     JobDisruptionBudget.Builder builder = JobDisruptionBudget.newBuilder();
     if (budget.getAvailabilityPercentageLimit() != null) {
       builder.setAvailabilityPercentageLimit(
-        JobDisruptionBudget.AvailabilityPercentageLimit.newBuilder().setPercentageOfHealthyContainers(
-          budget.availabilityPercentageLimit.getPercentageOfHealthyContainers()
-        ).build()
-      );
+          JobDisruptionBudget.AvailabilityPercentageLimit.newBuilder()
+              .setPercentageOfHealthyContainers(
+                  budget.availabilityPercentageLimit.getPercentageOfHealthyContainers())
+              .build());
     }
-    if (budget.getContainerHealthProviders() != null && !budget.getContainerHealthProviders().isEmpty()) {
-      budget.getContainerHealthProviders().forEach(chp ->
-        builder.addContainerHealthProviders(ContainerHealthProvider.newBuilder().setName(chp.getName()).build()));
+    if (budget.getContainerHealthProviders() != null
+        && !budget.getContainerHealthProviders().isEmpty()) {
+      budget
+          .getContainerHealthProviders()
+          .forEach(
+              chp ->
+                  builder.addContainerHealthProviders(
+                      ContainerHealthProvider.newBuilder().setName(chp.getName()).build()));
     }
 
     if (budget.getSelfManaged() != null) {
       builder.setSelfManaged(
-        JobDisruptionBudget.SelfManaged.newBuilder().setRelocationTimeMs(
-          budget.getSelfManaged().getRelocationTimeMs()
-        ).build()
-      );
+          JobDisruptionBudget.SelfManaged.newBuilder()
+              .setRelocationTimeMs(budget.getSelfManaged().getRelocationTimeMs())
+              .build());
     }
 
     if (budget.getRatePercentagePerHour() != null) {
       builder.setRatePercentagePerHour(
-        JobDisruptionBudget.RatePercentagePerHour.newBuilder().setMaxPercentageOfContainersRelocatedInHour(
-          budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour()
-        ).build()
-      );
+          JobDisruptionBudget.RatePercentagePerHour.newBuilder()
+              .setMaxPercentageOfContainersRelocatedInHour(
+                  budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour())
+              .build());
     }
 
     if (budget.getRatePerInterval() != null) {
       builder.setRatePerInterval(
-        JobDisruptionBudget.RatePerInterval.newBuilder()
-          .setIntervalMs(budget.getRatePerInterval().getIntervalMs())
-          .setLimitPerInterval(budget.getRatePerInterval().getLimitPerInterval())
-          .build()
-      );
+          JobDisruptionBudget.RatePerInterval.newBuilder()
+              .setIntervalMs(budget.getRatePerInterval().getIntervalMs())
+              .setLimitPerInterval(budget.getRatePerInterval().getLimitPerInterval())
+              .build());
     }
 
     if (budget.getRatePercentagePerInterval() != null) {
       builder.setRatePercentagePerInterval(
-        JobDisruptionBudget.RatePercentagePerInterval.newBuilder()
-          .setIntervalMs(budget.getRatePercentagePerInterval().getIntervalMs())
-          .setPercentageLimitPerInterval(budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
-          .build()
-      );
+          JobDisruptionBudget.RatePercentagePerInterval.newBuilder()
+              .setIntervalMs(budget.getRatePercentagePerInterval().getIntervalMs())
+              .setPercentageLimitPerInterval(
+                  budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
+              .build());
     }
 
     if (budget.getRelocationLimit() != null) {
       builder.setRelocationLimit(
-        JobDisruptionBudget.RelocationLimit.newBuilder().setLimit(budget.getRelocationLimit().getLimit())
-      );
+          JobDisruptionBudget.RelocationLimit.newBuilder()
+              .setLimit(budget.getRelocationLimit().getLimit()));
     }
 
     if (budget.getTimeWindows() != null && !budget.getTimeWindows().isEmpty()) {
-      budget.getTimeWindows().forEach(tw -> {
-        TimeWindow.Builder timeWindowBuilder = TimeWindow.newBuilder();
-        tw.getDays().forEach(day -> timeWindowBuilder.addDays(convertDay(day)));
-        tw.getHourlyTimeWindows().forEach(htw -> {
-          timeWindowBuilder.addHourlyTimeWindows(
-            TimeWindow.HourlyTimeWindow.newBuilder().setEndHour(
-              htw.getEndHour()).setStartHour(htw.getStartHour()
-            ).build()
-          );
-        });
-        timeWindowBuilder.setTimeZone(tw.getTimeZone());
-        builder.addTimeWindows(timeWindowBuilder.build());
-      });
+      budget
+          .getTimeWindows()
+          .forEach(
+              tw -> {
+                TimeWindow.Builder timeWindowBuilder = TimeWindow.newBuilder();
+                tw.getDays().forEach(day -> timeWindowBuilder.addDays(convertDay(day)));
+                tw.getHourlyTimeWindows()
+                    .forEach(
+                        htw -> {
+                          timeWindowBuilder.addHourlyTimeWindows(
+                              TimeWindow.HourlyTimeWindow.newBuilder()
+                                  .setEndHour(htw.getEndHour())
+                                  .setStartHour(htw.getStartHour())
+                                  .build());
+                        });
+                timeWindowBuilder.setTimeZone(tw.getTimeZone());
+                builder.addTimeWindows(timeWindowBuilder.build());
+              });
     }
 
     if (budget.getUnhealthyTasksLimit() != null) {
       builder.setUnhealthyTasksLimit(
-        JobDisruptionBudget.UnhealthyTasksLimit.newBuilder().setLimitOfUnhealthyContainers(
-          budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers()
-        ).build()
-      );
+          JobDisruptionBudget.UnhealthyTasksLimit.newBuilder()
+              .setLimitOfUnhealthyContainers(
+                  budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers())
+              .build());
     }
 
     return builder.build();

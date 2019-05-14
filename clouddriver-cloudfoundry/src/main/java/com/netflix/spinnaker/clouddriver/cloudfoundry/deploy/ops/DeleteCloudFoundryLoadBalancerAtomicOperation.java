@@ -22,9 +22,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteC
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOperation<Void> {
@@ -42,9 +41,11 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
     if (description.getLoadBalancer() == null) {
       throw new CloudFoundryApiException("Load balancer does not exist");
     } else {
-      getTask().updateStatus(PHASE, "Deleting load balancer " + description.getLoadBalancer().getName());
+      getTask()
+          .updateStatus(PHASE, "Deleting load balancer " + description.getLoadBalancer().getName());
       client.getRoutes().deleteRoute(description.getLoadBalancer().getId());
-      getTask().updateStatus(PHASE, "Deleted load balancer " + description.getLoadBalancer().getName());
+      getTask()
+          .updateStatus(PHASE, "Deleted load balancer " + description.getLoadBalancer().getName());
     }
 
     return null;

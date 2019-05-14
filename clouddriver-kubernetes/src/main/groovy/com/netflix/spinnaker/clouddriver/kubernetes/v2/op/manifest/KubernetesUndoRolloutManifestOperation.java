@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanUndoRollout
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<Void> {
@@ -37,7 +36,9 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
   private final String accountName;
   private static final String OP_NAME = "UNDO_ROLLOUT_KUBERNETES_MANIFEST";
 
-  public KubernetesUndoRolloutManifestOperation(KubernetesUndoRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesUndoRolloutManifestOperation(
+      KubernetesUndoRolloutManifestDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -58,7 +59,8 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanUndoRollout)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support undo rollout");
+      throw new IllegalArgumentException(
+          "Resource with " + coordinates + " does not support undo rollout");
     }
 
     CanUndoRollout canUndoRollout = (CanUndoRollout) deployer;
@@ -66,15 +68,19 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
     Integer revision = description.getRevision();
     if (description.getNumRevisionsBack() != null) {
       getTask().updateStatus(OP_NAME, "Looking up rollout history...");
-      List<Integer> revisions = canUndoRollout.historyRollout(credentials,
-          coordinates.getNamespace(),
-          coordinates.getName());
+      List<Integer> revisions =
+          canUndoRollout.historyRollout(
+              credentials, coordinates.getNamespace(), coordinates.getName());
 
       revisions.sort(Integer::compareTo);
       int numRevisions = revisions.size();
       int targetRevisionIndex = numRevisions - description.getNumRevisionsBack() - 1;
       if (targetRevisionIndex < 0) {
-        throw new IllegalArgumentException("There are " + numRevisions + " revision(s) in total, cannot rollback " + description.getNumRevisionsBack());
+        throw new IllegalArgumentException(
+            "There are "
+                + numRevisions
+                + " revision(s) in total, cannot rollback "
+                + description.getNumRevisionsBack());
       }
 
       revision = revisions.get(targetRevisionIndex);
@@ -82,10 +88,8 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
     }
 
     getTask().updateStatus(OP_NAME, "Calling undo rollout operation...");
-    canUndoRollout.undoRollout(credentials,
-        coordinates.getNamespace(),
-        coordinates.getName(),
-        revision);
+    canUndoRollout.undoRollout(
+        credentials, coordinates.getNamespace(), coordinates.getName(), revision);
 
     return null;
   }

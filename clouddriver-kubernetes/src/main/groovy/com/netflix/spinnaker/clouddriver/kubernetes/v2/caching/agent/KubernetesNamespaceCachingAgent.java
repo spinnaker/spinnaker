@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -26,9 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,20 +37,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
-  public KubernetesNamespaceCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+  public KubernetesNamespaceCachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
+    super(
+        namedAccountCredentials,
+        propertyRegistry,
+        objectMapper,
+        registry,
+        agentIndex,
+        agentCount,
+        agentInterval);
   }
 
   @Override
@@ -59,10 +66,11 @@ public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
 
     // TODO perf: Only load desired namespaces rather than filter all.
     Set<String> desired = new HashSet<>(this.namespaces);
-    return Collections.singletonMap(KubernetesKind.NAMESPACE, credentials.list(KubernetesKind.NAMESPACE, "")
-        .stream()
-        .filter(ns -> desired.contains(ns.getName()))
-        .collect(Collectors.toList()));
+    return Collections.singletonMap(
+        KubernetesKind.NAMESPACE,
+        credentials.list(KubernetesKind.NAMESPACE, "").stream()
+            .filter(ns -> desired.contains(ns.getName()))
+            .collect(Collectors.toList()));
   }
 
   @Override
@@ -71,10 +79,10 @@ public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
   }
 
   @Getter
-  final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
-      new HashSet<>(Arrays.asList(
-          INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
-          AUTHORITATIVE.forType(KubernetesKind.NAMESPACE.toString())
-      ))
-  );
+  private final Collection<AgentDataType> providedDataTypes =
+      Collections.unmodifiableSet(
+          new HashSet<>(
+              Arrays.asList(
+                  INFORMATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()),
+                  AUTHORITATIVE.forType(KubernetesKind.NAMESPACE.toString()))));
 }

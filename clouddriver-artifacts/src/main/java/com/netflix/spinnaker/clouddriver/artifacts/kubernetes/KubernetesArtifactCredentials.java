@@ -20,13 +20,12 @@ package com.netflix.spinnaker.clouddriver.artifacts.kubernetes;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.docker.DockerArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
@@ -36,13 +35,15 @@ public class KubernetesArtifactCredentials implements ArtifactCredentials {
 
   public KubernetesArtifactCredentials(KubernetesArtifactAccount account) {
     this.name = account.getName();
-    this.types = Arrays.stream(KubernetesArtifactType.values())
-      .map(KubernetesArtifactType::getType)
-      .collect(Collectors.toList());
+    this.types =
+        Arrays.stream(KubernetesArtifactType.values())
+            .map(KubernetesArtifactType::getType)
+            .collect(Collectors.toList());
     types.remove(DockerArtifactCredentials.TYPE);
   }
 
   public InputStream download(Artifact artifact) {
-    throw new UnsupportedOperationException("Kubernetes artifacts are retrieved by kubernetes directly");
+    throw new UnsupportedOperationException(
+        "Kubernetes artifacts are retrieved by kubernetes directly");
   }
 }

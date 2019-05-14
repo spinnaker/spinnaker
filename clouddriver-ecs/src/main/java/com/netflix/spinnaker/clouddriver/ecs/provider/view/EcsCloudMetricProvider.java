@@ -19,10 +19,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsCloudWatchAlarmCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 public class EcsCloudMetricProvider {

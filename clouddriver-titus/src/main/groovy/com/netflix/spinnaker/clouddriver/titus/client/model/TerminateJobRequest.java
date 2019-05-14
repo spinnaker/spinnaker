@@ -18,7 +18,5 @@ package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public class TerminateJobRequest extends AbstractJobRequest {
 
-  public TerminateJobRequest() {
-  }
-
+  public TerminateJobRequest() {}
 }

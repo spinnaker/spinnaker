@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.List;
 
 public interface ArtifactProvider {

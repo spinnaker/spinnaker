@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
@@ -27,34 +29,30 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDep
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
 
 @KubernetesOperation(DEPLOY_MANIFEST)
 @Component
 public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  private KubernetesResourcePropertyRegistry registry;
+  @Autowired private KubernetesResourcePropertyRegistry registry;
 
-  @Autowired
-  private KubernetesV2ArtifactProvider artifactProvider;
+  @Autowired private KubernetesV2ArtifactProvider artifactProvider;
 
-  @Autowired
-  private ArtifactDownloader artifactDownloader;
+  @Autowired private ArtifactDownloader artifactDownloader;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesDeployManifestOperation(convertDescription(input), registry, artifactProvider);
+    return new KubernetesDeployManifestOperation(
+        convertDescription(input), registry, artifactProvider);
   }
 
   @Override
   public KubernetesDeployManifestDescription convertDescription(Map input) {
-    return (KubernetesDeployManifestDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesDeployManifestDescription.class);
+    return (KubernetesDeployManifestDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesDeployManifestDescription.class);
   }
 
   @Override

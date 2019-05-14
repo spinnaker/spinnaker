@@ -22,9 +22,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteAmazonImageAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_IMAGE";
@@ -34,22 +33,27 @@ public class DeleteAmazonImageAtomicOperation implements AtomicOperation<Void> {
   }
 
   private final DeleteAmazonImageDescription description;
+
   public DeleteAmazonImageAtomicOperation(DeleteAmazonImageDescription description) {
     this.description = description;
   }
 
-  @Autowired
-  private AmazonClientProvider amazonClientProvider;
+  @Autowired private AmazonClientProvider amazonClientProvider;
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(BASE_PHASE, String.format("Initializing Delete Image operation for %s", description));
+    getTask()
+        .updateStatus(
+            BASE_PHASE, String.format("Initializing Delete Image operation for %s", description));
     amazonClientProvider
-      .getAmazonEC2(description.getCredentials(), description.getRegion())
-      .deregisterImage(new DeregisterImageRequest().withImageId(description.getImageId()));
+        .getAmazonEC2(description.getCredentials(), description.getRegion())
+        .deregisterImage(new DeregisterImageRequest().withImageId(description.getImageId()));
 
-    getTask().updateStatus(BASE_PHASE, String.format("Deleted Image %s in %s",
-      description.getImageId(), description.getRegion()));
+    getTask()
+        .updateStatus(
+            BASE_PHASE,
+            String.format(
+                "Deleted Image %s in %s", description.getImageId(), description.getRegion()));
     return null;
   }
 }

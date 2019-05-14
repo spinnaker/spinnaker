@@ -16,16 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCloudFoundryServiceDescription;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.SHARE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +24,15 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.matches;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
+
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 class ShareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
   private ShareCloudFoundryServiceDescription desc = new ShareCloudFoundryServiceDescription();
@@ -49,23 +48,28 @@ class ShareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAt
     sharedToRegions.add("org3 > region3");
     desc.setShareToRegions(sharedToRegions);
 
-    ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
-      .setServiceInstanceName("some-service-name")
-      .setType(SHARE)
-      .setState(SUCCEEDED);
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("some-service-name")
+            .setType(SHARE)
+            .setState(SUCCEEDED);
     when(client.getServiceInstances().shareServiceInstance(any(), any(), any()))
-      .thenReturn(serviceInstanceResponse);
+        .thenReturn(serviceInstanceResponse);
 
     ShareCloudFoundryServiceAtomicOperation op = new ShareCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
 
     verify(client.getServiceInstances(), times(1))
-      .shareServiceInstance(matches("org > space"), matches("service-instance-name"), same(sharedToRegions));
+        .shareServiceInstance(
+            matches("org > space"), matches("service-instance-name"), same(sharedToRegions));
     assertThat(task.getHistory())
-      .has(statusStartsWith("Sharing service instance 'service-instance-name' from 'org > space' into '"), atIndex(1));
+        .has(
+            statusStartsWith(
+                "Sharing service instance 'service-instance-name' from 'org > space' into '"),
+            atIndex(1));
     assertThat(task.getHistory())
-      .has(status("Finished sharing service instance 'service-instance-name'"), atIndex(2));
+        .has(status("Finished sharing service instance 'service-instance-name'"), atIndex(2));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(resultObjects.size()).isEqualTo(1);
     Object o = resultObjects.get(0);
@@ -86,17 +90,21 @@ class ShareCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAt
     desc.setShareToRegions(sharedToRegions);
 
     when(client.getServiceInstances().shareServiceInstance(any(), any(), any()))
-      .thenThrow(new CloudFoundryApiException("Much fail"));
+        .thenThrow(new CloudFoundryApiException("Much fail"));
 
     ShareCloudFoundryServiceAtomicOperation op = new ShareCloudFoundryServiceAtomicOperation(desc);
 
     Task task = runOperation(op);
 
     verify(client.getServiceInstances(), times(1))
-      .shareServiceInstance(matches("org > space"), matches("service-instance-name"), same(sharedToRegions));
+        .shareServiceInstance(
+            matches("org > space"), matches("service-instance-name"), same(sharedToRegions));
     assertThat(task.getHistory().size()).isEqualTo(2);
     assertThat(task.getHistory())
-      .has(statusStartsWith("Sharing service instance 'service-instance-name' from 'org > space' into '"), atIndex(1));
+        .has(
+            statusStartsWith(
+                "Sharing service instance 'service-instance-name' from 'org > space' into '"),
+            atIndex(1));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(resultObjects.size()).isEqualTo(1);
     Object o = resultObjects.get(0);

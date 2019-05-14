@@ -16,25 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
-
-class UpsertCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
+class UpsertCloudFoundryLoadBalancerAtomicOperationTest
+    extends AbstractCloudFoundryAtomicOperationTest {
   private final UpsertCloudFoundryLoadBalancerDescription desc;
   private final Routes routes;
 
@@ -54,18 +52,20 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFou
   void operateSuccessfullyCreatedLoadBalancer() {
     when(routes.createRoute(any(), any())).thenReturn(CloudFoundryLoadBalancer.builder().build());
 
-    UpsertCloudFoundryLoadBalancerAtomicOperation op = new UpsertCloudFoundryLoadBalancerAtomicOperation(desc);
+    UpsertCloudFoundryLoadBalancerAtomicOperation op =
+        new UpsertCloudFoundryLoadBalancerAtomicOperation(desc);
 
     assertThat(runOperation(op).getHistory())
-      .has(status("Creating load balancer in 'org>space'"), atIndex(1))
-      .has(status("Done creating load balancer"), atIndex(2));
+        .has(status("Creating load balancer in 'org>space'"), atIndex(1))
+        .has(status("Done creating load balancer"), atIndex(2));
   }
 
   @Test
   void operateThrowCloudFoundryApiExceptionWhenRouteExists() {
     when(routes.createRoute(any(), any())).thenReturn(null);
 
-    UpsertCloudFoundryLoadBalancerAtomicOperation op = new UpsertCloudFoundryLoadBalancerAtomicOperation(desc);
+    UpsertCloudFoundryLoadBalancerAtomicOperation op =
+        new UpsertCloudFoundryLoadBalancerAtomicOperation(desc);
 
     Task task = runOperation(op);
     List<Object> resultObjects = task.getResultObjects();
@@ -74,6 +74,7 @@ class UpsertCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFou
     assertThat(o).isInstanceOf(Map.class);
     Object ex = ((Map) o).get("EXCEPTION");
     assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
-    assertThat(((CloudFoundryApiException) ex).getMessage()).contains("Load balancer already exists in another organization and space");
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .contains("Load balancer already exists in another organization and space");
   }
 }

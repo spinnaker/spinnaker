@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.ENABLE_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
@@ -24,18 +26,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesEna
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.ENABLE_MANIFEST;
 
 @KubernetesOperation(ENABLE_MANIFEST)
 @Component
 public class KubernetesEnableManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  private KubernetesResourcePropertyRegistry registry;
+  @Autowired private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -44,8 +42,9 @@ public class KubernetesEnableManifestConverter extends AbstractAtomicOperationsC
 
   @Override
   public KubernetesEnableDisableManifestDescription convertDescription(Map input) {
-    return (KubernetesEnableDisableManifestDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesEnableDisableManifestDescription.class);
+    return (KubernetesEnableDisableManifestDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesEnableDisableManifestDescription.class);
   }
 
   @Override

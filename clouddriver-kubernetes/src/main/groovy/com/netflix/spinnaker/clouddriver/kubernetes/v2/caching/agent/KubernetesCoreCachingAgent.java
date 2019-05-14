@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -25,27 +27,32 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent {
-  public KubernetesCoreCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+  public KubernetesCoreCachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
+    super(
+        namedAccountCredentials,
+        propertyRegistry,
+        objectMapper,
+        registry,
+        agentIndex,
+        agentCount,
+        agentInterval);
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {
@@ -53,7 +60,10 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
     types.add(AUTHORITATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()));
     types.add(AUTHORITATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()));
 
-    types.addAll(primaryKinds().stream().map(k -> AUTHORITATIVE.forType(k.toString())).collect(Collectors.toList()));
+    types.addAll(
+        primaryKinds().stream()
+            .map(k -> AUTHORITATIVE.forType(k.toString()))
+            .collect(Collectors.toList()));
 
     return Collections.unmodifiableSet(new HashSet<>(types));
   }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.model.edda;
 
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
-
 import java.util.List;
 
 public class TargetGroupHealth {

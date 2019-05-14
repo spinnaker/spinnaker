@@ -20,18 +20,16 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.Collections;
+import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.List;
-
 @Slf4j
-public class HttpArtifactCredentials extends SimpleHttpArtifactCredentials<HttpArtifactAccount> implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("http/file");
+public class HttpArtifactCredentials extends SimpleHttpArtifactCredentials<HttpArtifactAccount>
+    implements ArtifactCredentials {
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("http/file");
 
   HttpArtifactCredentials(HttpArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);

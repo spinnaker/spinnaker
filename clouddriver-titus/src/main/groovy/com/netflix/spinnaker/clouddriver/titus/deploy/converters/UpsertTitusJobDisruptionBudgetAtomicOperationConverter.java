@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters;
 
-import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -25,30 +24,35 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription;
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpsertTitusJobDisruptionBudgetAtomicOperation;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @TitusOperation(AtomicOperations.UPSERT_DISRUPTION_BUDGET)
 @Component
-class UpsertTitusJobDisruptionBudgetAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class UpsertTitusJobDisruptionBudgetAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitusClientProvider titusClientProvider;
   private ObjectMapper objectMapper;
 
   @Autowired
-  UpsertTitusJobDisruptionBudgetAtomicOperationConverter(TitusClientProvider titusClientProvider, ObjectMapper objectMapper) {
+  UpsertTitusJobDisruptionBudgetAtomicOperationConverter(
+      TitusClientProvider titusClientProvider, ObjectMapper objectMapper) {
     this.titusClientProvider = titusClientProvider;
     this.objectMapper = objectMapper;
   }
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new UpsertTitusJobDisruptionBudgetAtomicOperation(titusClientProvider, convertDescription(input));
+    return new UpsertTitusJobDisruptionBudgetAtomicOperation(
+        titusClientProvider, convertDescription(input));
   }
 
   @Override
   public UpsertJobDisruptionBudgetDescription convertDescription(Map input) {
-    UpsertJobDisruptionBudgetDescription converted = objectMapper.convertValue(input, UpsertJobDisruptionBudgetDescription.class);
+    UpsertJobDisruptionBudgetDescription converted =
+        objectMapper.convertValue(input, UpsertJobDisruptionBudgetDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
     return converted;
   }

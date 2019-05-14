@@ -16,18 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
+import static java.util.Objects.requireNonNull;
+
 import com.amazonaws.Request;
 import com.amazonaws.handlers.RequestHandler2;
 import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.spectator.api.Counter;
-
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
-
-/**
- * A RequestHandler that will throttle requests via the supplied RateLimiter.
- */
+/** A RequestHandler that will throttle requests via the supplied RateLimiter. */
 public class RateLimitingRequestHandler extends RequestHandler2 {
   private final Counter counter;
   private final RateLimiter rateLimiter;

@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsTargetGroup;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,9 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EcsTargetGroupCacheClient {
@@ -48,7 +47,8 @@ public class EcsTargetGroupCacheClient {
 
   public List<EcsTargetGroup> findAll() {
     String searchKey = Keys.getTargetGroupKey("*", "*", "*", "*", "*") + "*";
-    Collection<String> targetGroupKeys = cacheView.filterIdentifiers(TARGET_GROUPS.getNs(), searchKey);
+    Collection<String> targetGroupKeys =
+        cacheView.filterIdentifiers(TARGET_GROUPS.getNs(), searchKey);
 
     Set<Map<String, Object>> targetGroupAttributes = fetchLoadBalancerAttributes(targetGroupKeys);
 
@@ -58,11 +58,13 @@ public class EcsTargetGroupCacheClient {
   }
 
   private EcsTargetGroup convertToTargetGroup(Map<String, Object> targetGroupAttributes) {
-    EcsTargetGroup ecsTargetGroup = objectMapper.convertValue(targetGroupAttributes, EcsTargetGroup.class);
+    EcsTargetGroup ecsTargetGroup =
+        objectMapper.convertValue(targetGroupAttributes, EcsTargetGroup.class);
     return ecsTargetGroup;
   }
 
-  private List<EcsTargetGroup> convertToTargetGroup(Collection<Map<String, Object>> targetGroupAttributes) {
+  private List<EcsTargetGroup> convertToTargetGroup(
+      Collection<Map<String, Object>> targetGroupAttributes) {
     List<EcsTargetGroup> ecsTargetGroups = new ArrayList<>();
 
     for (Map<String, Object> attributes : targetGroupAttributes) {
@@ -72,34 +74,33 @@ public class EcsTargetGroupCacheClient {
     return ecsTargetGroups;
   }
 
-
   private Set<Map<String, Object>> fetchLoadBalancerAttributes(Collection<String> targetGroupKeys) {
     Set<CacheData> targetGroups = fetchTargetGroups(targetGroupKeys);
 
-    Set<Map<String, Object>> targetGroupAttributes = targetGroups.stream()
-      .filter(this::hashLoadBalancers)
-      .map(CacheData::getAttributes)
-      .collect(Collectors.toSet());
+    Set<Map<String, Object>> targetGroupAttributes =
+        targetGroups.stream()
+            .filter(this::hashLoadBalancers)
+            .map(CacheData::getAttributes)
+            .collect(Collectors.toSet());
 
     return targetGroupAttributes;
   }
 
   private boolean hashLoadBalancers(CacheData targetGroupCache) {
     return targetGroupCache.getRelationships().get("loadBalancers") != null
-      && targetGroupCache.getRelationships().get("loadBalancers").size() > 0;
+        && targetGroupCache.getRelationships().get("loadBalancers").size() > 0;
   }
 
-  private Set<Map<String, Object>> retrieveTargetGroups(Set<String> targetGroupsAssociatedWithLoadBalancers) {
-    Collection<CacheData> targetGroupCache = cacheView.getAll(TARGET_GROUPS.getNs(), targetGroupsAssociatedWithLoadBalancers);
+  private Set<Map<String, Object>> retrieveTargetGroups(
+      Set<String> targetGroupsAssociatedWithLoadBalancers) {
+    Collection<CacheData> targetGroupCache =
+        cacheView.getAll(TARGET_GROUPS.getNs(), targetGroupsAssociatedWithLoadBalancers);
 
-    Set<Map<String, Object>> targetGroupAttributes = targetGroupCache
-      .stream()
-      .map(CacheData::getAttributes)
-      .collect(Collectors.toSet());
+    Set<Map<String, Object>> targetGroupAttributes =
+        targetGroupCache.stream().map(CacheData::getAttributes).collect(Collectors.toSet());
 
     return targetGroupAttributes;
   }
-
 
   private Set<String> inferAssociatedTargetGroups(Set<CacheData> loadBalancers) {
     Set<String> targetGroupsAssociatedWithLoadBalancers = new HashSet<>();
@@ -114,9 +115,10 @@ public class EcsTargetGroupCacheClient {
   }
 
   private Set<CacheData> fetchTargetGroups(Collection<String> targetGroupKeys) {
-    return new HashSet<>(cacheView.getAll(TARGET_GROUPS.getNs(),
-                                          targetGroupKeys,
-                                          RelationshipCacheFilter.include(LOAD_BALANCERS.getNs())));
+    return new HashSet<>(
+        cacheView.getAll(
+            TARGET_GROUPS.getNs(),
+            targetGroupKeys,
+            RelationshipCacheFilter.include(LOAD_BALANCERS.getNs())));
   }
-
 }

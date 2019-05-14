@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -28,49 +32,52 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
 import io.vavr.collection.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
-import java.util.Map;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
-
 class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
 
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "-guid").name(args[0].toString()).build());
-      });
+        .thenAnswer(
+            (Answer<Optional<CloudFoundryOrganization>>)
+                invocation -> {
+                  Object[] args = invocation.getArguments();
+                  return Optional.of(
+                      CloudFoundryOrganization.builder()
+                          .id(args[0].toString() + "-guid")
+                          .name(args[0].toString())
+                          .build());
+                });
 
     when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
-      .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
+        .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
   }
 
-  private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-    "test", "", "", "", "", "", "") {
-    public CloudFoundryClient getClient() {
-      return cloudFoundryClient;
-    }
-  };
+  private final CloudFoundryCredentials cloudFoundryCredentials =
+      new CloudFoundryCredentials("test", "", "", "", "", "", "") {
+        public CloudFoundryClient getClient() {
+          return cloudFoundryClient;
+        }
+      };
 
-  private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
+  private final AccountCredentialsRepository accountCredentialsRepository =
+      new MapBackedAccountCredentialsRepository();
+
   {
     accountCredentialsRepository.update("test", cloudFoundryCredentials);
   }
 
   private final AccountCredentialsProvider accountCredentialsProvider =
-    new DefaultAccountCredentialsProvider(accountCredentialsRepository);
+      new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   private final ScaleCloudFoundryServerGroupAtomicOperationConverter converter =
-    new ScaleCloudFoundryServerGroupAtomicOperationConverter(null);
+      new ScaleCloudFoundryServerGroupAtomicOperationConverter(null);
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -80,17 +87,23 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
   void convertDescription() {
-    final Map input = HashMap.of(
-      "credentials", "test",
-      "region", "org > space",
-      "capacity",  HashMap.of(
-        "desired", 15,
-        "min", 12,
-        "max", 61
-      ).toJavaMap(),
-      "diskQuota", 1027,
-      "memory", 10249
-    ).toJavaMap();
+    final Map input =
+        HashMap.of(
+                "credentials",
+                "test",
+                "region",
+                "org > space",
+                "capacity",
+                HashMap.of(
+                        "desired", 15,
+                        "min", 12,
+                        "max", 61)
+                    .toJavaMap(),
+                "diskQuota",
+                1027,
+                "memory",
+                10249)
+            .toJavaMap();
 
     final ScaleCloudFoundryServerGroupDescription result = converter.convertDescription(input);
 
@@ -101,15 +114,17 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
 
   @Test
   void convertDescriptionMissingFields() {
-    final Map input = HashMap.of(
-      "credentials", "test",
-      "region", "org > space",
-      "capacity",  HashMap.of(
-        "desired", 215,
-        "min", 12,
-        "max", 61
-      ).toJavaMap()
-    ).toJavaMap();
+    final Map input =
+        HashMap.of(
+                "credentials", "test",
+                "region", "org > space",
+                "capacity",
+                    HashMap.of(
+                            "desired", 215,
+                            "min", 12,
+                            "max", 61)
+                        .toJavaMap())
+            .toJavaMap();
 
     final ScaleCloudFoundryServerGroupDescription result = converter.convertDescription(input);
 

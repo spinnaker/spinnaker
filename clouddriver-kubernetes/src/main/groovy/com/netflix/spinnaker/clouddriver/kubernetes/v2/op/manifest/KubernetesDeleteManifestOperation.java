@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanDelete;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -39,7 +38,9 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
   private final String accountName;
   private static final String OP_NAME = "DELETE_KUBERNETES_MANIFEST";
 
-  public KubernetesDeleteManifestOperation(KubernetesDeleteManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesDeleteManifestOperation(
+      KubernetesDeleteManifestDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -62,24 +63,28 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
     }
 
     OperationResult result = new OperationResult();
-    coordinates.forEach(c -> {
-      getTask().updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
-      KubernetesResourceProperties properties = registry.get(accountName, c.getKind());
-      KubernetesHandler deployer = properties.getHandler();
+    coordinates.forEach(
+        c -> {
+          getTask()
+              .updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
+          KubernetesResourceProperties properties = registry.get(accountName, c.getKind());
+          KubernetesHandler deployer = properties.getHandler();
 
-      if (!(deployer instanceof CanDelete)) {
-        throw new IllegalArgumentException("Resource with " + c + " does not support delete");
-      }
+          if (!(deployer instanceof CanDelete)) {
+            throw new IllegalArgumentException("Resource with " + c + " does not support delete");
+          }
 
-      CanDelete canDelete = (CanDelete) deployer;
+          CanDelete canDelete = (CanDelete) deployer;
 
-      getTask().updateStatus(OP_NAME, "Calling delete operation...");
-      result.merge(canDelete.delete(credentials,
-          c.getNamespace(),
-          c.getName(),
-          description.getLabelSelectors(),
-          description.getOptions()));
-    });
+          getTask().updateStatus(OP_NAME, "Calling delete operation...");
+          result.merge(
+              canDelete.delete(
+                  credentials,
+                  c.getNamespace(),
+                  c.getName(),
+                  description.getLabelSelectors(),
+                  description.getOptions()));
+        });
 
     return result;
   }

@@ -16,7 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.ListRolesResult;
@@ -28,34 +35,27 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.IamRoleCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
-import org.junit.Test;
-import spock.lang.Subject;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import org.junit.Test;
+import spock.lang.Subject;
 
 public class IamRoleCacheTest extends CommonCachingAgent {
-  @Subject
-  private final IamRoleCacheClient client = new IamRoleCacheClient(providerCache);
+  @Subject private final IamRoleCacheClient client = new IamRoleCacheClient(providerCache);
   private final AmazonIdentityManagement iam = mock(AmazonIdentityManagement.class);
   private final IamPolicyReader iamPolicyReader = mock(IamPolicyReader.class);
+
   @Subject
-  private final IamRoleCachingAgent agent = new IamRoleCachingAgent(netflixAmazonCredentials, clientProvider, credentialsProvider, iamPolicyReader);
+  private final IamRoleCachingAgent agent =
+      new IamRoleCachingAgent(
+          netflixAmazonCredentials, clientProvider, credentialsProvider, iamPolicyReader);
 
   @Test
   public void shouldRetrieveFromWrittenCache() {
-    //Given
-    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean())).thenReturn(iam);
+    // Given
+    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+        .thenReturn(iam);
     ObjectMapper mapper = new ObjectMapper();
     String name = "iam-role-name";
     String roleArn = "iam-role-arn";
@@ -73,24 +73,39 @@ public class IamRoleCacheTest extends CommonCachingAgent {
     Role role = new Role();
     role.setArn(roleArn);
     role.setRoleName(name);
-    when(iam.listRoles(any(ListRolesRequest.class))).thenReturn(new ListRolesResult().withRoles(role).withIsTruncated(false));
-    when(iamPolicyReader.getTrustedEntities(anyString())).thenReturn(Collections.singleton(iamTrustRelationship));
+    when(iam.listRoles(any(ListRolesRequest.class)))
+        .thenReturn(new ListRolesResult().withRoles(role).withIsTruncated(false));
+    when(iamPolicyReader.getTrustedEntities(anyString()))
+        .thenReturn(Collections.singleton(iamTrustRelationship));
 
-    //When
+    // When
     CacheResult cacheResult = agent.loadData(providerCache);
-    cacheResult.getCacheResults().get(IAM_ROLE.toString()).iterator().next().getAttributes().put("trustRelationships", Collections.singletonList(mapper.convertValue(iamTrustRelationship, Map.class)));
-    when(providerCache.get(IAM_ROLE.toString(), key)).thenReturn(cacheResult.getCacheResults().get(IAM_ROLE.toString()).iterator().next());
+    cacheResult
+        .getCacheResults()
+        .get(IAM_ROLE.toString())
+        .iterator()
+        .next()
+        .getAttributes()
+        .put(
+            "trustRelationships",
+            Collections.singletonList(mapper.convertValue(iamTrustRelationship, Map.class)));
+    when(providerCache.get(IAM_ROLE.toString(), key))
+        .thenReturn(cacheResult.getCacheResults().get(IAM_ROLE.toString()).iterator().next());
 
-    //Then
-    Collection<CacheData> cacheData = cacheResult.getCacheResults().get(Keys.Namespace.IAM_ROLE.toString());
+    // Then
+    Collection<CacheData> cacheData =
+        cacheResult.getCacheResults().get(Keys.Namespace.IAM_ROLE.toString());
     IamRole returnedIamRole = client.get(key);
 
     assertTrue("Expected CacheData to be returned but null is returned", cacheData != null);
     assertTrue("Expected 1 CacheData but returned " + cacheData.size(), cacheData.size() == 1);
     String retrievedKey = cacheData.iterator().next().getId();
-    assertTrue("Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey, retrievedKey.equals(key));
+    assertTrue(
+        "Expected CacheData with ID " + key + " but retrieved ID " + retrievedKey,
+        retrievedKey.equals(key));
 
-    assertTrue("Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole,
-      iamRole.equals(returnedIamRole));
+    assertTrue(
+        "Expected the IAM Role to be " + iamRole + " but got " + returnedIamRole,
+        iamRole.equals(returnedIamRole));
   }
 }

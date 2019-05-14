@@ -18,20 +18,23 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 public interface ServerGroupManager {
   String getName();
+
   String getAccount();
+
   Moniker getMoniker();
+
   Set<ServerGroupSummary> getServerGroups();
+
   String getRegion();
 
   default Map<String, String> getLabels() {

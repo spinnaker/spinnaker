@@ -18,16 +18,12 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type;
 import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Value;
 
-import java.util.Set;
-
-/**
- * "Service" in this context refers to an Open Service Broker service.
- */
+/** "Service" in this context refers to an Open Service Broker service. */
 @Value
 @Builder
 @JsonDeserialize(builder = CloudFoundryServiceInstance.CloudFoundryServiceInstanceBuilder.class)

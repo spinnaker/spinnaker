@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
-
 import java.util.List;
 
 public interface ImageRepositoryProvider {

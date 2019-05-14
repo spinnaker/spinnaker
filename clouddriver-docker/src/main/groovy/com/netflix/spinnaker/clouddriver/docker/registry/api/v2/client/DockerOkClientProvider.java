@@ -17,16 +17,15 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
 import retrofit.client.OkClient;
 
-/**
- * Allows custom configuration of the Docker Registry OkHttpClient.
- */
+/** Allows custom configuration of the Docker Registry OkHttpClient. */
 public interface DockerOkClientProvider {
 
   /**
-   * @param address   Provided simply in case a client provider needs to conditionally apply rules per-registry
+   * @param address Provided simply in case a client provider needs to conditionally apply rules
+   *     per-registry
    * @param timeoutMs The client timeout in milliseconds
-   * @param insecure  Whether or not the registry should be configured to trust all SSL certificates. If this is true,
-   *                  you may want to fallback to {@code DefaultDockerOkClientProvider}
+   * @param insecure Whether or not the registry should be configured to trust all SSL certificates.
+   *     If this is true, you may want to fallback to {@code DefaultDockerOkClientProvider}
    * @return An OkClient
    */
   OkClient provide(String address, long timeoutMs, boolean insecure);

@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.ResizeServiceAtomicOpera
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component("ecsResizeServerGroup")
 @EcsOperation(AtomicOperations.RESIZE_SERVER_GROUP)
-public class ResizeServiceAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class ResizeServiceAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -37,10 +37,10 @@ public class ResizeServiceAtomicOperationConverter extends AbstractAtomicOperati
 
   @Override
   public ResizeServiceDescription convertDescription(Map input) {
-    ResizeServiceDescription converted = getObjectMapper().convertValue(input, ResizeServiceDescription.class);
+    ResizeServiceDescription converted =
+        getObjectMapper().convertValue(input, ResizeServiceDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;
   }
-
 }

@@ -17,27 +17,28 @@
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class IvyArtifactProviderPropertiesTest {
   @Test
   void deserializeIvySettings() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    mapper.readValue("{\n" +
-      "  \"accounts\": [{\n" +
-      "    \"name\": \"mavenCentral\",\n" +
-      "    \"settings\": {\n" +
-      "      \"settings\": { \"defaultResolver\": \"mavenCentral\" },\n" +
-      "      \"resolvers\": {\n" +
-      "        \"ibiblio\": [{\n" +
-      "          \"name\": \"mavenCentral\",\n" +
-      "          \"m2compatible\": \"true\"\n" +
-      "        }]\n" +
-      "      }\n" +
-      "    }\n" +
-      "  }]\n" +
-      "}", IvyArtifactProviderProperties.class);
+    mapper.readValue(
+        "{\n"
+            + "  \"accounts\": [{\n"
+            + "    \"name\": \"mavenCentral\",\n"
+            + "    \"settings\": {\n"
+            + "      \"settings\": { \"defaultResolver\": \"mavenCentral\" },\n"
+            + "      \"resolvers\": {\n"
+            + "        \"ibiblio\": [{\n"
+            + "          \"name\": \"mavenCentral\",\n"
+            + "          \"m2compatible\": \"true\"\n"
+            + "        }]\n"
+            + "      }\n"
+            + "    }\n"
+            + "  }]\n"
+            + "}",
+        IvyArtifactProviderProperties.class);
   }
 }

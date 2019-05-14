@@ -21,6 +21,5 @@ class ResourceNotFoundException extends RuntimeException {
     super(message);
   }
 
-  ResourceNotFoundException() {
-  }
+  ResourceNotFoundException() {}
 }

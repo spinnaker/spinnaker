@@ -17,30 +17,23 @@
 package com.netflix.spinnaker.clouddriver.model.securitygroups;
 
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
+import java.util.SortedSet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.SortedSet;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class SecurityGroupRule implements Rule {
-  /**
-   * The security group associated with this rule
-   */
+  /** The security group associated with this rule */
   SecurityGroup securityGroup;
 
-  /**
-   * The IP protocol associated with this rule
-   */
+  /** The IP protocol associated with this rule */
   String protocol;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   SortedSet<PortRange> portRanges;
 }

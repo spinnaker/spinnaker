@@ -36,12 +36,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
@@ -53,16 +52,20 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   private final String accountName;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFEST";
 
-  public KubernetesDeployManifestOperation(KubernetesDeployManifestDescription description, KubernetesResourcePropertyRegistry registry, ArtifactProvider provider) {
+  public KubernetesDeployManifestOperation(
+      KubernetesDeployManifestDescription description,
+      KubernetesResourcePropertyRegistry registry,
+      ArtifactProvider provider) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
     this.provider = provider;
     this.accountName = description.getCredentials().getName();
-    this.namer = NamerRegistry.lookup()
-        .withProvider(KubernetesCloudProvider.getID())
-        .withAccount(accountName)
-        .withResource(KubernetesManifest.class);
+    this.namer =
+        NamerRegistry.lookup()
+            .withProvider(KubernetesCloudProvider.getID())
+            .withAccount(accountName)
+            .withResource(KubernetesManifest.class);
   }
 
   private static Task getTask() {
@@ -107,17 +110,28 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
       KubernetesResourceProperties properties = findResourceProperties(manifest);
       if (properties == null) {
-        throw new IllegalArgumentException("Unsupported Kubernetes object kind '" + manifest.getKind().toString() + "', unable to continue.");
+        throw new IllegalArgumentException(
+            "Unsupported Kubernetes object kind '"
+                + manifest.getKind().toString()
+                + "', unable to continue.");
       }
       KubernetesHandler deployer = properties.getHandler();
       if (deployer == null) {
-        throw new IllegalArgumentException("No deployer available for Kubernetes object kind '" + manifest.getKind().toString() + "', unable to continue.");
+        throw new IllegalArgumentException(
+            "No deployer available for Kubernetes object kind '"
+                + manifest.getKind().toString()
+                + "', unable to continue.");
       }
 
-      KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(manifest, description.getStrategy());
+      KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
+          manifest, description.getStrategy());
 
-      getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
-      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts, description.getAccount());
+      getTask()
+          .updateStatus(
+              OP_NAME,
+              "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
+      ReplaceResult replaceResult =
+          deployer.replaceArtifacts(manifest, artifacts, description.getAccount());
       deployManifests.add(replaceResult.getManifest());
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
     }
@@ -127,12 +141,24 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
     if (!unboundArtifacts.isEmpty()) {
-      throw new IllegalArgumentException("The following artifacts could not be bound: '" + unboundArtifacts + "' . Failing the stage as this is likely a configuration error.");
+      throw new IllegalArgumentException(
+          "The following artifacts could not be bound: '"
+              + unboundArtifacts
+              + "' . Failing the stage as this is likely a configuration error.");
     }
 
     getTask().updateStatus(OP_NAME, "Sorting manifests by priority...");
-    deployManifests.sort(Comparator.comparingInt(m -> findResourceProperties(m).getHandler().deployPriority()));
-    getTask().updateStatus(OP_NAME, "Deploy order is: " + String.join(", ", deployManifests.stream().map(KubernetesManifest::getFullResourceName).collect(Collectors.toList())));
+    deployManifests.sort(
+        Comparator.comparingInt(m -> findResourceProperties(m).getHandler().deployPriority()));
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Deploy order is: "
+                + String.join(
+                    ", ",
+                    deployManifests.stream()
+                        .map(KubernetesManifest::getFullResourceName)
+                        .collect(Collectors.toList())));
 
     OperationResult result = new OperationResult();
     for (KubernetesManifest manifest : deployManifests) {
@@ -143,7 +169,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       boolean recreate = isRecreate(strategy);
       boolean replace = isReplace(strategy);
 
-      KubernetesArtifactConverter converter = versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
+      KubernetesArtifactConverter converter =
+          versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
       KubernetesHandler deployer = properties.getHandler();
 
       Moniker moniker = cloneMoniker(description.getMoniker());
@@ -162,7 +189,12 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         }
       }
 
-      getTask().updateStatus(OP_NAME, "Annotating manifest " + manifest.getFullResourceName() + " with artifact, relationships & moniker...");
+      getTask()
+          .updateStatus(
+              OP_NAME,
+              "Annotating manifest "
+                  + manifest.getFullResourceName()
+                  + " with artifact, relationships & moniker...");
       KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
 
       if (useSourceCapacity && deployer instanceof CanScale) {
@@ -181,12 +213,22 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       namer.applyMoniker(manifest, moniker);
       manifest.setName(converter.getDeployedName(artifact));
 
-      getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from other deployments...");
-      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, new ArrayList<>(result.getCreatedArtifacts()), description.getAccount());
+      getTask()
+          .updateStatus(
+              OP_NAME,
+              "Swapping out artifacts in "
+                  + manifest.getFullResourceName()
+                  + " from other deployments...");
+      ReplaceResult replaceResult =
+          deployer.replaceArtifacts(
+              manifest, new ArrayList<>(result.getCreatedArtifacts()), description.getAccount());
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
       manifest = replaceResult.getManifest();
 
-      getTask().updateStatus(OP_NAME, "Submitting manifest " + manifest.getFullResourceName() + " to kubernetes master...");
+      getTask()
+          .updateStatus(
+              OP_NAME,
+              "Submitting manifest " + manifest.getFullResourceName() + " to kubernetes master...");
       log.debug("Manifest in {} to be deployed: {}", accountName, manifest);
       result.merge(deployer.deploy(credentials, manifest, recreate, replace));
 
@@ -213,10 +255,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   }
 
   private void validateManifestsForRolloutStrategies(List<KubernetesManifest> manifests) {
-    if (description.getStrategy() != null && (manifests.size() != 1 || manifests.get(0).getKind() != KubernetesKind.REPLICA_SET)) {
+    if (description.getStrategy() != null
+        && (manifests.size() != 1 || manifests.get(0).getKind() != KubernetesKind.REPLICA_SET)) {
       throw new RuntimeException(
-        "Spinnaker can manage traffic for ReplicaSets only. Please deploy exactly one ReplicaSet manifest or disable rollout strategies."
-      );
+          "Spinnaker can manage traffic for ReplicaSets only. Please deploy exactly one ReplicaSet manifest or disable rollout strategies.");
     }
   }
 
@@ -225,23 +267,34 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     try {
       name = KubernetesManifest.fromFullResourceName(loadBalancerName);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'", e);
+      throw new IllegalArgumentException(
+          "Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'",
+          e);
     }
 
     CanLoadBalance handler = CanLoadBalance.lookupProperties(registry, accountName, name);
 
-    // TODO(lwander): look into using a combination of the cache & other resources passed in with this request instead of making a live call here.
-    KubernetesManifest loadBalancer = credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
+    // TODO(lwander): look into using a combination of the cache & other resources passed in with
+    // this request instead of making a live call here.
+    KubernetesManifest loadBalancer =
+        credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
     if (loadBalancer == null) {
       throw new IllegalArgumentException("Load balancer " + loadBalancerName + " does not exist");
     }
 
-    getTask().updateStatus(OP_NAME, "Attaching load balancer " + loadBalancer.getFullResourceName() + " to " + target.getFullResourceName());
+    getTask()
+        .updateStatus(
+            OP_NAME,
+            "Attaching load balancer "
+                + loadBalancer.getFullResourceName()
+                + " to "
+                + target.getFullResourceName());
 
     handler.attach(loadBalancer, target);
   }
 
-  private boolean isVersioned(KubernetesResourceProperties properties, KubernetesManifestStrategy strategy) {
+  private boolean isVersioned(
+      KubernetesResourceProperties properties, KubernetesManifestStrategy strategy) {
     if (strategy.getVersioned() != null) {
       return strategy.getVersioned();
     }

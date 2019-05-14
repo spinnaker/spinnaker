@@ -19,36 +19,40 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import com.netflix.spinnaker.clouddriver.model.Image;
 import com.netflix.spinnaker.clouddriver.model.ImageProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-
 @RestController
 @RequestMapping("/images")
 public class ImageController {
 
-  @Autowired
-  List<ImageProvider> imageProviders;
+  @Autowired List<ImageProvider> imageProviders;
 
   @RequestMapping(value = "/{provider}/{imageId}", method = RequestMethod.GET)
   Image getImage(@PathVariable String provider, @PathVariable String imageId) {
 
-    List<ImageProvider> imageProviderList = imageProviders.stream()
-        .filter(imageProvider -> imageProvider.getCloudProvider().equals(provider))
-        .collect(Collectors.toList());
+    List<ImageProvider> imageProviderList =
+        imageProviders.stream()
+            .filter(imageProvider -> imageProvider.getCloudProvider().equals(provider))
+            .collect(Collectors.toList());
 
     if (imageProviderList.isEmpty()) {
       throw new NotFoundException("ImageProvider for provider " + provider + " not found.");
     } else if (imageProviderList.size() > 1) {
-      throw new IllegalStateException("Found multiple ImageProviders for provider " + provider + ". Multiple ImageProviders for a single provider are not supported.");
+      throw new IllegalStateException(
+          "Found multiple ImageProviders for provider "
+              + provider
+              + ". Multiple ImageProviders for a single provider are not supported.");
     } else {
-      return imageProviderList.get(0).getImageById(imageId).orElseThrow(() -> new NotFoundException("Image not found (id: " + imageId + ")"));
+      return imageProviderList
+          .get(0)
+          .getImageById(imageId)
+          .orElseThrow(() -> new NotFoundException("Image not found (id: " + imageId + ")"));
     }
   }
 }

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
-
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import lombok.Data;

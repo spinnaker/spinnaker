@@ -19,12 +19,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.da
 
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.model.ServerGroupManager;
-import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 @Builder

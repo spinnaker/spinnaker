@@ -25,19 +25,16 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import groovy.util.logging.Slf4j;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class S3ArtifactCredentials implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("s3/object");
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("s3/object");
 
   private final String apiEndpoint;
   private final String apiRegion;
@@ -58,7 +55,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 
     if (!StringUtils.isEmpty(apiEndpoint)) {
-      AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
+      AwsClientBuilder.EndpointConfiguration endpoint =
+          new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
       builder.setEndpointConfiguration(endpoint);
       builder.setPathStyleAccessEnabled(true);
     } else if (!StringUtils.isEmpty(region)) {
@@ -66,7 +64,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     }
 
     if (!StringUtils.isEmpty(awsAccessKeyId) && !StringUtils.isEmpty(awsSecretAccessKey)) {
-      BasicAWSCredentials awsStaticCreds = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
+      BasicAWSCredentials awsStaticCreds =
+          new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
       builder.withCredentials(new AWSStaticCredentialsProvider(awsStaticCreds));
     }
 
@@ -82,7 +81,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
 
     int slash = reference.indexOf("/");
     if (slash <= 0) {
-      throw new IllegalArgumentException("S3 references must be of the format s3://<bucket>/<file-path>, got: " + artifact);
+      throw new IllegalArgumentException(
+          "S3 references must be of the format s3://<bucket>/<file-path>, got: " + artifact);
     }
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);

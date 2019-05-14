@@ -17,18 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.gcs.enabled")
@@ -39,17 +38,18 @@ public class GcsArtifactConfiguration {
   private final GcsArtifactProviderProperties gcsArtifactProviderProperties;
 
   @Bean
-  List<? extends GcsArtifactCredentials> gcsArtifactCredentials(String clouddriverUserAgentApplicationName) {
-    return gcsArtifactProviderProperties.getAccounts()
-        .stream()
-        .map(a -> {
-          try {
-            return new GcsArtifactCredentials(clouddriverUserAgentApplicationName, a);
-          } catch (IOException | GeneralSecurityException e) {
-            log.warn("Failure instantiating gcs artifact account {}: ", a, e);
-            return null;
-          }
-        })
+  List<? extends GcsArtifactCredentials> gcsArtifactCredentials(
+      String clouddriverUserAgentApplicationName) {
+    return gcsArtifactProviderProperties.getAccounts().stream()
+        .map(
+            a -> {
+              try {
+                return new GcsArtifactCredentials(clouddriverUserAgentApplicationName, a);
+              } catch (IOException | GeneralSecurityException e) {
+                log.warn("Failure instantiating gcs artifact account {}: ", a, e);
+                return null;
+              }
+            })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }

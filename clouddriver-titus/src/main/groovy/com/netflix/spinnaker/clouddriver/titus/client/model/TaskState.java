@@ -18,9 +18,17 @@ package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public enum TaskState {
   ALL,
-  RUNNING, DISPATCHED, FAILED, STOPPED, CRASHED, FINISHED,
-  STARTING, QUEUED,
-  TERMINATING, DEAD, PENDING; // Deprecated
+  RUNNING,
+  DISPATCHED,
+  FAILED,
+  STOPPED,
+  CRASHED,
+  FINISHED,
+  STARTING,
+  QUEUED,
+  TERMINATING,
+  DEAD,
+  PENDING; // Deprecated
 
   public static TaskState from(String taskStateStr) {
     for (TaskState taskState : TaskState.values()) {

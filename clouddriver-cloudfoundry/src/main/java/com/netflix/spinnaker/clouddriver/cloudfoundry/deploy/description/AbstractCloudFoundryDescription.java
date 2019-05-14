@@ -22,8 +22,7 @@ import lombok.Data;
 
 @Data
 public abstract class AbstractCloudFoundryDescription {
-  @JsonIgnore
-  private CloudFoundryClient client;
+  @JsonIgnore private CloudFoundryClient client;
 
   private String region;
 }

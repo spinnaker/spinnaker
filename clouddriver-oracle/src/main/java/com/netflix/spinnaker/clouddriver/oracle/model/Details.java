@@ -10,42 +10,43 @@ package com.netflix.spinnaker.clouddriver.oracle.model;
 
 import com.oracle.bmc.loadbalancer.model.Backend;
 import com.oracle.bmc.loadbalancer.model.BackendDetails;
-import com.oracle.bmc.loadbalancer.model.SSLConfiguration;
 import com.oracle.bmc.loadbalancer.model.HealthChecker;
 import com.oracle.bmc.loadbalancer.model.HealthCheckerDetails;
+import com.oracle.bmc.loadbalancer.model.SSLConfiguration;
 import com.oracle.bmc.loadbalancer.model.SSLConfigurationDetails;
 
-/**
- * Converts model to modelDetails.
- */
+/** Converts model to modelDetails. */
 public class Details {
 
   public static BackendDetails of(Backend backend) {
     return BackendDetails.builder()
-      .backup(backend.getBackup())
-      .drain(backend.getDrain())
-      .ipAddress(backend.getIpAddress())
-      .offline(backend.getOffline())
-      .port(backend.getPort())
-      .weight(backend.getWeight()).build();
+        .backup(backend.getBackup())
+        .drain(backend.getDrain())
+        .ipAddress(backend.getIpAddress())
+        .offline(backend.getOffline())
+        .port(backend.getPort())
+        .weight(backend.getWeight())
+        .build();
   }
-  
+
   public static HealthCheckerDetails of(HealthChecker healthChecker) {
     return HealthCheckerDetails.builder()
-      .intervalInMillis(healthChecker.getIntervalInMillis())
-      .port(healthChecker.getPort())
-      .protocol(healthChecker.getProtocol())
-      .responseBodyRegex(healthChecker.getResponseBodyRegex())
-      .retries(healthChecker.getRetries())
-      .returnCode(healthChecker.getReturnCode())
-      .timeoutInMillis(healthChecker.getTimeoutInMillis())
-      .urlPath(healthChecker.getUrlPath()).build();
+        .intervalInMillis(healthChecker.getIntervalInMillis())
+        .port(healthChecker.getPort())
+        .protocol(healthChecker.getProtocol())
+        .responseBodyRegex(healthChecker.getResponseBodyRegex())
+        .retries(healthChecker.getRetries())
+        .returnCode(healthChecker.getReturnCode())
+        .timeoutInMillis(healthChecker.getTimeoutInMillis())
+        .urlPath(healthChecker.getUrlPath())
+        .build();
   }
-  
+
   public static SSLConfigurationDetails of(SSLConfiguration sslConfig) {
     return SSLConfigurationDetails.builder()
-      .certificateName(sslConfig.getCertificateName())
-      .verifyDepth(sslConfig.getVerifyDepth())
-      .verifyPeerCertificate(sslConfig.getVerifyPeerCertificate()).build();
+        .certificateName(sslConfig.getCertificateName())
+        .verifyDepth(sslConfig.getVerifyDepth())
+        .verifyPeerCertificate(sslConfig.getVerifyPeerCertificate())
+        .build();
   }
 }

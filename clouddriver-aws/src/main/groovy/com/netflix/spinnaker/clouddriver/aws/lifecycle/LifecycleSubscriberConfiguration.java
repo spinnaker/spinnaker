@@ -27,18 +27,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({LaunchFailureConfigurationProperties.class, InstanceTerminationConfigurationProperties.class})
+@EnableConfigurationProperties({
+  LaunchFailureConfigurationProperties.class,
+  InstanceTerminationConfigurationProperties.class
+})
 class LifecycleSubscriberConfiguration {
 
   @Bean
   @ConditionalOnProperty("aws.lifecycle-subscribers.launch-failure.enabled")
-  LaunchFailureNotificationAgentProvider launchFailureNotificationAgentProvider(@Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
-                                                                                AmazonClientProvider amazonClientProvider,
-                                                                                AccountCredentialsProvider accountCredentialsProvider,
-                                                                                LaunchFailureConfigurationProperties properties,
-                                                                                EntityTagger entityTagger) {
+  LaunchFailureNotificationAgentProvider launchFailureNotificationAgentProvider(
+      @Qualifier("amazonObjectMapper") ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      AccountCredentialsProvider accountCredentialsProvider,
+      LaunchFailureConfigurationProperties properties,
+      EntityTagger entityTagger) {
     return new LaunchFailureNotificationAgentProvider(
-      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, entityTagger
-    );
+        objectMapper, amazonClientProvider, accountCredentialsProvider, properties, entityTagger);
   }
 }

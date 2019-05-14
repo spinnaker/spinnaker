@@ -22,30 +22,35 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.StartCloudFound
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @CloudFoundryOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component
-public class StartCloudFoundryServerGroupAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
+public class StartCloudFoundryServerGroupAtomicOperationConverter
+    extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   private final OperationPoller operationPoller;
 
-  public StartCloudFoundryServerGroupAtomicOperationConverter(@Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller) {
+  public StartCloudFoundryServerGroupAtomicOperationConverter(
+      @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller) {
     this.operationPoller = operationPoller;
   }
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new StartCloudFoundryServerGroupAtomicOperation(operationPoller, convertDescription(input));
+    return new StartCloudFoundryServerGroupAtomicOperation(
+        operationPoller, convertDescription(input));
   }
 
   @Override
   public StartCloudFoundryServerGroupDescription convertDescription(Map input) {
-    StartCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, StartCloudFoundryServerGroupDescription.class);
+    StartCloudFoundryServerGroupDescription converted =
+        getObjectMapper().convertValue(input, StartCloudFoundryServerGroupDescription.class);
     converted.setClient(getClient(input));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
+    converted.setServerGroupId(
+        getServerGroupId(
+            converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     return converted;
   }
 }

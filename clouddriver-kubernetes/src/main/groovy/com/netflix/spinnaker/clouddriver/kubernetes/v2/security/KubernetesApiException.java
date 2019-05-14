@@ -20,9 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.models.V1Status;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesApiException extends RuntimeException {
@@ -33,7 +32,9 @@ public class KubernetesApiException extends RuntimeException {
   }
 
   public KubernetesApiException(String operation, ApiException e) {
-    super(String.format("%s failed (%d %s): %s", operation, e.getCode(), e.getMessage(), message(e)), e);
+    super(
+        String.format("%s failed (%d %s): %s", operation, e.getCode(), e.getMessage(), message(e)),
+        e);
   }
 
   private static String message(ApiException e) {

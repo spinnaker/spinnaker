@@ -15,8 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.config;
 
+import static java.lang.String.format;
+
 import com.netflix.spinnaker.clouddriver.data.task.DualTaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import java.util.List;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -25,30 +28,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.config.DualTaskRepositoryConfiguration.Properties;
-import static java.lang.String.format;
-
 @Configuration
 @ConditionalOnProperty("dual-task-repository.enabled")
-@EnableConfigurationProperties(Properties.class)
+@EnableConfigurationProperties(DualTaskRepositoryConfiguration.Properties.class)
 public class DualTaskRepositoryConfiguration {
 
   @Primary
   @Bean
-  TaskRepository dualExecutionRepository(Properties properties, List<TaskRepository> allRepositories) {
+  TaskRepository dualExecutionRepository(
+      Properties properties, List<TaskRepository> allRepositories) {
     TaskRepository primary = findTaskRepositoryByClass(allRepositories, properties.primaryClass);
     TaskRepository previous = findTaskRepositoryByClass(allRepositories, properties.previousClass);
     return new DualTaskRepository(
-      primary,
-      previous,
-      properties.executorThreadPoolSize,
-      properties.executorTimeoutSeconds
-    );
+        primary, previous, properties.executorThreadPoolSize, properties.executorTimeoutSeconds);
   }
 
-  private TaskRepository findTaskRepositoryByClass(List<TaskRepository> allRepositories, String className) {
+  private TaskRepository findTaskRepositoryByClass(
+      List<TaskRepository> allRepositories, String className) {
     Class repositoryClass;
     try {
       repositoryClass = Class.forName(className);
@@ -56,30 +52,26 @@ public class DualTaskRepositoryConfiguration {
       throw new BeanCreationException("Could not find TaskRepository class", e);
     }
 
-    return allRepositories
-      .stream()
-      .filter(repositoryClass::isInstance)
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException(format(
-        "No TaskRepository bean of class %s found", repositoryClass
-      )));
+    return allRepositories.stream()
+        .filter(repositoryClass::isInstance)
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    format("No TaskRepository bean of class %s found", repositoryClass)));
   }
 
   @ConfigurationProperties("dual-task-repository")
   public static class Properties {
-    /**
-     * The primary TaskRepository class.
-     */
+    /** The primary TaskRepository class. */
     String primaryClass;
 
-    /**
-     * The previous TaskRepository class.
-     */
+    /** The previous TaskRepository class. */
     String previousClass;
 
     /**
-     * The number of threads that will be used for collating TaskRepository results from both primary and previous
-     * backends. For list operations, two threads will be used.
+     * The number of threads that will be used for collating TaskRepository results from both
+     * primary and previous backends. For list operations, two threads will be used.
      */
     int executorThreadPoolSize = 10;
 

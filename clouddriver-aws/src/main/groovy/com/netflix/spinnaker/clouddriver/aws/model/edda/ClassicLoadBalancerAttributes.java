@@ -38,5 +38,4 @@ public class ClassicLoadBalancerAttributes {
   public void setAttributes(LoadBalancerAttributes attributes) {
     this.attributes = attributes;
   }
-
 }

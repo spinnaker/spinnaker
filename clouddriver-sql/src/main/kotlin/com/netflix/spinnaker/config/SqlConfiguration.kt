@@ -40,19 +40,23 @@ class SqlConfiguration {
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
-  fun sqlTaskRepository(jooq: DSLContext,
-                        clock: Clock,
-                        sqlProperties: SqlProperties): TaskRepository =
+  fun sqlTaskRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    sqlProperties: SqlProperties
+  ): TaskRepository =
     SqlTaskRepository(jooq, ObjectMapper(), clock, sqlProperties.retries)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
   @ConditionalOnExpression("\${sql.read-only:false} == false")
-  fun sqlTaskCleanupAgent(jooq: DSLContext,
-                          clock: Clock,
-                          registry: Registry,
-                          properties: SqlTaskCleanupAgentProperties,
-                          sqlProperties: SqlProperties): SqlTaskCleanupAgent =
+  fun sqlTaskCleanupAgent(
+    jooq: DSLContext,
+    clock: Clock,
+    registry: Registry,
+    properties: SqlTaskCleanupAgentProperties,
+    sqlProperties: SqlProperties
+  ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlProperties.retries)
 
   @Bean

@@ -26,10 +26,15 @@ import lombok.NoArgsConstructor;
 
 public interface Manifest {
   Moniker getMoniker();
+
   String getAccount();
+
   String getName();
+
   String getLocation();
+
   Status getStatus();
+
   List<Warning> getWarnings();
 
   @Data

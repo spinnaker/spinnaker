@@ -20,5 +20,6 @@ import java.util.Collection;
 
 public interface AgentProvider {
   boolean supports(String providerName);
+
   Collection<Agent> agents();
 }

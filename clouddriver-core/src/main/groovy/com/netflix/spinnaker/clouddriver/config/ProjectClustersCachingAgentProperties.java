@@ -16,18 +16,15 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.google.common.base.Strings;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("caching-agent.project-clusters")
 public class ProjectClustersCachingAgentProperties {
 
-  /**
-   * A list of allowed project names that will be cached.
-   */
+  /** A list of allowed project names that will be cached. */
   List<String> allowList = new ArrayList<>();
 
   public List<String> getAllowList() {
@@ -40,8 +37,8 @@ public class ProjectClustersCachingAgentProperties {
 
   public List<String> getNormalizedAllowList() {
     return allowList.stream()
-      .filter(p -> !Strings.isNullOrEmpty(p))
-      .map(String::toLowerCase)
-      .collect(Collectors.toList());
+        .filter(p -> !Strings.isNullOrEmpty(p))
+        .map(String::toLowerCase)
+        .collect(Collectors.toList());
   }
 }

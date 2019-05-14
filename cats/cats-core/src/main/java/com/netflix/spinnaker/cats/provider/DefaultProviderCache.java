@@ -22,7 +22,6 @@ import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,18 +32,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An implementation of ProviderCache that writes through to a provided backing
- * WriteableCache.
- * <p>
- * This implementation will handle aggregating results from multiple sources, and
- * the view methods will merge relationships from all sources into a single relationship.
+ * An implementation of ProviderCache that writes through to a provided backing WriteableCache.
+ *
+ * <p>This implementation will handle aggregating results from multiple sources, and the view
+ * methods will merge relationships from all sources into a single relationship.
  */
 public class DefaultProviderCache implements ProviderCache {
 
-  private static final String ALL_ID = "_ALL_"; //dirty = true
-  private static final Map<String, Object> ALL_ATTRIBUTE = Collections.unmodifiableMap(new HashMap<String, Object>(1) {{
-    put("id", ALL_ID);
-  }});
+  private static final String ALL_ID = "_ALL_"; // dirty = true
+  private static final Map<String, Object> ALL_ATTRIBUTE =
+      Collections.unmodifiableMap(
+          new HashMap<String, Object>(1) {
+            {
+              put("id", ALL_ID);
+            }
+          });
 
   private final WriteableCache backingStore;
 
@@ -89,7 +91,8 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   @Override
-  public Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter) {
+  public Collection<CacheData> getAll(
+      String type, Collection<String> identifiers, CacheFilter cacheFilter) {
     validateTypes(type);
     Collection<CacheData> byId = backingStore.getAll(type, identifiers, cacheFilter);
     return buildResponse(byId);
@@ -125,7 +128,8 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   @Override
-  public void putCacheResult(String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
+  public void putCacheResult(
+      String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
     Set<String> allTypes = new HashSet<>(cacheResult.getCacheResults().keySet());
     allTypes.addAll(authoritativeTypes);
     allTypes.addAll(cacheResult.getEvictions().keySet());
@@ -160,13 +164,15 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   @Override
-  public void addCacheResult(String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
+  public void addCacheResult(
+      String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
     Set<String> allTypes = new HashSet<>(cacheResult.getCacheResults().keySet());
     validateTypes(allTypes);
 
-    allTypes.forEach(type -> {
-      cacheDataType(type, sourceAgentType, cacheResult.getCacheResults().get(type));
-    });
+    allTypes.forEach(
+        type -> {
+          cacheDataType(type, sourceAgentType, cacheResult.getCacheResults().get(type));
+        });
   }
 
   @Override
@@ -205,7 +211,8 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
-    CacheData all = backingStore.get(type, ALL_ID, RelationshipCacheFilter.include(sourceAgentType));
+    CacheData all =
+        backingStore.get(type, ALL_ID, RelationshipCacheFilter.include(sourceAgentType));
     if (all == null) {
       return new HashSet<>();
     }
@@ -241,7 +248,8 @@ public class DefaultProviderCache implements ProviderCache {
     for (Map.Entry<String, Collection<String>> entry : source.getRelationships().entrySet()) {
       relationships.put(entry.getKey() + ':' + sourceAgentType, entry.getValue());
     }
-    return new DefaultCacheData(source.getId(), source.getTtlSeconds(), source.getAttributes(), relationships);
+    return new DefaultCacheData(
+        source.getId(), source.getTtlSeconds(), source.getAttributes(), relationships);
   }
 
   private CacheData mergeRelationships(CacheData source) {

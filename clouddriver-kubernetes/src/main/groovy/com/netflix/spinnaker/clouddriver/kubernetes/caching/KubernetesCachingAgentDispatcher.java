@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-
 import java.util.Collection;
-import java.util.List;
 
 public interface KubernetesCachingAgentDispatcher {
-  Collection<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials);
+  Collection<KubernetesCachingAgent> buildAllCachingAgents(
+      KubernetesNamedAccountCredentials credentials);
 }

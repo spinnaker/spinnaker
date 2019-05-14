@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
+
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -27,21 +29,18 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
 import io.kubernetes.client.models.V1NetworkPolicy;
 import io.kubernetes.client.models.V1NetworkPolicyPort;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -61,13 +60,11 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
 
   @Override
   public SecurityGroupSummary getSummary() {
-    return KubernetesV2SecurityGroupSummary.builder()
-        .id(id)
-        .name(id)
-        .build();
+    return KubernetesV2SecurityGroupSummary.builder().id(id).name(id).build();
   }
 
-  KubernetesV2SecurityGroup(KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
+  KubernetesV2SecurityGroup(
+      KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
     this.manifest = manifest;
     this.id = manifest.getFullResourceName();
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
@@ -94,11 +91,16 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
       log.warn("Unknown security group kind " + manifest.getKind());
     } else {
       if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)) {
-        V1NetworkPolicy v1beta1NetworkPolicy = KubernetesCacheDataConverter.getResource(manifest, V1NetworkPolicy.class);
+        V1NetworkPolicy v1beta1NetworkPolicy =
+            KubernetesCacheDataConverter.getResource(manifest, V1NetworkPolicy.class);
         inboundRules = inboundRules(v1beta1NetworkPolicy);
         outboundRules = outboundRules(v1beta1NetworkPolicy);
       } else {
-        log.warn("Could not determine (in)/(out)bound rules for " + manifest.getName() + " at version " + manifest.getApiVersion());
+        log.warn(
+            "Could not determine (in)/(out)bound rules for "
+                + manifest.getName()
+                + " at version "
+                + manifest.getApiVersion());
       }
     }
 
@@ -146,6 +148,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   public static class StringPortRange extends Rule.PortRange {
     protected String startPortName;
     protected String endPortName;
+
     StringPortRange(String port) {
       Integer numPort;
       try {

@@ -23,7 +23,8 @@ public class NetflixAssumeRoleEcsCredentials extends NetflixECSCredentials {
   private final String sessionName;
   private final String awsAccount;
 
-  public NetflixAssumeRoleEcsCredentials(NetflixAssumeRoleAmazonCredentials copy, String awsAccount) {
+  public NetflixAssumeRoleEcsCredentials(
+      NetflixAssumeRoleAmazonCredentials copy, String awsAccount) {
     super(copy);
     this.assumeRole = copy.getAssumeRole();
     this.sessionName = copy.getSessionName();

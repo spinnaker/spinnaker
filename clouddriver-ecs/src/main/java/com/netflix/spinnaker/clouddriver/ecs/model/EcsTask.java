@@ -20,11 +20,10 @@ import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class EcsTask implements Instance, Serializable {
@@ -38,14 +37,15 @@ public class EcsTask implements Instance, Serializable {
   private String privateAddress;
   private NetworkInterface networkInterface;
 
-  public EcsTask(String name,
-                 Long launchTime,
-                 String lastStatus,
-                 String desiredStatus,
-                 String availabilityZone,
-                 List<Map<String, Object>> health,
-                 String privateAddress,
-                 NetworkInterface networkInterface) {
+  public EcsTask(
+      String name,
+      Long launchTime,
+      String lastStatus,
+      String desiredStatus,
+      String availabilityZone,
+      List<Map<String, Object>> health,
+      String privateAddress,
+      NetworkInterface networkInterface) {
     this.name = name;
     providerType = cloudProvider = EcsCloudProvider.ID;
     this.launchTime = launchTime;
@@ -57,13 +57,15 @@ public class EcsTask implements Instance, Serializable {
   }
 
   /**
-   * Maps the Last Status and Desired Status of a Tasks to a Health State understandable by Spinnaker
-   * <p>
-   * The mapping is based on:
-   * <p>
-   * Task Life Cycle: http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_life_cycle.html
+   * Maps the Last Status and Desired Status of a Tasks to a Health State understandable by
+   * Spinnaker
    *
-   * @param lastStatus    Last reported status of the Task
+   * <p>The mapping is based on:
+   *
+   * <p>Task Life Cycle:
+   * http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_life_cycle.html
+   *
+   * @param lastStatus Last reported status of the Task
    * @param desiredStatus Desired status of the Task
    * @return Spinnaker understandable Health State
    */

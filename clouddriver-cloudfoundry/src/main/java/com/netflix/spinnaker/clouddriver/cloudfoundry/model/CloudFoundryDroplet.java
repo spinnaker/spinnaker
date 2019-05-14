@@ -20,12 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Image;
+import java.util.Collection;
+import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
 
 @Value
 @EqualsAndHashCode(of = "id")

@@ -16,25 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.github;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.OkHttpClient;
-import org.apache.commons.io.Charsets;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junitpioneer.jupiter.TempDirectory;
-import ru.lanwen.wiremock.ext.WiremockResolver;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.commons.io.Charsets;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.TempDirectory;
+import ru.lanwen.wiremock.ext.WiremockResolver;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
 class GithubArtifactCredentialsTest {
@@ -54,7 +53,9 @@ class GithubArtifactCredentialsTest {
   }
 
   @Test
-  void downloadWithTokenFromFile(@TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server) throws IOException {
+  void downloadWithTokenFromFile(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "zzz".getBytes());
 
@@ -76,7 +77,9 @@ class GithubArtifactCredentialsTest {
   }
 
   @Test
-  void downloadWithBasicAuthFromFile(@TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server) throws IOException {
+  void downloadWithBasicAuthFromFile(
+      @TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
@@ -95,41 +98,45 @@ class GithubArtifactCredentialsTest {
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
+  private void runTestCase(
+      WireMockServer server,
+      GitHubArtifactAccount account,
+      Function<MappingBuilder, MappingBuilder> expectedAuth)
+      throws IOException {
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
 
-  private void runTestCase(WireMockServer server, GitHubArtifactAccount account, Function<MappingBuilder, MappingBuilder> expectedAuth) throws IOException {
-    GitHubArtifactCredentials credentials = new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
-
-    Artifact artifact = Artifact.builder()
-      .reference(server.baseUrl() + METADATA_PATH)
-      .version("master")
-      .type("github/file")
-      .build();
+    Artifact artifact =
+        Artifact.builder()
+            .reference(server.baseUrl() + METADATA_PATH)
+            .version("master")
+            .type("github/file")
+            .build();
 
     prepareServer(server, expectedAuth);
 
     assertThat(credentials.download(artifact))
-      .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(Charsets.UTF_8)));
+        .hasSameContentAs(new ByteArrayInputStream(FILE_CONTENTS.getBytes(Charsets.UTF_8)));
     assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
-  private void prepareServer(WireMockServer server, Function<MappingBuilder, MappingBuilder> withAuth) throws IOException {
+  private void prepareServer(
+      WireMockServer server, Function<MappingBuilder, MappingBuilder> withAuth) throws IOException {
     final String downloadPath = "/download/spinnaker/testing/master/manifest.yml";
 
-    GitHubArtifactCredentials.ContentMetadata contentMetadata = new GitHubArtifactCredentials.ContentMetadata().setDownloadUrl(server.baseUrl() + downloadPath);
+    GitHubArtifactCredentials.ContentMetadata contentMetadata =
+        new GitHubArtifactCredentials.ContentMetadata()
+            .setDownloadUrl(server.baseUrl() + downloadPath);
 
     server.stubFor(
-      withAuth.apply(
-        any(urlPathEqualTo(METADATA_PATH))
-          .withQueryParam("ref", equalTo("master"))
-          .willReturn(aResponse().withBody(objectMapper.writeValueAsString(contentMetadata)))
-      )
-    );
+        withAuth.apply(
+            any(urlPathEqualTo(METADATA_PATH))
+                .withQueryParam("ref", equalTo("master"))
+                .willReturn(
+                    aResponse().withBody(objectMapper.writeValueAsString(contentMetadata)))));
 
     server.stubFor(
-      withAuth.apply(
-        any(urlPathEqualTo(downloadPath))
-          .willReturn(aResponse().withBody(FILE_CONTENTS))
-      )
-    );
+        withAuth.apply(
+            any(urlPathEqualTo(downloadPath)).willReturn(aResponse().withBody(FILE_CONTENTS))));
   }
 }

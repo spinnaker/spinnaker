@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.orchestration.events;
 
 public interface OperationEvent {
   Type getType();
+
   Action getAction();
 
   String getCloudProvider();

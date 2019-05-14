@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 @Slf4j
 public class CredentialReader {

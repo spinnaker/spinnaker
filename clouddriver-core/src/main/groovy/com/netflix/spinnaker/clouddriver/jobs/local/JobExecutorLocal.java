@@ -18,11 +18,10 @@ package com.netflix.spinnaker.clouddriver.jobs.local;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.exec.*;
-
 import java.io.*;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.exec.*;
 
 @Slf4j
 public class JobExecutorLocal implements JobExecutor {
@@ -42,8 +41,10 @@ public class JobExecutorLocal implements JobExecutor {
     return executeWrapper(jobRequest, request -> executeStreaming(request, readerConsumer));
   }
 
-  private <T> JobResult<T> executeWrapper(final JobRequest jobRequest, RequestExecutor<T> requestExecutor) {
-    log.debug(String.format("Starting job: '%s'...", String.join(" ", jobRequest.getTokenizedCommand())));
+  private <T> JobResult<T> executeWrapper(
+      final JobRequest jobRequest, RequestExecutor<T> requestExecutor) {
+    log.debug(
+        String.format("Starting job: '%s'...", String.join(" ", jobRequest.getTokenizedCommand())));
     final String jobId = UUID.randomUUID().toString();
 
     JobResult<T> jobResult;
@@ -64,26 +65,30 @@ public class JobExecutorLocal implements JobExecutor {
     ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
 
-    Executor executor = buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
+    Executor executor =
+        buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
     int exitValue = executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment());
 
     return JobResult.<String>builder()
-      .result(exitValue == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
-      .killed(executor.getWatchdog().killedProcess())
-      .output(stdOut.toString())
-      .error(stdErr.toString())
-      .build();
+        .result(exitValue == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
+        .killed(executor.getWatchdog().killedProcess())
+        .output(stdOut.toString())
+        .error(stdErr.toString())
+        .build();
   }
 
-  private <T> JobResult<T> executeStreaming(JobRequest jobRequest, ReaderConsumer<T> consumer) throws IOException {
+  private <T> JobResult<T> executeStreaming(JobRequest jobRequest, ReaderConsumer<T> consumer)
+      throws IOException {
     PipedOutputStream stdOut = new PipedOutputStream();
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
 
-    Executor executor = buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
+    Executor executor =
+        buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment(), resultHandler);
 
-    T result = consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
+    T result =
+        consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
 
     try {
       resultHandler.waitFor();
@@ -94,18 +99,20 @@ public class JobExecutorLocal implements JobExecutor {
     }
 
     return JobResult.<T>builder()
-      .result(resultHandler.getExitValue() == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
-      .killed(executor.getWatchdog().killedProcess())
-      .output(result)
-      .error(stdErr.toString())
-      .build();
+        .result(
+            resultHandler.getExitValue() == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
+        .killed(executor.getWatchdog().killedProcess())
+        .output(result)
+        .error(stdErr.toString())
+        .build();
   }
 
   private Executor buildExecutor(ExecuteStreamHandler streamHandler) {
     Executor executor = new DefaultExecutor();
     executor.setStreamHandler(streamHandler);
     executor.setWatchdog(new ExecuteWatchdog(timeoutMinutes * 60 * 1000));
-    // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking the exit status
+    // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking
+    // the exit status
     // instead of having the executor throw an exception for non-zero exit codes.
     executor.setExitValues(null);
 

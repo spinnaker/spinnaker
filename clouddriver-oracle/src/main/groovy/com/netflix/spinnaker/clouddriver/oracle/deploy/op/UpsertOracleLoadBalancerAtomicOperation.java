@@ -68,7 +68,8 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   UpdateBackendSetDetails toUpdate(BackendSetDetails details, BackendSet existing) {
-    UpdateBackendSetDetails.Builder builder = UpdateBackendSetDetails.builder().policy(details.getPolicy());
+    UpdateBackendSetDetails.Builder builder =
+        UpdateBackendSetDetails.builder().policy(details.getPolicy());
     if (details.getHealthChecker() != null) {
       builder.healthChecker(details.getHealthChecker());
     }
@@ -78,13 +79,15 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
     if (details.getSslConfiguration() != null) {
       builder.sslConfiguration(details.getSslConfiguration());
     }
-    List<BackendDetails> backends = existing.getBackends().stream().map(b -> Details.of(b)).collect(Collectors.toList());
+    List<BackendDetails> backends =
+        existing.getBackends().stream().map(b -> Details.of(b)).collect(Collectors.toList());
     builder.backends(backends);
     return builder.build();
   }
 
   CreateBackendSetDetails toCreate(BackendSetDetails details, String name) {
-    CreateBackendSetDetails.Builder builder = CreateBackendSetDetails.builder().policy(details.getPolicy()).name(name);
+    CreateBackendSetDetails.Builder builder =
+        CreateBackendSetDetails.builder().policy(details.getPolicy()).name(name);
     if (details.getHealthChecker() != null) {
       builder.healthChecker(details.getHealthChecker());
     }
@@ -98,7 +101,8 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   CreateCertificateDetails toCreate(CertificateDetails details, String name) {
-    CreateCertificateDetails.Builder builder = CreateCertificateDetails.builder().certificateName(name);
+    CreateCertificateDetails.Builder builder =
+        CreateCertificateDetails.builder().certificateName(name);
     if (details.getCaCertificate() != null) {
       builder.caCertificate(details.getCaCertificate());
     }
@@ -115,8 +119,11 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   CreateListenerDetails toCreate(ListenerDetails details, String name) {
-    CreateListenerDetails.Builder builder = CreateListenerDetails.builder().name(name)
-      .protocol(details.getProtocol()).port(details.getPort());
+    CreateListenerDetails.Builder builder =
+        CreateListenerDetails.builder()
+            .name(name)
+            .protocol(details.getProtocol())
+            .port(details.getPort());
     if (details.getConnectionConfiguration() != null) {
       builder.connectionConfiguration(details.getConnectionConfiguration());
     }
@@ -136,8 +143,8 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   UpdateListenerDetails toUpdate(ListenerDetails details) {
-    UpdateListenerDetails.Builder builder = UpdateListenerDetails.builder()
-      .protocol(details.getProtocol()).port(details.getPort());
+    UpdateListenerDetails.Builder builder =
+        UpdateListenerDetails.builder().protocol(details.getProtocol()).port(details.getPort());
     if (details.getConnectionConfiguration() != null) {
       builder.connectionConfiguration(details.getConnectionConfiguration());
     }
@@ -158,67 +165,141 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
 
   void updateBackendSets(LoadBalancer lb, Task task) {
     if (lb.getBackendSets() != null) {
-      lb.getBackendSets().forEach( (name, existingBackendSet) -> {
-        BackendSetDetails backendSetUpdate = (description.getBackendSets() != null)?
-          description.getBackendSets().get(name) : null;
-        if (backendSetUpdate != null) {
-          // Update existing BackendSets
-          UpdateBackendSetResponse res = description.getCredentials().getLoadBalancerClient().updateBackendSet(
-            UpdateBackendSetRequest.builder().loadBalancerId(lb.getId()).backendSetName(name)
-            .updateBackendSetDetails(toUpdate(backendSetUpdate, existingBackendSet)).build());
-          task.updateStatus(UPDATE, "UpdateBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        } else {
-          // Delete backendSet: must have no backend and no listener
-          DeleteBackendSetResponse res = description.getCredentials().getLoadBalancerClient().deleteBackendSet(
-            DeleteBackendSetRequest.builder().loadBalancerId(lb.getId()).backendSetName(name).build());
-          task.updateStatus(UPDATE, "DeleteBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      lb.getBackendSets()
+          .forEach(
+              (name, existingBackendSet) -> {
+                BackendSetDetails backendSetUpdate =
+                    (description.getBackendSets() != null)
+                        ? description.getBackendSets().get(name)
+                        : null;
+                if (backendSetUpdate != null) {
+                  // Update existing BackendSets
+                  UpdateBackendSetResponse res =
+                      description
+                          .getCredentials()
+                          .getLoadBalancerClient()
+                          .updateBackendSet(
+                              UpdateBackendSetRequest.builder()
+                                  .loadBalancerId(lb.getId())
+                                  .backendSetName(name)
+                                  .updateBackendSetDetails(
+                                      toUpdate(backendSetUpdate, existingBackendSet))
+                                  .build());
+                  task.updateStatus(
+                      UPDATE,
+                      "UpdateBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+                  OracleWorkRequestPoller.poll(
+                      res.getOpcWorkRequestId(),
+                      UPDATE,
+                      task,
+                      description.getCredentials().getLoadBalancerClient());
+                } else {
+                  // Delete backendSet: must have no backend and no listener
+                  DeleteBackendSetResponse res =
+                      description
+                          .getCredentials()
+                          .getLoadBalancerClient()
+                          .deleteBackendSet(
+                              DeleteBackendSetRequest.builder()
+                                  .loadBalancerId(lb.getId())
+                                  .backendSetName(name)
+                                  .build());
+                  task.updateStatus(
+                      UPDATE,
+                      "DeleteBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+                  OracleWorkRequestPoller.poll(
+                      res.getOpcWorkRequestId(),
+                      UPDATE,
+                      task,
+                      description.getCredentials().getLoadBalancerClient());
+                }
+              });
     }
     // Add new backendSets
     Map<String, BackendSetDetails> backendSets = description.getBackendSets();
     if (backendSets != null) {
-      backendSets.forEach((name, details) -> {
-        if (!lb.getBackendSets().containsKey(name)) {
-          CreateBackendSetResponse res = description.getCredentials().getLoadBalancerClient().createBackendSet(
-            CreateBackendSetRequest.builder().loadBalancerId(description.getLoadBalancerId())
-            .createBackendSetDetails(toCreate(details, name)).build());
-          task.updateStatus(UPDATE, "CreateBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      backendSets.forEach(
+          (name, details) -> {
+            if (!lb.getBackendSets().containsKey(name)) {
+              CreateBackendSetResponse res =
+                  description
+                      .getCredentials()
+                      .getLoadBalancerClient()
+                      .createBackendSet(
+                          CreateBackendSetRequest.builder()
+                              .loadBalancerId(description.getLoadBalancerId())
+                              .createBackendSetDetails(toCreate(details, name))
+                              .build());
+              task.updateStatus(
+                  UPDATE,
+                  "CreateBackendSetRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+              OracleWorkRequestPoller.poll(
+                  res.getOpcWorkRequestId(),
+                  UPDATE,
+                  task,
+                  description.getCredentials().getLoadBalancerClient());
+            }
+          });
     }
   }
 
   void updateCertificates(LoadBalancer lb, Task task) {
     if (lb.getCertificates() != null) {
-      lb.getCertificates().forEach( (name, existingCert) -> {
-        CertificateDetails cert = (description.getCertificates() != null)?
-            description.getCertificates().get(name) : null;
-        if (cert == null) {
-          // Delete certificate: must have no listener using it
-          DeleteCertificateResponse res = description.getCredentials().getLoadBalancerClient().deleteCertificate(
-            DeleteCertificateRequest.builder().loadBalancerId(lb.getId()).certificateName(name).build());
-          task.updateStatus(UPDATE, "DeleteCertificateRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      lb.getCertificates()
+          .forEach(
+              (name, existingCert) -> {
+                CertificateDetails cert =
+                    (description.getCertificates() != null)
+                        ? description.getCertificates().get(name)
+                        : null;
+                if (cert == null) {
+                  // Delete certificate: must have no listener using it
+                  DeleteCertificateResponse res =
+                      description
+                          .getCredentials()
+                          .getLoadBalancerClient()
+                          .deleteCertificate(
+                              DeleteCertificateRequest.builder()
+                                  .loadBalancerId(lb.getId())
+                                  .certificateName(name)
+                                  .build());
+                  task.updateStatus(
+                      UPDATE,
+                      "DeleteCertificateRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+                  OracleWorkRequestPoller.poll(
+                      res.getOpcWorkRequestId(),
+                      UPDATE,
+                      task,
+                      description.getCredentials().getLoadBalancerClient());
+                }
+              });
     }
     // Add new certificate
     Map<String, CertificateDetails> certificates = description.getCertificates();
     if (certificates != null) {
-      certificates.forEach( (name, details) -> {
-        Certificate cert = lb.getCertificates().get(name);
-        if (cert == null) {
-          CreateCertificateResponse res = description.getCredentials().getLoadBalancerClient().createCertificate(
-            CreateCertificateRequest.builder().loadBalancerId(description.getLoadBalancerId())
-            .createCertificateDetails(toCreate(details, name)).build());
-          task.updateStatus(UPDATE, "CreateCertificateRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      certificates.forEach(
+          (name, details) -> {
+            Certificate cert = lb.getCertificates().get(name);
+            if (cert == null) {
+              CreateCertificateResponse res =
+                  description
+                      .getCredentials()
+                      .getLoadBalancerClient()
+                      .createCertificate(
+                          CreateCertificateRequest.builder()
+                              .loadBalancerId(description.getLoadBalancerId())
+                              .createCertificateDetails(toCreate(details, name))
+                              .build());
+              task.updateStatus(
+                  UPDATE,
+                  "CreateCertificateRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+              OracleWorkRequestPoller.poll(
+                  res.getOpcWorkRequestId(),
+                  UPDATE,
+                  task,
+                  description.getCredentials().getLoadBalancerClient());
+            }
+          });
     }
   }
 
@@ -226,60 +307,109 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
     task.updateStatus(UPDATE, "UpdateLoadBalancer: $lb.displayName");
     // Delete Listeners
     if (lb.getListeners() != null) {
-      lb.getListeners().forEach( (name, existingListener) -> {
-        ListenerDetails listenerUpdate = (description.getListeners() != null)?
-          description.getListeners().get(name) : null;
-        if (listenerUpdate != null) {
-          // listener could be updated to use new backendSet so do this after updating backendSets
-        } else {
-          DeleteListenerResponse res = description.getCredentials().getLoadBalancerClient().deleteListener(
-            DeleteListenerRequest.builder().loadBalancerId(lb.getId()).listenerName(name).build());
-          task.updateStatus(UPDATE, "DeleteListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      lb.getListeners()
+          .forEach(
+              (name, existingListener) -> {
+                ListenerDetails listenerUpdate =
+                    (description.getListeners() != null)
+                        ? description.getListeners().get(name)
+                        : null;
+                if (listenerUpdate != null) {
+                  // listener could be updated to use new backendSet so do this after updating
+                  // backendSets
+                } else {
+                  DeleteListenerResponse res =
+                      description
+                          .getCredentials()
+                          .getLoadBalancerClient()
+                          .deleteListener(
+                              DeleteListenerRequest.builder()
+                                  .loadBalancerId(lb.getId())
+                                  .listenerName(name)
+                                  .build());
+                  task.updateStatus(
+                      UPDATE,
+                      "DeleteListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+                  OracleWorkRequestPoller.poll(
+                      res.getOpcWorkRequestId(),
+                      UPDATE,
+                      task,
+                      description.getCredentials().getLoadBalancerClient());
+                }
+              });
     }
     updateBackendSets(lb, task);
     updateCertificates(lb, task);
-    //Update Listeners
+    // Update Listeners
     if (lb.getListeners() != null) {
-      lb.getListeners().forEach( (name, existingListener) -> {
-        ListenerDetails listenerUpdate = (description.getListeners() != null)?
-            description.getListeners().get(name) : null;
-        if (listenerUpdate !=null) {
-          UpdateListenerResponse res = description.getCredentials().getLoadBalancerClient().updateListener(
-            UpdateListenerRequest.builder().loadBalancerId(lb.getId()).listenerName(name)
-            .updateListenerDetails(toUpdate(listenerUpdate)).build());
-          task.updateStatus(UPDATE, "UpdateListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-          OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      lb.getListeners()
+          .forEach(
+              (name, existingListener) -> {
+                ListenerDetails listenerUpdate =
+                    (description.getListeners() != null)
+                        ? description.getListeners().get(name)
+                        : null;
+                if (listenerUpdate != null) {
+                  UpdateListenerResponse res =
+                      description
+                          .getCredentials()
+                          .getLoadBalancerClient()
+                          .updateListener(
+                              UpdateListenerRequest.builder()
+                                  .loadBalancerId(lb.getId())
+                                  .listenerName(name)
+                                  .updateListenerDetails(toUpdate(listenerUpdate))
+                                  .build());
+                  task.updateStatus(
+                      UPDATE,
+                      "UpdateListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+                  OracleWorkRequestPoller.poll(
+                      res.getOpcWorkRequestId(),
+                      UPDATE,
+                      task,
+                      description.getCredentials().getLoadBalancerClient());
+                }
+              });
     }
-    //Add new Listeners
+    // Add new Listeners
     Map<String, ListenerDetails> listeners = description.getListeners();
     if (listeners != null) {
-      listeners.forEach( (name, listener) -> {
-        if (!lb.getListeners().containsKey(name)) {
-          CreateListenerResponse res = description.getCredentials().getLoadBalancerClient().createListener(
-          CreateListenerRequest.builder().loadBalancerId(description.getLoadBalancerId())
-          .createListenerDetails(toCreate(listener, name)).build());
-        task.updateStatus(UPDATE, "CreateListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
-        OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), UPDATE, task, description.getCredentials().getLoadBalancerClient());
-        }
-      });
+      listeners.forEach(
+          (name, listener) -> {
+            if (!lb.getListeners().containsKey(name)) {
+              CreateListenerResponse res =
+                  description
+                      .getCredentials()
+                      .getLoadBalancerClient()
+                      .createListener(
+                          CreateListenerRequest.builder()
+                              .loadBalancerId(description.getLoadBalancerId())
+                              .createListenerDetails(toCreate(listener, name))
+                              .build());
+              task.updateStatus(
+                  UPDATE,
+                  "CreateListenerRequest of ${name} submitted - work request id: ${rs.getOpcWorkRequestId()}");
+              OracleWorkRequestPoller.poll(
+                  res.getOpcWorkRequestId(),
+                  UPDATE,
+                  task,
+                  description.getCredentials().getLoadBalancerClient());
+            }
+          });
     }
   }
 
   void create(Task task) {
     String clusterName = description.qualifiedName();
     task.updateStatus(CREATE, "Create LB: ${description.qualifiedName()}");
-    CreateLoadBalancerDetails.Builder lbDetails = CreateLoadBalancerDetails.builder()
-        .displayName(clusterName)
-        .compartmentId(description.getCredentials().getCompartmentId())
-        .shapeName(description.getShape())
-        .subnetIds(description.getSubnetIds());
+    CreateLoadBalancerDetails.Builder lbDetails =
+        CreateLoadBalancerDetails.builder()
+            .displayName(clusterName)
+            .compartmentId(description.getCredentials().getCompartmentId())
+            .shapeName(description.getShape())
+            .subnetIds(description.getSubnetIds());
     if (description.getIsPrivate()) {
-        lbDetails.isPrivate(description.getIsPrivate());
+      lbDetails.isPrivate(description.getIsPrivate());
     }
     if (description.getCertificates() != null) {
       lbDetails.certificates(description.getCertificates());
@@ -290,10 +420,21 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
     if (description.getListeners() != null) {
       lbDetails.listeners(description.getListeners());
     }
-    CreateLoadBalancerResponse res = description.getCredentials().getLoadBalancerClient().createLoadBalancer(
-      CreateLoadBalancerRequest.builder().createLoadBalancerDetails(lbDetails.build()).build());
-    task.updateStatus(CREATE, "Create LB rq submitted - work request id: ${rs.getOpcWorkRequestId()}");
-    OracleWorkRequestPoller.poll(res.getOpcWorkRequestId(), CREATE, task, description.getCredentials().getLoadBalancerClient());
+    CreateLoadBalancerResponse res =
+        description
+            .getCredentials()
+            .getLoadBalancerClient()
+            .createLoadBalancer(
+                CreateLoadBalancerRequest.builder()
+                    .createLoadBalancerDetails(lbDetails.build())
+                    .build());
+    task.updateStatus(
+        CREATE, "Create LB rq submitted - work request id: ${rs.getOpcWorkRequestId()}");
+    OracleWorkRequestPoller.poll(
+        res.getOpcWorkRequestId(),
+        CREATE,
+        task,
+        description.getCredentials().getLoadBalancerClient());
   }
 
   @Override
@@ -301,8 +442,15 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
     Task task = getTask();
     if (description.getLoadBalancerId() != null) {
       try {
-        LoadBalancer lb = description.getCredentials().getLoadBalancerClient().getLoadBalancer(
-          GetLoadBalancerRequest.builder().loadBalancerId(description.getLoadBalancerId()).build()).getLoadBalancer();
+        LoadBalancer lb =
+            description
+                .getCredentials()
+                .getLoadBalancerClient()
+                .getLoadBalancer(
+                    GetLoadBalancerRequest.builder()
+                        .loadBalancerId(description.getLoadBalancerId())
+                        .build())
+                .getLoadBalancer();
         if (lb != null) {
           update(lb, task);
         } else {
@@ -318,8 +466,10 @@ public class UpsertOracleLoadBalancerAtomicOperation implements AtomicOperation<
     } else {
       create(task);
     }
-    return mapOf("loadBalancers",
-      mapOf(description.getCredentials().getRegion(), mapOf("name", description.qualifiedName())));
+    return mapOf(
+        "loadBalancers",
+        mapOf(
+            description.getCredentials().getRegion(), mapOf("name", description.qualifiedName())));
   }
 
   Map<String, Object> mapOf(String key, Object val) {

@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanResize;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class KubernetesResizeServerGroupOperation implements AtomicOperation<Void> {
@@ -37,7 +36,9 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
   private final String accountName;
   private static final String OP_NAME = "RESIZE_KUBERNETES_SERVER_GROUP";
 
-  public KubernetesResizeServerGroupOperation(KubernetesResizeServerGroupDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesResizeServerGroupOperation(
+      KubernetesResizeServerGroupDescription description,
+      KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
@@ -58,13 +59,15 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanResize)) {
-      throw new IllegalArgumentException("Resource with " + coordinates + " does not support resize");
+      throw new IllegalArgumentException(
+          "Resource with " + coordinates + " does not support resize");
     }
 
     CanResize canResize = (CanResize) deployer;
 
     getTask().updateStatus(OP_NAME, "Calling resize operation...");
-    canResize.resize(credentials, coordinates.getNamespace(), coordinates.getName(), description.getCapacity());
+    canResize.resize(
+        credentials, coordinates.getNamespace(), coordinates.getName(), description.getCapacity());
 
     return null;
   }

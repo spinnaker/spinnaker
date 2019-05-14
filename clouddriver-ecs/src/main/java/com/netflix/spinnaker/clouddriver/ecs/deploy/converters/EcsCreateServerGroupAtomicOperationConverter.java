@@ -22,13 +22,13 @@ import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicO
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("ecsCreateServerGroup")
-public class EcsCreateServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class EcsCreateServerGroupAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -37,7 +37,8 @@ public class EcsCreateServerGroupAtomicOperationConverter extends AbstractAtomic
 
   @Override
   public CreateServerGroupDescription convertDescription(Map input) {
-    CreateServerGroupDescription converted = getObjectMapper().convertValue(input, CreateServerGroupDescription.class);
+    CreateServerGroupDescription converted =
+        getObjectMapper().convertValue(input, CreateServerGroupDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;

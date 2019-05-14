@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model;
 
-/**
- * A trust relationship allows a user or service to assume that role.
- */
+/** A trust relationship allows a user or service to assume that role. */
 public interface TrustRelationship {
 
   String getType();

@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.servergroup;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
@@ -26,18 +28,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.servergroup.Kubernetes
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
-
 @KubernetesOperation(RESIZE_SERVER_GROUP)
 @Component
-public class KubernetesResizeServerGroupConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired
-  private KubernetesResourcePropertyRegistry registry;
+public class KubernetesResizeServerGroupConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -46,8 +45,9 @@ public class KubernetesResizeServerGroupConverter extends AbstractAtomicOperatio
 
   @Override
   public KubernetesResizeServerGroupDescription convertDescription(Map input) {
-    return (KubernetesResizeServerGroupDescription) KubernetesAtomicOperationConverterHelper
-        .convertDescription(input, this, KubernetesDeployManifestDescription.class);
+    return (KubernetesResizeServerGroupDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesDeployManifestDescription.class);
   }
 
   @Override
@@ -55,4 +55,3 @@ public class KubernetesResizeServerGroupConverter extends AbstractAtomicOperatio
     return version == ProviderVersion.v2;
   }
 }
-

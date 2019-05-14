@@ -16,53 +16,58 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Index.atIndex;
+import static org.mockito.Mockito.verify;
+
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Index.atIndex;
-import static org.mockito.Mockito.verify;
-
-class DeleteCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
+class DeleteCloudFoundryLoadBalancerAtomicOperationTest
+    extends AbstractCloudFoundryAtomicOperationTest {
   DeleteCloudFoundryLoadBalancerAtomicOperationTest() {
     super();
   }
 
   @Test
   void deleteLoadBalancer() {
-    CloudFoundryLoadBalancer loadBalancer = CloudFoundryLoadBalancer.builder()
-      .id("id")
-      .host("host")
-      .domain(CloudFoundryDomain.builder().name("mydomain").build())
-      .build();
+    CloudFoundryLoadBalancer loadBalancer =
+        CloudFoundryLoadBalancer.builder()
+            .id("id")
+            .host("host")
+            .domain(CloudFoundryDomain.builder().name("mydomain").build())
+            .build();
 
-    DeleteCloudFoundryLoadBalancerDescription desc = new DeleteCloudFoundryLoadBalancerDescription();
+    DeleteCloudFoundryLoadBalancerDescription desc =
+        new DeleteCloudFoundryLoadBalancerDescription();
     desc.setClient(client);
     desc.setLoadBalancer(loadBalancer);
 
-    DeleteCloudFoundryLoadBalancerAtomicOperation op = new DeleteCloudFoundryLoadBalancerAtomicOperation(desc);
+    DeleteCloudFoundryLoadBalancerAtomicOperation op =
+        new DeleteCloudFoundryLoadBalancerAtomicOperation(desc);
 
     assertThat(runOperation(op).getHistory())
-      .has(status("Deleting load balancer " + loadBalancer.getName()), atIndex(1))
-      .has(status("Deleted load balancer " + loadBalancer.getName()), atIndex(2));
+        .has(status("Deleting load balancer " + loadBalancer.getName()), atIndex(1))
+        .has(status("Deleted load balancer " + loadBalancer.getName()), atIndex(2));
 
     verify(client.getRoutes()).deleteRoute(loadBalancer.getId());
   }
 
   @Test
   void nonExistentRoute() {
-    DeleteCloudFoundryLoadBalancerDescription desc = new DeleteCloudFoundryLoadBalancerDescription();
+    DeleteCloudFoundryLoadBalancerDescription desc =
+        new DeleteCloudFoundryLoadBalancerDescription();
     desc.setClient(client);
     desc.setLoadBalancer(null);
 
-    DeleteCloudFoundryLoadBalancerAtomicOperation op = new DeleteCloudFoundryLoadBalancerAtomicOperation(desc);
+    DeleteCloudFoundryLoadBalancerAtomicOperation op =
+        new DeleteCloudFoundryLoadBalancerAtomicOperation(desc);
 
     Task task = runOperation(op);
     List<Object> resultObjects = task.getResultObjects();
@@ -71,6 +76,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFou
     assertThat(o).isInstanceOf(Map.class);
     Object ex = ((Map) o).get("EXCEPTION");
     assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
-    assertThat(((CloudFoundryApiException) ex).getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer does not exist");
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .isEqualTo("Cloud Foundry API returned with error(s): Load balancer does not exist");
   }
 }

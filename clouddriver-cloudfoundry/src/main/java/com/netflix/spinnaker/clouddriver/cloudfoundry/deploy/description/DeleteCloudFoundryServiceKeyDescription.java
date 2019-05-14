@@ -21,7 +21,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DeleteCloudFoundryServiceKeyDescription extends AbstractCloudFoundryServiceDescription {
+public class DeleteCloudFoundryServiceKeyDescription
+    extends AbstractCloudFoundryServiceDescription {
   private String serviceInstanceName;
   private String serviceKeyName;
 }

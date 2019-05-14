@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.controllers;
 import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.AntPathMatcher;
@@ -27,9 +29,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @Slf4j
 @RequestMapping("/aws/cloudFormation/stacks")
@@ -44,8 +43,9 @@ class CloudFormationController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  List<CloudFormationStack> list(@RequestParam String accountName,
-                                 @RequestParam(required = false, defaultValue = "*") String region) {
+  List<CloudFormationStack> list(
+      @RequestParam String accountName,
+      @RequestParam(required = false, defaultValue = "*") String region) {
     log.debug("Cloud formation list stacks for account {}", accountName);
     return cloudFormationProvider.list(accountName, region);
   }
@@ -53,13 +53,14 @@ class CloudFormationController {
   @RequestMapping(method = RequestMethod.GET, value = "/**")
   CloudFormationStack get(HttpServletRequest request) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-    String stackId = new AntPathMatcher().extractPathWithinPattern(pattern, request.getRequestURI());
+    String stackId =
+        new AntPathMatcher().extractPathWithinPattern(pattern, request.getRequestURI());
     log.debug("Cloud formation get stack with id {}", stackId);
     return cloudFormationProvider
-      .get(stackId)
-      .orElseThrow(
-        () -> new NotFoundException(String.format("Cloud Formation stackId %s not found.", stackId))
-      );
+        .get(stackId)
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    String.format("Cloud Formation stackId %s not found.", stackId)));
   }
-
 }

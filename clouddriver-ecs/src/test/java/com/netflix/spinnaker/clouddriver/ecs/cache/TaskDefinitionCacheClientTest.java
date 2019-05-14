@@ -16,21 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskDefinitionCachingAgent;
-import org.junit.Test;
-import spock.lang.Subject;
-
 import java.util.Collections;
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import org.junit.Test;
+import spock.lang.Subject;
 
 public class TaskDefinitionCacheClientTest extends CommonCacheClient {
   ObjectMapper mapper = new ObjectMapper();
@@ -40,9 +39,10 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
 
   @Test
   public void shouldConvert() {
-    //Given
+    // Given
     ObjectMapper mapper = new ObjectMapper();
-    String taskDefinitionArn = "arn:aws:ecs:" + REGION + ":012345678910:task-definition/hello_world:10";
+    String taskDefinitionArn =
+        "arn:aws:ecs:" + REGION + ":012345678910:task-definition/hello_world:10";
     String key = Keys.getTaskDefinitionKey(ACCOUNT, REGION, taskDefinitionArn);
 
     ContainerDefinition containerDefinition = new ContainerDefinition();
@@ -56,15 +56,23 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
     taskDefinition.setCpu("2");
     taskDefinition.setContainerDefinitions(Collections.singleton(containerDefinition));
 
-    Map<String, Object> attributes = TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(taskDefinition);
-    attributes.put("containerDefinitions", Collections.singletonList(mapper.convertValue(containerDefinition, Map.class)));
-    when(cacheView.get(TASK_DEFINITIONS.toString(), key)).thenReturn(new DefaultCacheData(key, attributes, Collections.emptyMap()));
+    Map<String, Object> attributes =
+        TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(taskDefinition);
+    attributes.put(
+        "containerDefinitions",
+        Collections.singletonList(mapper.convertValue(containerDefinition, Map.class)));
+    when(cacheView.get(TASK_DEFINITIONS.toString(), key))
+        .thenReturn(new DefaultCacheData(key, attributes, Collections.emptyMap()));
 
-    //When
+    // When
     TaskDefinition retrievedTaskDefinition = client.get(key);
 
-    //Then
-    assertTrue("Expected the task definition to be " + taskDefinition + " but got " + retrievedTaskDefinition,
-      taskDefinition.equals(retrievedTaskDefinition));
+    // Then
+    assertTrue(
+        "Expected the task definition to be "
+            + taskDefinition
+            + " but got "
+            + retrievedTaskDefinition,
+        taskDefinition.equals(retrievedTaskDefinition));
   }
 }

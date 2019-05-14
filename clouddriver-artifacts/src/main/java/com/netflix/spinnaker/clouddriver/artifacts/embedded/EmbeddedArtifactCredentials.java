@@ -20,25 +20,21 @@ package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 
 @Slf4j
 public class EmbeddedArtifactCredentials implements ArtifactCredentials {
-  @Getter
-  private final String name;
-  @Getter
-  private final List<String> types = Collections.singletonList("embedded/base64");
+  @Getter private final String name;
+  @Getter private final List<String> types = Collections.singletonList("embedded/base64");
 
-  @JsonIgnore
-  private final Base64.Decoder base64Decoder;
+  @JsonIgnore private final Base64.Decoder base64Decoder;
 
   EmbeddedArtifactCredentials(EmbeddedArtifactAccount account) {
     name = account.getName();

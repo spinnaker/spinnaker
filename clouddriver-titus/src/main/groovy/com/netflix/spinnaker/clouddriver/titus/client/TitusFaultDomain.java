@@ -38,7 +38,6 @@ public class TitusFaultDomain {
     TitusFaultDomain that = (TitusFaultDomain) o;
 
     return name.equals(that.name);
-
   }
 
   @Override

@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import lombok.Data;
-
 import javax.annotation.Nullable;
+import lombok.Data;
 
 @Data
 public class PackageData {
-  @Nullable
-  private PackageChecksum checksum;
+  @Nullable private PackageChecksum checksum;
 }

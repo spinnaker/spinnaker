@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.client;
 
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
+
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
-
 @Component
-public class EcsClusterCacheClient extends AbstractCacheClient<EcsCluster>{
+public class EcsClusterCacheClient extends AbstractCacheClient<EcsCluster> {
 
   @Autowired
   public EcsClusterCacheClient(Cache cacheView) {

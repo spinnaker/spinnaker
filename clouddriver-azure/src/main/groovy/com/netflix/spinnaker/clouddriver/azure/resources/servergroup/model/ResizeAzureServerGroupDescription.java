@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model;
 
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class ResizeAzureServerGroupDescription extends AzureServerGroupDescription implements ServerGroupsNameable {
+public class ResizeAzureServerGroupDescription extends AzureServerGroupDescription
+    implements ServerGroupsNameable {
   private String serverGroupName;
   private Integer targetSize;
   private Capacity capacity;

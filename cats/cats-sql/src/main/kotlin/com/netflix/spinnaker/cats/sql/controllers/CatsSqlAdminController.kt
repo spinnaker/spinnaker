@@ -23,16 +23,20 @@ import java.sql.DriverManager
 @EnableConfigurationProperties(SqlProperties::class)
 @RestController
 @RequestMapping("/admin/db")
-class CatsSqlAdminController(private val fiat: FiatPermissionEvaluator,
-                             private val properties: SqlProperties) {
+class CatsSqlAdminController(
+  private val fiat: FiatPermissionEvaluator,
+  private val properties: SqlProperties
+) {
 
   companion object {
     private val log by lazy { LoggerFactory.getLogger(CatsSqlAdminController::class.java) }
   }
 
   @PutMapping(path = ["/truncate/{namespace}"])
-  fun truncateTables(@PathVariable("namespace") truncateNamespace: String,
-                     @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?): CleanTablesResult {
+  fun truncateTables(
+    @PathVariable("namespace") truncateNamespace: String,
+    @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?
+  ): CleanTablesResult {
 
     validatePermissions()
     validateParams(currentNamespace, truncateNamespace)
@@ -64,8 +68,10 @@ class CatsSqlAdminController(private val fiat: FiatPermissionEvaluator,
   }
 
   @PutMapping(path = ["/drop/{namespace}"])
-  fun dropTables(@PathVariable("namespace") dropNamespace: String,
-                 @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?): CleanTablesResult {
+  fun dropTables(
+    @PathVariable("namespace") dropNamespace: String,
+    @Value("\${sql.table-namespace:#{null}}") currentNamespace: String?
+  ): CleanTablesResult {
 
     validatePermissions()
     validateParams(currentNamespace, dropNamespace)

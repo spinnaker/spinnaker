@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.StopServiceDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class StopServiceAtomicOperation implements AtomicOperation<Void> {
@@ -36,5 +35,4 @@ public class StopServiceAtomicOperation implements AtomicOperation<Void> {
 
     return null;
   }
-
 }

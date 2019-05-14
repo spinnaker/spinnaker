@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Termina
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.TerminateCloudFoundryInstancesAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @CloudFoundryOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component
-public class TerminateCloudFoundryInstancesAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
+public class TerminateCloudFoundryInstancesAtomicOperationConverter
+    extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   @Override
   public AtomicOperation convertOperation(Map input) {
     return new TerminateCloudFoundryInstancesAtomicOperation(convertDescription(input));
@@ -35,7 +35,8 @@ public class TerminateCloudFoundryInstancesAtomicOperationConverter extends Abst
 
   @Override
   public TerminateCloudFoundryInstancesDescription convertDescription(Map input) {
-    TerminateCloudFoundryInstancesDescription converted = getObjectMapper().convertValue(input, TerminateCloudFoundryInstancesDescription.class);
+    TerminateCloudFoundryInstancesDescription converted =
+        getObjectMapper().convertValue(input, TerminateCloudFoundryInstancesDescription.class);
     converted.setClient(getClient(input));
     return converted;
   }

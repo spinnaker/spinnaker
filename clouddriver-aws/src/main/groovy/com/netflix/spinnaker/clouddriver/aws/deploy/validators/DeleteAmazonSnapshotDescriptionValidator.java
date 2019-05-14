@@ -22,25 +22,27 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
 @AmazonOperation(AtomicOperations.DELETE_SNAPSHOT)
 @Component
-public class DeleteAmazonSnapshotDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAmazonSnapshotDescription> {
+public class DeleteAmazonSnapshotDescriptionValidator
+    extends AmazonDescriptionValidationSupport<DeleteAmazonSnapshotDescription> {
 
   AccountCredentialsProvider accountCredentialsProvider;
 
   @Autowired
-  public DeleteAmazonSnapshotDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {
+  public DeleteAmazonSnapshotDescriptionValidator(
+      AccountCredentialsProvider accountCredentialsProvider) {
     this.accountCredentialsProvider = accountCredentialsProvider;
   }
 
   @Override
-  public void validate(List priorDescriptions, DeleteAmazonSnapshotDescription description, Errors errors) {
+  public void validate(
+      List priorDescriptions, DeleteAmazonSnapshotDescription description, Errors errors) {
     String key = DeleteAmazonSnapshotDescription.class.getSimpleName();
     validateRegion(description, description.getRegion(), key, errors);
 

@@ -16,20 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
 import static org.assertj.core.api.Java6Assertions.assertThat;
+
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 class ChainResolverTest {
   @Test
   void resolversAreUnwrapped() throws IOException {
-    ChainResolver chainResolver = new XmlMapper().readValue(
-      "<chain name=\"main\">\n" +
-        "  <ibiblio name=\"public\" m2compatible=\"true\" root=\"https://repo.spring.io/libs-release\" />\n" +
-        "</chain>", ChainResolver.class);
+    ChainResolver chainResolver =
+        new XmlMapper()
+            .readValue(
+                "<chain name=\"main\">\n"
+                    + "  <ibiblio name=\"public\" m2compatible=\"true\" root=\"https://repo.spring.io/libs-release\" />\n"
+                    + "</chain>",
+                ChainResolver.class);
 
     assertThat(chainResolver.getResolvers().getIbiblio()).hasSize(1);
   }

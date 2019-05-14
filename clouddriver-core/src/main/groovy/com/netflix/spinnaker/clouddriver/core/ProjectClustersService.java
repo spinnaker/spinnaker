@@ -23,29 +23,29 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import retrofit.RetrofitError;
-
-import javax.annotation.Nonnull;
-import javax.inject.Provider;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.inject.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProjectClustersService {
 
-  private final static Logger log = LoggerFactory.getLogger(ProjectClustersService.class);
+  private static final Logger log = LoggerFactory.getLogger(ProjectClustersService.class);
 
   private final Front50Service front50Service;
   private final ObjectMapper objectMapper;
   private final Provider<List<ClusterProvider>> clusterProviders;
 
-  public ProjectClustersService(Front50Service front50Service,
-                                ObjectMapper objectMapper,
-                                Provider<List<ClusterProvider>> clusterProviders) {
+  public ProjectClustersService(
+      Front50Service front50Service,
+      ObjectMapper objectMapper,
+      Provider<List<ClusterProvider>> clusterProviders) {
     this.front50Service = front50Service;
-    this.objectMapper = objectMapper.copy().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    this.objectMapper =
+        objectMapper.copy().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     this.clusterProviders = clusterProviders;
   }
 
@@ -90,36 +90,42 @@ public class ProjectClustersService {
     try {
       project = objectMapper.convertValue(projectData, Project.class);
     } catch (IllegalArgumentException e) {
-      throw new MalformedProjectDataException("Could not marshal project to internal model: " + projectName, e);
+      throw new MalformedProjectDataException(
+          "Could not marshal project to internal model: " + projectName, e);
     }
 
     return getProjectClusters(project);
   }
 
   public List<ClusterModel> getProjectClusters(Project project) {
-    List<String> applicationsToRetrieve = Optional.ofNullable(project.config.applications)
-      .orElse(Collections.emptyList());
+    List<String> applicationsToRetrieve =
+        Optional.ofNullable(project.config.applications).orElse(Collections.emptyList());
     Map<String, Set<Cluster>> allClusters = retrieveClusters(applicationsToRetrieve, project);
 
     return project.config.clusters.stream()
-      .map(projectCluster -> {
-        List<String> applications = Optional.ofNullable(projectCluster.applications).orElse(project.config.applications);
-        List<ApplicationClusterModel> applicationModels = applications.stream()
-          .map(application -> {
-            Set<Cluster> appClusters = allClusters.get(application);
-            Set<Cluster> clusterMatches = findClustersForProject(appClusters, projectCluster);
-            return new ApplicationClusterModel(application, clusterMatches);
-          })
-          .collect(Collectors.toList());
+        .map(
+            projectCluster -> {
+              List<String> applications =
+                  Optional.ofNullable(projectCluster.applications)
+                      .orElse(project.config.applications);
+              List<ApplicationClusterModel> applicationModels =
+                  applications.stream()
+                      .map(
+                          application -> {
+                            Set<Cluster> appClusters = allClusters.get(application);
+                            Set<Cluster> clusterMatches =
+                                findClustersForProject(appClusters, projectCluster);
+                            return new ApplicationClusterModel(application, clusterMatches);
+                          })
+                      .collect(Collectors.toList());
 
-        return new ClusterModel(
-          projectCluster.account,
-          projectCluster.stack,
-          projectCluster.detail,
-          applicationModels
-        );
-      })
-      .collect(Collectors.toList());
+              return new ClusterModel(
+                  projectCluster.account,
+                  projectCluster.stack,
+                  projectCluster.detail,
+                  applicationModels);
+            })
+        .collect(Collectors.toList());
   }
 
   private Map<String, Set<Cluster>> retrieveClusters(List<String> applications, Project project) {
@@ -127,57 +133,65 @@ public class ProjectClustersService {
 
     for (String application : applications) {
       for (RetrievedClusters clusters : retrieveClusters(application, project)) {
-        allClusters.computeIfAbsent(clusters.application, s -> new HashSet<>())
-          .addAll(clusters.clusters);
+        allClusters
+            .computeIfAbsent(clusters.application, s -> new HashSet<>())
+            .addAll(clusters.clusters);
       }
     }
 
     return allClusters;
   }
 
-  private Set<Cluster> findClustersForProject(Set<Cluster> appClusters, ProjectCluster projectCluster) {
+  private Set<Cluster> findClustersForProject(
+      Set<Cluster> appClusters, ProjectCluster projectCluster) {
     if (appClusters == null || appClusters.isEmpty()) {
       return Collections.emptySet();
     }
 
     return appClusters.stream()
-      .filter(appCluster -> {
-        Names clusterNameParts = Names.parseName(appCluster.getName());
-        return appCluster.getAccountName().equals(projectCluster.account) &&
-          nameMatches(clusterNameParts.getStack(), projectCluster.stack) &&
-          nameMatches(clusterNameParts.getDetail(), projectCluster.detail);
-      })
-      .collect(Collectors.toSet());
+        .filter(
+            appCluster -> {
+              Names clusterNameParts = Names.parseName(appCluster.getName());
+              return appCluster.getAccountName().equals(projectCluster.account)
+                  && nameMatches(clusterNameParts.getStack(), projectCluster.stack)
+                  && nameMatches(clusterNameParts.getDetail(), projectCluster.detail);
+            })
+        .collect(Collectors.toSet());
   }
 
   private List<RetrievedClusters> retrieveClusters(String application, Project project) {
     return clusterProviders.get().stream()
-      .map(clusterProvider -> {
-        Map<String, Set<Cluster>> clusterSummariesByAccount = clusterProvider.getClusterSummaries(application);
-        if (clusterSummariesByAccount == null) {
-          return null;
-        }
+        .map(
+            clusterProvider -> {
+              Map<String, Set<Cluster>> clusterSummariesByAccount =
+                  clusterProvider.getClusterSummaries(application);
+              if (clusterSummariesByAccount == null) {
+                return null;
+              }
 
-        Set<Cluster> allClusterSummaries = clusterSummariesByAccount
-          .values()
-          .stream()
-          .flatMap(Collection::stream)
-          .collect(Collectors.toSet());
+              Set<Cluster> allClusterSummaries =
+                  clusterSummariesByAccount.values().stream()
+                      .flatMap(Collection::stream)
+                      .collect(Collectors.toSet());
 
-        Set<Cluster> matchingClusterSummaries = new HashSet<>();
-        for (ProjectCluster projectCluster : project.config.clusters) {
-          matchingClusterSummaries.addAll(findClustersForProject(allClusterSummaries, projectCluster));
-        }
+              Set<Cluster> matchingClusterSummaries = new HashSet<>();
+              for (ProjectCluster projectCluster : project.config.clusters) {
+                matchingClusterSummaries.addAll(
+                    findClustersForProject(allClusterSummaries, projectCluster));
+              }
 
-        Set<Cluster> expandedClusters = matchingClusterSummaries
-          .stream()
-          .map(c -> clusterProvider.getCluster(c.getMoniker().getApp(), c.getAccountName(), c.getName()))
-          .collect(Collectors.toSet());
+              Set<Cluster> expandedClusters =
+                  matchingClusterSummaries.stream()
+                      .map(
+                          c ->
+                              clusterProvider.getCluster(
+                                  c.getMoniker().getApp(), c.getAccountName(), c.getName()))
+                      .collect(Collectors.toSet());
 
-        return new RetrievedClusters(application, expandedClusters);
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+              return new RetrievedClusters(application, expandedClusters);
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   static boolean nameMatches(String clusterNameValue, String projectClusterValue) {
@@ -224,7 +238,8 @@ public class ProjectClustersService {
     public List<ApplicationClusterModel> applications;
     public ServerGroup.InstanceCounts instanceCounts;
 
-    public ClusterModel(String account, String stack, String detail, List<ApplicationClusterModel> applications) {
+    public ClusterModel(
+        String account, String stack, String detail, List<ApplicationClusterModel> applications) {
       this.account = account;
       this.stack = stack;
       this.detail = detail;
@@ -236,9 +251,9 @@ public class ProjectClustersService {
       ServerGroup.InstanceCounts instanceCounts = new ServerGroup.InstanceCounts();
 
       applications.stream()
-        .flatMap(a -> a.clusters.stream())
-        .map(c -> c.instanceCounts)
-        .forEach(i -> incrementInstanceCounts(i, instanceCounts));
+          .flatMap(a -> a.clusters.stream())
+          .map(c -> c.instanceCounts)
+          .forEach(i -> incrementInstanceCounts(i, instanceCounts));
 
       return instanceCounts;
     }
@@ -252,48 +267,58 @@ public class ProjectClustersService {
       this.application = application;
       Map<String, RegionClusterModel> regionClusters = new HashMap<>();
       appClusters.stream()
-        .flatMap(ac -> ac.getServerGroups().stream())
-        .filter(serverGroup ->
-          serverGroup != null &&
-            (serverGroup.isDisabled() == null || !serverGroup.isDisabled()) &&
-            serverGroup.getInstanceCounts().getTotal() > 0)
-        .forEach((ServerGroup serverGroup) -> {
-          RegionClusterModel regionCluster = regionClusters.computeIfAbsent(
-            serverGroup.getRegion(),
-            s -> new RegionClusterModel(serverGroup.getRegion())
-          );
-          incrementInstanceCounts(serverGroup, regionCluster.instanceCounts);
+          .flatMap(ac -> ac.getServerGroups().stream())
+          .filter(
+              serverGroup ->
+                  serverGroup != null
+                      && (serverGroup.isDisabled() == null || !serverGroup.isDisabled())
+                      && serverGroup.getInstanceCounts().getTotal() > 0)
+          .forEach(
+              (ServerGroup serverGroup) -> {
+                RegionClusterModel regionCluster =
+                    regionClusters.computeIfAbsent(
+                        serverGroup.getRegion(),
+                        s -> new RegionClusterModel(serverGroup.getRegion()));
+                incrementInstanceCounts(serverGroup, regionCluster.instanceCounts);
 
-          ServerGroup.ImagesSummary imagesSummary = serverGroup.getImagesSummary();
-          List<? extends ServerGroup.ImageSummary> imageSummaries = imagesSummary == null ? new ArrayList() : imagesSummary.getSummaries();
-          JenkinsBuildInfo buildInfo = extractJenkinsBuildInfo(imageSummaries);
-          Optional<DeployedBuild> existingBuild = regionCluster.builds.stream()
-            .filter(b -> b.buildNumber.equals(buildInfo.number) &&
-              Optional.ofNullable(b.host).equals(Optional.ofNullable(buildInfo.host)) &&
-              Optional.ofNullable(b.job).equals(Optional.ofNullable(buildInfo.name)))
-            .findFirst();
+                ServerGroup.ImagesSummary imagesSummary = serverGroup.getImagesSummary();
+                List<? extends ServerGroup.ImageSummary> imageSummaries =
+                    imagesSummary == null ? new ArrayList() : imagesSummary.getSummaries();
+                JenkinsBuildInfo buildInfo = extractJenkinsBuildInfo(imageSummaries);
+                Optional<DeployedBuild> existingBuild =
+                    regionCluster.builds.stream()
+                        .filter(
+                            b ->
+                                b.buildNumber.equals(buildInfo.number)
+                                    && Optional.ofNullable(b.host)
+                                        .equals(Optional.ofNullable(buildInfo.host))
+                                    && Optional.ofNullable(b.job)
+                                        .equals(Optional.ofNullable(buildInfo.name)))
+                        .findFirst();
 
-          new OptionalConsumer<>(
-            (DeployedBuild b) -> {
-              b.deployed = Math.max(b.deployed, serverGroup.getCreatedTime());
-              List images = getServerGroupBuildInfoImages(imageSummaries);
-              if (images != null) {
-                images.forEach(image -> {
-                  if (image != null && !b.images.contains(image)) {
-                    b.images.add(image);
-                  }
-                });
-              }
-            },
-            () -> regionCluster.builds.add(new DeployedBuild(
-              buildInfo.host,
-              buildInfo.name,
-              buildInfo.number,
-              serverGroup.getCreatedTime(),
-              getServerGroupBuildInfoImages(imageSummaries)
-            ))
-          ).accept(existingBuild);
-        });
+                new OptionalConsumer<>(
+                        (DeployedBuild b) -> {
+                          b.deployed = Math.max(b.deployed, serverGroup.getCreatedTime());
+                          List images = getServerGroupBuildInfoImages(imageSummaries);
+                          if (images != null) {
+                            images.forEach(
+                                image -> {
+                                  if (image != null && !b.images.contains(image)) {
+                                    b.images.add(image);
+                                  }
+                                });
+                          }
+                        },
+                        () ->
+                            regionCluster.builds.add(
+                                new DeployedBuild(
+                                    buildInfo.host,
+                                    buildInfo.name,
+                                    buildInfo.number,
+                                    serverGroup.getCreatedTime(),
+                                    getServerGroupBuildInfoImages(imageSummaries))))
+                    .accept(existingBuild);
+              });
       clusters.addAll(regionClusters.values());
     }
 
@@ -362,11 +387,13 @@ public class ProjectClustersService {
     }
   }
 
-  private static void incrementInstanceCounts(ServerGroup source, ServerGroup.InstanceCounts target) {
+  private static void incrementInstanceCounts(
+      ServerGroup source, ServerGroup.InstanceCounts target) {
     incrementInstanceCounts(source.getInstanceCounts(), target);
   }
 
-  private static void incrementInstanceCounts(ServerGroup.InstanceCounts source, ServerGroup.InstanceCounts target) {
+  private static void incrementInstanceCounts(
+      ServerGroup.InstanceCounts source, ServerGroup.InstanceCounts target) {
     target.setTotal(target.getTotal() + source.getTotal());
     target.setUp(target.getUp() + source.getUp());
     target.setDown(target.getDown() + source.getDown());
@@ -376,7 +403,8 @@ public class ProjectClustersService {
   }
 
   @Nonnull
-  private static JenkinsBuildInfo extractJenkinsBuildInfo(List<? extends ServerGroup.ImageSummary> imageSummaries) {
+  private static JenkinsBuildInfo extractJenkinsBuildInfo(
+      List<? extends ServerGroup.ImageSummary> imageSummaries) {
     if (imageSummaries.isEmpty()) {
       return new JenkinsBuildInfo();
     }
@@ -398,7 +426,8 @@ public class ProjectClustersService {
     return new JenkinsBuildInfo(buildNumber, host, job);
   }
 
-  private static List getServerGroupBuildInfoImages(List<? extends ServerGroup.ImageSummary> imageSummaries) {
+  private static List getServerGroupBuildInfoImages(
+      List<? extends ServerGroup.ImageSummary> imageSummaries) {
     if (imageSummaries.isEmpty()) {
       return null;
     }

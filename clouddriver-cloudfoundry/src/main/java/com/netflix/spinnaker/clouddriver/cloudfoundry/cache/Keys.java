@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider.ID;
+import static java.util.Collections.emptyMap;
+
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
-import lombok.Getter;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider.ID;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
-import static java.util.Collections.emptyMap;
+import lombok.Getter;
+import org.springframework.stereotype.Component;
 
 @Component("CloudFoundryInfraKeys")
 public class Keys implements KeyParser {
@@ -75,46 +73,43 @@ public class Keys implements KeyParser {
   }
 
   public static String getApplicationKey(String app) {
-    return ID + ":" + APPLICATIONS + ":" + app;
+    return ID + ":" + Namespace.APPLICATIONS + ":" + app;
   }
 
   public static String getAllLoadBalancers() {
-    return ID + ":" + LOAD_BALANCERS + ":*";
+    return ID + ":" + Namespace.LOAD_BALANCERS + ":*";
   }
 
   public static String getLoadBalancerKey(String account, CloudFoundryLoadBalancer lb) {
-    return ID +
-      ":" + LOAD_BALANCERS +
-      ":" + account +
-      ":" + lb.getId() +
-      ":" + (lb.getHost() != null ? lb.getHost() : "") +
-      ":" + lb.getDomain().getName() +
-      ":" + (lb.getPath() != null ? lb.getPath() : "") +
-      ":" + (lb.getPort() != null ? lb.getPort() : -1) +
-      ":" + lb.getRegion();
+    return ID
+        + ":"
+        + Namespace.LOAD_BALANCERS
+        + ":"
+        + account
+        + ":"
+        + lb.getId()
+        + ":"
+        + (lb.getHost() != null ? lb.getHost() : "")
+        + ":"
+        + lb.getDomain().getName()
+        + ":"
+        + (lb.getPath() != null ? lb.getPath() : "")
+        + ":"
+        + (lb.getPort() != null ? lb.getPort() : -1)
+        + ":"
+        + lb.getRegion();
   }
 
   public static String getClusterKey(String account, String app, String name) {
-    return ID +
-      ":" + CLUSTERS +
-      ":" + account +
-      ":" + app +
-      ":" + name;
+    return ID + ":" + Namespace.CLUSTERS + ":" + account + ":" + app + ":" + name;
   }
 
   public static String getServerGroupKey(String account, String name, String region) {
-    return ID +
-      ":" + SERVER_GROUPS +
-      ":" + account +
-      ":" + name +
-      ":" + region;
+    return ID + ":" + Namespace.SERVER_GROUPS + ":" + account + ":" + name + ":" + region;
   }
 
   public static String getInstanceKey(String account, String instanceName) {
-    return ID +
-      ":" + INSTANCES +
-      ":" + account +
-      ":" + instanceName;
+    return ID + ":" + Namespace.INSTANCES + ":" + account + ":" + instanceName;
   }
 
   @Override

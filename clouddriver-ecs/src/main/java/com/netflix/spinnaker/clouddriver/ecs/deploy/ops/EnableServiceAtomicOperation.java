@@ -27,11 +27,11 @@ import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnableServiceAtomicOperation extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
+public class EnableServiceAtomicOperation
+    extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
 
   public EnableServiceAtomicOperation(ModifyServiceDescription description) {
     super(description, "ENABLE_ECS_SERVER_GROUP");
@@ -51,10 +51,11 @@ public class EnableServiceAtomicOperation extends AbstractEcsAtomicOperation<Mod
     String account = description.getCredentialAccount();
     String cluster = getCluster(service, account);
 
-    UpdateServiceRequest request = new UpdateServiceRequest()
-      .withCluster(cluster)
-      .withService(service)
-      .withDesiredCount(getMaxCapacity(cluster));
+    UpdateServiceRequest request =
+        new UpdateServiceRequest()
+            .withCluster(cluster)
+            .withService(service)
+            .withDesiredCount(getMaxCapacity(cluster));
 
     updateTaskStatus(String.format("Enabling %s server group for %s.", service, account));
     ecsClient.updateService(request);
@@ -75,10 +76,11 @@ public class EnableServiceAtomicOperation extends AbstractEcsAtomicOperation<Mod
     List<String> resourceIds = new ArrayList<>();
     resourceIds.add(String.format("service/%s/%s", cluster, description.getServerGroupName()));
 
-    DescribeScalableTargetsRequest request = new DescribeScalableTargetsRequest()
-      .withResourceIds(resourceIds)
-      .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-      .withServiceNamespace(ServiceNamespace.Ecs);
+    DescribeScalableTargetsRequest request =
+        new DescribeScalableTargetsRequest()
+            .withResourceIds(resourceIds)
+            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+            .withServiceNamespace(ServiceNamespace.Ecs);
 
     DescribeScalableTargetsResult result = appASClient.describeScalableTargets(request);
 
@@ -100,5 +102,4 @@ public class EnableServiceAtomicOperation extends AbstractEcsAtomicOperation<Mod
 
     return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, region, false);
   }
-
 }

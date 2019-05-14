@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 /**
- * This interface is used by the credentials refresh controller to identify credentials initializers that should be
- * re-created when the credentials have changed.
+ * This interface is used by the credentials refresh controller to identify credentials initializers
+ * that should be re-created when the credentials have changed.
  */
 public interface CredentialsInitializerSynchronizable {
   /**
-   * Get the name of the bean to request from Spring's application context. It is expected that the Accounts and Agents
-   * managed by the credentials initializer will be synchronized with the latest configured accounts as a result of
-   * requesting this bean.
+   * Get the name of the bean to request from Spring's application context. It is expected that the
+   * Accounts and Agents managed by the credentials initializer will be synchronized with the latest
+   * configured accounts as a result of requesting this bean.
    */
   String getCredentialsSynchronizationBeanName();
 }

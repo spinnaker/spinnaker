@@ -27,13 +27,12 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsServerGroupEvent;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/applications/{application}/serverGroups/{account}/{serverGroupName}")
@@ -48,10 +47,11 @@ public class EcsServerGroupController {
   private final ServerGroupEventStatusConverter statusConverter;
 
   @Autowired
-  public EcsServerGroupController(AccountCredentialsProvider accountCredentialsProvider,
-                                  AmazonClientProvider amazonClientProvider,
-                                  ServiceCacheClient serviceCacheClient,
-                                  ServerGroupEventStatusConverter statusConverter) {
+  public EcsServerGroupController(
+      AccountCredentialsProvider accountCredentialsProvider,
+      AmazonClientProvider amazonClientProvider,
+      ServiceCacheClient serviceCacheClient,
+      ServerGroupEventStatusConverter statusConverter) {
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.amazonClientProvider = amazonClientProvider;
     this.serviceCacheClient = serviceCacheClient;
@@ -59,32 +59,36 @@ public class EcsServerGroupController {
   }
 
   @RequestMapping(value = "/events", method = RequestMethod.GET)
-  ResponseEntity getServerGroupEvents(@PathVariable String account,
-                                      @PathVariable String serverGroupName,
-                                      @RequestParam(value = "region", required = true) String region) {
-    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
+  ResponseEntity getServerGroupEvents(
+      @PathVariable String account,
+      @PathVariable String serverGroupName,
+      @RequestParam(value = "region", required = true) String region) {
+    NetflixAmazonCredentials credentials =
+        (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
 
     if (!(credentials instanceof NetflixECSCredentials)) {
-      return new ResponseEntity(String.format("Account %s is not an ECS account", account), HttpStatus.BAD_REQUEST);
+      return new ResponseEntity(
+          String.format("Account %s is not an ECS account", account), HttpStatus.BAD_REQUEST);
     }
 
     AmazonECS ecs = amazonClientProvider.getAmazonEcs(credentials, region, true);
 
-    Service cachedService = serviceCacheClient.getAll(account, region).stream()
-      .filter(service -> service.getServiceName().equals(serverGroupName))
-      .findFirst()
-      .get();
+    Service cachedService =
+        serviceCacheClient.getAll(account, region).stream()
+            .filter(service -> service.getServiceName().equals(serverGroupName))
+            .findFirst()
+            .get();
 
-    DescribeServicesResult describeServicesResult = ecs.describeServices(
-      new DescribeServicesRequest()
-        .withServices(serverGroupName)
-        .withCluster(cachedService.getClusterArn())
-    );
+    DescribeServicesResult describeServicesResult =
+        ecs.describeServices(
+            new DescribeServicesRequest()
+                .withServices(serverGroupName)
+                .withCluster(cachedService.getClusterArn()));
 
     if (describeServicesResult.getServices().size() == 0) {
       return new ResponseEntity(
-        String.format("Server group %s was not found in account ", serverGroupName, account),
-        HttpStatus.NOT_FOUND);
+          String.format("Server group %s was not found in account ", serverGroupName, account),
+          HttpStatus.NOT_FOUND);
     }
 
     List<ServiceEvent> rawEvents = describeServicesResult.getServices().get(0).getEvents();
@@ -92,12 +96,12 @@ public class EcsServerGroupController {
     List<EcsServerGroupEvent> events = new ArrayList<>();
 
     for (ServiceEvent rawEvent : rawEvents) {
-      EcsServerGroupEvent newEvent = new EcsServerGroupEvent(
-        rawEvent.getMessage(),
-        rawEvent.getCreatedAt(),
-        rawEvent.getId(),
-        statusConverter.inferEventStatus(rawEvent)
-        );
+      EcsServerGroupEvent newEvent =
+          new EcsServerGroupEvent(
+              rawEvent.getMessage(),
+              rawEvent.getCreatedAt(),
+              rawEvent.getId(),
+              statusConverter.inferEventStatus(rawEvent));
       events.add(newEvent);
     }
 

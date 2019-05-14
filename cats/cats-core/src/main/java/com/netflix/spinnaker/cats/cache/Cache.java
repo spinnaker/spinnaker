@@ -21,19 +21,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Cache provides view access to data keyed by type and identifier.
- */
+/** Cache provides view access to data keyed by type and identifier. */
 public interface Cache {
   enum StoreType {
-    REDIS, IN_MEMORY, SQL
+    REDIS,
+    IN_MEMORY,
+    SQL
   }
 
   /**
    * Gets a single item from the cache by type and id
    *
    * @param type the type of the item
-   * @param id   the id of the item
+   * @param id the id of the item
    * @return the item matching the type and id
    */
   CacheData get(String type, String id);
@@ -43,8 +43,8 @@ public interface Cache {
   /**
    * Determines if a specified id exists in the cache without loading the data.
    *
-   * @param type        the type of the item
-   * @param identifier  the id of the item
+   * @param type the type of the item
+   * @param identifier the id of the item
    * @return true iff the item is present in the cache
    */
   default boolean exists(String type, String identifier) {
@@ -54,7 +54,7 @@ public interface Cache {
   /**
    * Filters the supplied list of identifiers to only those that exist in the cache.
    *
-   * @param type        the type of the item
+   * @param type the type of the item
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
@@ -104,28 +104,29 @@ public interface Cache {
   /**
    * Retrieves the items for the specified type matching the provided identifiers
    *
-   * @param type        the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param identifiers the identifiers
    * @return the items matching the type and identifiers
    */
   Collection<CacheData> getAll(String type, Collection<String> identifiers);
 
-  Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter);
+  Collection<CacheData> getAll(
+      String type, Collection<String> identifiers, CacheFilter cacheFilter);
 
   /**
    * Retrieves the items for the specified type matching the provided identifiers
    *
-   * @param type        the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param identifiers the identifiers
    * @return the items matching the type and identifiers
    */
   Collection<CacheData> getAll(String type, String... identifiers);
 
   /**
-   * Retrieves all items for the specified type associated with the provided application.
-   * Requires a storeType with secondary indexes and support in the type's caching agent.
+   * Retrieves all items for the specified type associated with the provided application. Requires a
+   * storeType with secondary indexes and support in the type's caching agent.
    *
-   * @param type  the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param application the application name
    * @return the matching items, keyed by type
    */
@@ -134,32 +135,30 @@ public interface Cache {
   }
 
   /**
-   * Retrieves all items for the specified type associated with the provided application.
-   * Requires a storeType with secondary indexes and support in the type's caching agent.
+   * Retrieves all items for the specified type associated with the provided application. Requires a
+   * storeType with secondary indexes and support in the type's caching agent.
    *
-   * @param type  the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param application the application name
    * @param cacheFilter the cacheFilter to govern which relationships to fetch
    * @return the matching items, keyed by type
    */
-  default Map<String, Collection<CacheData>> getAllByApplication(String type,
-                                                    String application,
-                                                    CacheFilter cacheFilter) {
+  default Map<String, Collection<CacheData>> getAllByApplication(
+      String type, String application, CacheFilter cacheFilter) {
     throw new UnsupportedCacheMethodException("Method only implemented for StoreType.SQL");
   }
 
   /**
-   * Retrieves all items for the specified type associated with the provided application.
-   * Requires a storeType with secondary indexes and support in the type's caching agent.
+   * Retrieves all items for the specified type associated with the provided application. Requires a
+   * storeType with secondary indexes and support in the type's caching agent.
    *
-   * @param types  collection of types for which to retrieve items
+   * @param types collection of types for which to retrieve items
    * @param application the application name
    * @param cacheFilters cacheFilters to govern which relationships to fetch, as type to filter
    * @return the matching items, keyed by type
    */
-  default Map<String, Collection<CacheData>> getAllByApplication(Collection<String> types,
-                                                                 String application,
-                                                                 Map<String, CacheFilter> cacheFilters) {
+  default Map<String, Collection<CacheData>> getAllByApplication(
+      Collection<String> types, String application, Map<String, CacheFilter> cacheFilters) {
     throw new UnsupportedCacheMethodException("Method only implemented for StoreType.SQL");
   }
 

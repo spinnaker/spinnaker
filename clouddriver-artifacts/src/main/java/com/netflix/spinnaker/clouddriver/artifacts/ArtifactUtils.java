@@ -17,22 +17,23 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts;
 
+import java.io.*;
+import java.util.Stack;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
-import java.io.*;
-import java.util.Stack;
-
 public class ArtifactUtils {
   public static final String GCE_IMAGE_TYPE = "gce/image";
 
-  public static void untarStreamToPath(InputStream inputStream, String basePath) throws IOException {
+  public static void untarStreamToPath(InputStream inputStream, String basePath)
+      throws IOException {
     class DirectoryTimestamp {
       public DirectoryTimestamp(File d, long m) {
-          directory = d;
-          millis = m;
+        directory = d;
+        millis = m;
       }
+
       public File directory;
       public long millis;
     }
@@ -45,15 +46,15 @@ public class ArtifactUtils {
 
     TarArchiveInputStream tarStream = new TarArchiveInputStream(inputStream);
     for (TarArchiveEntry entry = tarStream.getNextTarEntry();
-         entry != null;
-         entry = tarStream.getNextTarEntry()) {
-        File target = new File(baseDirectory, entry.getName());
-        if (entry.isDirectory()) {
-          directoryStack.push(new DirectoryTimestamp(target, entry.getModTime().getTime()));
-          continue;
-        }
-        writeStreamToFile(tarStream, target);
-        target.setLastModified(entry.getModTime().getTime());
+        entry != null;
+        entry = tarStream.getNextTarEntry()) {
+      File target = new File(baseDirectory, entry.getName());
+      if (entry.isDirectory()) {
+        directoryStack.push(new DirectoryTimestamp(target, entry.getModTime().getTime()));
+        continue;
+      }
+      writeStreamToFile(tarStream, target);
+      target.setLastModified(entry.getModTime().getTime());
     }
 
     while (!directoryStack.empty()) {
@@ -66,7 +67,7 @@ public class ArtifactUtils {
   public static void writeStreamToFile(InputStream sourceStream, File target) throws IOException {
     File parent = target.getParentFile();
     if (!parent.exists()) {
-        parent.mkdirs();
+      parent.mkdirs();
     }
     OutputStream targetStream = new FileOutputStream(target);
     IOUtils.copy(sourceStream, targetStream);

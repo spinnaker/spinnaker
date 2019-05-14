@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.LOWEST_PRIORITY;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesUnregisteredCustomResourceCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -25,10 +27,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.LOWEST_PRIORITY;
-
 @Component
-public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandler
+    implements CanDelete {
   @Override
   public int deployPriority() {
     return LOWEST_PRIORITY.getValue();

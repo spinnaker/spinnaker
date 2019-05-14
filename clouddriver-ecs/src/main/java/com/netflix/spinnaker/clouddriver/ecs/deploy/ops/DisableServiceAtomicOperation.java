@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
-
 import java.util.List;
 
-public class DisableServiceAtomicOperation extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
+public class DisableServiceAtomicOperation
+    extends AbstractEcsAtomicOperation<ModifyServiceDescription, Void> {
 
   public DisableServiceAtomicOperation(ModifyServiceDescription description) {
     super(description, "DISABLE_ECS_SERVER_GROUP");
@@ -43,10 +43,8 @@ public class DisableServiceAtomicOperation extends AbstractEcsAtomicOperation<Mo
     String cluster = getCluster(service, account);
 
     updateTaskStatus(String.format("Disabling %s server group for %s.", service, account));
-    UpdateServiceRequest request = new UpdateServiceRequest()
-      .withCluster(cluster)
-      .withService(service)
-      .withDesiredCount(0);
+    UpdateServiceRequest request =
+        new UpdateServiceRequest().withCluster(cluster).withService(service).withDesiredCount(0);
     ecs.updateService(request);
     updateTaskStatus(String.format("Server group %s disabled for %s.", service, account));
   }

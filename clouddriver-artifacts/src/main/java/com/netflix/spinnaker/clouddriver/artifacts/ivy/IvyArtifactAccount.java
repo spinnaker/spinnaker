@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
+import static java.util.Collections.singletonList;
+
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.IvySettings;
-import lombok.Data;
-
 import java.util.List;
-
-import static java.util.Collections.singletonList;
+import lombok.Data;
 
 @Data
 public class IvyArtifactAccount implements ArtifactAccount {

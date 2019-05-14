@@ -18,20 +18,19 @@
 package com.netflix.spinnaker.clouddriver.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class ArtifactDownloader {
-  final private ArtifactCredentialsRepository artifactCredentialsRepository;
+  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   public InputStream download(Artifact artifact) throws IOException {
     return artifactCredentialsRepository
-      .getCredentials(artifact.getArtifactAccount(), artifact.getType())
-      .download(artifact);
+        .getCredentials(artifact.getArtifactAccount(), artifact.getType())
+        .download(artifact);
   }
 }

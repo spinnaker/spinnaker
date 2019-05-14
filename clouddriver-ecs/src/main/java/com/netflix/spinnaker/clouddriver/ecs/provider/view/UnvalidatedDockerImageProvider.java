@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
-import org.springframework.stereotype.Component;
+import static com.netflix.spinnaker.clouddriver.ecs.provider.view.EcrImageProvider.ECR_REPOSITORY_URI_PATTERN;
 
+import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
-
-import static com.netflix.spinnaker.clouddriver.ecs.provider.view.EcrImageProvider.ECR_REPOSITORY_URI_PATTERN;
+import org.springframework.stereotype.Component;
 
 /**
- * This ImageRepositoryProvider does not validate that the image does indeed exist.  An invalid image URL will lead to
- * the ECS Agent to fail at starting ECS tasks for the deployed server group, and is likely to be painful
- * to track and fix for users.  Still, this class allows to decouple the ECS cloud provider from the ECR docker registry.
+ * This ImageRepositoryProvider does not validate that the image does indeed exist. An invalid image
+ * URL will lead to the ECS Agent to fail at starting ECS tasks for the deployed server group, and
+ * is likely to be painful to track and fix for users. Still, this class allows to decouple the ECS
+ * cloud provider from the ECR docker registry.
  */
 @Component
 public class UnvalidatedDockerImageProvider implements ImageRepositoryProvider {

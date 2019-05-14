@@ -20,12 +20,12 @@ import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeleteLambdaF
 import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.DeleteLambdaAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component("deleteLambdaFunction")
-public class DeleteLambdaFunctionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+public class DeleteLambdaFunctionAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
 
   public AtomicOperation convertOperation(Map input) {
     return new DeleteLambdaAtomicOperation(convertDescription(input));
@@ -33,7 +33,8 @@ public class DeleteLambdaFunctionAtomicOperationConverter extends AbstractAtomic
 
   @Override
   public DeleteLambdaFunctionDescription convertDescription(Map input) {
-    DeleteLambdaFunctionDescription converted = getObjectMapper().convertValue(input, DeleteLambdaFunctionDescription.class);
+    DeleteLambdaFunctionDescription converted =
+        getObjectMapper().convertValue(input, DeleteLambdaFunctionDescription.class);
     converted.setCredentials(getCredentialsObject(input.get("credentials").toString()));
 
     return converted;

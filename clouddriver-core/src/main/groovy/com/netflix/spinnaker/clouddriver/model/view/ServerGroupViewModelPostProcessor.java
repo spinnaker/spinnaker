@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.model.view;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 
 /**
- * (Optionally) used in clouddriver-web by the ServerGroupController to mutate server group API data.
+ * (Optionally) used in clouddriver-web by the ServerGroupController to mutate server group API
+ * data.
  */
 public interface ServerGroupViewModelPostProcessor<T extends ServerGroup> {
 

@@ -22,6 +22,9 @@ import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +34,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -53,30 +52,32 @@ public class ManifestController {
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/_/{name:.+}", method = RequestMethod.GET)
-  Manifest getForAccountAndName(@PathVariable String account,
-      @PathVariable String name) {
+  Manifest getForAccountAndName(@PathVariable String account, @PathVariable String name) {
     return getForAccountLocationAndName(account, "", name);
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/{location:.+}/{name:.+}", method = RequestMethod.GET)
-  Manifest getForAccountLocationAndName(@PathVariable String account,
-      @PathVariable String location,
-      @PathVariable String name) {
-    List<Manifest> manifests = manifestProviders.stream()
-        .map(provider -> {
-          try {
-            return requestQueue.execute(account, () -> provider.getManifest(account, location, name));
-          } catch (Throwable t) {
-            log.warn("Failed to read manifest " , t);
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+  Manifest getForAccountLocationAndName(
+      @PathVariable String account, @PathVariable String location, @PathVariable String name) {
+    List<Manifest> manifests =
+        manifestProviders.stream()
+            .map(
+                provider -> {
+                  try {
+                    return requestQueue.execute(
+                        account, () -> provider.getManifest(account, location, name));
+                  } catch (Throwable t) {
+                    log.warn("Failed to read manifest ", t);
+                    return null;
+                  }
+                })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-    String request = String.format("(account: %s, location: %s, name: %s)", account, location, name);
+    String request =
+        String.format("(account: %s, location: %s, name: %s)", account, location, name);
     if (manifests.isEmpty()) {
       throw new NotFoundException("Manifest " + request + " not found");
     } else if (manifests.size() > 1) {
@@ -88,29 +89,43 @@ public class ManifestController {
   }
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
-  Manifest getForAccountLocationAndName(@PathVariable String account,
-      @PathVariable String name) {
+  Manifest getForAccountLocationAndName(@PathVariable String account, @PathVariable String name) {
     return getForAccountLocationAndName(account, "", name);
   }
 
-  @RequestMapping(value = "/{account:.+}/{location:.+}/{kind:.+}/cluster/{app:.+}/{cluster:.+}/dynamic/{criteria:.+}", method = RequestMethod.GET)
-  Manifest getDynamicManifestFromCluster(@PathVariable String account,
+  @RequestMapping(
+      value =
+          "/{account:.+}/{location:.+}/{kind:.+}/cluster/{app:.+}/{cluster:.+}/dynamic/{criteria:.+}",
+      method = RequestMethod.GET)
+  Manifest getDynamicManifestFromCluster(
+      @PathVariable String account,
       @PathVariable String location,
       @PathVariable String kind,
       @PathVariable String app,
       @PathVariable String cluster,
       @PathVariable Criteria criteria) {
-    final String request = String.format("(account: %s, location: %s, kind: %s, app %s, cluster: %s, criteria: %s)", account, location, kind, app, cluster, criteria);
-    List<List<Manifest>> manifestSet = manifestProviders.stream()
-        .map(p -> {
-          try {
-            return (List<Manifest>) requestQueue.execute(account, () -> p.getClusterAndSortAscending(account, location, kind, app, cluster, criteria.getSort()));
-          } catch (Throwable t) {
-            log.warn("Failed to read {}", request, t);
-            return null;
-          }
-        }).filter(l -> l != null && !l.isEmpty())
-        .collect(Collectors.toList());
+    final String request =
+        String.format(
+            "(account: %s, location: %s, kind: %s, app %s, cluster: %s, criteria: %s)",
+            account, location, kind, app, cluster, criteria);
+    List<List<Manifest>> manifestSet =
+        manifestProviders.stream()
+            .map(
+                p -> {
+                  try {
+                    return (List<Manifest>)
+                        requestQueue.execute(
+                            account,
+                            () ->
+                                p.getClusterAndSortAscending(
+                                    account, location, kind, app, cluster, criteria.getSort()));
+                  } catch (Throwable t) {
+                    log.warn("Failed to read {}", request, t);
+                    return null;
+                  }
+                })
+            .filter(l -> l != null && !l.isEmpty())
+            .collect(Collectors.toList());
 
     if (manifestSet.isEmpty()) {
       throw new NotFoundException("No manifests matching " + request + " found");
@@ -144,8 +159,7 @@ public class ManifestController {
     largest(Sort.SIZE),
     smallest(Sort.SIZE);
 
-    @Getter
-    private final Sort sort;
+    @Getter private final Sort sort;
 
     Criteria(Sort sort) {
       this.sort = sort;

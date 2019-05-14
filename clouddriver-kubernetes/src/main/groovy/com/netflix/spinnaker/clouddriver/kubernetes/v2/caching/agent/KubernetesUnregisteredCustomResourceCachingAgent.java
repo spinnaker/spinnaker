@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -24,26 +26,31 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesUnregisteredCustomResourceCachingAgent extends KubernetesV2OnDemandCachingAgent {
-  public KubernetesUnregisteredCustomResourceCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+public class KubernetesUnregisteredCustomResourceCachingAgent
+    extends KubernetesV2OnDemandCachingAgent {
+  public KubernetesUnregisteredCustomResourceCachingAgent(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
       KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
-
+    super(
+        namedAccountCredentials,
+        propertyRegistry,
+        objectMapper,
+        registry,
+        agentIndex,
+        agentCount,
+        agentInterval);
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {
@@ -51,14 +58,13 @@ public class KubernetesUnregisteredCustomResourceCachingAgent extends Kubernetes
         primaryKinds().stream()
             .filter(credentials::isValidKind)
             .map(k -> AUTHORITATIVE.forType(k.toString()))
-            .collect(Collectors.toSet())
-    );
+            .collect(Collectors.toSet()));
   }
 
   @Override
   protected List<KubernetesKind> primaryKinds() {
     return credentials.getCrds().stream()
-      .filter(credentials::isValidKind)
-      .collect(Collectors.toList());
+        .filter(credentials::isValidKind)
+        .collect(Collectors.toList());
   }
 }

@@ -18,23 +18,20 @@ package com.netflix.spinnaker.cats.mem;
 
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * Produces InMemoryCaches.
- */
+/** Produces InMemoryCaches. */
 public class InMemoryNamedCacheFactory implements NamedCacheFactory {
-    private final ConcurrentMap<String, WriteableCache> caches = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, WriteableCache> caches = new ConcurrentHashMap<>();
 
-    @Override
-    public WriteableCache getCache(String name) {
-        WriteableCache cache = new InMemoryCache();
-        WriteableCache existing = caches.putIfAbsent(name, cache);
-        if (existing == null) {
-            return cache;
-        }
-        return existing;
+  @Override
+  public WriteableCache getCache(String name) {
+    WriteableCache cache = new InMemoryCache();
+    WriteableCache existing = caches.putIfAbsent(name, cache);
+    if (existing == null) {
+      return cache;
     }
+    return existing;
+  }
 }

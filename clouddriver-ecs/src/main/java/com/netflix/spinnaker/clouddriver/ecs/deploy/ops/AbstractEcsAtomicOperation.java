@@ -29,20 +29,17 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescription, K> implements AtomicOperation<K> {
+public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescription, K>
+    implements AtomicOperation<K> {
   private final String basePhase;
-  @Autowired
-  AmazonClientProvider amazonClientProvider;
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider;
-  @Autowired
-  ContainerInformationService containerInformationService;
+  @Autowired AmazonClientProvider amazonClientProvider;
+  @Autowired AccountCredentialsProvider accountCredentialsProvider;
+  @Autowired ContainerInformationService containerInformationService;
   T description;
 
   AbstractEcsAtomicOperation(T description, String basePhase) {
     this.description = description;
     this.basePhase = basePhase;
-
   }
 
   private static Task getTask() {
@@ -67,7 +64,8 @@ public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescriptio
   }
 
   AmazonCredentials getCredentials() {
-    return (AmazonCredentials) accountCredentialsProvider.getCredentials(description.getCredentialAccount());
+    return (AmazonCredentials)
+        accountCredentialsProvider.getCredentials(description.getCredentialAccount());
   }
 
   void updateTaskStatus(String status) {

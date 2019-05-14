@@ -28,13 +28,15 @@ import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesServerGroupOperationDescription extends KubernetesAtomicOperationDescription {
+public class KubernetesServerGroupOperationDescription
+    extends KubernetesAtomicOperationDescription {
   private String serverGroupName;
   private String region; // :(
 
   @JsonIgnore
   public KubernetesCoordinates getCoordinates() {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(serverGroupName);
+    Pair<KubernetesKind, String> parsedName =
+        KubernetesManifest.fromFullResourceName(serverGroupName);
 
     return KubernetesCoordinates.builder()
         .namespace(region)

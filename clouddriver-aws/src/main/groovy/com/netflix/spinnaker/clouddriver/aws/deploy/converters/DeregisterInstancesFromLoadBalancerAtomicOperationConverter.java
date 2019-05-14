@@ -18,21 +18,21 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractRegionAsgInstanceIdsDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceTargetGroupRegistrationDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeregisterInstancesFromLoadBalancerAtomicOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeregisterInstancesFromTargetGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription;
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeregisterInstancesFromLoadBalancerAtomicOperation;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @AmazonOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
 @Component("deregisterInstancesFromLoadBalancerDescription")
-public class DeregisterInstancesFromLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  private Boolean isClassic (Map input) {
+public class DeregisterInstancesFromLoadBalancerAtomicOperationConverter
+    extends AbstractAtomicOperationsCredentialsSupport {
+  private Boolean isClassic(Map input) {
     return !input.containsKey("targetGroupNames");
   }
 
@@ -48,12 +48,14 @@ public class DeregisterInstancesFromLoadBalancerAtomicOperationConverter extends
   public AbstractRegionAsgInstanceIdsDescription convertDescription(Map input) {
     AbstractRegionAsgInstanceIdsDescription converted;
     if (isClassic(input)) {
-      converted = getObjectMapper().convertValue(input, InstanceLoadBalancerRegistrationDescription.class);
+      converted =
+          getObjectMapper().convertValue(input, InstanceLoadBalancerRegistrationDescription.class);
     } else {
-      converted = getObjectMapper().convertValue(input, InstanceTargetGroupRegistrationDescription.class);
+      converted =
+          getObjectMapper().convertValue(input, InstanceTargetGroupRegistrationDescription.class);
     }
 
-    converted.setCredentials(getCredentialsObject((String)input.get("credentials")));
+    converted.setCredentials(getCredentialsObject((String) input.get("credentials")));
     return converted;
   }
 }

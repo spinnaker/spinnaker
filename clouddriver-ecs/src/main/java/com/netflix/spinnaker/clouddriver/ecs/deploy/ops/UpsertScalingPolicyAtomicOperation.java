@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.UpsertScalingPolicyDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-
 import java.util.List;
 
 public class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Void> {
@@ -36,5 +35,4 @@ public class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Void>
 
     return null;
   }
-
 }

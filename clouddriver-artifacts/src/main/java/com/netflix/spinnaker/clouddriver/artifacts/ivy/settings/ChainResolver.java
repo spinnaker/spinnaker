@@ -19,26 +19,20 @@ package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.List;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.annotation.Nullable;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ChainResolver extends Resolver<org.apache.ivy.plugins.resolver.ChainResolver> {
-  @JsonIgnore
-  private final Resolvers resolvers = new Resolvers();
-  /**
-   * If the first found should be returned.
-   */
+  @JsonIgnore private final Resolvers resolvers = new Resolvers();
+  /** If the first found should be returned. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private Boolean returnFirst;
-  /**
-   * If the chain should behave like a dual chain.
-   */
+  /** If the chain should behave like a dual chain. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private Boolean dual;
@@ -65,7 +59,8 @@ public class ChainResolver extends Resolver<org.apache.ivy.plugins.resolver.Chai
 
   @Override
   public org.apache.ivy.plugins.resolver.ChainResolver toIvyModel() {
-    org.apache.ivy.plugins.resolver.ChainResolver chainResolver = new org.apache.ivy.plugins.resolver.ChainResolver();
+    org.apache.ivy.plugins.resolver.ChainResolver chainResolver =
+        new org.apache.ivy.plugins.resolver.ChainResolver();
     if (returnFirst != null) {
       chainResolver.setReturnFirst(returnFirst);
     }

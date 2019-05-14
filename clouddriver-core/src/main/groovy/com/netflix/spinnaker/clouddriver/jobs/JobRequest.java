@@ -15,13 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.jobs;
 
-import lombok.Getter;
-import org.apache.commons.exec.CommandLine;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import org.apache.commons.exec.CommandLine;
 
 @Getter
 public class JobRequest {
@@ -38,7 +37,8 @@ public class JobRequest {
     this(tokenizedCommand, System.getenv(), inputStream);
   }
 
-  public JobRequest(List<String> tokenizedCommand, Map<String, String> environment, InputStream inputStream) {
+  public JobRequest(
+      List<String> tokenizedCommand, Map<String, String> environment, InputStream inputStream) {
     this.tokenizedCommand = tokenizedCommand;
     this.commandLine = createCommandLine(tokenizedCommand);
     this.environment = environment;

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.job;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RUN_JOB;
+
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider;
@@ -25,11 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubernetesRunJobOp
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RUN_JOB;
+import org.springframework.stereotype.Component;
 
 @KubernetesOperation(RUN_JOB)
 @Component
@@ -39,21 +38,22 @@ public class KubernetesRunJobOperationConverter extends AbstractAtomicOperations
 
   private KubernetesV2ArtifactProvider artifactProvider;
 
-  public KubernetesRunJobOperationConverter(KubernetesResourcePropertyRegistry registry, KubernetesV2ArtifactProvider artifactProvider) {
+  public KubernetesRunJobOperationConverter(
+      KubernetesResourcePropertyRegistry registry, KubernetesV2ArtifactProvider artifactProvider) {
     this.registry = registry;
     this.artifactProvider = artifactProvider;
   }
 
   @Override
-  public AtomicOperation convertOperation(Map input){
+  public AtomicOperation convertOperation(Map input) {
     return new KubernetesRunJobOperation(convertDescription(input), registry, artifactProvider);
   }
 
-
   @Override
-  public KubernetesRunJobOperationDescription convertDescription(Map input){
-    return (KubernetesRunJobOperationDescription) KubernetesAtomicOperationConverterHelper
-      .convertDescription(input, this, KubernetesRunJobOperationDescription.class);
+  public KubernetesRunJobOperationDescription convertDescription(Map input) {
+    return (KubernetesRunJobOperationDescription)
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesRunJobOperationDescription.class);
   }
 
   @Override

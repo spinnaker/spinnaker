@@ -17,14 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.kubernetes;
 
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
-import java.util.List;
 
 @Configuration
 @ConditionalOnProperty("kubernetes.enabled")
@@ -33,6 +32,7 @@ import java.util.List;
 public class KubernetesArtifactConfiguration {
   @Bean
   List<? extends KubernetesArtifactCredentials> kubernetesArtifactAccounts() {
-    return Collections.singletonList(new KubernetesArtifactCredentials(new KubernetesArtifactAccount()));
+    return Collections.singletonList(
+        new KubernetesArtifactCredentials(new KubernetesArtifactAccount()));
   }
 }

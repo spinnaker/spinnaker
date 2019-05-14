@@ -18,15 +18,13 @@ package com.netflix.spinnaker.cats.cache;
 
 import java.util.Collection;
 
-/**
- * A WriteableCache is a Cache that is updatable.
- */
+/** A WriteableCache is a Cache that is updatable. */
 public interface WriteableCache extends Cache {
-    void merge(String type, CacheData cacheData);
+  void merge(String type, CacheData cacheData);
 
-    void mergeAll(String type, Collection<CacheData> items);
+  void mergeAll(String type, Collection<CacheData> items);
 
-    void evict(String type, String id);
+  void evict(String type, String id);
 
-    void evictAll(String type, Collection<String> ids);
+  void evictAll(String type, Collection<String> ids);
 }

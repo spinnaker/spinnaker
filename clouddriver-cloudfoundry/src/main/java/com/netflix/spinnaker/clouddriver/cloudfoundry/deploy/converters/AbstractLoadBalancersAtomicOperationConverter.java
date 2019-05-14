@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
-abstract class AbstractLoadBalancersAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
+abstract class AbstractLoadBalancersAtomicOperationConverter
+    extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   @Override
   public LoadBalancersDescription convertDescription(Map input) {
     List<String> routes = (List<String>) input.get("loadBalancerNames");
@@ -31,13 +31,17 @@ abstract class AbstractLoadBalancersAtomicOperationConverter extends AbstractClo
       throw new IllegalArgumentException("No routes supplied.");
     }
 
-    LoadBalancersDescription converted = getObjectMapper().convertValue(input, LoadBalancersDescription.class);
+    LoadBalancersDescription converted =
+        getObjectMapper().convertValue(input, LoadBalancersDescription.class);
 
     converted.setClient(getClient(input));
-    converted.setServerGroupId(getServerGroupId(converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
+    converted.setServerGroupId(
+        getServerGroupId(
+            converted.getServerGroupName(), converted.getRegion(), converted.getClient()));
     converted.setRoutes(routes);
 
-    return findSpace(converted.getRegion(), converted.getClient()).map(converted::setSpace)
-      .orElseThrow(() -> new IllegalArgumentException("No space supplied."));
+    return findSpace(converted.getRegion(), converted.getClient())
+        .map(converted::setSpace)
+        .orElseThrow(() -> new IllegalArgumentException("No space supplied."));
   }
 }

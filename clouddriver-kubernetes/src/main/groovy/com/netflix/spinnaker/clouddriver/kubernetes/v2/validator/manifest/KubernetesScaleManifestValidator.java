@@ -17,30 +17,34 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 
+import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.SCALE_MANIFEST;
+
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesScaleManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import java.util.List;
-
-import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.SCALE_MANIFEST;
-
 @KubernetesOperation(SCALE_MANIFEST)
 @Component
-public class KubernetesScaleManifestValidator extends DescriptionValidator<KubernetesScaleManifestDescription> {
-  @Autowired
-  AccountCredentialsProvider provider;
+public class KubernetesScaleManifestValidator
+    extends DescriptionValidator<KubernetesScaleManifestDescription> {
+  @Autowired AccountCredentialsProvider provider;
 
   @Override
-  public void validate(List priorDescriptions, KubernetesScaleManifestDescription description, Errors errors) {
+  public void validate(
+      List priorDescriptions, KubernetesScaleManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("scaleKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(
+        provider,
+        description.getAccount(),
+        description.getPointCoordinates().getKind(),
+        description.getPointCoordinates().getNamespace())) {
       return;
     }
   }
