@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.config
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import retrofit.RequestInterceptor
 
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -53,6 +54,7 @@ class BakeryConfiguration {
 
   @Autowired Client retrofitClient
   @Autowired LogLevel retrofitLogLevel
+  @Autowired RequestInterceptor spinnakerRequestInterceptor
 
   @Bean
   Endpoint bakeryEndpoint(@Value('${bakery.base-url}') String bakeryBaseUrl) {
@@ -69,6 +71,7 @@ class BakeryConfiguration {
 
     new RestAdapter.Builder()
       .setEndpoint(bakeryEndpoint)
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setConverter(new JacksonConverter(objectMapper))
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)

@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import org.junit.Rule
+import retrofit.RequestInterceptor
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import spock.lang.Specification
@@ -54,7 +55,11 @@ class BakeryServiceSpec extends Specification {
     bakeURI = wireMockRule.url(bakePath)
     statusURI = wireMockRule.url(statusPath)
 
-    bakery = new BakeryConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
+    bakery = new BakeryConfiguration(
+      retrofitClient: new OkClient(),
+      retrofitLogLevel: FULL,
+      spinnakerRequestInterceptor: Mock(RequestInterceptor)
+    )
       .bakery(newFixedEndpoint(wireMockRule.url("/")))
   }
 
