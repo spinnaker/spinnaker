@@ -9,6 +9,57 @@ import {
 import { IPreconfiguredJobParameter } from './preconfiguredJobStage';
 import { JobStageExecutionLogs } from 'core/manifest/stage/JobStageExecutionLogs';
 import { get } from 'lodash';
+import { IStage } from 'core/domain';
+import { AccountService } from 'core/account';
+
+export interface ITitusExecutionLogsProps {
+  stage: IStage;
+}
+
+export interface ITitusExecutionLogsState {
+  titusUiEndpoint?: string;
+}
+
+export class TitusExecutionLogs extends React.Component<ITitusExecutionLogsProps, ITitusExecutionLogsState> {
+  private mounted = false;
+
+  constructor(props: IExecutionDetailsSectionProps) {
+    super(props);
+    this.state = {};
+  }
+
+  public componentDidMount() {
+    this.mounted = true;
+    this.setEndpoint();
+  }
+
+  private setEndpoint(): void {
+    const { context } = this.props.stage;
+    AccountService.getAccountDetails(context.credentials).then(details => {
+      const titusUiEndpoint = details.regions.find(r => r.name === context.cluster.region).endpoint;
+      this.mounted && this.setState({ titusUiEndpoint });
+    });
+  }
+
+  public render() {
+    const artificialStageJustForLogs: any = {};
+    const { stage } = this.props;
+    const { titusUiEndpoint } = this.state;
+    const { context } = stage;
+    const { cluster } = context;
+    const jobId = cluster ? get(context['deploy.jobs'], cluster.region, [])[0] : null;
+    const taskId = get(context, 'jobStatus.completionDetails.taskId');
+    if (titusUiEndpoint) {
+      artificialStageJustForLogs.context = {
+        execution: {
+          logs: `${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs`,
+        },
+      };
+      return <StageExecutionLogs stage={artificialStageJustForLogs} />;
+    }
+    return null;
+  }
+}
 
 export class PreconfiguredJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'preconfiguredJobConfig';
@@ -33,6 +84,8 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
           />
         </div>
       );
+    } else if (cloudProvider === 'titus') {
+      return <TitusExecutionLogs stage={stage} />;
     }
 
     return <StageExecutionLogs stage={stage} />;

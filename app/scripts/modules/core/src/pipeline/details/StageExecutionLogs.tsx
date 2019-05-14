@@ -10,7 +10,7 @@ export interface IStageExecutionLogsProps {
 export class StageExecutionLogs extends React.Component<IStageExecutionLogsProps> {
   public render() {
     const logs = get<string>(this.props.stage, 'context.execution.logs');
-    return (
+    return logs ? (
       <div className="row">
         <div className="col-md-12">
           <div className="well alert alert-info">
@@ -20,6 +20,6 @@ export class StageExecutionLogs extends React.Component<IStageExecutionLogsProps
           </div>
         </div>
       </div>
-    );
+    ) : null;
   }
 }
