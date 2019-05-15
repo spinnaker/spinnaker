@@ -81,11 +81,9 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
   };
 
   private onNameChange = () => {
-    ArtifactService.getArtifactVersions(TYPE, this.props.artifact.artifactAccount, this.props.artifact.name).then(
-      versions => {
-        this.setState({ versions });
-      },
-    );
+    ArtifactService.getArtifactVersions(TYPE, this.props.account.name, this.props.artifact.name).then(versions => {
+      this.setState({ versions });
+    });
   };
 }
 
