@@ -1,3 +1,4 @@
+import { RenderOutputFile } from 'core/presentation/RenderOutputFile';
 import * as React from 'react';
 import { get } from 'lodash';
 
@@ -32,12 +33,7 @@ export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
         <div className="row">
           <div className="col-md-12">
             <h5 style={{ marginBottom: '0px', paddingBottom: '5px' }}>Property File</h5>
-            <dl>
-              {Object.keys(stage.context.propertyFileContents).map((key: string) => {
-                const val = stage.context.propertyFileContents[key];
-                return [<dt key={key}>{key}</dt>, <dd key={key + val}>{val}</dd>];
-              })}
-            </dl>
+            <RenderOutputFile outputFileObject={stage.context.propertyFileContents} />
           </div>
         </div>
       )}

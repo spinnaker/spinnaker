@@ -6,6 +6,7 @@ import {
   AccountTag,
   ExecutionDetailsSection,
   IExecutionDetailsSectionProps,
+  RenderOutputFile,
   StageFailureMessage,
 } from '@spinnaker/core';
 
@@ -54,20 +55,6 @@ export class RunJobExecutionDetails extends React.Component<
     const { resources, env } = cluster;
     const jobId = cluster ? get(context['deploy.jobs'], cluster.region, [])[0] : null;
     const taskId = get(context, 'jobStatus.completionDetails.taskId');
-
-    const renderProperty = (entry: any) => {
-      if (typeof entry === 'object' && !Array.isArray(entry)) {
-        return <pre>{JSON.stringify(entry, null, 2)}</pre>;
-      }
-      const linkPattern = /^https?:\/\/([^\s])*$/;
-      return linkPattern.test(entry) ? (
-        <a href={entry} target="_blank">
-          {entry}
-        </a>
-      ) : (
-        <span>{entry}</span>
-      );
-    };
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -145,22 +132,8 @@ export class RunJobExecutionDetails extends React.Component<
         {context.propertyFileContents && (
           <div className="row">
             <div className="col-md-12">
-              <h5 style={{ marginBottom: 0, paddingBottom: '5px' }}>Property File</h5>
-              <dl>
-                {Object.keys(context.propertyFileContents)
-                  .sort((a: string, b: string) =>
-                    context.propertyFileContents[a].toString().length >
-                    context.propertyFileContents[b].toString().length
-                      ? 1
-                      : -1,
-                  )
-                  .map(key => (
-                    <React.Fragment key={key}>
-                      <dt>{key}</dt>
-                      <dd>{renderProperty(context.propertyFileContents[key])}</dd>
-                    </React.Fragment>
-                  ))}
-              </dl>
+              <h5 style={{ marginBottom: '0px', paddingBottom: '5px' }}>Property File</h5>
+              <RenderOutputFile outputFileObject={context.propertyFileContents} />
             </div>
           </div>
         )}
