@@ -1,11 +1,11 @@
 /*
- * Copyright 2019 Pivotal, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,16 +25,16 @@ import lombok.Value;
 /** The CI build metadata for an app artifact based on the build info produced by Artifactory */
 @Value
 @Builder
-@JsonDeserialize(builder = CloudFoundryBuildInfo.CloudFoundryBuildInfoBuilder.class)
+@JsonDeserialize(builder = ArtifactInfo.ArtifactInfoBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class CloudFoundryBuildInfo {
+public class ArtifactInfo {
 
   @JsonView(Views.Cache.class)
-  String jobName;
+  String name;
 
   @JsonView(Views.Cache.class)
-  String jobNumber;
+  String version;
 
   @JsonView(Views.Cache.class)
-  String jobUrl;
+  String url;
 }

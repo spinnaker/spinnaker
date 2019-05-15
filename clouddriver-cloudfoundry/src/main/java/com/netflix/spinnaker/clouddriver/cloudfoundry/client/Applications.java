@@ -319,7 +319,8 @@ public class Applications {
             : applicationEnv.getEnvironmentJson();
 
     final CloudFoundryBuildInfo buildInfo = getBuildInfoFromEnvVars(environmentVars);
-    Arrays.asList(BuildEnvVar.values())
+    final ArtifactInfo artifactInfo = getArtifactInfoFromEnvVars(environmentVars);
+    Arrays.asList(ServerGroupMetaDataEnvVar.values())
         .forEach(envVar -> environmentVars.remove(envVar.envVarName));
 
     String healthCheckType = null;
@@ -368,15 +369,29 @@ public class Applications {
         .state(state)
         .env(environmentVars)
         .ciBuild(buildInfo)
+        .appArtifact(artifactInfo)
         .build();
   }
 
   private CloudFoundryBuildInfo getBuildInfoFromEnvVars(Map<String, String> environmentVars) {
     return CloudFoundryBuildInfo.builder()
-        .jobName(environmentVars.get(BuildEnvVar.JobName.envVarName))
-        .jobNumber(environmentVars.get(BuildEnvVar.JobNumber.envVarName))
-        .jobUrl(environmentVars.get(BuildEnvVar.JobUrl.envVarName))
-        .version(environmentVars.get(BuildEnvVar.Version.envVarName))
+        .jobName(environmentVars.get(ServerGroupMetaDataEnvVar.JobName.envVarName))
+        .jobNumber(environmentVars.get(ServerGroupMetaDataEnvVar.JobNumber.envVarName))
+        .jobUrl(environmentVars.get(ServerGroupMetaDataEnvVar.JobUrl.envVarName))
+        .build();
+  }
+
+  private ArtifactInfo getArtifactInfoFromEnvVars(Map<String, String> environmentVars) {
+    String version = environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName);
+    if (version == null) {
+      // This is here for backwards compatibility so that we will display the version on older
+      // server groups too.
+      version = environmentVars.get(ServerGroupMetaDataEnvVar.Version.envVarName);
+    }
+    return ArtifactInfo.builder()
+        .name(environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactName.envVarName))
+        .version(version)
+        .url(environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName))
         .build();
   }
 

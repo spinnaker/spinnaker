@@ -385,6 +385,7 @@ class ApplicationsTest {
                 "some-apps-man-uri/organizations/org-id/spaces/space-guid/applications/server-group-guid")
             .metricsUri("some-metrics-uri/apps/server-group-guid")
             .ciBuild(CloudFoundryBuildInfo.builder().build())
+            .appArtifact(ArtifactInfo.builder().build())
             .build();
 
     CloudFoundryServerGroup serverGroup =

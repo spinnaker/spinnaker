@@ -16,16 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-public enum BuildEnvVar {
-  JobName(BuildEnvVar.PREFIX + "BUILD_JOB_NAME"),
-  JobNumber(BuildEnvVar.PREFIX + "BUILD_JOB_NUMBER"),
-  JobUrl(BuildEnvVar.PREFIX + "BUILD_JOB_URL"),
-  Version(BuildEnvVar.PREFIX + "BUILD_VERSION");
+public enum ServerGroupMetaDataEnvVar {
+  JobName(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_JOB_NAME"),
+  JobNumber(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_JOB_NUMBER"),
+  JobUrl(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_JOB_URL"),
+  ArtifactName(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_NAME"),
+  ArtifactVersion(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_VERSION"),
+  @Deprecated
+  Version(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_VERSION"), // prefer ArtifactVersion
+  ArtifactUrl(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_URL");
 
   public static final String PREFIX = "__SPINNAKER_";
   public final String envVarName;
 
-  BuildEnvVar(String envVarName) {
+  ServerGroupMetaDataEnvVar(String envVarName) {
     this.envVarName = envVarName;
   }
 }

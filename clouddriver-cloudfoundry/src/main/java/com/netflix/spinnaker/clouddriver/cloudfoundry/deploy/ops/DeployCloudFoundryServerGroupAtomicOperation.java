@@ -27,8 +27,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.BuildEnvVar;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.ServerGroupMetaDataEnvVar;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -178,19 +178,27 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             PHASE, "Creating Cloud Foundry application '" + description.getServerGroupName() + "'");
 
     Map<String, String> environmentVars =
-        new HashMap<>(description.getApplicationAttributes().getEnv());
+        Optional.ofNullable(description.getApplicationAttributes().getEnv())
+            .map(HashMap::new)
+            .orElse(new HashMap<>());
     final Artifact applicationArtifact = description.getApplicationArtifact();
     if (applicationArtifact.getVersion() != null) {
-      environmentVars.put(BuildEnvVar.Version.envVarName, applicationArtifact.getVersion());
+      environmentVars.put(
+          ServerGroupMetaDataEnvVar.ArtifactName.envVarName, applicationArtifact.getName());
+      environmentVars.put(
+          ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, applicationArtifact.getVersion());
+      environmentVars.put(
+          ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName, applicationArtifact.getLocation());
     }
     final Map<String, Object> metadata = applicationArtifact.getMetadata();
     if (metadata != null) {
       final Map<String, String> buildInfo =
           (Map<String, String>) applicationArtifact.getMetadata().get("build");
       if (buildInfo != null) {
-        environmentVars.put(BuildEnvVar.JobName.envVarName, buildInfo.get("name"));
-        environmentVars.put(BuildEnvVar.JobNumber.envVarName, buildInfo.get("number"));
-        environmentVars.put(BuildEnvVar.JobUrl.envVarName, buildInfo.get("url"));
+        environmentVars.put(ServerGroupMetaDataEnvVar.JobName.envVarName, buildInfo.get("name"));
+        environmentVars.put(
+            ServerGroupMetaDataEnvVar.JobNumber.envVarName, buildInfo.get("number"));
+        environmentVars.put(ServerGroupMetaDataEnvVar.JobUrl.envVarName, buildInfo.get("url"));
       }
     }
 
