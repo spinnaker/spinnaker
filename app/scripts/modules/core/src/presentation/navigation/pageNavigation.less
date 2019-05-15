@@ -1,6 +1,7 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
-page-navigator {
+page-navigator,
+.page-navigator {
   display: block;
   .page-navigation {
     list-style-type: none;
@@ -12,7 +13,8 @@ page-navigator {
     }
     li {
       display: block;
-      &:hover, &.current {
+      &:hover,
+      &.current {
         background-color: var(--color-accent-g2);
         a {
           color: var(--color-primary);
@@ -31,9 +33,11 @@ page-navigator {
       }
     }
   }
-  page-section {
+  page-section,
+  .page-section {
     display: block;
-    .no-wrapper, .section-body {
+    .no-wrapper,
+    .section-body {
       margin: 10px 10px 20px 10px;
     }
     .no-wrapper {
@@ -56,7 +60,6 @@ page-navigator {
       animation: 0.5s ease-in-out 0 highlighted;
       animation-iteration-count: 1;
     }
-
   }
 }
 
