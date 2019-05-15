@@ -80,7 +80,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
             credentialsList.add(cloudFoundryCredentials);
             Collection<Map<String, String>> regions = cloudFoundryCredentials.getRegions();
             if (regions.isEmpty()) {
-                throw new Exception("No spaces returned for account: " + accountName);
+                throw new Exception(accountName + " does not have access to any Cloud Foundry Orgs and Spaces");
             }
         } catch (Exception e) {
             problemSetBuilder.addProblem(Problem.Severity.ERROR, "Failed to establish a connection for account '"
