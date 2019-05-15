@@ -5,6 +5,7 @@ dependencies{
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"
+  implementation 'org.springframework.session:spring-session-core'
 
   implementation "org.springframework.security.extensions:spring-security-saml2-core"
   implementation "org.springframework.security.extensions:spring-security-saml-dsl-core"

@@ -44,10 +44,10 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.extensions.saml2.config.SAMLConfigurer
 import org.springframework.security.saml.SAMLCredential
-import org.springframework.security.saml.storage.EmptyStorageFactory
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService
 import org.springframework.security.web.authentication.RememberMeServices
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
+import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
@@ -64,6 +64,9 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   ServerProperties serverProperties
+
+  @Autowired
+  DefaultCookieSerializer defaultCookieSerializer
 
   @Autowired
   AuthConfig authConfig
@@ -130,6 +133,8 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   void configure(HttpSecurity http) {
+    //We need our session cookie to come across when we get redirected back from the IdP:
+    defaultCookieSerializer.setSameSite(null)
     authConfig.configure(http)
 
     http
@@ -149,7 +154,6 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           .protocol(samlSecurityConfigProperties.redirectProtocol)
           .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
           .basePath(samlSecurityConfigProperties.redirectBasePath)
-          .storageFactory(new EmptyStorageFactory())
           .keyStore()
           .storeFilePath(samlSecurityConfigProperties.keyStore)
           .password(samlSecurityConfigProperties.keyStorePassword)
