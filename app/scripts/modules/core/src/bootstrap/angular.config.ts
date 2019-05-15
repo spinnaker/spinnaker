@@ -24,7 +24,7 @@ bootstrapModule.config([
 bootstrapModule.config([
   '$compileProvider',
   ($compileProvider: ICompileProvider) => {
-    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat|slack|ssh):/);
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|slack|ssh):/);
     $compileProvider.preAssignBindingsEnabled(true);
   },
 ]);

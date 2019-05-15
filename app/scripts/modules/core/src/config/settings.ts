@@ -21,10 +21,6 @@ export interface INotificationSettings {
   googlechat: {
     enabled: boolean;
   };
-  hipchat: {
-    botName: string;
-    enabled: boolean;
-  };
   sms: {
     enabled: boolean;
   };

@@ -98,10 +98,6 @@ window.spinnakerSettings = {
     googlechat: {
       enabled: true,
     },
-    hipchat: {
-      botName: 'Skynet T-800',
-      enabled: true,
-    },
     pubsub: {
       enabled: true,
     },

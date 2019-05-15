@@ -34,7 +34,6 @@ module.exports = angular
           we currently store application level notifications in front50 as a map indexed by type
           {
                "application": "ayuda",
-               "hipchat": [ { ... } ],
                "email": [ { ... } ]
           }
           the code below unwraps it into a table friendly format and the saveNotifications code will
@@ -47,9 +46,7 @@ module.exports = angular
         AppNotificationsService.getNotificationsForApplication($scope.application).then(function(notifications) {
           $scope.notifications = _.filter(
             _.flatten(
-              _.map(['email', 'bearychat', 'googlechat', 'sms', 'hipchat', 'slack', 'githubstatus', 'pubsub'], function(
-                type,
-              ) {
+              _.map(['email', 'bearychat', 'googlechat', 'sms', 'slack', 'githubstatus', 'pubsub'], function(type) {
                 if (notifications[type]) {
                   return _.map(notifications[type], function(entry) {
                     return _.extend(entry, { type: type });
