@@ -152,6 +152,7 @@ public class ArtifactoryBuildMonitor
                       aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
                   return new ArtifactPollingDelta(
                       search.getName(),
+                      client.getUri(),
                       search.getPartitionName(),
                       Collections.singletonList(
                           new ArtifactDelta(
@@ -175,15 +176,16 @@ public class ArtifactoryBuildMonitor
     for (ArtifactDelta artifactDelta : delta.items) {
       if (sendEvents) {
         for (ArtifactoryItem artifact : artifactDelta.getArtifacts()) {
-          postEvent(artifactDelta.getType(), artifact, delta.getName());
+          Artifact matchableArtifact =
+              artifact.toMatchableArtifact(artifactDelta.getType(), delta.getBaseUrl());
+          postEvent(matchableArtifact, delta.getName());
           log.debug("{} event posted", artifact);
         }
       }
     }
   }
 
-  private void postEvent(
-      ArtifactoryRepositoryType repoType, ArtifactoryItem artifact, String name) {
+  private void postEvent(Artifact artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
       registry
@@ -192,20 +194,22 @@ public class ArtifactoryBuildMonitor
                   "monitor", ArtifactoryBuildMonitor.class.getSimpleName()))
           .increment();
     } else {
-      Artifact matchableArtifact = artifact.toMatchableArtifact(repoType);
-      if (matchableArtifact != null) {
+      if (artifact != null) {
         echoService
             .get()
-            .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, matchableArtifact)));
+            .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, artifact)));
       }
     }
   }
 
   @Data
   static class ArtifactPollingDelta implements PollingDelta<ArtifactDelta> {
-    public static ArtifactPollingDelta EMPTY = new ArtifactPollingDelta(null, null, emptyList());
+    public static ArtifactPollingDelta EMPTY =
+        new ArtifactPollingDelta(null, null, null, emptyList());
 
     private final String name;
+
+    private final String baseUrl;
 
     @Nullable private final String repo;
 
