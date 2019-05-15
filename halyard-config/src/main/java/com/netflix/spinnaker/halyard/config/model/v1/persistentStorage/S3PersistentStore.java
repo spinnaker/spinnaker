@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,6 +28,8 @@ public class S3PersistentStore extends PersistentStore {
   private String bucket;
   private String rootFolder = "front50";
   private String region;
+  @ValidForSpinnakerVersion(lowerBound = "1.13.0", tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
+  private Boolean pathStyleAccess;
   private String endpoint;
   private String accessKeyId;
   @Secret private String secretAccessKey;

@@ -61,6 +61,14 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
   private String region;
 
   @Parameter(
+    names = "--path-style-access",
+	arity = 1,
+	description = "when true, use path-style to access bucket; when false, use virtual hosted-style to access bucket. "
+	  + " See https://docs.aws.amazon.com/AmazonS3/latest/dev/VirtualHosting.html#VirtualHostingExamples."
+  )
+  private Boolean pathStyleAccess = false;
+
+  @Parameter(
     names = "--assume-role",
     description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
   )
@@ -88,6 +96,7 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
     persistentStore.setEndpoint(isSet(endpoint) ? endpoint : persistentStore.getEndpoint());
+    persistentStore.setPathStyleAccess(isSet(pathStyleAccess) ? pathStyleAccess : persistentStore.getPathStyleAccess());
     persistentStore.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : persistentStore.getAccessKeyId());
     persistentStore.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : persistentStore.getSecretAccessKey());
 
