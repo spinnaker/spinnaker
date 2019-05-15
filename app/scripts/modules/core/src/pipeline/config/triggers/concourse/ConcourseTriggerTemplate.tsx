@@ -17,6 +17,8 @@ export class ConcourseTriggerTemplate extends React.Component<ITriggerTemplateCo
     );
   };
 
+  public static formatLabel = BaseBuildTriggerTemplate.formatLabel;
+
   public render() {
     return (
       <BaseBuildTriggerTemplate

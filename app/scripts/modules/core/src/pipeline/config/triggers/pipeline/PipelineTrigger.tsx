@@ -115,7 +115,7 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
                 <Select
                   className="form-control input-sm"
                   onChange={(option: Option<string>) => this.onUpdateTrigger({ pipeline: option.value })}
-                  options={pipelines.map(p => ({ label: p.id, value: p.id }))}
+                  options={pipelines.map(p => ({ label: p.name, value: p.id }))}
                   placeholder={'Select a pipeline...'}
                   value={pipeline}
                 />
