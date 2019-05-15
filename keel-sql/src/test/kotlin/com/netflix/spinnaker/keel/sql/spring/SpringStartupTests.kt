@@ -4,9 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
-import com.netflix.spinnaker.keel.sql.SqlLock
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
-import com.netflix.spinnaker.keel.sync.Lock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,9 +33,6 @@ internal class SpringStartupTests {
   @Autowired
   lateinit var resourceRepository: ResourceRepository
 
-  @Autowired
-  lateinit var lock: Lock
-
   @Test
   fun `uses SqlArtifactRepository`() {
     expectThat(artifactRepository).isA<SqlArtifactRepository>()
@@ -46,10 +41,5 @@ internal class SpringStartupTests {
   @Test
   fun `uses SqlResourceRepository`() {
     expectThat(resourceRepository).isA<SqlResourceRepository>()
-  }
-
-  @Test
-  fun `uses RedisLock`() {
-    expectThat(lock).isA<SqlLock>()
   }
 }

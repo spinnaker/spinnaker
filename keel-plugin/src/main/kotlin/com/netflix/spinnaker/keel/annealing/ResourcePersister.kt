@@ -20,7 +20,7 @@ import java.time.Clock
 class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
-  private val queue: ResourceCheckQueue,
+  private val resourceActuator: ResourceActuator,
   private val clock: Clock
 ) {
   private val differ = ObjectDifferBuilder.buildDefault()
@@ -30,7 +30,7 @@ class ResourcePersister(
       .normalize(resource)
       .also(resourceRepository::store)
       .also { resourceRepository.appendHistory(ResourceCreated(it, clock)) }
-      .also { queue.scheduleCheck(it) }
+      .also { resourceActuator.checkResource(it.metadata.name, it.apiVersion, it.kind) }
 
   fun update(resource: Resource<Any>): Resource<out Any> {
     val normalized = handlers.supporting(resource.apiVersion, resource.kind)
@@ -43,8 +43,8 @@ class ResourcePersister(
       log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
       normalized
         .also(resourceRepository::store)
-        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(normalized.spec, existing.spec), clock)) }
-        .also { queue.scheduleCheck(it) }
+        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock)) }
+        .also { resourceActuator.checkResource(it.metadata.name, it.apiVersion, it.kind) }
     } else {
       existing
     }

@@ -87,10 +87,7 @@ class SqlResourceRepository(
         METADATA to objectMapper.writeValueAsString(resource.metadata.data),
         SPEC to objectMapper.writeValueAsString(resource.spec)
       )
-      val insertPairs = updatePairs + mapOf(
-        UID to uid // ,
-//        LAST_CHECKED to clock.instant().minus(365, ChronoUnit.DAYS).let(Timestamp::from)
-      )
+      val insertPairs = updatePairs + (UID to uid)
       insertInto(
         RESOURCE,
         *insertPairs.keys.toTypedArray()

@@ -1,105 +1,69 @@
 package com.netflix.spinnaker.keel.annealing
 
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.sync.Lock
-import com.netflix.spinnaker.keel.telemetry.LockAttempt
+import com.netflix.spinnaker.keel.persistence.ResourceHeader
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.springframework.context.ApplicationEventPublisher
 
 internal object ResourceCheckSchedulerTests : JUnit5Minutests {
 
-  private val resourceRepository = InMemoryResourceRepository()
-  private val resourceCheckQueue = mockk<ResourceCheckQueue>(relaxUnitFun = true)
-  private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-  private val lock: Lock = mockk()
+  private val resourceRepository = mockk<ResourceRepository>()
+  private val resourceActuator = mockk<ResourceActuator>(relaxUnitFun = true)
   private val resources = listOf(
-    Resource(
+    ResourceHeader(
+      uid = randomUID(),
+      name = ResourceName("ec2:security-group:prod:ap-south-1:keel-sg"),
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "security-group",
-      metadata = ResourceMetadata(
-        name = ResourceName("ec2:security-group:prod:ap-south-1:keel-sg"),
-        uid = randomUID()
-      ),
-      spec = "doesn't matter"
+      kind = "security-group"
     ),
-    Resource(
+    ResourceHeader(
+      uid = randomUID(),
+      name = ResourceName("ec2:cluster:prod:ap-south-1:keel"),
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
-      metadata = ResourceMetadata(
-        name = ResourceName("ec2:cluster:prod:ap-south-1:keel"),
-        uid = randomUID()
-      ),
-      spec = "doesn't matter"
+      kind = "cluster"
     )
   )
 
   fun tests() = rootContext<ResourceCheckScheduler> {
     fixture {
-      ResourceCheckScheduler(resourceRepository, resourceCheckQueue, lock, publisher, 60_000)
-    }
-
-    before {
-      resources.forEach(resourceRepository::store)
+      ResourceCheckScheduler(resourceRepository, resourceActuator)
     }
 
     context("scheduler is disabled") {
       test("nothing happens") {
-        checkManagedResources()
+        checkResources()
 
-        verify { resourceCheckQueue wasNot Called }
+        verify { resourceActuator wasNot Called }
       }
     }
 
     context("scheduler is enabled") {
       before {
         onApplicationUp()
+
+        every {
+          resourceRepository.nextResourcesDueForCheck(any(), any())
+        } returns resources
       }
 
       after {
         onApplicationDown()
       }
 
-      context("unable to acquire lock") {
-        before {
-          every { lock.tryAcquire(any(), any()) } returns false
-        }
+      test("checks for all resources are scheduled") {
+        checkResources()
 
-        test("nothing happens") {
-          checkManagedResources()
-
-          verify { resourceCheckQueue wasNot Called }
-        }
-
-        test("publishes a telemetry event") {
-          verify { publisher.publishEvent(LockAttempt(false)) }
-        }
-      }
-
-      context("able to acquire lock") {
-        before {
-          every { lock.tryAcquire(any(), any()) } returns true
-        }
-
-        test("checks for all resources are scheduled") {
-          checkManagedResources()
-
-          resources.forEach {
-            verify { resourceCheckQueue.scheduleCheck(it) }
+        resources.forEach { (_, name, apiVersion, kind) ->
+          verify {
+            resourceActuator.checkResource(name, apiVersion, kind)
           }
-        }
-
-        test("publishes a telemetry event") {
-          verify { publisher.publishEvent(LockAttempt(true)) }
         }
       }
     }

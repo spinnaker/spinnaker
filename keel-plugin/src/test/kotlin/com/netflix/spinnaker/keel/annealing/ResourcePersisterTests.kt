@@ -32,18 +32,18 @@ import java.time.Clock
 @AutoConfigureMockMvc
 internal class ResourcePersisterTests : JUnit5Minutests {
 
-  data class Fixture<T : Any>(
+  data class Fixture(
     val repository: InMemoryResourceRepository = InMemoryResourceRepository(),
-    val queue: ResourceCheckQueue = mockk(relaxUnitFun = true),
+    val resourceActuator: ResourceActuator = mockk(relaxUnitFun = true),
     val publisher: ApplicationEventPublisher = mockk(),
     val handler: ResourceHandler<String> = StringResourceHandler(),
     val clock: Clock = Clock.systemDefaultZone(),
-    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), queue, clock),
-    var resource: Resource<T>? = null
+    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), resourceActuator, clock),
+    var resource: Resource<String>? = null
   )
 
   @Suppress("UNCHECKED_CAST")
-  fun tests() = rootContext<Fixture<String>> {
+  fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
     after {
@@ -75,8 +75,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             .isA<ResourceCreated>()
         }
 
-        test("queues the resource for checking") {
-          verify { queue.scheduleCheck(resource!!) }
+        test("checks the resource") {
+          resource!!.apply {
+            verify { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
+          }
         }
 
         context("update") {
@@ -97,19 +99,15 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               .isA<ResourceUpdated>()
           }
 
-          test("queues the resource for checking") {
-            verify { queue.scheduleCheck(resource!!) }
+          test("checks the resource again") {
+            resource!!.apply {
+              verify(exactly = 2) { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
+            }
           }
         }
 
         context("no-op update") {
           before {
-            resource = subject.create(SubmittedResource(
-              apiVersion = SPINNAKER_API_V1.subApi("test"),
-              kind = "whatever",
-              spec = "o hai"
-            )) as Resource<String>
-
             resource = subject.update(resource!! as Resource<Any>) as Resource<String>
           }
 
@@ -118,8 +116,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               .hasSize(1)
           }
 
-          test("does not queue the resource for checking") {
-            verify { queue.scheduleCheck(resource!!) }
+          test("does not check the resource again") {
+            resource!!.apply {
+              verify(exactly = 1) { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
+            }
           }
         }
       }

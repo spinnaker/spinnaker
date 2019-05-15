@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -27,8 +26,6 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTrac
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.netflix.spinnaker.keel.sync.Lock
-import com.netflix.spinnaker.keel.sync.NoOpLock
 import com.netflix.spinnaker.kork.PlatformComponents
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
@@ -100,10 +97,6 @@ class KeelApplication {
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
-  @ConditionalOnMissingBean(Lock::class)
-  fun lock(): Lock = NoOpLock
-
-  @Bean
   @ConditionalOnMissingBean(ResolvableResourceHandler::class)
   fun noResourcePlugins(): List<ResolvableResourceHandler<*, *>> = emptyList()
 
@@ -124,13 +117,7 @@ class KeelApplication {
   lateinit var resourceVersionTracker: ResourceVersionTracker
 
   @Autowired
-  lateinit var resourceCheckQueue: ResourceCheckQueue
-
-  @Autowired
   lateinit var instanceIdSupplier: InstanceIdSupplier
-
-  @Autowired
-  lateinit var lock: Lock
 
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
@@ -141,9 +128,7 @@ class KeelApplication {
       ArtifactRepository::class to artifactRepository.javaClass,
       ResourceRepository::class to resourceRepository.javaClass,
       ResourceVersionTracker::class to resourceVersionTracker.javaClass,
-      ResourceCheckQueue::class to resourceCheckQueue.javaClass,
-      InstanceIdSupplier::class to instanceIdSupplier.javaClass,
-      Lock::class to lock.javaClass
+      InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
       .forEach { (type, implementation) ->
         log.info("{} implementation: {}", type.simpleName, implementation.simpleName)

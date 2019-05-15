@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.redis.RedisArtifactRepository
-import com.netflix.spinnaker.keel.redis.RedisLock
 import com.netflix.spinnaker.keel.redis.RedisResourceRepository
 import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration
@@ -47,7 +46,4 @@ class RedisConfiguration {
   @Bean
   fun resourceVersionTracker(redisClientSelector: RedisClientSelector): ResourceVersionTracker =
     RedisResourceVersionTracker(redisClientSelector.primary("default"))
-
-  @Bean
-  fun lock(redisClientSelector: RedisClientSelector, clock: Clock) = RedisLock(redisClientSelector.primary("default"), clock)
 }

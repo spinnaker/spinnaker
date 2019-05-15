@@ -2,7 +2,6 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
-import com.netflix.spinnaker.keel.sql.SqlLock
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import org.jooq.DSLContext
@@ -23,8 +22,4 @@ class SqlConfiguration {
   @Bean
   fun artifactRepository(jooq: DSLContext) =
     SqlArtifactRepository(jooq)
-
-  @Bean
-  fun lock(jooq: DSLContext, clock: Clock) =
-    SqlLock(jooq, clock)
 }
