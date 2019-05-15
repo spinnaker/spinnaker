@@ -130,6 +130,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     service.addBinding("port", settings.getPort());
     service.addBinding("type", settings.getKubernetes().getServiceType());
     service.addBinding("nodePort", settings.getKubernetes().getNodePort());
+    service.addBinding("serviceLabels", settings.getKubernetes().getServiceLabels());
 
     return service.toString();
   }
@@ -177,6 +178,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("version", version)
         .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
         .addBinding("podSpec", getPodSpecYaml(executor, details, resolvedConfiguration))
+        .addBinding("podLabels", settings.getKubernetes().getPodLabels())
         .toString();
   }
 
