@@ -31,12 +31,18 @@ import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
+import strikt.api.Assertion
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.all
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotEqualTo
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
@@ -89,11 +95,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       val resource = Resource(
         apiVersion = SPINNAKER_API_V1,
         metadata = ResourceMetadata(
-          name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
+          name = ResourceName("ec2:security-group:test:us-west-2:fnord"),
           uid = randomUID(),
           data = randomData()
         ),
-        kind = "ec2:SecurityGroup",
+        kind = "security-group",
         spec = randomData()
       )
 
@@ -123,12 +129,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("storing another resource with a different name") {
         val anotherResource = Resource(
           metadata = ResourceMetadata(
-            name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
+            name = ResourceName("ec2:security-group:test:us-east-1:fnord"),
             uid = randomUID(),
             data = randomData()
           ),
           apiVersion = SPINNAKER_API_V1,
-          kind = "ec2:SecurityGroup",
+          kind = "security-group",
           spec = randomData()
         )
 
@@ -220,10 +226,103 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     }
   }
 
+  data class CheckLockFixture<T : ResourceRepository>(
+    val subject: T,
+    val ifNotCheckedInLast: Duration = Duration.ofMinutes(30),
+    val limit: Int = 2
+  ) {
+    fun nextResults(): Collection<ResourceHeader> =
+      subject.nextResourcesDueForCheck(ifNotCheckedInLast, limit)
+  }
+
+  fun checkLockTests() = rootContext<CheckLockFixture<T>> {
+    fixture {
+      CheckLockFixture(
+        subject = factory(clock)
+      )
+    }
+
+    after { flush() }
+
+    context("no resources exist") {
+      test("returns an empty collection") {
+        expectThat(nextResults()).isEmpty()
+      }
+    }
+
+    context("multiple resources exist") {
+      before {
+        repeat(4) {
+          val resource = Resource(
+            apiVersion = SPINNAKER_API_V1,
+            metadata = ResourceMetadata(
+              name = ResourceName("ec2:security-group:test:us-west-2:fnord-$it"),
+              uid = randomUID(),
+              data = randomData()
+            ),
+            kind = "security-group",
+            spec = randomData()
+          )
+          subject.store(resource)
+        }
+//        clock.incrementBy(ifNotCheckedInLast)
+      }
+
+      test("returns at most 2 resources") {
+        expectThat(nextResults()).hasSize(limit)
+      }
+
+      test("multiple calls return different results") {
+        val results1 = nextResults()
+        val results2 = nextResults()
+        expect {
+          that(results1)
+            .hasSize(2)
+            .isNotEqualTo(results2)
+            .all {
+              isNotIn(results2)
+            }
+          that(results2).hasSize(2)
+        }
+      }
+
+      test("once all resources are exhausted no more results are returned") {
+        val results1 = nextResults()
+        val results2 = nextResults()
+        val results3 = nextResults()
+        expect {
+          that(results1).isNotEmpty().hasSize(2)
+          that(results2).isNotEmpty().hasSize(2)
+          that(results3).isEmpty()
+        }
+      }
+
+      test("once time passes the same resources are returned again") {
+        val results1 = nextResults()
+        clock.incrementBy(ifNotCheckedInLast / 2)
+        val results2 = nextResults()
+        clock.incrementBy(ifNotCheckedInLast / 2)
+        val results3 = nextResults()
+        expect {
+          that(results1).isNotEmpty()
+          that(results2).isNotEmpty().isNotEqualTo(results1)
+          that(results3).isNotEmpty().isEqualTo(results1)
+        }
+      }
+    }
+  }
+
   companion object {
     val ONE_SECOND: Duration = Duration.ofSeconds(1)
   }
 }
+
+operator fun Duration.div(divisor: Long): Duration = dividedBy(divisor)
+
+fun <T : Any> Assertion.Builder<T>.isNotIn(expected: Collection<T>) =
+  assert("is not in $expected") {
+    if (!expected.contains(it)) pass() else fail()
+  }
 
 fun randomData(length: Int = 4): Map<String, Any> {
   val map = mutableMapOf<String, Any>()

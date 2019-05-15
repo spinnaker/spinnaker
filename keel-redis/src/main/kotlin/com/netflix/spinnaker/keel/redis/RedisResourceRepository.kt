@@ -32,13 +32,15 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.params.sortedset.ZAddParams.zAddParams
 import java.time.Clock
-import javax.annotation.PostConstruct
+import java.time.Duration
+import java.time.Instant
 
 class RedisResourceRepository(
   private val redisClient: RedisClientDelegate,
-  private val objectMapper: ObjectMapper,
-  private val clock: Clock
+  private val clock: Clock,
+  private val objectMapper: ObjectMapper
 ) : ResourceRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -77,6 +79,7 @@ class RedisResourceRepository(
       redis.hmset(resource.metadata.uid.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.uid.toString())
       redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
+      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.metadata.uid.toString(), zAddParams().nx())
     }
   }
 
@@ -90,38 +93,47 @@ class RedisResourceRepository(
       redis.srem(INDEX_SET, uid.toString())
       redis.hdel(NAME_TO_UID_HASH, name.value)
       redis.del(uid.eventsKey)
+      redis.zrem(CHECK_TIMES_SORTED_SET, uid.toString())
     }
   }
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
-    redisClient.withCommandsClient<List<ResourceEvent>> { redis: JedisCommands ->
+    redisClient.withCommandsClient<List<ResourceEvent>> { redis ->
       redis.lrange(uid.eventsKey, 0, -1)
         .also { if (it.isEmpty()) throw NoSuchResourceUID(uid) }
         .map { objectMapper.readValue<ResourceEvent>(it) }
     }
 
   override fun appendHistory(event: ResourceEvent) {
-    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Unit> { redis ->
       redis.lpush(event.uid.eventsKey, objectMapper.writeValueAsString(event))
     }
   }
 
-  @PostConstruct
-  fun logKnownResources() {
-    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
-      redis
-        .smembers(INDEX_SET)
-        .sorted()
-        .also { log.info("Managing the following resources:") }
-        .forEach { log.info(" - $it") }
+  override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> =
+    redisClient.withCommandsClient<Collection<ResourceHeader>> { redis ->
+      val now = clock.instant()
+      val cutoff = now.minus(minTimeSinceLastCheck)
+      redis.zrangeBefore(CHECK_TIMES_SORTED_SET, cutoff, limit)
+        .also { uids ->
+          uids.forEach { uid ->
+            redis.zadd(CHECK_TIMES_SORTED_SET, now, uid)
+          }
+        }
+        .map(ULID::parseULID)
+        .map { uid ->
+          readResource(redis, uid, Any::class.java).let {
+            ResourceHeader(uid, it.metadata.name, it.apiVersion, it.kind)
+          }
+        }
     }
-  }
 
   companion object {
     private const val NAME_TO_UID_HASH = "keel.resource.names"
     private const val INDEX_SET = "keel.resources"
     private const val RESOURCE_HASH = "{keel.resource.%s}"
     private const val EVENTS_SORTED_SET = "$RESOURCE_HASH.events"
+    private const val CHECK_TIMES_SORTED_SET = "keel.resource.checks"
   }
 
   private fun <T : Any> readResource(redis: JedisCommands, uid: UID, specType: Class<T>): Resource<T> =
@@ -140,7 +152,7 @@ class RedisResourceRepository(
 
   private fun onInvalidIndex(uid: UID) {
     log.error("Invalid index entry {}", uid)
-    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Long> { redis ->
       redis.srem(INDEX_SET, uid.toString())
     }
   }
@@ -158,4 +170,10 @@ class RedisResourceRepository(
     "kind" to kind,
     "spec" to objectMapper.writeValueAsString(spec)
   )
+
+  private fun JedisCommands.zrangeBefore(key: String, max: Instant, limit: Int) =
+    zrangeByScore(key, 0.0, max.toEpochMilli().toDouble(), 0, limit)
+
+  private fun JedisCommands.zadd(key: String, score: Instant, member: String) =
+    zadd(key, score.toEpochMilli().toDouble(), member)
 }

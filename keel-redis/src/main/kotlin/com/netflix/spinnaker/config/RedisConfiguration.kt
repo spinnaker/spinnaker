@@ -38,7 +38,7 @@ import java.time.Clock
 class RedisConfiguration {
   @Bean
   fun resourceRepository(redisClientSelector: RedisClientSelector, objectMapper: ObjectMapper, clock: Clock): ResourceRepository =
-    RedisResourceRepository(redisClientSelector.primary("default"), objectMapper, clock)
+    RedisResourceRepository(redisClientSelector.primary("default"), clock, objectMapper)
 
   @Bean
   fun artifactRepository(redisClientSelector: RedisClientSelector, objectMapper: ObjectMapper): ArtifactRepository =

@@ -17,8 +17,8 @@ import java.time.Clock
 @Import(DefaultSqlConfiguration::class)
 class SqlConfiguration {
   @Bean
-  fun resourceRepository(jooq: DSLContext, objectMapper: ObjectMapper) =
-    SqlResourceRepository(jooq, objectMapper)
+  fun resourceRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper) =
+    SqlResourceRepository(jooq, clock, objectMapper)
 
   @Bean
   fun artifactRepository(jooq: DSLContext) =

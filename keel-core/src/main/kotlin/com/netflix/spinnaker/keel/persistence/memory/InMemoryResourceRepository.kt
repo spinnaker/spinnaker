@@ -25,12 +25,16 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.Instant.EPOCH
 
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
   private val resources = mutableMapOf<UID, Resource<*>>()
   private val events = mutableMapOf<UID, MutableList<ResourceEvent>>()
+  private val checkQueue = mutableMapOf<UID, Instant>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -59,6 +63,7 @@ class InMemoryResourceRepository(
 
   override fun store(resource: Resource<*>) {
     resources[resource.metadata.uid] = resource
+    checkQueue[resource.metadata.uid] = EPOCH
   }
 
   override fun delete(name: ResourceName) {
@@ -84,6 +89,20 @@ class InMemoryResourceRepository(
       .let {
         it.add(0, event)
       }
+  }
+
+  override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
+    val cutoff = clock.instant().minus(minTimeSinceLastCheck)
+    return checkQueue
+      .filter { it.value <= cutoff }
+      .keys
+      .take(limit)
+      .also { uids ->
+        uids.forEach {
+          checkQueue[it] = clock.instant()
+        }
+      }
+      .map { uid -> ResourceHeader(resources[uid]!!) }
   }
 
   fun dropAll() {

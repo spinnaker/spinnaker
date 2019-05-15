@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.sync.Lock
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import java.sql.Timestamp
@@ -39,8 +38,8 @@ class SqlLock(
 
   companion object {
     private val CLUSTER_LOCK = table("cluster_lock")
-    private val NAME = field("name", String::class.java)
-    private val EXPIRES = field("expires", Timestamp::class.java)
+    private val NAME = field<String>("name")
+    private val EXPIRES = field<Timestamp>("expires")
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

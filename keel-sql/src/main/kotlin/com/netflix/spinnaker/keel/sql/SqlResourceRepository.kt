@@ -14,13 +14,15 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import java.sql.Timestamp
+import java.time.Clock
+import java.time.Duration
 
 class SqlResourceRepository(
   private val jooq: DSLContext,
+  private val clock: Clock,
   private val objectMapper: ObjectMapper
 ) : ResourceRepository {
 
@@ -85,12 +87,15 @@ class SqlResourceRepository(
         METADATA to objectMapper.writeValueAsString(resource.metadata.data),
         SPEC to objectMapper.writeValueAsString(resource.spec)
       )
-      val insertPairs = updatePairs + (UID to uid)
+      val insertPairs = updatePairs + mapOf(
+        UID to uid // ,
+//        LAST_CHECKED to clock.instant().minus(365, ChronoUnit.DAYS).let(Timestamp::from)
+      )
       insertInto(
         RESOURCE,
         *insertPairs.keys.toTypedArray()
       )
-        .values(insertPairs.values)
+        .values(*insertPairs.values.toTypedArray())
         .onDuplicateKeyUpdate()
         .set(updatePairs)
         .execute()
@@ -141,18 +146,44 @@ class SqlResourceRepository(
     }
   }
 
+  override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
+    val now = clock.instant()
+    val cutoff = now.minus(minTimeSinceLastCheck).let(Timestamp::from)
+    return jooq.inTransaction {
+      select(UID, API_VERSION, KIND, NAME)
+        .from(RESOURCE)
+        .where(LAST_CHECKED.isNull.or(LAST_CHECKED.lessOrEqual(cutoff)))
+        .orderBy(LAST_CHECKED)
+        .limit(limit)
+        .forUpdate()
+        .fetch()
+        .also {
+          it.forEach { (uid, _, _, _) ->
+            update(RESOURCE)
+              .set(mapOf(LAST_CHECKED to now))
+              .where(UID.eq(uid))
+              .execute()
+          }
+        }
+        .map { (uid, apiVersion, kind, name) ->
+          ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
+        }
+    }
+  }
+
   companion object {
     private val RESOURCE = table("resource")
     private val RESOURCE_EVENT = table("resource_event")
 
-    private val UID = field("uid", String::class.java)
-    private val API_VERSION = field("api_version", String::class.java)
-    private val KIND = field("kind", String::class.java)
-    private val NAME = field("name", String::class.java)
-    private val METADATA = field("metadata", String::class.java)
-    private val SPEC = field("spec", String::class.java)
-    private val JSON = field("json", String::class.java)
-    private val TIMESTAMP = field("timestamp", Timestamp::class.java)
+    private val UID = field<String>("uid")
+    private val API_VERSION = field<String>("api_version")
+    private val KIND = field<String>("kind")
+    private val NAME = field<String>("name")
+    private val METADATA = field<String>("metadata")
+    private val SPEC = field<String>("spec")
+    private val LAST_CHECKED = field<Timestamp>("last_checked")
+    private val JSON = field<String>("json")
+    private val TIMESTAMP = field<Timestamp>("timestamp")
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

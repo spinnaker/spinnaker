@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 
@@ -67,11 +66,11 @@ class SqlArtifactRepository(
   companion object {
     private val DELIVERY_ARTIFACT = table("delivery_artifact")
     private val DELIVERY_ARTIFACT_VERSION = table("delivery_artifact_version")
-    private val UID = field("uid", String::class.java)
-    private val DELIVERY_ARTIFACT_UID = field("delivery_artifact_uid", String::class.java)
-    private val NAME = field("name", String::class.java)
-    private val TYPE = field("type", String::class.java)
-    private val VERSION = field("version", String::class.java)
+    private val UID = field<String>("uid")
+    private val DELIVERY_ARTIFACT_UID = field<String>("delivery_artifact_uid")
+    private val NAME = field<String>("name")
+    private val TYPE = field<String>("type")
+    private val VERSION = field<String>("version")
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

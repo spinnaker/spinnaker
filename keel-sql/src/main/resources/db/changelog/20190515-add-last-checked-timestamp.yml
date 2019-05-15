@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-last-checked-timestamp
+      author: fletch
+      changes:
+        - addColumn:
+            tableName: resource
+            columns:
+              - column:
+                  name: last_checked
+                  type: timestamp
+                  #                  defaultValueComputed: timestamp(0)
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: resource
+            columnName: last_checked

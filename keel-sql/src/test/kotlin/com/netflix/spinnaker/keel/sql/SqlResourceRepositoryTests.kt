@@ -15,6 +15,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
   override fun factory(clock: Clock): SqlResourceRepository {
     return SqlResourceRepository(
       jooq,
+      clock,
       configuredObjectMapper()
     )
   }

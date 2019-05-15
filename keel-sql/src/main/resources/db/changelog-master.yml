@@ -23,3 +23,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190426-drop-artifact-provenance.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190515-add-last-checked-timestamp.yml
+      relativeToChangelogFile: true

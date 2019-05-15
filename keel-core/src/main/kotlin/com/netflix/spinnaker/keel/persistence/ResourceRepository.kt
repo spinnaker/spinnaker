@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import java.time.Duration
 
 data class ResourceHeader(
   val uid: UID,
@@ -78,6 +79,15 @@ interface ResourceRepository {
    * Records an event associated with a resource.
    */
   fun appendHistory(event: ResourceEvent)
+
+  /**
+   * Returns between zero and [limit] resources that have not been checked (i.e. returned by this
+   * method) in at least [minTimeSinceLastCheck].
+   *
+   * This method is _not_ intended to be idempotent, subsequent calls are expected to return
+   * different values.
+   */
+  fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)

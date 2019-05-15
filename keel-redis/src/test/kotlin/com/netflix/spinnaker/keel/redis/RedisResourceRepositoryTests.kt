@@ -12,8 +12,8 @@ internal object RedisResourceRepositoryTests : ResourceRepositoryTests<RedisReso
 
   override fun factory(clock: Clock) = RedisResourceRepository(
     redisClient,
-    configuredObjectMapper(),
-    clock
+    clock,
+    configuredObjectMapper()
   )
 
   private val embeddedRedis = EmbeddedRedis.embed()
