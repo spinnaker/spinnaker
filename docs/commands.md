@@ -334,6 +334,7 @@
  * [**hal config provider appengine account get**](#hal-config-provider-appengine-account-get)
  * [**hal config provider appengine account list**](#hal-config-provider-appengine-account-list)
  * [**hal config provider appengine disable**](#hal-config-provider-appengine-disable)
+ * [**hal config provider appengine edit**](#hal-config-provider-appengine-edit)
  * [**hal config provider appengine enable**](#hal-config-provider-appengine-enable)
  * [**hal config provider aws**](#hal-config-provider-aws)
  * [**hal config provider aws account**](#hal-config-provider-aws-account)
@@ -6266,6 +6267,7 @@ hal config provider appengine [parameters] [subcommands]
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the appengine provider's account
  * `disable`: Set the appengine provider as disabled
+ * `edit`: Edit Spinnaker's app engine configuration.
  * `enable`: Set the appengine provider as enabled
 
 ---
@@ -6429,6 +6431,22 @@ hal config provider appengine disable [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider appengine edit
+
+Edit Spinnaker's app engine configuration.
+
+#### Usage
+```
+hal config provider appengine edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--gcloudPath`: The path to the gcloud executable on the machine running clouddriver.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 

@@ -37,6 +37,7 @@ public class AppengineCommand extends AbstractNamedProviderCommand {
 
   public AppengineCommand() {
     super();
+    registerSubcommand(new AppengineEditCommand());
     registerSubcommand(new AppengineAccountCommand());
   }
 }

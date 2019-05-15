@@ -17,8 +17,14 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.appengine;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class AppengineProvider extends Provider<AppengineAccount> {
+  private String gcloudPath;
+
   @Override
   public Provider.ProviderType providerType() {
     return ProviderType.APPENGINE;
