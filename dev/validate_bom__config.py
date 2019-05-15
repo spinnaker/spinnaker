@@ -578,6 +578,11 @@ class AppengineConfigurator(Configurator):
       return
 
     script.append('hal -q --log=info config provider appengine enable')
+
+    if options.deploy_spinnaker_type == 'localdebian':
+      script.append(
+          'hal -q --log=info config provider appengine edit --gcloudPath `which gcloud`')
+
     account_params = [
         options.appengine_account_name,
         '--project', options.appengine_account_project
