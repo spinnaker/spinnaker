@@ -17,6 +17,7 @@ export interface ICloudFoundryServerGroup extends IServerGroup {
   serviceInstances: ICloudFoundryServiceInstance[];
   env: ICloudFoundryEnvVar[];
   ciBuild: ICloudFoundryBuildInfo;
+  appArtifact: ICloudFoundryArtifactInfo;
 }
 
 export interface ICloudFoundryServiceInstance {
@@ -35,5 +36,10 @@ export interface ICloudFoundryBuildInfo {
   jobName: string;
   jobNumber: string;
   jobUrl: string;
+}
+
+export interface ICloudFoundryArtifactInfo {
+  name: string;
   version: string;
+  url: string;
 }
