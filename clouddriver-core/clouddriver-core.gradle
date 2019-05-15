@@ -8,7 +8,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  compileOnly "net.logstash.logback:logstash-logback-encoder"
+  implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "com.netflix.eureka:eureka-client"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
