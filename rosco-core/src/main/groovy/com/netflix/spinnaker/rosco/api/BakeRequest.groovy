@@ -82,6 +82,8 @@ class BakeRequest {
   @ApiModelProperty("The name of a configured account to use when baking the image")
   String account_name
 
+  String spinnaker_execution_id
+
   static enum CloudProviderType {
     aws, azure, docker, gce, oracle
   }

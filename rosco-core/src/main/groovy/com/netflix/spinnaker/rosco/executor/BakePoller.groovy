@@ -125,8 +125,10 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
                             // This can only be true if the rosco instance that owns this bake has not been updating the status.
                             // Note that this only applies to bakes owned by _other_ rosco instances, not _this_ one.
                             if (eTimeMinutes >= orphanedJobTimeoutMinutes) {
+                              BakeRequest bakeRequest = bakeStore.retrieveBakeRequestById(statusId)
                               log.info("The staleness of bake $statusId ($eTimeMinutes minutes) has met or exceeded the " +
-                                       "value of orphanedJobTimeoutMinutes ($orphanedJobTimeoutMinutes minutes).")
+                                       "value of orphanedJobTimeoutMinutes ($orphanedJobTimeoutMinutes minutes)" +
+                                       "(executionId: $bakeRequest.spinnaker_execution_id).")
 
                               boolean cancellationSucceeded = bakeStore.cancelBakeById(statusId)
 

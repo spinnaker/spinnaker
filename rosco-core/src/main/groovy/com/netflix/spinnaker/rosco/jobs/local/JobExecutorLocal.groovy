@@ -74,7 +74,8 @@ class JobExecutorLocal implements JobExecutor {
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
-            log.info("Executing $jobId with tokenized command: $jobRequest.maskedTokenizedCommand")
+            log.info("Executing $jobId with tokenized command: $jobRequest.maskedTokenizedCommand " +
+              "(executionId: $jobRequest.executionId)")
 
             // Grab the first element as the command.
             commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
@@ -84,7 +85,7 @@ class JobExecutorLocal implements JobExecutor {
 
             commandLine.addArguments(arguments, false)
           } else {
-            log.info("No tokenizedCommand specified for $jobId.")
+            log.info("No tokenizedCommand specified for $jobId. (executionId: $jobRequest.executionId)")
 
             throw new IllegalArgumentException("No tokenizedCommand specified for $jobId.")
           }
@@ -96,7 +97,7 @@ class JobExecutorLocal implements JobExecutor {
               // If a watchdog is passed in, this was an actual time-out. Otherwise, it is likely
               // the result of calling watchdog.destroyProcess().
               if (w) {
-                log.info("Job $jobId timed-out (after $timeoutMinutes minutes).")
+                log.info("Job $jobId timed-out (after $timeoutMinutes minutes, executionId: $jobRequest.executionId)")
 
                 cancelJob(jobId)
               }
@@ -116,7 +117,8 @@ class JobExecutorLocal implements JobExecutor {
             handler: resultHandler,
             watchdog: watchdog,
             stdOut: stdOut,
-            stdErr: stdErr
+            stdErr: stdErr,
+            executionId: jobRequest.executionId
           ])
         }
       }
@@ -132,8 +134,10 @@ class JobExecutorLocal implements JobExecutor {
 
   @Override
   BakeStatus updateJob(String jobId) {
+    String executionId = jobIdToHandlerMap.getOrDefault(jobId, [:]).get("executionId")
+
     try {
-      log.info("Polling state for $jobId...")
+      log.info("Polling state for $jobId (executionId: $executionId)...")
 
       if (jobIdToHandlerMap[jobId]) {
         BakeStatus bakeStatus = new BakeStatus(id: jobId, resource_id: jobId)
@@ -152,7 +156,7 @@ class JobExecutorLocal implements JobExecutor {
         String logsContent = (stdErr == null) ? outputContent : new String(stdErr.toByteArray())
 
         if (resultHandler.hasResult()) {
-          log.info("State for $jobId changed with exit code $resultHandler.exitValue.")
+          log.info("State for $jobId changed with exit code $resultHandler.exitValue (executionId: $executionId).")
 
           if (!logsContent) {
             logsContent = resultHandler.exception ? resultHandler.exception.message : "No output from command."
@@ -185,7 +189,7 @@ class JobExecutorLocal implements JobExecutor {
         return null
       }
     } catch (Exception e) {
-      log.error("Failed to update $jobId", e)
+      log.error("Failed to update $jobId (executionId: $executionId)", e)
 
       return null
     }
@@ -194,7 +198,9 @@ class JobExecutorLocal implements JobExecutor {
 
   @Override
   void cancelJob(String jobId) {
-    log.info("Canceling job $jobId...")
+    String executionId = jobIdToHandlerMap.getOrDefault(jobId, [:]).get("executionId")
+
+    log.info("Canceling job $jobId (executionId: $executionId)...")
 
     // Remove the job from this rosco instance's handler map.
     def canceledJob = jobIdToHandlerMap.remove(jobId)

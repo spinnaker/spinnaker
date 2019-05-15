@@ -8,6 +8,7 @@ import com.netflix.spinnaker.rosco.jobs.JobRequest;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,11 +42,16 @@ public class HelmBakeManifestService {
     HelmTemplateUtils utils = templateUtils(request);
     BakeManifestEnvironment env = new BakeManifestEnvironment();
     BakeRecipe recipe = utils.buildBakeRecipe(env, request);
-
     BakeStatus bakeStatus;
 
     try {
-      JobRequest jobRequest = new JobRequest(recipe.getCommand(), new ArrayList<>(), UUID.randomUUID().toString(), false);
+      JobRequest jobRequest = new JobRequest(
+        recipe.getCommand(),
+        new ArrayList<>(),
+        UUID.randomUUID().toString(),
+        AuthenticatedRequest.getSpinnakerExecutionId().orElse(null),
+        false
+      );
       String jobId = jobExecutor.startJob(jobRequest);
 
       bakeStatus = jobExecutor.updateJob(jobId);

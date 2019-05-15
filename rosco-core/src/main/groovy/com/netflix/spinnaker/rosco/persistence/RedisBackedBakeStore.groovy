@@ -555,7 +555,7 @@ class RedisBackedBakeStore implements BakeStore {
   @CompileStatic
   private Set<String> scanIncompleteBakesKeys() {
     def incompleteBakesKeys = new HashSet()
-    redisClientDelegate.withKeyScan(allIncompleteBakesKeyPattern, 1000, { page ->
+    redisClientDelegate.withKeyScan(allIncompleteBakesKeyPattern, 100, { page ->
       incompleteBakesKeys.addAll(page.getResults())
     })
     return incompleteBakesKeys

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.rosco.jobs.JobRequest
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.method.annotation.RequestHeaderMapMethodArgumentResolver
 
 import java.util.concurrent.TimeUnit
 
@@ -148,8 +150,15 @@ class BakeryController {
   BakeStatus createBake(@PathVariable("region") String region,
                         @RequestBody BakeRequest bakeRequest,
                         @RequestParam(value = "rebake", defaultValue = "0") String rebake) {
+    String executionId = AuthenticatedRequest.getSpinnakerExecutionId().orElse(null)
+
     if (!bakeRequest.cloud_provider_type) {
-      bakeRequest = bakeRequest.copyWith(cloud_provider_type: defaultCloudProviderType)
+      bakeRequest = bakeRequest.copyWith(
+        cloud_provider_type: defaultCloudProviderType,
+        spinnaker_execution_id: executionId
+      )
+    } else if (executionId != null) {
+      bakeRequest = bakeRequest.copyWith(spinnaker_execution_id: executionId)
     }
 
     CloudProviderBakeHandler cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.lookup(bakeRequest.cloud_provider_type)
@@ -180,7 +189,8 @@ class BakeryController {
       def bakeRecipe = cloudProviderBakeHandler.produceBakeRecipe(region, bakeRequest)
       def jobRequest = new JobRequest(tokenizedCommand: bakeRecipe.command,
                                       maskedParameters: cloudProviderBakeHandler.maskedPackerParameters,
-                                      jobId: bakeRequest.request_id)
+                                      jobId: bakeRequest.request_id,
+                                      executionId: bakeRequest.spinnaker_execution_id)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {
         return runBake(bakeKey, region, bakeRecipe, bakeRequest, jobRequest)

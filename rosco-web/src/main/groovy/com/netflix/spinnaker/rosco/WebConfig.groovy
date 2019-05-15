@@ -17,13 +17,19 @@
 package com.netflix.spinnaker.rosco
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.web.servlet.FilterRegistrationBean
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
+@CompileStatic
 public class WebConfig extends WebMvcConfigurerAdapter {
 
   @Autowired
@@ -37,4 +43,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
       )
     )
   }
+
+  @Bean
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
+  }
+
 }

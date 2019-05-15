@@ -80,7 +80,8 @@ class PackageNameConverter {
     }
 
     if (!AppVersion.parseName(appVersion)) {
-      log.debug("AppVersion.parseName() was unable to parse appVersionStr =$appVersion.")
+      log.debug("AppVersion.parseName() was unable to parse appVersionStr =$appVersion " +
+        "(executionId: $bakeRequest.spinnaker_execution_id)")
       return null
     }
 

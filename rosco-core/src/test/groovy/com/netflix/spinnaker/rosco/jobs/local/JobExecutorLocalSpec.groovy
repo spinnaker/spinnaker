@@ -65,7 +65,7 @@ class JobExecutorLocalSpec extends Specification implements TestDefaults {
     when:
       def jobId = jobExecutorLocal.startJob(jobRequest)
       // Give the script time to run + 100 ms fudge factor
-      sleep(1100)
+      sleep(3000)
       def bakeStatus = jobExecutorLocal.updateJob(jobId)
 
     then:
