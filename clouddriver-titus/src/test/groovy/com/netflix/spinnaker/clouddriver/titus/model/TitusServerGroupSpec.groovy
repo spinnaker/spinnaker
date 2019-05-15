@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.model
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
+import com.netflix.spinnaker.clouddriver.titus.client.model.ServiceJobProcesses
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import spock.lang.Specification
@@ -45,7 +46,11 @@ class TitusServerGroupSpec extends Specification {
       state: TaskState.RUNNING,
       submittedAt: launchDate,
       host: 'ec2-1-2-3-4.compute-1.amazonaws.com'
-    )]
+    )],
+    serviceJobProcesses: new ServiceJobProcesses(
+        'disableIncreaseDesired': false,
+        'disableDecreaseDesired': false
+    )
   )
 
   void 'valid server group instance is created from a titus job'() {
@@ -75,6 +80,8 @@ class TitusServerGroupSpec extends Specification {
     titusServerGroup.capacity?.min == job.instancesMin
     titusServerGroup.capacity?.max == job.instancesMax
     titusServerGroup.capacity?.desired == job.instancesDesired
+    titusServerGroup.serviceJobProcesses.disableDecreaseDesired == false
+    titusServerGroup.serviceJobProcesses.disableIncreaseDesired == false
   }
 
   void 'can handle empty ports'() {

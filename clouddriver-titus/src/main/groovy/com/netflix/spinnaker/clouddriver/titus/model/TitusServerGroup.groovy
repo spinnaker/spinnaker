@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
+import com.netflix.spinnaker.clouddriver.titus.client.model.ServiceJobProcesses
 
 /**
  * Equivalent of a Titus {@link com.netflix.spinnaker.clouddriver.titus.client.model.Job}
@@ -63,6 +64,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   int runtimeLimitSecs
   Map buildInfo
   MigrationPolicy migrationPolicy
+  ServiceJobProcesses serviceJobProcesses
 
   TitusServerGroup() {}
 
@@ -108,6 +110,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
         "digest": "${image.dockerImageDigest}".toString()
       ]
     ]
+    serviceJobProcesses = job.serviceJobProcesses
   }
 
   @Override

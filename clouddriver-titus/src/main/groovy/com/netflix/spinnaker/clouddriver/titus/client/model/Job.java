@@ -69,6 +69,7 @@ public class Job {
   private MigrationPolicy migrationPolicy;
   private DisruptionBudget disruptionBudget;
   private String jobState;
+  private ServiceJobProcesses serviceJobProcesses;
 
   public Job() {}
 
@@ -174,6 +175,22 @@ public class Job {
       if (firstMount.getEfsRelativeMountPoint() != null) {
         efs.setEfsRelativeMountPoint(firstMount.getEfsRelativeMountPoint());
       }
+    }
+
+    if (grpcJob.getJobDescriptor().getService().getServiceJobProcesses() != null) {
+      serviceJobProcesses = new ServiceJobProcesses();
+      serviceJobProcesses.setDisableDecreaseDesired(
+          grpcJob
+              .getJobDescriptor()
+              .getService()
+              .getServiceJobProcesses()
+              .getDisableDecreaseDesired());
+      serviceJobProcesses.setDisableIncreaseDesired(
+          grpcJob
+              .getJobDescriptor()
+              .getService()
+              .getServiceJobProcesses()
+              .getDisableIncreaseDesired());
     }
   }
 
@@ -545,5 +562,13 @@ public class Job {
 
   public void setDisruptionBudget(DisruptionBudget disruptionBudget) {
     this.disruptionBudget = disruptionBudget;
+  }
+
+  public ServiceJobProcesses getServiceJobProcesses() {
+    return serviceJobProcesses;
+  }
+
+  public void setServiceJobProcesses(ServiceJobProcesses serviceJobProcesses) {
+    this.serviceJobProcesses = serviceJobProcesses;
   }
 }
