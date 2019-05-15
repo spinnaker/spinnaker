@@ -82,7 +82,6 @@ export class SchedulerFactory {
       unsubscribe: () => {
         suspended = true;
         if (scheduler) {
-          scheduler.next(false);
           scheduler.unsubscribe();
         }
         scheduler = null;

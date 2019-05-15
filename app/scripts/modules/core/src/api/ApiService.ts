@@ -3,6 +3,7 @@ import { $q, $http } from 'ngimport';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { SETTINGS } from 'core/config/settings';
 import { ICache } from 'core/cache';
+import { isNil } from 'lodash';
 
 export interface IRequestBuilder {
   config?: IRequestConfig;
@@ -166,7 +167,9 @@ export class API {
       method: '',
       url: this.baseUrl,
     };
-    urls.forEach((url: string) => (config.url = `${config.url}/${url.toString().replace(/^\/+/, '')}`));
+    urls
+      .filter(i => !isNil(i))
+      .forEach((url: string) => (config.url = `${config.url}/${url.toString().replace(/^\/+/, '')}`));
 
     return this.baseReturn(config);
   }
