@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
+import org.apache.commons.lang3.StringUtils
 
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
 
@@ -41,6 +42,8 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
 
   @JsonIgnore
   final String jsonPath
+  @JsonIgnore
+  final String gcloudPath
   final AppengineCredentials credentials
   final String applicationName
   @JsonIgnore
@@ -72,6 +75,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     AppengineCredentials credentials
 
     String jsonKey
+    String gcloudPath
     String jsonPath
     String applicationName
     Appengine appengine
@@ -138,6 +142,11 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
 
     Builder jsonPath(String jsonPath) {
       this.jsonPath = jsonPath
+      return this
+    }
+
+    Builder gcloudPath(String gcloudPath) {
+      this.gcloudPath = gcloudPath
       return this
     }
 
@@ -273,6 +282,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
                                                   requiredGroupMembership,
                                                   permissions,
                                                   jsonPath,
+                                                  gcloudPath,
                                                   credentials,
                                                   applicationName,
                                                   appengine,

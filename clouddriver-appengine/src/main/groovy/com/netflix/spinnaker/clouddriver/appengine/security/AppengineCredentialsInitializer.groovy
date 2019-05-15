@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -62,7 +63,11 @@ class AppengineCredentialsInitializer implements CredentialsInitializerSynchroni
 
     accountsToAdd.each { AppengineConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        managedAccount.initialize(jobExecutor)
+        String gcloudPath = appengineConfigurationProperties.gcloudPath
+        if (StringUtils.isEmpty(gcloudPath)) {
+          gcloudPath = "gcloud"
+        }
+        managedAccount.initialize(jobExecutor, gcloudPath)
 
         def jsonKey = AppengineCredentialsInitializer.getJsonKey(managedAccount)
         def appengineAccount = new AppengineNamedAccountCredentials.Builder()
@@ -72,6 +77,7 @@ class AppengineCredentialsInitializer implements CredentialsInitializerSynchroni
           .project(managedAccount.project)
           .jsonKey(jsonKey)
           .applicationName(clouddriverUserAgentApplicationName)
+          .gcloudPath(gcloudPath)
           .jsonPath(managedAccount.jsonPath)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
           .permissions(managedAccount.permissions.build())
