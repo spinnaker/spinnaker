@@ -303,6 +303,9 @@ enum KubernetesDnsPolicy {
 
   @JsonProperty("ClusterFirstWithHostNet")
   ClusterFirstWithHostNet,
+
+  @JsonProperty("None")
+  None,
 }
 
 enum KubernetesStorageMediumType {
