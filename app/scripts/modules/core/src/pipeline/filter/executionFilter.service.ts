@@ -174,31 +174,25 @@ export class ExecutionFilterService {
   private static addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
     const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
+    let toAdd = [];
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
-      configs
-        .filter((config: any) => !groups[config.name])
-        .forEach((config: any) =>
-          groups.push({
-            heading: config.name,
-            config,
-            executions: [],
-            targetAccounts: this.extractAccounts(config),
-            fromTemplate: (config && config.type === 'templatedPipeline') || false,
-          }),
-        );
+      toAdd = configs.filter((config: any) => !groups[config.name]);
     } else {
-      configs
-        .filter((config: any) => !groups[config.name] && sortFilter.pipeline[config.name])
-        .forEach((config: any) => {
-          groups.push({
-            heading: config.name,
-            config,
-            executions: [],
-            targetAccounts: this.extractAccounts(config),
-            fromTemplate: (config && config.type === 'templatedPipeline') || false,
-          });
-        });
+      toAdd = configs.filter((config: any) => {
+        const filterMatches = (sortFilter.filter || '').toLowerCase().includes(config.name.toLowerCase());
+        return !groups[config.name] && (sortFilter.pipeline[config.name] || filterMatches);
+      });
     }
+
+    toAdd.forEach((config: any) => {
+      groups.push({
+        heading: config.name,
+        config,
+        executions: [],
+        targetAccounts: this.extractAccounts(config),
+        fromTemplate: (config && config.type === 'templatedPipeline') || false,
+      });
+    });
   }
 
   private static extractAccounts(config: IPipeline): string[] {
