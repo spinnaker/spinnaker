@@ -51,9 +51,8 @@ class SecurityGroupController {
   Map allByAccount(
       @PathVariable String account,
       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-      @RequestParam(value = "region", required = false) String region,
       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    securityGroupService.getForAccountAndProviderAndRegion(account, provider, region, sourceApp)
+    securityGroupService.getForAccountAndProvider(account, provider, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a security group's details")

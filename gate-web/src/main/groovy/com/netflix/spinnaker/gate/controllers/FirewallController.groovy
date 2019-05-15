@@ -48,10 +48,19 @@ class FirewallController {
   @ApiOperation(value = "Retrieve a list of firewalls for a given account, grouped by region")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
-      @PathVariable String account,
-      @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-      @RequestParam(value = "region", required = false) String region,
-      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    @PathVariable String account,
+    @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    securityGroupService.getForAccountAndProvider(account, provider, sourceApp)
+  }
+
+  @ApiOperation(value = "Retrieve a list of firewalls for a given account and region")
+  @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
+  List allByAccountAndRegion(
+    @PathVariable String account,
+    @PathVariable String region,
+    @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region, sourceApp)
   }
 

@@ -72,9 +72,15 @@ class SecurityGroupService {
    * @param provider provider name (aws, gce, docker)
    * @param region optional. nullable
    */
-  Map getForAccountAndProviderAndRegion(String account, String provider, String region, String selectorKey) {
+  Map getForAccountAndProvider(String account, String provider, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getSecurityGroups(account, provider, region)
+      clouddriverServiceSelector.select(selectorKey).getSecurityGroups(account, provider)
+    } execute()
+  }
+
+  List getForAccountAndProviderAndRegion(String account, String provider, String region, String selectorKey) {
+    HystrixFactory.newListCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
+      clouddriverServiceSelector.select(selectorKey).getSecurityGroupsForRegion(account, provider, region)
     } execute()
   }
 
