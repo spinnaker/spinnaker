@@ -8,7 +8,8 @@ It provides integrations for outgoing notifications in the echo-notifications pa
 
 *  email
 *  Slack
-*  Hipchat
+*  Bearychat
+*  Google Chat
 *  sms ( via Twilio )
 
 Echo is also able to send events within Spinnaker to a predefined url, which is configurable under the echo-rest module.

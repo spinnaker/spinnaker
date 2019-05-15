@@ -38,7 +38,6 @@ class Notification {
     EMAIL,
     GITHUB_STATUS,
     GOOGLECHAT,
-    HIPCHAT,
     JIRA,
     PAGER_DUTY,
     PUBSUB,
