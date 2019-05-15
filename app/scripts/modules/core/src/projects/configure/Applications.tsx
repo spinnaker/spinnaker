@@ -9,7 +9,6 @@ import { FormikApplicationsPicker } from 'core/projects/configure/FormikApplicat
 export interface IApplicationsProps {
   formik: FormikProps<IProject>;
   allApplications: string[];
-  onApplicationsChanged: (applications: string[]) => void;
 }
 
 export class Applications extends React.Component<IApplicationsProps> implements IWizardPageComponent<IProject> {
@@ -30,17 +29,11 @@ export class Applications extends React.Component<IApplicationsProps> implements
     } as any;
   }
 
-  public componentDidMount() {
-    const apps = getIn(this.props.formik.values, 'config.applications', []);
-    this.props.onApplicationsChanged && this.props.onApplicationsChanged(apps);
-  }
-
   public componentDidUpdate(prevProps: IApplicationsProps) {
     const prevApps = getIn(prevProps.formik.values, 'config.applications', []);
     const nextApps = getIn(this.props.formik.values, 'config.applications', []);
 
     if (!isEqual(prevApps, nextApps)) {
-      this.props.onApplicationsChanged && this.props.onApplicationsChanged(nextApps);
       // Remove any pipelines associated with the applications removed.
       const existingPipelineConfigs: IProjectPipeline[] = getIn(this.props.formik.values, 'config.pipelineConfigs', []);
       const newPipelineConfigs = existingPipelineConfigs.filter(({ application }) => nextApps.includes(application));

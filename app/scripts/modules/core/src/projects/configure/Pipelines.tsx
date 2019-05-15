@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
-import { chain, each, get, isEqual } from 'lodash';
+import { chain, get, isEqual } from 'lodash';
 
 import { PipelineConfigService } from 'core/pipeline';
 import { FormikFormField, ReactSelectInput, StringsAsOptions } from 'core/presentation';
@@ -16,6 +16,7 @@ export interface IPipelinesState {
   appsPipelines: {
     [appName: string]: IPipeline[];
   };
+  initialized: boolean;
 }
 
 export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
@@ -24,15 +25,16 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
 
   public state: IPipelinesState = {
     appsPipelines: {},
+    initialized: false,
   };
 
   public validate = (value: IProject): FormikErrors<IProject> => {
     const projectApplications = (value.config && value.config.applications) || [];
-    const { appsPipelines } = this.state;
+    const { appsPipelines, initialized } = this.state;
 
-    if (value.config && value.config.pipelineConfigs && value.config.pipelineConfigs.length) {
+    if (initialized && value.config && value.config.pipelineConfigs && value.config.pipelineConfigs.length) {
       const pipelineConfigErrors = value.config.pipelineConfigs.map(config => {
-        const pipelineIdsForApp = (appsPipelines[config.application] || []).map(p => p.id);
+        const pipelineIdsForApp = appsPipelines[config.application].map(p => p.id);
 
         if (!config.application) {
           return { application: 'Application must be specified' };
@@ -71,12 +73,20 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
       .filter(appName => appName && !this.state.appsPipelines[appName])
       .value();
 
-    each(appsToFetch, appName => {
-      PipelineConfigService.getPipelinesForApplication(appName).then(pipelines =>
-        this.setState({
-          appsPipelines: { ...this.state.appsPipelines, [appName]: pipelines },
-        }),
-      );
+    const appsPipelines: { [appName: string]: IPipeline[] } = { ...this.state.appsPipelines };
+
+    Promise.all(
+      appsToFetch.map(appName => {
+        return PipelineConfigService.getPipelinesForApplication(appName)
+          .then(pipelines => {
+            appsPipelines[appName] = pipelines;
+          })
+          .catch(() => {
+            appsPipelines[appName] = [];
+          });
+      }),
+    ).then(() => {
+      this.setState({ appsPipelines, initialized: true });
     });
   };
 
@@ -91,7 +101,15 @@ export class Pipelines extends React.Component<IPipelinesProps, IPipelinesState>
   }
 
   public render() {
-    const { appsPipelines } = this.state;
+    const { appsPipelines, initialized } = this.state;
+
+    if (!initialized) {
+      return (
+        <div style={{ height: '200px' }}>
+          <Spinner size="medium" />
+        </div>
+      );
+    }
 
     const tableHeader = (
       <tr>

@@ -27,7 +27,6 @@ export interface IConfigureProjectModalState {
   allAccounts: IAccount[];
   allProjects: IProject[];
   allApplications: IApplicationSummary[];
-  configuredApps: string[];
   loading: boolean;
   taskMonitor?: TaskMonitor;
 }
@@ -43,7 +42,6 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     allAccounts: [],
     allProjects: [],
     allApplications: [],
-    configuredApps: [],
   };
 
   public static show(props?: IConfigureProjectModalProps): Promise<any> {
@@ -67,14 +65,8 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     return ReactModal.show(ConfigureProjectModal, projectProps, modalProps);
   }
 
-  private handleApplicationsChanged = (configuredApps: string[]) => {
-    this.setState({ configuredApps });
-  };
-
   public componentDidMount() {
-    const { projectConfiguration } = this.props;
-    const configuredApps = (projectConfiguration && projectConfiguration.config.applications) || [];
-    Promise.all([this.initialFetch()]).then(() => this.setState({ loading: false, configuredApps }));
+    this.initialFetch().then(() => this.setState({ loading: false }));
   }
 
   private submit = (project: IProject) => {
@@ -146,14 +138,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
               label="Applications"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => (
-                <Applications
-                  ref={innerRef}
-                  formik={formik}
-                  allApplications={appNames}
-                  onApplicationsChanged={this.handleApplicationsChanged}
-                />
-              )}
+              render={({ innerRef }) => <Applications ref={innerRef} formik={formik} allApplications={appNames} />}
             />
 
             <WizardPage
