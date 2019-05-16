@@ -61,7 +61,7 @@ class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
   describe("buffering executions") {
     beforeGroup {
       whenever(configService.isEnabled(eq("qos"), any())) doReturn true
-      whenever(configService.isEnabled(eq("qos.learningMode"), any())) doReturn false
+      whenever(configService.isEnabled(eq("qos.learning-mode"), any())) doReturn false
     }
     afterGroup(::resetMocks)
 

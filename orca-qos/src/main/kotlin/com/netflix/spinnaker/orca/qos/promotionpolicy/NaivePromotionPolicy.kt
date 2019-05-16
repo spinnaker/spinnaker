@@ -27,11 +27,11 @@ class NaivePromotionPolicy(
 ) : PromotionPolicy {
 
   override fun apply(candidates: List<Execution>): PromotionResult {
-    if (!configService.isEnabled("qos.promotionPolicy.naive", true)) {
+    if (!configService.isEnabled("qos.promotion-policy.naive", true)) {
       return PromotionResult(candidates, false, "Naive policy is disabled")
     }
 
-    val maxPromoteSize = configService.getConfig(Int::class.java, "qos.promotionPolicy.naive.size", 1)
+    val maxPromoteSize = configService.getConfig(Int::class.java, "qos.promotion-policy.naive.size", 1)
     val promoteSize = if (maxPromoteSize > candidates.size) candidates.size else maxPromoteSize
 
     return PromotionResult(

@@ -39,7 +39,7 @@ import retrofit.RetrofitError;
 
 @Component
 public class TrafficGuard {
-  private static final String MIN_CAPACITY_RATIO = "trafficGuards.minCapacityRatio";
+  private static final String MIN_CAPACITY_RATIO = "traffic-guards.min-capacity-ratio";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final OortHelper oortHelper;

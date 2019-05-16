@@ -33,7 +33,7 @@ class StageDefinitionBuilderSpec extends Specification {
     def isForceCacheRefreshEnabled = stageDefinitionBuilder.isForceCacheRefreshEnabled(dynamicConfigService)
 
     then:
-    1 * dynamicConfigService.isEnabled("stages.myStageDefinitionBuilder.forceCacheRefresh", true) >> {
+    1 * dynamicConfigService.isEnabled("stages.my-stage-definition-builder.force-cache-refresh", true) >> {
       return response()
     }
     0 * _

@@ -29,7 +29,7 @@ class NaiveBufferPolicy(
 ) : BufferPolicy {
 
   override fun apply(execution: Execution): BufferResult {
-    if (!configService.isEnabled("qos.bufferPolicy.naive", true)) {
+    if (!configService.isEnabled("qos.buffer-policy.naive", true)) {
       return BufferResult(ENQUEUE, false, "Naive policy is disabled")
     }
     return BufferResult(

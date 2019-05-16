@@ -23,6 +23,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAG
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
@@ -165,8 +166,10 @@ public interface StageDefinitionBuilder {
     try {
       return dynamicConfigService.isEnabled(
           String.format(
-              "stages.%s.forceCacheRefresh",
-              Character.toLowerCase(className.charAt(0)) + className.substring(1)),
+              "stages.%s.force-cache-refresh",
+              CaseFormat.LOWER_CAMEL.to(
+                  CaseFormat.LOWER_HYPHEN,
+                  Character.toLowerCase(className.charAt(0)) + className.substring(1))),
           true);
     } catch (Exception e) {
       return true;

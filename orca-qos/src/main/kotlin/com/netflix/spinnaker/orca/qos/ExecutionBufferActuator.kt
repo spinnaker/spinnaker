@@ -67,7 +67,7 @@ class ExecutionBufferActuator(
       withActionDecision(execution) {
         when (it.action) {
           BUFFER -> {
-            if (configService.isEnabled("qos.learningMode", true)) {
+            if (configService.isEnabled("qos.learning-mode", true)) {
               log.debug("Learning mode: Would have buffered execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
               registry.counter(bufferedId.withTag("learning", "true")).increment()
             } else {

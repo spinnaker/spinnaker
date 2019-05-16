@@ -39,7 +39,7 @@ public class ConditionConfigurationProperties {
   }
 
   public boolean isEnabled() {
-    return configService.getConfig(Boolean.class, "tasks.evaluateCondition", enabled);
+    return configService.getConfig(Boolean.class, "tasks.evaluate-condition", enabled);
   }
 
   public void setEnabled(boolean enabled) {
@@ -48,7 +48,7 @@ public class ConditionConfigurationProperties {
 
   public Long getBackoffWaitMs() {
     return configService.getConfig(
-        Long.class, "tasks.evaluateCondition.backoffWaitMs", backoffWaitMs);
+        Long.class, "tasks.evaluate-condition.backoff-wait-ms", backoffWaitMs);
   }
 
   public void setBackoffWaitMs(Long backoffWaitMs) {
@@ -57,7 +57,7 @@ public class ConditionConfigurationProperties {
 
   public long getWaitTimeoutMs() {
     return configService.getConfig(
-        Long.class, "tasks.evaluateCondition.waitTimeoutMs", waitTimeoutMs);
+        Long.class, "tasks.evaluate-condition.wait-timeout-ms", waitTimeoutMs);
   }
 
   public void setWaitTimeoutMs(long waitTimeoutMs) {
@@ -65,12 +65,12 @@ public class ConditionConfigurationProperties {
   }
 
   public List<String> getClusters() {
-    return configService.getConfig(List.class, "tasks.evaluateCondition.clusters", clusters);
+    return configService.getConfig(List.class, "tasks.evaluate-condition.clusters", clusters);
   }
 
   public List<String> getActiveConditions() {
     return configService.getConfig(
-        List.class, "tasks.evaluateCondition.activeConditions", activeConditions);
+        List.class, "tasks.evaluate-condition.active-conditions", activeConditions);
   }
 
   public void setClusters(List<String> clusters) {
@@ -82,6 +82,6 @@ public class ConditionConfigurationProperties {
   }
 
   public boolean isSkipWait() {
-    return configService.getConfig(Boolean.class, "tasks.evaluateCondition.skipWait", false);
+    return configService.getConfig(Boolean.class, "tasks.evaluate-condition.skip-wait", false);
   }
 }

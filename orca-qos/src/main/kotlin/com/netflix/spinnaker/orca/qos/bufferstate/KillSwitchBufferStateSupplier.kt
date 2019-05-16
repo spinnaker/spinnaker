@@ -28,10 +28,10 @@ class KillSwitchBufferStateSupplier(
 ) : BufferStateSupplier {
 
   override fun enabled() =
-    configService.getConfig(String::class.java, "qos.bufferingState.supplier", "") == "killSwitch"
+    configService.getConfig(String::class.java, "qos.buffering-state.supplier", "") == "killSwitch"
 
   override fun get() =
-    when (configService.isEnabled("qos.bufferingState.killSwitch", false)) {
+    when (configService.isEnabled("qos.buffering-state.kill-switch", false)) {
       true -> ACTIVE
       false -> INACTIVE
     }

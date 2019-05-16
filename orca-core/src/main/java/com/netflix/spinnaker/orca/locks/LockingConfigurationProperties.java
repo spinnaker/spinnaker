@@ -35,7 +35,7 @@ public class LockingConfigurationProperties {
   }
 
   public boolean isLearningMode() {
-    return dynamicConfigService.getConfig(Boolean.class, "locking.learningMode", learningMode);
+    return dynamicConfigService.getConfig(Boolean.class, "locking.learning-mode", learningMode);
   }
 
   public void setLearningMode(boolean learningMode) {
@@ -51,7 +51,7 @@ public class LockingConfigurationProperties {
   }
 
   public int getTtlSeconds() {
-    return dynamicConfigService.getConfig(Integer.class, "locking.ttlSeconds", ttlSeconds);
+    return dynamicConfigService.getConfig(Integer.class, "locking.ttl-seconds", ttlSeconds);
   }
 
   public void setTtlSeconds(int ttlSeconds) {
@@ -60,7 +60,7 @@ public class LockingConfigurationProperties {
 
   public int getBackoffBufferSeconds() {
     return dynamicConfigService.getConfig(
-        Integer.class, "locking.backoffBufferSeconds", backoffBufferSeconds);
+        Integer.class, "locking.backoff-buffer-seconds", backoffBufferSeconds);
   }
 
   public void setBackoffBufferSeconds(int backoffBufferSeconds) {
