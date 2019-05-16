@@ -21,23 +21,11 @@ import org.gradle.api.Project
 
 class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
 
-  public static List<String> REPOS = [
-      "clouddriver",
-      "echo",
-      "fiat",
-      "front50",
-      "gate",
-      "halyard",
-      "igor",
-      "kayenta",
-      "orca",
-      "rosco",
-      "keel"
-  ]
-
   @Override
   void apply(Project project) {
-    project.tasks.create("bump", BumpDependencies).dependsOn("updateDependencies")
+    def ext = project.extensions.create("dependencyBump", DependencyBumpExtension)
+    ext.rootProject = project.rootProject
+    project.tasks.create("bumpDependencies", BumpDependencies)
     project.tasks.create("closeAllAutoBumpPRs", CloseAllAutoBumpPRs)
     project.tasks.create("mergeAllAutoBumpPRs", MergeAllAutoBumpPRs)
   }

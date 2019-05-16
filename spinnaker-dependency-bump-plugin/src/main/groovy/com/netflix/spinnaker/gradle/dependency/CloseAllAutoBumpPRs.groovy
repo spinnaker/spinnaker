@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.gradle.dependency
 
 import org.eclipse.egit.github.core.Issue
@@ -16,12 +31,14 @@ class CloseAllAutoBumpPRs extends DefaultTask {
     String accessToken = project.property('github.token')
     client.setOAuth2Token(accessToken)
 
+    DependencyBumpExtension extension = project.extensions.findByType(DependencyBumpExtension)
+
     RepositoryService repoSvc = new RepositoryService(client)
     repoSvc.getRepositories().findAll {
-      SpinnakerDependencyBumpPlugin.REPOS.contains(it.name) && it.owner.login == "spinnaker"
+      extension.reposForArtifact.contains(it.name) && it.owner.login == "spinnaker"
     }.collect { Repository upstream ->
       IssueService issueService = new IssueService(client)
-      issueService.getIssues(upstream, ["labels": "autobump", "state": "open"]).findAll { Issue i ->
+      issueService.getIssues(upstream, ["labels": extension.autobumpLabel, "state": "open"]).findAll { Issue i ->
         i.pullRequest != null
       }.each { Issue i ->
         try {
