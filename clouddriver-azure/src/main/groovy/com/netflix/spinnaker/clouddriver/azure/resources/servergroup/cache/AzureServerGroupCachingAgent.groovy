@@ -97,8 +97,9 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     result
   }
 
-  CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache, String serverGroupName = "*") {
-    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.ID, serverGroupName, region, accountName))
+  CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache) {
+    // Server Groups
+    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.ID, "*", region, accountName))
     def sgCacheResults = providerCache.getAll((AZURE_SERVER_GROUPS.ns), sgIdentifiers, RelationshipCacheFilter.none())
     def evictedSGList = sgCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_SERVER_GROUPS.ns].find {it.id == cached.id}) {
@@ -112,7 +113,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       cacheResult.evictions[AZURE_SERVER_GROUPS.ns] = evictedSGList
     }
 
-    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.ID, serverGroupName, "*", region, accountName))
+    // Instances
+    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.ID, "*", "*", region, accountName))
     def instanceCacheResults = providerCache.getAll((AZURE_INSTANCES.ns), instanceIdentifiers, RelationshipCacheFilter.none())
     def evictedInstanceList = instanceCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_INSTANCES.ns].find {it.id == cached.id}) {
@@ -126,8 +128,29 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       cacheResult.evictions[AZURE_INSTANCES.ns] = evictedInstanceList
     }
 
-    // TODO: evict dead cluster cache entries
-    // Since the cluster is not region base (unlike the cache agent) we need to make sure that we don't remove "live" entries
+    // Clusters
+    def clusterIdentifiers = providerCache.filterIdentifiers(AZURE_CLUSTERS.ns, Keys.getClusterKey(AzureCloudProvider.ID, "*", "*", accountName))
+    def clusterCacheResults = providerCache.getAll((AZURE_CLUSTERS.ns), clusterIdentifiers, RelationshipCacheFilter.include(AZURE_SERVER_GROUPS.ns))
+
+    def evictedClusterList = clusterCacheResults?.collect{ cached ->
+      def relatedServerGroups = cached.relationships.azureServerGroups
+      if(relatedServerGroups) {
+        if (!relatedServerGroups.find {
+          providerCache.exists(AZURE_SERVER_GROUPS.ns, it)
+        }) {
+          cached.id
+        } else {
+          null
+        }
+      } else {
+        cached.id
+      }
+    }
+
+    evictedClusterList.removeAll(Collections.singleton(null))
+    if (evictedClusterList) {
+      cacheResult.evictions[AZURE_CLUSTERS.ns] = evictedClusterList
+    }
 
     cacheResult
   }
