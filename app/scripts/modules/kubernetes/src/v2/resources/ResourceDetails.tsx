@@ -5,7 +5,7 @@ import { UISref } from '@uirouter/react';
 import { DateTime } from 'luxon';
 import { IManifest, Spinner, CloudProviderLogo, CollapsibleSection, AccountTag, timestamp } from '@spinnaker/core';
 import { KubernetesManifestService } from '../manifest/manifest.service';
-import { ManifestEvents } from 'kubernetes/v2/pipelines/stages/deployManifest/react/ManifestEvents';
+import { ManifestEvents } from 'kubernetes/v2/pipelines/stages/deployManifest/manifestStatus/ManifestEvents';
 import { ManifestLabels } from 'kubernetes/v2/manifest/ManifestLabels';
 import { ManifestCondition } from 'kubernetes/v2/manifest/status/ManifestCondition';
 

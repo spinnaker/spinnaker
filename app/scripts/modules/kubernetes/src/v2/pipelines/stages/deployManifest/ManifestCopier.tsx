@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
-import { IPromise } from 'angular';
 import { groupBy, sortBy } from 'lodash';
+import { Observable, Subject } from 'rxjs';
 
 import {
   ModalClose,
@@ -47,6 +47,8 @@ const LAST_APPLIED_CONFIGURATION = 'kubectl.kubernetes.io/last-applied-configura
  * A modal that allows a user to copy a running Kubernetes resource.
  **/
 export class ManifestCopier extends React.Component<IManifestCopierProps, IManifestCopierState> {
+  private destroy$ = new Subject();
+
   public static getState = (props: IManifestCopierProps) => {
     let manifests: IManifestOption[] = [];
 
@@ -133,19 +135,24 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
     this.state = ManifestCopier.getState(props);
   }
 
-  private fetchManifest = (data: { account: string; region: string; name: string }): IPromise<IManifest> => {
-    return ManifestReader.getManifest(data.account, data.region, data.name).then(response =>
-      JSON.parse(response.manifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]),
-    );
-  };
-
   public useManifest = (): void => {
-    this.fetchManifest(this.state.selectedManifest.data).then(manifest => this.props.onManifestSelected(manifest));
+    const {
+      data: { account, region, name },
+    } = this.state.selectedManifest;
+    Observable.fromPromise(ManifestReader.getManifest(account, region, name))
+      .takeUntil(this.destroy$)
+      .subscribe((manifest: IManifest) => {
+        this.props.onManifestSelected(JSON.parse(manifest.manifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]));
+      });
   };
 
   public manifestChanged = (option: Option) => {
     this.setState({ selectedManifest: option as IManifestOption });
   };
+
+  public componentWillUnmount() {
+    this.destroy$.next();
+  }
 
   public render() {
     const { selectedManifest, manifests } = this.state;

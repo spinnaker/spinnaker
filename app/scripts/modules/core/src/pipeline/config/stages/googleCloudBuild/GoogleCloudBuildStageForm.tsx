@@ -129,7 +129,7 @@ export class GoogleCloudBuildStageForm extends React.Component<
         )}
         {stage.buildDefinitionSource === buildDefinitionSources.ARTIFACT && !SETTINGS.feature['artifactsRewrite'] && (
           <PreRewriteStageArtifactSelector
-            excludedArtifactTypes={[
+            excludedArtifactTypePatterns={[
               ArtifactTypePatterns.DOCKER_IMAGE,
               ArtifactTypePatterns.KUBERNETES,
               ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,

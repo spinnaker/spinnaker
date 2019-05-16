@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { module } from 'angular';
-import { react2angular } from 'react2angular';
+
 import { Application, IManifest } from '@spinnaker/core';
 
 import { ManifestCopier } from './ManifestCopier';
@@ -14,7 +13,7 @@ export interface ICopyFromTemplateState {
   show: boolean;
 }
 
-class CopyFromTemplateButton extends React.Component<ICopyFromTemplateProps, ICopyFromTemplateState> {
+export class CopyFromTemplateButton extends React.Component<ICopyFromTemplateProps, ICopyFromTemplateState> {
   constructor(props: ICopyFromTemplateProps) {
     super(props);
     this.state = { show: false };
@@ -37,16 +36,10 @@ class CopyFromTemplateButton extends React.Component<ICopyFromTemplateProps, ICo
           onDismiss={this.toggle}
           onManifestSelected={this.handleManifestSelected}
         />
-        <a className="clickable" onClick={this.toggle}>
-          copy from running infrastructure
-        </a>
+        <button className="link" onClick={this.toggle} style={{ paddingLeft: 0 }}>
+          Copy from running infrastructure
+        </button>
       </>
     );
   }
 }
-
-export const KUBERNETES_COPY_FROM_TEMPLATE_BUTTON = 'spinnaker.kubernetes.copyFromTemplateButton.component';
-module(KUBERNETES_COPY_FROM_TEMPLATE_BUTTON, []).component(
-  'kubernetesCopyFromTemplateButton',
-  react2angular(CopyFromTemplateButton, ['application', 'handleCopy']),
-);

@@ -1,7 +1,5 @@
-import { module } from 'angular';
 import * as DOMPurify from 'dompurify';
 import * as React from 'react';
-import { react2angular } from 'react2angular';
 import { cloneDeep, find, get, map, set, split } from 'lodash';
 import Select, { Option } from 'react-select';
 
@@ -112,7 +110,6 @@ export class ManifestDeploymentOptions extends React.Component<
     return (
       <>
         <h4>Rollout Strategy Options</h4>
-        <hr />
         <StageConfigField helpKey="kubernetes.manifest.rolloutStrategyOptions" fieldColumns={8} label="Enable">
           <div className="checkbox">
             <label>
@@ -175,9 +172,3 @@ export class ManifestDeploymentOptions extends React.Component<
     );
   }
 }
-
-export const MANIFEST_DEPLOYMENT_OPTIONS = 'spinnaker.kubernetes.v2.pipelines.deployManifest.manifestDeploymentOptions';
-module(MANIFEST_DEPLOYMENT_OPTIONS, []).component(
-  'manifestDeploymentOptions',
-  react2angular(ManifestDeploymentOptions, ['accounts', 'config', 'onConfigChange', 'selectedAccount']),
-);

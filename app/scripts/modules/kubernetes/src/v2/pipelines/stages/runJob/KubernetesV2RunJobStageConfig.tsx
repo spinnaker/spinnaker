@@ -129,7 +129,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
     const { stage, pipeline } = this.props;
     return (
       <PreRewriteStageArtifactSelector
-        excludedArtifactTypes={[]}
+        excludedArtifactTypePatterns={[]}
         stage={stage}
         pipeline={pipeline}
         selectedArtifactId={stage.consumeArtifactId}

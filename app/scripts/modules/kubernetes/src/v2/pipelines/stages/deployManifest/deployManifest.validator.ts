@@ -8,6 +8,8 @@ const MAX_VERSION_HISTORY_ANNOTATION = 'strategy.spinnaker.io/max-version-histor
 
 export const deployManifestValidators = (): IValidatorConfig[] => {
   return [
+    { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
+    { type: 'requiredField', fieldName: 'source', fieldLabel: 'Source' },
     {
       type: 'custom',
       validate: (_pipeline: IPipeline, stage: IStage) => {

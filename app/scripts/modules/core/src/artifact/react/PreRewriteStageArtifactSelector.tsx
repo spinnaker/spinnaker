@@ -20,8 +20,10 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 
-interface IPreRewriteArtifactSelectorProps {
-  excludedArtifactTypes?: RegExp[];
+export interface IPreRewriteArtifactSelectorProps {
+  excludedArtifactTypePatterns?: RegExp[];
+  helpKey: string;
+  label: string;
   selectedArtifactId: string;
   pipeline: IPipeline;
   selectedArtifactAccount: string;
@@ -43,7 +45,7 @@ export class PreRewriteStageArtifactSelector extends React.Component<
   IPreRewriteArtifactSelectorState
 > {
   public static defaultProps: Partial<IPreRewriteArtifactSelectorProps> = {
-    excludedArtifactTypes: defaultExcludedArtifactTypes,
+    excludedArtifactTypePatterns: defaultExcludedArtifactTypes,
   };
   private destroy$ = new Subject();
 
@@ -134,7 +136,7 @@ export class PreRewriteStageArtifactSelector extends React.Component<
   private getKinds = (): IArtifactKindConfig[] => {
     return Registry.pipeline
       .getMatchArtifactKinds()
-      .filter((a: IArtifactKindConfig) => !this.props.excludedArtifactTypes.find(t => t.test(a.type)));
+      .filter((a: IArtifactKindConfig) => !this.props.excludedArtifactTypePatterns.find(t => t.test(a.type)));
   };
 
   private getSources = (): IExpectedArtifactSourceOption[] => {
@@ -168,14 +170,14 @@ export class PreRewriteStageArtifactSelector extends React.Component<
   }
 
   public render() {
-    const { excludedArtifactTypes, selectedArtifactId, setArtifactAccount } = this.props;
+    const { excludedArtifactTypePatterns, helpKey, label, selectedArtifactId, setArtifactAccount } = this.props;
     const { accountsForArtifact, allArtifactAccounts, showCreateArtifactForm } = this.state;
 
     return (
       <>
-        <StageConfigField label="Artifact">
+        <StageConfigField helpKey={helpKey} label={label || 'Artifact'}>
           <ExpectedArtifactSelector
-            excludedArtifactTypes={excludedArtifactTypes}
+            excludedArtifactTypes={excludedArtifactTypePatterns}
             expectedArtifacts={this.state.expectedArtifacts}
             selected={this.getSelectedExpectedArtifact(selectedArtifactId)}
             onChange={this.onArtifactChange}

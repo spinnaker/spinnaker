@@ -77,7 +77,7 @@ describe('<PreRewriteStageArtifactSelector />', () => {
   it('renders only an ExpectedArtifactSelector by default', () => {
     component = mount(
       <PreRewriteStageArtifactSelector
-        excludedArtifactTypes={[]}
+        excludedArtifactTypePatterns={[]}
         selectedArtifactId={null}
         pipeline={pipeline}
         selectedArtifactAccount={null}
@@ -98,7 +98,7 @@ describe('<PreRewriteStageArtifactSelector />', () => {
   it('renders an ExpectedArtifactSelector and ArtifactAccountSelector when an expected artifact with more than one possible account is selected', () => {
     component = mount(
       <PreRewriteStageArtifactSelector
-        excludedArtifactTypes={[]}
+        excludedArtifactTypePatterns={[]}
         selectedArtifactId="626ce062-6e60-498d-a562-289db3f7faf5"
         pipeline={pipeline}
         selectedArtifactAccount="github-account-2"
@@ -119,7 +119,7 @@ describe('<PreRewriteStageArtifactSelector />', () => {
   it('renders an ExpectedArtifactSelector and ExpectedArtifactEditor (which includes an ArtifactAccountSelector) when "Create new" is selected', () => {
     component = mount(
       <PreRewriteStageArtifactSelector
-        excludedArtifactTypes={[]}
+        excludedArtifactTypePatterns={[]}
         selectedArtifactId={null}
         pipeline={pipeline}
         selectedArtifactAccount={null}

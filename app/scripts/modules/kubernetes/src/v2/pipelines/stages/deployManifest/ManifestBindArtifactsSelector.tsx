@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import * as React from 'react';
-import { react2angular } from 'react2angular';
 
 import {
   IArtifact,
@@ -16,14 +14,14 @@ export interface IManifestBindArtifact {
   artifact?: IArtifact;
 }
 
-export interface IManifestBindArtifactsSelector {
+export interface IManifestBindArtifactsSelectorProps {
   pipeline: IPipeline;
   stage: IStage;
   bindings?: IManifestBindArtifact[];
   onChangeBindings: (_: IManifestBindArtifact[]) => void;
 }
 
-export class ManifestBindArtifactsSelector extends React.Component<IManifestBindArtifactsSelector> {
+export class ManifestBindArtifactsSelector extends React.Component<IManifestBindArtifactsSelectorProps> {
   private onChangeBinding = (index: number, binding: IManifestBindArtifact) => {
     const bindings = (this.props.bindings || []).slice(0);
     bindings[index] = binding;
@@ -75,10 +73,3 @@ export class ManifestBindArtifactsSelector extends React.Component<IManifestBind
     );
   }
 }
-
-export const MANIFEST_BIND_ARTIFACTS_SELECTOR_REACT =
-  'spinnaker.kubernetes.v2.pipelines.deployManifest.bindArtifacts.selector.react';
-module(MANIFEST_BIND_ARTIFACTS_SELECTOR_REACT, []).component(
-  'manifestBindArtifactsSelectorReact',
-  react2angular(ManifestBindArtifactsSelector, ['pipeline', 'stage', 'bindings', 'onChangeBindings']),
-);

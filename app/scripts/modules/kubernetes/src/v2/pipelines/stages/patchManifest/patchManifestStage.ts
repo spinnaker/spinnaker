@@ -12,7 +12,7 @@ import {
 import { KubernetesV2PatchManifestConfigCtrl } from '../patchManifest/patchManifestConfig.controller';
 import { KUBERNETES_PATCH_MANIFEST_OPTIONS_FORM } from './patchOptionsForm.component';
 import { KUBERNETES_MANIFEST_SELECTOR } from 'kubernetes/v2/manifest/selector/selector.component';
-import { DeployStatus } from '../deployManifest/react/DeployStatus';
+import { DeployStatus } from '../deployManifest/manifestStatus/DeployStatus';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 
 export const KUBERNETES_PATCH_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.patchManifestStage';
