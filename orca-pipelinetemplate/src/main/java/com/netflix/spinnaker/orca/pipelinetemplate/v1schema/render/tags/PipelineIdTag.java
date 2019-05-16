@@ -26,6 +26,7 @@ import com.hubspot.jinjava.util.HelperStringTokenizer;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -79,9 +80,12 @@ public class PipelineIdTag implements Tag {
     String name = paramPairs.get(NAME).replaceAll("^[\"\']|[\"\']$", "");
     name = checkContext(name, context);
 
+    final String appName = application;
     List<Map<String, Object>> pipelines =
-        Optional.ofNullable(front50Service.getPipelines(application, false))
-            .orElse(Collections.emptyList());
+        AuthenticatedRequest.allowAnonymous(
+            () ->
+                Optional.ofNullable(front50Service.getPipelines(appName, false))
+                    .orElse(Collections.emptyList()));
     Map<String, Object> result = findPipeline(pipelines, application, name);
     return (String) result.get("id");
   }

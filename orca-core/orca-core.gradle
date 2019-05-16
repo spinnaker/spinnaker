@@ -31,7 +31,7 @@ dependencies {
   api("io.reactivex:rxjava")
 
   implementation(project(":orca-extensionpoint"))
-  implementation("com.google.guava:guava")
+  implementation("com.github.ben-manes.caffeine:guava")
   implementation("org.slf4j:slf4j-api")
   implementation("com.fasterxml.jackson.core:jackson-annotations")
   implementation("com.fasterxml.jackson.core:jackson-core")

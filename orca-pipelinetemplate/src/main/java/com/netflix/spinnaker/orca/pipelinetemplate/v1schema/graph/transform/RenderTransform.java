@@ -186,7 +186,6 @@ public class RenderTransform implements PipelineTemplateVisitor {
               .withCause("Received type " + rendered.getClass().toString())
               .withLocation(context.getLocation()));
     }
-    context.getVariables().putAll((Map<String, Object>) rendered);
     stage.setConfig((Map<String, Object>) rendered);
 
     stage.setName(

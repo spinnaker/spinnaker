@@ -128,7 +128,7 @@ class OperationsController {
       throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve pipeline configs. Fix this by setting front50.enabled: true")
     }
 
-    List<Map> history = front50Service.getPipelineHistory(pipelineConfigId, 1)
+    List<Map> history = AuthenticatedRequest.allowAnonymous({front50Service.getPipelineHistory(pipelineConfigId, 1)})
     if (history.isEmpty()) {
       throw new NotFoundException("Pipeline config $pipelineConfigId not found")
     }

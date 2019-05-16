@@ -38,7 +38,7 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   ext {
-    korkVersion = "5.2.3"
+    korkVersion = "5.3.3"
     keikoVersion = "2.10.1"
     fiatVersion = "1.0.4"
   }

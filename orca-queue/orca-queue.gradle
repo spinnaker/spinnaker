@@ -28,6 +28,7 @@ dependencies {
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("javax.ws.rs:jsr311-api:1.1.1")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("com.github.ben-manes.caffeine:guava")
 
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))
