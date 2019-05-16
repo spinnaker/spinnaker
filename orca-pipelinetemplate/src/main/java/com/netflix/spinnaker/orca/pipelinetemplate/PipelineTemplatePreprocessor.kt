@@ -27,11 +27,13 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import javax.annotation.Nonnull
 import javax.annotation.PostConstruct
 
 @Component("pipelineTemplatePreprocessor")
+@Order(2)
 class PipelineTemplatePreprocessor
 @Autowired constructor(
   private val pipelineTemplateObjectMapper: ObjectMapper,

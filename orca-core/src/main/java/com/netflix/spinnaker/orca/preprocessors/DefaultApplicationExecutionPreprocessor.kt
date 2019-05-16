@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.preprocessors
 
 import com.netflix.spinnaker.orca.config.DefaultApplicationConfigurationProperties
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import javax.annotation.Nonnull
 
@@ -24,6 +25,7 @@ import javax.annotation.Nonnull
  * Populates an Execution config payload with a default application value if one is not provided.
  */
 @Component
+@Order(1)
 class DefaultApplicationExecutionPreprocessor(
   private val properties: DefaultApplicationConfigurationProperties
 ) : ExecutionPreprocessor {
