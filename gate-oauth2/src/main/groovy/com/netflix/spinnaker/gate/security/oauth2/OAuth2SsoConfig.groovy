@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.client.token.grant.code.Authorization
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter
+import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 import javax.servlet.http.HttpServletRequest
@@ -60,6 +61,9 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   ExternalSslAwareEntryPoint entryPoint
 
+  @Autowired
+  DefaultCookieSerializer defaultCookieSerializer
+
   @Primary
   @Bean
   ResourceServerTokenServices spinnakerUserInfoTokenServices() {
@@ -73,6 +77,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   void configure(HttpSecurity http) throws Exception {
+    defaultCookieSerializer.setSameSite(null)
     authConfig.configure(http)
 
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
