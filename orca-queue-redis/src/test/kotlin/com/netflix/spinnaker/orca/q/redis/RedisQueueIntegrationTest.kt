@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.config.JedisConfiguration
@@ -59,7 +60,8 @@ class RedisTestConfig {
     TestConfig::class,
     RedisConfiguration::class,
     RedisTestConfig::class,
-    RedisOrcaQueueConfiguration::class
+    RedisOrcaQueueConfiguration::class,
+    DynamicConfigService.NoopDynamicConfig::class
   ],
   properties = [
     "queue.retry.delay.ms=10",
