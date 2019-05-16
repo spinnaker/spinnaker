@@ -8,10 +8,7 @@ dependencies {
   implementation(project(":orca-front50"))
   implementation(project(":orca-clouddriver"))
 
-  implementation("com.hubspot.jinjava:jinjava:2.2.3") {
-    force = true
-  }
-
+  implementation("com.hubspot.jinjava:jinjava")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.jayway.jsonpath:json-path:2.2.0")
