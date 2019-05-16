@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco
 
+import com.netflix.spinnaker.rosco.config.RoscoPackerConfigurationProperties
 import com.netflix.spinnaker.rosco.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
@@ -57,6 +58,7 @@ import javax.servlet.Filter
   RoscoDockerConfiguration,
   RoscoGoogleConfiguration,
   RoscoOracleConfiguration,
+  RoscoPackerConfigurationProperties,
   LocalJobConfig
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])

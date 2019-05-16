@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.config.RoscoPackerConfigurationProperties
+import org.springframework.beans.factory.annotation.Autowired
+
 class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
+
+  @Autowired RoscoPackerConfigurationProperties roscoPackerConfigurationProperties
 
   @Override
   List<String> buildPackerCommand(String baseCommand,
@@ -24,6 +29,12 @@ class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
                                   String absoluteVarFilePath,
                                   String absoluteTemplateFilePath) {
     def packerCommand = [baseCommand, "packer", "build", "-color=false"]
+    if (roscoPackerConfigurationProperties.timestamp) {
+      packerCommand.add("-timestamp-ui")
+    }
+
+    packerCommand.addAll(roscoPackerConfigurationProperties.additionalParameters)
+
     parameterMap.each { key, value ->
       if (key && value) {
         def keyValuePair = "$key=${value instanceof String ? value.trim() : value}"

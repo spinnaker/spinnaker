@@ -12,6 +12,14 @@ spectator:
   webEndpoint:
     enabled: false
 
+packer:
+  # Set this if running Packer >= 1.4.0 for timestamp prepended output
+  timestamp: false
+  # Add additional parameters that will always be passed to "packer build" here
+  # additionalParameters:
+    # - on-error=abort
+    # - -var "bakedBy=Rosco"
+
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.
 # You can specify an apt repository (used when baking debian based images) and/or a yum repository (used when baking an

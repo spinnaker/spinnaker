@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.config.RoscoPackerConfigurationProperties
 import com.netflix.spinnaker.rosco.jobs.JobRequest
 import org.apache.commons.exec.CommandLine
 import spock.lang.Shared
@@ -9,7 +10,9 @@ import spock.lang.Unroll
 class LocalJobFriendlyPackerCommandFactorySpec extends Specification implements TestDefaults {
 
   @Shared
-  LocalJobFriendlyPackerCommandFactory packerCommandFactory = new LocalJobFriendlyPackerCommandFactory()
+  LocalJobFriendlyPackerCommandFactory packerCommandFactory = new LocalJobFriendlyPackerCommandFactory(
+    roscoPackerConfigurationProperties: new RoscoPackerConfigurationProperties()
+  )
 
   @Unroll
   void "packerCommand handles baseCommand as null, empty string and real string"() {
