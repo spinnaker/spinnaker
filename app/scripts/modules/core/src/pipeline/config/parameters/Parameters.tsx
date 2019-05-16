@@ -76,7 +76,7 @@ export class Parameters extends React.Component<IParametersProps, IParametersSta
           togglePins={this.togglePins}
           removeParameter={this.removeParameter}
           updateParameter={this.updateParameter}
-          isMultiple={parameters.length > 1}
+          isMultiple={parameters && parameters.length > 1}
           onSortEnd={this.handleSortEnd}
           lockAxis={'y'}
           useDragHandle={true}

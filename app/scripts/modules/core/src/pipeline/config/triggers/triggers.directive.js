@@ -75,9 +75,6 @@ module.exports = angular
 
       this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
 
-      //Call back function for full controlled react component
-      $scope.pipeline.parameterConfig = $scope.pipeline.parameterConfig || [];
-
       $scope.addParameter = () => {
         if (!$scope.pipeline.parameterConfig) {
           $scope.pipeline.parameterConfig = [];
