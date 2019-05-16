@@ -51,6 +51,9 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
 
   public KubernetesV2JobStatus collectJob(String account, String location, String id) {
     V1Job job = getKubernetesJob(account, location, id);
+    if (job == null) {
+      return null;
+    }
     KubernetesV2JobStatus jobStatus = new KubernetesV2JobStatus(job, account);
     return jobStatus;
   }
@@ -78,10 +81,6 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   }
 
   private V1Job getKubernetesJob(String account, String location, String id) {
-    KubernetesV2Credentials credentials =
-        (KubernetesV2Credentials)
-            accountCredentialsProvider.getCredentials(account).getCredentials();
-
     List<Manifest> manifests =
         manifestProviderList.stream()
             .map(p -> p.getManifest(account, location, id))
@@ -89,8 +88,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
             .collect(Collectors.toList());
 
     if (manifests.isEmpty()) {
-      throw new IllegalStateException(
-          "Could not find Kubernetes manifest " + id + " in namespace " + location);
+      return null;
     }
 
     KubernetesManifest jobManifest = ((KubernetesV2Manifest) manifests.get(0)).getManifest();
