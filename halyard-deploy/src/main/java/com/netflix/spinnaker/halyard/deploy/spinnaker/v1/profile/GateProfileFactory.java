@@ -32,6 +32,10 @@ import org.apache.commons.lang.StringUtils;
 import java.util.List;
 
 public abstract class GateProfileFactory extends SpringProfileFactory {
+  // Some versions of gate have integrations in the base halyard config; we'll generate an invalid config
+  // if we add another integrations block.  As a workaround we'll remove that block from the base profile
+  // if we encounter it.
+  private static final String INTEGRATION_BLOCK = "integrations:\n  gremlin:\n    enabled: ${features.gremlin:false}\n    baseUrl: https://api.gremlin.com/v1\n";
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -59,7 +63,7 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
 
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, gateConfig))
             .appendContents(yamlToString(deploymentConfiguration.getName(), profile, integrationsConfig))
-            .appendContents(profile.getBaseContents())
+            .appendContents(profile.getBaseContents().replace(INTEGRATION_BLOCK,""))
             .setRequiredFiles(requiredFiles);
 
   }
