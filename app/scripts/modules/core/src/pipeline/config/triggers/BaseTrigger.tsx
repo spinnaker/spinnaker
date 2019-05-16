@@ -52,7 +52,7 @@ export class BaseTrigger extends React.Component<IBaseTriggerConfigProps, IBaseT
     const { serviceAccounts } = this.state;
     return (
       <>
-        {SETTINGS.feature.fiatEnabled && serviceAccounts && (
+        {SETTINGS.feature.fiatEnabled && serviceAccounts && !SETTINGS.feature.managedServiceAccounts && (
           <div className="form-group">
             <RunAsUser
               serviceAccounts={serviceAccounts}
