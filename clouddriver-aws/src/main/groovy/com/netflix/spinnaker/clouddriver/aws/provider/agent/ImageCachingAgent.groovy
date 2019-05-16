@@ -115,7 +115,7 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    if (includePublicImages && !dynamicConfigService.isEnabled("aws.defaults.publicImages", true)) {
+    if (includePublicImages && !dynamicConfigService.isEnabled("aws.defaults.public-images", true)) {
       log.info("short-circuiting with empty result set for public images in ${agentType}")
       return new DefaultCacheResult((IMAGES.ns): [], (NAMED_IMAGES.ns): [])
     }

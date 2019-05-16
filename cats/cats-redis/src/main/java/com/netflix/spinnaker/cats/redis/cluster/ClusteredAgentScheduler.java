@@ -108,7 +108,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
   private Map<String, NextAttempt> acquire() {
     Set<String> skip = new HashSet<>(activeAgents.keySet());
     Integer maxConcurrentAgents =
-        dynamicConfigService.getConfig(Integer.class, "redis.agent.maxConcurrentAgents", 1000);
+        dynamicConfigService.getConfig(Integer.class, "redis.agent.max-concurrent-agents", 1000);
     Integer availableAgents = maxConcurrentAgents - skip.size();
     if (availableAgents <= 0) {
       logger.debug(

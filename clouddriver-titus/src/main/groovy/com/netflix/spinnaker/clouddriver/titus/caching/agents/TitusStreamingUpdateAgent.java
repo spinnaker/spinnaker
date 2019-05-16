@@ -368,10 +368,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       if (!state.savedSnapshot
           || state.changes.get()
               >= dynamicConfigService.getConfig(
-                  Integer.class, "titus.streaming.changeThreshold", 1000)
+                  Integer.class, "titus.streaming.change-threshold", 1000)
           || (startTime - state.lastUpdate.get()
                   > dynamicConfigService.getConfig(
-                      Integer.class, "titus.streaming.timeThresholdMs", 5000)
+                      Integer.class, "titus.streaming.time-threshold-ms", 5000)
               && state.changes.get() > 0)) {
         if (!state.savedSnapshot) {
           log.info(

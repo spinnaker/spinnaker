@@ -155,7 +155,7 @@ class AwsProviderConfig {
           newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AmazonCertificateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
 
-          if (dynamicConfigService.isEnabled("aws.features.cloudFormation", false)) {
+          if (dynamicConfigService.isEnabled("aws.features.cloud-formation", false)) {
             newlyAddedAgents << new AmazonCloudFormationCachingAgent(amazonClientProvider, credentials, region.name, registry)
           }
 

@@ -149,7 +149,7 @@ class SqlClusteredAgentScheduler(
 
   private fun findCandidateAgentLocks(): Map<String, AgentExecutionAction> {
     val skip = HashMap(activeAgents).entries
-    val maxConcurrentAgents = dynamicConfigService.getConfig(Int::class.java, "sql.agent.maxConcurrentAgents", 100)
+    val maxConcurrentAgents = dynamicConfigService.getConfig(Int::class.java, "sql.agent.max-concurrent-agents", 100)
     val availableAgents = maxConcurrentAgents - skip.size
     if (availableAgents <= 0) {
       log.debug(

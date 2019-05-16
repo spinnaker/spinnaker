@@ -91,7 +91,7 @@ class SqlCache(
     var deletedCount = 0
     var opCount = 0
     try {
-      ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
+      ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
         withRetry(RetryCategory.WRITE) {
           jooq.deleteFrom(table(resourceTableName(type)))
             .where("id in (${chunk.joinToString(",") { "'$it'" }})")
@@ -305,7 +305,7 @@ class SqlCache(
     if (coroutineContext.useAsync(this::asyncEnabled)) {
       val scope = CatsCoroutineScope(coroutineContext)
 
-      types.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)) { batch ->
+      types.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4)) { batch ->
         val deferred = batch.map { type ->
           scope.async { getAllByApplication(type, application, cacheFilters[type]) }
         }
@@ -369,14 +369,14 @@ class SqlCache(
     var selects = 0
     var withAsync = false
     val existing = mutableListOf<String>()
-    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)
 
     if (coroutineContext.useAsync(identifiers.size, this::useAsync)) {
       withAsync = true
       val scope = CatsCoroutineScope(coroutineContext)
 
       identifiers.chunked(batchSize).chunked(
-        dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+        dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4)
       ) { batch ->
         val deferred = batch.map { ids ->
           scope.async {
@@ -555,7 +555,7 @@ class SqlCache(
 
     val now = clock.millis()
 
-    toStore.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
+    toStore.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.write-batch-size", 100)) { chunk ->
       try {
         val insert = jooq.insertInto(
           table(resourceTableName(type)),
@@ -741,7 +741,7 @@ class SqlCache(
       val now = clock.millis()
       var ulid = ULID().nextValue()
 
-      pointers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
+      pointers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.write-batch-size", 100)) { chunk ->
         try {
           val insert = jooq.insertInto(
             table(relTableName(type)),
@@ -771,7 +771,7 @@ class SqlCache(
       }
 
       pointers.asSequence().filter { newRevRelIds.contains("${it.rel_id}|${it.id}") }
-        .chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
+        .chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.write-batch-size", 100)) { chunk ->
           try {
             val insert = jooq.insertInto(
               table(relTableName(relType)),
@@ -979,7 +979,7 @@ class SqlCache(
   ): DataWithRelationshipPointersResult {
     val cacheData = mutableListOf<CacheData>()
     val relPointers = mutableSetOf<RelPointer>()
-    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)
     var selectQueries = 0
     var withAsync = false
 
@@ -1003,7 +1003,7 @@ class SqlCache(
           val scope = CatsCoroutineScope(coroutineContext)
 
           ids.chunked(batchSize).chunked(
-            dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+            dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4)
           ) { batch ->
             val deferred = batch.map { ids ->
               scope.async { selectBodies(type, ids) }
@@ -1170,7 +1170,7 @@ class SqlCache(
     val relPointers = mutableSetOf<RelPointer>()
     var selectQueries = 0
     var withAsync = false
-    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)
 
     /*
         Approximating the following query pattern in jooq:
@@ -1216,7 +1216,7 @@ class SqlCache(
           withAsync = true
 
           ids.chunked(batchSize).chunked(
-            dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+            dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4)
           ) { batch ->
             val scope = CatsCoroutineScope(coroutineContext)
 
@@ -1501,13 +1501,13 @@ class SqlCache(
 
   @ExperimentalContracts
   private fun useAsync(items: Int): Boolean {
-    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4) > 1 &&
-      items > dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500) * 2
+    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4) > 1 &&
+      items > dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500) * 2
   }
 
   @ExperimentalContracts
   private fun asyncEnabled(): Boolean {
-    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4) > 1
+    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.max-query-concurrency", 4) > 1
   }
 
   /**
