@@ -168,6 +168,15 @@ class SqlResourceRepository(
     }
   }
 
+  override fun markCheckDue(resource: Resource<*>) {
+    jooq.inTransaction {
+      update(RESOURCE)
+        .set(mapOf(LAST_CHECKED to null))
+        .where(UID.eq(resource.metadata.uid.toString()))
+        .execute()
+    }
+  }
+
   companion object {
     private val RESOURCE = table("resource")
     private val RESOURCE_EVENT = table("resource_event")

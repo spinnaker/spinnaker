@@ -88,6 +88,11 @@ interface ResourceRepository {
    * different values.
    */
   fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
+
+  /**
+   * Marks [resource] as due for checking so that it will be returned by [nextResourcesDueForCheck].
+   */
+  fun markCheckDue(resource: Resource<*>)
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)

@@ -36,6 +36,7 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.all
+import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -268,11 +269,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 //        clock.incrementBy(ifNotCheckedInLast)
       }
 
-      test("returns at most 2 resources") {
+      test("next resources returns at most 2 resources") {
         expectThat(nextResults()).hasSize(limit)
       }
 
-      test("multiple calls return different results") {
+      test("multiple calls to next resources return different results") {
         val results1 = nextResults()
         val results2 = nextResults()
         expect {
@@ -300,13 +301,33 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       test("once time passes the same resources are returned again") {
         val results1 = nextResults()
         clock.incrementBy(ifNotCheckedInLast / 2)
+        clock.incrementBy(Duration.ofSeconds(1))
         val results2 = nextResults()
         clock.incrementBy(ifNotCheckedInLast / 2)
+        clock.incrementBy(Duration.ofSeconds(1))
         val results3 = nextResults()
         expect {
           that(results1).isNotEmpty()
           that(results2).isNotEmpty().isNotEqualTo(results1)
           that(results3).isNotEmpty().isEqualTo(results1)
+        }
+      }
+
+      test("if a resource was explicitly marked due for checking is it returned") {
+        val resource = subject.get(
+          ResourceName("ec2:security-group:test:us-west-2:fnord-0"),
+          Any::class.java
+        )
+
+        nextResults()
+        nextResults()
+
+        subject.markCheckDue(resource)
+
+        val results3 = nextResults()
+
+        expect {
+          that(results3).hasSize(1).contains(ResourceHeader(resource))
         }
       }
     }

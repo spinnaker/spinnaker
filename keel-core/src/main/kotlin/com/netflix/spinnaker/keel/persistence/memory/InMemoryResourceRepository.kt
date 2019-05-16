@@ -34,7 +34,7 @@ class InMemoryResourceRepository(
 ) : ResourceRepository {
   private val resources = mutableMapOf<UID, Resource<*>>()
   private val events = mutableMapOf<UID, MutableList<ResourceEvent>>()
-  private val checkQueue = mutableMapOf<UID, Instant>()
+  private val lastCheckTimes = mutableMapOf<UID, Instant>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -63,7 +63,7 @@ class InMemoryResourceRepository(
 
   override fun store(resource: Resource<*>) {
     resources[resource.metadata.uid] = resource
-    checkQueue[resource.metadata.uid] = EPOCH
+    markCheckDue(resource)
   }
 
   override fun delete(name: ResourceName) {
@@ -93,20 +93,25 @@ class InMemoryResourceRepository(
 
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)
-    return checkQueue
+    return lastCheckTimes
       .filter { it.value <= cutoff }
       .keys
       .take(limit)
       .also { uids ->
         uids.forEach {
-          checkQueue[it] = clock.instant()
+          lastCheckTimes[it] = clock.instant()
         }
       }
       .map { uid -> ResourceHeader(resources[uid]!!) }
   }
 
+  override fun markCheckDue(resource: Resource<*>) {
+    lastCheckTimes[resource.metadata.uid] = EPOCH
+  }
+
   fun dropAll() {
     resources.clear()
     events.clear()
+    lastCheckTimes.clear()
   }
 }

@@ -46,7 +46,7 @@ class RedisResourceRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
-    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Unit> { redis ->
       redis.smembers(INDEX_SET)
         .map(ULID::parseULID)
         .forEach { uid ->
@@ -62,12 +62,12 @@ class RedisResourceRepository(
   }
 
   override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> =
-    redisClient.withCommandsClient<Resource<T>> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Resource<T>> { redis ->
       readResource(redis, uid, specType)
     }
 
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> =
-    redisClient.withCommandsClient<Resource<T>> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Resource<T>> { redis ->
       redis.hget(NAME_TO_UID_HASH, name.value)
         ?.let(ULID::parseULID)
         ?.let { uid -> readResource(redis, uid, specType) }
@@ -75,7 +75,7 @@ class RedisResourceRepository(
     }
 
   override fun store(resource: Resource<*>) {
-    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Unit> { redis ->
       redis.hmset(resource.metadata.uid.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.uid.toString())
       redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
@@ -84,7 +84,7 @@ class RedisResourceRepository(
   }
 
   override fun delete(name: ResourceName) {
-    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Unit> { redis ->
       val uid = redis
         .hget(NAME_TO_UID_HASH, name.value)
         ?.let(ULID::parseULID)
@@ -127,6 +127,12 @@ class RedisResourceRepository(
           }
         }
     }
+
+  override fun markCheckDue(resource: Resource<*>) {
+    redisClient.withCommandsClient<Unit> { redis ->
+      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.metadata.uid.toString())
+    }
+  }
 
   companion object {
     private const val NAME_TO_UID_HASH = "keel.resource.names"

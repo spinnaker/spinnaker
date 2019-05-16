@@ -16,31 +16,45 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.mockk
-import io.mockk.verify
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import java.time.Clock
+import java.time.Duration
 
 @AutoConfigureMockMvc
 internal class ResourcePersisterTests : JUnit5Minutests {
 
   data class Fixture(
     val repository: InMemoryResourceRepository = InMemoryResourceRepository(),
-    val resourceActuator: ResourceActuator = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(),
     val handler: ResourceHandler<String> = StringResourceHandler(),
     val clock: Clock = Clock.systemDefaultZone(),
-    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), resourceActuator, clock),
-    var resource: Resource<String>? = null
-  )
+    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), clock)
+  ) {
+    lateinit var resource: Resource<String>
+
+    @Suppress("UNCHECKED_CAST")
+    fun create(submittedResource: SubmittedResource<String>) {
+      resource = subject.create(submittedResource as SubmittedResource<Any>) as Resource<String>
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun update(updatedResource: Resource<String>) {
+      resource = subject.update(updatedResource as Resource<Any>) as Resource<String>
+    }
+
+    fun resourcesDueForCheck() =
+      repository.nextResourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
+
+    fun eventHistory() =
+      repository.eventHistory(resource.metadata.uid)
+  }
 
   @Suppress("UNCHECKED_CAST")
   fun tests() = rootContext<Fixture> {
@@ -53,15 +67,15 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     context("resource lifecycle") {
       context("creation") {
         before {
-          resource = subject.create(SubmittedResource(
+          create(SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             spec = "o hai"
-          )) as Resource<String>
+          ))
         }
 
         test("stores the normalized resource") {
-          val persistedResource = repository.get<String>(resource!!.metadata.name)
+          val persistedResource = repository.get<String>(resource.metadata.name)
           expectThat(persistedResource) {
             get { metadata.name.value }.isEqualTo("test:whatever:o hai")
             get { spec }.isEqualTo("o hai")
@@ -69,57 +83,60 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         }
 
         test("records that the resource was created") {
-          expectThat(repository.eventHistory(resource!!.metadata.uid))
+          expectThat(eventHistory())
             .hasSize(1)
             .first()
             .isA<ResourceCreated>()
         }
 
         test("checks the resource") {
-          resource!!.apply {
-            verify { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
-          }
+          expectThat(resourcesDueForCheck())
+            .hasSize(1)
+            .first()
+            .get { uid }.isEqualTo(resource.metadata.uid)
         }
 
-        context("update") {
+        context("after an update") {
           before {
-            resource = subject.update(resource!!.copy(spec = "kthxbye") as Resource<Any>) as Resource<String>
+            resourcesDueForCheck()
+            update(resource.copy(spec = "kthxbye"))
           }
 
           test("stores the updated resource") {
-            expectThat(repository.get<String>(resource!!.metadata.name))
+            expectThat(repository.get<String>(resource.metadata.name))
               .get { spec }
               .isEqualTo("kthxbye")
           }
 
           test("records that the resource was updated") {
-            expectThat(repository.eventHistory(resource!!.metadata.uid))
+            expectThat(eventHistory())
               .hasSize(2)
               .first()
               .isA<ResourceUpdated>()
           }
 
           test("checks the resource again") {
-            resource!!.apply {
-              verify(exactly = 2) { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
-            }
+            expectThat(resourcesDueForCheck())
+              .hasSize(1)
+              .first()
+              .get { uid }.isEqualTo(resource.metadata.uid)
           }
         }
 
-        context("no-op update") {
+        context("after a no-op update") {
           before {
-            resource = subject.update(resource!! as Resource<Any>) as Resource<String>
+            resourcesDueForCheck()
+            update(resource)
           }
 
           test("does not record that the resource was updated") {
-            expectThat(repository.eventHistory(resource!!.metadata.uid))
+            expectThat(eventHistory())
               .hasSize(1)
           }
 
           test("does not check the resource again") {
-            resource!!.apply {
-              verify(exactly = 1) { resourceActuator.checkResource(metadata.name, apiVersion, kind) }
-            }
+            expectThat(resourcesDueForCheck())
+              .isEmpty()
           }
         }
       }

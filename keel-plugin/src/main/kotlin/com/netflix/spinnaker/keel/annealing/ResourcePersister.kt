@@ -20,7 +20,6 @@ import java.time.Clock
 class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
-  private val resourceActuator: ResourceActuator,
   private val clock: Clock
 ) {
   private val differ = ObjectDifferBuilder.buildDefault()
@@ -28,9 +27,10 @@ class ResourcePersister(
   fun create(resource: SubmittedResource<Any>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
-      .also(resourceRepository::store)
-      .also { resourceRepository.appendHistory(ResourceCreated(it, clock)) }
-      .also { resourceActuator.checkResource(it.metadata.name, it.apiVersion, it.kind) }
+      .also {
+        resourceRepository.store(it)
+        resourceRepository.appendHistory(ResourceCreated(it, clock))
+      }
 
   fun update(resource: Resource<Any>): Resource<out Any> {
     val normalized = handlers.supporting(resource.apiVersion, resource.kind)
@@ -42,9 +42,11 @@ class ResourcePersister(
     return if (diff.hasChanges()) {
       log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
       normalized
-        .also(resourceRepository::store)
-        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock)) }
-        .also { resourceActuator.checkResource(it.metadata.name, it.apiVersion, it.kind) }
+        .also {
+          resourceRepository.store(it)
+          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
+          resourceRepository.markCheckDue(it)
+        }
     } else {
       existing
     }
