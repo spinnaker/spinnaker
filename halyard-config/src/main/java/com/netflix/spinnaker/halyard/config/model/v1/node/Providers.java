@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
@@ -40,6 +41,7 @@ import java.util.Optional;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties({"openstack"})
 public class Providers extends Node implements Cloneable {
   AppengineProvider appengine = new AppengineProvider();
   AwsProvider aws = new AwsProvider();
