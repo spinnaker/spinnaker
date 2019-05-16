@@ -140,7 +140,7 @@ export class ParametersAndArtifacts extends React.Component<
           pinnedDisplayableParameters={pinnedDisplayableParameters}
         />
 
-        {SETTINGS.feature.artifacts && (
+        {(SETTINGS.feature.artifacts || SETTINGS.feature.artifactsRewrite) && (
           <ResolvedArtifactList
             artifacts={artifacts}
             resolvedExpectedArtifacts={resolvedExpectedArtifacts}
