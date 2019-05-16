@@ -22,21 +22,17 @@ import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsLoader;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
-public class EcsCredentialsInitializer implements CredentialsInitializerSynchronizable {
+public class EcsCredentialsInitializer {
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("ecs")
   public ECSCredentialsConfig ecsCredentialsConfig() {
@@ -54,10 +50,7 @@ public class EcsCredentialsInitializer implements CredentialsInitializerSynchron
         credentialsLoader, credentialsConfig, accountCredentialsRepository);
   }
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  @DependsOn("netflixAmazonCredentials")
-  public List<? extends NetflixAmazonCredentials> synchronizeECSAccounts(
+  private List<? extends NetflixAmazonCredentials> synchronizeECSAccounts(
       CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
       ECSCredentialsConfig ecsCredentialsConfig,
       AccountCredentialsRepository accountCredentialsRepository)
@@ -97,10 +90,5 @@ public class EcsCredentialsInitializer implements CredentialsInitializerSynchron
     }
 
     return credentials;
-  }
-
-  @Override
-  public String getCredentialsSynchronizationBeanName() {
-    return "synchronizeECSAccounts";
   }
 }

@@ -22,9 +22,8 @@ package com.netflix.spinnaker.clouddriver.security;
  */
 public interface CredentialsInitializerSynchronizable {
   /**
-   * Get the name of the bean to request from Spring's application context. It is expected that the
-   * Accounts and Agents managed by the credentials initializer will be synchronized with the latest
-   * configured accounts as a result of requesting this bean.
+   * Synchronize the Accounts and Agents managed by the provider with the latest configured
+   * accounts.
    */
-  String getCredentialsSynchronizationBeanName();
+  default void synchronize() {}
 }

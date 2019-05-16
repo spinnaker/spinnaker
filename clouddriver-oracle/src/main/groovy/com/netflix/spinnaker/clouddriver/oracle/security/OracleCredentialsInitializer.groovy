@@ -12,17 +12,14 @@ package com.netflix.spinnaker.clouddriver.oracle.security
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.oracle.config.OracleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 
 @Slf4j
 @Configuration
-class OracleCredentialsInitializer implements CredentialsInitializerSynchronizable {
+class OracleCredentialsInitializer  {
 
   @Bean
   List<? extends OracleNamedAccountCredentials> oracleNamedAccountCredentials(
@@ -33,17 +30,11 @@ class OracleCredentialsInitializer implements CredentialsInitializerSynchronizab
     synchronizeOracleAccounts(clouddriverUserAgentApplicationName, oracleConfigurationProperties, null, accountCredentialsRepository)
   }
 
-  @Override
-  String getCredentialsSynchronizationBeanName() {
-    return "synchronizeOracleAccounts"
-  }
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  List<? extends OracleNamedAccountCredentials> synchronizeOracleAccounts(String clouddriverUserAgentApplicationName,
-                                                                                  OracleConfigurationProperties oracleConfigurationProperties,
-                                                                                  CatsModule catsModule,
-                                                                                  AccountCredentialsRepository accountCredentialsRepository) {
+  private List<? extends OracleNamedAccountCredentials> synchronizeOracleAccounts(
+    String clouddriverUserAgentApplicationName,
+    OracleConfigurationProperties oracleConfigurationProperties,
+    CatsModule catsModule,
+    AccountCredentialsRepository accountCredentialsRepository) {
 
     def (ArrayList<OracleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
     ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,

@@ -60,14 +60,24 @@ import java.security.Security
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 
-  static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment'    : 'test',
-    'netflix.account'        : '${netflix.environment}',
-    'netflix.stack'          : 'test',
+  private static final Map<String, String> DEFAULT_PROPS = [
+    'netflix.environment'     : 'test',
+    'netflix.account'         : '${netflix.environment}',
+    'netflix.stack'           : 'test',
     'spring.config.additional-location' : '${user.home}/.spinnaker/',
-    'spring.application.name': 'clouddriver',
-    'spring.config.name'     : 'spinnaker,${spring.application.name}',
-    'spring.profiles.active' : '${netflix.environment},local'
+    'spring.profiles.active'  : '${netflix.environment},local',
+    // add the Spring Cloud Config "composite" profile to default to a configuration
+    // source that won't prevent app startup if custom configuration is not provided
+    'spring.profiles.include' : 'composite',
+    'spring.config.name'      : 'spinnaker,${spring.application.name}'
+  ]
+
+  private static final Map<String, String> BOOTSTRAP_SYSTEM_PROPS = [
+    'spring.application.name'               : 'clouddriver',
+    // default locations must be included pending the resolution of https://github.com/spring-cloud/spring-cloud-commons/issues/466
+    'spring.cloud.bootstrap.location'       : 'classpath:/,classpath:/config/,file:./,file:./config/,${user.home}/.spinnaker/',
+    'spring.cloud.bootstrap.name'           : 'spinnakerconfig,${spring.application.name}config',
+    'spring.cloud.config.server.bootstrap'  : 'true'
   ]
 
   static {
@@ -81,8 +91,12 @@ class Main extends SpringBootServletInitializer {
   }
 
   static void main(String... args) {
-    launchArgs = args
-    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
+    BOOTSTRAP_SYSTEM_PROPS.findAll { key, value -> !System.getProperty(key)}
+      .each { key, value -> System.setProperty(key, value)}
+    new SpringApplicationBuilder()
+      .properties(DEFAULT_PROPS)
+      .sources(Main)
+      .run(args)
   }
 
   @Bean
@@ -93,9 +107,9 @@ class Main extends SpringBootServletInitializer {
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.properties(DEFAULT_PROPS).sources(Main)
+    application
+      .properties(DEFAULT_PROPS)
+      .sources(Main)
   }
-
-  static String[] launchArgs = []
 }
 

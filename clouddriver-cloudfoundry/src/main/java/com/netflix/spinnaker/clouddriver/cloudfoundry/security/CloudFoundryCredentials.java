@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -40,6 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryClient> {
 
   private final String name;
+  private final String appsManagerUri;
+  private final String metricsUri;
+  private final String apiHost;
+  private final String userName;
+  private final String password;
 
   @Nullable private final String environment;
 
@@ -49,7 +55,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
 
-  private final CloudFoundryClient credentials;
+  private CloudFoundryClient credentials;
 
   public CloudFoundryCredentials(
       String name,
@@ -60,13 +66,24 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       String password,
       String environment) {
     this.name = name;
+    this.appsManagerUri = appsManagerUri;
+    this.metricsUri = metricsUri;
+    this.apiHost = apiHost;
+    this.userName = userName;
+    this.password = password;
     this.environment = Optional.ofNullable(environment).orElse("dev");
-    this.credentials =
-        new HttpCloudFoundryClient(name, appsManagerUri, metricsUri, apiHost, userName, password);
+  }
+
+  public CloudFoundryClient getCredentials() {
+    if (this.credentials == null) {
+      this.credentials =
+          new HttpCloudFoundryClient(name, appsManagerUri, metricsUri, apiHost, userName, password);
+    }
+    return credentials;
   }
 
   public CloudFoundryClient getClient() {
-    return credentials;
+    return getCredentials();
   }
 
   public Collection<Map<String, String>> getRegions() {
@@ -78,5 +95,25 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       log.warn("Unable to determine regions for Cloud Foundry account " + name, e);
       return emptyList();
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof CloudFoundryCredentials)) {
+      return false;
+    }
+    CloudFoundryCredentials that = (CloudFoundryCredentials) o;
+    return name.equals(that.name)
+        && Objects.equals(appsManagerUri, that.appsManagerUri)
+        && Objects.equals(metricsUri, that.metricsUri)
+        && Objects.equals(userName, that.userName)
+        && Objects.equals(password, that.password)
+        && Objects.equals(environment, that.environment);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, appsManagerUri, metricsUri, userName, password, environment);
   }
 }

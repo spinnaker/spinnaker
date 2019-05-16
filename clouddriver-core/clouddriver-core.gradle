@@ -29,6 +29,7 @@ dependencies {
   implementation "org.apache.commons:commons-exec"
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.cloud:spring-cloud-context"
   implementation "redis.clients:jedis"
 
   testImplementation project(":cats:cats-test")

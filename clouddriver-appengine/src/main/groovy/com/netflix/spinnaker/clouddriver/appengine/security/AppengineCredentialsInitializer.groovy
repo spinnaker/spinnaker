@@ -20,23 +20,22 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 
 @Slf4j
 @Configuration
-class AppengineCredentialsInitializer implements CredentialsInitializerSynchronizable {
+class AppengineCredentialsInitializer {
   @Bean
-  List<? extends AppengineNamedAccountCredentials> appengineNamedAccountCredentials(String clouddriverUserAgentApplicationName,
-                                                                                    AppengineConfigurationProperties appengineConfigurationProperties,
-                                                                                    AccountCredentialsRepository accountCredentialsRepository,
-                                                                                    AppengineJobExecutor jobExecutor) {
+  List<? extends AppengineNamedAccountCredentials> appengineNamedAccountCredentials(
+    String clouddriverUserAgentApplicationName,
+    AppengineConfigurationProperties appengineConfigurationProperties,
+    AccountCredentialsRepository accountCredentialsRepository,
+    AppengineJobExecutor jobExecutor) {
+
     synchronizeAppengineAccounts(clouddriverUserAgentApplicationName,
                                  appengineConfigurationProperties,
                                  null,
@@ -44,18 +43,13 @@ class AppengineCredentialsInitializer implements CredentialsInitializerSynchroni
                                  jobExecutor)
   }
 
-  @Override
-  String getCredentialsSynchronizationBeanName() {
-    return "synchronizeAppengineAccounts"
-  }
+  private List<? extends AppengineNamedAccountCredentials> synchronizeAppengineAccounts(
+    String clouddriverUserAgentApplicationName,
+    AppengineConfigurationProperties appengineConfigurationProperties,
+    CatsModule catsModule,
+    AccountCredentialsRepository accountCredentialsRepository,
+    AppengineJobExecutor jobExecutor) {
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  List<? extends AppengineNamedAccountCredentials> synchronizeAppengineAccounts(String clouddriverUserAgentApplicationName,
-                                                                                AppengineConfigurationProperties appengineConfigurationProperties,
-                                                                                CatsModule catsModule,
-                                                                                AccountCredentialsRepository accountCredentialsRepository,
-                                                                                AppengineJobExecutor jobExecutor) {
     def (ArrayList<AppengineConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                            AppengineNamedAccountCredentials,

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.config;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
@@ -28,11 +27,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class CloudFoundryProviderConfig {
@@ -47,14 +44,7 @@ public class CloudFoundryProviderConfig {
     return provider;
   }
 
-  @Bean
-  public CloudFoundryProviderSynchronizerTypeWrapper cloudFoundryProviderSynchronizerTypeWrapper() {
-    return new CloudFoundryProviderSynchronizerTypeWrapper();
-  }
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  public CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(
+  private void synchronizeCloudFoundryProvider(
       CloudFoundryProvider cloudFoundryProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       Registry registry) {
@@ -75,16 +65,5 @@ public class CloudFoundryProviderConfig {
                             : null)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
-
-    return new CloudFoundryProviderSynchronizer();
   }
-
-  class CloudFoundryProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    public Class getSynchronizerType() {
-      return CloudFoundryProviderSynchronizer.class;
-    }
-  }
-
-  class CloudFoundryProviderSynchronizer {}
 }

@@ -1,0 +1,10 @@
+spring:
+  # default Spring Cloud Config Server environment repository configuration
+  # to something that won't prevent app startup when explicit configuration
+  # is not provided
+  cloud:
+    config:
+      server:
+        composite:
+          - type: native
+            search-locations: ${user.home}/config

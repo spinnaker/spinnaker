@@ -22,13 +22,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
 @Data
 @ConfigurationProperties("cloudfoundry")
-public class CloudFoundryConfigurationProperties {
+public class CloudFoundryConfigurationProperties implements DisposableBean {
   static final int POLLING_INTERVAL_MILLISECONDS_DEFAULT = 300 * 1000;
   static final int ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT =
       (int) (POLLING_INTERVAL_MILLISECONDS_DEFAULT * 1.5);
@@ -41,6 +42,11 @@ public class CloudFoundryConfigurationProperties {
       ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS;
 
   private List<ManagedAccount> accounts = new ArrayList<>();
+
+  @Override
+  public void destroy() {
+    this.accounts = new ArrayList<>();
+  }
 
   @Getter
   @Setter

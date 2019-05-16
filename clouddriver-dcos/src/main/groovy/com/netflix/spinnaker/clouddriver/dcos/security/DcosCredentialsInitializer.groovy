@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosClientCompositeKey
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import feign.FeignException
 import groovy.util.logging.Slf4j
@@ -32,21 +31,20 @@ import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 @Slf4j
 @Configuration
-class DcosCredentialsInitializer implements CredentialsInitializerSynchronizable {
+class DcosCredentialsInitializer {
   private final static LOGGER = LoggerFactory.getLogger(DcosCredentialsInitializer)
 
   @Autowired Registry spectatorRegistry
 
   @Bean
+  @DependsOn("dockerRegistryNamedAccountCredentials")
   List<? extends DcosAccountCredentials> dcosCredentials(String clouddriverUserAgentApplicationName,
                                                          DcosConfigurationProperties dcosConfigurationProperties,
                                                          ApplicationContext applicationContext,
@@ -57,21 +55,14 @@ class DcosCredentialsInitializer implements CredentialsInitializerSynchronizable
     synchronizeDcosAccounts(clouddriverUserAgentApplicationName, dcosConfigurationProperties, null, applicationContext, accountCredentialsRepository, clientProvider, providerSynchronizerTypeWrappers)
   }
 
-  @Override
-  String getCredentialsSynchronizationBeanName() {
-    return "synchronizeDcosAccounts"
-  }
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  @DependsOn("dockerRegistryNamedAccountCredentials")
-  List<? extends DcosAccountCredentials> synchronizeDcosAccounts(String clouddriverUserAgentApplicationName,
-                                                                 DcosConfigurationProperties dcosConfigurationProperties,
-                                                                 CatsModule catsModule,
-                                                                 ApplicationContext applicationContext,
-                                                                 AccountCredentialsRepository accountCredentialsRepository,
-                                                                 DcosClientProvider clientProvider,
-                                                                 List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+  private List<? extends DcosAccountCredentials> synchronizeDcosAccounts(
+    String clouddriverUserAgentApplicationName,
+    DcosConfigurationProperties dcosConfigurationProperties,
+    CatsModule catsModule,
+    ApplicationContext applicationContext,
+    AccountCredentialsRepository accountCredentialsRepository,
+    DcosClientProvider clientProvider,
+    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
 
     // TODO what to do with clouddriverUserAgentApplicationName?
     Map<String, DcosConfigurationProperties.Cluster> clusterMap = new HashMap<>()
