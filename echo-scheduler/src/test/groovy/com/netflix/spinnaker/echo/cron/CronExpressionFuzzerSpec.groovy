@@ -33,6 +33,24 @@ class CronExpressionFuzzerSpec extends Specification {
     "abcd"    | "H * * * * *"   || "34 * * * * *"
     "abcde"   | "* * H * * *"   || "* * 3 * * *"
     "abcd"    | "H/5 * * * * *" || "34/5 * * * * *"
+    "abcd"    | "00 05 09 ? * MON-THU" || "00 05 09 ? * MON-THU"
+  }
+
+  @Unroll
+  def "should correctly detect fuzz tokens"() {
+    when:
+    def result = CronExpressionFuzzer.hasFuzzyExpression(expression)
+
+    then:
+    result == expected
+
+    where:
+    expression      || expected
+    "H * * * * *"   || true
+    "* * H * * *"   || true
+    "H/5 * * * * *" || true
+    "H/5 * * * * THU" || true
+    "00 05 09 ? * MON-THU" || false
   }
 }
 

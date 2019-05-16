@@ -21,13 +21,13 @@ class ValidationControllerSpec extends Specification {
 
   void 'should include description when expression is valid'() {
     when:
-    def result = validate("0 0 10 ? * 1")
+    def result = validate("0 0 10 ? * THU")
 
     def responseBody = objectMapper.readValue(result.response.contentAsByteArray, Map)
 
     then:
     responseBody.response == "Cron expression is valid"
-    responseBody.description == "At 10:00 AM, only on Sunday"
+    responseBody.description == "At 10:00 AM, only on Thursday"
   }
 
   void 'should include failure message when expression is invalid'() {

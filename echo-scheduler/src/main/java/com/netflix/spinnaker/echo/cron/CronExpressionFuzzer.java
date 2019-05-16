@@ -47,7 +47,7 @@ public class CronExpressionFuzzer {
   }
 
   public static boolean hasFuzzyExpression(String expression) {
-    return expression.contains(TOKEN);
+    return Tokens.tokenize(expression).hasFuzzyToken();
   }
 
   private static class Tokens {
@@ -79,6 +79,10 @@ public class CronExpressionFuzzer {
     static Tokens tokenize(String expression) {
       String[] t = expression.trim().split(" ");
       return new Tokens(t[0], t[1], t[2], t[3], t[4], t[5], (t.length == 7) ? t[6] : null);
+    }
+
+    boolean hasFuzzyToken() {
+      return seconds.contains(TOKEN) || minutes.contains(TOKEN) || hours.contains(TOKEN);
     }
 
     String toFuzzedExpression(String id) {
