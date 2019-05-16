@@ -110,14 +110,21 @@ class RedisResourceRepository(
     }
   }
 
+  /**
+   * Note: this implementation is _not_ safe across multiple instances. It's very possible that
+   * multiple instances calling this method at the same time will each get some of the same results.
+   * To really parallelize it we'd need to use a more modern version of Redis and the `ZPOPMIN`
+   * command or totally rethink the schema.
+   */
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> =
     redisClient.withCommandsClient<Collection<ResourceHeader>> { redis ->
       val now = clock.instant()
       val cutoff = now.minus(minTimeSinceLastCheck)
+      val updatedScore = now.toEpochMilli().toDouble()
       redis.zrangeBefore(CHECK_TIMES_SORTED_SET, cutoff, limit)
         .also { uids ->
-          uids.forEach { uid ->
-            redis.zadd(CHECK_TIMES_SORTED_SET, now, uid)
+          if (uids.isNotEmpty()) {
+            redis.zadd(CHECK_TIMES_SORTED_SET, uids.associateWith { updatedScore })
           }
         }
         .map(ULID::parseULID)
@@ -179,7 +186,4 @@ class RedisResourceRepository(
 
   private fun JedisCommands.zrangeBefore(key: String, max: Instant, limit: Int) =
     zrangeByScore(key, 0.0, max.toEpochMilli().toDouble(), 0, limit)
-
-  private fun JedisCommands.zadd(key: String, score: Instant, member: String) =
-    zadd(key, score.toEpochMilli().toDouble(), member)
 }

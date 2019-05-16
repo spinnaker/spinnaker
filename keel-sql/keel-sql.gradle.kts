@@ -19,4 +19,5 @@ dependencies {
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-api"))
   testImplementation("org.testcontainers:mysql")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 }

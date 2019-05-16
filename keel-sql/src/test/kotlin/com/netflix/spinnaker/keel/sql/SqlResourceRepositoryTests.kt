@@ -1,9 +1,22 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
+import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import dev.minutest.rootContext
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jooq.SQLDialect.MYSQL_5_7
 import org.junit.jupiter.api.AfterAll
+import strikt.api.expectThat
+import strikt.assertions.hasSize
 import java.time.Clock
 
 internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceRepository>() {
@@ -28,5 +41,59 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
   @AfterAll
   fun shutdown() {
     jooq.close()
+  }
+
+  fun parallelCheckingTests() = rootContext<CheckLockFixture<SqlResourceRepository>> {
+    fixture {
+      CheckLockFixture(
+        subject = factory(Clock.systemDefaultZone())
+      )
+    }
+
+    after { flush() }
+
+    /**
+     * I'd like to have this test in the superclass but the in-memory implementation is not designed
+     * to be thread safe and the Redis implementation needs too much work to make it thread safe
+     * given it's not our preferred target.
+     */
+    context("many threads are checking simultaneously") {
+      before {
+        repeat(1000) {
+          val resource = Resource(
+            apiVersion = SPINNAKER_API_V1,
+            metadata = ResourceMetadata(
+              name = ResourceName("ec2:security-group:test:us-west-2:fnord-$it"),
+              uid = randomUID(),
+              data = randomData()
+            ),
+            kind = "security-group",
+            spec = randomData()
+          )
+          subject.store(resource)
+        }
+      }
+
+      test("each thread gets a unique set of resources") {
+        val results = mutableSetOf<ResourceHeader>()
+        doInParallel(500) {
+          nextResults().let(results::addAll)
+        }
+
+        expectThat(results).hasSize(1000)
+      }
+    }
+  }
+}
+
+private fun doInParallel(times: Int, block: () -> Unit) {
+  GlobalScope.launch {
+    repeat(times) {
+      launch { block() }
+    }
+  }.apply {
+    runBlocking {
+      join()
+    }
   }
 }

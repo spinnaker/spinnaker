@@ -266,7 +266,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           )
           subject.store(resource)
         }
-//        clock.incrementBy(ifNotCheckedInLast)
       }
 
       test("next resources returns at most 2 resources") {
