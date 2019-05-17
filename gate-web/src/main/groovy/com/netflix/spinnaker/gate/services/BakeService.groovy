@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -26,20 +26,19 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties('services.rosco.defaults')
 class BakeService {
-
   @Autowired(required = false)
-  RoscoService roscoService
+  RoscoServiceSelector roscoServiceSelector
 
   // Default bake options from configuration.
   List<BakeOptions> bakeOptions
 
   def bakeOptions() {
-    roscoService ? roscoService.bakeOptions() : bakeOptions
+    roscoServiceSelector ? roscoServiceSelector.withLocation().bakeOptions() : bakeOptions
   }
 
   def bakeOptions(String cloudProvider) {
-    if (roscoService) {
-      return roscoService.bakeOptions(cloudProvider)
+    if (roscoServiceSelector) {
+      return roscoServiceSelector.withLocation().bakeOptions(cloudProvider)
     }
     def bakeOpts = bakeOptions.find { it.cloudProvider == cloudProvider }
     if (bakeOpts) {
@@ -49,8 +48,8 @@ class BakeService {
   }
 
   String lookupLogs(String region, String statusId) {
-    if (roscoService) {
-      def logsMap = roscoService.lookupLogs(region, statusId)
+    if (roscoServiceSelector) {
+      def logsMap = roscoServiceSelector.withLocation(region).lookupLogs(region, statusId)
 
       if (logsMap?.logsContent) {
         return "<pre>$logsMap.logsContent</pre>"

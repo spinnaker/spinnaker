@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,23 @@
 
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 
-public class OrcaServiceSelector {
-
+public class RoscoServiceSelector {
   private final SelectableService selectableService;
+  private final RoscoService defaultService;
 
-  public OrcaServiceSelector(SelectableService selectableService) {
+  public RoscoServiceSelector(SelectableService selectableService, RoscoService roscoService) {
     this.selectableService = selectableService;
+    this.defaultService = roscoService;
   }
 
-  public OrcaService withContext(RequestContext context) {
-    SelectableService.Criteria criteria = new SelectableService.Criteria();
-    if (context != null) {
-      criteria =
-          criteria
-              .withApplication(context.getApplication())
-              .withAuthenticatedUser(context.getAuthenticatedUser())
-              .withExecutionId(context.getExecutionId())
-              .withOrigin(context.getOrigin())
-              .withExecutionType(context.getExecutionType());
+  public RoscoService withLocation(String location) {
+    if (location == null) {
+      return defaultService;
     }
 
-    return (OrcaService) selectableService.getService(criteria);
+    return (RoscoService)
+        selectableService.getService(new SelectableService.Criteria().withLocation(location));
   }
 }

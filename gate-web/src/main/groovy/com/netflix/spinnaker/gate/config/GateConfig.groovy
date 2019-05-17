@@ -43,6 +43,7 @@ import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
 import com.netflix.spinnaker.gate.services.internal.SwabbieService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
@@ -192,6 +193,15 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @ConditionalOnProperty('services.rosco.enabled')
   RoscoService roscoService(OkHttpClient okHttpClient) {
     createClient "rosco", RoscoService, okHttpClient
+  }
+
+  @Bean
+  @ConditionalOnProperty('services.rosco.enabled')
+  RoscoServiceSelector roscoServiceSelector(OkHttpClient okHttpClient, RoscoService defaultService) {
+    return new RoscoServiceSelector(
+      createClientSelector("rosco", RoscoService, okHttpClient),
+      defaultService
+    )
   }
 
   //---- optional backend components:
