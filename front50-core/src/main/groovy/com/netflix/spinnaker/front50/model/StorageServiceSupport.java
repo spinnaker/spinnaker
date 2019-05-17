@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.front50.model;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.google.common.collect.Lists;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Counter;
@@ -25,20 +27,17 @@ import com.netflix.spinnaker.front50.support.ClosureHelper;
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Scheduler;
-
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.Scheduler;
 
 public abstract class StorageServiceSupport<T extends Timestamped> {
   private static final long HEALTH_MILLIS = TimeUnit.SECONDS.toMillis(90);
@@ -52,61 +51,71 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final long refreshIntervalMs;
   private final boolean shouldWarmCache;
   private final Registry registry;
-  private final Timer autoRefreshTimer;       // Only spontaneous refreshes in all()
-  private final Timer scheduledRefreshTimer;  // Only refreshes from scheduler
-  private final Counter addCounter;      // Newly discovered files during refresh
-  private final Counter removeCounter;   // Deletes discovered during refresh
-  private final Counter updateCounter;   // Updates discovered during refresh
-  private final Counter mismatchedIdCounter;   // Items whose id does not match its cache key
+  private final Timer autoRefreshTimer; // Only spontaneous refreshes in all()
+  private final Timer scheduledRefreshTimer; // Only refreshes from scheduler
+  private final Counter addCounter; // Newly discovered files during refresh
+  private final Counter removeCounter; // Deletes discovered during refresh
+  private final Counter updateCounter; // Updates discovered during refresh
+  private final Counter mismatchedIdCounter; // Items whose id does not match its cache key
 
   private final AtomicLong lastRefreshedTime = new AtomicLong();
   private final AtomicLong lastSeenStorageTime = new AtomicLong();
 
-  public StorageServiceSupport(ObjectType objectType,
-                               StorageService service,
-                               Scheduler scheduler,
-                               ObjectKeyLoader objectKeyLoader,
-                               long refreshIntervalMs,
-                               boolean shouldWarmCache,
-                               Registry registry) {
+  public StorageServiceSupport(
+      ObjectType objectType,
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
     this.objectType = objectType;
     this.service = service;
     this.scheduler = scheduler;
     this.objectKeyLoader = objectKeyLoader;
     this.refreshIntervalMs = refreshIntervalMs;
     if (refreshIntervalMs >= getHealthMillis()) {
-      throw new IllegalArgumentException("Cache refresh time must be more frequent than cache health timeout");
+      throw new IllegalArgumentException(
+          "Cache refresh time must be more frequent than cache health timeout");
     }
     this.shouldWarmCache = shouldWarmCache;
     this.registry = registry;
 
     String typeName = objectType.name();
-    this.autoRefreshTimer = registry.timer(
-      registry.createId("storageServiceSupport.autoRefreshTime", "objectType", typeName));
-    this.scheduledRefreshTimer = registry.timer(
-      registry.createId("storageServiceSupport.scheduledRefreshTime", "objectType", typeName));
-    this.addCounter = registry.counter(
-      registry.createId("storageServiceSupport.numAdded", "objectType", typeName));
-    this.removeCounter = registry.counter(
-      registry.createId("storageServiceSupport.numRemoved", "objectType", typeName));
-    this.updateCounter = registry.counter(
-      registry.createId("storageServiceSupport.numUpdated", "objectType", typeName));
-    this.mismatchedIdCounter = registry.counter(
-      registry.createId("storageServiceSupport.mismatchedIds", "objectType", typeName));
+    this.autoRefreshTimer =
+        registry.timer(
+            registry.createId("storageServiceSupport.autoRefreshTime", "objectType", typeName));
+    this.scheduledRefreshTimer =
+        registry.timer(
+            registry.createId(
+                "storageServiceSupport.scheduledRefreshTime", "objectType", typeName));
+    this.addCounter =
+        registry.counter(
+            registry.createId("storageServiceSupport.numAdded", "objectType", typeName));
+    this.removeCounter =
+        registry.counter(
+            registry.createId("storageServiceSupport.numRemoved", "objectType", typeName));
+    this.updateCounter =
+        registry.counter(
+            registry.createId("storageServiceSupport.numUpdated", "objectType", typeName));
+    this.mismatchedIdCounter =
+        registry.counter(
+            registry.createId("storageServiceSupport.mismatchedIds", "objectType", typeName));
 
     registry.gauge(
-      registry.createId("storageServiceSupport.cacheSize", "objectType", typeName),
-      this, new ToDoubleFunction() {
-        @Override
-        public double applyAsDouble(Object ignore) {
-          Set itemCache = allItemsCache.get();
-          return itemCache != null ? itemCache.size() : 0;
-        }
-      });
+        registry.createId("storageServiceSupport.cacheSize", "objectType", typeName),
+        this,
+        new ToDoubleFunction() {
+          @Override
+          public double applyAsDouble(Object ignore) {
+            Set itemCache = allItemsCache.get();
+            return itemCache != null ? itemCache.size() : 0;
+          }
+        });
     registry.gauge(
-      registry.createId("storageServiceSupport.cacheAge", "objectType", typeName),
-      lastRefreshedTime,
-      (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
+        registry.createId("storageServiceSupport.cacheAge", "objectType", typeName),
+        lastRefreshedTime,
+        (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
   }
 
   @PostConstruct
@@ -121,19 +130,19 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         }
       }
 
-      Observable
-        .timer(refreshIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-        .repeat()
-        .subscribe(interval -> {
-          try {
-            long startTime = System.nanoTime();
-            refresh();
-            long elapsed = System.nanoTime() - startTime;
-            scheduledRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
-          } catch (Exception e) {
-            log.error("Unable to refresh: {}", e);
-          }
-        });
+      Observable.timer(refreshIntervalMs, TimeUnit.MILLISECONDS, scheduler)
+          .repeat()
+          .subscribe(
+              interval -> {
+                try {
+                  long startTime = System.nanoTime();
+                  refresh();
+                  long elapsed = System.nanoTime() - startTime;
+                  scheduledRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
+                } catch (Exception e) {
+                  log.error("Unable to refresh: {}", e);
+                }
+              });
     }
   }
 
@@ -149,10 +158,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     long lastModified = readLastModified();
     if (lastModified > lastSeenStorageTime.get() || allItemsCache.get() == null) {
       // only refresh if there was a modification since our last refresh cycle
-      log.debug("all() forcing refresh (lastModified: {}, lastRefreshed: {}, lastSeenStorageTime: {})",
-        value("lastModified", new Date(lastModified)),
-        value("lastRefreshed", new Date(lastRefreshedTime.get())),
-        value("lastSeenStorageTime", new Date(lastSeenStorageTime.get())));
+      log.debug(
+          "all() forcing refresh (lastModified: {}, lastRefreshed: {}, lastSeenStorageTime: {})",
+          value("lastModified", new Date(lastModified)),
+          value("lastRefreshed", new Date(lastRefreshedTime.get())),
+          value("lastSeenStorageTime", new Date(lastSeenStorageTime.get())));
       long startTime = System.nanoTime();
       refresh();
       long elapsed = System.nanoTime() - startTime;
@@ -170,11 +180,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
   }
 
-  /**
-   * @return Healthy if refreshed in the past `getHealthMillis()`
-   */
+  /** @return Healthy if refreshed in the past `getHealthMillis()` */
   public boolean isHealthy() {
-    return (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis() && allItemsCache.get() != null;
+    return (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis()
+        && allItemsCache.get() != null;
   }
 
   public long getHealthIntervalMillis() {
@@ -184,20 +193,25 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   public T findById(String id) throws NotFoundException {
     try {
       return new SimpleHystrixCommand<T>(
-          getClass().getSimpleName(),
-          getClass().getSimpleName() + "-findById",
-          ClosureHelper.toClosure(args -> service.loadObject(objectType, buildObjectKey(id))),
-          ClosureHelper.toClosure(
-              args -> allItemsCache.get().stream()
-              .filter(item -> item.getId().equalsIgnoreCase(id))
-              .findFirst()
-              .orElseThrow(() -> new NotFoundException(
-                  String.format("No item found in cache with id of %s", id.toLowerCase()))))
-      ).execute();
+              getClass().getSimpleName(),
+              getClass().getSimpleName() + "-findById",
+              ClosureHelper.toClosure(args -> service.loadObject(objectType, buildObjectKey(id))),
+              ClosureHelper.toClosure(
+                  args ->
+                      allItemsCache.get().stream()
+                          .filter(item -> item.getId().equalsIgnoreCase(id))
+                          .findFirst()
+                          .orElseThrow(
+                              () ->
+                                  new NotFoundException(
+                                      String.format(
+                                          "No item found in cache with id of %s",
+                                          id.toLowerCase())))))
+          .execute();
     } catch (HystrixRuntimeException e) {
       // This handles the case where the hystrix command times out.
       if (e.getFallbackException() instanceof NotFoundException) {
-        throw (NotFoundException)e.getFallbackException();
+        throw (NotFoundException) e.getFallbackException();
       } else {
         throw e;
       }
@@ -216,23 +230,28 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     User authenticatedUser = new User();
     authenticatedUser.setUsername(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
-    Observable
-        .from(items)
+    Observable.from(items)
         .buffer(10)
-        .flatMap(itemSet -> Observable
-            .from(itemSet)
-            .flatMap(item -> {
-              try {
-                return AuthenticatedRequest.propagate(() -> {
-                  update(item.getId(), item);
-                  return Observable.just(item);
-                }, true, authenticatedUser).call();
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            })
-            .subscribeOn(scheduler)
-        ).subscribeOn(scheduler)
+        .flatMap(
+            itemSet ->
+                Observable.from(itemSet)
+                    .flatMap(
+                        item -> {
+                          try {
+                            return AuthenticatedRequest.propagate(
+                                    () -> {
+                                      update(item.getId(), item);
+                                      return Observable.just(item);
+                                    },
+                                    true,
+                                    authenticatedUser)
+                                .call();
+                          } catch (Exception e) {
+                            throw new RuntimeException(e);
+                          }
+                        })
+                    .subscribeOn(scheduler))
+        .subscribeOn(scheduler)
         .toList()
         .toBlocking()
         .single();
@@ -242,16 +261,14 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     service.bulkDeleteObjects(objectType, ids);
   }
 
-  /**
-   * Update local cache with any recently modified items.
-   */
+  /** Update local cache with any recently modified items. */
   protected void refresh() {
     long startTime = System.nanoTime();
     allItemsCache.set(fetchAllItems(allItemsCache.get()));
     long elapsed = System.nanoTime() - startTime;
-    registry.timer("storageServiceSupport.cacheRefreshTime",
-      "objectType", objectType.name())
-      .record(elapsed, TimeUnit.NANOSECONDS);
+    registry
+        .timer("storageServiceSupport.cacheRefreshTime", "objectType", objectType.name())
+        .record(elapsed, TimeUnit.NANOSECONDS);
 
     log.debug("Refreshed (" + TimeUnit.NANOSECONDS.toMillis(elapsed) + "ms)");
   }
@@ -301,82 +318,82 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       }
     }
 
-    List<Map.Entry<String, Long>> modifiedKeys = keyUpdateTime
-        .entrySet()
-        .stream()
-        .filter(entry -> {
-          T existingItem = resultMap.get(entry.getKey());
-          if (existingItem == null) {
-            numAdded.getAndIncrement();
-            return true;
-          }
-          Long modTime = existingItem.getLastModified();
-          if (modTime == null || entry.getValue() > modTime) {
-            numUpdated.getAndIncrement();
-            return true;
-          }
-          return false;
-         })
-        .collect(Collectors.toList());
+    List<Map.Entry<String, Long>> modifiedKeys =
+        keyUpdateTime.entrySet().stream()
+            .filter(
+                entry -> {
+                  T existingItem = resultMap.get(entry.getKey());
+                  if (existingItem == null) {
+                    numAdded.getAndIncrement();
+                    return true;
+                  }
+                  Long modTime = existingItem.getLastModified();
+                  if (modTime == null || entry.getValue() > modTime) {
+                    numUpdated.getAndIncrement();
+                    return true;
+                  }
+                  return false;
+                })
+            .collect(Collectors.toList());
 
     if (!existingItems.isEmpty() && !modifiedKeys.isEmpty()) {
       // only log keys that have been modified after initial cache load
       log.debug("Modified object keys: {}", value("keys", modifiedKeys));
     }
 
-    Observable
-        .from(modifiedKeys)
+    Observable.from(modifiedKeys)
         .buffer(10)
-        .flatMap(ids -> Observable
-            .from(ids)
-            .flatMap(entry -> {
-                  try {
-                    String key = entry.getKey();
-                    T object = (T) service.loadObject(objectType, key);
+        .flatMap(
+            ids ->
+                Observable.from(ids)
+                    .flatMap(
+                        entry -> {
+                          try {
+                            String key = entry.getKey();
+                            T object = (T) service.loadObject(objectType, key);
 
-                    Long expectedLastModifiedTime = keyUpdateTime.get(key);
-                    Long currentLastModifiedTime = object.getLastModified();
+                            Long expectedLastModifiedTime = keyUpdateTime.get(key);
+                            Long currentLastModifiedTime = object.getLastModified();
 
-                    if (expectedLastModifiedTime != null && currentLastModifiedTime != null) {
-                      if (currentLastModifiedTime < expectedLastModifiedTime) {
-                        log.warn(
-                          "Unexpected stale read for {} (current: {}, expected: {})",
-                          key,
-                          new Date(currentLastModifiedTime),
-                          new Date(expectedLastModifiedTime)
-                        );
-                      }
-                    }
+                            if (expectedLastModifiedTime != null
+                                && currentLastModifiedTime != null) {
+                              if (currentLastModifiedTime < expectedLastModifiedTime) {
+                                log.warn(
+                                    "Unexpected stale read for {} (current: {}, expected: {})",
+                                    key,
+                                    new Date(currentLastModifiedTime),
+                                    new Date(expectedLastModifiedTime));
+                              }
+                            }
 
-                    if (!key.equals(buildObjectKey(object))) {
-                      mismatchedIdCounter.increment();
-                      log.warn(
-                        "{} '{}' has non-matching id '{}'",
-                        objectType.group,
-                        key,
-                        buildObjectKey(object)
-                      );
-                      // Should return Observable.empty() to skip caching, but will wait until the
-                      // logging has been present for a release.
-                    }
+                            if (!key.equals(buildObjectKey(object))) {
+                              mismatchedIdCounter.increment();
+                              log.warn(
+                                  "{} '{}' has non-matching id '{}'",
+                                  objectType.group,
+                                  key,
+                                  buildObjectKey(object));
+                              // Should return Observable.empty() to skip caching, but will wait
+                              // until the
+                              // logging has been present for a release.
+                            }
 
-                    return Observable.just(object);
-                  } catch (NotFoundException e) {
-                    resultMap.remove(keyToId.get(entry.getKey()));
-                    numRemoved.getAndIncrement();
-                    return Observable.empty();
-                  }
-                }
-            )
-            .subscribeOn(scheduler)
-        )
+                            return Observable.just(object);
+                          } catch (NotFoundException e) {
+                            resultMap.remove(keyToId.get(entry.getKey()));
+                            numRemoved.getAndIncrement();
+                            return Observable.empty();
+                          }
+                        })
+                    .subscribeOn(scheduler))
         .subscribeOn(scheduler)
         .toList()
         .toBlocking()
         .single()
-        .forEach(item -> {
-          resultMap.put(buildObjectKey(item), item);
-        });
+        .forEach(
+            item -> {
+              resultMap.put(buildObjectKey(item), item);
+            });
 
     Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
     this.lastRefreshedTime.set(refreshTime);
@@ -387,10 +404,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     updateCounter.increment(numUpdated.get());
     removeCounter.increment(existingSize + numAdded.get() - resultSize);
     if (existingSize != resultSize) {
-      log.info("{}={} delta={}",
-        value("objectType", objectType.group),
-        value("resultSize", resultSize),
-        value("delta", resultSize - existingSize));
+      log.info(
+          "{}={} delta={}",
+          value("objectType", objectType.group),
+          value("resultSize", resultSize),
+          value("delta", resultSize - existingSize));
     }
 
     return result;

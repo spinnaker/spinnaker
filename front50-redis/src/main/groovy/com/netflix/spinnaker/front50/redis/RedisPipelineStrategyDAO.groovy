@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.redis
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ScanOptions
 import org.springframework.util.Assert
@@ -59,8 +60,11 @@ class RedisPipelineStrategyDAO implements PipelineStrategyDAO {
 
   @Override
   Collection<Pipeline> all(boolean refresh) {
-    redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-      .collect { it.value }
+    return redisTemplate.opsForHash()
+      .scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
+      .withCloseable { Cursor<Map> c ->
+      c.collect{ it.value }
+    }
   }
 
   @Override

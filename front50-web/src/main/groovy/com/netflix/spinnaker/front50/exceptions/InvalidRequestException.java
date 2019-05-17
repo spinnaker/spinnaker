@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.front50.exceptions;
 
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(BAD_REQUEST)
 public class InvalidRequestException extends RuntimeException {

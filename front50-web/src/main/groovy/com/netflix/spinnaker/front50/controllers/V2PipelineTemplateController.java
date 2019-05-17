@@ -58,25 +58,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class V2PipelineTemplateController {
 
   // TODO(jacobkiefer): (PLACEHOLDER) Decide on the final set of supported tags.
-  private static final List<String> VALID_TEMPLATE_TAGS = Arrays.asList("latest", "stable", "unstable", "experimental", "test", "canary");
+  private static final List<String> VALID_TEMPLATE_TAGS =
+      Arrays.asList("latest", "stable", "unstable", "experimental", "test", "canary");
 
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
 
-  @Autowired
-  PipelineDAO pipelineDAO;
+  @Autowired PipelineDAO pipelineDAO;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   // TODO(jacobkiefer): Add fiat authz
   @RequestMapping(value = "", method = RequestMethod.GET)
-  List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes") List<String> scopes) {
+  List<PipelineTemplate> list(
+      @RequestParam(required = false, value = "scopes") List<String> scopes) {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
-  void save(@RequestParam(value = "tag", required = false) String tag, @RequestBody PipelineTemplate pipelineTemplate) {
+  void save(
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestBody PipelineTemplate pipelineTemplate) {
     if (StringUtils.isNotEmpty(tag)) {
       validatePipelineTemplateTag(tag);
     }
@@ -98,13 +100,17 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
-  PipelineTemplate update(@PathVariable String id, @RequestParam(value = "tag", required = false) String tag, @RequestBody PipelineTemplate pipelineTemplate) {
+  PipelineTemplate update(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestBody PipelineTemplate pipelineTemplate) {
     boolean nonEmptyTag = StringUtils.isNotEmpty(tag);
     if (nonEmptyTag) {
       validatePipelineTemplateTag(tag);
     }
 
-    String templateId = nonEmptyTag ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
+    String templateId =
+        nonEmptyTag ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
     pipelineTemplate.setTag(tag);
     pipelineTemplate.setLastModified(System.currentTimeMillis());
     // TODO(jacobkiefer): setLastModifiedBy() user here for Fiat?
@@ -116,9 +122,10 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
-  PipelineTemplate get(@PathVariable String id,
-                       @RequestParam(value = "tag", required = false) String tag,
-                       @RequestParam(value = "digest", required = false) String digest) {
+  PipelineTemplate get(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestParam(value = "digest", required = false) String digest) {
     String templateId = formatId(id, tag, digest);
     // We don't need to surface our internal accounting information to the user.
     // This would muddle the API and probably be bug-friendly.
@@ -130,11 +137,13 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-  void delete(@PathVariable String id,
-              @RequestParam(value = "tag", required = false) String tag,
-              @RequestParam(value = "digest", required = false) String digest) {
+  void delete(
+      @PathVariable String id,
+      @RequestParam(value = "tag", required = false) String tag,
+      @RequestParam(value = "digest", required = false) String digest) {
     String templateId = formatId(id, tag, digest);
-    // TODO(jacobkiefer): Refactor dependent config checking once we replace templateSource with Artifact(s).
+    // TODO(jacobkiefer): Refactor dependent config checking once we replace templateSource with
+    // Artifact(s).
     checkForDependentConfigs(templateId);
     getPipelineTemplateDAO().delete(templateId);
   }
@@ -143,10 +152,9 @@ public class V2PipelineTemplateController {
   List<Pipeline> listDependentPipelines(@PathVariable String id) {
     List<String> dependentConfigsIds = getDependentConfigs(id);
 
-    return pipelineDAO.all()
-      .stream()
-      .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
-      .collect(Collectors.toList());
+    return pipelineDAO.all().stream()
+        .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
+        .collect(Collectors.toList());
   }
 
   @VisibleForTesting
@@ -154,24 +162,25 @@ public class V2PipelineTemplateController {
     List<String> dependentConfigIds = new ArrayList<>();
 
     String prefixedId = SPINNAKER_PREFIX + templateId;
-    pipelineDAO.all()
-      .stream()
-      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
-      .forEach(templatedPipeline -> {
-        String source;
-        try {
-          TemplateConfiguration config =
-            objectMapper.convertValue(templatedPipeline.getConfig(), TemplateConfiguration.class);
+    pipelineDAO.all().stream()
+        .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
+        .forEach(
+            templatedPipeline -> {
+              String source;
+              try {
+                TemplateConfiguration config =
+                    objectMapper.convertValue(
+                        templatedPipeline.getConfig(), TemplateConfiguration.class);
 
-          source = config.getPipeline().getTemplate().getSource();
-        } catch (Exception e) {
-          return;
-        }
+                source = config.getPipeline().getTemplate().getSource();
+              } catch (Exception e) {
+                return;
+              }
 
-        if (source != null && source.equalsIgnoreCase(prefixedId)) {
-          dependentConfigIds.add(templatedPipeline.getId());
-        }
-      });
+              if (source != null && source.equalsIgnoreCase(prefixedId)) {
+                dependentConfigIds.add(templatedPipeline.getId());
+              }
+            });
     return dependentConfigIds;
   }
 
@@ -179,8 +188,10 @@ public class V2PipelineTemplateController {
   void checkForDependentConfigs(String templateId) {
     List<String> dependentConfigIds = getDependentConfigs(templateId);
     if (dependentConfigIds.size() != 0) {
-      throw new InvalidRequestException("The following pipeline configs"
-        + " depend on this template: " + String.join(", ", dependentConfigIds));
+      throw new InvalidRequestException(
+          "The following pipeline configs"
+              + " depend on this template: "
+              + String.join(", ", dependentConfigIds));
     }
   }
 
@@ -202,7 +213,10 @@ public class V2PipelineTemplateController {
       byte[] hashBytes = digest.digest(jsonPayload.getBytes(StandardCharsets.UTF_8));
       return Hex.encodeHexString(hashBytes);
     } catch (NoSuchAlgorithmException | JsonProcessingException e) {
-      throw new InvalidRequestException(String.format("Computing digest for pipeline template %s failed. Nested exception is %s", pipelineTemplate.undecoratedId(), e));
+      throw new InvalidRequestException(
+          String.format(
+              "Computing digest for pipeline template %s failed. Nested exception is %s",
+              pipelineTemplate.undecoratedId(), e));
     }
   }
 
@@ -215,28 +229,32 @@ public class V2PipelineTemplateController {
     } else if (initialObj instanceof List) {
       List initialList = (List) initialObj;
       return initialList.stream().map(this::sortObjectRecursive).collect(Collectors.toList());
-    }  else {
+    } else {
       return initialObj;
     }
   }
 
   private PipelineTemplateDAO getPipelineTemplateDAO() {
     if (pipelineTemplateDAO == null) {
-      throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
+      throw new BadRequestException(
+          "Pipeline Templates are not supported with your current storage backend");
     }
     return pipelineTemplateDAO;
   }
 
   private void validatePipelineTemplateTag(String tag) {
     if (!VALID_TEMPLATE_TAGS.contains(tag)) {
-      throw new InvalidRequestException(String.format("The provided tag %s is not supported."
-        + " Pipeline template must tag be one of %s", tag, VALID_TEMPLATE_TAGS));
+      throw new InvalidRequestException(
+          String.format(
+              "The provided tag %s is not supported." + " Pipeline template must tag be one of %s",
+              tag, VALID_TEMPLATE_TAGS));
     }
   }
 
   private String formatId(String id, String tag, String digest) {
     if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(tag)) {
-      throw new InvalidRequestException("Cannot query pipeline by 'tag' and 'digest' simultaneously. Specify one of 'tag' or 'digest'.");
+      throw new InvalidRequestException(
+          "Cannot query pipeline by 'tag' and 'digest' simultaneously. Specify one of 'tag' or 'digest'.");
     }
 
     if (StringUtils.isNotEmpty(digest)) {

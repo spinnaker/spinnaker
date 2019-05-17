@@ -19,9 +19,7 @@ package com.netflix.spinnaker.front50.validator;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import org.springframework.validation.Errors;
 
-/**
- * An extension point wherein custom validation can be applied pre-save/update operations.
- */
+/** An extension point wherein custom validation can be applied pre-save/update operations. */
 public interface PipelineValidator {
   /**
    * @param pipeline the pipeline being modified

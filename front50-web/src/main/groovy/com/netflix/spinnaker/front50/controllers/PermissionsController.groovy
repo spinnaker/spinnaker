@@ -48,7 +48,7 @@ public class PermissionsController {
   @Autowired
   FiatClientConfigurationProperties fiatClientConfigurationProperties
 
-  @Value('${fiat.roleSync.enabled:true}')
+  @Value('${fiat.role-sync.enabled:true}')
   Boolean roleSync
 
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")

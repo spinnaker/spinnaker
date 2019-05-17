@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.front50.model.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class S3Event {

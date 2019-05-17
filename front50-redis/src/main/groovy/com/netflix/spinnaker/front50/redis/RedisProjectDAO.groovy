@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.redis
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
+import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ScanOptions
 
@@ -53,8 +54,11 @@ class RedisProjectDAO implements ProjectDAO {
 
   @Override
   Collection<Project> all(boolean refresh) {
-    redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-      .collect { it.value }
+    redisTemplate.opsForHash()
+      .scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
+      .withCloseable { Cursor<Map> c ->
+      c.collect{ it.value }
+    }
   }
 
   @Override

@@ -21,19 +21,27 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
-import rx.Scheduler;
-
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import rx.Scheduler;
 
-public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> implements EntityTagsDAO {
-  public DefaultEntityTagsDAO(StorageService service,
-                              Scheduler scheduler,
-                              ObjectKeyLoader objectKeyLoader,
-                              long refreshIntervalMs,
-                              boolean shouldWarmCache,
-                              Registry registry) {
-    super(ObjectType.ENTITY_TAGS, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags>
+    implements EntityTagsDAO {
+  public DefaultEntityTagsDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.ENTITY_TAGS,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override

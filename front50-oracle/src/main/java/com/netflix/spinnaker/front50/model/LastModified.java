@@ -9,7 +9,6 @@
 
 package com.netflix.spinnaker.front50.model;
 
-
 public class LastModified {
   private Long lastModified = System.currentTimeMillis();
 

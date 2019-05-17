@@ -17,14 +17,14 @@ package com.netflix.spinnaker.front50.model.pipeline;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ForwardingMap;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Trigger extends ForwardingMap<String, Object> {
 
-  public final static TypeReference<Collection<Trigger>> COLLECTION_TYPE = new TypeReference<Collection<Trigger>>() {};
+  public static final TypeReference<Collection<Trigger>> COLLECTION_TYPE =
+      new TypeReference<Collection<Trigger>>() {};
 
   private final Map<String, Object> backing = new HashMap<>();
 

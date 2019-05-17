@@ -41,16 +41,12 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     return scopes != null ? scopes : Collections.emptyList();
   }
 
-  /**
-   * @return Un-decorated MPT id.
-   */
+  /** @return Un-decorated MPT id. */
   public String undecoratedId() {
     return (String) super.get("id");
   }
 
-  /**
-   * @return Decorated id with appended digest or tag.
-   */
+  /** @return Decorated id with appended digest or tag. */
   @Override
   public String getId() {
     String digest = getDigest();
@@ -65,7 +61,9 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     }
   }
 
-  public void setId(String id) { super.put("id", id); }
+  public void setId(String id) {
+    super.put("id", id);
+  }
 
   public String getTag() {
     return (String) super.get("tag");
@@ -91,6 +89,7 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
 
   /**
    * Removes and returns last modified time from the pipeline template.
+   *
    * @return last modified time of the pipeline template.
    */
   public Long removeLastModified() {
@@ -110,6 +109,7 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
 
   /**
    * Removes and returns user that last modified the pipeline template.
+   *
    * @return user last modifying the pipeline template.
    */
   public String removeLastModifiedBy() {
@@ -133,14 +133,19 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
             return true;
           }
         } catch (PatternSyntaxException e) {
-          log.warn("Invalid scope matching pattern (scope: '" + s2 + "', template: " + getId() + ")");
+          log.warn(
+              "Invalid scope matching pattern (scope: '" + s2 + "', template: " + getId() + ")");
         }
       }
     }
     return false;
   }
 
-  public String getSource() { return (String) super.get("source"); }
+  public String getSource() {
+    return (String) super.get("source");
+  }
 
-  public void setSource(String source) { super.put("source", source); }
+  public void setSource(String source) {
+    super.put("source", source);
+  }
 }

@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
+import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
+import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
@@ -26,6 +29,11 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,15 +42,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
-import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
-
 @RestController
 @RequestMapping("pipelineTemplates")
 public class PipelineTemplateController {
@@ -50,16 +49,15 @@ public class PipelineTemplateController {
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
 
-  @Autowired
-  PipelineDAO pipelineDAO;
+  @Autowired PipelineDAO pipelineDAO;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   // TODO rz - Add fiat authz
 
   @RequestMapping(value = "", method = RequestMethod.GET)
-  List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes") List<String> scopes) {
+  List<PipelineTemplate> list(
+      @RequestParam(required = false, value = "scopes") List<String> scopes) {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
@@ -78,7 +76,11 @@ public class PipelineTemplateController {
   PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
     PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
     if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
-      throw new InvalidRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
+      throw new InvalidRequestException(
+          "The provided id "
+              + id
+              + " doesn't match the pipeline template id "
+              + pipelineTemplate.getId());
     }
 
     pipelineTemplate.setLastModified(System.currentTimeMillis());
@@ -95,14 +97,15 @@ public class PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
-  List<Pipeline> listDependentPipelines(@PathVariable String id,
-                                        @RequestParam(required = false, value = "recursive", defaultValue = "false") boolean recursive) {
+  List<Pipeline> listDependentPipelines(
+      @PathVariable String id,
+      @RequestParam(required = false, value = "recursive", defaultValue = "false")
+          boolean recursive) {
     List<String> dependentConfigsIds = getDependentConfigs(id, recursive);
 
-    return pipelineDAO.all()
-      .stream()
-      .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
-      .collect(Collectors.toList());
+    return pipelineDAO.all().stream()
+        .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
+        .collect(Collectors.toList());
   }
 
   @VisibleForTesting
@@ -111,24 +114,25 @@ public class PipelineTemplateController {
 
     List<String> templateIds = convertAllTemplateIdsToSources(templateId, recursive);
 
-    pipelineDAO.all()
-      .stream()
-      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
-      .forEach(templatedPipeline -> {
-        String source;
-        try {
-          TemplateConfiguration config =
-            objectMapper.convertValue(templatedPipeline.getConfig(), TemplateConfiguration.class);
+    pipelineDAO.all().stream()
+        .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
+        .forEach(
+            templatedPipeline -> {
+              String source;
+              try {
+                TemplateConfiguration config =
+                    objectMapper.convertValue(
+                        templatedPipeline.getConfig(), TemplateConfiguration.class);
 
-          source = config.getPipeline().getTemplate().getSource();
-        } catch (Exception e) {
-          return;
-        }
+                source = config.getPipeline().getTemplate().getSource();
+              } catch (Exception e) {
+                return;
+              }
 
-        if (source != null && containsAnyIgnoreCase(source, templateIds)) {
-          dependentConfigIds.add(templatedPipeline.getId());
-        }
-      });
+              if (source != null && containsAnyIgnoreCase(source, templateIds)) {
+                dependentConfigIds.add(templatedPipeline.getId());
+              }
+            });
     return dependentConfigIds;
   }
 
@@ -156,23 +160,29 @@ public class PipelineTemplateController {
   void checkForDependentConfigs(String templateId, boolean recursive) {
     List<String> dependentConfigIds = getDependentConfigs(templateId, recursive);
     if (dependentConfigIds.size() != 0) {
-      throw new InvalidRequestException("The following pipeline configs"
-        + " depend on this template: " + String.join(", ", dependentConfigIds));
+      throw new InvalidRequestException(
+          "The following pipeline configs"
+              + " depend on this template: "
+              + String.join(", ", dependentConfigIds));
     }
   }
 
   @VisibleForTesting
-  List<String> getDependentTemplates(String templateId, Optional<Collection<PipelineTemplate>> templates) {
+  List<String> getDependentTemplates(
+      String templateId, Optional<Collection<PipelineTemplate>> templates) {
     List<String> dependentTemplateIds = new ArrayList<>();
 
-    final Collection<PipelineTemplate> pipelineTemplates = templates.orElse(getPipelineTemplateDAO().all());
-    pipelineTemplates.forEach(template -> {
-        if (template.getSource() != null
-          && template.getSource().equalsIgnoreCase(SPINNAKER_PREFIX + templateId)) {
-          dependentTemplateIds.add(template.getId());
-          dependentTemplateIds.addAll(getDependentTemplates(template.getId(), Optional.of(pipelineTemplates)));
-        }
-      });
+    final Collection<PipelineTemplate> pipelineTemplates =
+        templates.orElse(getPipelineTemplateDAO().all());
+    pipelineTemplates.forEach(
+        template -> {
+          if (template.getSource() != null
+              && template.getSource().equalsIgnoreCase(SPINNAKER_PREFIX + templateId)) {
+            dependentTemplateIds.add(template.getId());
+            dependentTemplateIds.addAll(
+                getDependentTemplates(template.getId(), Optional.of(pipelineTemplates)));
+          }
+        });
     return dependentTemplateIds;
   }
 
@@ -180,8 +190,10 @@ public class PipelineTemplateController {
   void checkForDependentTemplates(String templateId) {
     List<String> dependentTemplateIds = getDependentTemplates(templateId, Optional.empty());
     if (dependentTemplateIds.size() != 0) {
-      throw new InvalidRequestException("The following pipeline templates"
-        + " depend on this template: " + String.join(", ", dependentTemplateIds));
+      throw new InvalidRequestException(
+          "The following pipeline templates"
+              + " depend on this template: "
+              + String.join(", ", dependentTemplateIds));
     }
   }
 
@@ -196,7 +208,8 @@ public class PipelineTemplateController {
 
   private PipelineTemplateDAO getPipelineTemplateDAO() {
     if (pipelineTemplateDAO == null) {
-      throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
+      throw new BadRequestException(
+          "Pipeline Templates are not supported with your current storage backend");
     }
     return pipelineTemplateDAO;
   }

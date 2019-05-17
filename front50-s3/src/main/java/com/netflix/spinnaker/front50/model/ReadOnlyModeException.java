@@ -15,12 +15,10 @@
  */
 package com.netflix.spinnaker.front50.model;
 
-/**
- * Thrown when front50 is running in read-only mode and a write operation is triggered.
- */
+/** Thrown when front50 is running in read-only mode and a write operation is triggered. */
 public class ReadOnlyModeException extends IllegalStateException {
 
-  private final static String DEFAULT_MESSAGE = "Cannot perform write operation, in read-only mode";
+  private static final String DEFAULT_MESSAGE = "Cannot perform write operation, in read-only mode";
 
   public ReadOnlyModeException() {
     this(DEFAULT_MESSAGE);

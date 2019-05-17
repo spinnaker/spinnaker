@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
@@ -28,12 +30,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.config.S3Properties;
 import com.netflix.spinnaker.front50.model.events.S3Event;
 import com.netflix.spinnaker.front50.model.events.S3EventWrapper;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.TaskScheduler;
-
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -46,19 +42,22 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
+import javax.annotation.PreDestroy;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * An ObjectKeyLoader is responsible for returning a last modified timestamp for all objects of a particular type.
+ * An ObjectKeyLoader is responsible for returning a last modified timestamp for all objects of a
+ * particular type.
  *
- * This implementation listens to an S3 event stream and applies incremental updates whenever an event is received
- * indicating that an object has been modified (add/update/delete).
+ * <p>This implementation listens to an S3 event stream and applies incremental updates whenever an
+ * event is received indicating that an object has been modified (add/update/delete).
  *
- * It is significantly faster than delegating to `s3StorageService.listObjectKeys()` with some slight latency attributed
- * to the time taken for an event to be received and processed.
+ * <p>It is significantly faster than delegating to `s3StorageService.listObjectKeys()` with some
+ * slight latency attributed to the time taken for an event to be received and processed.
  *
- * Expected latency is less than 1s (Amazon
+ * <p>Expected latency is less than 1s (Amazon
  */
 public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   private static final Logger log = LoggerFactory.getLogger(EventingS3ObjectKeyLoader.class);
@@ -76,51 +75,55 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
   private boolean pollForMessages = true;
 
-  public EventingS3ObjectKeyLoader(ExecutorService executionService,
-                                   ObjectMapper objectMapper,
-                                   S3Properties s3Properties,
-                                   TemporarySQSQueue temporarySQSQueue,
-                                   S3StorageService s3StorageService,
-                                   Registry registry,
-                                   boolean scheduleImmediately) {
+  public EventingS3ObjectKeyLoader(
+      ExecutorService executionService,
+      ObjectMapper objectMapper,
+      S3Properties s3Properties,
+      TemporarySQSQueue temporarySQSQueue,
+      S3StorageService s3StorageService,
+      Registry registry,
+      boolean scheduleImmediately) {
     this.objectMapper = objectMapper;
     this.temporarySQSQueue = temporarySQSQueue;
     this.s3StorageService = s3StorageService;
     this.registry = registry;
 
-    this.objectKeysByLastModifiedCache = CacheBuilder
-      .newBuilder()
-      // ensure that these keys only expire _after_ their object type has been refreshed
-      .expireAfterWrite(s3Properties.getEventing().getRefreshIntervalMs() + 60000, TimeUnit.MILLISECONDS)
-      .recordStats()
-      .build();
+    this.objectKeysByLastModifiedCache =
+        CacheBuilder.newBuilder()
+            // ensure that these keys only expire _after_ their object type has been refreshed
+            .expireAfterWrite(
+                s3Properties.getEventing().getRefreshIntervalMs() + 60000, TimeUnit.MILLISECONDS)
+            .recordStats()
+            .build();
 
+    this.objectKeysByObjectTypeCache =
+        CacheBuilder.newBuilder()
+            .refreshAfterWrite(
+                s3Properties.getEventing().getRefreshIntervalMs(), TimeUnit.MILLISECONDS)
+            .recordStats()
+            .build(
+                new CacheLoader<ObjectType, Map<String, Long>>() {
+                  @Override
+                  public Map<String, Long> load(ObjectType objectType) throws Exception {
+                    log.debug("Loading object keys for {}", value("type", objectType));
+                    return s3StorageService.listObjectKeys(objectType);
+                  }
 
-    this.objectKeysByObjectTypeCache = CacheBuilder
-      .newBuilder()
-      .refreshAfterWrite(s3Properties.getEventing().getRefreshIntervalMs(), TimeUnit.MILLISECONDS)
-      .recordStats()
-      .build(
-        new CacheLoader<ObjectType, Map<String, Long>>() {
-          @Override
-          public Map<String, Long> load(ObjectType objectType) throws Exception {
-            log.debug("Loading object keys for {}", value("type", objectType));
-            return s3StorageService.listObjectKeys(objectType);
-          }
-
-          @Override
-          public ListenableFuture<Map<String, Long>> reload(ObjectType objectType, Map<String, Long> previous) throws Exception {
-            ListenableFutureTask<Map<String, Long>> task = ListenableFutureTask.create(
-              () -> {
-                log.debug("Refreshing object keys for {} (asynchronous)", value("type", objectType));
-                return s3StorageService.listObjectKeys(objectType);
-              }
-            );
-            executor.execute(task);
-            return task;
-          }
-        }
-      );
+                  @Override
+                  public ListenableFuture<Map<String, Long>> reload(
+                      ObjectType objectType, Map<String, Long> previous) throws Exception {
+                    ListenableFutureTask<Map<String, Long>> task =
+                        ListenableFutureTask.create(
+                            () -> {
+                              log.debug(
+                                  "Refreshing object keys for {} (asynchronous)",
+                                  value("type", objectType));
+                              return s3StorageService.listObjectKeys(objectType);
+                            });
+                    executor.execute(task);
+                    return task;
+                  }
+                });
 
     this.rootFolder = s3Properties.getRootFolder();
 
@@ -141,34 +144,32 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
     try {
       Map<String, Long> objectKeys = objectKeysByObjectTypeCache.get(objectType);
-      objectKeysByLastModifiedCache.asMap().entrySet()
-        .stream()
-        .filter(e -> e.getKey().objectType == objectType)
-        .forEach(e -> {
-          String key = e.getKey().key;
-          if (objectKeys.containsKey(key)) {
-            Long currentLastModifiedTime = e.getValue();
-            Long previousLastModifiedTime = objectKeys.get(key);
-            if (currentLastModifiedTime > previousLastModifiedTime) {
-              log.info(
-                "Detected Recent Modification (type: {}, key: {}, previous: {}, current: {})",
-                value("type", objectType),
-                value("key", key),
-                value("previousTime", new Date(previousLastModifiedTime)),
-                value("currentTime", new Date(e.getValue()))
-              );
-              objectKeys.put(key, currentLastModifiedTime);
-            }
-          } else {
-            log.info(
-              "Detected Recent Modification (type: {}, key: {}, current: {})",
-              value("type", objectType),
-              value("key", key),
-              value("currentTime", new Date(e.getValue()))
-            );
-            objectKeys.put(key, e.getValue());
-          }
-        });
+      objectKeysByLastModifiedCache.asMap().entrySet().stream()
+          .filter(e -> e.getKey().objectType == objectType)
+          .forEach(
+              e -> {
+                String key = e.getKey().key;
+                if (objectKeys.containsKey(key)) {
+                  Long currentLastModifiedTime = e.getValue();
+                  Long previousLastModifiedTime = objectKeys.get(key);
+                  if (currentLastModifiedTime > previousLastModifiedTime) {
+                    log.info(
+                        "Detected Recent Modification (type: {}, key: {}, previous: {}, current: {})",
+                        value("type", objectType),
+                        value("key", key),
+                        value("previousTime", new Date(previousLastModifiedTime)),
+                        value("currentTime", new Date(e.getValue())));
+                    objectKeys.put(key, currentLastModifiedTime);
+                  }
+                } else {
+                  log.info(
+                      "Detected Recent Modification (type: {}, key: {}, current: {})",
+                      value("type", objectType),
+                      value("key", key),
+                      value("currentTime", new Date(e.getValue())));
+                  objectKeys.put(key, e.getValue());
+                }
+              });
       return objectKeys;
     } catch (ExecutionException e) {
       log.error("Unable to fetch keys from cache", e);
@@ -186,13 +187,14 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
           continue;
         }
 
-        messages.forEach(message -> {
-          S3Event s3Event = unmarshall(objectMapper, message.getBody());
-          if (s3Event != null) {
-            tick(s3Event);
-          }
-          temporarySQSQueue.markMessageAsHandled(message.getReceiptHandle());
-        });
+        messages.forEach(
+            message -> {
+              S3Event s3Event = unmarshall(objectMapper, message.getBody());
+              if (s3Event != null) {
+                tick(s3Event);
+              }
+              temporarySQSQueue.markMessageAsHandled(message.getReceiptHandle());
+            });
       } catch (Exception e) {
         log.error("Failed to poll for messages", e);
         registry.counter("s3.eventing.pollErrors").increment();
@@ -201,25 +203,25 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   }
 
   private void tick(S3Event s3Event) {
-    s3Event.records.forEach(record -> {
-      if (record.s3.object.key.endsWith("last-modified.json")) {
-        return;
-      }
+    s3Event.records.forEach(
+        record -> {
+          if (record.s3.object.key.endsWith("last-modified.json")) {
+            return;
+          }
 
-      String eventType = record.eventName;
-      KeyWithObjectType keyWithObjectType = buildObjectKey(rootFolder, record.s3.object.key);
-      DateTime eventTime = new DateTime(record.eventTime);
+          String eventType = record.eventName;
+          KeyWithObjectType keyWithObjectType = buildObjectKey(rootFolder, record.s3.object.key);
+          DateTime eventTime = new DateTime(record.eventTime);
 
-      log.debug(
-        "Received Event (objectType: {}, type: {}, key: {}, delta: {})",
-        value("objectType", keyWithObjectType.objectType),
-        value("type", eventType),
-        value("key", keyWithObjectType.key),
-        value("delta", System.currentTimeMillis() - eventTime.getMillis())
-      );
+          log.debug(
+              "Received Event (objectType: {}, type: {}, key: {}, delta: {})",
+              value("objectType", keyWithObjectType.objectType),
+              value("type", eventType),
+              value("key", keyWithObjectType.key),
+              value("delta", System.currentTimeMillis() - eventTime.getMillis()));
 
-      objectKeysByLastModifiedCache.put(keyWithObjectType, eventTime.getMillis());
-    });
+          objectKeysByLastModifiedCache.put(keyWithObjectType, eventTime.getMillis());
+        });
   }
 
   private static KeyWithObjectType buildObjectKey(String rootFolder, String s3ObjectKey) {
@@ -239,10 +241,14 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
       throw new IllegalArgumentException("Invalid key '" + s3ObjectKey + "' (non utf-8)");
     }
 
-    ObjectType objectType = Arrays.stream(ObjectType.values())
-      .filter(o -> o.defaultMetadataFilename.equalsIgnoreCase(metadataFilename))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("No ObjectType found (defaultMetadataFileName: " + metadataFilename + ")"));
+    ObjectType objectType =
+        Arrays.stream(ObjectType.values())
+            .filter(o -> o.defaultMetadataFilename.equalsIgnoreCase(metadataFilename))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No ObjectType found (defaultMetadataFileName: " + metadataFilename + ")"));
 
     return new KeyWithObjectType(objectType, s3ObjectKey);
   }

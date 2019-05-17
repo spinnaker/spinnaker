@@ -3,7 +3,6 @@ package com.netflix.spinnaker.front50.model.delivery;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.netflix.spinnaker.front50.model.Timestamped;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +13,11 @@ public class Delivery implements Timestamped {
   private Long updateTs;
   private Long createTs;
   private String lastModifiedBy;
-  private List<Map<String,Object>> deliveryArtifacts;
-  private List<Map<String,Object>> deliveryEnvironments;
-  private Map<String,Object> details = new HashMap<>();
+  private List<Map<String, Object>> deliveryArtifacts;
+  private List<Map<String, Object>> deliveryEnvironments;
+  private Map<String, Object> details = new HashMap<>();
 
-  public Delivery() {
-  }
+  public Delivery() {}
 
   @Override
   public String getId() {
@@ -58,19 +56,19 @@ public class Delivery implements Timestamped {
     this.lastModifiedBy = lastModifiedBy;
   }
 
-  public List<Map<String,Object>> getDeliveryArtifacts() {
+  public List<Map<String, Object>> getDeliveryArtifacts() {
     return deliveryArtifacts;
   }
 
-  public void setArtifacts(List<Map<String,Object>> deliveryEnvironments) {
+  public void setArtifacts(List<Map<String, Object>> deliveryEnvironments) {
     this.deliveryArtifacts = deliveryEnvironments;
   }
 
-  public List<Map<String,Object>> getDeliveryEnvironments() {
+  public List<Map<String, Object>> getDeliveryEnvironments() {
     return deliveryEnvironments;
   }
 
-  public void setEnvironments(List<Map<String,Object>> deliveryEnvironments) {
+  public void setEnvironments(List<Map<String, Object>> deliveryEnvironments) {
     this.deliveryEnvironments = deliveryEnvironments;
   }
 
@@ -83,7 +81,7 @@ public class Delivery implements Timestamped {
   }
 
   @JsonAnyGetter
-  Map<String,Object> details() {
+  Map<String, Object> details() {
     return details;
   }
 

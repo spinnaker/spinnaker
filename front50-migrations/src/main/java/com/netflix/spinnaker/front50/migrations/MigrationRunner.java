@@ -16,37 +16,36 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-
-import static java.lang.String.format;
-import static net.logstash.logback.argument.StructuredArguments.value;
-
 @Component
 public class MigrationRunner {
   private final Logger log = LoggerFactory.getLogger(MigrationRunner.class);
 
-  @Autowired
-  Collection<Migration> migrations;
+  @Autowired Collection<Migration> migrations;
 
-  /**
-   * Run migrations every 8hrs.
-   */
+  /** Run migrations every 8hrs. */
   @Scheduled(fixedDelay = 28800000)
   void run() {
     migrations.stream()
         .filter(Migration::isValid)
-        .forEach(migration -> {
-          try {
-            migration.run();
-          } catch (Exception e) {
-            log.error("Migration failure ({}):", value("class", migration.getClass().getSimpleName()), e);
-          }
-        });
+        .forEach(
+            migration -> {
+              try {
+                migration.run();
+              } catch (Exception e) {
+                log.error(
+                    "Migration failure ({}):",
+                    value("class", migration.getClass().getSimpleName()),
+                    e);
+              }
+            });
   }
 }

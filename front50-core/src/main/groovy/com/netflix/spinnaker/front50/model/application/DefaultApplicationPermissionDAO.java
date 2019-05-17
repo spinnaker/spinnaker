@@ -23,14 +23,23 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission> implements ApplicationPermissionDAO {
-  public DefaultApplicationPermissionDAO(StorageService service,
-                                         Scheduler scheduler,
-                                         ObjectKeyLoader objectKeyLoader,
-                                         long refreshIntervalMs,
-                                         boolean shouldWarmCache,
-                                         Registry registry) {
-    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission>
+    implements ApplicationPermissionDAO {
+  public DefaultApplicationPermissionDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.APPLICATION_PERMISSION,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override

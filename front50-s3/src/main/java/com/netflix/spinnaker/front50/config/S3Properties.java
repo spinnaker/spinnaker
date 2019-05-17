@@ -23,15 +23,13 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 public class S3Properties extends S3BucketProperties {
   String rootFolder;
 
-  @NestedConfigurationProperty
-  S3FailoverProperties failover = new S3FailoverProperties();
+  @NestedConfigurationProperty S3FailoverProperties failover = new S3FailoverProperties();
 
-  @NestedConfigurationProperty
-  S3EventingProperties eventing = new S3EventingProperties();
+  @NestedConfigurationProperty S3EventingProperties eventing = new S3EventingProperties();
 
-  // Front50 retrieves objects in batches of this size. Some S3 compatible store enforce a maximum number of keys
+  // Front50 retrieves objects in batches of this size. Some S3 compatible store enforce a maximum
+  // number of keys
   private Integer maxKeys = 10000;
-
 
   public String getRootFolder() {
     return rootFolder;

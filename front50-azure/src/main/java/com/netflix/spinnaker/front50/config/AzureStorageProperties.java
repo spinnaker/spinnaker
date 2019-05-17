@@ -26,16 +26,34 @@ public class AzureStorageProperties {
 
   public String getStorageConnectionString() {
     return "DefaultEndpointsProtocol=https;"
-      + "AccountName=" + this.storageAccountName + ";"
-      + "AccountKey=" + this.storageAccountKey;
+        + "AccountName="
+        + this.storageAccountName
+        + ";"
+        + "AccountKey="
+        + this.storageAccountKey;
   }
 
-  public String getStorageAccountKey() { return this.storageAccountKey; }
-  public void setStorageAccountKey(String storageAccountKey) { this.storageAccountKey = storageAccountKey; }
+  public String getStorageAccountKey() {
+    return this.storageAccountKey;
+  }
 
-  public String getStorageAccountName() { return this.storageAccountName; }
-  public void setStorageAccountName(String storageAccountName) { this.storageAccountName = storageAccountName; }
+  public void setStorageAccountKey(String storageAccountKey) {
+    this.storageAccountKey = storageAccountKey;
+  }
 
-  public String getStorageContainerName() { return this.storageContainerName; }
-  public void setStorageContainerName(String storageContainerName) { this.storageContainerName = storageContainerName; }
+  public String getStorageAccountName() {
+    return this.storageAccountName;
+  }
+
+  public void setStorageAccountName(String storageAccountName) {
+    this.storageAccountName = storageAccountName;
+  }
+
+  public String getStorageContainerName() {
+    return this.storageContainerName;
+  }
+
+  public void setStorageContainerName(String storageContainerName) {
+    this.storageContainerName = storageContainerName;
+  }
 }

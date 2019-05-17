@@ -15,8 +15,10 @@
  */
 
 dependencies {
-  compile project(":front50-s3")
+  implementation project(":front50-core")
+  implementation project(":front50-s3")
 
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('spock')
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.spockframework:spock-core"
+  implementation "com.amazonaws:aws-java-sdk-s3"
 }

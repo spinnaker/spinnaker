@@ -23,5 +23,4 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 @ComponentScan("com.netflix.spinnaker.front50.migrations")
-public class MigrationConfig {
-}
+public class MigrationConfig {}

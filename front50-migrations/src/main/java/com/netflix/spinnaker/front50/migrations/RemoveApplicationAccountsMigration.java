@@ -18,30 +18,29 @@ package com.netflix.spinnaker.front50.migrations;
 
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
+import java.time.Clock;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Clock;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
 /**
- * The "accounts" field was once required but no longer. The value of "accounts" is now inferred from existing
- * infrastructure indexed by Clouddriver, so the value, when present in Front50, just ends up causing confusion.
+ * The "accounts" field was once required but no longer. The value of "accounts" is now inferred
+ * from existing infrastructure indexed by Clouddriver, so the value, when present in Front50, just
+ * ends up causing confusion.
  */
-
 @Component
 public class RemoveApplicationAccountsMigration implements Migration {
 
-  private static final Logger log = LoggerFactory.getLogger(RemoveApplicationAccountsMigration.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(RemoveApplicationAccountsMigration.class);
 
   // Only valid until June 1st, 2020
   private static final Date VALID_UNTIL = new GregorianCalendar(2020, 6, 1).getTime();
 
-  @Autowired
-  private ApplicationDAO applicationDAO;
+  @Autowired private ApplicationDAO applicationDAO;
 
   private Clock clock = Clock.systemDefaultZone();
 

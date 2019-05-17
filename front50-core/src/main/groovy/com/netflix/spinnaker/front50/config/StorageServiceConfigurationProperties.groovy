@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 import java.util.concurrent.TimeUnit;
 
-@ConfigurationProperties("storageService")
+@ConfigurationProperties("storage-service")
 class StorageServiceConfigurationProperties {
   PerObjectType application = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType applicationPermission = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))

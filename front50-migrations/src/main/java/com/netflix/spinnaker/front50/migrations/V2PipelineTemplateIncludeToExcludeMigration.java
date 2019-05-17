@@ -39,7 +39,8 @@ public class V2PipelineTemplateIncludeToExcludeMigration implements Migration {
   // Only valid until April 1st, 2020
   private static final Date VALID_UNTIL = new GregorianCalendar(2020, 4, 1).getTime();
   // Set of string keys MPT inherit/exclude operate on.
-  private static final List<String> INHERIT_KEYS = Arrays.asList("notifications", "parameters", "triggers");
+  private static final List<String> INHERIT_KEYS =
+      Arrays.asList("notifications", "parameters", "triggers");
 
   private final PipelineDAO pipelineDAO;
 
@@ -59,26 +60,27 @@ public class V2PipelineTemplateIncludeToExcludeMigration implements Migration {
   public void run() {
     log.info("Starting v2 pipeline template inherit to exclude migration");
 
-    Predicate<Pipeline> hasInheritOnly = p -> {
-      Map<String, Object> template = (Map<String, Object>) p.get("template");
-      if (template == null) {
-        return false;
-      }
-      String schema = (String) p.getOrDefault("schema", "");
-      List<String> inherit = (List<String>) p.get("inherit");
-      List<String> exclude = (List<String>) p.get("exclude");
+    Predicate<Pipeline> hasInheritOnly =
+        p -> {
+          Map<String, Object> template = (Map<String, Object>) p.get("template");
+          if (template == null) {
+            return false;
+          }
+          String schema = (String) p.getOrDefault("schema", "");
+          List<String> inherit = (List<String>) p.get("inherit");
+          List<String> exclude = (List<String>) p.get("exclude");
 
-      // There's 4 cases based on the existence of 'inherit' and 'exclude':
-      // Neither exist -> do nothing.
-      // Both exist -> Orca will honor exclude, do nothing.
-      // Only exclude exists -> Orca will honor, do nothing.
-      // Only inherit exists -> Need to migrate and set the complement as exclude.
-      return schema.equals("v2") && inherit != null && exclude == null;
-    };
+          // There's 4 cases based on the existence of 'inherit' and 'exclude':
+          // Neither exist -> do nothing.
+          // Both exist -> Orca will honor exclude, do nothing.
+          // Only exclude exists -> Orca will honor, do nothing.
+          // Only inherit exists -> Need to migrate and set the complement as exclude.
+          return schema.equals("v2") && inherit != null && exclude == null;
+        };
 
     pipelineDAO.all().stream()
-      .filter(hasInheritOnly)
-      .forEach(pipeline -> migrate(pipelineDAO, pipeline));
+        .filter(hasInheritOnly)
+        .forEach(pipeline -> migrate(pipelineDAO, pipeline));
   }
 
   private void migrate(ItemDAO<Pipeline> dao, Pipeline pipeline) {
@@ -95,11 +97,10 @@ public class V2PipelineTemplateIncludeToExcludeMigration implements Migration {
     dao.update(pipeline.getId(), pipeline);
 
     log.info(
-      "Added pipeline template exclude (application: {}, pipelineId: {}, exclude: {}) from (inherit: {})",
-      pipeline.getApplication(),
-      pipeline.getId(),
-      exclude,
-      inherit
-    );
+        "Added pipeline template exclude (application: {}, pipelineId: {}, exclude: {}) from (inherit: {})",
+        pipeline.getApplication(),
+        pipeline.getId(),
+        exclude,
+        inherit);
   }
 }

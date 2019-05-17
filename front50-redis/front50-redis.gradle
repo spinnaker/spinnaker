@@ -19,10 +19,16 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":front50-core")
-  compile 'org.springframework.data:spring-data-redis:1.7.1.RELEASE'
-  compile 'redis.clients:jedis:2.8.1'
+  implementation project(":front50-core")
 
-  testCompile project(":front50-test")
-  testCompile spinnaker.dependency('korkJedisTest')
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "com.netflix.spinnaker.kork:kork-hystrix"
+  implementation 'org.springframework.data:spring-data-redis'
+  implementation 'redis.clients:jedis'
+  implementation "com.github.ben-manes.caffeine:guava"
+
+  testImplementation project(":front50-test")
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }

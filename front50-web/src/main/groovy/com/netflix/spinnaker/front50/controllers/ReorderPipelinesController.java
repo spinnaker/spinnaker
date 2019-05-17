@@ -20,24 +20,20 @@ import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.pipeline.*;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("actions")
 class ReorderPipelinesController {
-  @Autowired
-  FiatPermissionEvaluator fiatPermissionEvaluator;
+  @Autowired FiatPermissionEvaluator fiatPermissionEvaluator;
 
-  @Autowired
-  PipelineDAO pipelineDAO;
+  @Autowired PipelineDAO pipelineDAO;
 
-  @Autowired
-  PipelineStrategyDAO pipelineStrategyDAO;
+  @Autowired PipelineStrategyDAO pipelineStrategyDAO;
 
   @RequestMapping(value = "/pipelines/reorder", method = RequestMethod.POST)
   void reorderPipelines(@RequestBody Map<String, Object> requestBody) {
@@ -49,7 +45,8 @@ class ReorderPipelinesController {
     handlePipelineReorder(requestBody, pipelineStrategyDAO);
   }
 
-  private void handlePipelineReorder(Map<String, Object> requestBody, ItemDAO<Pipeline> pipelineItemDAO) {
+  private void handlePipelineReorder(
+      Map<String, Object> requestBody, ItemDAO<Pipeline> pipelineItemDAO) {
     String application = (String) requestBody.get("application");
     Map<String, Integer> idsToIndices = (Map<String, Integer>) requestBody.get("idsToIndices");
 
@@ -63,8 +60,10 @@ class ReorderPipelinesController {
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-    if (!fiatPermissionEvaluator.storeWholePermission() && !fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
-      throw new InvalidRequestException("Application write permission is required to reorder pipelines");
+    if (!fiatPermissionEvaluator.storeWholePermission()
+        && !fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
+      throw new InvalidRequestException(
+          "Application write permission is required to reorder pipelines");
     }
 
     for (String id : idsToIndices.keySet()) {
@@ -75,7 +74,9 @@ class ReorderPipelinesController {
       }
 
       if (!pipeline.getApplication().equals(application)) {
-        throw new InvalidRequestException(String.format("Pipeline with id %s does not belong to application %s", id, application));
+        throw new InvalidRequestException(
+            String.format(
+                "Pipeline with id %s does not belong to application %s", id, application));
       }
 
       pipeline.setIndex(idsToIndices.get(id));

@@ -9,6 +9,7 @@
 package com.netflix.spinnaker.front50.config;
 
 import com.netflix.spinnaker.front50.model.OracleStorageService;
+import java.io.IOException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,15 +17,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-
 @Configuration
 @ConditionalOnExpression("${spinnaker.oracle.enabled:false}")
 @EnableConfigurationProperties(OracleProperties.class)
 public class OracleConfig extends CommonStorageServiceDAOConfig {
 
   @Bean
-  public OracleStorageService oracleStorageService(OracleProperties oracleProperties) throws IOException {
+  public OracleStorageService oracleStorageService(OracleProperties oracleProperties)
+      throws IOException {
     OracleStorageService oracleStorageService = new OracleStorageService(oracleProperties);
     oracleStorageService.ensureBucketExists();
     return oracleStorageService;
@@ -35,5 +35,4 @@ public class OracleConfig extends CommonStorageServiceDAOConfig {
   public RestTemplate restTemplate() {
     return new RestTemplate();
   }
-
 }

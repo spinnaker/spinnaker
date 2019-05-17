@@ -18,15 +18,14 @@ package com.netflix.spinnaker.front50.migrations;
 
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.time.Clock;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CloudProvidersStringMigration implements Migration {
@@ -35,8 +34,7 @@ public class CloudProvidersStringMigration implements Migration {
   // Only valid until June 1st, 2020
   private static final Date VALID_UNTIL = new GregorianCalendar(2020, 6, 1).getTime();
 
-  @Autowired
-  private ApplicationDAO applicationDAO;
+  @Autowired private ApplicationDAO applicationDAO;
 
   private Clock clock = Clock.systemDefaultZone();
 
@@ -56,10 +54,13 @@ public class CloudProvidersStringMigration implements Migration {
   }
 
   private void migrate(Application application) {
-    log.info("Converting cloudProviders ({}) for application {} from a List to a String for {}",
-      application.details().get("cloudProviders").toString(),
-      application.getName());
-    application.set("cloudProviders", String.join(",", (List<String>) application.details().get("cloudProviders")));
+    log.info(
+        "Converting cloudProviders ({}) for application {} from a List to a String for {}",
+        application.details().get("cloudProviders").toString(),
+        application.getName());
+    application.set(
+        "cloudProviders",
+        String.join(",", (List<String>) application.details().get("cloudProviders")));
     application.dao = applicationDAO;
     application.update(application);
   }

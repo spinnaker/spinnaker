@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.front50.config;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
+import java.util.Optional;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,41 +37,33 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import rx.schedulers.Schedulers;
 
-import java.util.Optional;
-import java.util.concurrent.Executors;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
-
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
 @EnableConfigurationProperties(GcsProperties.class)
 public class GcsConfig extends CommonStorageServiceDAOConfig {
-  @Value("${spinnaker.gcs.safeRetry.maxWaitIntervalMs:60000}")
+  @Value("${spinnaker.gcs.safe-retry.max-wait-interval-ms:60000}")
   Long maxWaitInterval;
 
-  @Value("${spinnaker.gcs.safeRetry.retryIntervalBaseSec:2}")
+  @Value("${spinnaker.gcs.safe-retry.retry-interval-base-sec:2}")
   Long retryIntervalBase;
 
-  @Value("${spinnaker.gcs.safeRetry.jitterMultiplier:1000}")
+  @Value("${spinnaker.gcs.safe-retry.jitter-multiplier:1000}")
   Long jitterMultiplier;
 
-  @Value("${spinnaker.gcs.safeRetry.maxRetries:10}")
+  @Value("${spinnaker.gcs.safe-retry.max-retries:10}")
   Long maxRetries;
 
-  @Value("${spinnaker.gcs.connectTimeoutSec:45}")
+  @Value("${spinnaker.gcs.connect-timeout-sec:45}")
   Integer connectTimeoutSec;
 
-  @Value("${spinnaker.gcs.readTimeoutSec:45}")
+  @Value("${spinnaker.gcs.read-timeout-sec:45}")
   Integer readTimeoutSec;
 
-  @Autowired
-  Registry registry;
+  @Autowired Registry registry;
 
-  @Autowired
-  GcsProperties gcsProperties;
+  @Autowired GcsProperties gcsProperties;
 
-  @Autowired
-  TaskScheduler taskScheduler;
+  @Autowired TaskScheduler taskScheduler;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -76,57 +72,65 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
     return googleCloudStorageService(null /*dataFilename*/, gcsProperties);
   }
 
-  private GcsStorageService googleCloudStorageService(String dataFilename, GcsProperties gcsProperties) {
-    String applicationVersion = Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
+  private GcsStorageService googleCloudStorageService(
+      String dataFilename, GcsProperties gcsProperties) {
+    String applicationVersion =
+        Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
     GcsStorageService service;
     if (dataFilename == null || dataFilename.isEmpty()) {
-      service = new GcsStorageService(gcsProperties.getBucket(),
-        gcsProperties.getBucketLocation(),
-        gcsProperties.getRootFolder(),
-        gcsProperties.getProject(),
-        gcsProperties.getJsonPath(),
-        applicationVersion,
-        connectTimeoutSec,
-        readTimeoutSec,
-        maxWaitInterval,
-        retryIntervalBase,
-        jitterMultiplier,
-        maxRetries,
-        taskScheduler,
-        registry);
+      service =
+          new GcsStorageService(
+              gcsProperties.getBucket(),
+              gcsProperties.getBucketLocation(),
+              gcsProperties.getRootFolder(),
+              gcsProperties.getProject(),
+              gcsProperties.getJsonPath(),
+              applicationVersion,
+              connectTimeoutSec,
+              readTimeoutSec,
+              maxWaitInterval,
+              retryIntervalBase,
+              jitterMultiplier,
+              maxRetries,
+              taskScheduler,
+              registry);
     } else {
-      service = new GcsStorageService(gcsProperties.getBucket(),
-        gcsProperties.getBucketLocation(),
-        gcsProperties.getRootFolder(),
-        gcsProperties.getProject(),
-        gcsProperties.getJsonPath(),
-        applicationVersion,
-        dataFilename,
-        connectTimeoutSec,
-        readTimeoutSec,
-        maxWaitInterval,
-        retryIntervalBase,
-        jitterMultiplier,
-        maxRetries,
-        taskScheduler,
-        registry);
+      service =
+          new GcsStorageService(
+              gcsProperties.getBucket(),
+              gcsProperties.getBucketLocation(),
+              gcsProperties.getRootFolder(),
+              gcsProperties.getProject(),
+              gcsProperties.getJsonPath(),
+              applicationVersion,
+              dataFilename,
+              connectTimeoutSec,
+              readTimeoutSec,
+              maxWaitInterval,
+              retryIntervalBase,
+              jitterMultiplier,
+              maxRetries,
+              taskScheduler,
+              registry);
     }
     service.ensureBucketExists();
-    log.info("Using Google Cloud Storage bucket={} in project={}",
-      value("bucket", gcsProperties.getBucket()),
-      value("project", gcsProperties.getProject()));
-    log.info("Bucket versioning is {}.",
-      value("versioning", service.supportsVersioning() ? "enabled" : "DISABLED"));
+    log.info(
+        "Using Google Cloud Storage bucket={} in project={}",
+        value("bucket", gcsProperties.getBucket()),
+        value("project", gcsProperties.getProject()));
+    log.info(
+        "Bucket versioning is {}.",
+        value("versioning", service.supportsVersioning() ? "enabled" : "DISABLED"));
 
     // Cleanup every 5 minutes to reduce rate limiting contention.
     long period_ms = 300 * 1000;
     taskScheduler.scheduleAtFixedRate(
-      new Runnable() {
-        public void run() {
-          service.purgeBatchedVersionPaths();
-        }
-      },
-      period_ms);
+        new Runnable() {
+          public void run() {
+            service.purgeBatchedVersionPaths();
+          }
+        },
+        period_ms);
 
     return service;
   }
@@ -138,19 +142,22 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
   }
 
   @Override
-  public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService,
-                                                           StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                                           ObjectKeyLoader objectKeyLoader,
-                                                           Registry registry) {
-    GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
+  public ApplicationPermissionDAO applicationPermissionDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
+    GcsStorageService service =
+        googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
     ObjectKeyLoader keyLoader = new DefaultObjectKeyLoader(service);
     return new DefaultApplicationPermissionDAO(
-      service,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
-      keyLoader,
-      storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
-      storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
-      registry
-    );
+        service,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
+        keyLoader,
+        storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
+        storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
+        registry);
   }
 }

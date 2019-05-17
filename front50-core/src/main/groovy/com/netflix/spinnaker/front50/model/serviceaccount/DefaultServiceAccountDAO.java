@@ -23,14 +23,23 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccount> implements ServiceAccountDAO {
-  public DefaultServiceAccountDAO(StorageService service,
-                                  Scheduler scheduler,
-                                  ObjectKeyLoader objectKeyLoader,
-                                  long refreshIntervalMs,
-                                  boolean shouldWarmCache,
-                                  Registry registry) {
-    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccount>
+    implements ServiceAccountDAO {
+  public DefaultServiceAccountDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.SERVICE_ACCOUNT,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override

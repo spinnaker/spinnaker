@@ -15,7 +15,10 @@
  */
 
 dependencies {
-  compile project(":front50-core")
+  implementation project(":front50-core")
 
-  testCompile project(":front50-test")
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+
+  testImplementation project(":front50-test")
 }

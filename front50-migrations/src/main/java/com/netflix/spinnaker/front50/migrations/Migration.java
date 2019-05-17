@@ -18,5 +18,6 @@ package com.netflix.spinnaker.front50.migrations;
 
 public interface Migration {
   boolean isValid();
+
   void run();
 }

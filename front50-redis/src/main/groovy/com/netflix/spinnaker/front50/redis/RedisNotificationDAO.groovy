@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.redis
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ScanOptions
 
@@ -30,8 +31,11 @@ class RedisNotificationDAO implements NotificationDAO {
 
   @Override
   Collection<Notification> all() {
-    redisTemplate.opsForHash().scan(BOOKING_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-        .collect { it.value }
+    return redisTemplate.opsForHash()
+      .scan(BOOKING_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
+      .withCloseable { Cursor<Map> c ->
+      c.collect{ it.value }
+    }
   }
 
   @Override

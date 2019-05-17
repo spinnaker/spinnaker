@@ -25,7 +25,8 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.time.Clock
-import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 class LinearToParallelMigrationSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
@@ -89,7 +90,7 @@ class LinearToParallelMigrationSpec extends Specification {
   @Unroll
   def "should only be valid until November 1st 2016"() {
     given:
-    _ * clock.instant() >> { Instant.ofEpochMilli(Date.parse("yyyy-MM-dd", now).getTime()) }
+    _ * clock.instant() >> { LocalDate.parse(now).atStartOfDay(ZoneId.of("America/Los_Angeles")).toInstant() }
 
     expect:
     migration.isValid() == isValid

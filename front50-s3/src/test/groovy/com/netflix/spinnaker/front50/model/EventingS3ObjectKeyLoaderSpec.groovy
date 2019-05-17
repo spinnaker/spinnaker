@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.config.S3Properties
 import com.netflix.spinnaker.front50.model.events.S3Event
-import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 
 class EventingS3ObjectKeyLoaderSpec extends Specification {
@@ -91,22 +91,23 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
   }
 
   def "should record all modifications contained within an S3Event"() {
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
     given:
     def s3Event = new S3Event(
       records: [
         new S3Event.S3EventRecord(
           eventName: "PUT",
-          eventTime: new Date(9999).format("yyyy-MM-dd'T'HH:mm:ssZ"),
+          eventTime: sdf.format(new Date(9999)),
           s3: new S3Event.S3Meta(object: new S3Event.S3Object(key: "root/applications/last-modified.json")) // last-modified.json keys should be skipped
         ),
         new S3Event.S3EventRecord(
           eventName: "PUT",
-          eventTime: new Date(5000).format("yyyy-MM-dd'T'HH:mm:ssZ"),
+          eventTime: sdf.format(new Date(5000)),
           s3: new S3Event.S3Meta(object: new S3Event.S3Object(key: "root/applications/key1/application-metadata.json"))
         ),
         new S3Event.S3EventRecord(
           eventName: "PUT",
-          eventTime: new Date(25000).format("yyyy-MM-dd'T'HH:mm:ssZ"),
+          eventTime: sdf.format(new Date(25000)),
           s3: new S3Event.S3Meta(object: new S3Event.S3Object(key: "root/pipelines/key2/pipeline-metadata.json"))
         )
       ]

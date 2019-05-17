@@ -19,8 +19,15 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":front50-core")
-  compile 'org.pacesys:openstack4j:3.0.3'
+  implementation project(":front50-core")
 
-  testCompile project(":front50-test")
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-hystrix"
+  implementation "org.springframework:spring-web"
+  implementation 'org.pacesys:openstack4j:3.0.3'
+
+  testImplementation project(":front50-test")
 }

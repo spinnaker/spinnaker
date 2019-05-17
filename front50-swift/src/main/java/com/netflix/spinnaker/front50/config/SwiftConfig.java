@@ -33,19 +33,19 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties(SwiftProperties.class)
 public class SwiftConfig extends CommonStorageServiceDAOConfig {
 
-  @Autowired
-  Registry registry;
+  @Autowired Registry registry;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Bean
   public SwiftStorageService swiftService(SwiftProperties properties) {
-    return new SwiftStorageService(properties.getContainerName(),
-                                   properties.getIdentityEndpoint(),
-                                   properties.getUsername(),
-                                   properties.getPassword(),
-                                   properties.getProjectName(),
-                                   properties.getDomainName());
+    return new SwiftStorageService(
+        properties.getContainerName(),
+        properties.getIdentityEndpoint(),
+        properties.getUsername(),
+        properties.getPassword(),
+        properties.getProjectName(),
+        properties.getDomainName());
   }
 
   @Bean

@@ -46,8 +46,8 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
   private Clock clock = Clock.systemDefaultZone();
 
   @Autowired
-  public V2PipelineTemplateSourceToArtifactMigration(PipelineDAO pipelineDAO,
-    ObjectMapper objectMapper) {
+  public V2PipelineTemplateSourceToArtifactMigration(
+      PipelineDAO pipelineDAO, ObjectMapper objectMapper) {
     this.pipelineDAO = pipelineDAO;
     this.objectMapper = objectMapper;
   }
@@ -61,20 +61,22 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
   public void run() {
     log.info("Starting v2 pipeline template source to artifact migration");
 
-    Predicate<Pipeline> hasV2TemplateSource = p -> {
-      Map<String, Object> template = (Map<String, Object>) p.get("template");
-      if (template == null) {
-        return false;
-      }
-      String schema = (String) p.getOrDefault("schema", "");
+    Predicate<Pipeline> hasV2TemplateSource =
+        p -> {
+          Map<String, Object> template = (Map<String, Object>) p.get("template");
+          if (template == null) {
+            return false;
+          }
+          String schema = (String) p.getOrDefault("schema", "");
 
-      return schema.equals("v2") && isTemplateSource(template) &&
-        StringUtils.isNotEmpty((String) template.getOrDefault("source", ""));
-    };
+          return schema.equals("v2")
+              && isTemplateSource(template)
+              && StringUtils.isNotEmpty((String) template.getOrDefault("source", ""));
+        };
 
     pipelineDAO.all().stream()
-      .filter(hasV2TemplateSource)
-      .forEach(pipeline -> migrate(pipelineDAO, pipeline));
+        .filter(hasV2TemplateSource)
+        .forEach(pipeline -> migrate(pipelineDAO, pipeline));
   }
 
   private boolean isTemplateSource(Object template) {
@@ -95,8 +97,8 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
       return;
     }
 
-    templateArtifact
-      .put("artifactAccount", "front50ArtifactCredentials"); // Static creds for Front50 Artifacts.
+    templateArtifact.put(
+        "artifactAccount", "front50ArtifactCredentials"); // Static creds for Front50 Artifacts.
     templateArtifact.put("type", "front50/pipelineTemplate");
     templateArtifact.put("reference", templateSource);
 
@@ -104,10 +106,9 @@ public class V2PipelineTemplateSourceToArtifactMigration implements Migration {
     dao.update(pipeline.getId(), pipeline);
 
     log.info(
-      "Added pipeline template artifact (application: {}, pipelineId: {}, templateArtifact: {})",
-      pipeline.getApplication(),
-      pipeline.getId(),
-      templateArtifact
-    );
+        "Added pipeline template artifact (application: {}, pipelineId: {}, templateArtifact: {})",
+        pipeline.getApplication(),
+        pipeline.getId(),
+        templateArtifact);
   }
 }

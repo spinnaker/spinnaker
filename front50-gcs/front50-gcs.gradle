@@ -15,17 +15,20 @@
  */
 
 dependencies {
-  compile project(":front50-core")
+  implementation project(":front50-core")
 
-  compile spinnaker.dependency('bootAutoConfigure')
-  compile spinnaker.dependency('clouddriverGoogleCommon')
-  compile spinnaker.dependency('commonsLang')
-  compile spinnaker.dependency('googleStorage')
-  compile spinnaker.dependency('korkHystrix')
-  compile spinnaker.dependency('korkSecurity')
-  compile spinnaker.dependency('logstashEncoder')
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('spectatorApi')
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework:spring-web"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-google-common:$clouddriverVersion"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "com.google.apis:google-api-services-storage"
+  implementation "com.netflix.spinnaker.kork:kork-hystrix"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "net.logstash.logback:logstash-logback-encoder"
+  implementation "io.reactivex:rxjava"
+  implementation "com.netflix.spectator:spectator-api"
 
-  testCompile project(":front50-test")
+  testImplementation project(":front50-test")
 }

@@ -52,7 +52,7 @@ public class ServiceAccountsController {
   @Autowired
   FiatPermissionEvaluator fiatPermissionEvaluator
 
-  @Value('${fiat.roleSync.enabled:true}')
+  @Value('${fiat.role-sync.enabled:true}')
   Boolean roleSync
 
   @RequestMapping(method = RequestMethod.GET)

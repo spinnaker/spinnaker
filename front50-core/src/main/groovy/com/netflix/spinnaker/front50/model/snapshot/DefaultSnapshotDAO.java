@@ -24,16 +24,22 @@ import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import org.springframework.util.Assert;
 import rx.Scheduler;
 
-import java.util.Collection;
-
 public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implements SnapshotDAO {
-  public DefaultSnapshotDAO(StorageService service,
-                            Scheduler scheduler,
-                            ObjectKeyLoader objectKeyLoader,
-                            long refreshIntervalMs,
-                            boolean shouldWarmCache,
-                            Registry registry) {
-    super(ObjectType.SNAPSHOT, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+  public DefaultSnapshotDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.SNAPSHOT,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override
@@ -49,5 +55,4 @@ public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implemen
     super.update(id, item);
     return findById(id);
   }
-
 }

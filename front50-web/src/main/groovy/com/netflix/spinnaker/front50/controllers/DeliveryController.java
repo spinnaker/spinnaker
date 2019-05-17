@@ -6,14 +6,13 @@ import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collection;
 
 @Slf4j
 @RestController
@@ -59,8 +58,9 @@ public class DeliveryController {
   @ApiOperation(value = "", notes = "Update a delivery config")
   @RequestMapping(method = RequestMethod.PUT, value = "/deliveries/{id}")
   Delivery upsertConfig(@PathVariable String id, @RequestBody Delivery config) {
-    if (!id.equals(config.getId())){
-      throw new InvalidRequestException("URL id (" + id + ") does not match submitted id (" + config.getId() + ")");
+    if (!id.equals(config.getId())) {
+      throw new InvalidRequestException(
+          "URL id (" + id + ") does not match submitted id (" + config.getId() + ")");
     }
     try {
       Delivery existing = deliveryRepository.findById(id);
@@ -74,11 +74,14 @@ public class DeliveryController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
   @ApiOperation(value = "", notes = "Delete a delivery config")
-  @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{application}/deliveries/{id}")
+  @RequestMapping(
+      method = RequestMethod.DELETE,
+      value = "/applications/{application}/deliveries/{id}")
   void deleteConfig(@PathVariable String application, @PathVariable String id) {
     Delivery config = deliveryRepository.findById(id);
     if (!config.getApplication().equals(application)) {
-      throw new InvalidRequestException("No config with id " + id + " found in application " + application);
+      throw new InvalidRequestException(
+          "No config with id " + id + " found in application " + application);
     }
     deliveryRepository.delete(id);
   }

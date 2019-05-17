@@ -20,17 +20,25 @@ public class TemplateConfiguration {
 
   private PipelineDefinition pipeline;
 
-  public PipelineDefinition getPipeline() { return pipeline; }
+  public PipelineDefinition getPipeline() {
+    return pipeline;
+  }
 
-  public void setPipeline(PipelineDefinition pipeline) { this.pipeline = pipeline; }
+  public void setPipeline(PipelineDefinition pipeline) {
+    this.pipeline = pipeline;
+  }
 
   public static class PipelineDefinition {
 
     private TemplateSource template;
 
-    public TemplateSource getTemplate() { return template; }
+    public TemplateSource getTemplate() {
+      return template;
+    }
 
-    public void setTemplate(TemplateSource template) { this.template = template; }
+    public void setTemplate(TemplateSource template) {
+      this.template = template;
+    }
   }
 
   public static class TemplateSource {
@@ -39,8 +47,12 @@ public class TemplateConfiguration {
 
     private String source;
 
-    public String getSource() { return source; }
+    public String getSource() {
+      return source;
+    }
 
-    public void setSource(String source) { this.source = source; }
+    public void setSource(String source) {
+      this.source = source;
+    }
   }
 }

@@ -5,21 +5,29 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
-import org.springframework.util.Assert;
-import rx.Scheduler;
-
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.util.Assert;
+import rx.Scheduler;
 
-public class DefaultDeliveryRepository extends StorageServiceSupport<Delivery> implements DeliveryRepository {
-  public DefaultDeliveryRepository(StorageService service,
-                                   Scheduler scheduler,
-                                   ObjectKeyLoader objectKeyLoader,
-                                   long refreshIntervalMs,
-                                   boolean shouldWarmCache,
-                                   Registry registry) {
-    super(ObjectType.DELIVERY, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultDeliveryRepository extends StorageServiceSupport<Delivery>
+    implements DeliveryRepository {
+  public DefaultDeliveryRepository(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.DELIVERY,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override
@@ -33,10 +41,12 @@ public class DefaultDeliveryRepository extends StorageServiceSupport<Delivery> i
   }
 
   private Collection<Delivery> getConfigsByApplication(String application, boolean refresh) {
-    return all(refresh)
-      .stream()
-      .filter(config -> config.getApplication() != null && config.getApplication().equalsIgnoreCase(application))
-      .collect(Collectors.toList());
+    return all(refresh).stream()
+        .filter(
+            config ->
+                config.getApplication() != null
+                    && config.getApplication().equalsIgnoreCase(application))
+        .collect(Collectors.toList());
   }
 
   @Override

@@ -36,6 +36,8 @@ public class AzureStorageConfig extends CommonStorageServiceDAOConfig {
 
   @Bean
   public AzureStorageService azureStorageService(AzureStorageProperties azureStorageProperties) {
-    return new AzureStorageService(azureStorageProperties.getStorageConnectionString(), azureStorageProperties.getStorageContainerName());
+    return new AzureStorageService(
+        azureStorageProperties.getStorageConnectionString(),
+        azureStorageProperties.getStorageContainerName());
   }
 }

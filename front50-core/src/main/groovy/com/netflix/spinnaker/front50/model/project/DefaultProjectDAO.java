@@ -22,27 +22,34 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import java.util.UUID;
 import rx.Scheduler;
 
-import java.util.UUID;
-
 public class DefaultProjectDAO extends StorageServiceSupport<Project> implements ProjectDAO {
-  public DefaultProjectDAO(StorageService service,
-                           Scheduler scheduler,
-                           ObjectKeyLoader objectKeyLoader,
-                           long refreshIntervalMs,
-                           boolean shouldWarmCache,
-                           Registry registry) {
-    super(ObjectType.PROJECT, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+  public DefaultProjectDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.PROJECT,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override
   public Project findByName(String name) throws NotFoundException {
-    return all()
-      .stream()
-      .filter(project -> project.getName().equalsIgnoreCase(name))
-      .findFirst()
-      .orElseThrow(() -> new NotFoundException(String.format("No project found with name of %s", name)));
+    return all().stream()
+        .filter(project -> project.getName().equalsIgnoreCase(name))
+        .findFirst()
+        .orElseThrow(
+            () -> new NotFoundException(String.format("No project found with name of %s", name)));
   }
 
   @Override

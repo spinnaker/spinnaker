@@ -22,32 +22,42 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
-import org.springframework.util.Assert;
-import rx.Scheduler;
-
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.util.Assert;
+import rx.Scheduler;
 
 public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implements PipelineDAO {
-  public DefaultPipelineDAO(StorageService service,
-                            Scheduler scheduler,
-                            ObjectKeyLoader objectKeyLoader,
-                            long refreshIntervalMs,
-                            boolean shouldWarmCache,
-                            Registry registry) {
-    super(ObjectType.PIPELINE, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+  public DefaultPipelineDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.PIPELINE,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override
   public String getPipelineId(String application, String pipelineName) {
-    Pipeline matched = getPipelinesByApplication(application, true)
-      .stream()
-      .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
-      .findFirst()
-      .orElseThrow(() -> new NotFoundException(
-        String.format("No pipeline found with name '%s' in application '%s'", pipelineName, application)
-      ));
+    Pipeline matched =
+        getPipelinesByApplication(application, true).stream()
+            .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        String.format(
+                            "No pipeline found with name '%s' in application '%s'",
+                            pipelineName, application)));
 
     return matched.getId();
   }
@@ -59,10 +69,12 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
 
   @Override
   public Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh) {
-    return all(refresh)
-      .stream()
-      .filter(pipeline -> pipeline.getApplication() != null && pipeline.getApplication().equalsIgnoreCase(application))
-      .collect(Collectors.toList());
+    return all(refresh).stream()
+        .filter(
+            pipeline ->
+                pipeline.getApplication() != null
+                    && pipeline.getApplication().equalsIgnoreCase(application))
+        .collect(Collectors.toList());
   }
 
   @Override

@@ -33,9 +33,6 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +41,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 
 public class OracleStorageService implements StorageService {
 
@@ -75,7 +74,8 @@ public class OracleStorageService implements StorageService {
         stringHeaders.put(key, vals);
       }
 
-      Map<String, String> signedHeaders = signer.signRequest(cr.getURI(), cr.getMethod(), stringHeaders, cr.getEntity());
+      Map<String, String> signedHeaders =
+          signer.signRequest(cr.getURI(), cr.getMethod(), stringHeaders, cr.getEntity());
       for (String key : signedHeaders.keySet()) {
         cr.getHeaders().putSingle(key, signedHeaders.get(key));
       }
@@ -90,8 +90,10 @@ public class OracleStorageService implements StorageService {
     this.namespace = oracleProperties.getNamespace();
     this.compartmentId = oracleProperties.getCompartmentId();
 
-    Supplier<InputStream> privateKeySupplier = new SimplePrivateKeySupplier(oracleProperties.getSshPrivateKeyFilePath());
-    AuthenticationDetailsProvider provider = SimpleAuthenticationDetailsProvider.builder()
+    Supplier<InputStream> privateKeySupplier =
+        new SimplePrivateKeySupplier(oracleProperties.getSshPrivateKeyFilePath());
+    AuthenticationDetailsProvider provider =
+        SimpleAuthenticationDetailsProvider.builder()
             .userId(oracleProperties.getUserId())
             .fingerprint(oracleProperties.getFingerprint())
             .privateKeySupplier(privateKeySupplier)
@@ -105,23 +107,24 @@ public class OracleStorageService implements StorageService {
     client = new Client(new URLConnectionClientHandler(), clientConfig);
     client.addFilter(new OracleStorageService.RequestSigningFilter(requestSigner));
 
-    FilterProvider filters = new SimpleFilterProvider().addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
+    FilterProvider filters =
+        new SimpleFilterProvider()
+            .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
     objectMapper.setFilterProvider(filters);
   }
 
   @Override
   public void ensureBucketExists() {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}")
-            .build(region, namespace, bucketName));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}")
+                .build(region, namespace, bucketName));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     ClientResponse rsp = wr.head();
     if (rsp.getStatus() == 404) {
-      CreateBucketDetails createBucketDetails = CreateBucketDetails.builder()
-              .name(bucketName)
-              .compartmentId(compartmentId)
-              .build();
-      wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/")
-              .build(region, namespace));
+      CreateBucketDetails createBucketDetails =
+          CreateBucketDetails.builder().name(bucketName).compartmentId(compartmentId).build();
+      wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/").build(region, namespace));
       wr.accept(MediaType.APPLICATION_JSON_TYPE);
       try {
         byte[] bytes = objectMapper.writeValueAsBytes(createBucketDetails);
@@ -140,9 +143,16 @@ public class OracleStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
-            .build(region, namespace, bucketName, buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
+  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
+      throws NotFoundException {
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
+                .build(
+                    region,
+                    namespace,
+                    bucketName,
+                    buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
       T obj = (T) wr.get(objectType.clazz);
@@ -157,8 +167,14 @@ public class OracleStorageService implements StorageService {
 
   @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
-            .build(region, namespace, bucketName, buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
+                .build(
+                    region,
+                    namespace,
+                    bucketName,
+                    buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
       wr.delete();
@@ -174,8 +190,14 @@ public class OracleStorageService implements StorageService {
 
   @Override
   public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T item) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
-            .build(region, namespace, bucketName, buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
+                .build(
+                    region,
+                    namespace,
+                    bucketName,
+                    buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(item);
@@ -189,30 +211,36 @@ public class OracleStorageService implements StorageService {
 
   @Override
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o")
-            .queryParam("prefix", objectType.group)
-            .queryParam("fields", "name,timeCreated")
-            .build(region, namespace, bucketName));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o")
+                .queryParam("prefix", objectType.group)
+                .queryParam("fields", "name,timeCreated")
+                .build(region, namespace, bucketName));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     ListObjects listObjects = wr.get(ListObjects.class);
     Map<String, Long> results = new HashMap<>();
     for (ObjectSummary summary : listObjects.getObjects()) {
       if (summary.getName().endsWith(objectType.defaultMetadataFilename)) {
-        results.put(buildObjectKey(objectType, summary.getName()), summary.getTimeCreated().getTime());
+        results.put(
+            buildObjectKey(objectType, summary.getName()), summary.getTimeCreated().getTime());
       }
     }
     return results;
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
+  public <T extends Timestamped> Collection<T> listObjectVersions(
+      ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
     throw new RuntimeException("Oracle Object Store does not support versioning");
   }
 
   @Override
   public long getLastModified(ObjectType objectType) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
-            .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
+                .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
       LastModified lastModified = wr.get(LastModified.class);
@@ -223,8 +251,10 @@ public class OracleStorageService implements StorageService {
   }
 
   private void updateLastModified(ObjectType objectType) {
-    WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
-            .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
+    WebResource wr =
+        client.resource(
+            UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
+                .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(new LastModified());
@@ -244,8 +274,7 @@ public class OracleStorageService implements StorageService {
 
   private String buildObjectKey(ObjectType objectType, String ossKey) {
     return ossKey
-            .replaceAll(objectType.group + "/", "")
-            .replaceAll("/" + objectType.defaultMetadataFilename, "");
+        .replaceAll(objectType.group + "/", "")
+        .replaceAll("/" + objectType.defaultMetadataFilename, "");
   }
-
 }

@@ -42,11 +42,10 @@ import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
+import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import rx.schedulers.Schedulers;
-
-import java.util.concurrent.Executors;
 
 public class CommonStorageServiceDAOConfig {
   @Bean
@@ -56,169 +55,189 @@ public class CommonStorageServiceDAOConfig {
   }
 
   @Bean
-  ApplicationDAO applicationDAO(StorageService storageService,
-                                StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                ObjectKeyLoader objectKeyLoader,
-                                Registry registry) {
+  ApplicationDAO applicationDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultApplicationDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplication().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getApplication().getRefreshMs(),
-      storageServiceConfigurationProperties.getApplication().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getApplication().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getApplication().getRefreshMs(),
+        storageServiceConfigurationProperties.getApplication().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService,
-                                                    StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                                    ObjectKeyLoader objectKeyLoader,
-                                                    Registry registry) {
+  ApplicationPermissionDAO applicationPermissionDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultApplicationPermissionDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
-      storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
+        storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  ServiceAccountDAO serviceAccountDAO(StorageService storageService,
-                                      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                      ObjectKeyLoader objectKeyLoader,
-                                      Registry registry) {
+  ServiceAccountDAO serviceAccountDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultServiceAccountDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getServiceAccount().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getServiceAccount().getRefreshMs(),
-      storageServiceConfigurationProperties.getServiceAccount().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getServiceAccount().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getServiceAccount().getRefreshMs(),
+        storageServiceConfigurationProperties.getServiceAccount().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  ProjectDAO projectDAO(StorageService storageService,
-                        StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                        ObjectKeyLoader objectKeyLoader,
-                        Registry registry) {
+  ProjectDAO projectDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultProjectDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getProject().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getProject().getRefreshMs(),
-      storageServiceConfigurationProperties.getProject().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getProject().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getProject().getRefreshMs(),
+        storageServiceConfigurationProperties.getProject().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  NotificationDAO notificationDAO(StorageService storageService,
-                                  StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                  ObjectKeyLoader objectKeyLoader,
-                                  Registry registry) {
+  NotificationDAO notificationDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultNotificationDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getNotification().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getNotification().getRefreshMs(),
-      storageServiceConfigurationProperties.getNotification().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getNotification().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getNotification().getRefreshMs(),
+        storageServiceConfigurationProperties.getNotification().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  PipelineStrategyDAO pipelineStrategyDAO(StorageService storageService,
-                                          StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                          ObjectKeyLoader objectKeyLoader,
-                                          Registry registry) {
+  PipelineStrategyDAO pipelineStrategyDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultPipelineStrategyDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipelineStrategy().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getPipelineStrategy().getRefreshMs(),
-      storageServiceConfigurationProperties.getPipelineStrategy().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getPipelineStrategy().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getPipelineStrategy().getRefreshMs(),
+        storageServiceConfigurationProperties.getPipelineStrategy().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  PipelineDAO pipelineDAO(StorageService storageService,
-                          StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                          ObjectKeyLoader objectKeyLoader,
-                          Registry registry) {
+  PipelineDAO pipelineDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultPipelineDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipeline().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getPipeline().getRefreshMs(),
-      storageServiceConfigurationProperties.getPipeline().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getPipeline().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getPipeline().getRefreshMs(),
+        storageServiceConfigurationProperties.getPipeline().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  PipelineTemplateDAO pipelineTemplateDAO(StorageService storageService,
-                                          StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                                          ObjectKeyLoader objectKeyLoader,
-                                          Registry registry) {
+  PipelineTemplateDAO pipelineTemplateDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultPipelineTemplateDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipelineTemplate().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getPipelineTemplate().getRefreshMs(),
-      storageServiceConfigurationProperties.getPipelineTemplate().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getPipelineTemplate().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getPipelineTemplate().getRefreshMs(),
+        storageServiceConfigurationProperties.getPipelineTemplate().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  SnapshotDAO snapshotDAO(StorageService storageService,
-                          StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                          ObjectKeyLoader objectKeyLoader,
-                          Registry registry) {
+  SnapshotDAO snapshotDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultSnapshotDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getSnapshot().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getSnapshot().getRefreshMs(),
-      storageServiceConfigurationProperties.getSnapshot().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getSnapshot().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getSnapshot().getRefreshMs(),
+        storageServiceConfigurationProperties.getSnapshot().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
-  EntityTagsDAO entityTagsDAO(StorageService storageService,
-                              StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-                              ObjectKeyLoader objectKeyLoader,
-                              Registry registry) {
+  EntityTagsDAO entityTagsDAO(
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultEntityTagsDAO(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getEntityTags().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getEntityTags().getRefreshMs(),
-      storageServiceConfigurationProperties.getEntityTags().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getEntityTags().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getEntityTags().getRefreshMs(),
+        storageServiceConfigurationProperties.getEntityTags().getShouldWarmCache(),
+        registry);
   }
 
   @Bean
   DeliveryRepository deliveryRepository(
-    StorageService storageService,
-    StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-    ObjectKeyLoader objectKeyLoader,
-    Registry registry
-  ) {
+      StorageService storageService,
+      StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+      ObjectKeyLoader objectKeyLoader,
+      Registry registry) {
     return new DefaultDeliveryRepository(
-      storageService,
-      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getDeliveryConfig().getThreadPool())),
-      objectKeyLoader,
-      storageServiceConfigurationProperties.getDeliveryConfig().getRefreshMs(),
-      storageServiceConfigurationProperties.getDeliveryConfig().getShouldWarmCache(),
-      registry
-    );
+        storageService,
+        Schedulers.from(
+            Executors.newFixedThreadPool(
+                storageServiceConfigurationProperties.getDeliveryConfig().getThreadPool())),
+        objectKeyLoader,
+        storageServiceConfigurationProperties.getDeliveryConfig().getRefreshMs(),
+        storageServiceConfigurationProperties.getDeliveryConfig().getShouldWarmCache(),
+        registry);
   }
 }

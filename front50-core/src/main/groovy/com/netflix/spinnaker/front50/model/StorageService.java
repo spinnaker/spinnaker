@@ -17,24 +17,19 @@
 package com.netflix.spinnaker.front50.model;
 
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
-
 public interface StorageService {
-  /**
-   * Check to see if the bucket exists, creating it if it is not there.
-   */
+  /** Check to see if the bucket exists, creating it if it is not there. */
   void ensureBucketExists();
 
-  /**
-   * Returns true if the storage service supports versioning.
-   */
+  /** Returns true if the storage service supports versioning. */
   boolean supportsVersioning();
 
-  <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException;
+  <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
+      throws NotFoundException;
 
   void deleteObject(ObjectType objectType, String objectKey);
 
@@ -48,9 +43,8 @@ public interface StorageService {
 
   Map<String, Long> listObjectKeys(ObjectType objectType);
 
-  <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType,
-                                                           String objectKey,
-                                                           int maxResults) throws NotFoundException;
+  <T extends Timestamped> Collection<T> listObjectVersions(
+      ObjectType objectType, String objectKey, int maxResults) throws NotFoundException;
 
   long getLastModified(ObjectType objectType);
 

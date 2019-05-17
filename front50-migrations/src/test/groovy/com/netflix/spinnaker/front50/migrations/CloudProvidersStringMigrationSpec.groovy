@@ -24,6 +24,8 @@ import spock.lang.Unroll
 
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 class CloudProvidersStringMigrationSpec extends Specification {
 
@@ -63,7 +65,7 @@ class CloudProvidersStringMigrationSpec extends Specification {
     then:
     _ * applicationDAO.all() >> [application]
     0 * applicationDAO.update(_, _)
-    _ * clock.instant() >> { Instant.ofEpochMilli(Date.parse("yyyy-MM-dd", "2019-01-24").getTime()) }
+    _ * clock.instant() >> { LocalDate.parse("2019-01-24").atStartOfDay(ZoneId.of("America/Los_Angeles")).toInstant() }
 
     where:
     original << ["a", "a,b", null]
@@ -75,7 +77,7 @@ class CloudProvidersStringMigrationSpec extends Specification {
     migration.isValid() == isValid
 
     then:
-    clock.instant() >> { Instant.ofEpochMilli(Date.parse("yyyy-MM-dd", date).getTime()) }
+    clock.instant() >> { LocalDate.parse(date).atStartOfDay(ZoneId.of("America/Los_Angeles")).toInstant() }
     0 * _
 
     where:

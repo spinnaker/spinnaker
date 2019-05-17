@@ -15,72 +15,37 @@
  */
 
 buildscript {
+  ext {
+    korkVersion = "5.3.1"
+    fiatVersion = "1.0.4"
+    clouddriverVersion = "5.3.0"
+  }
   repositories {
     jcenter()
     maven { url "https://dl.bintray.com/spinnaker/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2'
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.3.0"
+    if (Boolean.valueOf(enablePublishing)) {
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.3.0"
+    }
   }
 }
 
 allprojects { project ->
   apply plugin: 'spinnaker.base-project'
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: "spinnaker.project"
+  }
+  apply plugin: 'java-library'
   apply plugin: 'groovy'
 
   group = "com.netflix.spinnaker.front50"
 
-  ext {
-    spinnakerDependenciesVersion = '1.44.1'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
-
   test {
     testLogging {
       exceptionFormat = 'full'
-    }
-  }
-
-  configurations.all {
-    exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-    exclude group: 'javax.servlet', module: 'servlet-api'
-
-    resolutionStrategy {
-      force 'com.google.guava:guava:15.0'
-      eachDependency {
-        if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
-          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.4"
-        }
-        if (it.requested.group == "cglib" || it.requested.name == "cglib") {
-          it.useTarget group: "cglib", name: "cglib", version: "3.1"
-        }
-        if (it.requested.group == "org.apache.xbean") {
-          it.useVersion "4.4"
-        }
-      }
     }
   }
 
@@ -91,15 +56,25 @@ allprojects { project ->
   }
 
   dependencies {
-    compile spinnaker.dependency("groovy")
-    spinnaker.group("test")
-  }
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
-  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-  project.plugins.withType(JavaBasePlugin) {
-    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-    convention.sourceCompatibility = JavaVersion.VERSION_1_8
-    convention.targetCompatibility = JavaVersion.VERSION_1_8
+    implementation "org.codehaus.groovy:groovy-all"
+    implementation "net.logstash.logback:logstash-logback-encoder"
+
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
+
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.hamcrest:hamcrest-core"
+    testRuntimeOnly "cglib:cglib-nodep"
+    testRuntimeOnly "org.objenesis:objenesis"
   }
 }
 

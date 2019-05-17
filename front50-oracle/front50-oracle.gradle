@@ -57,9 +57,16 @@ tasks.clean.dependsOn('cleanSdk')
 tasks.compileJava.dependsOn('unpackSdk')
 
 dependencies {
-  compile project(":front50-core")
+  implementation project(":front50-core")
 
-  compile fileTree(sdkLocation)
+  implementation fileTree(sdkLocation)
+  implementation "com.sun.jersey:jersey-client"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-hystrix"
+  implementation "com.github.ben-manes.caffeine:guava"
 
-  testCompile project(":front50-test")
+  testImplementation project(":front50-test")
 }

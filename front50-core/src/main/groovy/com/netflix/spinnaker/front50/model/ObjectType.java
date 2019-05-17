@@ -30,12 +30,15 @@ public enum ObjectType {
   PROJECT(Project.class, "projects", "project-metadata.json"),
   PIPELINE(Pipeline.class, "pipelines", "pipeline-metadata.json"),
   STRATEGY(Pipeline.class, "pipeline-strategies", "pipeline-strategy-metadata.json"),
-  PIPELINE_TEMPLATE(PipelineTemplate.class, "pipeline-templates", "pipeline-template-metadata.json"),
+  PIPELINE_TEMPLATE(
+      PipelineTemplate.class, "pipeline-templates", "pipeline-template-metadata.json"),
   NOTIFICATION(Notification.class, "notifications", "notification-metadata.json"),
   SERVICE_ACCOUNT(ServiceAccount.class, "serviceAccounts", "serviceAccount-metadata.json"),
   APPLICATION(Application.class, "applications", "application-metadata.json"),
-  // TODO(ewiseblatt) Add migration logic to allow GCS to use application-permission.json like the other providers.
-  APPLICATION_PERMISSION(Application.Permission.class, "applications", "application-permission.json"),
+  // TODO(ewiseblatt) Add migration logic to allow GCS to use application-permission.json like the
+  // other providers.
+  APPLICATION_PERMISSION(
+      Application.Permission.class, "applications", "application-permission.json"),
   SNAPSHOT(Snapshot.class, "snapshots", "snapshot.json"),
   ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json"),
   DELIVERY(Delivery.class, "delivery", "delivery-metadata.json");

@@ -22,19 +22,27 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
-import rx.Scheduler;
-
 import java.util.Collection;
 import java.util.Map;
+import rx.Scheduler;
 
-public class DefaultApplicationDAO extends StorageServiceSupport<Application> implements ApplicationDAO {
-  public DefaultApplicationDAO(StorageService service,
-                               Scheduler scheduler,
-                               ObjectKeyLoader objectKeyLoader,
-                               long refreshIntervalMs,
-                               boolean shouldWarmCache,
-                               Registry registry) {
-    super(ObjectType.APPLICATION, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultApplicationDAO extends StorageServiceSupport<Application>
+    implements ApplicationDAO {
+  public DefaultApplicationDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.APPLICATION,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override

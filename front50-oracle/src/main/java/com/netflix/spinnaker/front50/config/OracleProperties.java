@@ -23,7 +23,6 @@ public class OracleProperties {
   private String privateKeyPassphrase;
   private String tenancyId;
 
-
   public String getBucketName() {
     return bucketName;
   }

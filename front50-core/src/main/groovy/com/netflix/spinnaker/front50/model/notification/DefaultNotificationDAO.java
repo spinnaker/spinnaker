@@ -24,14 +24,23 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class DefaultNotificationDAO extends StorageServiceSupport<Notification> implements NotificationDAO {
-  public DefaultNotificationDAO(StorageService service,
-                                Scheduler scheduler,
-                                ObjectKeyLoader objectKeyLoader,
-                                long refreshIntervalMs,
-                                boolean shouldWarmCache,
-                                Registry registry) {
-    super(ObjectType.NOTIFICATION, service, scheduler, objectKeyLoader, refreshIntervalMs, shouldWarmCache, registry);
+public class DefaultNotificationDAO extends StorageServiceSupport<Notification>
+    implements NotificationDAO {
+  public DefaultNotificationDAO(
+      StorageService service,
+      Scheduler scheduler,
+      ObjectKeyLoader objectKeyLoader,
+      long refreshIntervalMs,
+      boolean shouldWarmCache,
+      Registry registry) {
+    super(
+        ObjectType.NOTIFICATION,
+        service,
+        scheduler,
+        objectKeyLoader,
+        refreshIntervalMs,
+        shouldWarmCache,
+        registry);
   }
 
   @Override

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
@@ -25,17 +27,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class S3StorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(S3StorageService.class);
@@ -49,14 +48,15 @@ public class S3StorageService implements StorageService {
   private final Boolean versioning;
   private final Integer maxKeys;
 
-  public S3StorageService(ObjectMapper objectMapper,
-                          AmazonS3 amazonS3,
-                          String bucket,
-                          String rootFolder,
-                          Boolean readOnlyMode,
-                          String region,
-                          Boolean versioning,
-                          Integer maxKeys) {
+  public S3StorageService(
+      ObjectMapper objectMapper,
+      AmazonS3 amazonS3,
+      String bucket,
+      String rootFolder,
+      Boolean readOnlyMode,
+      String region,
+      Boolean versioning,
+      Integer maxKeys) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
@@ -78,20 +78,18 @@ public class S3StorageService implements StorageService {
           log.info("Creating bucket {} in default region", value("bucket", bucket));
           amazonS3.createBucket(bucket);
         } else {
-          log.info("Creating bucket {} in region {}",
-            value("bucket", bucket),
-            value("region", region)
-          );
+          log.info(
+              "Creating bucket {} in region {}", value("bucket", bucket), value("region", region));
           amazonS3.createBucket(bucket, region);
         }
 
         if (versioning) {
           log.info("Enabling versioning of the S3 bucket {}", value("bucket", bucket));
           BucketVersioningConfiguration configuration =
-            new BucketVersioningConfiguration().withStatus("Enabled");
+              new BucketVersioningConfiguration().withStatus("Enabled");
 
           SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
-            new SetBucketVersioningConfigurationRequest(bucket, configuration);
+              new SetBucketVersioningConfigurationRequest(bucket, configuration);
 
           amazonS3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
         }
@@ -108,9 +106,12 @@ public class S3StorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
+  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
+      throws NotFoundException {
     try {
-      S3Object s3Object = amazonS3.getObject(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
+      S3Object s3Object =
+          amazonS3.getObject(
+              bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
       T item = deserialize(s3Object, (Class<T>) objectType.clazz);
       item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
       return item;
@@ -129,7 +130,8 @@ public class S3StorageService implements StorageService {
     if (readOnlyMode) {
       throw new ReadOnlyModeException();
     }
-    amazonS3.deleteObject(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
+    amazonS3.deleteObject(
+        bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
     writeLastModified(objectType.group);
   }
 
@@ -139,19 +141,22 @@ public class S3StorageService implements StorageService {
     }
 
     // s3 supports bulk delete for a maximum of 1000 object keys
-    Lists.partition(new ArrayList<>(objectKeys), 1000).forEach( keys -> {
-      amazonS3.deleteObjects(
-        new DeleteObjectsRequest(bucket)
-          .withKeys(
-            keys
-              .stream()
-              .map(k -> new DeleteObjectsRequest.KeyVersion(
-                buildS3Key(objectType.group, k, objectType.defaultMetadataFilename))
-              )
-              .collect(Collectors.toList())
-          )
-      );
-    });
+    Lists.partition(new ArrayList<>(objectKeys), 1000)
+        .forEach(
+            keys -> {
+              amazonS3.deleteObjects(
+                  new DeleteObjectsRequest(bucket)
+                      .withKeys(
+                          keys.stream()
+                              .map(
+                                  k ->
+                                      new DeleteObjectsRequest.KeyVersion(
+                                          buildS3Key(
+                                              objectType.group,
+                                              k,
+                                              objectType.defaultMetadataFilename)))
+                              .collect(Collectors.toList())));
+            });
   }
 
   @Override
@@ -165,14 +170,14 @@ public class S3StorageService implements StorageService {
 
       ObjectMetadata objectMetadata = new ObjectMetadata();
       objectMetadata.setContentLength(bytes.length);
-      objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+      objectMetadata.setContentMD5(
+          new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
 
       amazonS3.putObject(
-        bucket,
-        buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename),
-        new ByteArrayInputStream(bytes),
-        objectMetadata
-      );
+          bucket,
+          buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename),
+          new ByteArrayInputStream(bytes),
+          objectMetadata);
       writeLastModified(objectType.group);
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);
@@ -182,9 +187,10 @@ public class S3StorageService implements StorageService {
   @Override
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
     long startTime = System.currentTimeMillis();
-    ObjectListing bucketListing = amazonS3.listObjects(
-      new ListObjectsRequest(bucket, buildTypedFolder(rootFolder, objectType.group), null, null, maxKeys)
-    );
+    ObjectListing bucketListing =
+        amazonS3.listObjects(
+            new ListObjectsRequest(
+                bucket, buildTypedFolder(rootFolder, objectType.group), null, null, maxKeys));
     List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
 
     while (bucketListing.isTruncated()) {
@@ -192,21 +198,23 @@ public class S3StorageService implements StorageService {
       summaries.addAll(bucketListing.getObjectSummaries());
     }
 
-    log.debug("Took {}ms to fetch {} object keys for {}",
-      value("fetchTime", (System.currentTimeMillis() - startTime)),
-      summaries.size(),
-      value("type", objectType));
+    log.debug(
+        "Took {}ms to fetch {} object keys for {}",
+        value("fetchTime", (System.currentTimeMillis() - startTime)),
+        summaries.size(),
+        value("type", objectType));
 
-    return summaries
-      .stream()
-      .filter(s -> filterS3ObjectSummary(s, objectType.defaultMetadataFilename))
-      .collect(Collectors.toMap((s -> buildObjectKey(objectType, s.getKey())), (s -> s.getLastModified().getTime())));
+    return summaries.stream()
+        .filter(s -> filterS3ObjectSummary(s, objectType.defaultMetadataFilename))
+        .collect(
+            Collectors.toMap(
+                (s -> buildObjectKey(objectType, s.getKey())),
+                (s -> s.getLastModified().getTime())));
   }
 
   @Override
-  public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType,
-                                                                  String objectKey,
-                                                                  int maxResults) throws NotFoundException {
+  public <T extends Timestamped> Collection<T> listObjectVersions(
+      ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
     if (maxResults == 1) {
       List<T> results = new ArrayList<>();
       results.add(loadObject(objectType, objectKey));
@@ -214,31 +222,38 @@ public class S3StorageService implements StorageService {
     }
 
     try {
-      VersionListing versionListing = amazonS3.listVersions(
-        new ListVersionsRequest(
-          bucket,
-          buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename),
-          null,
-          null,
-          null,
-          maxResults
-        )
-      );
-      return versionListing.getVersionSummaries().stream().map(s3VersionSummary -> {
-        try {
-          S3Object s3Object = amazonS3.getObject(
-            new GetObjectRequest(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename), s3VersionSummary.getVersionId())
-          );
-          T item = deserialize(s3Object, (Class<T>) objectType.clazz);
-          item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
-          return item;
-        } catch (IOException e) {
-          throw new IllegalStateException(e);
-        }
-      }).collect(Collectors.toList());
+      VersionListing versionListing =
+          amazonS3.listVersions(
+              new ListVersionsRequest(
+                  bucket,
+                  buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename),
+                  null,
+                  null,
+                  null,
+                  maxResults));
+      return versionListing.getVersionSummaries().stream()
+          .map(
+              s3VersionSummary -> {
+                try {
+                  S3Object s3Object =
+                      amazonS3.getObject(
+                          new GetObjectRequest(
+                              bucket,
+                              buildS3Key(
+                                  objectType.group, objectKey, objectType.defaultMetadataFilename),
+                              s3VersionSummary.getVersionId()));
+                  T item = deserialize(s3Object, (Class<T>) objectType.clazz);
+                  item.setLastModified(s3Object.getObjectMetadata().getLastModified().getTime());
+                  return item;
+                } catch (IOException e) {
+                  throw new IllegalStateException(e);
+                }
+              })
+          .collect(Collectors.toList());
     } catch (AmazonS3Exception e) {
       if (e.getStatusCode() == 404) {
-        throw new NotFoundException(String.format("No item found with id of %s", objectKey.toLowerCase()));
+        throw new NotFoundException(
+            String.format("No item found with id of %s", objectKey.toLowerCase()));
       }
 
       throw e;
@@ -248,10 +263,14 @@ public class S3StorageService implements StorageService {
   @Override
   public long getLastModified(ObjectType objectType) {
     try {
-      Map<String, Long> lastModified = objectMapper.readValue(
-        amazonS3.getObject(bucket, buildTypedFolder(rootFolder, objectType.group) + "/last-modified.json").getObjectContent(),
-        Map.class
-      );
+      Map<String, Long> lastModified =
+          objectMapper.readValue(
+              amazonS3
+                  .getObject(
+                      bucket,
+                      buildTypedFolder(rootFolder, objectType.group) + "/last-modified.json")
+                  .getObjectContent(),
+              Map.class);
 
       return lastModified.get("lastModified");
     } catch (Exception e) {
@@ -269,24 +288,27 @@ public class S3StorageService implements StorageService {
       throw new ReadOnlyModeException();
     }
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()));
+      byte[] bytes =
+          objectMapper.writeValueAsBytes(
+              Collections.singletonMap("lastModified", System.currentTimeMillis()));
 
       ObjectMetadata objectMetadata = new ObjectMetadata();
       objectMetadata.setContentLength(bytes.length);
-      objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+      objectMetadata.setContentMD5(
+          new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
 
       amazonS3.putObject(
-        bucket,
-        buildTypedFolder(rootFolder, group) + "/last-modified.json",
-        new ByteArrayInputStream(bytes),
-        objectMetadata
-      );
+          bucket,
+          buildTypedFolder(rootFolder, group) + "/last-modified.json",
+          new ByteArrayInputStream(bytes),
+          objectMetadata);
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);
     }
   }
 
-  private <T extends Timestamped> T deserialize(S3Object s3Object, Class<T> clazz) throws IOException {
+  private <T extends Timestamped> T deserialize(S3Object s3Object, Class<T> clazz)
+      throws IOException {
     return objectMapper.readValue(s3Object.getObjectContent(), clazz);
   }
 
@@ -299,13 +321,18 @@ public class S3StorageService implements StorageService {
       return objectKey;
     }
 
-    return (buildTypedFolder(rootFolder, group) + "/" + objectKey.toLowerCase() + "/" + metadataFilename).replace("//", "/");
+    return (buildTypedFolder(rootFolder, group)
+            + "/"
+            + objectKey.toLowerCase()
+            + "/"
+            + metadataFilename)
+        .replace("//", "/");
   }
 
   private String buildObjectKey(ObjectType objectType, String s3Key) {
     return s3Key
-      .replaceAll(buildTypedFolder(rootFolder, objectType.group) + "/", "")
-      .replaceAll("/" + objectType.defaultMetadataFilename, "");
+        .replaceAll(buildTypedFolder(rootFolder, objectType.group) + "/", "")
+        .replaceAll("/" + objectType.defaultMetadataFilename, "");
   }
 
   private static String buildTypedFolder(String rootFolder, String type) {

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
 import spock.lang.Shared
 import spock.lang.Specification
@@ -28,6 +29,7 @@ import spock.lang.Unroll
 
 @SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
 @TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
+@DirtiesContext
 class RedisApplicationDAOSpec extends Specification {
   @Autowired
   RedisApplicationDAO redisApplicationDAO
@@ -37,6 +39,15 @@ class RedisApplicationDAOSpec extends Specification {
       name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey",
       accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo", repoType: "github", trafficGuards: []
   ]
+
+  @Shared
+  Application application = new Application([
+    name       : "app1",
+    description: "My description",
+    details: [
+      trafficGuards: []
+    ]
+  ])
 
   void cleanup() {
     deleteAll()
@@ -172,31 +183,9 @@ class RedisApplicationDAOSpec extends Specification {
 //    "someMap"                        | [ key1: "a", key2: 2, nested: [ subkey: "33", something: true]] // TODO Handle maps within maps -> https://jira.spring.io/browse/DATAREDIS-489?focusedCommentId=128546&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-128546
   }
 
-  def "should support standard create/refresh/findAll/delete behaviors"() {
+  void "should support create"() {
     given:
-    def application = new Application([
-        name       : "app1",
-        description: "My description",
-        details: [
-            trafficGuards: []
-        ]
-    ])
     redisApplicationDAO.create("app1", application)
-
-    when:
-    def foundApp = redisApplicationDAO.findByName("app1")
-
-    then:
-    foundApp.applicationEventListeners == null
-    foundApp.createTs == application.createTs
-    foundApp.dao == application.dao
-    foundApp.description == application.description
-    foundApp.details == application.details
-    foundApp.email == application.email
-    foundApp.log == application.log
-    foundApp.name == application.name
-    foundApp.updateTs == application.updateTs
-    foundApp.validators == null
 
     when:
     def apps = redisApplicationDAO.all()
@@ -213,6 +202,33 @@ class RedisApplicationDAOSpec extends Specification {
     apps[0].name == application.name
     apps[0].updateTs == application.updateTs
     apps[0].validators == null
+  }
+
+  void "should support find by name"() {
+    given:
+    redisApplicationDAO.create("app1", application)
+
+    when:
+    def foundApp = redisApplicationDAO.findByName("app1")
+
+    then:
+    foundApp.applicationEventListeners == null
+    foundApp.createTs == application.createTs
+    foundApp.dao == application.dao
+    foundApp.description == application.description
+    foundApp.details == application.details
+    foundApp.email == application.email
+    foundApp.log == application.log
+    foundApp.name == application.name
+    foundApp.updateTs == application.updateTs
+    foundApp.validators == null
+  }
+
+  void "should support update"() {
+    given:
+    redisApplicationDAO.create("app1", application)
+    def foundApp = redisApplicationDAO.findByName("app1")
+
 
     when:
     application.email = 'updated@example.com'
@@ -226,6 +242,11 @@ class RedisApplicationDAOSpec extends Specification {
     updatedProject.email == application.email
     updatedProject.lastModified > application.lastModified ?: 0
     updatedProject.updateTs > application.updateTs ?: 0
+  }
+
+  void "should support delete"() {
+    given:
+    redisApplicationDAO.create("app1", application)
 
     when:
     redisApplicationDAO.delete(application.id)
@@ -233,23 +254,27 @@ class RedisApplicationDAOSpec extends Specification {
 
     then:
     thrown(NotFoundException)
+  }
 
+  void "should fail on fetching non-existent app"() {
     when:
-    redisApplicationDAO.all()
+    redisApplicationDAO.findById("doesn't exist")
 
     then:
     thrown(NotFoundException)
+  }
 
+  void "should support bulk behaviors"() {
     when:
     redisApplicationDAO.bulkImport([
-        new Application([
-            name       : "app1",
-            email: "greg@example.com"
-        ]),
-        new Application([
-            name       : "app2",
-            email: "mark@example.com"
-        ])
+      new Application([
+        name       : "app1",
+        email: "greg@example.com"
+      ]),
+      new Application([
+        name       : "app2",
+        email: "mark@example.com"
+      ])
     ])
 
     then:
@@ -259,16 +284,9 @@ class RedisApplicationDAOSpec extends Specification {
     allApps.collect {it.email}.containsAll(['greg@example.com', 'mark@example.com'])
 
     expect:
-    redisApplicationDAO.healthy == true
+    redisApplicationDAO.healthy
   }
 
-  def "should fail on fetching non-existent app"() {
-    when:
-    redisApplicationDAO.findById("doesn't exist")
-
-    then:
-    thrown(NotFoundException)
-  }
 
   void deleteAll() {
     redisApplicationDAO.redisTemplate.delete(RedisApplicationDAO.BOOK_KEEPING_KEY)

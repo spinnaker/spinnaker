@@ -16,10 +16,22 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.storage.ObjectStorageService;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.common.Payloads;
@@ -33,21 +45,6 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
 
 public class SwiftStorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(SwiftStorageService.class);
@@ -63,42 +60,39 @@ public class SwiftStorageService implements StorageService {
       return OSFactory.clientFromToken(token).objectStorage();
     } else return this.swift;
   }
+
   public ObjectMapper getObjectMapper() {
     return this.objectMapper;
   }
 
-
-  public SwiftStorageService(String containerName,
-                             ObjectStorageService swift
-                             ) {
+  public SwiftStorageService(String containerName, ObjectStorageService swift) {
     this.swift = swift;
     this.containerName = containerName;
   }
 
-  public SwiftStorageService(String containerName,
-                             String identityEndpoint,
-                             String username,
-                             String password,
-                             String projectName,
-                             String domainName) {
-    OSClient.OSClientV3 os = OSFactory.builderV3()
-                                .endpoint(identityEndpoint)
-                                .credentials(username, password, Identifier.byName(domainName))
-                                .scopeToProject(Identifier.byName(projectName), Identifier.byName(domainName))
-                                .authenticate();
+  public SwiftStorageService(
+      String containerName,
+      String identityEndpoint,
+      String username,
+      String password,
+      String projectName,
+      String domainName) {
+    OSClient.OSClientV3 os =
+        OSFactory.builderV3()
+            .endpoint(identityEndpoint)
+            .credentials(username, password, Identifier.byName(domainName))
+            .scopeToProject(Identifier.byName(projectName), Identifier.byName(domainName))
+            .authenticate();
     this.token = os.getToken();
     this.swift = os.objectStorage();
     this.containerName = containerName;
   }
 
-  /**
-   * Check to see if the bucket (Swift container) exists, creating it if it is not there.
-   */
+  /** Check to see if the bucket (Swift container) exists, creating it if it is not there. */
   @Override
   public void ensureBucketExists() {
-    List<? extends SwiftContainer> containers = getSwift().containers().list(ContainerListOptions.create()
-                                                                          .startsWith(containerName)
-    );
+    List<? extends SwiftContainer> containers =
+        getSwift().containers().list(ContainerListOptions.create().startsWith(containerName));
 
     boolean exists = false;
 
@@ -111,8 +105,12 @@ public class SwiftStorageService implements StorageService {
       }
     }
 
-    if(!exists) {
-      getSwift().containers().create(containerName, CreateUpdateContainerOptions.create().versionsLocation(containerName + "-versions"));
+    if (!exists) {
+      getSwift()
+          .containers()
+          .create(
+              containerName,
+              CreateUpdateContainerOptions.create().versionsLocation(containerName + "-versions"));
     }
   }
 
@@ -126,7 +124,8 @@ public class SwiftStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException {
+  public <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
+      throws NotFoundException {
     SwiftObject o = getSwift().objects().get(containerName, objectKey);
     return deserialize(o, (Class<T>) objectType.clazz);
   }
@@ -142,7 +141,13 @@ public class SwiftStorageService implements StorageService {
       byte[] bytes = new ObjectMapper().writeValueAsBytes(item);
       InputStream is = new ByteArrayInputStream(bytes);
 
-      getSwift().objects().put(containerName, objectKey, Payloads.create(is), ObjectPutOptions.create().path(objectType.group));
+      getSwift()
+          .objects()
+          .put(
+              containerName,
+              objectKey,
+              Payloads.create(is),
+              ObjectPutOptions.create().path(objectType.group));
     } catch (IOException e) {
       log.error("failed to write object={}: {}", value("key", objectKey), e);
       throw new IllegalStateException(e);
@@ -152,9 +157,12 @@ public class SwiftStorageService implements StorageService {
   @Override
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
     Map<String, Long> result = new HashMap<String, Long>();
-    List<? extends SwiftObject> objects = getSwift().objects().list(containerName, ObjectListOptions.create().path(objectType.group));
+    List<? extends SwiftObject> objects =
+        getSwift().objects().list(containerName, ObjectListOptions.create().path(objectType.group));
     for (SwiftObject o : objects) {
-      Long timestamp = Long.parseLong(getSwift().objects().getMetadata(containerName, o.getName()).get("X-Timestamp"));
+      Long timestamp =
+          Long.parseLong(
+              getSwift().objects().getMetadata(containerName, o.getName()).get("X-Timestamp"));
       result.put(o.getName(), timestamp);
     }
     return result;
@@ -163,18 +171,21 @@ public class SwiftStorageService implements StorageService {
   // TODO: getting previous versions is not yet supported in Openstack4j
   // https://github.com/ContainX/openstack4j/issues/970 created to track this issue
   @Override
-  public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType,
-                                                                  String objectKey,
-                                                                  int maxResults) throws NotFoundException {
+  public <T extends Timestamped> Collection<T> listObjectVersions(
+      ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
   public long getLastModified(ObjectType objectType) {
-    List<? extends SwiftObject> objects = getSwift().objects().list(containerName, ObjectListOptions.create().path(objectType.group));
+    List<? extends SwiftObject> objects =
+        getSwift().objects().list(containerName, ObjectListOptions.create().path(objectType.group));
     ZonedDateTime lastModified = Instant.now().atZone(ZoneOffset.UTC);
     for (SwiftObject o : objects) {
-      ZonedDateTime timestamp = ZonedDateTime.parse(getSwift().objects().getMetadata(containerName, o.getName()).get("Last-Modified"), DateTimeFormatter.RFC_1123_DATE_TIME);
+      ZonedDateTime timestamp =
+          ZonedDateTime.parse(
+              getSwift().objects().getMetadata(containerName, o.getName()).get("Last-Modified"),
+              DateTimeFormatter.RFC_1123_DATE_TIME);
       if (timestamp.isBefore(lastModified)) {
         lastModified = timestamp;
       }

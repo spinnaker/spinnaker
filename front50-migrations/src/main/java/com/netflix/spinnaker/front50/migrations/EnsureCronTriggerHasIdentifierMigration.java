@@ -19,11 +19,6 @@ package com.netflix.spinnaker.front50.migrations;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.time.Clock;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -31,10 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EnsureCronTriggerHasIdentifierMigration implements Migration {
-  private static final Logger log = LoggerFactory.getLogger(EnsureCronTriggerHasIdentifierMigration.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(EnsureCronTriggerHasIdentifierMigration.class);
 
   // Only valid until October 1st, 2018
   private static final Date VALID_UNTIL = new GregorianCalendar(2018, 10, 1).getTime();
@@ -56,28 +56,31 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
   @Override
   public void run() {
     log.info("Starting cron trigger identifier migration");
-    Predicate<Pipeline> hasCronTrigger = p -> {
-      List<Map> triggers = (List<Map>) p.get("triggers");
-      return triggers != null && triggers.stream().anyMatch(t -> {
-        String type = (String) t.get("type");
-        String id = (String) t.get("id");
+    Predicate<Pipeline> hasCronTrigger =
+        p -> {
+          List<Map> triggers = (List<Map>) p.get("triggers");
+          return triggers != null
+              && triggers.stream()
+                  .anyMatch(
+                      t -> {
+                        String type = (String) t.get("type");
+                        String id = (String) t.get("id");
 
-        return ("cron".equalsIgnoreCase(type) && (id == null || id.isEmpty()));
-      });
-    };
+                        return ("cron".equalsIgnoreCase(type) && (id == null || id.isEmpty()));
+                      });
+        };
 
     pipelineDAO.all().stream()
-      .filter(hasCronTrigger)
-      .forEach(pipeline -> migrate(pipelineDAO, pipeline));
+        .filter(hasCronTrigger)
+        .forEach(pipeline -> migrate(pipelineDAO, pipeline));
   }
 
   private void migrate(ItemDAO<Pipeline> dao, Pipeline pipeline) {
     log.info(
-      "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
-      pipeline.getApplication(),
-      pipeline.getId(),
-      pipeline.get("triggers")
-    );
+        "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
+        pipeline.getApplication(),
+        pipeline.getId(),
+        pipeline.get("triggers"));
 
     List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
     for (Map<String, Object> trigger : triggers) {
@@ -91,10 +94,9 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
     dao.update(pipeline.getId(), pipeline);
 
     log.info(
-      "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
-      pipeline.getApplication(),
-      pipeline.getId(),
-      pipeline.get("triggers")
-    );
+        "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
+        pipeline.getApplication(),
+        pipeline.getId(),
+        pipeline.get("triggers"));
   }
 }
