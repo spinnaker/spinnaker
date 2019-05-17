@@ -152,6 +152,24 @@ spec:
     result.manifestNamesByNamespace[DEFAULT_NAMESPACE][0] == "$KIND $NAME-$VERSION"
   }
 
+  void "replica set deployer uses namespace override when set"() {
+    setup:
+    def namespaceOverride = "overridden"
+    def credentialsMock = Mock(KubernetesV2Credentials)
+    credentialsMock.getDefaultNamespace() >> DEFAULT_NAMESPACE
+    def deployOp = getBaseDeployDescription(BASIC_REPLICA_SET_NO_NAMESPACE)
+      .setNamespaceOverride(namespaceOverride)
+    def mockDeployer= createMockDeployer(credentialsMock, deployOp)
+    
+    when:
+    def result = mockDeployer.operate([])
+
+    then:
+    result.manifestNamesByNamespace[namespaceOverride].size() == 1
+    result.manifestNamesByNamespace[namespaceOverride][0] == "$KIND $NAME-$VERSION"
+    !result.manifestNamesByNamespace.containsKey(DEFAULT_NAMESPACE)
+  }
+
   void "sends traffic to the specified service when enableTraffic is true"() {
     setup:
     def credentialsMock = Mock(KubernetesV2Credentials)

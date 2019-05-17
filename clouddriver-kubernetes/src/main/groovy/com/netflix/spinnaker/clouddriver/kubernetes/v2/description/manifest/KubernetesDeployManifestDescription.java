@@ -35,6 +35,7 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   private Boolean versioned;
   private Source source;
   private Artifact manifestArtifact;
+  private String namespaceOverride;
 
   private boolean enableTraffic = true;
   private List<String> services;

@@ -104,8 +104,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     validateManifestsForRolloutStrategies(inputManifests);
 
     for (KubernetesManifest manifest : inputManifests) {
-      if (StringUtils.isEmpty(manifest.getNamespace()) && manifest.getKind().isNamespaced()) {
-        manifest.setNamespace(credentials.getDefaultNamespace());
+
+      if (manifest.getKind().isNamespaced()) {
+        if (!StringUtils.isEmpty(description.getNamespaceOverride())) {
+          manifest.setNamespace(description.getNamespaceOverride());
+        } else if (StringUtils.isEmpty(manifest.getNamespace())) {
+          manifest.setNamespace(credentials.getDefaultNamespace());
+        }
       }
 
       KubernetesResourceProperties properties = findResourceProperties(manifest);
