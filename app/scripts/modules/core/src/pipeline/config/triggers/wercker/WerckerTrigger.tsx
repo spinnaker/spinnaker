@@ -39,10 +39,14 @@ export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, 
     };
   }
 
-  public componentDidMount = () => {
+  public componentDidMount() {
     this.initializeMasters();
     this.updateJob(this.props.trigger.pipeline);
-  };
+  }
+
+  public componentWillUnmount() {
+    this.destroy$.next();
+  }
 
   private initializeMasters = () => {
     Observable.fromPromise(IgorService.listMasters(BuildServiceType.Wercker))
@@ -189,7 +193,7 @@ export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, 
       });
   };
 
-  public WerkerTriggerContents() {
+  public WerkerTriggerContents = () => {
     const { app, master, pipeline } = this.props.trigger;
     const { jobsRefreshing, masters, mastersRefreshing, pipelines } = this.state;
     return (
@@ -250,7 +254,7 @@ export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, 
         </div>
       </>
     );
-  }
+  };
 
   public render() {
     const { WerkerTriggerContents } = this;

@@ -33,7 +33,7 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
     };
   }
 
-  public componentDidMount(): void {
+  public componentDidMount() {
     Observable.fromPromise(PubsubSubscriptionReader.getPubsubSubscriptions())
       .takeUntil(this.destroy$)
       .subscribe(
@@ -52,6 +52,10 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
       );
   }
 
+  public componentWillUnmount() {
+    this.destroy$.next();
+  }
+
   private onUpdateTrigger = (update: any) => {
     this.props.triggerUpdated &&
       this.props.triggerUpdated({
@@ -60,7 +64,7 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
       });
   };
 
-  public PubSubTriggerContents() {
+  public PubSubTriggerContents = () => {
     const { pubsubSubscriptions, subscriptionsLoaded } = this.state;
     const { trigger } = this.props;
     const a = trigger.attributeConstraints || {};
@@ -136,7 +140,7 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
         </div>
       );
     }
-  }
+  };
 
   public render() {
     const { PubSubTriggerContents } = this;

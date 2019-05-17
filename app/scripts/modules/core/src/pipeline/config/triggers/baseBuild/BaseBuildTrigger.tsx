@@ -39,9 +39,13 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
     };
   }
 
-  public componentDidMount = () => {
+  public componentDidMount() {
     this.initializeMasters();
-  };
+  }
+
+  public componentWillUnmount() {
+    this.destroy$.next();
+  }
 
   private refreshMasters = () => {
     this.setState({

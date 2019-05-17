@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { IArtifactoryTrigger } from 'core/domain/ITrigger';
 import { BaseTrigger } from 'core/pipeline';
 import { ArtifactoryReaderService } from './artifactoryReader.service';
-import { Application } from '@spinnaker/core';
+import { Application } from 'core/application';
 
 export interface IArtifactoryTriggerConfigProps {
   trigger: IArtifactoryTrigger;
@@ -40,7 +40,7 @@ export class ArtifactoryTrigger extends React.Component<
       });
   }
 
-  public componentWillUnmount(): void {
+  public componentWillUnmount() {
     this.destroy$.next();
   }
 

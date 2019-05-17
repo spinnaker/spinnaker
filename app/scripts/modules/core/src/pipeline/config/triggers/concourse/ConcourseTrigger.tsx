@@ -34,7 +34,7 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
     };
   }
 
-  public componentDidMount(): void {
+  public componentDidMount() {
     Observable.fromPromise(IgorService.listMasters(BuildServiceType.Concourse))
       .takeUntil(this.destroy$)
       .subscribe((masters: string[]) => {

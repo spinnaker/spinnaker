@@ -49,7 +49,7 @@ export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
     this.state = {};
   }
 
-  public componentDidMount = () => {
+  public componentDidMount() {
     const trigger = { ...this.props.trigger };
     const { attributes } = this.props.application;
 
@@ -63,7 +63,7 @@ export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
     }
 
     this.props.triggerUpdated && this.props.triggerUpdated(trigger);
-  };
+  }
 
   private onUpdateTrigger = (update: any) => {
     this.props.triggerUpdated &&
