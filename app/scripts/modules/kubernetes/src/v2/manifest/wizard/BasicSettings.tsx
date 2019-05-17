@@ -19,7 +19,7 @@ export function ManifestBasicSettings({
   selectedAccount,
 }: IManifestBasicSettingsProps) {
   return (
-    <div className="container-fluid form-horizontal">
+    <div className="form-horizontal">
       <div className="form-group">
         <div className="col-md-3 sm-label-right">
           Account <HelpField id="kubernetes.manifest.account" />

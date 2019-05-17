@@ -23,6 +23,7 @@ import { CopyFromTemplateButton } from './CopyFromTemplateButton';
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
 import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 import { ManifestBindArtifactsSelectorDelegate } from './ManifestBindArtifactsSelectorDelegate';
+import { NamespaceSelector } from './NamespaceSelector';
 
 interface IDeployManifestStageConfigFormProps {
   accounts: IAccountDetails[];
@@ -31,6 +32,7 @@ interface IDeployManifestStageConfigFormProps {
 
 interface IDeployManifestStageConfigFormState {
   rawManifest: string;
+  overrideNamespace: boolean;
 }
 
 export class DeployManifestStageForm extends React.Component<
@@ -48,10 +50,12 @@ export class DeployManifestStageForm extends React.Component<
 
   public constructor(props: IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
     super(props);
+    const stage = this.props.formik.values;
     const manifests: any[] = get(props.formik.values, 'manifests');
     const isTextManifest: boolean = get(props.formik.values, 'source') === this.textSource;
     this.state = {
       rawManifest: !isEmpty(manifests) && isTextManifest ? yamlDocumentsToString(manifests) : '',
+      overrideNamespace: get(stage, 'namespaceOverride', '') !== '',
     };
   }
 
@@ -105,6 +109,13 @@ export class DeployManifestStageForm extends React.Component<
     this.props.formik.setFieldValue('requiredArtifacts', bindings.filter(b => b.artifact));
   };
 
+  private overrideNamespaceChange(checked: boolean) {
+    if (!checked) {
+      this.props.formik.setFieldValue('namespaceOverride', '');
+    }
+    this.setState({ overrideNamespace: checked });
+  }
+
   public render() {
     const stage = this.props.formik.values;
     return (
@@ -116,6 +127,23 @@ export class DeployManifestStageForm extends React.Component<
           onAccountSelect={accountName => this.props.formik.setFieldValue('account', accountName)}
           selectedAccount={stage.account}
         />
+        <StageConfigField label="Override Namespace">
+          <CheckboxInput
+            checked={this.state.overrideNamespace}
+            onChange={(e: any) => this.overrideNamespaceChange(e.target.checked)}
+          />
+        </StageConfigField>
+        {this.state.overrideNamespace && (
+          <StageConfigField label="Namespace">
+            <NamespaceSelector
+              createable={true}
+              accounts={this.props.accounts}
+              selectedAccount={stage.account}
+              selectedNamespace={stage.namespaceOverride || ''}
+              onChange={namespace => this.props.formik.setFieldValue('namespaceOverride', namespace)}
+            />
+          </StageConfigField>
+        )}
         <hr />
         <h4>Manifest Configuration</h4>
         <StageConfigField label="Manifest Source" helpKey="kubernetes.manifest.source">
