@@ -46,9 +46,11 @@ public abstract class TemplateUtils {
 
     Response response = retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
 
-    InputStream inputStream = response.getBody().in();
-    IOUtils.copy(inputStream, outputStream);
-    inputStream.close();
+    if (response.getBody() != null) {
+      InputStream inputStream = response.getBody().in();
+      IOUtils.copy(inputStream, outputStream);
+      inputStream.close();
+    }
     outputStream.close();
 
     return path;
