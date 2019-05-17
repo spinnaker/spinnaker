@@ -83,10 +83,13 @@
     </div>
     <trigger
       ng-repeat="trigger in pipeline.triggers"
-      trigger="trigger"
-      pipeline="pipeline"
       application="application"
-      field-updated="fieldUpdated"
+      index="$index"
+      pipeline="pipeline"
+      remove-trigger="removeTrigger"
+      trigger="trigger"
+      update-expected-artifacts="updateExpectedArtifacts"
+      update-trigger="updateTrigger"
     ></trigger>
     <div class="row" ng-if="!pipeline.triggers.length">
       <p class="col-md-12">

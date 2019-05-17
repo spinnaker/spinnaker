@@ -75,7 +75,7 @@ module.exports = angular
 
       this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
 
-      $scope.addParameter = () => {
+      $scope.addParameter = function() {
         if (!$scope.pipeline.parameterConfig) {
           $scope.pipeline.parameterConfig = [];
         }
@@ -105,8 +105,48 @@ module.exports = angular
       };
 
       $scope.updateAllParameters = function(parameters) {
-        $scope.pipeline.parameterConfig = parameters;
-        $scope.$digest();
+        $scope.$applyAsync(() => ($scope.pipeline.parameterConfig = parameters));
+      };
+
+      //Trigger Component
+      $scope.removeTrigger = function(index) {
+        $scope.$applyAsync(() => {
+          $scope.pipeline.triggers.splice(index, 1);
+          if (SETTINGS.feature['artifactsRewrite']) {
+            $scope.removeUnusedExpectedArtifacts($scope.pipeline);
+          }
+        });
+      };
+
+      $scope.updateTrigger = function(index, changes) {
+        $scope.$applyAsync(() => {
+          $scope.pipeline.triggers = $scope.pipeline.triggers.slice(0);
+          extend($scope.pipeline.triggers[index], changes);
+          if (SETTINGS.feature['artifactsRewrite']) {
+            $scope.removeUnusedExpectedArtifacts($scope.pipeline);
+          }
+        });
+      };
+
+      //Expected Artifacts
+      $scope.updateExpectedArtifacts = function(expectedArtifacts) {
+        $scope.$applyAsync(() => {
+          $scope.pipeline.expectedArtifacts = expectedArtifacts;
+        });
+      };
+
+      $scope.removeUnusedExpectedArtifacts = function(pipeline) {
+        // remove unused expected artifacts from the pipeline
+        const artifacts = pipeline.expectedArtifacts || [];
+        artifacts.forEach(artifact => {
+          if (!pipeline.triggers.find(t => t.expectedArtifactIds && t.expectedArtifactIds.includes(artifact.id))) {
+            pipeline.expectedArtifacts.splice(pipeline.expectedArtifacts.indexOf(artifact), 1);
+            if (pipeline.expectedArtifacts.length === 0) {
+              delete pipeline.expectedArtifacts;
+            }
+          }
+          ArtifactReferenceService.removeReferenceFromStages(artifact.id, pipeline.stages);
+        });
       };
 
       $scope.updateRoles = function(roles) {
