@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -90,7 +91,8 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
     if (manifest.getKind() != KubernetesKind.NETWORK_POLICY) {
       log.warn("Unknown security group kind " + manifest.getKind());
     } else {
-      if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)) {
+      if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)
+          || (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1BETA1))) {
         V1NetworkPolicy v1beta1NetworkPolicy =
             KubernetesCacheDataConverter.getResource(manifest, V1NetworkPolicy.class);
         inboundRules = inboundRules(v1beta1NetworkPolicy);
