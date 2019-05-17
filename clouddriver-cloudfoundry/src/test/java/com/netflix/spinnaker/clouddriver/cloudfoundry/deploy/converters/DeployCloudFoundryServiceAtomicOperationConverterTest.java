@@ -22,6 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
@@ -40,6 +41,7 @@ import io.vavr.collection.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -221,38 +223,6 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   }
 
   @Test
-  void convertManifestMapToServiceAttributesEmptyParamString() {
-    final Map input =
-        HashMap.of(
-                "service", "my-service",
-                "service_instance_name", "my-service-instance-name",
-                "service_plan", "my-service-plan",
-                "tags", List.of("my-tag").asJava(),
-                "updatable", true,
-                "parameters", "")
-            .toJavaMap();
-
-    assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
-            new DeployCloudFoundryServiceDescription.ServiceAttributes()
-                .setService("my-service")
-                .setServiceInstanceName("my-service-instance-name")
-                .setServicePlan("my-service-plan")
-                .setTags(Collections.singleton("my-tag"))
-                .setUpdatable(true));
-  }
-
-  @Test
-  void convertManifestMapToServiceAttributesBadParamString() {
-    final Map input = HashMap.of("parameters", "[\"foo\", \"bar\"]").toJavaMap();
-
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> converter.convertManifest(input),
-        "Unable to convert parameters to map: 'Unexpected character (',' (code 44)): was expecting a colon to separate field name and value");
-  }
-
-  @Test
   void convertDescriptionWithDownloadedManifest() {
     final Map input =
         HashMap.of(
@@ -325,38 +295,61 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 .setCredentials(HashMap.<String, Object>of("foo", "bar").toJavaMap()));
   }
 
-  @Test
-  void convertDescriptionWithUserProvidedInputWithoutCredentials() {
-    final Map input =
-        HashMap.of(
-                "credentials",
-                "test",
-                "region",
-                "org > space",
-                "userProvided",
-                true,
-                "manifest",
-                HashMap.of(
-                        "direct",
-                        HashMap.of(
-                                "serviceInstanceName", "userProvidedServiceName",
-                                "tags", List.of("my-tag").asJava(),
-                                "updatable", false,
-                                "syslogDrainUrl", "http://syslogDrainUrl.io",
-                                "routeServiceUrl", "http://routeServiceUrl.io")
-                            .toJavaMap())
-                    .toJavaMap())
-            .toJavaMap();
+  private static <K, V> Map<K, V> mapOf(K key, V value) {
+    return HashMap.of(key, value).toJavaMap();
+  }
 
-    final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
-    assertThat(result.getServiceAttributes()).isNull();
-    assertThat(result.getUserProvidedServiceAttributes())
-        .isEqualToComparingFieldByFieldRecursively(
-            new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
-                .setServiceInstanceName("userProvidedServiceName")
-                .setSyslogDrainUrl("http://syslogDrainUrl.io")
-                .setRouteServiceUrl("http://routeServiceUrl.io")
-                .setTags(Collections.singleton("my-tag"))
-                .setUpdatable(false));
+  private static class WithMap {
+    public WithMap() {}
+
+    public WithMap(String key, Object value) {
+      this.mapField = HashMap.of(key, value).toJavaMap();
+    }
+
+    @Nullable
+    @JsonDeserialize(
+        using =
+            DeployCloudFoundryServiceAtomicOperationConverter.OptionallySerializedMapDeserializer
+                .class)
+    private Map<String, Object> mapField;
+  }
+
+  @Test
+  void deserializeYamlSerializedMap() {
+    final WithMap result =
+        new ObjectMapper().convertValue(mapOf("mapField", "key1: value1"), WithMap.class);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+  }
+
+  @Test
+  void deserializeJsonSerializedMap() {
+    final WithMap result =
+        new ObjectMapper()
+            .convertValue(mapOf("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+  }
+
+  @Test
+  void deserializeAlreadyDeserializedMap() {
+    final WithMap result =
+        new ObjectMapper().convertValue(mapOf("mapField", mapOf("key1", "value1")), WithMap.class);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+  }
+
+  @Test
+  void deserializeEmptyStringAsMap() {
+    final WithMap result = new ObjectMapper().convertValue(mapOf("mapField", ""), WithMap.class);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
+  }
+
+  @Test
+  void deserializeNullStringAsMap() {
+    final WithMap result = new ObjectMapper().convertValue(mapOf("mapField", null), WithMap.class);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
   }
 }

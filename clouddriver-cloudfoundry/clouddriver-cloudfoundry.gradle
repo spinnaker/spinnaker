@@ -20,6 +20,7 @@ dependencies {
 
   compileOnly "org.apache.commons:commons-lang3"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.google.guava:guava"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"

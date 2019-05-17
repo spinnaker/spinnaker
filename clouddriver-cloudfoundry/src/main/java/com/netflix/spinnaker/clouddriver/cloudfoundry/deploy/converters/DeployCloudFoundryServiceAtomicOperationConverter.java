@@ -17,9 +17,15 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
@@ -91,8 +97,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
 
   // visible for testing
   DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Object manifestMap) {
-    ServiceManifest manifest =
-        objectMapper.convertValue(manifestMap, new TypeReference<ServiceManifest>() {});
+    ServiceManifest manifest = objectMapper.convertValue(manifestMap, ServiceManifest.class);
     if (manifest.getService() == null) {
       throw new IllegalArgumentException("Manifest is missing the service");
     } else if (manifest.getServiceInstanceName() == null) {
@@ -107,7 +112,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     attrs.setServicePlan(manifest.getServicePlan());
     attrs.setTags(manifest.getTags());
     attrs.setUpdatable(manifest.isUpdatable());
-    attrs.setParameterMap(parseParameters(manifest.getParameters()));
+    attrs.setParameterMap(manifest.getParameters());
     return attrs;
   }
 
@@ -115,7 +120,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes
       convertUserProvidedServiceManifest(Object manifestMap) {
     UserProvidedServiceManifest manifest =
-        objectMapper.convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {});
+        objectMapper.convertValue(manifestMap, UserProvidedServiceManifest.class);
     if (manifest.getServiceInstanceName() == null) {
       throw new IllegalArgumentException("Manifest is missing the service name");
     }
@@ -126,21 +131,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
     attrs.setTags(manifest.getTags());
     attrs.setUpdatable(manifest.isUpdatable());
-    attrs.setCredentials(parseParameters(manifest.getCredentials()));
+    attrs.setCredentials(manifest.getCredentials());
     return attrs;
-  }
-
-  private Map<String, Object> parseParameters(String parameterString) {
-    if (!StringUtils.isBlank(parameterString)) {
-      try {
-        return getObjectMapper()
-            .readValue(parameterString, new TypeReference<Map<String, Object>>() {});
-      } catch (IOException e) {
-        throw new IllegalArgumentException(
-            "Unable to convert parameters to map: '" + e.getMessage() + "'.");
-      }
-    }
-    return null;
   }
 
   @Data
@@ -156,7 +148,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
 
     @Nullable private Set<String> tags;
 
-    @Nullable private String parameters;
+    @Nullable
+    @JsonDeserialize(using = OptionallySerializedMapDeserializer.class)
+    private Map<String, Object> parameters;
   }
 
   @Data
@@ -178,6 +172,64 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
 
     @Nullable
     @JsonAlias("credentials_map")
-    private String credentials;
+    @JsonDeserialize(using = OptionallySerializedMapDeserializer.class)
+    private Map<String, Object> credentials;
+  }
+
+  public static class OptionallySerializedMapDeserializer
+      extends JsonDeserializer<Map<String, Object>> {
+
+    private final TypeReference<Map<String, Object>> mapTypeReference =
+        new TypeReference<Map<String, Object>>() {};
+
+    private final ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
+
+    @Override
+    public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)
+        throws IOException {
+      JsonToken currentToken = parser.currentToken();
+
+      Map<String, Object> deserializedMap = null;
+
+      if (currentToken == JsonToken.START_OBJECT) {
+        deserializedMap =
+            context.readValue(parser, context.getTypeFactory().constructType(mapTypeReference));
+      } else if (currentToken == JsonToken.VALUE_STRING) {
+        String serizalizedMap = parser.getValueAsString();
+        if (StringUtils.isNotBlank(serizalizedMap)) {
+          deserializedMap =
+              deserializeWithMappers(
+                  serizalizedMap,
+                  mapTypeReference,
+                  yamlObjectMapper,
+                  (ObjectMapper) parser.getCodec());
+        }
+      }
+
+      return deserializedMap;
+    }
+
+    /**
+     * Deserialize a String trying with multiple {@link ObjectMapper}.
+     *
+     * @return The value returned by the first mapper successfully deserializing the input.
+     * @throws IOException When all ObjectMappers fail to deserialize the input.
+     */
+    private <T> T deserializeWithMappers(
+        String serialized, TypeReference<T> typeReference, ObjectMapper... mappers)
+        throws IOException {
+
+      IOException deserializationFailed =
+          new IOException("Could not deserialize value using the provided objectMappers");
+
+      for (ObjectMapper mapper : mappers) {
+        try {
+          return mapper.readValue(serialized, typeReference);
+        } catch (IOException e) {
+          deserializationFailed.addSuppressed(e);
+        }
+      }
+      throw deserializationFailed;
+    }
   }
 }
