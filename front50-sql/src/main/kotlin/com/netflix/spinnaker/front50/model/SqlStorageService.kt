@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -71,7 +72,7 @@ class SqlStorageService(
         .from(definitionsByType[objectType]!!.tableName)
         .where(field("id", String::class.java).eq(objectKey))
         .fetchOne()
-    }
+    } ?: throw NotFoundException("Object not found (key: $objectKey)")
 
     return objectMapper.readValue(result.get(field("body", String::class.java)), objectType.clazz as Class<T>)
   }
@@ -137,6 +138,7 @@ class SqlStorageService(
   }
 
   override fun listObjectKeys(objectType: ObjectType): Map<String, Long> {
+    val startTime = System.currentTimeMillis()
     val resultSet = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
       ctx
         .select(
@@ -154,6 +156,12 @@ class SqlStorageService(
     while (resultSet.next()) {
       objectKeys.put(resultSet.getString(1), resultSet.getLong(2))
     }
+
+    log.debug("Took {}ms to fetch {} object keys for {}",
+      System.currentTimeMillis() - startTime,
+      objectKeys.size,
+      objectType
+    )
 
     return objectKeys
   }
