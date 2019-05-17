@@ -155,4 +155,9 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    * Delete a resource as the desired state is that it should no longer exist.
    */
   fun delete(resource: Resource<S>)
+
+  /**
+   * @return `true` if this plugin is still busy running a previous actuation, `false` otherwise.
+   */
+  fun actuationInProgress(name: ResourceName): Boolean = false
 }

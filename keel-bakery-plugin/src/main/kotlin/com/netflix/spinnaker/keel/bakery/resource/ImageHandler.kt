@@ -142,6 +142,11 @@ class ImageHandler(
     TODO("not implemented")
   }
 
+  override fun actuationInProgress(name: ResourceName) =
+    runBlocking {
+      orcaService.getCorrelatedExecutions(name.value).await()
+    }.isNotEmpty()
+
   private suspend fun findBaseAmi(baseImage: String): String {
     return cloudDriver.namedImages(baseImage, "test")
       .await()

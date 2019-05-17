@@ -34,6 +34,9 @@ interface OrcaService {
 
   @GET("/tasks/{id}")
   fun getTask(@Path("id") id: String): Deferred<TaskDetailResponse>
+
+  @GET("/executions/correlated/{correlationId}")
+  fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): Deferred<List<String>>
 }
 
 data class TaskRefResponse(

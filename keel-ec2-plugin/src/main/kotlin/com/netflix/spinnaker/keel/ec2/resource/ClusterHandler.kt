@@ -152,6 +152,11 @@ class ClusterHandler(
       // TODO: ugleee
       .let { if (it == null) emptyList() else listOf(TaskRef(it.ref)) }
 
+  override fun actuationInProgress(name: ResourceName) =
+    runBlocking {
+      orcaService.getCorrelatedExecutions(name.value).await()
+    }.isNotEmpty()
+
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */

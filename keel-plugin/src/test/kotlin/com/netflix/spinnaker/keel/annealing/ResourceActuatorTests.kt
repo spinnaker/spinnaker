@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResolvedResource
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
@@ -32,7 +33,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import java.time.Clock
 
-internal object ResourceActuatorTests : JUnit5Minutests {
+internal class ResourceActuatorTests : JUnit5Minutests {
 
   class Fixture {
     val resourceRepository = InMemoryResourceRepository()
@@ -82,18 +83,17 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           .isA<ResourceCreated>()
       }
 
-      context("the current state matches the desired state") {
+      context("the plugin is already actuating this resource") {
         before {
-          every {
-            plugin1.resolve(resource)
-          } returns ResolvedResource(
-            desired = DummyResource(resource.spec.state),
-            current = DummyResource(resource.spec.state)
-          )
+          every { plugin1.actuationInProgress(resource.metadata.name) } returns true
 
           with(resource) {
             subject.checkResource(metadata.name, apiVersion, kind)
           }
+        }
+
+        test("the resource is not resolved") {
+          verify(exactly = 0) { plugin1.resolve(any()) }
         }
 
         test("the resource is not updated") {
@@ -102,139 +102,175 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           verify(exactly = 0) { plugin1.delete(any()) }
         }
 
-        test("only the relevant plugin is queried") {
-          verify(exactly = 0) { plugin2.resolve(any()) }
-        }
-
         test("nothing is added to the resource history") {
           expectThat(resourceRepository.eventHistory(resource.metadata.uid))
             .hasSize(1)
         }
 
         test("a telemetry event is published") {
-          // TODO: this is wrong
-          verify { publisher.publishEvent(ResourceChecked(resource, Ok)) }
+          verify { publisher.publishEvent(ResourceCheckSkipped(resource)) }
         }
       }
 
-      context("the current state is missing") {
+      context("the plugin is not already actuating this resource") {
         before {
-          every {
-            plugin1.resolve(resource)
-          } returns ResolvedResource(
-            desired = DummyResource(resource.spec.state),
-            current = null
-          )
-          every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+          every { plugin1.actuationInProgress(resource.metadata.name) } returns false
+        }
 
-          with(resource) {
-            subject.checkResource(metadata.name, apiVersion, kind)
+        context("the current state matches the desired state") {
+          before {
+            every {
+              plugin1.resolve(resource)
+            } returns ResolvedResource(
+              desired = DummyResource(resource.spec.state),
+              current = DummyResource(resource.spec.state)
+            )
+
+            with(resource) {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
+          }
+
+          test("the resource is not updated") {
+            verify(exactly = 0) { plugin1.create(any(), any()) }
+            verify(exactly = 0) { plugin1.update(any(), any()) }
+            verify(exactly = 0) { plugin1.delete(any()) }
+          }
+
+          test("only the relevant plugin is queried") {
+            verify(exactly = 0) { plugin2.resolve(any()) }
+          }
+
+          test("nothing is added to the resource history") {
+            expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+              .hasSize(1)
+          }
+
+          test("a telemetry event is published") {
+            // TODO: this is wrong
+            verify { publisher.publishEvent(ResourceChecked(resource, Ok)) }
           }
         }
 
-        test("the resource is created via the relevant handler") {
-          verify { plugin1.create(resource, any()) }
-        }
+        context("the current state is missing") {
+          before {
+            every {
+              plugin1.resolve(resource)
+            } returns ResolvedResource(
+              desired = DummyResource(resource.spec.state),
+              current = null
+            )
+            every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
-        test("the resource state is recorded") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
-            hasSize(3)
-            first().isA<ResourceActuationLaunched>()
-            second().isA<ResourceMissing>()
+            with(resource) {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
+          }
+
+          test("the resource is created via the relevant handler") {
+            verify { plugin1.create(resource, any()) }
+          }
+
+          test("the resource state is recorded") {
+            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+              hasSize(3)
+              first().isA<ResourceActuationLaunched>()
+              second().isA<ResourceMissing>()
+            }
+          }
+
+          test("a telemetry event is published") {
+            verify { publisher.publishEvent(ResourceChecked(resource, Missing)) }
           }
         }
 
-        test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource, Missing)) }
-        }
-      }
+        context("the current state is wrong") {
+          before {
+            every {
+              plugin1.resolve(resource)
+            } returns ResolvedResource(
+              DummyResource(resource.spec.state),
+              DummyResource("some other state that does not match")
+            )
+            every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
-      context("the current state is wrong") {
-        before {
-          every {
-            plugin1.resolve(resource)
-          } returns ResolvedResource(
-            DummyResource(resource.spec.state),
-            DummyResource("some other state that does not match")
-          )
-          every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+            with(resource) {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
+          }
 
-          with(resource) {
-            subject.checkResource(metadata.name, apiVersion, kind)
+          test("the resource is updated") {
+            verify { plugin1.update(eq(resource), any()) }
+          }
+
+          test("the resource state is recorded") {
+            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+              hasSize(3)
+              first().isA<ResourceActuationLaunched>()
+              second().isA<ResourceDeltaDetected>()
+            }
+          }
+
+          test("a telemetry event is published") {
+            verify { publisher.publishEvent(ResourceChecked(resource, Diff)) }
           }
         }
 
-        test("the resource is updated") {
-          verify { plugin1.update(eq(resource), any()) }
-        }
+        context("plugin throws an exception on resource resolution") {
+          before {
+            every {
+              plugin1.resolve(resource)
+            } throws RuntimeException("o noes")
 
-        test("the resource state is recorded") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
-            hasSize(3)
-            first().isA<ResourceActuationLaunched>()
-            second().isA<ResourceDeltaDetected>()
+            with(resource) {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
+          }
+
+          test("the resource is not updated") {
+            verify(exactly = 0) { plugin1.update(any(), any()) }
+          }
+
+          // TODO: do we want to track the error in the resource history?
+          test("the resource state is not affected") {
+            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+              hasSize(1)
+              first().isA<ResourceCreated>()
+            }
+          }
+
+          test("a telemetry event is published") {
+            verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
           }
         }
 
-        test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource, Diff)) }
-        }
-      }
+        context("plugin throws an exception on resource update") {
+          before {
+            every {
+              plugin1.resolve(resource)
+            } returns ResolvedResource(
+              DummyResource(resource.spec.state),
+              DummyResource("some other state that does not match")
+            )
+            every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
-      context("plugin throws an exception on resource resolution") {
-        before {
-          every {
-            plugin1.resolve(resource)
-          } throws RuntimeException("o noes")
-
-          with(resource) {
-            subject.checkResource(metadata.name, apiVersion, kind)
+            with(resource) {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
           }
-        }
 
-        test("the resource is not updated") {
-          verify(exactly = 0) { plugin1.update(any(), any()) }
-        }
-
-        // TODO: do we want to track the error in the resource history?
-        test("the resource state is not affected") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
-            hasSize(1)
-            first().isA<ResourceCreated>()
+          // TODO: do we want to track the error in the resource history?
+          test("detection of the delta is tracked in resource history") {
+            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+              hasSize(2)
+              first().isA<ResourceDeltaDetected>()
+              second().isA<ResourceCreated>()
+            }
           }
-        }
 
-        test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
-        }
-      }
-
-      context("plugin throws an exception on resource update") {
-        before {
-          every {
-            plugin1.resolve(resource)
-          } returns ResolvedResource(
-            DummyResource(resource.spec.state),
-            DummyResource("some other state that does not match")
-          )
-          every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
-
-          with(resource) {
-            subject.checkResource(metadata.name, apiVersion, kind)
+          test("a telemetry event is published") {
+            verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
           }
-        }
-
-        // TODO: do we want to track the error in the resource history?
-        test("detection of the delta is tracked in resource history") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
-            hasSize(2)
-            first().isA<ResourceDeltaDetected>()
-            second().isA<ResourceCreated>()
-          }
-        }
-
-        test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
         }
       }
     }

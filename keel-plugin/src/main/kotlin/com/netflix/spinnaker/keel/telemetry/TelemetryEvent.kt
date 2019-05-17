@@ -21,6 +21,18 @@ data class ResourceChecked(
   )
 }
 
+data class ResourceCheckSkipped(
+  val apiVersion: ApiVersion,
+  val kind: String,
+  val name: ResourceName
+) : TelemetryEvent() {
+  constructor(resource: Resource<*>) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.metadata.name
+  )
+}
+
 data class LockAttempt(
   val success: Boolean
 ) : TelemetryEvent()

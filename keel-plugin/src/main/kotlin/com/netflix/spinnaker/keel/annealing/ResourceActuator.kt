@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
@@ -38,10 +39,17 @@ class ResourceActuator(
   private val differ = ObjectDifferBuilder.buildDefault()
 
   fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
-    log.debug("Checking resource {}", name)
-
     try {
       val plugin = handlers.supporting(apiVersion, kind)
+
+      if (plugin.actuationInProgress(name)) {
+        log.debug("Actuation for resource {} is already running, skipping checks", name)
+        publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, name))
+        return
+      }
+
+      log.debug("Checking resource {}", name)
+
       val type = plugin.supportedKind.second
       val resource = resourceRepository.get(name, type)
 

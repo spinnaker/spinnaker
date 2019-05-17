@@ -25,6 +25,18 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
+  @EventListener(ResourceCheckSkipped::class)
+  fun onResourceCheckSkipped(event: ResourceCheckSkipped) {
+    spectator.counter(
+      RESOURCE_CHECK_SKIPPED_COUNTER_ID,
+      listOf(
+        BasicTag("resourceName", event.name.value),
+        BasicTag("apiVersion", event.apiVersion.toString()),
+        BasicTag("resourceKind", event.kind)
+      )
+    ).safeIncrement()
+  }
+
   @EventListener(LockAttempt::class)
   fun onLockAttempt(event: LockAttempt) {
     spectator.counter(
@@ -55,6 +67,7 @@ class TelemetryListener(
 
   companion object {
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
+    private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
     private const val LOCK_ATTEMPT_COUNTER_ID = "keel.lock.attempt"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
   }

@@ -127,6 +127,11 @@ class SecurityGroupHandler(
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
+  override fun actuationInProgress(name: ResourceName) =
+    runBlocking {
+      orcaService.getCorrelatedExecutions(name.value).await()
+    }.isNotEmpty()
+
   private fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
     runBlocking {
       try {
