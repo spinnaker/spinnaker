@@ -59,6 +59,13 @@ module.exports = angular
           (permissions.READ || []).forEach(role => {
             permissionsMap.set(role, 'read');
           });
+          (permissions.EXECUTE || []).forEach(role => {
+            if (permissionsMap.has(role)) {
+              permissionsMap.set(role, permissionsMap.get(role) + ', execute');
+            } else {
+              permissionsMap.set(role, 'execute');
+            }
+          });
           (permissions.WRITE || []).forEach(role => {
             if (permissionsMap.has(role)) {
               permissionsMap.set(role, permissionsMap.get(role) + ', write');

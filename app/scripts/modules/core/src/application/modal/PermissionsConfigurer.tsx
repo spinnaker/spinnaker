@@ -35,6 +35,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     { value: 'READ,EXECUTE', label: 'Read and execute' },
     { value: 'READ,EXECUTE,WRITE', label: 'Read, execute, write' },
   ];
+  private static legacyAccessTypes: Option[] = [{ value: 'READ,WRITE', label: 'Read and write' }];
 
   constructor(props: IPermissionsConfigurerProps) {
     super(props);
@@ -61,28 +62,31 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       return permissionRows;
     }
 
-    permissions.READ.forEach(group => {
-      permissionRows.push({ group, access: 'READ' });
-    });
+    permissions.READ &&
+      permissions.READ.forEach(group => {
+        permissionRows.push({ group, access: 'READ' });
+      });
 
-    permissions.EXECUTE.forEach(group => {
-      const matchingRow = permissionRows.find(row => row.group === group);
-      if (matchingRow) {
-        matchingRow.access += ',EXECUTE';
-      } else {
-        permissionRows.push({ group, access: 'EXECUTE' });
-      }
-    });
+    permissions.EXECUTE &&
+      permissions.EXECUTE.forEach(group => {
+        const matchingRow = permissionRows.find(row => row.group === group);
+        if (matchingRow) {
+          matchingRow.access += ',EXECUTE';
+        } else {
+          permissionRows.push({ group, access: 'EXECUTE' });
+        }
+      });
 
-    permissions.WRITE.forEach(group => {
-      const matchingRow = permissionRows.find(row => row.group === group);
-      if (matchingRow) {
-        matchingRow.access += ',WRITE';
-      } else {
-        // WRITE only permissions aren't supported in the UI, but they could be.
-        permissionRows.push({ group, access: 'WRITE' });
-      }
-    });
+    permissions.WRITE &&
+      permissions.WRITE.forEach(group => {
+        const matchingRow = permissionRows.find(row => row.group === group);
+        if (matchingRow) {
+          matchingRow.access += ',WRITE';
+        } else {
+          // WRITE only permissions aren't supported in the UI, but they could be.
+          permissionRows.push({ group, access: 'WRITE' });
+        }
+      });
 
     return permissionRows;
   }
@@ -188,8 +192,10 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     return (
       <div className="permissions-configurer">
         {this.state.permissionRows.map((row, i) => {
-          const permissionTypeLabel = PermissionsConfigurer.accessTypes.find(type => type.value === row.access).label;
-
+          const permissionTypeLabel = [
+            ...PermissionsConfigurer.accessTypes,
+            ...PermissionsConfigurer.legacyAccessTypes,
+          ].find(type => type.value === row.access).label;
           return (
             <div key={row.group || i} className="permissions-row clearfix">
               <div className="col-md-5 permissions-group">
