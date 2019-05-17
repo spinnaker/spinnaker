@@ -30,39 +30,41 @@ allprojects {
 }
 
 subprojects {
-  apply(plugin = "nebula.kotlin")
+  if (name != "keel-bom") {
+    apply(plugin = "nebula.kotlin")
 
-  repositories {
-    jcenter()
-  }
-
-  dependencies {
-    "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
-
-    "implementation"("org.slf4j:slf4j-api")
-
-    "testImplementation"("org.junit.platform:junit-platform-runner")
-    "testImplementation"("org.junit.jupiter:junit-jupiter-api")
-    "testImplementation"("io.mockk:mockk")
-
-    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
-    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
-  }
-
-  tasks.withType<KotlinCompile> {
-    kotlinOptions {
-      languageVersion = "1.3"
-      jvmTarget = "1.8"
-      freeCompilerArgs += "-progressive"
+    repositories {
+      jcenter()
     }
-  }
 
-  tasks.withType<Test> {
-    useJUnitPlatform {
-      includeEngines("junit-jupiter")
+    dependencies {
+      "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
+
+      "implementation"("org.slf4j:slf4j-api")
+
+      "testImplementation"("org.junit.platform:junit-platform-runner")
+      "testImplementation"("org.junit.jupiter:junit-jupiter-api")
+      "testImplementation"("io.mockk:mockk")
+
+      "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+      "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
     }
-    testLogging {
-      exceptionFormat = FULL
+
+    tasks.withType<KotlinCompile> {
+      kotlinOptions {
+        languageVersion = "1.3"
+        jvmTarget = "1.8"
+        freeCompilerArgs += "-progressive"
+      }
+    }
+
+    tasks.withType<Test> {
+      useJUnitPlatform {
+        includeEngines("junit-jupiter")
+      }
+      testLogging {
+        exceptionFormat = FULL
+      }
     }
   }
 }

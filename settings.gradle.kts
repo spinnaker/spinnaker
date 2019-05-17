@@ -18,6 +18,7 @@ include(
   "keel-api",
   "keel-artifact",
   "keel-bakery-plugin",
+  "keel-bom",
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",
