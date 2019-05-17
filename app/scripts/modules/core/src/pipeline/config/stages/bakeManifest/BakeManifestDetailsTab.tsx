@@ -12,7 +12,7 @@ export class BakeManifestDetailsTab extends React.Component<IExecutionDetailsSec
   public static title = 'bakedManifest';
 
   public render() {
-    const bakedArtifacts: IArtifact[] = this.props.stage.context.artifacts.filter(
+    const bakedArtifacts: IArtifact[] = (this.props.stage.context.artifacts || []).filter(
       (a: IArtifact) => a.type === 'embedded/base64',
     );
     return (
