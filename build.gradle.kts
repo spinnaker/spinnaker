@@ -8,7 +8,10 @@ buildscript {
     maven(url = "https://spinnaker.bintray.com/gradle")
   }
   dependencies {
-    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.2.0")
+    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.3.0")
+    if (property("enablePublishing") == "true") {
+      classpath("com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.3.0")
+    }
   }
 }
 
@@ -19,6 +22,9 @@ plugins {
 
 allprojects {
   apply(plugin = "spinnaker.base-project")
+  if (property("enablePublishing") == "true") {
+    apply(plugin = "spinnaker.project")
+  }
 
   group = "com.netflix.spinnaker.keel"
 }
