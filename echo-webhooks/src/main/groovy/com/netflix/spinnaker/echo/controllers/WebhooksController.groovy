@@ -75,7 +75,13 @@ class WebhooksController {
     }
 
     if (type == 'git') {
-      GitWebhookHandler handler = scmWebhookHandler.getHandler(source)
+      GitWebhookHandler handler
+      try {
+        handler = scmWebhookHandler.getHandler(source)
+      } catch (Exception e) {
+        log.error("Unable to handle SCM source: {}", source)
+        throw e
+      }
       handler.handle(event, postedEvent)
       // shouldSendEvent should be called after the event
       // has been processed
