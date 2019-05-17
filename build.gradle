@@ -15,19 +15,15 @@
  */
 
 buildscript {
-    ext {
-      korkVersion = "5.0.0"
-      fiatVersion = "1.0.0"
-    }
     repositories {
         jcenter()
         maven { url 'https://spinnaker.bintray.com/gradle/' }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.3.0"
+        classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion"
         if (Boolean.valueOf(enablePublishing)) {
-            classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.3.0"
+            classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion"
         }
     }
 }

@@ -29,6 +29,7 @@ import retrofit.http.Query;
 import rx.Observable;
 
 public interface OrcaService {
+
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(@Body Pipeline pipeline);
 
@@ -40,7 +41,7 @@ public interface OrcaService {
 
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(
-      @Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
+      @Body Pipeline pipeline, @Header(TriggerResponse.X_SPINNAKER_USER) String runAsUser);
 
   @GET("/pipelines")
   Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(
@@ -58,6 +59,16 @@ public interface OrcaService {
       @Query("limit") Integer limit);
 
   class TriggerResponse {
+    // workaround for not having a constant value for reference via annotation:
+    static final String X_SPINNAKER_USER = "X-SPINNAKER-USER";
+
+    static {
+      // TODO(cf): if this actually fails you will all thank me I swear
+      if (!X_SPINNAKER_USER.equals(AuthenticatedRequest.Header.USER.getHeader())) {
+        throw new IllegalStateException("The header changed. Why did the header change. Whyyy");
+      }
+    }
+
     private String ref;
 
     public TriggerResponse() {
