@@ -13,11 +13,7 @@ export interface IWebhookTriggerProps {
 }
 
 export class WebhookTrigger extends React.Component<IWebhookTriggerProps> {
-  constructor(props: IWebhookTriggerProps) {
-    super(props);
-  }
-
-  private WebhookTriggerContents() {
+  private WebhookTriggerContents = () => {
     const { trigger } = this.props;
     const { source, type } = trigger;
     const p = trigger.payloadConstraints || {};
@@ -61,7 +57,7 @@ export class WebhookTrigger extends React.Component<IWebhookTriggerProps> {
         </div>
       </>
     );
-  }
+  };
 
   private onUpdateTrigger = (update: any) => {
     this.props.triggerUpdated &&

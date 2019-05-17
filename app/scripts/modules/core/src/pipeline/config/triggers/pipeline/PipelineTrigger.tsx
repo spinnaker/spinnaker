@@ -1,49 +1,41 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { BaseTrigger } from 'core/pipeline';
+import { Application, ApplicationReader } from 'core/application';
+import { BaseTrigger, PipelineConfigService } from 'core/pipeline';
 import { IPipeline, IPipelineTrigger } from 'core/domain';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { Omit } from 'core/presentation';
 import { Checklist } from 'core/forms';
-import { Application } from '@spinnaker/core';
-import { Subject } from 'rxjs/Subject';
+
+type IPipelineTriggerConfig = Omit<IPipelineTrigger, 'parentExecution' | 'parentPipelineId' | 'user' | 'rebake'>;
 
 export interface IPipelineTriggerConfigProps {
   status: string[];
   trigger: IPipelineTrigger;
   application: Application;
   pipelineId: string;
-  triggerUpdated: (trigger: IPipelineTrigger) => void;
+  triggerUpdated: (trigger: IPipelineTriggerConfig) => void;
 }
 
 export interface IPipelineTriggerState {
   applications: string[];
   pipelines: IPipeline[];
   pipelinesLoaded: boolean;
-  useDefaultParameters: { [k: string]: boolean };
-  userSuppliedParameters: { [k: string]: string };
 }
 
 export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps, IPipelineTriggerState> {
   private destroy$ = new Subject();
   private statusOptions = ['successful', 'failed', 'canceled'];
 
-  constructor(props: IPipelineTriggerConfigProps) {
-    super(props);
+  public state: IPipelineTriggerState = {
+    applications: [],
+    pipelines: [],
+    pipelinesLoaded: false,
+  };
 
-    this.state = {
-      applications: [],
-      pipelines: [],
-      pipelinesLoaded: false,
-      useDefaultParameters: {},
-      userSuppliedParameters: {},
-    };
-  }
-
-  public componentDidMount = () => {
+  public componentDidMount() {
     Observable.fromPromise(ApplicationReader.listApplications())
       .takeUntil(this.destroy$)
       .subscribe(
@@ -51,14 +43,18 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
         () => this.setState({ applications: [] }),
       );
 
-    const { application } = this.props.trigger;
+    const { application, status } = this.props.trigger;
     this.onUpdateTrigger({
       application: application || this.props.application.name,
       status: status || [],
     });
 
     this.init(application);
-  };
+  }
+
+  public componentWillUnmount() {
+    this.destroy$.next();
+  }
 
   private init = (application: string) => {
     const { pipelineId, trigger } = this.props;
@@ -78,7 +74,7 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
     }
   };
 
-  private onUpdateTrigger = (update: any) => {
+  private onUpdateTrigger = (update: Partial<IPipelineTriggerConfig>) => {
     this.props.triggerUpdated &&
       this.props.triggerUpdated({
         ...this.props.trigger,
@@ -129,7 +125,7 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
                 inline={true}
                 items={new Set(this.statusOptions)}
                 checked={new Set(status)}
-                onChange={(s: Set<string>) => this.onUpdateTrigger({ status: s })}
+                onChange={(s: Set<string>) => this.onUpdateTrigger({ status: Array.from(s) })}
               />
             </div>
           </div>

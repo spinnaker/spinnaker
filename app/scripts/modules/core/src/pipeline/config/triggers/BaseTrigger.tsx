@@ -27,7 +27,7 @@ export class BaseTrigger extends React.Component<IBaseTriggerConfigProps, IBaseT
     };
   }
 
-  public componentDidMount(): void {
+  public componentDidMount() {
     if (SETTINGS.feature.fiatEnabled) {
       Observable.fromPromise(ServiceAccountReader.getServiceAccounts())
         .takeUntil(this.destroy$)
@@ -35,7 +35,7 @@ export class BaseTrigger extends React.Component<IBaseTriggerConfigProps, IBaseT
     }
   }
 
-  public componentWillUnmount(): void {
+  public componentWillUnmount() {
     this.destroy$.next();
   }
 
