@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory
 
 class CompositeStorageService(
   private val primary: StorageService,
-  private val previous: StorageService
+  private val previous: StorageService,
+  private val writeOnly: Boolean
 ) : StorageService {
 
   companion object {
@@ -37,7 +38,7 @@ class CompositeStorageService(
   }
 
   override fun <T : Timestamped?> loadObject(objectType: ObjectType?, objectKey: String?): T {
-    if (objectType == ObjectType.ENTITY_TAGS) {
+    if (writeOnly || objectType == ObjectType.ENTITY_TAGS) {
       return previous.loadObject<T>(objectType, objectKey)
     }
 
@@ -89,6 +90,10 @@ class CompositeStorageService(
   }
 
   override fun listObjectKeys(objectType: ObjectType?): Map<String, Long> {
+    if (writeOnly) {
+      return previous.listObjectKeys(objectType)
+    }
+
     val primaryObjectKeys = primary.listObjectKeys(objectType)
     val previousObjectKeys = previous.listObjectKeys(objectType)
 
@@ -98,6 +103,10 @@ class CompositeStorageService(
   override fun <T : Timestamped?> listObjectVersions(objectType: ObjectType?,
                                                      objectKey: String?,
                                                      maxResults: Int): MutableCollection<T> {
+    if (writeOnly) {
+      return previous.listObjectVersions(objectType, objectKey, maxResults)
+    }
+
     try {
       return primary.listObjectVersions(objectType, objectKey, maxResults)
     } catch (e: Exception) {
@@ -113,6 +122,10 @@ class CompositeStorageService(
   }
 
   override fun getLastModified(objectType: ObjectType?): Long {
+    if (writeOnly) {
+      return previous.getLastModified(objectType)
+    }
+
     try {
       return primary.getLastModified(objectType)
     } catch (e: Exception) {

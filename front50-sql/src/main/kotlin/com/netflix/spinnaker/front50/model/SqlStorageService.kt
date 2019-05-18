@@ -97,6 +97,9 @@ class SqlStorageService(
   override fun <T : Timestamped> storeObject(objectType: ObjectType, objectKey: String, item: T) {
     item.lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
 
+    // TODO-AJ handle overriding the `lastModified` during a migration so that not everything is `now()`
+    item.lastModified = clock.millis()
+
     try {
       jooq.transactional(sqlRetryProperties.transactions) { ctx ->
         val insert = ctx.insertInto(

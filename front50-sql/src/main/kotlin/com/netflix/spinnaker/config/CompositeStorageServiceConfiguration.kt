@@ -37,7 +37,8 @@ class CompositeStorageServiceConfiguration() {
                               storageServices: List<StorageService>) =
     CompositeStorageService(
       storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
-      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) }
+      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) },
+      properties.writeOnly
     )
 
   @Bean
@@ -55,5 +56,6 @@ class CompositeStorageServiceConfiguration() {
 @ConfigurationProperties("spinnaker.migration")
 data class StorageServiceMigratorConfigurationProperties(
   var primaryClass: String? = null,
-  var previousClass: String? = null
+  var previousClass: String? = null,
+  var writeOnly: Boolean = false
 )
