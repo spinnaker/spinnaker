@@ -12,7 +12,16 @@ databaseChangeLog:
                   #                  defaultValueComputed: timestamp(0)
                   constraints:
                     nullable: true
+        - createIndex:
+            indexName: resource_last_checked_idx
+            tableName: resource
+            columns:
+              - column:
+                  name: last_checked
       rollback:
         - dropColumn:
             tableName: resource
             columnName: last_checked
+        - dropIndex:
+            indexName: resource_last_checked_idx
+            tableName: resource
