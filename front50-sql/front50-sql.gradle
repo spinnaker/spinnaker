@@ -1,22 +1,17 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.2.1"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.2.1"
+
   implementation "com.netflix.spinnaker.front50:front50-core:${front50Version}"
 
-  implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
-
-  implementation "org.jooq:jooq:3.11.11"
-  implementation "io.strikt:strikt-core" 
-  implementation "com.netflix.hystrix:hystrix-core"
+  implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "io.github.resilience4j:resilience4j-retry"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.2.1"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.2.1"
 
-  runtimeOnly "mysql:mysql-connector-java"
+  runtime "mysql:mysql-connector-java:8.0.12"
 
-  testImplementation "dev.minutest:minutest"
-  testImplementation "org.testcontainers:mysql"
   testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
 }
