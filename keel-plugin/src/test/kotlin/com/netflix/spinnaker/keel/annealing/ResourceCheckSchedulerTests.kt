@@ -33,7 +33,12 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
 
   fun tests() = rootContext<ResourceCheckScheduler> {
     fixture {
-      ResourceCheckScheduler(resourceRepository, resourceActuator)
+      ResourceCheckScheduler(
+        resourceRepository = resourceRepository,
+        resourceActuator = resourceActuator,
+        resourceCheckMinAgeMinutes = 5,
+        resourceCheckBatchSize = 2
+      )
     }
 
     context("scheduler is disabled") {
