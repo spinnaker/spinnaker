@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory
 import java.sql.Timestamp
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant.EPOCH
 
 class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -149,7 +150,7 @@ class SqlResourceRepository(
     return jooq.inTransaction {
       select(UID, API_VERSION, KIND, NAME)
         .from(RESOURCE)
-        .where(LAST_CHECKED.isNull.or(LAST_CHECKED.lessOrEqual(cutoff)))
+        .where(LAST_CHECKED.lessOrEqual(cutoff))
         .orderBy(LAST_CHECKED)
         .limit(limit)
         .forUpdate()
@@ -171,7 +172,8 @@ class SqlResourceRepository(
   override fun markCheckDue(resource: Resource<*>) {
     jooq.inTransaction {
       update(RESOURCE)
-        .set(mapOf(LAST_CHECKED to null))
+        // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
+        .set(mapOf(LAST_CHECKED to EPOCH.plusSeconds(1).let(Timestamp::from)))
         .where(UID.eq(resource.metadata.uid.toString()))
         .execute()
     }

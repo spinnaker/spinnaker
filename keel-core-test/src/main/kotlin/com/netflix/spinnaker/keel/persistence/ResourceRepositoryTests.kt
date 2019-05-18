@@ -322,6 +322,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         nextResults()
 
         subject.markCheckDue(resource)
+        clock.incrementBy(Duration.ofSeconds(1))
 
         val results3 = nextResults()
 

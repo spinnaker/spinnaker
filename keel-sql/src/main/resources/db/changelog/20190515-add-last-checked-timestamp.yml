@@ -9,9 +9,10 @@ databaseChangeLog:
               - column:
                   name: last_checked
                   type: timestamp
-                  #                  defaultValueComputed: timestamp(0)
+                  # MySQL is stupid and won't let you insert a zero valued TIMESTAMP
+                  defaultValueDate: "1970-01-01T00:00:01"
                   constraints:
-                    nullable: true
+                    nullable: false
         - createIndex:
             indexName: resource_last_checked_idx
             tableName: resource
