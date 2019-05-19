@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model
 
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import org.slf4j.LoggerFactory
 
 class CompositeStorageService(
@@ -44,6 +45,9 @@ class CompositeStorageService(
 
     try {
       return primary.loadObject<T>(objectType, objectKey)
+    } catch (e: NotFoundException) {
+      log.debug("{}.loadObject({}, {}) not found (primary)", primary.javaClass.simpleName, objectType, objectKey)
+      return previous.loadObject<T>(objectType, objectKey)
     } catch (e: Exception) {
       log.error("{}.loadObject({}, {}) failed (primary)", primary.javaClass.simpleName, objectType, objectKey)
       return previous.loadObject<T>(objectType, objectKey)
