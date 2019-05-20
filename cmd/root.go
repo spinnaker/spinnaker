@@ -7,6 +7,7 @@ import (
 	"github.com/spinnaker/spin/cmd/application"
 	"github.com/spinnaker/spin/cmd/pipeline"
 	"github.com/spinnaker/spin/cmd/pipeline-template"
+	"github.com/spinnaker/spin/cmd/project"
 	"github.com/spinnaker/spin/version"
 )
 
@@ -44,6 +45,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	cmd.AddCommand(application.NewApplicationCmd(out))
 	cmd.AddCommand(pipeline.NewPipelineCmd(out))
 	cmd.AddCommand(pipeline_template.NewPipelineTemplateCmd(out))
+	cmd.AddCommand(project.NewProjectCmd(out))
 
 	return cmd
 }
