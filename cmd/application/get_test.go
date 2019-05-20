@@ -39,6 +39,7 @@ func getRootCmdForTest() *cobra.Command {
 	rootCmd.PersistentFlags().Bool("quiet", false, "Squelch non-essential output")
 	rootCmd.PersistentFlags().Bool("no-color", false, "Disable color")
 	rootCmd.PersistentFlags().String("output", "", "Configure output formatting")
+	rootCmd.PersistentFlags().String("default-headers", "", "Configure addtional headers for gate client requests")
 	util.InitUI(false, false, "")
 	return rootCmd
 }

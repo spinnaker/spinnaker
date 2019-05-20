@@ -131,9 +131,24 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 		return nil, err
 	}
 
+	m := make(map[string]string)
+
+	defaultHeaders, err := flags.GetString("default-headers")
+	if err != nil {
+		return nil, err
+	}
+
+	if defaultHeaders != "" {
+		headers := strings.Split(defaultHeaders, ",")
+		for _, element := range headers {
+			header := strings.Split(element, "=")
+			m[strings.TrimSpace(header[0])] = strings.TrimSpace(header[1])
+		}
+	}
+
 	cfg := &gate.Configuration{
 		BasePath:      gateClient.GateEndpoint(),
-		DefaultHeader: make(map[string]string),
+		DefaultHeader: m,
 		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
 		HTTPClient:    httpClient,
 	}
