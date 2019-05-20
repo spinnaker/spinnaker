@@ -113,30 +113,31 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
       String cloudProvider,
       String location,
       String createdServerGroup) {
-    if (cloudProvider.equals("titus")) {
-      // titus does not (currently!) force cache refresh to it's possible that `NEWEST` is actually
-      // the `ANCESTOR` to
-      // the just created server group
-      Map<String, Object> newestServerGroup =
-          retrySupport.retry(
-              () -> {
-                return getPreviousServerGroupFromClusterByTarget(
-                    application, account, cluster, cloudProvider, location, "NEWEST");
-              },
-              10,
-              3000,
-              false); // retry for up to 30 seconds
 
-      if (newestServerGroup == null) {
-        // cluster has no enabled server groups
-        return null;
-      }
+    // When forceCacheRefresh is disabled (i.e. via the
+    // stages.createServerGroupStage.forceCacheRefresh.enabled
+    // property), or unsupported by the cloudProvider (true for titus), NEWEST may reflect the
+    // ancestor and not
+    // the serverGroup just created. If not, an explicit ANCESTOR lookup is attempted.
+    Map<String, Object> newestServerGroup =
+        retrySupport.retry(
+            () -> {
+              return getPreviousServerGroupFromClusterByTarget(
+                  application, account, cluster, cloudProvider, location, "NEWEST");
+            },
+            10,
+            3000,
+            false); // retry for up to 30 seconds
 
-      if (!newestServerGroup.get("name").equals(createdServerGroup)) {
-        // if the `NEWEST` server group is _NOT_ what was just created, we've found our `ANCESTOR`
-        // if not, fall through to an explicit `ANCESTOR` lookup
-        return newestServerGroup;
-      }
+    if (newestServerGroup == null) {
+      // cluster has no enabled server groups
+      return null;
+    }
+
+    if (!newestServerGroup.get("name").equals(createdServerGroup)) {
+      // if the `NEWEST` server group is _NOT_ what was just created, we've found our `ANCESTOR`
+      // if not, fall through to an explicit `ANCESTOR` lookup
+      return newestServerGroup;
     }
 
     return retrySupport.retry(

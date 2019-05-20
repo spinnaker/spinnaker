@@ -46,7 +46,11 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
   def "should build spinnaker:metadata tag for pipeline"() {
     given:
     def tagGenerator = Spy(SpinnakerMetadataServerGroupTagGenerator, constructorArgs: [oortService, retrySupport]) {
-      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
+      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "NEWEST") >> { return newestServerGroup }
+
+      if (newestServerGroup != null && newestServerGroup != previousServerGroup) {
+        1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
+      }
     }
 
     def pipeline = pipeline {
@@ -66,9 +70,9 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     then:
     tags == [[
-               name : "spinnaker:metadata",
+               name     : "spinnaker:metadata",
                namespace: "spinnaker",
-               value: [
+               value    : [
                  executionId     : pipeline.id,
                  pipelineConfigId: "configId",
                  application     : "application",
@@ -81,17 +85,21 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
              ]]
 
     where:
-    previousServerGroup                   | authenticatedUser || _
-    null                                  | null              || _    // metadata tag should NOT include `previousServerGroup`
-    null                                  | "username"        || _    // include user if non-null
-    [serverGroupName: "application-v001"] | null              || _
+    newestServerGroup          | previousServerGroup        | authenticatedUser || _
+    null                       | null                       | null              || _    // metadata tag should NOT include `previousServerGroup`
+    null                       | null                       | "username"        || _    // include user if non-null
+    [name: "application-v002"] | [name: "application-v001"] | null              || _    // NEWEST is checked first, falling back to ANCESTOR
+    [name: "application-v001"] | [name: "application-v001"] | null              || _    // NEWEST is still cached as the ANCESTOR, no fallback
   }
 
   @Unroll
   def "should build spinnaker:metadata tag for orchestration"() {
     given:
     def tagGenerator = Spy(SpinnakerMetadataServerGroupTagGenerator, constructorArgs: [oortService, retrySupport]) {
-      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
+      1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "NEWEST") >> { return newestServerGroup }
+      if (newestServerGroup != null && newestServerGroup != previousServerGroup) {
+        1 * getPreviousServerGroupFromClusterByTarget(_, _, _, _, _, "ANCESTOR") >> { return previousServerGroup }
+      }
     }
 
     def orchestration = orchestration {
@@ -110,7 +118,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     tags == [[
                name     : "spinnaker:metadata",
                namespace: "spinnaker",
-               value: [
+               value    : [
                  executionId  : orchestration.id,
                  application  : "application",
                  executionType: "orchestration",
@@ -121,10 +129,11 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
              ]]
 
     where:
-    previousServerGroup                   | authenticatedUser || _
-    null                                  | null              || _    // metadata tag should NOT include `previousServerGroup`
-    null                                  | "username"        || _    // include user if non-null
-    [serverGroupName: "application-v001"] | null              || _
+    newestServerGroup          | previousServerGroup        | authenticatedUser || _
+    null                       | null                       | null              || _    // metadata tag should NOT include `previousServerGroup`
+    null                       | null                       | "username"        || _    // include user if non-null
+    [name: "application-v002"] | [name: "application-v001"] | null              || _    // NEWEST is queried, then falls back to ANCESTOR
+    [name: "application-v001"] | [name: "application-v001"] | null              || _    // NEWEST is still cached as the ANCESTOR, no fallback
   }
 
   def "should construct previous server group metadata when present"() {
@@ -137,6 +146,13 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     )
 
     then: "metadata should be returned"
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "NEWEST", "image", "true") >> {
+      return [
+        serverGroupName: "application-v002",
+        imageId        : "ami-f234567",
+        imageName      : "my_image"
+      ]
+    }
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "ANCESTOR", "image", "true") >> {
       return [
         serverGroupName: "application-v001",
@@ -158,14 +174,14 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     )
 
     then: "no metadata should be returned"
-    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "ANCESTOR", "image", "true") >> {
+    1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "NEWEST", "image", "true") >> {
       throw notFoundError
     }
-    0 * oortService._
+    0 * oortService._ // when NEWEST is not found, no fallback is made to query for ANCESTOR
     previousServerGroupMetadata == null
   }
 
-  def "should check NEWEST and ANCESTOR when constructing previous server group metadata for titus"() {
+  def "should check NEWEST and ANCESTOR when constructing previous server group metadata"() {
     given:
     def tagGenerator = new SpinnakerMetadataServerGroupTagGenerator(oortService, retrySupport)
 
