@@ -174,6 +174,57 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         ]
   }
 
+  @Unroll
+  void 'should wait based on configured capacity when autoscaling is disabled'() {
+    when:
+    def serverGroup = [
+      asg     : [
+        desiredCapacity: asg.desired
+      ],
+      capacity: [
+        min    : asg.min,
+        max    : asg.max,
+        desired: asg.desired
+      ]
+    ]
+
+    def context = [
+      source: [useSourceCapacity: false],
+    ]
+
+    if (configured) {
+      context.capacity = [
+        min    : configured.min,
+        max    : configured.max,
+        desired: configured.desired
+      ]
+    }
+
+    def instances = []
+    (1..healthy).each {
+      instances << [health: [[state: 'Up']]]
+    }
+
+    then:
+    result == task.hasSucceeded(
+      new Stage(Execution.newPipeline("orca"), "", "", context),
+      serverGroup, instances, null
+    )
+
+    where:
+    result || healthy | asg                             | configured
+    // scale down
+    false  || 5       | [min: 3, max: 3, desired: 3]    | null
+    true   || 3       | [min: 3, max: 3, desired: 3]    | null
+    false  || 5       | [min: 10, max: 10, desired: 10] | [min: 3, max: 3, desired: 3]
+    true   || 5       | [min: 10, max: 10, desired: 10] | [min: 5, max: 5, desired: 5]
+    // scale up
+    false  || 5       | [min: 5, max: 5, desired: 5]    | [min: 10, max: 10, desired: 10]
+    true   || 3       | [min: 1, max: 1, desired: 1]    | [min: 3, max: 3, desired: 3]
+    // asg value is used when autoscaling
+    true   || 4       | [min: 3, max: 10, desired: 4]   | [min: 1, max: 50, desired: 5]
+  }
+
   private static Map makeInstance(id, healthState = 'Up') {
     [instanceId: id, health: [ [ state: healthState ] ]]
   }

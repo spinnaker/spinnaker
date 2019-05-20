@@ -49,8 +49,17 @@ class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
         return false
       }
 
-      splainer.add("checking if capacity matches (capacity.desired=${serverGroup.capacity.desired}, instances.size()=${instances.size()}) ")
-      if (serverGroup.capacity.desired != instances.size()) {
+      Integer desired
+
+      if (WaitForUpInstancesTask.useConfiguredCapacity(stage, serverGroup.capacity as Map<String, Integer>)) {
+        desired = ((Map<String, Integer>) stage.context.capacity).desired
+        splainer.add("using desired from stage.context.capacity ($desired)")
+      } else {
+        desired = ((Map<String, Integer>)serverGroup.capacity).desired
+      }
+
+      splainer.add("checking if capacity matches (desired=${desired}, instances.size()=${instances.size()}) ")
+      if (desired != instances.size()) {
         splainer.add("short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match}")
         return false
       }

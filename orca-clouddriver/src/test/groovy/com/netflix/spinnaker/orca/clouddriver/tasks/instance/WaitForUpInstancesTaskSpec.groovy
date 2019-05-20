@@ -335,6 +335,65 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   @Unroll
+  void 'calculates targetDesired based on configured capacity or servergroup depending on value'() {
+    when:
+    def serverGroup = [
+      asg     : [
+        desiredCapacity: asg.desired
+      ],
+      capacity: [
+        min    : asg.min,
+        max    : asg.max,
+        desired: asg.desired
+      ]
+    ]
+
+    def context = [
+      source: [useSourceCapacity: (snapshot != null)],
+    ]
+
+    if (snapshot) {
+      context.capacitySnapshot = [desiredCapacity: snapshot]
+    }
+
+    if (configured) {
+      context.capacity = [
+        min    : configured.min,
+        max    : configured.max,
+        desired: configured.desired
+      ]
+    }
+
+    def instances = []
+    (1..healthy).each {
+      instances << [health: [[state: 'Up']]]
+    }
+
+    then:
+    result == task.hasSucceeded(
+      new Stage(Execution.newPipeline("orca"), "", "", context),
+      serverGroup, instances, null
+    )
+
+    where:
+    result || snapshot | healthy | asg                          | configured
+    false  || null     | 2       | [min: 3, max: 3, desired: 3] | null
+    // configured is used if present and min == max == desired
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 2, desired: 2]
+    // configured is used if current allows autoscaling but configured doesn't
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 500, desired: 2]
+    true   || null     | 2       | [min: 5, max: 5, desired: 5] | [min: 1, max: 5, desired: 2]
+    // useSourceCapacity with a snapshot is used over configured and current
+    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: 5, max: 5, desired: 5]
+    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | null
+    false  || 4        | 3       | [min: 5, max: 5, desired: 5] | null
+    // sourceCapacity is ignored if > than the calculated target due to a scale down corner case
+    true   || 4        | 3       | [min: 3, max: 3, desired: 3] | null
+    false  || 4        | 3       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: 4]
+    true   || 5        | 4       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: 4]
+  }
+
+  @Unroll
   void 'should throw an exception if targetHealthyDeployPercentage is not between 0 and 100'() {
     when:
     task.hasSucceeded(

@@ -39,16 +39,16 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   @Override
   Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
     def additionalRunningStageContext = [
-        targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
-        lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
+      targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
+      lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
     ]
 
     if (!stage.context.capacitySnapshot) {
       def initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
       additionalRunningStageContext.capacitySnapshot = [
-          minSize        : initialTargetCapacity.min,
-          desiredCapacity: initialTargetCapacity.desired,
-          maxSize        : initialTargetCapacity.max
+        minSize        : initialTargetCapacity.min,
+        desiredCapacity: initialTargetCapacity.desired,
+        maxSize        : initialTargetCapacity.max
       ]
     }
 
@@ -116,9 +116,16 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       return 0
     }
 
-    Map<String, Integer> capacity = getServerGroupCapacity(stage, serverGroup)
-    Integer targetDesiredSize = capacity.desired as Integer
-    splainer.add("setting targetDesiredSize=${targetDesiredSize} from the desired size in capacity=${capacity}")
+    Map<String, Integer> currentCapacity = getServerGroupCapacity(stage, serverGroup)
+    Integer targetDesiredSize
+
+    if (useConfiguredCapacity(stage, currentCapacity)) {
+      targetDesiredSize = ((Map<String, Integer>) stage.context.capacity).desired
+      splainer.add("setting targetDesiredSize=${targetDesiredSize} from the configured stage context.capacity=${stage.context.capacity}")
+    } else {
+      targetDesiredSize = currentCapacity.desired as Integer
+      splainer.add("setting targetDesiredSize=${targetDesiredSize} from the desired size in current serverGroup capacity=${currentCapacity}")
+    }
 
     if (stage.context.capacitySnapshot) {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
@@ -140,11 +147,29 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       targetDesiredSize = newTargetDesiredSize
     } else if (stage.context.desiredPercentage != null) {
       Integer percentage = (Integer) stage.context.desiredPercentage
-      targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
-      splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${capacity}")
+      targetDesiredSize = getDesiredInstanceCount(currentCapacity, percentage)
+      splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${currentCapacity}")
     }
 
     return targetDesiredSize
+  }
+
+  // If either the configured capacity or current serverGroup has autoscaling diasbled, calculate
+  // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
+  // cache updates while resizing serverGroups.
+  static boolean useConfiguredCapacity(Stage stage, Map<String, Integer> current) {
+    Map<String, Integer> configured = stage.context.getOrDefault("capacity", [:]) as Map<String, Integer>
+
+    if (configured.desired == null) {
+      return false
+    }
+
+    if (current.desired == null) {
+      return true
+    }
+
+    return (configured.min == configured.max && configured.min == configured.desired) ||
+      (current.min == current.max && current.min == current.desired)
   }
 
   @Override
@@ -165,13 +190,13 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         snapshot.up++
       } else if (someAreDown(instance, interestingHealthProviderNames)) {
         snapshot.down++
-      } else if (healths.any { it.state == 'OutOfService' } ) {
+      } else if (healths.any { it.state == 'OutOfService' }) {
         snapshot.outOfService++
-      } else if (healths.any { it.state == 'Starting' } ) {
+      } else if (healths.any { it.state == 'Starting' }) {
         snapshot.starting++
-      } else if (healths.every { it.state == 'Succeeded' } ) {
+      } else if (healths.every { it.state == 'Succeeded' }) {
         snapshot.succeeded++
-      } else if (healths.any { it.state == 'Failed' } ) {
+      } else if (healths.any { it.state == 'Failed' }) {
         snapshot.failed++
       } else {
         snapshot.unknown++
@@ -212,9 +237,9 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         // expectation is reconciliation has happened within 10 minutes and that the
         // current server group capacity should be preferred
         log.error(
-            "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}, executionId: {})",
-            "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-            stage.execution.id
+          "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}, executionId: {})",
+          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
+          stage.execution.id
         )
         return serverGroupCapacity
       }
@@ -223,30 +248,30 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
       log.debug(
-          "Unable to determine initial target capacity (serverGroup: {}, executionId: {})",
-          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-          stage.execution.id
+        "Unable to determine initial target capacity (serverGroup: {}, executionId: {})",
+        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
+        stage.execution.id
       )
       return serverGroupCapacity
     }
 
     if ((serverGroup.capacity.max == 0 && initialTargetCapacity.max != 0) ||
-        (serverGroup.capacity.desired == 0 && initialTargetCapacity.desired > 0)) {
+      (serverGroup.capacity.desired == 0 && initialTargetCapacity.desired > 0)) {
       log.info(
-          "Overriding server group capacity (serverGroup: {}, initialTargetCapacity: {}, executionId: {})",
-          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-          initialTargetCapacity,
-          stage.execution.id
+        "Overriding server group capacity (serverGroup: {}, initialTargetCapacity: {}, executionId: {})",
+        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
+        initialTargetCapacity,
+        stage.execution.id
       )
       serverGroupCapacity = initialTargetCapacity
     }
 
     log.debug(
-        "Determined server group capacity (serverGroup: {}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
-        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
-        serverGroupCapacity,
-        initialTargetCapacity,
-        stage.execution.id
+      "Determined server group capacity (serverGroup: {}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
+      "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
+      serverGroupCapacity,
+      initialTargetCapacity,
+      stage.execution.id
     )
 
     return serverGroupCapacity
@@ -289,6 +314,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   private static class NoopSplainer extends Splainer {
     def add(String message) {}
+
     def splain() {}
   }
 
