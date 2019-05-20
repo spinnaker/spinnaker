@@ -17,8 +17,10 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.sql.JooqSqlCommentAppender
 import com.netflix.spinnaker.orca.sql.JooqToSpringExceptionTransformer
+import com.netflix.spinnaker.orca.sql.QueryLogger
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
@@ -80,13 +82,15 @@ class SqlConfiguration {
 
   @Bean fun jooqConfiguration(
     connectionProvider: DataSourceConnectionProvider,
-    properties: SqlProperties
+    properties: SqlProperties,
+    dynamicConfigService: DynamicConfigService
   ): DefaultConfiguration =
     DefaultConfiguration().apply {
       set(*DefaultExecuteListenerProvider.providers(
         JooqToSpringExceptionTransformer(),
         JooqSqlCommentAppender(),
-        SlowQueryLogger()
+        SlowQueryLogger(),
+        QueryLogger(dynamicConfigService)
       ))
       set(connectionProvider)
       setSQLDialect(properties.connectionPool.dialect)

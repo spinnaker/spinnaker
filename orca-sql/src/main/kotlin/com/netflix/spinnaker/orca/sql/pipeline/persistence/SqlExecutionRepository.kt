@@ -192,11 +192,26 @@ class SqlExecutionRepository(
   }
 
   override fun delete(type: ExecutionType, id: String) {
+    val correlationField = if (type == PIPELINE) "pipeline_id" else "orchestration_id"
+    val (ulid, _) = mapLegacyId(jooq, type.tableName, id)
+
+    val correlationId = jooq.select(field("id")).from("correlation_ids")
+      .where(field(correlationField).eq(ulid))
+      .limit(1)
+      .fetchOne()
+      ?.into(String::class.java)
+    val stageIds = jooq.select(field("id")).from(type.stagesTableName)
+      .where(field("execution_id").eq(ulid))
+      .fetch()
+      ?.into(String::class.java)?.toTypedArray()
+
     jooq.transactional {
-      val correlationField = if (type == PIPELINE) "pipeline_id" else "orchestration_id"
-      val (ulid, _) = mapLegacyId(it, type.tableName, id)
-      it.delete(table("correlation_ids")).where(field(correlationField).eq(ulid)).execute()
-      it.delete(type.stagesTableName).where(field("execution_id").eq(ulid)).execute()
+      if (correlationId != null) {
+        it.delete(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+      }
+      if (stageIds != null) {
+        it.delete(type.stagesTableName).where(field("id").`in`(*stageIds)).execute()
+      }
       it.delete(type.tableName).where(field("id").eq(ulid)).execute()
     }
   }

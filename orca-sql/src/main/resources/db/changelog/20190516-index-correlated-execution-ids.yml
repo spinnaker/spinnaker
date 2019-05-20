@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20190516-index-correlated-execution-ids
+      author: robzienert
+      changes:
+        - createIndex:
+            indexName: pipeline_id_idx
+            tableName: correlation_ids
+            columns:
+              - column:
+                  name: pipeline_id
+        - createIndex:
+            indexName: orchestration_id_idx
+            tableName: correlation_ids
+            columns:
+              - column:
+                  name: orchestration_id
+      rollback:
+        - dropIndex:
+            indexName: orchestration_id_idx
+            tableName: correlation_ids
+        - dropIndex:
+            indexName: pipeline_id_idx
+            tableName: correlation_ids
