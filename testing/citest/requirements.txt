@@ -14,9 +14,5 @@ google_compute_engine
 cffi
 pyopenssl
 
-# OpenStack client needed for openstack_smoke_test
-python-openstackclient
-
 google-cloud-storage>=1.7
 google-cloud-pubsub>=0.26.0
-
