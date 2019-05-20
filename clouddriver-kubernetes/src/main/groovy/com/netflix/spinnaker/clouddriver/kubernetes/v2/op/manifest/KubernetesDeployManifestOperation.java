@@ -147,9 +147,11 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
     if (!unboundArtifacts.isEmpty()) {
       throw new IllegalArgumentException(
-          "The following artifacts could not be bound: '"
-              + unboundArtifacts
-              + "' . Failing the stage as this is likely a configuration error.");
+          String.format(
+              "The following required artifacts could not be bound: '%s'."
+                  + "Check that the Docker image name above matches the name used in the image field of your manifest."
+                  + "Failing the stage as this is likely a configuration error.",
+              unboundArtifacts));
     }
 
     getTask().updateStatus(OP_NAME, "Sorting manifests by priority...");
