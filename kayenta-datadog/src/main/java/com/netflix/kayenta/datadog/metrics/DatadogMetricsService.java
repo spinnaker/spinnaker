@@ -133,6 +133,22 @@ public class DatadogMetricsService implements MetricsService {
       );
     }
 
+    if (ret.isEmpty()) {
+      // Add placeholder metric set.
+      ret.add(
+        MetricSet.builder()
+          .name(canaryMetricConfig.getName())
+          .startTimeMillis(canaryScope.getStart().toEpochMilli())
+          .startTimeIso(canaryScope.getStart().toString())
+          .endTimeMillis(canaryScope.getEnd().toEpochMilli())
+          .endTimeIso(canaryScope.getEnd().toString())
+          .stepMillis(1000)
+          .values(new ArrayList<>())
+          .attribute("query", query)
+          .build()
+      );
+    }
+
     return ret;
   }
 
