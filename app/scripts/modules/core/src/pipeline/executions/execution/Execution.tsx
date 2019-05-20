@@ -277,7 +277,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     ));
 
     const executionMarkerWidth = `${100 / execution.stageSummaries.length}%`;
-    const showExecutionName = !title && sortFilter.groupBy !== 'name';
+    const showExecutionName = standalone || (!title && sortFilter.groupBy !== 'name');
     const executionMarkers = execution.stageSummaries.map(stage => (
       <ExecutionMarker
         key={stage.refId}
@@ -301,18 +301,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return (
       <div className={className} id={`execution-${execution.id}`}>
         <div className={`execution-overview group-by-${sortFilter.groupBy}`}>
-          {title && (
+          {(title || showExecutionName) && (
             <h4 className="execution-name">
-              {showAccountLabels && accountLabels}
+              {(showAccountLabels || showExecutionName) && accountLabels}
               {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
-              {title}
-            </h4>
-          )}
-          {showExecutionName && (
-            <h4 className="execution-name">
-              {accountLabels}
-              {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
-              {execution.name}
+              {title || execution.name}
             </h4>
           )}
           <ExecutionStatus execution={execution} showingDetails={showingDetails} standalone={standalone} />
