@@ -448,7 +448,7 @@ abstract public class Node implements Validatable {
         }
 
         File fFile = new File(fPath);
-        String fName = fFile.getName();
+        String fName = fFile.getName().replaceAll("[^-._a-zA-Z0-9]", "-");
 
         // Hash the path to uniquely flatten all files into the output directory
         Path newName = Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
