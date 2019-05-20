@@ -3,6 +3,7 @@ package com.netflix.spinnaker.rosco.manifests;
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import lombok.Getter;
@@ -41,6 +42,9 @@ public abstract class TemplateUtils {
   }
 
   protected Path downloadArtifactToTmpFile(BakeManifestEnvironment env, Artifact artifact) throws IOException {
+    if (artifact.getReference() == null) {
+      throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
+    }
     Path path = Paths.get(env.getStagingPath().toString(), nameFromReference(artifact.getReference()));
     OutputStream outputStream = new FileOutputStream(path.toString());
 
