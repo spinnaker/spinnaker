@@ -9,7 +9,7 @@ dependencies {
   testAnnotationProcessor "org.projectlombok:lombok"
 
   implementation "com.amazonaws:aws-java-sdk"
-  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"

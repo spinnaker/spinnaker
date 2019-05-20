@@ -4,7 +4,7 @@ dependencies {
   implementation project(":cats:cats-core")
 
   compileOnly "org.apache.commons:commons-lang3"
-  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"

@@ -11,7 +11,7 @@ dependencies {
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.slf4j:jcl-over-slf4j"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.google.guava:guava:27.1-jre"
+  implementation "com.github.ben-manes.caffeine:guava"
 
   testImplementation project(":cats:cats-test")
 
