@@ -54,11 +54,13 @@ public class MavenArtifactCredentials implements ArtifactCredentials {
   private static final String LATEST = "LATEST";
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
+  public static final List<String> TYPES = singletonList("maven/file");
+
   private final MavenArtifactAccount account;
   private final OkHttpClient okHttpClient;
   private final RepositoryLayout repositoryLayout;
 
-  @Getter private final List<String> types = singletonList("maven/file");
+  @Getter private final List<String> types = TYPES;
 
   public MavenArtifactCredentials(MavenArtifactAccount account, OkHttpClient okHttpClient) {
     this.account = account;
