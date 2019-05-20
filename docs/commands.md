@@ -3478,10 +3478,10 @@ hal config ci gcb account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the master to operate on.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--jsonKey`: The path to a JSON service account that Spinnaker will use as credentials
+ * `--json-key`: The path to a JSON service account that Spinnaker will use as credentials
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--project`: (*Required*) The name of the GCP in which to trigger and monitor builds
- * `--subscriptionName`: The name of the PubSub subscription on which to listen for build changes
+ * `--project`: (*Required*) The name of the GCP project in which to trigger and monitor builds
+ * `--subscription-name`: The name of the PubSub subscription on which to listen for build changes
 
 
 ---
@@ -3513,10 +3513,10 @@ hal config ci gcb account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the master to operate on.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--jsonKey`: The path to a JSON service account that Spinnaker will use as credentials
+ * `--json-key`: The path to a JSON service account that Spinnaker will use as credentials
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--project`: The name of the GCP in which to trigger and monitor builds
- * `--subscriptionName`: The name of the PubSub subscription on which to listen for build changes
+ * `--project`: The name of the GCP project in which to trigger and monitor builds
+ * `--subscription-name`: The name of the PubSub subscription on which to listen for build changes
 
 
 ---

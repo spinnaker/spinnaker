@@ -49,18 +49,18 @@ public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountComman
 
   @Parameter(
       names = "--project",
-      description = "The name of the GCP in which to trigger and monitor builds"
+      description = "The name of the GCP project in which to trigger and monitor builds"
   )
   private String project;
 
   @Parameter(
-      names = "--subscriptionName",
+      names = "--subscription-name",
       description = "The name of the PubSub subscription on which to listen for build changes"
   )
   public String subscriptionName;
 
   @Parameter(
-      names = "--jsonKey",
+      names = "--json-key",
       description = "The path to a JSON service account that Spinnaker will use as credentials"
   )
   public String jsonKey;
