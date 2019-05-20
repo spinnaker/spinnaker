@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.bakery.api
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.*
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.CompileStatic
@@ -66,12 +66,17 @@ class BakeRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   Integer rootVolumeSize
 
-  @JsonAnySetter
+  @JsonIgnore
   Map<String, Object> other = new HashMap<>()
 
   @JsonAnyGetter
   public Map<String, Object> other() {
     return other
+  }
+
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    other.put(namingStrategy.translate(name), value)
   }
 
   static enum CloudProviderType {
