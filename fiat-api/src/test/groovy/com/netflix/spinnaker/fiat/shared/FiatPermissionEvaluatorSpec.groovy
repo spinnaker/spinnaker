@@ -146,8 +146,8 @@ class FiatPermissionEvaluatorSpec extends Specification {
   @Unroll
   def "should support legacy fallback when fiat is unavailable"() {
     given:
-    MDC.put(AuthenticatedRequest.SPINNAKER_USER, "fallback")
-    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "account1,account2")
+    MDC.put(AuthenticatedRequest.Header.USER.header, "fallback")
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "account1,account2")
 
     when:
     def permission = evaluator.getPermission("testUser")

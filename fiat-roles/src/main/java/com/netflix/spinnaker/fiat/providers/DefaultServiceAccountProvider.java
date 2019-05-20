@@ -28,7 +28,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +73,7 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount>
       return svcAcct -> true;
     }
     if (fiatRoleConfig.isOrMode()) {
-      return svcAcct -> CollectionUtils.intersection(roleNames, svcAcct.getMemberOf()).size() > 0;
+      return svcAcct -> svcAcct.getMemberOf().stream().anyMatch(roleNames::contains);
     } else {
       return svcAcct -> roleNames.containsAll(svcAcct.getMemberOf());
     }
