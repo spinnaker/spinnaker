@@ -1,4 +1,5 @@
 import { get, upperFirst } from 'lodash';
+import { safeLoad } from 'js-yaml';
 
 import {
   ExecutionDetailsTasks,
@@ -52,30 +53,20 @@ PipelineConfigValidator.registerValidator(
 );
 
 PipelineConfigValidator.registerValidator(
-  'validDeployServiceParameterJson',
+  'validDeployServiceParameterJsonOrYaml',
   new class implements IStageOrTriggerValidator {
-    private validationMessage(validationConfig: IServiceFieldValidatorConfig): string {
-      return (
-        validationConfig.message ||
-        `<strong>${this.printableFieldLabel(validationConfig)}</strong> should be a valid JSON string.`
-      );
-    }
-
-    private printableFieldLabel(config: IServiceFieldValidatorConfig): string {
-      return upperFirst(config.fieldLabel || config.fieldName);
-    }
-
-    private fieldIsValid(stage: IStage | ITrigger, config: IServiceFieldValidatorConfig): boolean {
-      const serviceInput = get(stage, 'manifest');
-      const manifestSource: any = get(serviceInput, sourceStruct(serviceInput));
-      const content: any = get(manifestSource, config.fieldName);
-
-      if (!content) {
-        return true;
-      }
-
+    private isJson(value: string): boolean {
       try {
-        JSON.parse(content);
+        JSON.parse(value);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    private isYaml(value: string): boolean {
+      try {
+        safeLoad(value);
         return true;
       } catch (e) {
         return false;
@@ -91,9 +82,14 @@ PipelineConfigValidator.registerValidator(
       if (sourceType(manifest, get(stage, 'userProvided')) !== validationConfig.manifestSource) {
         return null;
       }
+      const manifestSource: any = get(manifest, sourceStruct(manifest));
+      const fieldContent: any = get(manifestSource, validationConfig.fieldName);
 
-      if (!this.fieldIsValid(stage, validationConfig)) {
-        return this.validationMessage(validationConfig);
+      if (fieldContent) {
+        if (!this.isJson(fieldContent) && !this.isYaml(fieldContent)) {
+          const fieldLabel = upperFirst(validationConfig.fieldLabel || validationConfig.fieldName);
+          return validationConfig.message || `<strong>${fieldLabel}</strong> should be a valid JSON or YAML string.`;
+        }
       }
       return null;
     }
@@ -150,13 +146,13 @@ Registry.pipeline.registerStage({
       preventSave: true,
     } as IServiceFieldValidatorConfig,
     {
-      type: 'validDeployServiceParameterJson',
+      type: 'validDeployServiceParameterJsonOrYaml',
       manifestSource: 'direct',
       fieldName: 'parameters',
       preventSave: true,
     } as IServiceFieldValidatorConfig,
     {
-      type: 'validDeployServiceParameterJson',
+      type: 'validDeployServiceParameterJsonOrYaml',
       manifestSource: 'userProvided',
       fieldName: 'credentials',
       preventSave: true,
