@@ -176,6 +176,13 @@ public class AuthenticatedRequest {
       }
     }
 
+    // Add X-SPINNAKER-REQUEST-ID if not present for traceability
+    if (!headers.containsKey(Header.REQUEST_ID.getHeader())) {
+      String requestId = getSpinnakerRequestId().orElse(null);
+      headers.put(Header.REQUEST_ID.getHeader(), Optional.of(requestId));
+      setOrRemoveMdc(Header.REQUEST_ID.getHeader(), requestId);
+    }
+
     return headers;
   }
 
