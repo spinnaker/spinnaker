@@ -70,6 +70,22 @@ describe('API Service', function() {
       expect(rejected).toBe(true);
     });
 
+    it('application/foo+json is fine', () => {
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      $httpBackend
+        .expectGET(`${baseUrl}/bad`)
+        .respond(200, '{"good":"job"}', { 'content-type': 'application/foo+json' });
+
+      let rejected = false;
+      API.one('bad')
+        .get()
+        .then(noop, () => (rejected = true));
+
+      $httpBackend.flush();
+      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
+      expect(rejected).toBe(false);
+    });
+
     it('string responses starting with <html should trigger a reauthentication request and reject', function() {
       spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
       $httpBackend.expectGET(`${baseUrl}/fine`).respond(200, 'this is fine');

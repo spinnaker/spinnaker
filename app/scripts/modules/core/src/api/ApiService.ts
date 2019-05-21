@@ -41,7 +41,7 @@ export class API {
     return $q((resolve, reject) => {
       const contentType = result.headers('content-type');
       if (contentType) {
-        const isJson = contentType.includes('application/json');
+        const isJson = contentType.match(/application\/(.+\+)?json/); // e.g application/json, application/hal+json
         const isZeroLengthHtml = contentType.includes('text/html') && result.data === '';
         const isZeroLengthText = contentType.includes('text/plain') && result.data === '';
         if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
