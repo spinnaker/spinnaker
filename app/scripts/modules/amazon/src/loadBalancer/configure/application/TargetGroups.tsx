@@ -10,6 +10,8 @@ import {
   SpInput,
   ValidationMessage,
   spelNumberCheck,
+  Validators,
+  robotToHuman,
 } from '@spinnaker/core';
 
 import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
@@ -40,6 +42,15 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
       existingTargetGroupNames: {},
       oldTargetGroupCount,
     };
+  }
+
+  private checkBetween(errors: any, object: any, fieldName: string, min: number, max: number) {
+    const field = object[fieldName];
+    if (!Number.isNaN(field)) {
+      errors[fieldName] =
+        Validators.minValue(min)(field, robotToHuman(fieldName)) ||
+        Validators.maxValue(max)(field, robotToHuman(fieldName));
+    }
   }
 
   public validate(
@@ -78,6 +89,11 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
           tgErrors[key] = err;
         }
       });
+
+      this.checkBetween(tgErrors, targetGroup, 'healthCheckTimeout', 2, 60);
+      this.checkBetween(tgErrors, targetGroup, 'healthCheckInterval', 5, 300);
+      this.checkBetween(tgErrors, targetGroup, 'healthyThreshold', 2, 10);
+      this.checkBetween(tgErrors, targetGroup, 'unhealthyThreshold', 2, 10);
 
       if (targetGroup.healthCheckPort !== 'traffic-port') {
         const err = spelNumberCheck(targetGroup.healthCheckPort);

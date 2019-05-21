@@ -10,7 +10,7 @@ export const SpInput = (
 ) => {
   const { error, ...inputProps } = props;
   if (error) {
-    inputProps.className = inputProps.className ? `${inputProps.className} ` : 'invalid';
+    inputProps.className = `${inputProps.className || ''} invalid`;
   }
   inputProps.type = inputProps.type || 'text';
   return (
