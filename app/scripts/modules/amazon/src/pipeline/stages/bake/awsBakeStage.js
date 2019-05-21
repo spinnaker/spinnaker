@@ -65,7 +65,7 @@ module.exports = angular
           baseOsOptions: BakeryReader.getBaseOsOptions('aws'),
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
           vmTypes: ['hvm', 'pv'],
-          storeTypes: ['ebs', 's3', 'docker'],
+          storeTypes: ['ebs', 'docker'],
         }).then(function(results) {
           $scope.regions = results.regions;
           $scope.vmTypes = results.vmTypes;
