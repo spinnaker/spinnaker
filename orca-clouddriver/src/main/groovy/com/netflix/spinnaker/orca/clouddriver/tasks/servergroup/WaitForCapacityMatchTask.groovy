@@ -52,7 +52,7 @@ class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
       Integer desired
 
       if (WaitForUpInstancesTask.useConfiguredCapacity(stage, serverGroup.capacity as Map<String, Integer>)) {
-        desired = ((Map<String, Integer>) stage.context.capacity).desired
+        desired = ((Map<String, Integer>) stage.context.capacity).desired as Integer
         splainer.add("using desired from stage.context.capacity ($desired)")
       } else {
         desired = ((Map<String, Integer>)serverGroup.capacity).desired

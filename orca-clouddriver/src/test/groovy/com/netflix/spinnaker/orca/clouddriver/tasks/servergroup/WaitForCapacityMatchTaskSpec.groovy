@@ -217,12 +217,17 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     false  || 5       | [min: 3, max: 3, desired: 3]    | null
     true   || 3       | [min: 3, max: 3, desired: 3]    | null
     false  || 5       | [min: 10, max: 10, desired: 10] | [min: 3, max: 3, desired: 3]
+    false  || 5       | [min: 10, max: 10, desired: 10] | [min: "3", max: "3", desired: "3"]
     true   || 5       | [min: 10, max: 10, desired: 10] | [min: 5, max: 5, desired: 5]
+    true   || 5       | [min: 10, max: 10, desired: 10] | [min: "5", max: "5", desired: "5"]
     // scale up
     false  || 5       | [min: 5, max: 5, desired: 5]    | [min: 10, max: 10, desired: 10]
+    false  || 5       | [min: 5, max: 5, desired: 5]    | [min: "10", max: "10", desired: "10"]
     true   || 3       | [min: 1, max: 1, desired: 1]    | [min: 3, max: 3, desired: 3]
+    true   || 3       | [min: 1, max: 1, desired: 1]    | [min: "3", max: "3", desired: "3"]
     // asg value is used when autoscaling
     true   || 4       | [min: 3, max: 10, desired: 4]   | [min: 1, max: 50, desired: 5]
+    true   || 4       | [min: 3, max: 10, desired: 4]   | [min: "1", max: "50", desired: "5"]
   }
 
   private static Map makeInstance(id, healthState = 'Up') {

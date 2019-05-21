@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper.HealthCountSnapshot
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -120,7 +119,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     Integer targetDesiredSize
 
     if (useConfiguredCapacity(stage, currentCapacity)) {
-      targetDesiredSize = ((Map<String, Integer>) stage.context.capacity).desired
+      targetDesiredSize = ((Map<String, Integer>) stage.context.capacity).desired as Integer
       splainer.add("setting targetDesiredSize=${targetDesiredSize} from the configured stage context.capacity=${stage.context.capacity}")
     } else {
       targetDesiredSize = currentCapacity.desired as Integer
@@ -158,7 +157,9 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
   // cache updates while resizing serverGroups.
   static boolean useConfiguredCapacity(Stage stage, Map<String, Integer> current) {
-    Map<String, Integer> configured = stage.context.getOrDefault("capacity", [:]) as Map<String, Integer>
+    Map<String, Integer> configured =
+      (stage.context.getOrDefault("capacity", [:]))
+      .collectEntries { k, v -> [(k): v as Integer] } as Map<String, Integer>
 
     if (configured.desired == null) {
       return false

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -27,9 +28,6 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.util.concurrent.TimeUnit
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class WaitForUpInstancesTaskSpec extends Specification {
@@ -52,60 +50,60 @@ class WaitForUpInstancesTaskSpec extends Specification {
     def pipeline = Execution.newPipeline("orca")
     task.objectMapper = mapper
     def response = new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([
-          name        : "front50",
-          serverGroups: [
+      name        : "front50",
+      serverGroups: [
+        [
+          region   : "us-east-1",
+          name     : "front50-v001",
+          asg      : [
+            desiredCapacity: 1
+          ],
+          capacity : [
+            desired: 1
+          ],
+          instances: [
             [
-              region   : "us-east-1",
-              name     : "front50-v001",
-              asg      : [
-                desiredCapacity: 1
-              ],
-              capacity : [
-                desired: 1
-              ],
-              instances: [
-                [
-                  health: [ [ state : "Up"] ]
-                ]
-              ]
-            ],
-            [
-              region   : "us-west-1",
-              name     : "front50-v001",
-              asg      : [
-                desiredCapacity: 1
-              ],
-              capacity : [
-                desired: 1
-              ],
-              instances: [
-                [
-                  health: [ [ state : "Down"] ]
-                ]
-              ]
+              health: [[state: "Up"]]
             ]
           ]
-        ])))
-    def response2 = new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([
-            name        : "front50",
-            serverGroups: [
-              [
-                region   : "us-west-1",
-                name     : "front50-v001",
-                asg      : [
-                  desiredCapacity: 1
-                ],
-                capacity : [
-                  desired: 1
-                ],
-                instances: [
-                  [
-                    health: [ [ state : "Up"] ]
-                  ]
-                ]
-              ]
+        ],
+        [
+          region   : "us-west-1",
+          name     : "front50-v001",
+          asg      : [
+            desiredCapacity: 1
+          ],
+          capacity : [
+            desired: 1
+          ],
+          instances: [
+            [
+              health: [[state: "Down"]]
             ]
-          ])))
+          ]
+        ]
+      ]
+    ])))
+    def response2 = new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([
+      name        : "front50",
+      serverGroups: [
+        [
+          region   : "us-west-1",
+          name     : "front50-v001",
+          asg      : [
+            desiredCapacity: 1
+          ],
+          capacity : [
+            desired: 1
+          ],
+          instances: [
+            [
+              health: [[state: "Up"]]
+            ]
+          ]
+        ]
+      ]
+    ])))
     task.oortService = Stub(OortService) {
       getCluster(*_) >>> [response, response2]
     }
@@ -131,13 +129,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'should return false for hasSucceeded when server group is #serverGroup'() {
     setup:
-    def instances = [ [ health: [ [state: 'Up'] ] ] ]
+    def instances = [[health: [[state: 'Up']]]]
 
     expect:
     !task.hasSucceeded(new Stage(Execution.newPipeline("orca"), "", "", [:]), serverGroup, instances, null)
 
     where:
-    serverGroup << [null, [:], [asg: [], capacity : [],]]
+    serverGroup << [null, [:], [asg: [], capacity: [],]]
 
   }
 
@@ -146,13 +144,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
     expect:
     def instances = []
     (1..healthy).each {
-      instances << [ health: [ [state: 'Up'] ] ]
+      instances << [health: [[state: 'Up']]]
     }
     def serverGroup = [
-      asg: [
+      asg     : [
         desiredCapacity: total
       ],
-      capacity : [
+      capacity: [
         desired: total
       ]
     ]
@@ -192,66 +190,66 @@ class WaitForUpInstancesTaskSpec extends Specification {
     expect:
     def instances = []
     (1..healthy).each {
-      instances << [ health: [ [state: 'Up'] ] ]
+      instances << [health: [[state: 'Up']]]
     }
     def serverGroup = [
-        asg: [
-            desiredCapacity: total
-        ],
-        capacity : [
-            min: min,
-            desired: total,
-            max: max
-        ]
+      asg     : [
+        desiredCapacity: total
+      ],
+      capacity: [
+        min    : min,
+        desired: total,
+        max    : max
+      ]
     ]
     hasSucceeded == task.hasSucceeded(
       new Stage(Execution.newPipeline("orca"), "", "", [
-            desiredPercentage: percent
-        ]
-        ), serverGroup, instances, null
+        desiredPercentage: percent
+      ]
+      ), serverGroup, instances, null
     )
 
     where:
-    percent | healthy | total | min | max  || hasSucceeded
+    percent | healthy | total | min | max || hasSucceeded
 
     // 100 percent
-    100     | 1       | 1     | 1    | 1   || true
-    100     | 0       | 0     | 0    | 0   || true
-    100     | 2       | 2     | 0    | 2   || true
+    100     | 1       | 1     | 1   | 1   || true
+    100     | 0       | 0     | 0   | 0   || true
+    100     | 2       | 2     | 0   | 2   || true
 
     // zero percent (should always return true)
-    0       | 1       | 2     | 1    | 2   || true
-    0       | 0       | 100   | 1    | 100 || true
+    0       | 1       | 2     | 1   | 2   || true
+    0       | 0       | 100   | 1   | 100 || true
 
     // >= checks
-    89      | 9       | 10    | 10   | 10  || true
-    90      | 9       | 10    | 10   | 10  || true
-    90      | 8       | 10    | 10   | 10  || false
-    91      | 9       | 10    | 10   | 10  || false
+    89      | 9       | 10    | 10  | 10  || true
+    90      | 9       | 10    | 10  | 10  || true
+    90      | 8       | 10    | 10  | 10  || false
+    91      | 9       | 10    | 10  | 10  || false
 
     // verify ceiling
-    90      | 10      | 11    | 10   | 11  || true
-    90      | 8       | 9     | 9    | 9   || false
+    90      | 10      | 11    | 10  | 11  || true
+    90      | 8       | 9     | 9   | 9   || false
 
   }
 
   void 'should succeed when ASG desired size is reached, even though snapshotCapacity is larger'() {
     when:
     def serverGroup = [
-      asg: [
+      asg     : [
         desiredCapacity: 2
       ],
-      capacity : [
+      capacity: [
         desired: 2
       ]
     ]
     def context = [
-      snapshotCapacity: [ desiredCapacity: 5 ]
+      snapshotCapacity: [desiredCapacity: 5]
     ]
 
     def instances = [
-      [ health: [ [state: 'Up'] ] ],
-      [ health: [ [state: 'Up'] ] ]
+      [health: [[state: 'Up']]],
+      [health: [[state: 'Up']]]
     ]
 
     then:
@@ -264,10 +262,10 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should succeed when spotPrice is set and the deployment strategy is None, even if no instances are up'() {
     when:
     def serverGroup = [
-      asg: [
+      asg         : [
         desiredCapacity: 2
       ],
-      capacity : [
+      capacity    : [
         desired: 2
       ],
       launchConfig: [
@@ -275,7 +273,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       ]
     ]
     def context = [
-      capacity: [ desired: 5 ],
+      capacity: [desired: 5],
       strategy: ''
     ]
 
@@ -293,27 +291,27 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should return #result for #healthy instances when #description'() {
     when:
     def serverGroup = [
-      asg: [
+      asg     : [
         desiredCapacity: asg
       ],
-      capacity : [
+      capacity: [
         desired: asg
       ]
     ]
 
     def context = [
-      source: [ useSourceCapacity: useSource ],
+      source: [useSourceCapacity: useSource],
     ]
     if (configured) {
-      context.capacity = [ desired: configured ]
+      context.capacity = [desired: configured]
     }
     if (snapshot) {
-      context.capacitySnapshot = [ desiredCapacity: snapshot ]
+      context.capacitySnapshot = [desiredCapacity: snapshot]
     }
 
     def instances = []
     (1..healthy).each {
-      instances << [ health: [ [state: 'Up'] ] ]
+      instances << [health: [[state: 'Up']]]
     }
 
     then:
@@ -380,17 +378,24 @@ class WaitForUpInstancesTaskSpec extends Specification {
     false  || null     | 2       | [min: 3, max: 3, desired: 3] | null
     // configured is used if present and min == max == desired
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 2, desired: 2]
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "2", desired: "2"]
     // configured is used if current allows autoscaling but configured doesn't
     true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: 2, max: 500, desired: 2]
+    true   || null     | 2       | [min: 3, max: 3, desired: 3] | [min: "2", max: "500", desired: "2"]
     true   || null     | 2       | [min: 5, max: 5, desired: 5] | [min: 1, max: 5, desired: 2]
+    true   || null     | 2       | [min: 5, max: 5, desired: 5] | [min: "1", max: "5", desired: "2"]
     // useSourceCapacity with a snapshot is used over configured and current
     true   || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: 5, max: 5, desired: 5]
+    true   || 3        | 3       | [min: 5, max: 5, desired: 5] | [min: "5", max: "5", desired: "5"]
     true   || 3        | 3       | [min: 5, max: 5, desired: 5] | null
     false  || 4        | 3       | [min: 5, max: 5, desired: 5] | null
     // sourceCapacity is ignored if > than the calculated target due to a scale down corner case
     true   || 4        | 3       | [min: 3, max: 3, desired: 3] | null
     false  || 4        | 3       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: 4]
+    false  || 4        | 3       | [min: 3, max: 3, desired: 3] | [min: "4", max: "4", desired: "4"]
     true   || 5        | 4       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: 4]
+    true   || 5        | 4       | [min: 3, max: 3, desired: 3] | [min: "4", max: "4", desired: "4"]
+    true   || 5        | 4       | [min: 3, max: 3, desired: 3] | [min: 4, max: 4, desired: "4"]
   }
 
   @Unroll
@@ -414,12 +419,12 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should not trust an ASG desired capacity of zero unless zero has been seen 12 times'() {
     expect:
     def context = [
-        zeroDesiredCapacityCount: counter,
-        capacitySnapshot: [
-            desiredCapacity: snapshotCapacity
-        ]
+      zeroDesiredCapacityCount: counter,
+      capacitySnapshot        : [
+        desiredCapacity: snapshotCapacity
+      ]
     ]
-    def serverGroup = [asg: [desiredCapacity: 0], capacity : [desired: 0]]
+    def serverGroup = [asg: [desiredCapacity: 0], capacity: [desired: 0]]
     hasSucceeded == task.hasSucceeded(new Stage(Execution.newPipeline("orca"), "", "", context), serverGroup, [], null)
 
     where:
@@ -442,89 +447,89 @@ class WaitForUpInstancesTaskSpec extends Specification {
     hasSucceeded || desiredCapacity | healthProviderNames | instances
     true         || 0               | null                | []
     true         || 0               | ['a']               | []
-    true         || "1"             | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 1               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    true         || 1               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    true         || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: "Unknown"] ] ] ]
-    false        || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', state: "Down"] ] ] ]
-    true         || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: "Unknown"] ] ] ]
-    false        || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', state: "Down"] ] ] ]
+    true         || "1"             | ['a']               | [[health: [[type: 'a', state: "Up"]]]]
+    false        || 1               | null                | [[health: [[type: 'a', state: "Down"]]]]
+    true         || 1               | null                | [[health: [[type: 'a', state: "Up"]]]]
+    false        || 1               | ['a']               | [[health: [[type: 'a', state: "Down"]]]]
+    true         || 1               | ['a']               | [[health: [[type: 'a', state: "Up"]]]]
+    false        || 1               | ['b']               | [[health: [[type: 'a', state: "Down"]]]]
+    false        || 1               | ['b']               | [[health: [[type: 'a', state: "Up"]]]]
+    true         || 1               | ['Amazon']          | [[health: [[type: 'Amazon', healthClass: 'platform', state: "Unknown"]]]]
+    false        || 1               | ['Amazon']          | [[health: [[type: 'Amazon', state: "Down"]]]]
+    true         || 1               | ['GCE']             | [[health: [[type: 'GCE', healthClass: 'platform', state: "Unknown"]]]]
+    false        || 1               | ['GCE']             | [[health: [[type: 'GCE', state: "Down"]]]]
 
     // multiple health providers
-    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 1               | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 1               | null                | [ [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 1               | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 1               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    true         || 1               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 1               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
+    true         || 1               | ['Amazon']          | [[health: [[type: 'Amazon', healthClass: 'platform', state: "Unknown"], [type: 'b', state: "Down"]]]]
+    true         || 1               | ['GCE']             | [[health: [[type: 'GCE', healthClass: 'platform', state: "Unknown"], [type: 'b', state: "Down"]]]]
+    true         || 1               | null                | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 1               | null                | [[health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 1               | null                | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    true         || 1               | ['a']               | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    false        || 1               | ['b']               | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    false        || 1               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    true         || 1               | ['a']               | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 1               | ['b']               | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    true         || 1               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 1               | ['a']               | [[health: [[type: 'a', state: "Unknown"], [type: 'b', state: "Down"]]]]
+    false        || 1               | ['b']               | [[health: [[type: 'a', state: "Unknown"], [type: 'b', state: "Down"]]]]
+    false        || 1               | ['a', 'b']          | [[health: [[type: 'a', state: "Unknown"], [type: 'b', state: "Down"]]]]
 
     // multiple instances
-    true         || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    true         || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
-    true         || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
-    true         || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"] ] ] ]
-    true         || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'b', state : "Down"] ] ] ]
+    true         || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"]]]]
+    true         || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Up"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'b', state: "Down"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Down"]]]]
+    true         || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Up"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'b', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Down"]]]]
+    true         || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"]]]]
+    true         || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Up"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'b', state: "Down"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'b', state: "Down"]]]]
 
     // multiple instances with multiple health providers
-    true         || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    true         || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    true         || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    true         || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    true         || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
-    false        || 2               | ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
+    true         || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    true         || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | null                | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    true         || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    true         || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    true         || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a']               | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    true         || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    true         || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Up"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Up"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Up"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Down"]]]]
+    false        || 2               | ['a', 'b']          | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
 
     // health providers ignored
-    true         || 2               | []                  | [ [ health: [ [ type: 'a', state : "Down"] ] ], [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
-    false        || 2               | []                  | [ [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
+    true         || 2               | []                  | [[health: [[type: 'a', state: "Down"]]], [health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
+    false        || 2               | []                  | [[health: [[type: 'a', state: "Down"], [type: 'b', state: "Unknown"]]]]
   }
 
   @Unroll
@@ -532,7 +537,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     given:
     def stage = stage {
       context = [
-          "kato.tasks": katoTasks
+        "kato.tasks": katoTasks
       ]
     }
 
@@ -547,15 +552,15 @@ class WaitForUpInstancesTaskSpec extends Specification {
     []        || null
     [[:]]     || null
     [
-        [resultObjects: [[deployments: [
-            deployment("app-v001", "us-west-2", 0, 1, 1),
-            deployment("app-v002", "us-west-2", 0, 2, 2),
-            deployment("app-v001", "us-east-1", 0, 3, 3),
-        ]]]]
+      [resultObjects: [[deployments: [
+        deployment("app-v001", "us-west-2", 0, 1, 1),
+        deployment("app-v002", "us-west-2", 0, 2, 2),
+        deployment("app-v001", "us-east-1", 0, 3, 3),
+      ]]]]
     ]         || [min: 0, max: 1, desired: 1]     // should match on serverGroupName and location
     [
-        [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
-        [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 2, 2)]]]],
+      [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
+      [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 2, 2)]]]],
     ]         || [min: 0, max: 2, desired: 2]     // should look for most recent katoTask result object
   }
 
@@ -564,7 +569,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     given:
     def stage = stage {
       context = [
-          "kato.tasks": katoTasks
+        "kato.tasks": katoTasks
       ]
     }
 
@@ -587,7 +592,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   static Map deployment(String serverGroupName, String location, int min, int max, int desired) {
     return [
-        serverGroupName: serverGroupName, location: location, capacity: [min: min, max: max, desired: desired]
+      serverGroupName: serverGroupName, location: location, capacity: [min: min, max: max, desired: desired]
     ]
   }
 
