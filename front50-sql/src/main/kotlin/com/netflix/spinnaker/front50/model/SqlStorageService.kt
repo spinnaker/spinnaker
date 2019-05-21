@@ -70,7 +70,11 @@ class SqlStorageService(
       ctx
         .select(field("body", String::class.java))
         .from(definitionsByType[objectType]!!.tableName)
-        .where(field("id", String::class.java).eq(objectKey))
+        .where(
+          field("id", String::class.java).eq(objectKey).and(
+            DSL.field("is_deleted", Boolean::class.java).eq(false)
+          )
+        )
         .fetchOne()
     } ?: throw NotFoundException("Object not found (key: $objectKey)")
 
@@ -96,9 +100,6 @@ class SqlStorageService(
 
   override fun <T : Timestamped> storeObject(objectType: ObjectType, objectKey: String, item: T) {
     item.lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-
-    // TODO-AJ handle overriding the `lastModified` during a migration so that not everything is `now()`
-    item.lastModified = clock.millis()
 
     try {
       jooq.transactional(sqlRetryProperties.transactions) { ctx ->
@@ -173,12 +174,23 @@ class SqlStorageService(
                                                     objectKey: String,
                                                     maxResults: Int): List<T> {
     val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
-      ctx
-        .select(field("body", String::class.java))
-        .from(definitionsByType[objectType]!!.tableName)
-        .where(DSL.field("id", String::class.java).eq(objectKey))
-        .fetch()
-        .getValues(field("body", String::class.java))
+
+      if (definitionsByType[objectType]!!.supportsHistory) {
+        ctx
+          .select(field("body", String::class.java))
+          .from(definitionsByType[objectType]!!.historyTableName)
+          .where(DSL.field("id", String::class.java).eq(objectKey))
+          .orderBy(DSL.field("recorded_at").desc())
+          .fetch()
+          .getValues(field("body", String::class.java))
+      } else {
+        ctx
+          .select(field("body", String::class.java))
+          .from(definitionsByType[objectType]!!.tableName)
+          .where(DSL.field("id", String::class.java).eq(objectKey))
+          .fetch()
+          .getValues(field("body", String::class.java))
+      }
     }
 
     return bodies.map {

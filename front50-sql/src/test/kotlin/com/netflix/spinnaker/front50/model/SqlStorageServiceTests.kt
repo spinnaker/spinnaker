@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -49,33 +51,148 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
       jooq.flushAll()
     }
 
-    context("Application CRUD") {
+    context("Application") {
       test("throws NotFoundException when application does not exist") {
         expectThrows<NotFoundException> {
           sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
         }
       }
 
-      test("creates an application") {
+      test("create, update and delete an application") {
+        // verify that an application can be created
         sqlStorageService.storeObject(
           ObjectType.APPLICATION,
           "application001",
           Application().apply {
             name = "application001"
             description = "my first application!"
-            updateTs = "100"
+            lastModified = 100
           }
         )
 
-        val application = sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        var application = sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
         expectThat(application.description).isEqualTo("my first application!")
-      }
 
-      test("deletes an application") {
+        // verify that an application can be updated
+        sqlStorageService.storeObject(
+          ObjectType.APPLICATION,
+          "application001",
+          Application().apply {
+            name = "application001"
+            description = "my updated application!"
+            lastModified = 200
+          }
+        )
+
+        application = sqlStorageService.loadObject(ObjectType.APPLICATION, "application001")
+        expectThat(application.description).isEqualTo("my updated application!")
+
+        // verify that history can be retrieved
+        val applicationVersions = sqlStorageService.listObjectVersions<Application>(
+          ObjectType.APPLICATION, "application001", 5
+        )
+        expectThat(applicationVersions.size).isEqualTo(2)
+        expectThat(applicationVersions.get(0).description).isEqualTo("my updated application!")
+        expectThat(applicationVersions.get(1).description).isEqualTo("my first application!")
+
+        // delete the application
         sqlStorageService.deleteObject(ObjectType.APPLICATION, "application001")
 
         expectThrows<NotFoundException> {
           sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        }
+      }
+    }
+
+    context("Pipeline") {
+      test("create, update and delete a pipeline") {
+        // verify that a pipeline can be created
+        sqlStorageService.storeObject(
+          ObjectType.PIPELINE,
+          "id-pipeline001",
+          Pipeline().apply {
+            name = "pipeline001"
+            lastModified = 100
+
+            put("application", "application001")
+          }
+        )
+
+        var pipeline = sqlStorageService.loadObject<Pipeline>(ObjectType.PIPELINE, "id-pipeline001")
+        expectThat(pipeline.name).isEqualTo("pipeline001")
+
+        // verify that a pipeline can be updated
+        sqlStorageService.storeObject(
+          ObjectType.PIPELINE,
+          "id-pipeline001",
+          Pipeline().apply {
+            name = "pipeline001_updated"
+            lastModified = 200
+
+            put("application", "application001")
+          }
+        )
+
+        pipeline = sqlStorageService.loadObject(ObjectType.PIPELINE, "id-pipeline001")
+        expectThat(pipeline.name).isEqualTo("pipeline001_updated")
+
+        // delete the pipeline
+        sqlStorageService.deleteObject(ObjectType.PIPELINE, "id-pipeline001")
+
+        expectThrows<NotFoundException> {
+          sqlStorageService.loadObject<Pipeline>(ObjectType.PIPELINE, "id-pipeline001")
+        }
+      }
+    }
+
+    context("Entity Tags") {
+      test("create, update and delete an entity tag") {
+        // verify that entity tags can be created
+        sqlStorageService.storeObject(
+          ObjectType.ENTITY_TAGS,
+          "id-entitytags001",
+          EntityTags().apply {
+            id = "id-entitytags001"
+            lastModified = 100
+
+            entityRef = EntityTags.EntityRef().apply {
+              entityId = "application001"
+            }
+          }
+        )
+
+        var entityTags = sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+        expectThat(entityTags.entityRef.entityId).isEqualTo("application001")
+
+        // verify that entity tags can be updated
+        sqlStorageService.storeObject(
+          ObjectType.ENTITY_TAGS,
+          "id-entitytags001",
+          EntityTags().apply {
+            id = "id-entitytags001"
+            lastModified = 200
+
+            entityRef = EntityTags.EntityRef().apply {
+              entityId = "application002"
+            }
+          }
+        )
+
+        entityTags = sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+        expectThat(entityTags.entityRef.entityId).isEqualTo("application002")
+
+        // entity tags are _not_ versioned so only the most recent should be returned
+        val entityTagsVersions = sqlStorageService.listObjectVersions<EntityTags>(
+          ObjectType.ENTITY_TAGS, "id-entitytags001", 5
+        )
+        expectThat(entityTagsVersions.size).isEqualTo(1)
+        expectThat(entityTagsVersions.get(0).entityRef.entityId).isEqualTo("application002")
+
+        // delete the entity tags
+        sqlStorageService.deleteObject(ObjectType.ENTITY_TAGS, "id-entitytags001")
+
+        expectThrows<NotFoundException> {
+          sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
         }
       }
     }

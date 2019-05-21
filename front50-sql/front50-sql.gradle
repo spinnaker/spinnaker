@@ -18,8 +18,15 @@ dependencies {
   implementation "org.mariadb.jdbc:mariadb-java-client:2.2.3"
 //  runtimeOnly "mysql:mysql-connector-java"
 
+  testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
   testImplementation "org.testcontainers:mysql"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
 }
