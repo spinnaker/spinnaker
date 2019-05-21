@@ -24,6 +24,8 @@ import io.kubernetes.client.models.V1Job;
 import io.kubernetes.client.models.V1JobCondition;
 import io.kubernetes.client.models.V1JobSpec;
 import io.kubernetes.client.models.V1JobStatus;
+import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodStatus;
 import java.io.Serializable;
 import java.util.*;
 import lombok.Data;
@@ -45,6 +47,7 @@ public class KubernetesV2JobStatus implements JobStatus, Serializable {
   Integer signal;
   String logs;
   @JsonIgnore V1Job job;
+  List<PodStatus> pods;
 
   public KubernetesV2JobStatus(V1Job job, String account) {
     this.job = job;
@@ -85,5 +88,16 @@ public class KubernetesV2JobStatus implements JobStatus, Serializable {
   private boolean jobFailed(V1JobCondition condition) {
     return "Failed".equalsIgnoreCase(condition.getType())
         && "True".equalsIgnoreCase(condition.getStatus());
+  }
+
+  @Data
+  public static class PodStatus {
+    private String name;
+    private V1PodStatus status;
+
+    public PodStatus(V1Pod pod) {
+      this.name = pod.getMetadata().getName();
+      this.status = pod.getStatus();
+    }
   }
 }
