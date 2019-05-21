@@ -30,31 +30,42 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class KubernetesKind {
+public final class KubernetesKind {
+  @Getter
+  private static final List<KubernetesKind> values =
+      Collections.synchronizedList(new ArrayList<>());
+
   public static KubernetesKind API_SERVICE =
-      new KubernetesKind("apiService", KubernetesApiGroup.APIREGISTRATION_K8S_IO, false);
+      new KubernetesKind(
+          "apiService", KubernetesApiGroup.APIREGISTRATION_K8S_IO, null, false, false);
   public static KubernetesKind CLUSTER_ROLE =
-      new KubernetesKind("clusterRole", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, false);
+      new KubernetesKind(
+          "clusterRole", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, null, false, false);
   public static KubernetesKind CLUSTER_ROLE_BINDING =
-      new KubernetesKind("clusterRoleBinding", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, false);
+      new KubernetesKind(
+          "clusterRoleBinding", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, null, false, false);
   public static KubernetesKind CONFIG_MAP =
-      new KubernetesKind("configMap", KubernetesApiGroup.CORE, "cm");
+      new KubernetesKind("configMap", KubernetesApiGroup.CORE, "cm", true, false);
   public static KubernetesKind CONTROLLER_REVISION =
-      new KubernetesKind("controllerRevision", KubernetesApiGroup.APPS);
+      new KubernetesKind("controllerRevision", KubernetesApiGroup.APPS, null, true, false);
   public static KubernetesKind CUSTOM_RESOURCE_DEFINITION =
       new KubernetesKind(
           "customResourceDefinition", KubernetesApiGroup.EXTENSIONS, "crd", false, false);
-  public static KubernetesKind CRON_JOB = new KubernetesKind("cronJob", KubernetesApiGroup.BATCH);
+  public static KubernetesKind CRON_JOB =
+      new KubernetesKind("cronJob", KubernetesApiGroup.BATCH, null, true, false);
   public static KubernetesKind DAEMON_SET =
       new KubernetesKind("daemonSet", KubernetesApiGroup.APPS, "ds", true, true);
   public static KubernetesKind DEPLOYMENT =
       new KubernetesKind("deployment", KubernetesApiGroup.APPS, "deploy", true, true);
-  public static KubernetesKind EVENT = new KubernetesKind("event", KubernetesApiGroup.CORE);
+  public static KubernetesKind EVENT =
+      new KubernetesKind("event", KubernetesApiGroup.CORE, null, true, false);
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER =
-      new KubernetesKind("horizontalpodautoscaler", KubernetesApiGroup.AUTOSCALING, "hpa");
+      new KubernetesKind(
+          "horizontalpodautoscaler", KubernetesApiGroup.AUTOSCALING, "hpa", true, false);
   public static KubernetesKind INGRESS =
       new KubernetesKind("ingress", KubernetesApiGroup.EXTENSIONS, "ing", true, true);
-  public static KubernetesKind JOB = new KubernetesKind("job", KubernetesApiGroup.BATCH);
+  public static KubernetesKind JOB =
+      new KubernetesKind("job", KubernetesApiGroup.BATCH, null, true, false);
   public static KubernetesKind MUTATING_WEBHOOK_CONFIGURATION =
       new KubernetesKind(
           "mutatingWebhookConfiguration",
@@ -69,26 +80,28 @@ public class KubernetesKind {
   public static KubernetesKind PERSISTENT_VOLUME =
       new KubernetesKind("persistentVolume", KubernetesApiGroup.CORE, "pv", false, false);
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM =
-      new KubernetesKind("persistentVolumeClaim", KubernetesApiGroup.CORE, "pvc");
+      new KubernetesKind("persistentVolumeClaim", KubernetesApiGroup.CORE, "pvc", true, false);
   public static KubernetesKind POD =
       new KubernetesKind("pod", KubernetesApiGroup.CORE, "po", true, true);
   public static KubernetesKind POD_PRESET =
-      new KubernetesKind("podPreset", KubernetesApiGroup.SETTINGS_K8S_IO);
+      new KubernetesKind("podPreset", KubernetesApiGroup.SETTINGS_K8S_IO, null, true, false);
   public static KubernetesKind POD_SECURITY_POLICY =
-      new KubernetesKind("podSecurityPolicy", KubernetesApiGroup.EXTENSIONS, false);
+      new KubernetesKind("podSecurityPolicy", KubernetesApiGroup.EXTENSIONS, null, false, false);
   public static KubernetesKind POD_DISRUPTION_BUDGET =
-      new KubernetesKind("podDisruptionBudget", KubernetesApiGroup.POLICY);
+      new KubernetesKind("podDisruptionBudget", KubernetesApiGroup.POLICY, null, true, false);
   public static KubernetesKind REPLICA_SET =
       new KubernetesKind("replicaSet", KubernetesApiGroup.APPS, "rs", true, true);
   public static KubernetesKind ROLE =
-      new KubernetesKind("role", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, true);
+      new KubernetesKind("role", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, null, true, false);
   public static KubernetesKind ROLE_BINDING =
-      new KubernetesKind("roleBinding", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, true);
-  public static KubernetesKind SECRET = new KubernetesKind("secret", KubernetesApiGroup.CORE);
+      new KubernetesKind(
+          "roleBinding", KubernetesApiGroup.RBAC_AUTHORIZATION_K8S_IO, null, true, false);
+  public static KubernetesKind SECRET =
+      new KubernetesKind("secret", KubernetesApiGroup.CORE, null, true, false);
   public static KubernetesKind SERVICE =
       new KubernetesKind("service", KubernetesApiGroup.CORE, "svc", true, true);
   public static KubernetesKind SERVICE_ACCOUNT =
-      new KubernetesKind("serviceAccount", KubernetesApiGroup.CORE, "sa");
+      new KubernetesKind("serviceAccount", KubernetesApiGroup.CORE, "sa", true, false);
   public static KubernetesKind STATEFUL_SET =
       new KubernetesKind("statefulSet", KubernetesApiGroup.APPS, null, true, true);
   public static KubernetesKind STORAGE_CLASS =
@@ -108,62 +121,43 @@ public class KubernetesKind {
   private final String name;
   private final KubernetesApiGroup apiGroup;
   private final String alias;
-  private boolean isNamespaced;
+  @Getter private final boolean isNamespaced;
   // generally reserved for workloads, can be read as "does this belong to a spinnaker cluster?"
   private final boolean hasClusterRelationship;
   // was this kind found after spinnaker started?
-  private boolean isDynamic;
+  @Getter private final boolean isDynamic;
   // was this kind added by a user in their clouddriver.yml?
-  private boolean isRegistered;
+  @Getter private final boolean isRegistered;
 
-  @Getter private static List<KubernetesKind> values;
-
-  protected KubernetesKind(
+  private KubernetesKind(
       String name,
       KubernetesApiGroup apiGroup,
       String alias,
       boolean isNamespaced,
       boolean hasClusterRelationship) {
-    if (values == null) {
-      values = Collections.synchronizedList(new ArrayList<>());
-    }
+    this(name, apiGroup, alias, isNamespaced, hasClusterRelationship, false, true);
+  }
 
+  private KubernetesKind(
+      String name,
+      KubernetesApiGroup apiGroup,
+      String alias,
+      boolean isNamespaced,
+      boolean hasClusterRelationship,
+      boolean isDynamic,
+      boolean isRegistered) {
     this.name = name;
     this.apiGroup = apiGroup;
     this.alias = alias;
     this.isNamespaced = isNamespaced;
     this.hasClusterRelationship = hasClusterRelationship;
-    this.isDynamic = false;
-    this.isRegistered = true;
+    this.isDynamic = isDynamic;
+    this.isRegistered = isRegistered;
     values.add(this);
-  }
-
-  protected KubernetesKind(String name, KubernetesApiGroup apiGroup) {
-    this(name, apiGroup, null, true, false);
-  }
-
-  protected KubernetesKind(String name, KubernetesApiGroup apiGroup, String alias) {
-    this(name, apiGroup, alias, true, false);
-  }
-
-  protected KubernetesKind(String name, KubernetesApiGroup apiGroup, boolean isNamespaced) {
-    this(name, apiGroup, null, isNamespaced, false);
-  }
-
-  public boolean isNamespaced() {
-    return this.isNamespaced;
   }
 
   public boolean hasClusterRelationship() {
     return this.hasClusterRelationship;
-  }
-
-  public boolean isDynamic() {
-    return this.isDynamic;
-  }
-
-  public boolean isRegistered() {
-    return this.isRegistered;
   }
 
   @Override
@@ -177,10 +171,10 @@ public class KubernetesKind {
 
   @JsonCreator
   public static KubernetesKind fromString(String name) {
-    return fromString(name, true, true);
+    return fromString(name, true);
   }
 
-  public static KubernetesKind fromString(String name, boolean registered, boolean namespaced) {
+  public static KubernetesKind fromString(String name, boolean namespaced) {
     KubernetesApiGroup apiGroup;
     String kindName;
     String[] parts = StringUtils.split(name, ".", 2);
@@ -191,7 +185,7 @@ public class KubernetesKind {
       kindName = name;
       apiGroup = null;
     }
-    return KubernetesKind.getOrRegisterKind(kindName, registered, namespaced, apiGroup);
+    return KubernetesKind.getOrRegisterKind(kindName, true, namespaced, apiGroup);
   }
 
   public static KubernetesKind getOrRegisterKind(
@@ -240,13 +234,14 @@ public class KubernetesKind {
                 name,
                 namespaced,
                 registered);
-            KubernetesKind result =
-                new KubernetesKind(
-                    name, Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE));
-            result.isDynamic = true;
-            result.isRegistered = registered;
-            result.isNamespaced = namespaced;
-            return result;
+            return new KubernetesKind(
+                name,
+                Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE),
+                null,
+                namespaced,
+                false,
+                true,
+                registered);
           });
     }
   }
