@@ -111,7 +111,7 @@ class SchedulerConfiguration {
 
     triggerBean.name = "Sync Pipelines"
     triggerBean.group = "Sync"
-    triggerBean.startDelay = 60 * 1000
+    triggerBean.startDelay = 1 * 1000
     triggerBean.repeatInterval = intervalMs
     triggerBean.jobDetail = pipelineSyncJobBean
 

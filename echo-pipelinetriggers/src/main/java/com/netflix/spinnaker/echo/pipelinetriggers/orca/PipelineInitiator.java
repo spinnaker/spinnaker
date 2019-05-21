@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -32,7 +33,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.NonNull;
@@ -45,8 +47,6 @@ import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
-import rx.Observable;
-import rx.functions.Func1;
 
 /** Triggers a {@link Pipeline} by invoking _Orca_. */
 @Component
@@ -63,6 +63,7 @@ public class PipelineInitiator {
   private final boolean enabled;
   private final int retryCount;
   private final long retryDelayMillis;
+  private final ExecutorService executorService;
 
   @Autowired
   public PipelineInitiator(
@@ -70,6 +71,7 @@ public class PipelineInitiator {
       @NonNull OrcaService orca,
       @NonNull Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       @NonNull FiatStatus fiatStatus,
+      @NonNull ExecutorService executorService,
       ObjectMapper objectMapper,
       @NonNull QuietPeriodIndicator quietPeriodIndicator,
       @Value("${orca.enabled:true}") boolean enabled,
@@ -84,6 +86,7 @@ public class PipelineInitiator {
     this.enabled = enabled;
     this.retryCount = retryCount;
     this.retryDelayMillis = retryDelayMillis;
+    this.executorService = executorService;
   }
 
   @PostConstruct
@@ -93,7 +96,13 @@ public class PipelineInitiator {
     }
   }
 
-  public void startPipeline(Pipeline pipeline) {
+  public enum TriggerSource {
+    SCHEDULER,
+    MISSEDSCHEDULER,
+    EVENT
+  }
+
+  public void startPipeline(Pipeline pipeline, TriggerSource triggerSource) {
     if (enabled) {
       try {
         if (pipeline.getTrigger() != null
@@ -115,17 +124,23 @@ public class PipelineInitiator {
             // itself
             boolean propagateAuth =
                 pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
-            log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
+            log.debug("Planning templated pipeline {} before triggering", pipeline);
             pipeline = pipeline.withPlan(true);
 
             try {
+              Map pipelineToPlan = objectMapper.convertValue(pipeline, Map.class);
               Map resolvedPipelineMap =
-                  orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
+                  AuthenticatedRequest.allowAnonymous(() -> orca.plan(pipelineToPlan, true));
               pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
             } catch (RetrofitError e) {
-              log.warn(
-                  "Pipeline planning failed: \n{}",
-                  new String(((TypedByteArray) e.getResponse().getBody()).getBytes()));
+              String orcaResponse = "N/A";
+
+              if (e.getResponse() != null && e.getResponse().getBody() != null) {
+                orcaResponse = new String(((TypedByteArray) e.getResponse().getBody()).getBytes());
+              }
+
+              log.error("Failed planning {}: \n{}", pipeline, orcaResponse);
+
               // Continue anyway, so that the execution will appear in Deck
               pipeline = pipeline.withPlan(false);
               if (pipeline.getStages() == null) {
@@ -136,12 +151,12 @@ public class PipelineInitiator {
               pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));
             }
           }
-          triggerPipeline(pipeline);
+          triggerPipeline(pipeline, triggerSource);
           registry.counter("orca.requests").increment();
         }
       } catch (Exception e) {
-        registry.counter("orca.errors", "exception", e.getClass().getName()).increment();
         log.error("Unable to trigger pipeline {}: {}", pipeline, e);
+        logOrcaErrorMetric(e.getClass().getName(), triggerSource.name(), getTriggerType(pipeline));
       }
     } else {
       log.info(
@@ -149,49 +164,102 @@ public class PipelineInitiator {
     }
   }
 
-  private void triggerPipeline(Pipeline pipeline) throws Exception {
-    Observable<OrcaService.TriggerResponse> orcaResponse =
-        createTriggerObservable(pipeline)
-            .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
-            .doOnNext(this::onOrcaResponse)
-            .doOnError(throwable -> onOrcaError(pipeline, throwable));
+  private void triggerPipeline(Pipeline pipeline, TriggerSource triggerSource)
+      throws RejectedExecutionException {
+    executorService.submit(() -> triggerPipelineImpl(pipeline, triggerSource));
+  }
 
-    if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
-      // If the trigger is one that should propagate authentication, just directly call Orca as the
-      // request interceptor
-      // will pass along the current headers.
-      orcaResponse.subscribe();
-    } else {
-      // If we should not propagate authentication, create an empty User object for the request
-      User korkUser = new User();
-      if (fiatStatus.isEnabled()) {
-        if (pipeline.getTrigger() != null && pipeline.getTrigger().getRunAsUser() != null) {
-          korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
-        } else {
-          // consistent with the existing pattern of
-          // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
-          // and defaulting to `anonymous` throughout all Spinnaker services
-          korkUser.setEmail("anonymous");
+  private void triggerPipelineImpl(Pipeline pipeline, TriggerSource triggerSource) {
+    try {
+      TriggerResponse response;
+
+      if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
+        response = triggerWithRetries(pipeline);
+      } else {
+        // If we should not propagate authentication, create an empty User object for the request
+        User korkUser = new User();
+
+        if (fiatStatus.isEnabled()) {
+          if (pipeline.getTrigger() != null && pipeline.getTrigger().getRunAsUser() != null) {
+            korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
+          } else {
+            // consistent with the existing pattern of
+            // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
+            // and defaulting to `anonymous` throughout all Spinnaker services
+            korkUser.setEmail("anonymous");
+          }
+          korkUser.setAllowedAccounts(getAllowedAccountsForUser(korkUser.getEmail()));
         }
-        korkUser.setAllowedAccounts(getAllowedAccountsForUser(korkUser.getEmail()));
+
+        response =
+            AuthenticatedRequest.propagate(() -> triggerWithRetries(pipeline), korkUser).call();
       }
-      AuthenticatedRequest.propagate(orcaResponse::subscribe, korkUser).call();
+
+      log.info("Successfully triggered {}: execution id: {}", pipeline, response.getRef());
+
+      registry
+          .counter(
+              "orca.trigger.success",
+              "triggerSource",
+              triggerSource.name(),
+              "triggerType",
+              getTriggerType(pipeline))
+          .increment();
+    } catch (RetrofitError e) {
+      String orcaResponse = "N/A";
+      int status = 0;
+
+      if (e.getResponse() != null) {
+        status = e.getResponse().getStatus();
+
+        if (e.getResponse().getBody() != null) {
+          orcaResponse = new String(((TypedByteArray) e.getResponse().getBody()).getBytes());
+        }
+      }
+
+      log.error(
+          "Failed to trigger {} HTTP: {}\norca error: {}\npayload: {}",
+          pipeline,
+          status,
+          orcaResponse,
+          pipelineAsString(pipeline));
+
+      logOrcaErrorMetric(e.getClass().getName(), triggerSource.name(), getTriggerType(pipeline));
+    } catch (Exception e) {
+      log.error(
+          "Failed to trigger {}\nerror: {}\npayload: {}", pipeline, e, pipelineAsString(pipeline));
+
+      logOrcaErrorMetric(e.getClass().getName(), triggerSource.name(), getTriggerType(pipeline));
     }
   }
 
-  private Observable<OrcaService.TriggerResponse> createTriggerObservable(Pipeline pipeline) {
-    return orca.trigger(pipeline);
-  }
+  private TriggerResponse triggerWithRetries(Pipeline pipeline) {
+    int attempts = 0;
 
-  private void onOrcaResponse(TriggerResponse response) {
-    log.info("Triggered pipeline {}", response.getRef());
-  }
+    while (true) {
+      try {
+        attempts++;
+        return orca.trigger(pipeline);
+      } catch (RetrofitError e) {
+        if ((attempts >= retryCount) || !isRetryableError(e)) {
+          throw e;
+        } else {
+          log.warn(
+              "Error triggering {} with {} (attempt {}/{}). Retrying...",
+              pipeline,
+              e,
+              attempts,
+              retryCount);
+        }
+      }
 
-  private void onOrcaError(Pipeline pipeline, Throwable error) {
-    registry.counter("orca.errors", "exception", error.getClass().getName()).increment();
-    log.error("Error triggering pipeline: {}", pipeline, error);
+      try {
+        Thread.sleep(retryDelayMillis);
+        registry.counter("orca.trigger.retries").increment();
+      } catch (InterruptedException ignored) {
+      }
+    }
   }
-
   /**
    * The set of accounts that a user has WRITE access to.
    *
@@ -207,7 +275,8 @@ public class PipelineInitiator {
 
     UserPermission.View userPermission = null;
     try {
-      userPermission = fiatPermissionEvaluator.getPermission(user);
+      userPermission =
+          AuthenticatedRequest.allowAnonymous(() -> fiatPermissionEvaluator.getPermission(user));
     } catch (Exception e) {
       log.error("Unable to fetch permission for {}", user, e);
     }
@@ -222,7 +291,48 @@ public class PipelineInitiator {
         .collect(Collectors.toSet());
   }
 
-  private static boolean isRetryable(Throwable error) {
+  private void logOrcaErrorMetric(String exceptionName, String triggerSource, String triggerType) {
+    registry
+        .counter(
+            "orca.errors",
+            "exception",
+            exceptionName,
+            "triggerSource",
+            triggerSource,
+            "triggerType",
+            triggerType)
+        .increment();
+
+    registry
+        .counter(
+            "orca.trigger.errors",
+            "exception",
+            exceptionName,
+            "triggerSource",
+            triggerSource,
+            "triggerType",
+            triggerType)
+        .increment();
+  }
+
+  private String pipelineAsString(Pipeline pipeline) {
+    try {
+      return objectMapper.writeValueAsString(pipeline);
+    } catch (JsonProcessingException jsonException) {
+      log.warn("Failed to convert pipeline to json, using raw toString", jsonException);
+      return pipeline.toString();
+    }
+  }
+
+  private String getTriggerType(Pipeline pipeline) {
+    if (pipeline.getTrigger() != null) {
+      return pipeline.getTrigger().getType();
+    }
+
+    return "N/A";
+  }
+
+  private static boolean isRetryableError(Throwable error) {
     if (!(error instanceof RetrofitError)) {
       return false;
     }
@@ -238,32 +348,5 @@ public class PipelineInitiator {
     }
 
     return false;
-  }
-
-  private static class RetryWithDelay
-      implements Func1<Observable<? extends Throwable>, Observable<?>> {
-
-    private final int maxRetries;
-    private final long retryDelayMillis;
-    private int retryCount;
-
-    RetryWithDelay(int maxRetries, long retryDelayMillis) {
-      this.maxRetries = maxRetries;
-      this.retryDelayMillis = retryDelayMillis;
-      this.retryCount = 0;
-    }
-
-    @Override
-    public Observable<?> call(Observable<? extends Throwable> attempts) {
-      return attempts.flatMap(
-          (Func1<Throwable, Observable<?>>)
-              throwable -> {
-                if (isRetryable(throwable) && ++retryCount < maxRetries) {
-                  log.error("Retrying pipeline trigger, attempt {}/{}", retryCount, maxRetries);
-                  return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
-                }
-                return Observable.error(throwable);
-              });
-    }
   }
 }

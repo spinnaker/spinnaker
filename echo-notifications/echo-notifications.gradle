@@ -27,7 +27,6 @@ dependencies {
     implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-artifacts"
     implementation "com.netflix.spinnaker.kork:kork-web"
-    implementation "io.reactivex:rxjava"
     implementation "javax.mail:mail:1.4.1"
     implementation "org.springframework.boot:spring-boot-starter-mail"
     implementation "org.springframework.boot:spring-boot-starter-freemarker"

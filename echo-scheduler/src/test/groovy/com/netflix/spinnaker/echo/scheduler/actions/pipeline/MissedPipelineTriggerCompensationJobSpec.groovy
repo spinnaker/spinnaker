@@ -84,7 +84,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(30).time)
       ]
     }
-    1 * pipelineInitiator.startPipeline((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger))
+    1 * pipelineInitiator.startPipeline((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger), PipelineInitiator.TriggerSource.MISSEDSCHEDULER)
     0 * orcaService._
     0 * pipelineInitiator._
   }
@@ -116,7 +116,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         // pipeline 2 has _no_ execution, which is a special case that is not considered a missed execution
       ]
     }
-    0 * pipelineInitiator.startPipeline(_)
+    0 * pipelineInitiator.startPipeline(_, _)
     1 * quietPeriodIndicator.inQuietPeriod(_)
     0 * _
   }

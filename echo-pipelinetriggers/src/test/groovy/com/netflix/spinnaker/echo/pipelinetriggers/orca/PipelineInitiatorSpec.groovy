@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.util.concurrent.MoreExecutors
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
@@ -11,11 +12,8 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import rx.functions.Action0
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import static rx.Observable.empty
 
 class PipelineInitiatorSpec extends Specification {
   def registry = new NoopRegistry()
@@ -51,10 +49,10 @@ class PipelineInitiatorSpec extends Specification {
   }
 
   @Unroll
-  def "calls orca #orcaCalls times when enabled=#enabled flag"() {
+  def "calls orca #expectedTriggerCalls times when enabled=#enabled flag"() {
     given:
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, objectMapper, quietPeriodIndicator, enabled, 5, 5000
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, enabled, 5, 5000
     )
 
     def pipeline = Pipeline
@@ -69,7 +67,7 @@ class PipelineInitiatorSpec extends Specification {
         .build()
 
     when:
-    pipelineInitiator.startPipeline(pipeline)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
 
     then:
     _ * fiatStatus.isEnabled() >> { return enabled }
@@ -80,7 +78,8 @@ class PipelineInitiatorSpec extends Specification {
     }
 
     expectedTriggerCalls * orca.trigger(pipeline) >> {
-      return empty().doOnSubscribe(captureAuthorizationContext())
+      captureAuthorizationContext()
+      return new OrcaService.TriggerResponse()
     }
 
     capturedSpinnakerUser.orElse(null) == expectedSpinnakerUser
@@ -96,10 +95,10 @@ class PipelineInitiatorSpec extends Specification {
   }
 
   @Unroll
-  def "calls orca #orcaCalls to plan pipeline if templated"() {
+  def "calls orca #expectedPlanCalls to plan pipeline if templated"() {
     given:
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.empty(), fiatStatus, objectMapper, quietPeriodIndicator, true, 5, 5000
+      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, true, 5, 5000
     )
 
     def pipeline = Pipeline.builder()
@@ -112,14 +111,15 @@ class PipelineInitiatorSpec extends Specification {
     def pipelineMap = pipeline as Map
 
     when:
-    pipelineInitiator.startPipeline(pipeline)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
 
     then:
     1 * fiatStatus.isEnabled() >> { return true }
     expectedPlanCalls * orca.plan(_, true) >> pipelineMap
     objectMapper.convertValue(pipelineMap, Pipeline.class) >> pipeline
     1 * orca.trigger(_) >> {
-      return empty().doOnSubscribe(captureAuthorizationContext())
+      captureAuthorizationContext()
+      return new OrcaService.TriggerResponse()
     }
 
     capturedSpinnakerUser.orElse(null) == expectedSpinnakerUser
@@ -132,14 +132,9 @@ class PipelineInitiatorSpec extends Specification {
     null                || 0                 || "anonymous"           || null
   }
 
-  private Action0 captureAuthorizationContext() {
-    new Action0() {
-      @Override
-      void call() {
-        capturedSpinnakerUser = AuthenticatedRequest.getSpinnakerUser()
-        capturedSpinnakerAccounts = AuthenticatedRequest.getSpinnakerAccounts()
-      }
-    }
+  private captureAuthorizationContext() {
+      capturedSpinnakerUser = AuthenticatedRequest.getSpinnakerUser()
+      capturedSpinnakerAccounts = AuthenticatedRequest.getSpinnakerAccounts()
   }
 
   private static Account.View account(String name, Collection<String> authorizations) {

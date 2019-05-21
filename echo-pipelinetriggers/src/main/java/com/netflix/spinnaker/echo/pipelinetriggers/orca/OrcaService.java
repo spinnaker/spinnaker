@@ -23,15 +23,13 @@ import java.util.Collection;
 import java.util.Map;
 import retrofit.http.Body;
 import retrofit.http.GET;
-import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.Query;
-import rx.Observable;
 
 public interface OrcaService {
 
   @POST("/orchestrate")
-  Observable<TriggerResponse> trigger(@Body Pipeline pipeline);
+  TriggerResponse trigger(@Body Pipeline pipeline);
 
   @POST("/plan")
   Map plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
@@ -39,24 +37,9 @@ public interface OrcaService {
   @POST("/v2/pipelineTemplates/plan")
   Map<String, Object> v2Plan(@Body Map pipelineConfig);
 
-  @POST("/orchestrate")
-  Observable<TriggerResponse> trigger(
-      @Body Pipeline pipeline, @Header(TriggerResponse.X_SPINNAKER_USER) String runAsUser);
-
-  @GET("/pipelines")
-  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(
-      @Query("pipelineConfigIds") Collection<String> pipelineIds);
-
   @GET("/pipelines")
   Collection<PipelineResponse> getLatestPipelineExecutions(
       @Query("pipelineConfigIds") Collection<String> pipelineIds, @Query("limit") Integer limit);
-
-  // GET /pipelines accepts extra query params, which is used for echo extensions.
-  @GET("/pipelines")
-  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(
-      @Query("pipelineConfigIds") Collection<String> pipelineIds,
-      @Query("statuses") Collection<String> statuses,
-      @Query("limit") Integer limit);
 
   class TriggerResponse {
     // workaround for not having a constant value for reference via annotation:

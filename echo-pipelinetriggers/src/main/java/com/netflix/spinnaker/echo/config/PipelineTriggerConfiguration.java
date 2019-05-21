@@ -9,6 +9,8 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +73,12 @@ public class PipelineTriggerConfiguration {
   @ConfigurationProperties(prefix = "quiet-period")
   public QuietPeriodIndicatorConfigurationProperties quietPeriodIndicatorConfigurationProperties() {
     return new QuietPeriodIndicatorConfigurationProperties();
+  }
+
+  @Bean
+  public ExecutorService executorService(
+      @Value("${orca.pipeline-initiator-threadpool-size:16}") int threadPoolSize) {
+    return Executors.newFixedThreadPool(threadPoolSize);
   }
 
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {

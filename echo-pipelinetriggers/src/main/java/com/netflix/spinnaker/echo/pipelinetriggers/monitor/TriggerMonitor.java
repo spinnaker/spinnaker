@@ -78,7 +78,7 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
           .forEach(
               p -> {
                 recordMatchingPipeline(p);
-                pipelineInitiator.startPipeline(p);
+                pipelineInitiator.startPipeline(p, PipelineInitiator.TriggerSource.EVENT);
               });
     } catch (TimeoutException e) {
       log.error("Failed to get pipeline configs", e);

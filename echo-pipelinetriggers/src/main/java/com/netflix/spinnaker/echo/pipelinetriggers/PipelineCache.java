@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -182,7 +183,8 @@ public class PipelineCache implements MonitoredPoller {
   }
 
   private List<Map<String, Object>> fetchRawPipelines() {
-    List<Map<String, Object>> rawPipelines = front50.getPipelines();
+    List<Map<String, Object>> rawPipelines =
+        AuthenticatedRequest.allowAnonymous(() -> front50.getPipelines());
     return (rawPipelines == null) ? Collections.emptyList() : rawPipelines;
   }
 
