@@ -153,6 +153,14 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 		HTTPClient:    httpClient,
 	}
 	gateClient.APIClient = gate.NewAPIClient(cfg)
+
+	// TODO: Verify version compatibility between Spin CLI and Gate.
+	_, _, err = gateClient.VersionControllerApi.GetVersionUsingGET(gateClient.Context)
+	if err != nil {
+		util.UI.Error("Could not reach Gate, please ensure it is running. Failing.")
+		return nil, err
+	}
+
 	return gateClient, nil
 }
 
