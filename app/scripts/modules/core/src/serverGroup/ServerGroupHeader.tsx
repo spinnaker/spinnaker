@@ -131,7 +131,6 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
             {docker.image}:{docker.tag || docker.digest}
           </a>
         )}
-        {!!images && <ImageList {...this.props} />}
         {(!!ciBuild || !!appArtifact) && (
           <span>
             {!!appArtifact.version && <span> ({appArtifact.version})</span>}
@@ -142,6 +141,7 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
             )}
           </span>
         )}
+        {!!images && <ImageList {...this.props} />}
       </div>
     );
   }
