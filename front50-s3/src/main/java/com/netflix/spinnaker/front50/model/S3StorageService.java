@@ -26,7 +26,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
@@ -165,7 +164,6 @@ public class S3StorageService implements StorageService {
       throw new ReadOnlyModeException();
     }
     try {
-      item.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
       byte[] bytes = objectMapper.writeValueAsBytes(item);
 
       ObjectMetadata objectMetadata = new ObjectMetadata();

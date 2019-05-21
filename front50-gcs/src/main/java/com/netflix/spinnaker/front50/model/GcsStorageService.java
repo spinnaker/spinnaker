@@ -43,7 +43,6 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.retry.GcsSafeRetry;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.lang.Closure;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -390,8 +389,6 @@ public class GcsStorageService implements StorageService {
 
   @Override
   public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T obj) {
-    obj.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
-
     byte[] bytes;
     String path = keyToPath(objectKey, objectType.group);
     try {
