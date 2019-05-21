@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
-import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
+import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 
 public class DelegatingCloudDriverTaskStatusService

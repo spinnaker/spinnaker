@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
+import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.orca.ExecutionContext;
-import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 
 class DelegatingClouddriverService<T> {
   private final SelectableService selectableService;
@@ -27,18 +27,16 @@ class DelegatingClouddriverService<T> {
   }
 
   T getService() {
-    SelectableService.Criteria criteria =
-        new SelectableService.Criteria(null, null, null, null, null);
-
+    SelectableService.Criteria criteria = new SelectableService.Criteria();
     ExecutionContext executionContext = ExecutionContext.get();
     if (executionContext != null) {
       criteria =
-          new SelectableService.Criteria(
-              executionContext.getApplication(),
-              executionContext.getAuthenticatedUser(),
-              executionContext.getExecutionType(),
-              executionContext.getExecutionId(),
-              executionContext.getOrigin());
+          criteria
+              .withApplication(executionContext.getApplication())
+              .withAuthenticatedUser(executionContext.getAuthenticatedUser())
+              .withExecutionType(executionContext.getExecutionType())
+              .withExecutionId(executionContext.getExecutionId())
+              .withOrigin(executionContext.getOrigin());
     }
 
     return (T) selectableService.getService(criteria);

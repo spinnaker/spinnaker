@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
-import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
+import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

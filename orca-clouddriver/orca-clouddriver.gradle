@@ -34,6 +34,8 @@ dependencies {
   implementation("javax.validation:validation-api")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
 
+  api("com.netflix.spinnaker.kork:kork-web")
+
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
 

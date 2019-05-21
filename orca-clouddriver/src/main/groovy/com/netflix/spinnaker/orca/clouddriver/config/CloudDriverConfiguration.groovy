@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
+import com.netflix.spinnaker.kork.web.selector.SelectableService
+import com.netflix.spinnaker.kork.web.selector.ServiceSelector
 import com.netflix.spinnaker.orca.clouddriver.*
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
