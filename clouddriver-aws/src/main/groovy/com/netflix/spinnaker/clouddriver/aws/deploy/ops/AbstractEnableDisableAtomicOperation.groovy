@@ -160,7 +160,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         instanceIds = filteredInstanceIds as List<String>
       }
 
-      if (instanceIds && credentials.discoveryEnabled && description.desiredPercentage && disable) {
+      if (instanceIds && description.desiredPercentage && disable) {
         instanceIds = discoverySupport.getInstanceToModify(credentials.name, region, serverGroupName, instanceIds, description.desiredPercentage)
         task.updateStatus phaseName, "Only disabling instances $instanceIds on ASG $serverGroupName with percentage ${description.desiredPercentage}"
 

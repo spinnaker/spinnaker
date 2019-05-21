@@ -264,36 +264,50 @@ abstract class AbstractEurekaSupport {
     return serverGroup
   }
 
+  /**
+   * Returns a list of instanceIds to disable. Only really used for RollingRedBlack strategy.
+   * The list represents the given percentage of "enabled" instances.
+   * Enabled instance is one that that has at least 1 health provider indicating it's UP
+   * and zero health providers indicating it's DOWN.
+   *
+   * @param account
+   * @param region
+   * @param asgName
+   * @param instances instanceIDs to pick from
+   * @param desiredPercentage (0-100)
+   * @return list of instance IDs
+   */
   List<String> getInstanceToModify(String account, String region, String asgName, List<String> instances, int desiredPercentage) {
     ServerGroup serverGroup = getCachedServerGroup(clusterProviders, account, region, asgName)
     if (!serverGroup) {
       return []
     }
 
-    Set<String> modified = []
-    Set<String> unmodified = []
+    Set<String> ineligible = []
+    Set<String> eligible = []
 
     instances.each { instanceId ->
-      def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId }
+      def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId   }
+
       if (instanceInExistingServerGroup) {
-        boolean isUp = false
-        instanceInExistingServerGroup.health?.flatten()?.each { Map<String, String> health ->
-          if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
-            isUp = true
-          }
+        boolean anyDown = instanceInExistingServerGroup.health?.flatten()?.any {
+          Map<String, String> health -> ("down".compareToIgnoreCase(health.state ?: "") == 0)
+        }
+        boolean anyUp = instanceInExistingServerGroup.health?.flatten()?.any {
+          Map<String, String> health -> ("up".compareToIgnoreCase(health.state ?: "") == 0)
         }
 
-        if (isUp) {
-          unmodified.add(instanceId)
+        if (anyUp && !anyDown) {
+          eligible.add(instanceId)
         } else {
-          modified.add(instanceId)
+          ineligible.add(instanceId)
         }
       }
     }
 
     return EnableDisablePercentageCategorizer.getInstancesToModify(
-      modified as List<String>,
-      unmodified as List<String>,
+      ineligible as List<String>,
+      eligible as List<String>,
       desiredPercentage
     )
   }

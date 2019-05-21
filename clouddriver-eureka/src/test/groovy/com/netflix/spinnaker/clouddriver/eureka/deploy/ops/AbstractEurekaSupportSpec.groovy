@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll;
+import spock.lang.Unroll
 
 class AbstractEurekaSupportSpec extends Specification {
   def clusterProvider = Mock(ClusterProvider)
@@ -31,7 +31,7 @@ class AbstractEurekaSupportSpec extends Specification {
   def eurekaSupport = new MyEurekaSupport(clusterProviders: [clusterProvider])
 
   @Unroll
-  def ""() {
+  def "identifies up instances to disable"() {
     when:
     def instancesToModify = eurekaSupport.getInstanceToModify("test", "us-west-2", "asg-v001", allInstances, percentageToDisable)
 
@@ -39,7 +39,7 @@ class AbstractEurekaSupportSpec extends Specification {
     1 * clusterProvider.getServerGroup("test", "us-west-2", "asg-v001") >> {
       return serverGroup(
         instancesInServerGroup.collect {
-          instance(it.key, [["eurekaStatus": it.value], ["notEurekaStatus": it.value]])
+          instance(it.key, [["state": it.value]])
         }
       )
     }
@@ -47,14 +47,16 @@ class AbstractEurekaSupportSpec extends Specification {
     instancesToModify == expectedInstancesToModify
 
     where:
-    allInstances          | instancesInServerGroup                  | percentageToDisable || expectedInstancesToModify
-    ["i-1", "i-2"]        | ["i-1": "UP"]                           | 50                  || ["i-1"]                // i-2 doesn't actually exist so should be skipped
-    ["i-1", "i-2"]        | ["i-1": "OUT_OF_SERVICE"]               | 50                  || []                     // i-1 is already disabled
-    ["i-1", "i-2"]        | ["i-1": "UP"]                           | 1                   || ["i-1"]                // always round up when determining what to disable
-    ["i-1", "i-2", "i-3"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP"] | 100                 || ["i-1", "i-2", "i-3"]
-    ["i-1", "i-2", "i-3"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP"] | 30                  || ["i-1"]
-    ["i-1", "i-2", "i-3"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP"] | 60                  || ["i-1", "i-2"]
-    ["i-1", "i-2", "i-3"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP"] | 90                  || ["i-1", "i-2", "i-3"]
+    allInstances                        | instancesInServerGroup                                            | percentageToDisable || expectedInstancesToModify
+    ["i-1", "i-2"]                      | ["i-1": "UP"]                                                     | 50                  || ["i-1"]                // i-2 doesn't actually exist so should be skipped
+    ["i-1", "i-2"]                      | ["i-1": "OUT_OF_SERVICE"]                                         | 50                  || []                     // i-1 is already disabled
+    ["i-1", "i-2"]                      | ["i-1": "UP"]                                                     | 1                   || ["i-1"]                // always round up when determining what to disable
+    ["i-1", "i-2", "i-3"]               | ["i-1": "UP", "i-2": "UP", "i-3": "UP"]                           | 100                 || ["i-1", "i-2", "i-3"]
+    ["i-1", "i-2", "i-3"]               | ["i-1": "UP", "i-2": "UP", "i-3": "UP"]                           | 30                  || ["i-1"]
+    ["i-1", "i-2", "i-3"]               | ["i-1": "UP", "i-2": "UP", "i-3": "UP"]                           | 60                  || ["i-1", "i-2"]
+    ["i-1", "i-2", "i-3"]               | ["i-1": "UP", "i-2": "UP", "i-3": "UP"]                           | 90                  || ["i-1", "i-2", "i-3"]
+    ["i-1", "i-2", "i-3"]               | ["i-1": "UP", "i-2": "UP", "i-3": "UP"]                           | 90                  || ["i-1", "i-2", "i-3"]
+    ["i-1", "i-2", "i-3", "i-4", "i-5"] | ["i-1": "UP", "i-2": "UP", "i-3": "UP", "i-4": "UP", "i-5": "UP"] | 20                  || ["i-1"]
   }
 
   ServerGroup serverGroup(List<Instance> instances) {
