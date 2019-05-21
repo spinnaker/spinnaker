@@ -26,24 +26,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-@Data
+@Value
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class KubernetesV2Manifest implements Manifest {
-  private String account;
-  private String name;
-  private String location;
-  private Moniker moniker;
-  private KubernetesManifest manifest;
-  private Status status;
-  private Set<Artifact> artifacts = new HashSet<>();
-  private List<KubernetesManifest> events = new ArrayList<>();
-  private List<Warning> warnings = new ArrayList<>();
-  private List<KubernetesPodMetric.ContainerMetric> metrics = new ArrayList<>();
+  private final String account;
+  private final String name;
+  private final String location;
+  private final Moniker moniker;
+  private final KubernetesManifest manifest;
+  private final Status status;
+  @Builder.Default private final Set<Artifact> artifacts = new HashSet<>();
+  @Builder.Default private final List<KubernetesManifest> events = new ArrayList<>();
+  @Builder.Default private final List<Warning> warnings = new ArrayList<>();
+
+  @Builder.Default
+  private final List<KubernetesPodMetric.ContainerMetric> metrics = new ArrayList<>();
 }

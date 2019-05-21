@@ -49,11 +49,11 @@ class KubernetesV2JobProviderSpec extends Specification {
     ])
 
     def mockManifestProvider = Mock(KubernetesV2ManifestProvider) {
-      getManifest(*_) >> new KubernetesV2Manifest(
-        account: 'a',
-        name: 'a',
-        manifest: testManifest,
-      )
+      getManifest(*_) >> KubernetesV2Manifest.builder()
+        .account("a")
+        .name("a")
+        .manifest(testManifest)
+        .build()
     }
 
     when:

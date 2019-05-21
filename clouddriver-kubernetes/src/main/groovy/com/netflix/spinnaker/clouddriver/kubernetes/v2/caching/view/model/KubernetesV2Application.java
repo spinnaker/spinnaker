@@ -19,21 +19,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.model.Application;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 public class KubernetesV2Application implements Application {
-  private String name;
-  private Map<String, Set<String>> clusterNames = new HashMap<>();
+  private final String name;
+  private final Map<String, Set<String>> clusterNames;
 
   public Map<String, String> getAttributes() {
     return new ImmutableMap.Builder<String, String>().put("name", name).build();

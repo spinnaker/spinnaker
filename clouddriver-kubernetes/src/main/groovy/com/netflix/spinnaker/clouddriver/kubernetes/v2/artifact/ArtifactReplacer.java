@@ -33,7 +33,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -44,9 +43,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -128,10 +126,8 @@ public class ArtifactReplacer {
             .collect(Collectors.toSet());
 
     try {
-      return ReplaceResult.builder()
-          .manifest(mapper.readValue(document.jsonString(), KubernetesManifest.class))
-          .boundArtifacts(replacedArtifacts)
-          .build();
+      return new ReplaceResult(
+          mapper.readValue(document.jsonString(), KubernetesManifest.class), replacedArtifacts);
     } catch (IOException e) {
       log.error("Malformed Document Context", e);
       throw new RuntimeException(e);
@@ -257,12 +253,9 @@ public class ArtifactReplacer {
     }
   }
 
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
+  @Value
   public static class ReplaceResult {
-    private KubernetesManifest manifest;
-    private Set<Artifact> boundArtifacts = new HashSet<>();
+    private final KubernetesManifest manifest;
+    private final Set<Artifact> boundArtifacts;
   }
 }

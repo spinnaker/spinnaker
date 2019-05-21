@@ -30,8 +30,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KubernetesPodMetric {
-  String podName;
-  List<ContainerMetric> containerMetrics = new ArrayList<>();
+  private String podName;
+  @Builder.Default private List<ContainerMetric> containerMetrics = new ArrayList<>();
 
   @Data
   @Builder
@@ -39,7 +39,7 @@ public class KubernetesPodMetric {
   @AllArgsConstructor
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class ContainerMetric {
-    String containerName;
-    Map<String, String> metrics;
+    private String containerName;
+    private Map<String, String> metrics;
   }
 }

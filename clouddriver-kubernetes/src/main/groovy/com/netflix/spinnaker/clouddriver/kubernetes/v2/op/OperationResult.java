@@ -25,20 +25,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class OperationResult {
-  Map<String, Set<String>> manifestNamesByNamespace = new HashMap<>();
-  Set<KubernetesManifest> manifests = new HashSet<>();
-  Set<Artifact> createdArtifacts = new HashSet<>();
-  Set<Artifact> boundArtifacts = new HashSet<>();
+  private Map<String, Set<String>> manifestNamesByNamespace = new HashMap<>();
+  private Set<KubernetesManifest> manifests = new HashSet<>();
+  private Set<Artifact> createdArtifacts = new HashSet<>();
+  private Set<Artifact> boundArtifacts = new HashSet<>();
 
   public void removeSensitiveKeys(
       KubernetesResourcePropertyRegistry propertyRegistry, String accountName) {

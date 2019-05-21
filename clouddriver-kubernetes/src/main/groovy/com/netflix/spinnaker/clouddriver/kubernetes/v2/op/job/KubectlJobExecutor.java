@@ -610,7 +610,8 @@ public class KubectlJobExecutor {
 
     if (header.length <= 2) {
       log.warn(
-          "Unexpected metric format -- no metrics to report based on table header {}.", header);
+          "Unexpected metric format -- no metrics to report based on table header {}.",
+          Arrays.asList(header));
       return new ArrayList<>();
     }
 

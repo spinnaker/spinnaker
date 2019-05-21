@@ -57,12 +57,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
             .collect(Collectors.groupingBy(ClusterCacheKey::getApplication, Collectors.toSet()));
 
     return keysByApplication.entrySet().stream()
-        .map(
-            e ->
-                KubernetesV2Application.builder()
-                    .name(e.getKey())
-                    .clusterNames(groupClustersByAccount(e.getValue()))
-                    .build())
+        .map(e -> new KubernetesV2Application(e.getKey(), groupClustersByAccount(e.getValue())))
         .collect(Collectors.toSet());
   }
 
@@ -82,10 +77,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
       return null;
     }
 
-    return KubernetesV2Application.builder()
-        .name(name)
-        .clusterNames(groupClustersByAccount(keys))
-        .build();
+    return new KubernetesV2Application(name, groupClustersByAccount(keys));
   }
 
   private Map<String, Set<String>> groupClustersByAccount(Collection<ClusterCacheKey> keys) {

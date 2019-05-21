@@ -98,8 +98,7 @@ public abstract class KubernetesV2AbstractManifestProvider
 
     KubernetesHandler handler = properties.getHandler();
 
-    return new KubernetesV2Manifest()
-        .builder()
+    return KubernetesV2Manifest.builder()
         .account(account)
         .name(manifest.getFullResourceName())
         .location(namespace)
