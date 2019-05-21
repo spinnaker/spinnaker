@@ -80,6 +80,7 @@ export class TaskMonitor {
     this.task = null;
     this.error = false;
     this.errorMessage = null;
+    document.activeElement && (document.activeElement as HTMLElement).blur();
   }
 
   public setError(task?: ITask): void {
