@@ -2,63 +2,6 @@ test {
   useJUnitPlatform()
 }
 
-class DownloadTask extends DefaultTask {
-  @Input
-  String sourceUrl
-
-  @OutputFile
-  File target
-
-  @TaskAction
-  void download() {
-    ant.get(src: sourceUrl, dest: target)
-  }
-}
-
-final File sdkDownloadLocation = project.file('build/sdkdownload')
-final File sdkLocation = project.file('build/oci-java-sdk')
-
-// Oracle BMCS SDK isn't published to any maven repo (yet!), so we manually download, unpack and add to compile/runtime deps
-// https://github.com/oracle/oci-java-sdk/issues/25
-task fetchSdk(type: DownloadTask) {
-  sourceUrl = 'https://github.com/oracle/oci-java-sdk/releases/download/v1.3.2/oci-java-sdk.zip'
-  target = sdkDownloadLocation
-}
-
-task unpackSdk(type: Sync) {
-  dependsOn('fetchSdk')
-  from zipTree(tasks.fetchSdk.target)
-  into sdkLocation
-  include "**/*.jar"
-  exclude "**/*-sources.jar"
-  exclude "**/*-javadoc.jar"
-  exclude "apidocs/**"
-  exclude "examples/**"
-
-  // Scary but works. I think clouddriver deps in general need cleaning at some point
-  // Even without the oracle bmc sdk 3rd party deps there's still multiple javax.inject and commons-X JARs
-  exclude "**/*jackson*.jar"
-  exclude "**/*jersey*.jar"
-  exclude "**/hk2*.jar"
-  exclude "**/*guava*.jar"
-  exclude "**/commons*.jar"
-  exclude "**/aopalliance*.jar"
-  exclude "**/javassist*.jar"
-  exclude "**/slf*.jar"
-  exclude "**/osgi*.jar"
-  exclude "**/validation*.jar"
-  exclude "**/jsr305*.jar"
-  exclude "**/json-smart*.jar"
-  exclude "**/oci-java-sdk-full-shaded-*.jar"
-}
-
-task cleanSdk(type: Delete) {
-  delete sdkLocation, sdkDownloadLocation
-}
-
-tasks.clean.dependsOn('cleanSdk')
-tasks.compileJava.dependsOn('unpackSdk')
-
 dependencies {
   implementation project(":clouddriver-core")
 
@@ -73,6 +16,7 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.oracle.oci.sdk:oci-java-sdk-core:1.5.2"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.sun.jersey:jersey-client:1.9.1"
   implementation "org.apache.commons:commons-compress:1.14"
@@ -83,8 +27,6 @@ dependencies {
   implementation "org.eclipse.aether:aether-impl:1.1.0"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-
-  implementation fileTree(sdkLocation)
 
   testImplementation "com.github.tomakehurst:wiremock:latest.release"
   testImplementation "org.assertj:assertj-core"
