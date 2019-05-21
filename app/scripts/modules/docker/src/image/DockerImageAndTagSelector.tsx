@@ -291,7 +291,12 @@ export class DockerImageAndTagSelector extends React.Component<
       }
       newState.switchedManualWarning = `Could not find ${missingFields.join(' or ')}, switched to manual entry`;
     } else if (!imageId || !imageId.includes('${')) {
-      this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
+      this.synchronizeChanges(
+        this.state.defineManually
+          ? DockerImageUtils.splitImageId(imageId)
+          : { organization, repository, tag, digest: this.props.digest },
+        registry,
+      );
     }
 
     this.setState(newState);
