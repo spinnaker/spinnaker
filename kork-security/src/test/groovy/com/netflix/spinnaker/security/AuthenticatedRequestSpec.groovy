@@ -85,25 +85,10 @@ class AuthenticatedRequestSpec extends Specification {
 
     then:
     Map allheaders = AuthenticatedRequest.getAuthenticationHeaders()
-    allheaders.containsKey('X-SPINNAKER-REQUEST-ID')
-    allheaders.remove('X-SPINNAKER-REQUEST-ID')
     allheaders == [
             'X-SPINNAKER-USER': Optional.of("spinnaker-another-user"),
             'X-SPINNAKER-ACCOUNTS': Optional.empty(),
             'X-SPINNAKER-CLOUDPROVIDER': Optional.of("aws")]
-  }
-
-  void "should return same headers if requested twice"() {
-    when:
-    MDC.clear()
-    MDC.put(AuthenticatedRequest.Header.USER.header, "spinnaker-another-user")
-    MDC.put(AuthenticatedRequest.Header.makeCustomHeader("cloudprovider"), "aws")
-
-    then:
-    Map allheaders = AuthenticatedRequest.getAuthenticationHeaders()
-    Map allheaders2 = AuthenticatedRequest.getAuthenticationHeaders()
-
-    allheaders == allheaders2
   }
 
   void "should not fail when no headers are set"() {
@@ -112,8 +97,6 @@ class AuthenticatedRequestSpec extends Specification {
 
     then:
     Map allheaders = AuthenticatedRequest.getAuthenticationHeaders()
-    allheaders.containsKey('X-SPINNAKER-REQUEST-ID')
-    allheaders.remove('X-SPINNAKER-REQUEST-ID')
     allheaders == [
             'X-SPINNAKER-USER': Optional.empty(),
             'X-SPINNAKER-ACCOUNTS': Optional.empty()]
