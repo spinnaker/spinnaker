@@ -32,7 +32,7 @@ export class RunAsUser extends React.Component<IRunAsUserProps> {
             className={selectClasses}
             options={serviceAccountOptions}
             value={value || ''}
-            onChange={(o: Option<string>) => onChange(o.value)}
+            onChange={(o: Option<string>) => onChange(o ? o.value : undefined)}
             placeholder="Select Run As User"
           />
         </div>
