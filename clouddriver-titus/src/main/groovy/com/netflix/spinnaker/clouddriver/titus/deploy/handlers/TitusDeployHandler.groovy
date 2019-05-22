@@ -313,22 +313,30 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       submitJobRequest = submitJobRequest.withDockerImageVersion(dockerImage.imageVersion)
     }
 
-    if (description.hardConstraints) {
-      description.hardConstraints.each { constraint ->
-        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(constraint))
-      }
-    }
+    /**
+     * Titus api now supports the ability to set key/value for hard & soft constraints,but the original
+     * interface we supported was just a list of keys , to make this change backwards compatable
+     * we give preference to they\ constraints key/value map vs soft & hard constraints list
+      */
 
-    if (description.softConstraints) {
-      description.softConstraints.each { constraint ->
-        submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(constraint))
-      }
+    if(description.constraints.getHard() != null || description.constraints.getSoft() != null) {
+      submitJobRequest.withConstraints(description.constraints)
     }
-
-    if (description.jobType == "service" && !description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
-      submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
+    else {
+        if (description.hardConstraints) {
+          description.hardConstraints.each { constraint ->
+            submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(constraint))
+          }
+        }
+        if (description.softConstraints) {
+          description.softConstraints.each { constraint ->
+            submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(constraint))
+          }
+        }
+        if (description.jobType == "service" && !description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
+          submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
+        }
     }
-
     if (description.jobType) {
       submitJobRequest.withJobType(description.jobType)
     }

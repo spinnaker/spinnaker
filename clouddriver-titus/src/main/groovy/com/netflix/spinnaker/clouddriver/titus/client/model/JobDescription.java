@@ -65,6 +65,8 @@ public class JobDescription {
 
   private DisruptionBudget disruptionBudget;
 
+  private SubmitJobRequest.Constraints constraints;
+
   // Soft/Hard constraints
 
   JobDescription() {}
@@ -117,6 +119,7 @@ public class JobDescription {
     securityAttributes = new HashMap<String, String>();
 
     disruptionBudget = request.getDisruptionBudget();
+    constraints = request.getContainerConstraints();
   }
 
   public String getName() {
@@ -403,6 +406,15 @@ public class JobDescription {
   }
 
   @JsonIgnore
+  public SubmitJobRequest.Constraints getConstraints() {
+    return constraints;
+  }
+
+  public void setConstraints(SubmitJobRequest.Constraints constraints) {
+    this.constraints = constraints;
+  }
+
+  @JsonIgnore
   public Map<String, String> getSecurityAttributes() {
     return securityAttributes;
   }
@@ -500,12 +512,21 @@ public class JobDescription {
       containerBuilder.putAllEnv(env);
     }
 
-    if (!softConstraints.isEmpty()) {
-      containerBuilder.setSoftConstraints(constraintTransformer(softConstraints));
-    }
+    if (constraints != null) {
+      Constraints.Builder constraintsBuilder = Constraints.newBuilder();
+      containerBuilder.setHardConstraints(
+          constraintsBuilder.putAllConstraints(constraints.getHard()));
+      constraintsBuilder = Constraints.newBuilder();
+      containerBuilder.setSoftConstraints(
+          constraintsBuilder.putAllConstraints(constraints.getSoft()));
+    } else {
+      if (!softConstraints.isEmpty()) {
+        containerBuilder.setSoftConstraints(constraintTransformer(softConstraints));
+      }
 
-    if (!hardConstraints.isEmpty()) {
-      containerBuilder.setHardConstraints(constraintTransformer(hardConstraints));
+      if (!hardConstraints.isEmpty()) {
+        containerBuilder.setHardConstraints(constraintTransformer(hardConstraints));
+      }
     }
 
     jobDescriptorBuilder.setContainer(containerBuilder);

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
+import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import groovy.transform.Canonical
 
 class TitusDeployDescription extends AbstractTitusCredentialsDescription implements DeployDescription, ApplicationNameable {
@@ -55,6 +56,9 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Boolean copySourceScalingPoliciesAndActions = true
   Integer sequence
   DisruptionBudget disruptionBudget
+
+  // constraints take precedence over list of soft / hard constraints when specified
+  SubmitJobRequest.Constraints constraints = new SubmitJobRequest.Constraints()
 
   /**
    * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group
