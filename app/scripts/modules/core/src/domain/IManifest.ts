@@ -29,3 +29,8 @@ export interface IManifestEvent {
   reason: string;
   type: string;
 }
+
+export interface IJobOwnedPodStatus {
+  name: string;
+  status: any;
+}

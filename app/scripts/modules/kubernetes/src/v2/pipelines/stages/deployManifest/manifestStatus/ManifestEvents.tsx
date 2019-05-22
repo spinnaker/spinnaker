@@ -1,7 +1,13 @@
 import * as React from 'react';
-import { get } from 'lodash';
+import { get, trim } from 'lodash';
 import { DateTime } from 'luxon';
-import { IManifest, IManifestEvent, relativeTime, JobManifestPodLogs } from '@spinnaker/core';
+import {
+  IManifest,
+  IManifestEvent,
+  relativeTime,
+  JobManifestPodLogs,
+  JobEventBasedPodNameProvider,
+} from '@spinnaker/core';
 
 export interface IManifestEventsProps {
   manifest: IManifest;
@@ -26,6 +32,9 @@ export class ManifestEvents extends React.Component<IManifestEventsProps> {
       return <div>No recent events found - Kubernetes does not store events for long.</div>;
     }
     const { events } = this.props.manifest;
+    const namespace = trim(
+      get(this.props.manifest, ['manifest', 'metadata', 'annotations', 'artifact.spinnaker.io/location'], ''),
+    );
     return events.map((e, i) => {
       const firstTimestamp = get(e, 'firstTimestamp', '');
       const lastTimestamp = get(e, 'lastTimestamp', '');
@@ -67,7 +76,12 @@ export class ManifestEvents extends React.Component<IManifestEventsProps> {
           )}
           <div>{e.message}</div>
           <div>
-            <JobManifestPodLogs manifest={this.props.manifest} manifestEvent={e} linkName="Console Output (Raw)" />
+            <JobManifestPodLogs
+              account={this.props.manifest.account}
+              location={namespace}
+              podNameProvider={new JobEventBasedPodNameProvider(this.props.manifest, e)}
+              linkName="Console Output (Raw)"
+            />
           </div>
           {i !== events.length - 1 && <br />}
         </div>

@@ -1,12 +1,12 @@
 import * as React from 'react';
+import { get, template, isEmpty, trim } from 'lodash';
 
 import { IManifestSubscription } from '../IManifestSubscription';
 import { IStageManifest, ManifestService } from '../ManifestService';
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { IManifest } from 'core/domain/IManifest';
-
-import { get, template, isEmpty } from 'lodash';
 import { Application } from 'core/application';
+import { IPodNameProvider } from '../PodNameProvider';
 
 interface IJobStageExecutionLogsProps {
   manifest: IStageManifest;
@@ -14,6 +14,7 @@ interface IJobStageExecutionLogsProps {
   account: string;
   application: Application;
   externalLink: string;
+  podNameProvider: IPodNameProvider;
 }
 
 interface IJobStageExecutionLogsState {
@@ -96,7 +97,10 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
 
   public render() {
     const { manifest } = this.state.subscription;
-    const { externalLink } = this.props;
+    const { externalLink, podNameProvider } = this.props;
+    const namespace = trim(
+      get(manifest, ['manifest', 'metadata', 'annotations', 'artifact.spinnaker.io/location'], ''),
+    );
 
     // prefer links to external logging platforms
     if (!isEmpty(manifest) && externalLink) {
@@ -107,15 +111,13 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
       );
     }
 
-    let event: any = null;
-    if (manifest && manifest.events) {
-      event = manifest.events.find((e: any) => e.message.startsWith('Created pod'));
-    }
-
-    if (isEmpty(manifest) && isEmpty(event)) {
-      return <div>No Console Output</div>;
-    }
-
-    return <JobManifestPodLogs manifest={manifest} manifestEvent={event} linkName="Console Output" />;
+    return (
+      <JobManifestPodLogs
+        account={manifest.account}
+        location={namespace}
+        podNameProvider={podNameProvider}
+        linkName="Console Output"
+      />
+    );
   }
 }

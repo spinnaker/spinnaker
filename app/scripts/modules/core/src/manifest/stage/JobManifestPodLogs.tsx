@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import * as classNames from 'classnames';
+import { bindAll } from 'lodash';
 
 import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from 'core/instance/InstanceReader';
-
-import { IManifestEvent, IManifest } from 'core/domain/IManifest';
-
-import { get, trim, bindAll } from 'lodash';
+import { IPodNameProvider } from '../PodNameProvider';
 
 // IJobManifestPodLogs is the data needed to get logs
 export interface IJobManifestPodLogsProps {
-  manifest: IManifest;
-  manifestEvent: IManifestEvent;
+  account: string;
+  location: string;
   linkName: string;
+  podNameProvider: IPodNameProvider;
 }
 
 export interface IJobManifestPodLogsState {
@@ -36,24 +35,17 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   }
 
   private canShow(): boolean {
-    const { manifest, manifestEvent } = this.props;
-    return (
-      !!manifest.manifest &&
-      !!manifest.manifest.status &&
-      !!manifestEvent &&
-      !!manifestEvent.message.startsWith('Created pod') &&
-      manifest.manifest.kind.toLowerCase() === 'job'
-    );
+    const { podNameProvider } = this.props;
+    return podNameProvider.getPodName() !== '';
   }
 
   private resourceRegion(): string {
-    return trim(
-      get(this.props, ['manifest', 'manifest', 'metadata', 'annotations', 'artifact.spinnaker.io/location'], ''),
-    );
+    return this.props.location;
   }
 
   private podName(): string {
-    return `pod ${trim(this.props.manifestEvent.message.split(':')[1])}`;
+    const { podNameProvider } = this.props;
+    return `pod ${podNameProvider.getPodName()}`;
   }
 
   public close() {
@@ -65,9 +57,9 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   }
 
   public onClick() {
-    const { manifest } = this.props;
+    const { account } = this.props;
     const region = this.resourceRegion();
-    InstanceReader.getConsoleOutput(manifest.account, region, this.podName(), 'kubernetes')
+    InstanceReader.getConsoleOutput(account, region, this.podName(), 'kubernetes')
       .then((response: IInstanceConsoleOutput) => {
         this.setState({
           containerLogs: response.output as IInstanceMultiOutputLog[],

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { get, sortBy, last } from 'lodash';
 
 import {
   IExecutionDetailsSectionProps,
@@ -8,9 +9,9 @@ import {
 } from 'core/pipeline';
 import { IPreconfiguredJobParameter } from './preconfiguredJobStage';
 import { JobStageExecutionLogs } from 'core/manifest/stage/JobStageExecutionLogs';
-import { get } from 'lodash';
-import { IStage } from 'core/domain';
+import { IStage, IJobOwnedPodStatus } from 'core/domain';
 import { AccountService } from 'core/account';
+import { DefaultPodNameProvider } from 'core/manifest';
 
 export interface ITitusExecutionLogsProps {
   stage: IStage;
@@ -64,6 +65,12 @@ export class TitusExecutionLogs extends React.Component<ITitusExecutionLogsProps
 export class PreconfiguredJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'preconfiguredJobConfig';
 
+  private mostRecentlyCreatedPodName(podsStatuses: IJobOwnedPodStatus[]): string {
+    const sorted = sortBy(podsStatuses, (p: IJobOwnedPodStatus) => p.status.startTime);
+    const mostRecent = last(sorted);
+    return mostRecent ? mostRecent.name : '';
+  }
+
   private executionLogsComponent(cloudProvider: string) {
     const { stage } = this.props;
 
@@ -73,6 +80,8 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
       const deployedJobs = get(this.props.stage, ['context', 'deploy.jobs']);
       const deployedName = get(deployedJobs, namespace, [])[0] || '';
       const externalLink = get<string>(this.props.stage, ['context', 'execution', 'logs']);
+      const podName = this.mostRecentlyCreatedPodName(get(stage.context, ['jobStatus', 'pods'], []));
+      const podNameProvider = new DefaultPodNameProvider(podName);
       return (
         <div className="well">
           <JobStageExecutionLogs
@@ -81,6 +90,7 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
             account={this.props.stage.context.account}
             application={this.props.application}
             externalLink={externalLink}
+            podNameProvider={podNameProvider}
           />
         </div>
       );
