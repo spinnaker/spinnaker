@@ -5,6 +5,7 @@ import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.resource.ImageHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.mahe.DynamicPropertyService
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -30,6 +31,7 @@ class BakeryConfiguration {
     clouddriverService: CloudDriverService,
     orcaService: OrcaService,
     igorService: ArtifactService,
+    imageService: ImageService,
     normalizers: List<ResourceNormalizer<*>>
   ) = ImageHandler(
     objectMapper,
@@ -38,6 +40,7 @@ class BakeryConfiguration {
     clouddriverService,
     orcaService,
     igorService,
+    imageService,
     normalizers
   )
 }

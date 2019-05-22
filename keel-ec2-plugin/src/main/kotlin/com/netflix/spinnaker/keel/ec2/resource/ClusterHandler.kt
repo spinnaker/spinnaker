@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.NoImageFound
+import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
@@ -14,13 +16,17 @@ import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.NamedImage
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.image.LatestFromPackageImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -29,13 +35,13 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
-import de.danielbechler.diff.path.NodePath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -52,10 +58,11 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
+  private val imageService: ImageService,
   private val clock: Clock,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResourceHandler<Cluster> {
+) : ResolvableResourceHandler<ClusterSpec, Cluster> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -64,93 +71,89 @@ class ClusterHandler(
     apiVersion.group,
     "cluster",
     "clusters"
-  ) to Cluster::class.java
+  ) to ClusterSpec::class.java
 
-  private val imageIdSuppliers = setOf(
-    NamedImageImageIdSupplier(objectMapper)
-  )
-
-  override fun generateName(spec: Cluster) = ResourceName(
+  override fun generateName(spec: ClusterSpec) = ResourceName(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.cluster}"
   )
 
-  override fun current(resource: Resource<Cluster>) =
-    runBlocking {
+  override fun resolve(resource: Resource<ClusterSpec>): ResolvedResource<Cluster> {
+    val imageId = resolveImageId(resource.spec.launchConfiguration.imageProvider, resource.spec.location.region)
+    return runBlocking {
+      ResolvedResource(
+        desired = desired(resource.spec, imageId),
+        current = current(resource)
+      )
+    }
+  }
+
+  private fun resolveImageId(imageProvider: ImageProvider, region: String): String {
+    when (imageProvider) {
+      is IdImageProvider -> {
+        return imageProvider.imageId
+      }
+      is LatestFromPackageImageProvider -> {
+        val artifactName = imageProvider.deliveryArtifact.name
+        val namedImage = runBlocking {
+          imageService.getLatestNamedImage(artifactName, "test")
+        } ?: throw NoImageFound(artifactName)
+
+        log.info("Images found for {}: {}", artifactName, namedImage)
+
+        val amis = namedImage.amis[region] ?: throw NoImageFoundForRegion(artifactName, region)
+        return amis.first() // todo eb: when are there multiple?
+      }
+      else -> {
+        throw UnsupportedStrategy(imageProvider::class.simpleName.orEmpty(), ImageProvider::class.simpleName.orEmpty())
+      }
+    }
+  }
+
+  private fun desired(spec: ClusterSpec, imageId: String): Cluster {
+    return Cluster(
+      moniker = spec.moniker,
+      location = spec.location,
+      launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration(imageId),
+      capacity = spec.capacity,
+      dependencies = spec.dependencies,
+      health = spec.health,
+      scaling = spec.scaling,
+      tags = spec.tags
+    )
+  }
+
+  private fun current(resource: Resource<ClusterSpec>): Cluster? {
+    return runBlocking {
       cloudDriverService.getCluster(resource.spec)
     }
-
-  private fun Resource<Cluster>.imageIdFromMetadata(): String? =
-    packageResource()?.let { pkg ->
-      imageIdSuppliers.find { it.supports(pkg) }?.imageIdForCluster(pkg, this.spec)
-    }
-
-  interface ImageIdSupplier {
-    fun supports(r: Resource<*>): Boolean
-    fun imageIdForCluster(r: Resource<*>, c: Cluster): String?
   }
 
-  class NamedImageImageIdSupplier(private val objectMapper: ObjectMapper) : ImageIdSupplier {
-    override fun supports(r: Resource<*>) =
-      r.apiVersion == SPINNAKER_API_V1.subApi("ec2") && r.kind == "namedImage"
-
-    override fun imageIdForCluster(r: Resource<*>, c: Cluster): String? =
-      objectMapper
-        .convertValue<NamedImage>(r.spec)
-        .currentImage
-        ?.amis
-        ?.get(c.location.region)
-        ?.firstOrNull()
-  }
-
-  private fun Resource<Cluster>.packageResource(): Resource<Map<String, Any?>>? =
-    this.metadata.data["packageResource"]?.let { p ->
-      objectMapper.convertValue(p)
-    }
-
-  private fun ResourceDiff<Cluster>?.shouldDeploy(imageId: String?) =
-    imageId != null &&
-      (this == null ||
-        !this.isImageOnly() ||
-        this.current?.launchConfiguration?.imageId != imageId)
-
-  private suspend fun Resource<Cluster>.maybeCreateServerGroupWithDynamicImage(resourceDiff: ResourceDiff<Cluster>?): Map<String, Any?> {
-    val imageId = this.imageIdFromMetadata()
-    return if (resourceDiff.shouldDeploy(imageId)) {
-      this.spec.createServerGroupJob() + mapOf("amiName" to imageId!!)
-    } else {
-      emptyMap()
-    }
-  }
-
-  override fun upsert(resource: Resource<Cluster>, resourceDiff: ResourceDiff<Cluster>): List<TaskRef> =
+  override fun upsert(
+    resource: Resource<ClusterSpec>,
+    resourceDiff: ResourceDiff<Cluster>
+  ): List<TaskRef> =
     runBlocking {
-      val spec = resource.spec
+      val spec = resourceDiff.desired
       val job = when {
         resourceDiff.isCapacityOnly() -> spec.resizeServerGroupJob()
-        spec.hasStaticImage -> spec.createServerGroupJob()
-        !resourceDiff.isImageOnly() -> emptyMap()
-        else -> resource.maybeCreateServerGroupWithDynamicImage(resourceDiff)
+        else -> spec.createServerGroupJob()
       }
 
-      if (job.isNotEmpty()) {
-        log.info("Upserting cluster using task: {}", job)
+      log.info("Upserting cluster using task: {}", job)
 
-        orcaService
-          .orchestrate(OrchestrationRequest(
-            "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
-            spec.moniker.application,
-            "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
-            listOf(Job(job["type"].toString(), job)),
-            OrchestrationTrigger(resource.metadata.name.toString())
-          ))
-          .await()
-      } else {
-        null
-      }
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
+          spec.moniker.application,
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
+          listOf(Job(job["type"].toString(), job)),
+          OrchestrationTrigger(resource.metadata.name.toString())
+        ))
+        .await()
     }
-      ?.also { log.info("Started task {} to upsert cluster", it.ref) }
+    .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee
-      .let { if (it == null) emptyList() else listOf(TaskRef(it.ref)) }
+      .let { listOf(TaskRef(it.ref)) }
 
   override fun actuationInProgress(name: ResourceName) =
     runBlocking {
@@ -163,25 +166,6 @@ class ClusterHandler(
   private fun ResourceDiff<Cluster>.isCapacityOnly(): Boolean =
     current != null && diff.affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ResourceDiff<Cluster>.isImageOnly(): Boolean =
-    current != null && diff.imageChanged && diff.nodePaths.size == 1
-
-  private val imageIdPath = NodePath.with("launchConfiguration", "imageId")
-
-  private val DiffNode.imageChanged: Boolean
-    get() = this.nodePaths.contains(imageIdPath)
-
-  private val DiffNode.nodePaths: Set<NodePath>
-    get() {
-      val paths = mutableSetOf<NodePath>()
-      visitChildren { node, _ ->
-        if (!node.hasChildren()) {
-          paths.add(node.path)
-        }
-      }
-      return paths
-    }
-
   private val DiffNode.affectedRootPropertyTypes: List<Class<*>>
     get() {
       val types = mutableListOf<Class<*>>()
@@ -191,9 +175,6 @@ class ClusterHandler(
       }
       return types
     }
-
-  private val Cluster.hasStaticImage: Boolean
-    get() = this.launchConfiguration.imageId != null
 
   private suspend fun Cluster.createServerGroupJob(): Map<String, Any?> =
     mutableMapOf(
@@ -288,7 +269,7 @@ class ClusterHandler(
       }
       ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.cluster} in ${location.accountName} / ${location.region}")
 
-  override fun delete(resource: Resource<Cluster>) {
+  override fun delete(resource: Resource<ClusterSpec>) {
     TODO("not implemented")
   }
 
@@ -310,7 +291,7 @@ class ClusterHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
+  private suspend fun CloudDriverService.getCluster(spec: ClusterSpec): Cluster? {
     try {
       return withContext(Dispatchers.Default) {
         activeServerGroup(

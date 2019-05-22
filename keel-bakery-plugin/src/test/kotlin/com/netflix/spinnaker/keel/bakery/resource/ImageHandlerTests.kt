@@ -3,17 +3,19 @@ package com.netflix.spinnaker.keel.bakery.resource
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
-import com.netflix.spinnaker.keel.bakery.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.bakery.api.StoreType.EBS
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -28,6 +30,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.hasSize
@@ -42,6 +45,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val orcaService = mockk<OrcaService>()
     val igorService = mockk<ArtifactService>()
     val baseImageCache = mockk<BaseImageCache>()
+    val imageService = mockk<ImageService>()
     val handler = ImageHandler(
       configuredObjectMapper(),
       artifactRepository,
@@ -49,6 +53,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       theCloudDriver,
       orcaService,
       igorService,
+      imageService,
       emptyList()
     )
     val resource = Resource(
@@ -170,6 +175,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
               )
             )
           )
+
+          every { runBlocking { imageService.getLatestImage("keel", "keel-0.161.0-h63.24d0843", "test") } } returns image
         }
 
         test("desired state composes application and base image versions") {

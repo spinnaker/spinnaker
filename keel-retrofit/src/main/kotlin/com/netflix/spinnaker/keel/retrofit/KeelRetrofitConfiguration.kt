@@ -94,6 +94,6 @@ class KeelRetrofitConfiguration {
             }
           }
       }
-      chain.proceed(requestBuilder.build())
+      AuthenticatedRequest.allowAnonymous { chain.proceed(requestBuilder.build()) }
     }
 }

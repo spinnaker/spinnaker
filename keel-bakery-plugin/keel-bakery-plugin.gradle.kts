@@ -12,6 +12,7 @@ dependencies {
   implementation(project(":keel-orca"))
   implementation("org.springframework:spring-context")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("com.netflix.spinnaker.kork:kork-security")
 
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")

@@ -19,7 +19,7 @@ data class ClusterActiveServerGroup(
 data class LaunchConfig(
   val ramdiskId: String?,
   val ebsOptimized: Boolean,
-  val imageId: String?,
+  val imageId: String,
   val instanceType: String,
   val keyName: String,
   val iamInstanceProfile: String,

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
 import okhttp3.HttpUrl
@@ -67,4 +68,9 @@ class ClouddriverConfiguration {
   @ConditionalOnMissingBean(CloudDriverCache::class)
   fun cloudDriverCache(cloudDriverService: CloudDriverService) =
     MemoryCloudDriverCache(cloudDriverService)
+
+  @Bean
+  fun imageService(
+    cloudDriverService: CloudDriverService
+  ) = ImageService(cloudDriverService)
 }

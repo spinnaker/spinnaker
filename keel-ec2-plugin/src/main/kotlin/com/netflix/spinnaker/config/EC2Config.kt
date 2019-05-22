@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.NamedImageHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
@@ -40,6 +41,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
+    imageService: ImageService,
     clock: Clock,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>
@@ -48,6 +50,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
+      imageService,
       clock,
       objectMapper,
       normalizers

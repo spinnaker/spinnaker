@@ -9,9 +9,11 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
-import com.netflix.spinnaker.keel.bakery.NoKnownArtifactVersions
+import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -33,6 +35,7 @@ class ImageHandler(
   private val cloudDriver: CloudDriverService,
   private val orcaService: OrcaService,
   private val igorService: ArtifactService,
+  private val imageService: ImageService,
   override val normalizers: List<ResourceNormalizer<*>>
 ) : ResolvableResourceHandler<ImageSpec, Image> {
 
@@ -71,27 +74,7 @@ class ImageHandler(
   }
 
   private suspend fun current(spec: ImageSpec, version: String): Image? =
-    cloudDriver.namedImages(version, "test")
-      .await()
-      .lastOrNull()
-      ?.let { namedImage ->
-        val tags = namedImage
-          .tagsByImageId
-          .values
-          .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-        if (tags == null) {
-          null
-        } else {
-          Image(
-            tags.getValue("base_ami_version")!!,
-            tags.getValue("appversion")!!.substringBefore('/'),
-            namedImage.amis.keys
-          )
-        }
-      }
-      .also {
-        log.debug("Latest image for {} version {} is {}", spec.artifactName, version, it)
-      }
+    imageService.getLatestImage(spec.artifactName, version, "test")
 
   override fun upsert(
     resource: Resource<ImageSpec>,
@@ -166,14 +149,5 @@ class ImageHandler(
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 }
-
-/**
- * The resolved representation of an [ImageSpec].
- */
-data class Image(
-  val baseAmiVersion: String,
-  val appVersion: String,
-  val regions: Set<String>
-)
 
 class BaseAmiNotFound(baseImage: String) : RuntimeException("Could not find a base AMI for base image $baseImage")
