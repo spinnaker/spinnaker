@@ -56,8 +56,8 @@ export class BaseTrigger extends React.Component<IBaseTriggerConfigProps, IBaseT
           <div className="form-group">
             <RunAsUser
               serviceAccounts={serviceAccounts}
-              onChange={(user: string) => this.onUpdateTrigger({ user })}
-              value={trigger.user}
+              onChange={(runAsUser: string) => this.onUpdateTrigger({ runAsUser })}
+              value={trigger.runAsUser}
               selectColumns={6}
             />
           </div>
