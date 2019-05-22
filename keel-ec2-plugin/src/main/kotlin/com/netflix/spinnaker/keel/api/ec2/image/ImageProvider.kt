@@ -42,3 +42,14 @@ data class IdImageProvider(
 data class LatestFromPackageImageProvider(
   val deliveryArtifact: DeliveryArtifact
 ) : ImageProvider()
+
+/**
+ * Provides an image by reference to a jenkins master, job, and job number
+ */
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class JenkinsJobImageProvider(
+  val packageName: String,
+  val buildHost: String,
+  val buildName: String,
+  val buildNumber: String
+) : ImageProvider()

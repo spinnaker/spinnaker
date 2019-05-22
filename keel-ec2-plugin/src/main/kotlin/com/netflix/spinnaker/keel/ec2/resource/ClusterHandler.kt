@@ -9,6 +9,11 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.Metric
+import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
+import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
@@ -16,13 +21,9 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.image.JenkinsJobImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.LatestFromPackageImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -98,9 +99,24 @@ class ClusterHandler(
           imageService.getLatestNamedImage(artifactName, "test")
         } ?: throw NoImageFound(artifactName)
 
-        log.info("Images found for {}: {}", artifactName, namedImage)
+        log.info("Image found for {}: {}", artifactName, namedImage)
 
         val amis = namedImage.amis[region] ?: throw NoImageFoundForRegion(artifactName, region)
+        return amis.first() // todo eb: when are there multiple?
+      }
+      is JenkinsJobImageProvider -> {
+        val namedImage = runBlocking {
+          imageService.getNamedImageFromJenkinsInfo(
+            imageProvider.packageName,
+            "test",
+            imageProvider.buildHost,
+            imageProvider.buildName,
+            imageProvider.buildNumber
+          )
+        } ?: throw NoImageFound(imageProvider.packageName)
+
+        log.info("Image found for {}: {}", imageProvider.packageName, namedImage)
+        val amis = namedImage.amis[region] ?: throw NoImageFoundForRegion(imageProvider.packageName, region)
         return amis.first() // todo eb: when are there multiple?
       }
       else -> {

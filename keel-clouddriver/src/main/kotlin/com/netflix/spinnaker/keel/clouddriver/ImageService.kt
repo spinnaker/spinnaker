@@ -62,4 +62,42 @@ class ImageService(
       .await()
       .lastOrNull()
   }
+
+  suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? {
+    return cloudDriverService.namedImages(packageName, account)
+      .await()
+      .lastOrNull { namedImage ->
+        val allTags = getAllTags(namedImage)
+        amiMatches(allTags, buildHost, buildName, buildNumber)
+      }
+  }
+
+  private fun getAllTags(image: NamedImage): Map<String, String> {
+    val allTags = HashMap<String, String>()
+    image.tagsByImageId.forEach { amiId, tags ->
+      tags?.forEach { k, v ->
+        if (v != null) {
+          allTags.put(k, v)
+        }
+      }
+    }
+    return allTags
+  }
+
+  private fun amiMatches(tags: Map<String, String>, buildHost: String, buildName: String, buildNumber: String): Boolean {
+    if (!tags.containsKey("build_host") || !tags.containsKey("appversion") || tags["build_host"] != buildHost) {
+      return false
+    }
+
+    val appversion = tags["appversion"]!!.split("/")
+
+    if (appversion.size != 3) {
+      return false
+    }
+
+    if (appversion[1] != buildName || appversion[2] != buildNumber) {
+      return false
+    }
+    return true
+  }
 }

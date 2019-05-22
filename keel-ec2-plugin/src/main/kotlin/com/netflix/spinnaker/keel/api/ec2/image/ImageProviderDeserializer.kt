@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2.image
 
+import com.netflix.spinnaker.keel.api.InvalidPayload
 import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
 internal class ImageProviderDeserializer :
@@ -25,6 +26,7 @@ internal class ImageProviderDeserializer :
     when {
       "imageId" in fieldNames -> IdImageProvider::class.java
       "deliveryArtifact" in fieldNames -> LatestFromPackageImageProvider::class.java
-      else -> ImageProvider::class.java
+      "buildHost" in fieldNames -> JenkinsJobImageProvider::class.java
+      else -> throw InvalidPayload("ImageProvider")
     }
 }
