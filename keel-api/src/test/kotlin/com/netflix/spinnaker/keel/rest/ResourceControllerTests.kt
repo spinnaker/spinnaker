@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
@@ -114,6 +115,53 @@ internal class ResourceControllerTests {
     mvc
       .perform(request)
       .andExpect(status().isCreated)
+  }
+
+  @Test
+  fun `can update a resource`() {
+    resourceRepository.store(resource)
+    every { resourcePersister.update(any()) } returns resource
+
+    val request = put("/resources/${resource.metadata.name}")
+      .accept(APPLICATION_YAML)
+      .contentType(APPLICATION_YAML)
+      .content(
+        """---
+          |apiVersion: ec2.spinnaker.netflix.com/v1
+          |kind: securityGroup
+          |spec:
+          |  account: test
+          |  region: us-west-2
+          |  name: keel"""
+          .trimMargin()
+      )
+    mvc
+      .perform(request)
+      .andExpect(status().isOk)
+
+    verify { resourcePersister.update(resource as Resource<Any>) }
+  }
+
+  @Test
+  fun `attempting to update an unknown resource results in a 404`() {
+    val request = put("/resources/${resource.metadata.name}")
+      .accept(APPLICATION_YAML)
+      .contentType(APPLICATION_YAML)
+      .content(
+        """---
+          |apiVersion: ec2.spinnaker.netflix.com/v1
+          |kind: securityGroup
+          |spec:
+          |  account: test
+          |  region: us-west-2
+          |  name: keel"""
+          .trimMargin()
+      )
+    mvc
+      .perform(request)
+      .andExpect(status().isNotFound)
+
+    verify(exactly = 0) { resourcePersister.update(any()) }
   }
 
   @Test

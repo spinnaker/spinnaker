@@ -76,9 +76,11 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<Any>): Resource<out Any> {
-    log.debug("Updating: $resource")
-    return resourcePersister.update(resource)
+  fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: SubmittedResource<Any>): Resource<out Any> {
+    return resourceRepository.get<Any>(name).let {
+      log.debug("Updating: $resource")
+      resourcePersister.update(it)
+    }
   }
 
   @DeleteMapping(
