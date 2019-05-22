@@ -19,7 +19,7 @@ class ArtifactListener(
   fun onArtifactEvent(event: ArtifactEvent) {
     log.info("Received artifact event: {}", event)
     event.artifacts.forEach {
-      val artifact = DeliveryArtifact(it.name, ArtifactType.valueOf(it.type))
+      val artifact = DeliveryArtifact(it.name, ArtifactType.valueOf(it.type.toUpperCase()))
       // TODO: should be able to construct this with Frigga or something, apparently, also it might
       //  make sense to have a method that does this on the Kork class rather than here
       val version = "${it.name}-${it.version}"
