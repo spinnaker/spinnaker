@@ -185,14 +185,20 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     final Artifact applicationArtifact = description.getApplicationArtifact();
     if (applicationArtifact != null
         && MavenArtifactCredentials.TYPES.contains(applicationArtifact.getType())) {
-      if (applicationArtifact.getVersion() != null) {
-        environmentVars.put(
-            ServerGroupMetaDataEnvVar.ArtifactName.envVarName, applicationArtifact.getName());
-        environmentVars.put(
-            ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, applicationArtifact.getVersion());
-        environmentVars.put(
-            ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName, applicationArtifact.getLocation());
-      }
+      description
+          .getArtifactCredentials()
+          .resolveArtifactName(applicationArtifact)
+          .map(
+              resolvedName ->
+                  environmentVars.put(
+                      ServerGroupMetaDataEnvVar.ArtifactName.envVarName, resolvedName));
+      description
+          .getArtifactCredentials()
+          .resolveArtifactVersion(applicationArtifact)
+          .map(
+              resolvedVersion ->
+                  environmentVars.put(
+                      ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, resolvedVersion));
       final Map<String, Object> metadata = applicationArtifact.getMetadata();
       if (metadata != null) {
         final Map<String, String> buildInfo =

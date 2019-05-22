@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.NotImplementedException;
 
 public interface ArtifactCredentials {
@@ -30,6 +31,14 @@ public interface ArtifactCredentials {
   List<String> getTypes();
 
   InputStream download(Artifact artifact) throws IOException;
+
+  default Optional<String> resolveArtifactName(Artifact artifact) {
+    return Optional.ofNullable(artifact.getName());
+  }
+
+  default Optional<String> resolveArtifactVersion(Artifact artifact) {
+    return Optional.ofNullable(artifact.getVersion());
+  }
 
   @JsonIgnore
   default List<String> getArtifactNames() {

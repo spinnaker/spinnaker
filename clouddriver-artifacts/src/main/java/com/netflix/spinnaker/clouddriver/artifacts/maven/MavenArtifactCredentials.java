@@ -122,6 +122,23 @@ public class MavenArtifactCredentials implements ArtifactCredentials {
     }
   }
 
+  public Optional<String> resolveArtifactName(Artifact artifact) {
+    try {
+      final DefaultArtifact aetherArtifact = new DefaultArtifact(artifact.getReference());
+      return Optional.of(aetherArtifact.getGroupId() + ":" + aetherArtifact.getArtifactId());
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
+
+  public Optional<String> resolveArtifactVersion(Artifact artifact) {
+    try {
+      return resolveVersion(new DefaultArtifact(artifact.getReference()));
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
+
   private Optional<String> resolveVersion(org.eclipse.aether.artifact.Artifact artifact) {
     try {
       String metadataPath = metadataUri(artifact).getPath();
