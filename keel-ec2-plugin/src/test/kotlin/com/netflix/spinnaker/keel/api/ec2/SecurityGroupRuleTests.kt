@@ -24,7 +24,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<self-ref>
+            |---
             |protocol: "TCP"
             |portRange:
             |  startPort: 8080
@@ -45,7 +45,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<ref>
+            |---
             |protocol: "TCP"
             |name: "fnord"
             |portRange:
@@ -68,7 +68,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<x-account-ref>
+            |---
             |protocol: "TCP"
             |name: "fnord"
             |account: "prod"
@@ -95,7 +95,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<CIDR>
+            |---
             |protocol: "TCP"
             |portRange:
             |  startPort: 8080

@@ -17,19 +17,11 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import com.fasterxml.jackson.databind.JsonDeserializer.None
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.netflix.spinnaker.keel.api.ec2.jackson.SecurityGroupRuleDeserializer
 
-@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
-@JsonSubTypes(
-  Type(value = SelfReferenceRule::class, name = "self-ref"),
-  Type(value = ReferenceRule::class, name = "ref"),
-  Type(value = CrossAccountReferenceRule::class, name = "x-account-ref"),
-  Type(value = CidrRule::class, name = "CIDR")
-)
+@JsonDeserialize(using = SecurityGroupRuleDeserializer::class)
 @JsonInclude(NON_NULL)
 sealed class SecurityGroupRule {
   abstract val protocol: Protocol
@@ -40,11 +32,13 @@ sealed class SecurityGroupRule {
   }
 }
 
+@JsonDeserialize(using = None::class)
 data class SelfReferenceRule(
   override val protocol: Protocol,
   override val portRange: PortRange
 ) : SecurityGroupRule()
 
+@JsonDeserialize(using = None::class)
 data class ReferenceRule(
   override val protocol: Protocol,
   val name: String,
@@ -57,6 +51,7 @@ data class ReferenceRule(
   )
 }
 
+@JsonDeserialize(using = None::class)
 data class CrossAccountReferenceRule(
   override val protocol: Protocol,
   val name: String,
@@ -73,6 +68,7 @@ data class CrossAccountReferenceRule(
   )
 }
 
+@JsonDeserialize(using = None::class)
 data class CidrRule(
   override val protocol: Protocol,
   override val portRange: PortRange,
