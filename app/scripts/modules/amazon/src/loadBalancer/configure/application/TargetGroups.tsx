@@ -47,9 +47,12 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
   private checkBetween(errors: any, object: any, fieldName: string, min: number, max: number) {
     const field = object[fieldName];
     if (!Number.isNaN(field)) {
-      errors[fieldName] =
+      const error =
         Validators.minValue(min)(field, robotToHuman(fieldName)) ||
         Validators.maxValue(max)(field, robotToHuman(fieldName));
+      if (error) {
+        errors[fieldName] = error;
+      }
     }
   }
 
