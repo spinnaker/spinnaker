@@ -51,6 +51,9 @@ public class DeployManifestStage implements StageDefinitionBuilder {
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
         .withTask(CleanupArtifactsTask.TASK_NAME, CleanupArtifactsTask.class)
+        .withTask("monitorCleanup", MonitorKatoTask.class)
+        .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
+        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }
 

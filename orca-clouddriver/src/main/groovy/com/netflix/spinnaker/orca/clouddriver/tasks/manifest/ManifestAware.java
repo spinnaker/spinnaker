@@ -27,7 +27,12 @@ import java.util.logging.Logger;
 public interface ManifestAware {
   default Map<String, List<String>> manifestNamesByNamespace(Stage stage) {
     Map<String, List<String>> result =
-        (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
+        (Map<String, List<String>>)
+            stage
+                .getContext()
+                .get(
+                    PromoteManifestKatoOutputsTask.outputKey(
+                        PromoteManifestKatoOutputsTask.MANIFESTS_BY_NAMESPACE_KEY));
     if (result != null) {
       return result;
     }
@@ -43,5 +48,23 @@ public interface ManifestAware {
     }
 
     return result;
+  }
+
+  default Map<String, List<String>> manifestsToRefresh(Stage stage) {
+    Map<String, List<String>> result =
+        (Map<String, List<String>>)
+            stage
+                .getContext()
+                .get(PromoteManifestKatoOutputsTask.MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY);
+    if (result != null
+        && (boolean)
+            stage
+                .getContext()
+                .get(
+                    PromoteManifestKatoOutputsTask
+                        .SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY)) {
+      return result;
+    }
+    return manifestNamesByNamespace(stage);
   }
 }

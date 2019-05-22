@@ -112,6 +112,9 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     StageData stageData = fromStage(stage);
     stageData.deployedManifests = getDeployedManifests(stage);
 
+    // Clear manifests to be refreshed
+    stageData.shouldRefreshManifestNamesByNamespaceToRefresh = false;
+
     checkPendingRefreshes(cloudProvider, stageData, startTime);
 
     refreshManifests(cloudProvider, stageData);
@@ -220,7 +223,7 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
 
   private List<ScopedManifest> getDeployedManifests(Stage stage) {
     String account = getCredentials(stage);
-    Map<String, List<String>> deployedManifests = manifestNamesByNamespace(stage);
+    Map<String, List<String>> deployedManifests = manifestsToRefresh(stage);
     return deployedManifests.entrySet().stream()
         .flatMap(e -> e.getValue().stream().map(v -> new ScopedManifest(account, e.getKey(), v)))
         .collect(Collectors.toList());
@@ -288,6 +291,8 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     Set<ScopedManifest> processedManifests = new HashSet<>();
 
     Set<String> errors = new HashSet<>();
+
+    boolean shouldRefreshManifestNamesByNamespaceToRefresh;
   }
 
   @Value

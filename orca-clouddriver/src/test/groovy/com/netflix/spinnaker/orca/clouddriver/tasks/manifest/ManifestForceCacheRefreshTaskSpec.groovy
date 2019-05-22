@@ -659,4 +659,40 @@ class ManifestForceCacheRefreshTaskSpec extends Specification {
     ]
   }
 
+  def "reads manifests from `manifestNamesByNamespaceToRefresh` key if available"() {
+    given:
+    def namespace = "my-namespace"
+    def manifestA = "replicaSet my-replicaset-v014"
+    def manifestB = "replicaSet my-replicaset-v015"
+    def context = [
+      account: ACCOUNT,
+      cloudProvider: PROVIDER,
+      "outputs.manifestNamesByNamespace": [
+        (namespace): [
+          manifestA
+        ]
+      ],
+      "manifestNamesByNamespaceToRefresh": [
+        (namespace): [
+          manifestB
+        ]
+      ],
+      "shouldRefreshManifestNamesByNamespaceToRefresh": true
+    ]
+    def refreshDetails = [
+      account: ACCOUNT,
+      location: namespace,
+      name: manifestB
+    ]
+    def stage = mockStage(context)
+    stage.setStartTime(now.toEpochMilli())
+
+    when:
+    def taskResult = task.execute(stage)
+
+    then:
+    1 * cacheService.forceCacheUpdate(PROVIDER, REFRESH_TYPE, refreshDetails) >> mockResponse(HTTP_OK)
+    0 * cacheService._
+    taskResult.getStatus() == ExecutionStatus.SUCCEEDED
+  }
 }

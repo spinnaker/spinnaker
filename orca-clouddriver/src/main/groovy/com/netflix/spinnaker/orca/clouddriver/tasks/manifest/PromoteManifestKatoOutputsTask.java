@@ -45,10 +45,13 @@ public class PromoteManifestKatoOutputsTask implements Task {
   private static final TypeReference<List<Artifact>> artifactListType =
       new TypeReference<List<Artifact>>() {};
   private static final String MANIFESTS_KEY = "manifests";
-  private static final String MANIFESTS_BY_NAMESPACE_KEY = "manifestNamesByNamespace";
+  static final String MANIFESTS_BY_NAMESPACE_KEY = "manifestNamesByNamespace";
   private static final String BOUND_ARTIFACTS_KEY = "boundArtifacts";
   private static final String CREATED_ARTIFACTS_KEY = "createdArtifacts";
   private static final String ARTIFACTS_KEY = "artifacts";
+  static final String MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY = "manifestNamesByNamespaceToRefresh";
+  static final String SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY =
+      "shouldRefreshManifestNamesByNamespaceToRefresh";
 
   @Autowired ObjectMapper objectMapper;
 
@@ -77,6 +80,14 @@ public class PromoteManifestKatoOutputsTask implements Task {
     addToOutputs(outputs, allResults, CREATED_ARTIFACTS_KEY, ARTIFACTS_KEY);
     convertKey(outputs, ARTIFACTS_KEY, artifactListType);
 
+    // Surface the most recently operated-on manifests for subsequent ManifestForceCacheRefreshTasks
+    addMostRecentValueToOutputs(
+        outputs, allResults, MANIFESTS_BY_NAMESPACE_KEY, MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY);
+
+    outputs.put(
+        SHOULD_REFRESH_MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY,
+        outputs.get(MANIFESTS_BY_NAMESPACE_TO_REFRESH_KEY) != null);
+
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }
 
@@ -84,7 +95,7 @@ public class PromoteManifestKatoOutputsTask implements Task {
     outputs.computeIfPresent(key, (k, v) -> objectMapper.convertValue(v, tr));
   }
 
-  private String outputKey(String input) {
+  static String outputKey(String input) {
     return "outputs." + input;
   }
 
@@ -95,6 +106,17 @@ public class PromoteManifestKatoOutputsTask implements Task {
   private void addToOutputs(
       Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {
     Optional value = allResults.stream().map(m -> m.get(key)).filter(Objects::nonNull).findFirst();
+
+    value.ifPresent(m -> outputs.put(targetKey, m));
+  }
+
+  private void addMostRecentValueToOutputs(
+      Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {
+    Optional value =
+        allResults.stream()
+            .map(m -> m.get(key))
+            .filter(Objects::nonNull)
+            .reduce((first, second) -> second);
 
     value.ifPresent(m -> outputs.put(targetKey, m));
   }
