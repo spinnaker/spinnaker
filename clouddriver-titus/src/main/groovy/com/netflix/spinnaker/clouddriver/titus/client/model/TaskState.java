@@ -59,11 +59,18 @@ public enum TaskState {
         case "normal":
           return TaskState.FINISHED;
         case "killed":
+        case "scaledDown":
+        case "stuckInState":
           return TaskState.STOPPED;
         case "crashed":
         case "lost":
           return TaskState.CRASHED;
         case "failed":
+        case "invalidRequest":
+        case "runtimeLimitExceeded":
+        case "transientSystemError":
+        case "localSystemError":
+        case "unknownSystemError":
           return TaskState.FAILED;
         default:
           return TaskState.FINISHED;
