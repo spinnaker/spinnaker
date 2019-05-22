@@ -176,7 +176,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             )
           )
 
-          every { runBlocking { imageService.getLatestImage("keel", "keel-0.161.0-h63.24d0843", "test") } } returns image
+          coEvery { imageService.getLatestImage("keel", "keel-0.161.0-h63.24d0843", "test") } returns image
         }
 
         test("desired state composes application and base image versions") {
