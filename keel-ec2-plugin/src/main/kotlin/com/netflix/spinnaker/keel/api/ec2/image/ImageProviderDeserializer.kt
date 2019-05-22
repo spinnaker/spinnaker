@@ -17,13 +17,14 @@
  */
 package com.netflix.spinnaker.keel.api.ec2.image
 
-import com.fasterxml.jackson.annotation.JsonTypeName
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
-/**
- * Provides image id by reference to a package
- */
-@JsonTypeName("latestFromPackage")
-data class LatestFromPackageImageProvider(
-  val deliveryArtifact: DeliveryArtifact
-) : ImageProvider
+internal class ImageProviderDeserializer :
+  PropertyNamePolymorphicDeserializer<ImageProvider>(ImageProvider::class.java) {
+  override fun identifySubType(fieldNames: Collection<String>): Class<out ImageProvider> =
+    when {
+      "imageId" in fieldNames -> IdImageProvider::class.java
+      "deliveryArtifact" in fieldNames -> LatestFromPackageImageProvider::class.java
+      else -> ImageProvider::class.java
+    }
+}

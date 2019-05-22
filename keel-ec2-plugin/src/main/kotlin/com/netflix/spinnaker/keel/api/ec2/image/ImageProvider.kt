@@ -17,18 +17,28 @@
  */
 package com.netflix.spinnaker.keel.api.ec2.image
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
 
 /**
  * Base interface for providing an image
  */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "type")
-@JsonSubTypes(
-  JsonSubTypes.Type(value = IdImageProvider::class),
-  JsonSubTypes.Type(value = LatestFromPackageImageProvider::class)
-)
-interface ImageProvider
+@JsonDeserialize(using = ImageProviderDeserializer::class)
+sealed class ImageProvider
+
+/**
+ * Provides the ami id for the image
+ */
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class IdImageProvider(
+  val imageId: String
+) : ImageProvider()
+
+/**
+ * Provides image id by reference to a package
+ */
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class LatestFromPackageImageProvider(
+  val deliveryArtifact: DeliveryArtifact
+) : ImageProvider()
