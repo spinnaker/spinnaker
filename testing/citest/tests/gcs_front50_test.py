@@ -141,8 +141,14 @@ class GcsFront50TestScenario(sk.SpinnakerTestScenario):
 
     contract = jc.Contract()
 
-    # Note that curiosly the updated timestamp is not adjusted in the storage
-    # file.
+    # The update timestamp is determined by the server,
+    # and we dont know what that is, so lets ignore it
+    # and assume the unit tests verify it is properly updated.
+    expect = dict(expect)
+    del expect['updateTs']
+    self.app_history.insert(0, expect)
+    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
+
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Created Google Cloud Storage File',
                                     retryable_for_secs=5)
@@ -160,14 +166,6 @@ class GcsFront50TestScenario(sk.SpinnakerTestScenario):
              for key, value in expect.items()}))))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
-
-    # The update timestamp is determined by the server,
-    # and we dont know what that is, so lets ignore it
-    # and assume the unit tests verify it is properly updated.
-    expect = dict(expect)
-    del expect['updateTs']
-    self.app_history.insert(0, expect)
-    f50_builder = st.http_observer.HttpContractBuilder(self.agent)
 
     # These clauses are querying the Front50 http server directly
     # to verify that it returns the application we added.
