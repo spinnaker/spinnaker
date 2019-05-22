@@ -91,6 +91,13 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return getUserPermission(user.getId(), combo);
   }
 
+  @Override
+  public void clearCache() {
+    for (ResourceProvider provider : resourceProviders) {
+      provider.clearCache();
+    }
+  }
+
   private boolean resolveAdminRole(Set<Role> roles) {
     List<String> adminRoles = fiatAdminConfig.getAdmin().getRoles();
     return roles.stream().map(Role::getName).anyMatch(adminRoles::contains);

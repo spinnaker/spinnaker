@@ -86,5 +86,9 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
         .build();
   }
 
+  public void clearCache() {
+    cache.invalidate(CACHE_KEY);
+  }
+
   protected abstract Set<R> loadAll() throws ProviderException;
 }

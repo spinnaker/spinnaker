@@ -157,6 +157,9 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
               + "resolution may not complete until this server becomes healthy again.");
     }
 
+    // Ensure we're going to reload app and service account definitions
+    permissionsResolver.clearCache();
+
     while (true) {
       try {
         Map<String, UserPermission> combo = new HashMap<>();

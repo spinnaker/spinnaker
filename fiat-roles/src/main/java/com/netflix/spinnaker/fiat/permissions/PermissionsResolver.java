@@ -36,4 +36,7 @@ public interface PermissionsResolver {
   /** Resolves multiple user's permissions. Returned map is keyed by userId. */
   Map<String, UserPermission> resolve(Collection<ExternalUser> users)
       throws PermissionResolutionException;
+
+  /** Clears resource cache: apps, service accounts,... */
+  void clearCache();
 }

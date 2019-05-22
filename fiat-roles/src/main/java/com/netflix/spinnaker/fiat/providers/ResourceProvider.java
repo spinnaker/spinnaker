@@ -27,4 +27,6 @@ public interface ResourceProvider<R extends Resource> {
   Set<R> getAllRestricted(Set<Role> roles, boolean isAdmin) throws ProviderException;
 
   Set<R> getAllUnrestricted() throws ProviderException;
+
+  void clearCache();
 }
