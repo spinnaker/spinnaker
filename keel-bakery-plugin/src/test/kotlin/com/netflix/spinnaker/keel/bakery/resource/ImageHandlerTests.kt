@@ -30,7 +30,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.runBlocking
+import io.mockk.coEvery
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.hasSize
