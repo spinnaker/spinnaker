@@ -7,14 +7,16 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
+import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
+import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -70,7 +72,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
       subnet = vpc.name
     ),
-    launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
+    launchConfiguration = LaunchConfigurationSpec(
       imageProvider = IdImageProvider(imageId = "i-123543254134"),
       instanceType = "r4.8xlarge",
       ebsOptimized = false,
@@ -79,7 +81,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       instanceMonitoring = false
     ),
     capacity = Capacity(1, 6, 4),
-    dependencies = Cluster.Dependencies(
+    dependencies = Dependencies(
       loadBalancerNames = setOf("keel-test-frontend"),
       securityGroupNames = setOf(sg1.name, sg2.name)
     )

@@ -15,22 +15,17 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api.ec2.cluster
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
-import com.netflix.spinnaker.keel.api.ec2.cluster.Health
-import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
-import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
+import com.netflix.spinnaker.keel.api.ec2.Capacity
 
 @JsonInclude(NON_NULL)
-data class ClusterSpec(
+data class Cluster(
   val moniker: Moniker,
   val location: Location,
-  val launchConfiguration: LaunchConfigurationSpec,
+  val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
   val dependencies: Dependencies = Dependencies(),
   val health: Health = Health(),

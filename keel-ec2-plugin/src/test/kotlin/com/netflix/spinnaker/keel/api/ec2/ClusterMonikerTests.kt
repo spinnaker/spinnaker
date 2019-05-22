@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
+import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
