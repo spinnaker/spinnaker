@@ -297,7 +297,8 @@ public class CloudFoundryCachingAgent implements CachingAgent, OnDemandAgent, Ac
         new DefaultCacheData(
             Keys.getServerGroupKey(account, serverGroupName, region),
             (int) TimeUnit.MINUTES.toSeconds(10), // ttl
-            HashMap.<String, Object>of("cacheTime", Date.from(internalClock.instant())).toJavaMap(),
+            HashMap.<String, Object>of("cacheTime", internalClock.instant().toEpochMilli())
+                .toJavaMap(),
             emptyMap(),
             internalClock);
     providerCache.putCacheData(ON_DEMAND.getNs(), cacheData);

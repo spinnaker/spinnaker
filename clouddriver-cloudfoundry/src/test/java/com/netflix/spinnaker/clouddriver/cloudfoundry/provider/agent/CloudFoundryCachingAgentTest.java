@@ -147,7 +147,8 @@ class CloudFoundryCachingAgentTest {
         new DefaultCacheData(
             Keys.getServerGroupKey(accountName, serverGroupName, region),
             (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of("cacheTime", Date.from(now)).toJavaMap(),
+            io.vavr.collection.HashMap.<String, Object>of("cacheTime", now.toEpochMilli())
+                .toJavaMap(),
             emptyMap(),
             internalClock);
     Organizations mockOrganizations = mock(Organizations.class);
