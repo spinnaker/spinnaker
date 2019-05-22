@@ -43,7 +43,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
         DaemonTaskHandler.message("Validating " + accountName + " with " + CloudFoundryAccountValidator.class.getSimpleName());
 
         String environment = cloudFoundryAccount.getEnvironment();
-        String api = cloudFoundryAccount.getApi();
+        String apiHost = cloudFoundryAccount.getApiHost();
         String appsManagerUri = cloudFoundryAccount.getAppsManagerUri();
         String metricsUri = cloudFoundryAccount.getMetricsUri();
         String password = cloudFoundryAccount.getPassword();
@@ -53,8 +53,8 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
             problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a user and a password");
         }
 
-        if (StringUtils.isEmpty(api)) {
-            problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a CF api endpoint");
+        if (StringUtils.isEmpty(apiHost)) {
+            problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a CF api endpoint host");
         }
 
         if (StringUtils.isEmpty(appsManagerUri)) {
@@ -72,7 +72,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
                     cloudFoundryAccount.getName(),
                     appsManagerUri,
                     metricsUri,
-                    api,
+                    apiHost,
                     user,
                     password,
                     environment

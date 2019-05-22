@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.cloudfoundry;
 
 public class CloudFoundryCommandProperties {
-    public static final String API_DESCRIPTION = "Host name of the CloudFoundry Foundation API endpoint without"
-            + " protocol indicator ie. `api.sys.somesystem.com`";
+    public static final String API_HOST_DESCRIPTION = "Host of the CloudFoundry Foundation API endpoint "
+            + "ie. `api.sys.somesystem.com`";
     public static final String APPS_MANAGER_URI_DESCRIPTION = "Full URI for the Apps Manager application for the"
             + " CloudFoundry Foundation ie. `https://apps.sys.somesystem.com`";
     public static final String METRICS_URI_DESCRIPTION = "Full URI for the metrics application for the CloudFoundry "

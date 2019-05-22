@@ -25,20 +25,20 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.Clou
 @Parameters(separators = "=")
 public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
     @Parameter(
-            names = "--api",
+            names = {"--api-host", "--api"},
             required = true,
-            description = CloudFoundryCommandProperties.API_DESCRIPTION
+            description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION
     )
-    private String api;
+    private String apiHost;
 
     @Parameter(
-            names = "--appsManagerUri",
+            names = {"--apps-manager-uri", "--appsManagerUri"},
             description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION
     )
     private String appsManagerUri;
 
     @Parameter(
-            names = "--metricsUri",
+            names = {"--metrics-uri", "--metricsUri"},
             description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION
     )
     private String metricsUri;
@@ -61,7 +61,7 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
     protected Account buildAccount(String accountName) {
         CloudFoundryAccount cloudFoundryAccount = (CloudFoundryAccount) new CloudFoundryAccount().setName(accountName);
         return cloudFoundryAccount
-                .setApi(api)
+                .setApiHost(apiHost)
                 .setAppsManagerUri(appsManagerUri)
                 .setMetricsUri(metricsUri)
                 .setPassword(password)

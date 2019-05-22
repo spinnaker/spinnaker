@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
@@ -24,7 +25,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CloudFoundryAccount extends Account {
-    String api;
+    @JsonProperty("api") String apiHost;
     String appsManagerUri;
     String metricsUri;
     @Secret
