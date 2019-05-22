@@ -4,10 +4,10 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":keel-core"))
-  implementation(project(":keel-actuator"))
-  implementation("org.springframework:spring-context")
+  api(project(":keel-core"))
+  api(project(":keel-plugin"))
 
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")
 }

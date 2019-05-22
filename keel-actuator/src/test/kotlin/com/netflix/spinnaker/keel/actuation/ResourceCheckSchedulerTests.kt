@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.annealing
+package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1

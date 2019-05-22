@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.annealing
+package com.netflix.spinnaker.keel.actuation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.annealing
+package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp

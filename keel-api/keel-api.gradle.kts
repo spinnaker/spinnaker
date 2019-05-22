@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-  api(project(":keel-core"))
+  api(project(":keel-actuator"))
   api(project(":keel-plugin"))
   api(project(":keel-eureka"))
   api(project(":keel-artifact"))

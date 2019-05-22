@@ -43,7 +43,7 @@ interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
  *
  * @throws UnsupportedKind if no appropriate handlers are found in the list.
  */
-internal fun List<ResolvableResourceHandler<*, *>>.supporting(
+fun List<ResolvableResourceHandler<*, *>>.supporting(
   apiVersion: ApiVersion,
   kind: String
 ): ResolvableResourceHandler<*, *> =

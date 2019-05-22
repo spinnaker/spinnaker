@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation(project(":keel-retrofit"))
+  implementation(project(":keel-actuator"))
   implementation(project(":keel-plugin"))
   implementation(project(":keel-front50"))
 

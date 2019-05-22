@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.annealing.ResourcePersister
+import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.deliveryconfig.resource.DeliveryConfigHandler
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
