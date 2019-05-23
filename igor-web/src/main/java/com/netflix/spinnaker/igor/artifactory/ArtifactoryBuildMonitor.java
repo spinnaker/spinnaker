@@ -152,7 +152,7 @@ public class ArtifactoryBuildMonitor
                       aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
                   return new ArtifactPollingDelta(
                       search.getName(),
-                      client.getUri(),
+                      search.getBaseUrl(),
                       search.getPartitionName(),
                       Collections.singletonList(
                           new ArtifactDelta(

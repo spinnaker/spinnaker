@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 public class ArtifactoryItem {
+  private String name;
   private String repo;
   private String path;
   private List<ArtifactoryArtifact> artifacts;
@@ -44,7 +45,7 @@ public class ArtifactoryItem {
         String location = null;
         if (baseUrl != null) {
           location =
-              baseUrl + "/artifactory/webapp/#/artifacts/browse/tree/General/" + repo + "/" + path;
+              baseUrl + "/webapp/#/artifacts/browse/tree/General/" + repo + "/" + path + "/" + name;
         }
 
         final Artifact.ArtifactBuilder artifactBuilder =
