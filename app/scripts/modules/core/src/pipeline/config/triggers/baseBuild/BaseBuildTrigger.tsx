@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
+import VirtualizedSelect from 'react-virtualized-select';
 import { Observable, Subject } from 'rxjs';
 
 import { BaseTrigger } from 'core/pipeline';
@@ -123,7 +124,7 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
     return (
       <>
         {jobsLoaded && (
-          <Select
+          <VirtualizedSelect
             className="form-control input-sm"
             options={jobs.map(j => ({ label: j, value: j }))}
             placeholder={'Select a job...'}
