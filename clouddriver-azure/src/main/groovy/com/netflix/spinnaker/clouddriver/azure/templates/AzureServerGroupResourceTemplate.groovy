@@ -382,7 +382,6 @@ class AzureServerGroupResourceTemplate {
 
       if(description.enableInboundNAT){
         tags.enableInboundNAT = description.enableInboundNAT ? "true" : "false"
-        tags.loadBalancerName = LB_NAME
         this.dependsOn.add("[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]")
       }
 
@@ -519,7 +518,6 @@ class AzureServerGroupResourceTemplate {
   static class NetworkInterfaceConfigurationProperty {
     boolean primary
     ArrayList<NetworkInterfaceIPConfiguration> ipConfigurations = []
-    NetworkSecurityGroup networkSecurityGroup
 
     /**
      *
@@ -528,9 +526,6 @@ class AzureServerGroupResourceTemplate {
     NetworkInterfaceConfigurationProperty(AzureServerGroupDescription description) {
       primary = true
       ipConfigurations.add(new NetworkInterfaceIPConfiguration(description))
-      if(description.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
-        networkSecurityGroup = new NetworkSecurityGroup(description.securityGroupName)
-      }
     }
   }
 
@@ -574,11 +569,11 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
       if(description.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
-        subnet = new NetworkInterfaceIPConfigurationSubnet(description)
+        subnet = new NetworkInterfaceIPConfigurationSubnet()
         loadBalancerBackendAddressPools.add(new ExistLoadBalancerBackendAddressPool())
         loadBalancerInboundNatPools.add(new ExistLoadBalancerInboundNatPoolId())
       }else {
-        subnet = new NetworkInterfaceIPConfigurationSubnet(null)
+        subnet = new NetworkInterfaceIPConfigurationSubnet()
         if(description.enableInboundNAT) {
           loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
           loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
@@ -594,9 +589,8 @@ class AzureServerGroupResourceTemplate {
   static class NetworkInterfaceIPConfigurationSubnet {
     String id
 
-    NetworkInterfaceIPConfigurationSubnet(AzureServerGroupDescription description) {
-      if(description == null) id = "[parameters('${subnetParameterName}')]"
-      else id = "[resourceId('Microsoft.Network/virtualNetworks/subnets', '${description.vnet}', '${description.subnet}')]"
+    NetworkInterfaceIPConfigurationSubnet() {
+      id = "[parameters('${subnetParameterName}')]"
     }
   }
 
@@ -799,6 +793,8 @@ class AzureServerGroupResourceTemplate {
       tags.stack = description.stack
       tags.detail = description.detail
       tags.createdTime = currentTime.toString()
+      // Mark self as an internal load balancer only for instance access
+      tags.internal = "1"
       if (description.clusterName) tags.cluster = description.clusterName
       if (description.name) tags.serverGroup = description.name
       if (description.securityGroupName) tags.securityGroupName = description.securityGroupName

@@ -34,8 +34,10 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String dnsName
   String cluster
   List<String> serverGroups
+  String trafficEnabledSG
   String appName
   String sessionPersistence
+  boolean internal
   List<AzureLoadBalancerProbe> probes = []
   List<AzureLoadBalancingRule> loadBalancingRules = []
   List<AzureLoadBalancerInboundNATRule> inboundNATRules = []
@@ -92,6 +94,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
     description.tags.putAll(azureLoadBalancer.tags)
     description.region = azureLoadBalancer.location()
+    description.internal = azureLoadBalancer.tags?.internal != null
 
     // Each load balancer backend address pool corresponds to a server group (except the "default_LB_BAP")
     description.serverGroups = []
@@ -106,6 +109,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
       r.probeName = AzureUtilities.getNameFromResourceId(rule?.probe()?.id()) ?: "not-assigned"
       r.persistence = rule.loadDistribution()
       r.idleTimeout = rule.idleTimeoutInMinutes()
+      description.trafficEnabledSG = AzureUtilities.getNameFromResourceId(rule.backendAddressPool().id())
 
       if (rule.protocol() == TransportProtocol.UDP) {
         r.protocol = AzureLoadBalancingRule.AzureLoadBalancingRulesType.UDP

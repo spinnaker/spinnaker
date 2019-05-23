@@ -42,27 +42,25 @@ class DeleteAzureLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus(BASE_PHASE, "Initializing Delete Azure Load Balancer Operation...")
-    for (region in description.regions) {
-      task.updateStatus(BASE_PHASE, "Deleting ${description.loadBalancerName} " + "in ${region}...")
+    task.updateStatus(BASE_PHASE, "Deleting ${description.loadBalancerName}...")
 
-      if (!description.credentials) {
-        throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
-      }
+    if (!description.credentials) {
+      throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
+    }
 
-      try {
-        String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, region)
+    try {
+      String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
 
-        description
-          .credentials
-          .networkClient
-          .deleteLoadBalancer(resourceGroupName, description.loadBalancerName)
+      description
+        .credentials
+        .networkClient
+        .deleteLoadBalancer(resourceGroupName, description.loadBalancerName)
 
-        // TODO: check response to ensure operation succeeded
-        task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${description.loadBalancerName} in ${region} has succeeded.")
-      } catch (Exception e) {
-        task.updateStatus(BASE_PHASE, "Deletion of load balancer ${description.loadBalancerName} failed: e.message")
-        throw new AtomicOperationException("Failed to delete ${description.name}", [e.message])
-      }
+      // TODO: check response to ensure operation succeeded
+      task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${description.loadBalancerName} in ${description.region} has succeeded.")
+    } catch (Exception e) {
+      task.updateStatus(BASE_PHASE, "Deletion of load balancer ${description.loadBalancerName} failed: e.message")
+      throw new AtomicOperationException("Failed to delete ${description.name}", [e.message])
     }
 
     null

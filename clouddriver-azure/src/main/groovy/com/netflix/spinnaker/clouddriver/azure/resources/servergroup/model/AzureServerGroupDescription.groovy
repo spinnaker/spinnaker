@@ -168,8 +168,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
     azureSG.enableInboundNAT = scaleSet.tags?.enableInboundNAT
     azureSG.appGatewayName = scaleSet.tags?.appGatewayName
-    azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
-    azureSG.loadBalancerType = azureSG.loadBalancerName != null ? AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString() : AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()
+    azureSG.loadBalancerType = azureSG.appGatewayName != null ? AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString() : AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId

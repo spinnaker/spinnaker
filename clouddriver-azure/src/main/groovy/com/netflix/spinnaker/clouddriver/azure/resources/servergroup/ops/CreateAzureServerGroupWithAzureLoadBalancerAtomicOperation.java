@@ -21,8 +21,10 @@ import com.microsoft.azure.management.resources.Deployment;
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities;
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation;
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.KeyVaultSecret;
+import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription;
 import com.netflix.spinnaker.clouddriver.azure.resources.network.view.AzureNetworkProvider;
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription;
+import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription;
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -67,10 +69,10 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
     List<String> errList = new ArrayList<>();
     String resourceGroupName = null;
     String virtualNetworkName = null;
-    String subnetName = null;
     String serverGroupName = null;
     String loadBalancerPoolID = null;
     String inboundNatPoolID = null;
+    String subnetId = null;
 
     try {
 
@@ -116,7 +118,40 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
       String loadBalancerName = description.getLoadBalancerName();
 
       virtualNetworkName = description.getVnet();
-      subnetName = description.getSubnet();
+      final String subnetName = description.getSubnet();
+
+      AzureVirtualNetworkDescription vnetDescription =
+          networkProvider.get(
+              description.getAccountName(),
+              description.getRegion(),
+              description.getVnetResourceGroup(),
+              virtualNetworkName);
+
+      if (vnetDescription == null) {
+        throw new RuntimeException(
+            "Selected virtual network " + virtualNetworkName + " does not exist");
+      }
+
+      List<AzureSubnetDescription> subnets = vnetDescription.getSubnets();
+
+      if (subnets == null || subnets.size() == 0) {
+        throw new RuntimeException(
+            "Cannot find any subnets in virtual network " + virtualNetworkName);
+      }
+
+      Optional<AzureSubnetDescription> filteredSubnet =
+          subnets.stream().filter(subnet -> subnet.getName().equals(subnetName)).findFirst();
+
+      if (!filteredSubnet.isPresent()) {
+        throw new RuntimeException(
+            "Selected subnet "
+                + subnetName
+                + " in virtual network "
+                + virtualNetworkName
+                + " is not valid");
+      }
+
+      subnetId = filteredSubnet.get().getResourceId();
 
       getTask()
           .updateStatus(
@@ -183,6 +218,7 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
 
       Map<String, Object> templateParameters = new HashMap<>();
 
+      templateParameters.put(AzureServerGroupResourceTemplate.getSubnetParameterName(), subnetId);
       templateParameters.put(
           AzureServerGroupResourceTemplate.getAppGatewayAddressPoolParameterName(),
           loadBalancerPoolID);
@@ -194,7 +230,8 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
               description.getCredentials().getDefaultResourceGroup(),
               description.getCredentials().getDefaultKeyVault()));
 
-      if (description.getCredentials().getUseSshPublicKey()) {
+      if (description.getCredentials().getUseSshPublicKey() != null
+          && description.getCredentials().getUseSshPublicKey()) {
         templateParameters.put(
             AzureServerGroupResourceTemplate.getVmSshPublicKeyParameterName(),
             new KeyVaultSecret(
@@ -230,6 +267,7 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
 
       if (errList.isEmpty()) {
         getTask().updateStatus(BASE_PHASE, "Deploying server group");
+        serverGroupName = description.getName();
         Deployment deployment =
             description
                 .getCredentials()
@@ -249,7 +287,6 @@ class CreateAzureServerGroupWithAzureLoadBalancerAtomicOperation implements Atom
                 description.getCredentials(),
                 resourceGroupName,
                 deployment.name()));
-        serverGroupName = errList.isEmpty() ? description.getName() : null;
       }
     } catch (Exception e) {
       getTask()

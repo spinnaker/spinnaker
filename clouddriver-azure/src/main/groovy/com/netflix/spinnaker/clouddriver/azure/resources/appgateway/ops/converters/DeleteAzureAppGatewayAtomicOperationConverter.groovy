@@ -20,6 +20,10 @@ import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.DeleteAzureAppGatewayAtomicOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.DeleteAzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.DeleteAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -31,10 +35,18 @@ import org.springframework.stereotype.Component
 @Component("deleteAzureAppGatewayDescription")
 class DeleteAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new DeleteAzureAppGatewayAtomicOperation(convertDescription(input))
+    if(input.get("loadBalancerType") == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+      new DeleteAzureLoadBalancerAtomicOperation(convertALBDescription(input))
+    } else {
+      new DeleteAzureAppGatewayAtomicOperation(convertDescription(input))
+    }
   }
 
   AzureAppGatewayDescription convertDescription(Map input) {
     AzureAtomicOperationConverterHelper.convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
+  }
+
+  DeleteAzureLoadBalancerDescription convertALBDescription(Map input) {
+    AzureAtomicOperationConverterHelper.convertDescription(input, this, DeleteAzureLoadBalancerDescription) as DeleteAzureLoadBalancerDescription
   }
 }

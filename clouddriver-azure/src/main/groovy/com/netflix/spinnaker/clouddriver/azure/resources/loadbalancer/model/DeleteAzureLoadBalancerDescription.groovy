@@ -20,5 +20,5 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOps
 
 class DeleteAzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String loadBalancerName
-  List<String> regions
+  String region
 }

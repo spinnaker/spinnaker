@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -78,12 +79,26 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
 
         // Clean-up the storrage account, load balancer and the subnet that where attached to the server group
         if (errList.isEmpty()) {
-          // Remove association between server group and the assigned application gateway backend address pool
-          task.updateStatus(BASE_PHASE, "Remove backend address pool in $description.appGatewayName")
-          description
-            .credentials
-            .networkClient
-            .removeAppGatewayBAPforServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
+          if(serverGroupDescription.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
+            task.updateStatus(BASE_PHASE, "Remove backend address pool in $description.loadBalancerName")
+            description
+              .credentials
+              .networkClient
+              .removeLoadBalancerAPforServerGroup(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)
+
+            task.updateStatus(BASE_PHASE, "Remove NAT pool in $description.loadBalancerName")
+            description
+              .credentials
+              .networkClient
+              .removeLoadBalancerNatPoolPortRangeforServerGroup(resourceGroupName, serverGroupDescription.loadBalancerName, serverGroupDescription.name)
+          }else {
+            // Remove association between server group and the assigned application gateway backend address pool
+            task.updateStatus(BASE_PHASE, "Remove backend address pool in $description.appGatewayName")
+            description
+              .credentials
+              .networkClient
+              .removeAppGatewayBAPforServerGroup(resourceGroupName, serverGroupDescription.appGatewayName, serverGroupDescription.name)
+          }
 
           // Delete storage accounts if any
           serverGroupDescription.storageAccountNames?.each { def storageAccountName ->
@@ -101,7 +116,22 @@ class DestroyAzureServerGroupAtomicOperation implements AtomicOperation<Void> {
             }
           }
 
+          // Delete load balancer attached to server group
+          if (serverGroupDescription.enableInboundNAT) {
+            String loadBalancerName = AzureUtilities.LB_NAME_PREFIX + serverGroupDescription.name
+            task.updateStatus(BASE_PHASE, "Deleting load balancer ${loadBalancerName} " + "in ${region}...")
+            try {
+              description
+                .credentials
+                .networkClient
+                .deleteLoadBalancer(resourceGroupName, loadBalancerName)
 
+              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${loadBalancerName} in ${region} has succeeded.")
+            } catch (Exception e) {
+              task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${loadBalancerName} failed: ${e.message}")
+              errList.add("Failed to delete ${loadBalancerName}: ${e.message}")
+            }
+          }
 
           // Delete subnet attached to server group
           if (serverGroupDescription.hasNewSubnet && serverGroupDescription.subnetId) {

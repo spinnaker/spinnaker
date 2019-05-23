@@ -189,6 +189,9 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
 
       loadBalancers.each { AzureLoadBalancerDescription item ->
         AzureLoadBalancerDescription loadBalancer = item
+        // Skip for internal type ALB (Which only serve for connection to VMSS instance)
+        if (loadBalancer.internal) return
+
         String lbKey = getLoadBalancerKey(loadBalancer)
 
         // Search the current OnDemand update map entries and look for a load balancer match

@@ -320,8 +320,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         }
@@ -456,8 +455,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         }
@@ -625,8 +623,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         },
@@ -809,8 +806,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         },
@@ -993,8 +989,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         },
@@ -1178,8 +1173,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         },
@@ -1365,8 +1359,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                     "id" : "[parameters('appGatewayAddressPoolId')]"
                   } ]
                 }
-              } ],
-              "networkSecurityGroup" : null
+              } ]
             }
           } ]
         },

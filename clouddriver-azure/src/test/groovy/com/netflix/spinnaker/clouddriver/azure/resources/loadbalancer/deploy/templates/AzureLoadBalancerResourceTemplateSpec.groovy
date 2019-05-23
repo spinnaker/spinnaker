@@ -144,7 +144,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
         }
       } ],
       "backendAddressPools" : [ {
-        "name" : "[variables('loadBalancerBackEnd')]"
+        "name" : "default_LB_BAP"
       } ],
       "loadBalancingRules" : [ {
         "name" : "lbrule1",
