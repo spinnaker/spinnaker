@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.clouddriver.google.deploy.instancegroups;
+package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.services.compute.ComputeRequest;
@@ -26,16 +26,16 @@ public abstract class AbstractGoogleServerGroupManagers implements GoogleServerG
   }
 
   @Override
-  public Operation abandonInstances(List<String> instances) throws IOException {
-    return timeExecute(performAbandonInstances(instances), "abandonInstances");
+  public WaitableComputeOperation abandonInstances(List<String> instances) throws IOException {
+    return wrapOperation(timeExecute(performAbandonInstances(instances), "abandonInstances"));
   }
 
   abstract ComputeRequest<Operation> performAbandonInstances(List<String> instances)
       throws IOException;
 
   @Override
-  public Operation delete() throws IOException {
-    return timeExecute(performDelete(), "delete");
+  public WaitableComputeOperation delete() throws IOException {
+    return wrapOperation(timeExecute(performDelete(), "delete"));
   }
 
   abstract ComputeRequest<Operation> performDelete() throws IOException;
@@ -48,11 +48,13 @@ public abstract class AbstractGoogleServerGroupManagers implements GoogleServerG
   abstract ComputeRequest<InstanceGroupManager> performGet() throws IOException;
 
   @Override
-  public Operation update(InstanceGroupManager content) throws IOException {
-    return timeExecute(performUpdate(content), "update");
+  public WaitableComputeOperation update(InstanceGroupManager content) throws IOException {
+    return wrapOperation(timeExecute(performUpdate(content), "update"));
   }
 
   abstract ComputeRequest<Operation> performUpdate(InstanceGroupManager content) throws IOException;
+
+  abstract WaitableComputeOperation wrapOperation(Operation operation);
 
   private <T> T timeExecute(AbstractGoogleClientRequest<T> request, String api) throws IOException {
     return GoogleExecutor.timeExecute(

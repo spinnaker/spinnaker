@@ -4,10 +4,11 @@ import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.compute.WaitableComputeOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagers
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupOperationPoller
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupOperationPoller
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -37,10 +38,7 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(task)
 
     poller = Mock(GoogleServerGroupOperationPoller)
-
-    serverGroupManagers = Mock(GoogleServerGroupManagers) {
-      _ * getOperationPoller() >> poller
-    }
+    serverGroupManagers = Mock(GoogleServerGroupManagers)
 
     serverGroupManagersFactory = Mock(GoogleServerGroupManagersFactory) {
       _ * getManagers(*_) >> serverGroupManagers
@@ -59,7 +57,7 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
       deviceName: DEVICE_NAME,
       credentials: CREDENTIALS)
     def operation = new SetStatefulDiskAtomicOperation(clusterProvider, serverGroupManagersFactory, description)
-    def updateOp = new Operation(name: "xyzzy", status: "DONE")
+    def updateOp = Mock(WaitableComputeOperation)
     _ * serverGroupManagers.get() >> new InstanceGroupManager()
 
     when:
@@ -69,6 +67,6 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
     1 * serverGroupManagers.update({
       it.getStatefulPolicy().getPreservedState().getDisks().containsKey(DEVICE_NAME)
     }) >> updateOp
-    1 * poller.waitForOperation(updateOp, /* timeout= */ null, task, /* phase= */ _)
+    1 * updateOp.waitForDone(task, /* phase= */ _)
   }
 }

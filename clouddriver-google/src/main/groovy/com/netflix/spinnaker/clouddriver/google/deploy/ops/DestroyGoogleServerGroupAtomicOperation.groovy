@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -245,7 +245,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
 
       task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group..."
 
-      serverGroupManagers.operationPoller.waitForOperation(deleteOperation, /* timeout= */ null, task, BASE_PHASE)
+      deleteOperation.waitForDone(task, BASE_PHASE)
       null
     }
   }

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.clouddriver.google.deploy.instancegroups;
+package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;

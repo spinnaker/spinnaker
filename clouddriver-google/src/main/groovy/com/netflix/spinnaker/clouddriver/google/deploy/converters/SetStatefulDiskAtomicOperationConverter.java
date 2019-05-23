@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SetStatefulDiskAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;

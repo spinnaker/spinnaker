@@ -1,17 +1,17 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops;
 
 import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.StatefulPolicy;
 import com.google.api.services.compute.model.StatefulPolicyPreservedState;
 import com.google.api.services.compute.model.StatefulPolicyPreservedStateDiskDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory;
+import com.netflix.spinnaker.clouddriver.google.compute.WaitableComputeOperation;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagers;
-import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
 import java.io.IOException;
@@ -77,14 +77,11 @@ public class SetStatefulDiskAtomicOperation extends GoogleAtomicOperation<Void> 
 
       task.updateStatus(BASE_PHASE, "Storing updated instance group definition");
 
-      Operation operation = managers.update(instanceGroupManager);
+      WaitableComputeOperation operation = managers.update(instanceGroupManager);
 
       task.updateStatus(BASE_PHASE, "Waiting for update to complete");
 
-      managers
-          .getOperationPoller()
-          .waitForOperation(
-              operation, /* timeout= */ null, TaskRepository.threadLocalTask.get(), BASE_PHASE);
+      operation.waitForDone(TaskRepository.threadLocalTask.get(), BASE_PHASE);
 
       return null;
     } catch (IOException e) {
