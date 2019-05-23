@@ -7,13 +7,15 @@ export interface IDockerImageParts {
 
 export class DockerImageUtils {
   // Split the image id up into the selectable parts to feed the UI
-  public static splitImageId(imageId: string): IDockerImageParts {
-    const parts = imageId.split('/');
-    const organization = parts.length > 1 ? parts.shift() : '';
-    const rest = parts.shift().split(':');
-    const repository = organization.length > 0 ? `${organization}/${rest.shift()}` : rest.shift();
+  public static splitImageId(imageId = ''): IDockerImageParts {
+    const imageParts = imageId.split(':');
+    const repository = imageParts[0];
+    const repositoryParts = repository.split('/');
+    // Everything before the last slash is considered the organization
+    const organization = repositoryParts.slice(0, -1).join('/');
 
-    const lookup = rest.shift();
+    const lookup = imageParts.length > 1 ? imageParts.slice(1).join(':') : '';
+
     let tag: string;
     let digest: string;
     if (lookup) {
