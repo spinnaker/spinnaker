@@ -21,7 +21,7 @@ interface IServiceFieldValidatorConfig extends IValidatorConfig {
 }
 
 const sourceType = (manifest: ICloudFoundryServiceManifestSource, userProvided: boolean) => {
-  if (manifest.direct) {
+  if (manifest && manifest.direct) {
     return userProvided ? 'userProvided' : 'direct';
   } else {
     return 'artifact';
@@ -29,7 +29,7 @@ const sourceType = (manifest: ICloudFoundryServiceManifestSource, userProvided: 
 };
 
 const sourceStruct = (manifest: ICloudFoundryServiceManifestSource) => {
-  return manifest.direct ? 'direct' : 'artifact';
+  return manifest && manifest.direct ? 'direct' : 'artifact';
 };
 
 PipelineConfigValidator.registerValidator(

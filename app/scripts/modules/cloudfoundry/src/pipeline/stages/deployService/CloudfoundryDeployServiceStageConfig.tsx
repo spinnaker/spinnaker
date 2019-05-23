@@ -119,8 +119,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
   };
 
   public render() {
-    const { pipeline } = this.props;
-    const { credentials, region, userProvided, stage, manifest } = this.props.stage;
+    const { pipeline, stage } = this.props;
+    const { credentials, region, userProvided, manifest } = this.props.stage;
     const { accounts, regions } = this.state;
     const directInput = !manifest || !!manifest.direct;
     let manifestInput;
