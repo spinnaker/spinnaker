@@ -199,6 +199,11 @@ public class DeployCloudFoundryServerGroupAtomicOperation
               resolvedVersion ->
                   environmentVars.put(
                       ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, resolvedVersion));
+      Optional.ofNullable(applicationArtifact.getLocation())
+          .map(
+              artifactUrl ->
+                  environmentVars.put(
+                      ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName, artifactUrl));
       final Map<String, Object> metadata = applicationArtifact.getMetadata();
       if (metadata != null) {
         final Map<String, String> buildInfo =
