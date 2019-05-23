@@ -24,6 +24,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -47,6 +48,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -70,6 +72,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -94,6 +97,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -118,6 +122,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -154,6 +159,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -182,6 +188,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -209,6 +216,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },
@@ -233,6 +241,7 @@ describe('azureServerGroupTransformer', function() {
           sku: 'Server2016',
           version: '12.0.0.1',
         },
+        selectedVnet: {},
         viewState: {
           mode: 'create',
         },

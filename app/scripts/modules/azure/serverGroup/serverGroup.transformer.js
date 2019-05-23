@@ -72,7 +72,7 @@ module.exports = angular
         account: command.credentials,
         selectedProvider: 'azure',
         vnet: command.vnet,
-        vnetResourceGroup: command.vnetResourceGroup,
+        vnetResourceGroup: command.selectedVnet.resourceGroup,
         subnet: command.subnet,
         capacity: {
           useSourceCapacity: false,

@@ -38,7 +38,7 @@
               class="disabled"
               tooltip="You must detach all server groups before you can delete this load balancer."
             >
-              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+              <a href>Delete Load Balancer</a>
             </li>
           </ul>
         </div>
@@ -57,10 +57,10 @@
           <account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag>
           {{loadBalancer.region}}
         </dd>
-        <dt>VNet</dt>
-        <dd>{{loadBalancer.elb.vnet}}</dd>
-        <dt>Subnet</dt>
-        <dd>{{loadBalancer.elb.subnet}}</dd>
+        <dt ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">VNet</dt>
+        <dd ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">{{loadBalancer.elb.vnet}}</dd>
+        <dt ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">Subnet</dt>
+        <dd ng-if="loadBalancer.loadBalancerType !== 'Azure Load Balancer'">{{loadBalancer.elb.subnet}}</dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>

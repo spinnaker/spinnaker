@@ -92,7 +92,7 @@ module.exports = angular
                 $scope.securityGroups = _.sortBy(securityGroups, 'name');
               }
 
-              if ($scope.loadBalancer.loadBalancerType) {
+              if ($scope.loadBalancer.loadBalancerType && $scope.loadBalancer.loadBalancerType.includes('_')) {
                 const type = $scope.loadBalancer.loadBalancerType;
                 $scope.loadBalancer.loadBalancerType = type
                   .split('_')
@@ -157,6 +157,7 @@ module.exports = angular
         const command = {
           cloudProvider: 'azure',
           loadBalancerName: $scope.loadBalancer.name,
+          loadBalancerType: $scope.loadBalancer.loadBalancerType,
           credentials: $scope.loadBalancer.account,
           region: loadBalancer.region,
           appName: app.name,

@@ -45,7 +45,7 @@
         />
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="adv.command.loadBalancerType === 'Azure Application Gateway'">
       <div class="col-md-4 sm-label-right">
         <input type="checkbox" ng-model="adv.command.enableInboundNAT" ng-disabled="adv.command.zonesEnabled" />
       </div>
