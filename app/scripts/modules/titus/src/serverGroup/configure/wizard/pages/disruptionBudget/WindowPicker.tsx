@@ -144,7 +144,7 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
             <FormikFormField
               name="days"
               label="Define a New Window"
-              input={props => <ChecklistInput {...props} options={DAYS} />}
+              input={props => <ChecklistInput {...props} stringOptions={DAYS} />}
             />
             <FormikFormField
               name="startHour"
