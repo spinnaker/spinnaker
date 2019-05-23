@@ -22,15 +22,12 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
 import okhttp3.HttpUrl
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
@@ -39,10 +36,6 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
 class ClouddriverConfiguration {
-
-  @Bean
-  fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor =
-    AccountProvidingNetworkInterceptor(applicationContext)
 
   @Bean
   fun clouddriverEndpoint(@Value("\${clouddriver.base-url}") clouddriverBaseUrl: String): HttpUrl =
