@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
@@ -23,6 +24,7 @@ import org.springframework.scheduling.annotation.Scheduled
 
 class CompositeStorageService(
   private val dynamicConfigService: DynamicConfigService,
+  private val registry: Registry,
   private val primary: StorageService,
   private val previous: StorageService
 ) : StorageService {
@@ -30,6 +32,17 @@ class CompositeStorageService(
   companion object {
     private val log = LoggerFactory.getLogger(CompositeStorageService::class.java)
   }
+
+  var primaryReadStatusGauge = registry.gauge(
+    registry.createId("compositeStorageService.read")
+      .withTag("type", "primary")
+      .withTag("class", primary.javaClass.simpleName)
+  )
+  var previousReadStatusGauge = registry.gauge(
+    registry.createId("compositeStorageService.read")
+      .withTag("type", "previous")
+      .withTag("class", previous.javaClass.simpleName)
+  )
 
   @Scheduled(fixedDelay = 60000L)
   fun status() {
@@ -40,6 +53,9 @@ class CompositeStorageService(
       previous.javaClass.simpleName,
       isPreviousReadEnabled()
     )
+
+    primaryReadStatusGauge.set(if (isPrimaryReadEnabled()) 1.0 else 0.0)
+    previousReadStatusGauge.set(if (isPreviousReadEnabled()) 1.0 else 0.0)
   }
 
   override fun ensureBucketExists() {
@@ -86,25 +102,15 @@ class CompositeStorageService(
   }
 
   override fun <T : Timestamped?> storeObject(objectType: ObjectType?, objectKey: String?, item: T) {
-    var exception: Exception? = null
-
     try {
-      primary.storeObject(objectType, objectKey, item)
-    } catch (e: Exception) {
-      exception = e
-      log.error(
-        "{}.storeObject({}, {}) failed",
-        primary.javaClass.simpleName,
-        objectType,
-        objectKey,
-        e
-      )
-    }
-
-    try {
+      /*
+       * Ensure that writes are first successful against the current source of truth (aka 'previous').
+       *
+       * The migration process (StorageServiceMigrator) is capable of detecting and migrating any records
+       * that failed the subsequent 'primary' write.
+       */
       previous.storeObject(objectType, objectKey, item)
     } catch (e: Exception) {
-      exception = e
       log.error(
         "{}.storeObject({}, {}) failed",
         previous.javaClass.simpleName,
@@ -112,10 +118,22 @@ class CompositeStorageService(
         objectKey,
         e
       )
+
+      throw e
     }
 
-    if (exception != null) {
-      throw exception
+    try {
+      primary.storeObject(objectType, objectKey, item)
+    } catch (e: Exception) {
+      log.error(
+        "{}.storeObject({}, {}) failed",
+        primary.javaClass.simpleName,
+        objectType,
+        objectKey,
+        e
+      )
+
+      throw e
     }
   }
 

@@ -17,12 +17,10 @@ dependencies {
   // runtimeOnly "mysql:mysql-connector-java"
 
   testImplementation "io.mockk:mockk"
-  testImplementation "com.ninja-squad:springmockk:1.1.0"
   testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
   testImplementation "org.testcontainers:mysql"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
 }
 
 test {

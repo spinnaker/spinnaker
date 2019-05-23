@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.front50.model
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.*
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
 internal object CompositeStorageServiceTests : JUnit5Minutests {
@@ -29,15 +33,15 @@ internal object CompositeStorageServiceTests : JUnit5Minutests {
   val primary: StorageService = mockk(relaxUnitFun = true)
   val previous: StorageService = mockk(relaxUnitFun = true)
 
-  val subject = CompositeStorageService(dynamicConfigService, primary, previous)
+  val subject = CompositeStorageService(dynamicConfigService, NoopRegistry(), primary, previous)
 
   fun tests() = rootContext {
     after {
       clearMocks(dynamicConfigService, primary, previous)
     }
 
-    context("Entity Tags") {
-      test("should always load from 'previous'") {
+    context("loadObject()") {
+      test("should always load EntityTags from 'previous'") {
         every {
           previous.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
         } returns EntityTags().apply { id = "id-entitytags001" }
@@ -49,6 +53,71 @@ internal object CompositeStorageServiceTests : JUnit5Minutests {
         verifyAll {
           primary wasNot Called
           previous.loadObject<Timestamped>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+        }
+      }
+
+      test("should favor 'primary'") {
+        every {
+          primary.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        } returns Application().apply { name = "application001" }
+
+        every {
+          dynamicConfigService.getConfig(Boolean::class.java, any(), any())
+        } returns true
+
+        expectThat(
+          subject.loadObject<Application>(ObjectType.APPLICATION, "application001").id
+        ).isEqualTo("application001")
+
+        verifyAll {
+          primary.loadObject<Timestamped>(ObjectType.APPLICATION, "application001")
+          previous wasNot Called
+        }
+      }
+
+      test("should fallback to 'previous' when 'primary' fails") {
+        every {
+          primary.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        } throws NotFoundException("Object not found")
+
+        every {
+          previous.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        } returns Application().apply { name = "application001" }
+
+        every {
+          dynamicConfigService.getConfig(Boolean::class.java, any(), any())
+        } returns true
+
+        expectThat(
+          subject.loadObject<Application>(ObjectType.APPLICATION, "application001").id
+        ).isEqualTo("application001")
+
+        verifyAll {
+          primary.loadObject<Timestamped>(ObjectType.APPLICATION, "application001")
+          previous.loadObject<Timestamped>(ObjectType.APPLICATION, "application001")
+        }
+      }
+
+      test("should propagate exception if 'primary' fails and 'previous' not enabled") {
+        every {
+          primary.loadObject<Application>(ObjectType.APPLICATION, "application001")
+        } throws NotFoundException("Object not found")
+
+        every {
+          dynamicConfigService.getConfig(Boolean::class.java, match { it.contains("primary") }, any())
+        } returns true
+
+        every {
+          dynamicConfigService.getConfig(Boolean::class.java, match { it.contains("previous") }, any())
+        } returns false
+
+        expectThrows<NotFoundException> {
+          subject.loadObject<Application>(ObjectType.APPLICATION, "application001").id
+        }
+
+        verifyAll {
+          primary.loadObject<Timestamped>(ObjectType.APPLICATION, "application001")
+          previous wasNot Called
         }
       }
     }

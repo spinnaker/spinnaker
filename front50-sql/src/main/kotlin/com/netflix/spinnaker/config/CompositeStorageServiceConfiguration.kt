@@ -35,10 +35,12 @@ class CompositeStorageServiceConfiguration() {
   @Primary
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
   fun compositeStorageService(dynamicConfigService: DynamicConfigService,
+                              registry: Registry,
                               properties: StorageServiceMigratorConfigurationProperties,
                               storageServices: List<StorageService>) =
     CompositeStorageService(
       dynamicConfigService,
+      registry,
       storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
       storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) }
     )
