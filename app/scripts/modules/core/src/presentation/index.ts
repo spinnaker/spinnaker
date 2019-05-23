@@ -8,6 +8,7 @@ export * from './ReactModal';
 export * from './RenderOutputFile';
 export * from './SpanDropdownTrigger';
 export * from './TetheredSelect';
+export * from './TetheredCreatable';
 export * from './Tooltip';
 export * from './WatchValue';
 export * from './collapsibleSection/CollapsibleSection';

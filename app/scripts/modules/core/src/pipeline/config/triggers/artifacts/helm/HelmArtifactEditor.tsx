@@ -1,42 +1,68 @@
 import * as React from 'react';
 import { Option } from 'react-select';
+import { cloneDeep } from 'lodash';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
 import { StageConfigField } from 'core/pipeline';
-import { TetheredSelect } from 'core/presentation';
-
+import { TetheredSelect, TetheredCreatable } from 'core/presentation';
 import { ArtifactService } from '../ArtifactService';
-import { cloneDeep } from 'lodash';
+import { Spinner } from 'core/widgets';
 
 const TYPE = 'helm/chart';
 
 interface IHelmArtifactEditorState {
   names: string[];
-  versions: string[];
+  versions: Array<Option<string>>;
+  versionsLoading: boolean;
+  namesLoading: boolean;
 }
 
 class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEditorState> {
+  public state: IHelmArtifactEditorState = {
+    names: [],
+    versions: [],
+    versionsLoading: true,
+    namesLoading: true,
+  };
+
+  // taken from https://github.com/semver/semver/issues/232
+  private SEMVER: RegExp = new RegExp(
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$/,
+  );
+
   constructor(props: IArtifactEditorProps) {
     super(props);
-    if (props.artifact.type !== TYPE) {
-      const clonedArtifact = cloneDeep(props.artifact);
+    const { artifact } = this.props;
+    if (artifact.type !== TYPE) {
+      const clonedArtifact = cloneDeep(artifact);
       clonedArtifact.type = TYPE;
       props.onChange(clonedArtifact);
     }
-    this.state = {
-      names: [],
-      versions: [],
-    };
+
     ArtifactService.getArtifactNames(TYPE, this.props.account.name).then(names => {
-      this.setState({ names });
+      this.setState({
+        names,
+        namesLoading: false,
+      });
     });
   }
 
-  public componentWillReceiveProps(nextProps: IArtifactEditorProps) {
+  public componentDidMount() {
+    const { artifact } = this.props;
+    if (artifact.name) {
+      this.getChartVersionOptions(artifact.name);
+    }
+  }
+
+  public componentDidUpdate(nextProps: IArtifactEditorProps) {
     if (this.props.account.name !== nextProps.account.name) {
       ArtifactService.getArtifactNames(TYPE, nextProps.account.name).then(names => {
-        this.setState({ names, versions: [] });
+        this.setState({
+          names,
+          namesLoading: false,
+          versions: [],
+        });
       });
     }
   }
@@ -44,31 +70,35 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
   public render() {
     const { artifact } = this.props;
     const nameOptions = this.state.names.map(name => ({ value: name, label: name }));
-    const versionOptions = this.state.versions.map(version => ({ value: version, label: version }));
+
     return (
       <>
         <StageConfigField label="Name">
-          <TetheredSelect
-            className={'col-md-3'}
-            options={nameOptions}
-            value={artifact.name || ''}
-            onChange={(e: Option) => {
-              this.onChange(e, 'name');
-              this.onNameChange(e.value.toString());
-            }}
-            clearable={false}
-          />
+          {!this.state.namesLoading && (
+            <TetheredSelect
+              options={nameOptions}
+              value={artifact.name || ''}
+              onChange={(e: Option) => {
+                this.onChange(e, 'name');
+                this.getChartVersionOptions(e.value.toString());
+              }}
+              clearable={false}
+            />
+          )}
+          {this.state.namesLoading && <Spinner />}
         </StageConfigField>
         <StageConfigField label="Version">
-          <TetheredSelect
-            className={'col-md-3'}
-            options={versionOptions}
-            value={artifact.version || ''}
-            onChange={(e: Option) => {
-              this.onChange(e, 'version');
-            }}
-            clearable={false}
-          />
+          {!this.state.versionsLoading && (
+            <TetheredCreatable
+              options={this.state.versions}
+              value={artifact.version || ''}
+              onChange={(e: Option) => {
+                this.onChange(e, 'version');
+              }}
+              clearable={false}
+            />
+          )}
+          {this.state.versionsLoading && <Spinner />}
         </StageConfigField>
       </>
     );
@@ -80,11 +110,21 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
     this.props.onChange(clone);
   };
 
-  private onNameChange = (chartName: string) => {
-    ArtifactService.getArtifactVersions(TYPE, this.props.account.name, chartName).then(versions => {
-      this.setState({ versions });
+  private getChartVersionOptions(chartName: string) {
+    const { artifact, account } = this.props;
+    this.setState({ versionsLoading: true });
+    ArtifactService.getArtifactVersions(TYPE, account.name, chartName).then((versions: string[]) => {
+      // if the version doesn't match SEMVER we assume that it's a regular expression or SpEL expression
+      // and add it to the list of valid versions
+      if (artifact.version && !this.SEMVER.test(artifact.version)) {
+        versions = versions.concat(artifact.version);
+      }
+      this.setState({
+        versions: versions.map(v => ({ label: v, value: v })),
+        versionsLoading: false,
+      });
     });
-  };
+  }
 }
 
 export const HelmMatch: IArtifactKindConfig = {
