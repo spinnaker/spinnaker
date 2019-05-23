@@ -204,5 +204,9 @@ class CompositeStorageService(
   private fun isPreviousReadEnabled() = isReadEnabled("previous")
 
   private fun isReadEnabled(type: String) =
-    dynamicConfigService.getConfig(Boolean::class.java, "spinnaker.migration.compositeStorageService.reads.$type", false)
+    dynamicConfigService.getConfig(
+      Boolean::class.java,
+      "spinnaker.migration.compositeStorageService.reads.$type",
+      false
+    )
 }
