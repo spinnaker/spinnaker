@@ -4,9 +4,11 @@ import IInjectorService = angular.auto.IInjectorService;
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
+import { ClusterService } from '../cluster/cluster.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
+import { ImageReader } from 'core/image/image.reader';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { InstanceTypeService, InstanceWriter } from 'core/instance';
@@ -16,9 +18,8 @@ import { PageTitleService } from 'core/pageTitle';
 import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
-import { ImageReader } from 'core/image/image.reader';
-import { StateEvents } from './state.events';
 import { SkinSelectionService } from '../cloudProvider/skinSelection/skinSelection.service';
+import { StateEvents } from './state.events';
 
 export abstract class ReactInject {
   protected $injector: IInjectorService;
@@ -45,6 +46,7 @@ export class CoreReactInject extends ReactInject {
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
+  public get clusterService() { return this.$injector.get('clusterService') as ClusterService; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
   public get imageReader() { return this.$injector.get('imageReader') as ImageReader; }
