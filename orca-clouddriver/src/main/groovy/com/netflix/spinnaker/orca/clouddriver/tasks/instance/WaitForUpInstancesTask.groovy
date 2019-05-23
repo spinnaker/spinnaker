@@ -93,7 +93,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       }
 
       def healthyCount = instances.count { Map instance ->
-        HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)
+        HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)
       }
 
       splainer.add("returning healthyCount=${healthyCount} >= targetDesiredSize=${targetDesiredSize}")
@@ -187,7 +187,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
     serverGroup.instances.each { Map instance ->
       List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
-      if (HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)) {
+      if (HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestingHealthProviderNames)) {
         snapshot.up++
       } else if (someAreDown(instance, interestingHealthProviderNames)) {
         snapshot.down++

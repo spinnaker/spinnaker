@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -60,7 +59,7 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
     Set<String> newUpInstanceIds = serverGroupInstances.findResults {
       String id = stageData.cloudProvider == 'titus' ? it.id : it.instanceId
       !knownInstanceIds.contains(id) &&
-        HealthHelper.someAreUpAndNoneAreDown(it, healthProviders) ? id : null
+        HealthHelper.someAreUpAndNoneAreDownOrStarting(it, healthProviders) ? id : null
     }
 
     int expectedNewInstances = (stage.context.instanceIds as List).size()

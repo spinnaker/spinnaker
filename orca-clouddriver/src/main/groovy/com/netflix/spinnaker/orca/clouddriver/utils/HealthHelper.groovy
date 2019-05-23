@@ -102,13 +102,16 @@ class HealthHelper {
     return someAreDown && noneAreUp
   }
 
-  static boolean someAreUpAndNoneAreDown(Map instance, Collection<String> interestingHealthProviderNames) {
+  static boolean someAreUpAndNoneAreDownOrStarting(Map instance, Collection<String> interestingHealthProviderNames) {
     List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
     boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
     someAreUp = areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
 
-    boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
-    return someAreUp && noneAreDown
+    boolean noneAreDownOrStarting = !healths.any {
+      Map health -> health.state == 'Down' || health.state == 'Starting'
+    }
+
+    return someAreUp && noneAreDownOrStarting
   }
 
   static class HealthCountSnapshot {

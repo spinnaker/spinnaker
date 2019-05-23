@@ -456,6 +456,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
     false        || 1               | ['b']               | [[health: [[type: 'a', state: "Up"]]]]
     true         || 1               | ['Amazon']          | [[health: [[type: 'Amazon', healthClass: 'platform', state: "Unknown"]]]]
     false        || 1               | ['Amazon']          | [[health: [[type: 'Amazon', state: "Down"]]]]
+    false        || 1               | null                | [[health: [[type: 'Amazon', state: "Up"], [type: 'targetGroup', state: "Starting"]]]]
+    false        || 1               | null                | [[health: [[type: 'Amazon', state: "Unknown"], [type: 'targetGroup', state: "Starting"], [type: 'd', state: "Up"]]]]
+    true         || 1               | ['Amazon']          | [[health: [[type: 'Amazon', state: "Up"], [type: 'targetGroup', state: "Starting"]]]]
     true         || 1               | ['GCE']             | [[health: [[type: 'GCE', healthClass: 'platform', state: "Unknown"]]]]
     false        || 1               | ['GCE']             | [[health: [[type: 'GCE', state: "Down"]]]]
 

@@ -25,6 +25,6 @@ import org.springframework.stereotype.Component
 class WaitForUpInstanceHealthTask extends AbstractWaitForInstanceHealthChangeTask {
   @Override
   boolean hasSucceeded(Map instance, Collection<String> interestedHealthProviderNames) {
-    HealthHelper.someAreUpAndNoneAreDown(instance, interestedHealthProviderNames)
+    HealthHelper.someAreUpAndNoneAreDownOrStarting(instance, interestedHealthProviderNames)
   }
 }
