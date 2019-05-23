@@ -995,11 +995,6 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-angular-cron-gen@0.0.21:
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
-  integrity sha1-+qK7NSUqd4kiRNyJUlWzTdb3NL8=
-
 angular-messages@1.6.10:
   version "1.6.10"
   resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.6.10.tgz#09eedc5b50db99eeed9776414428c587c1259715"
