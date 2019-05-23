@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.migrations.StorageServiceMigrator
 import com.netflix.spinnaker.front50.model.CompositeStorageService
 import com.netflix.spinnaker.front50.model.StorageService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -33,12 +34,13 @@ class CompositeStorageServiceConfiguration() {
   @Bean
   @Primary
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
-  fun compositeStorageService(properties: StorageServiceMigratorConfigurationProperties,
+  fun compositeStorageService(dynamicConfigService: DynamicConfigService,
+                              properties: StorageServiceMigratorConfigurationProperties,
                               storageServices: List<StorageService>) =
     CompositeStorageService(
+      dynamicConfigService,
       storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
-      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) },
-      properties.writeOnly
+      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) }
     )
 
   @Bean

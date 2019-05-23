@@ -17,16 +17,29 @@
 package com.netflix.spinnaker.front50.model
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 
 class CompositeStorageService(
+  private val dynamicConfigService: DynamicConfigService,
   private val primary: StorageService,
-  private val previous: StorageService,
-  private val writeOnly: Boolean
+  private val previous: StorageService
 ) : StorageService {
 
   companion object {
     private val log = LoggerFactory.getLogger(CompositeStorageService::class.java)
+  }
+
+  @Scheduled(fixedDelay = 60000L)
+  fun status() {
+    log.debug(
+      "Composite Storage Service Read Status ({}: {}, {}: {})",
+      primary.javaClass.simpleName,
+      isPrimaryReadEnabled(),
+      previous.javaClass.simpleName,
+      isPreviousReadEnabled()
+    )
   }
 
   override fun ensureBucketExists() {
@@ -39,18 +52,31 @@ class CompositeStorageService(
   }
 
   override fun <T : Timestamped?> loadObject(objectType: ObjectType?, objectKey: String?): T {
-    if (writeOnly || objectType == ObjectType.ENTITY_TAGS) {
+    if (objectType == ObjectType.ENTITY_TAGS) {
+      // entity tags are currently unsupported in SQL
       return previous.loadObject<T>(objectType, objectKey)
     }
 
-    try {
-      return primary.loadObject<T>(objectType, objectKey)
-    } catch (e: NotFoundException) {
-      log.debug("{}.loadObject({}, {}) not found (primary)", primary.javaClass.simpleName, objectType, objectKey)
-      return previous.loadObject<T>(objectType, objectKey)
-    } catch (e: Exception) {
-      log.error("{}.loadObject({}, {}) failed (primary)", primary.javaClass.simpleName, objectType, objectKey)
-      return previous.loadObject<T>(objectType, objectKey)
+    var exception: Exception? = null
+
+    if (isPrimaryReadEnabled()) {
+      try {
+        return primary.loadObject<T>(objectType, objectKey)
+      } catch (e: NotFoundException) {
+        log.debug("{}.loadObject({}, {}) not found (primary)", primary.javaClass.simpleName, objectType, objectKey)
+
+        exception = e
+      } catch (e: Exception) {
+        log.error("{}.loadObject({}, {}) failed (primary)", primary.javaClass.simpleName, objectType, objectKey)
+
+        exception = e
+      }
+    }
+
+    return when {
+      isPreviousReadEnabled() -> previous.loadObject<T>(objectType, objectKey)
+      exception != null -> throw exception
+      else -> throw IllegalStateException("Primary and previous storage services are disabled")
     }
   }
 
@@ -94,47 +120,71 @@ class CompositeStorageService(
   }
 
   override fun listObjectKeys(objectType: ObjectType?): Map<String, Long> {
-    if (writeOnly) {
-      return previous.listObjectKeys(objectType)
+    val objectKeys = mutableMapOf<String, Long>()
+
+    if (isPreviousReadEnabled()) {
+      objectKeys.putAll(previous.listObjectKeys(objectType))
     }
 
-    val primaryObjectKeys = primary.listObjectKeys(objectType)
-    val previousObjectKeys = previous.listObjectKeys(objectType)
+    if (isPrimaryReadEnabled()) {
+      objectKeys.putAll(primary.listObjectKeys(objectType))
+    }
 
-    return previousObjectKeys + primaryObjectKeys
+    return objectKeys
   }
 
   override fun <T : Timestamped?> listObjectVersions(objectType: ObjectType?,
                                                      objectKey: String?,
                                                      maxResults: Int): MutableCollection<T> {
-    if (writeOnly) {
-      return previous.listObjectVersions(objectType, objectKey, maxResults)
+    var exception: Exception? = null
+
+    if (isPrimaryReadEnabled()) {
+      try {
+        return primary.listObjectVersions(objectType, objectKey, maxResults)
+      } catch (e: Exception) {
+        log.error(
+          "{}.listObjectVersions({}, {}, {}) failed (primary)",
+          primary.javaClass.simpleName,
+          objectType,
+          objectKey,
+          maxResults
+        )
+
+        exception = e
+      }
     }
 
-    try {
-      return primary.listObjectVersions(objectType, objectKey, maxResults)
-    } catch (e: Exception) {
-      log.error(
-        "{}.listObjectVersions({}, {}, {}) failed (primary)",
-        primary.javaClass.simpleName,
-        objectType,
-        objectKey,
-        maxResults
-      )
-      return previous.listObjectVersions(objectType, objectKey, maxResults)
+    return when {
+      isPreviousReadEnabled() -> return previous.listObjectVersions(objectType, objectKey, maxResults)
+      exception != null -> throw exception
+      else -> mutableListOf()
     }
   }
 
   override fun getLastModified(objectType: ObjectType?): Long {
-    if (writeOnly) {
-      return previous.getLastModified(objectType)
+    var exception: Exception? = null
+
+    if (isPrimaryReadEnabled()) {
+      try {
+        return primary.getLastModified(objectType)
+      } catch (e: Exception) {
+        log.error("{}.getLastModified({}) failed (primary)", primary.javaClass.simpleName, objectType)
+
+        exception = e
+      }
     }
 
-    try {
-      return primary.getLastModified(objectType)
-    } catch (e: Exception) {
-      log.error("{}.getLastModified({}) failed (primary)", primary.javaClass.simpleName, objectType)
-      return previous.getLastModified(objectType)
+    return when {
+      isPreviousReadEnabled() -> previous.getLastModified(objectType)
+      exception != null -> throw exception
+      else -> throw IllegalStateException("Primary and previous storage services are disabled")
     }
   }
+
+  private fun isPrimaryReadEnabled() = isReadEnabled("primary")
+
+  private fun isPreviousReadEnabled() = isReadEnabled("previous")
+
+  private fun isReadEnabled(type: String) =
+    dynamicConfigService.getConfig(Boolean::class.java, "spinnaker.migration.compositeStorageService.reads.$type", false)
 }

@@ -11,13 +11,13 @@ dependencies {
   implementation "com.netflix.hystrix:hystrix-core"
   implementation "io.github.resilience4j:resilience4j-retry"
 
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.2.1"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.2.1"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
   implementation "org.mariadb.jdbc:mariadb-java-client:2.2.3"
-//  runtimeOnly "mysql:mysql-connector-java"
+  // runtimeOnly "mysql:mysql-connector-java"
 
+  testImplementation "io.mockk:mockk"
+  testImplementation "com.ninja-squad:springmockk:1.1.0"
   testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
   testImplementation "org.testcontainers:mysql"
