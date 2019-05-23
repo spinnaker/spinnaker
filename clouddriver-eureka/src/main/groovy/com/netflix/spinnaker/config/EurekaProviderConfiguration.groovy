@@ -24,14 +24,12 @@ import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvid
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 
 import java.util.regex.Pattern
 
@@ -40,7 +38,6 @@ import java.util.regex.Pattern
 @ConditionalOnProperty('eureka.provider.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.eureka"])
 class EurekaProviderConfiguration {
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("eureka.provider")
   EurekaAccountConfigurationProperties eurekaConfigurationProperties() {

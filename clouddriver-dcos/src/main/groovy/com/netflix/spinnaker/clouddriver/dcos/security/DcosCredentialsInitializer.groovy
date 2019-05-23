@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.dcos.security
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientCompositeKey
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
@@ -31,7 +30,6 @@ import mesosphere.dcos.client.DCOS
 import mesosphere.dcos.client.DCOSException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
@@ -45,24 +43,23 @@ class DcosCredentialsInitializer {
 
   @Bean
   @DependsOn("dockerRegistryNamedAccountCredentials")
-  List<? extends DcosAccountCredentials> dcosCredentials(String clouddriverUserAgentApplicationName,
-                                                         DcosConfigurationProperties dcosConfigurationProperties,
-                                                         ApplicationContext applicationContext,
-                                                         AccountCredentialsRepository accountCredentialsRepository,
-                                                         DcosClientProvider clientProvider,
-                                                         List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+  List<? extends DcosAccountCredentials> dcosCredentials(
+    String clouddriverUserAgentApplicationName,
+    DcosConfigurationProperties dcosConfigurationProperties,
+    AccountCredentialsRepository accountCredentialsRepository,
+    DcosClientProvider clientProvider) {
 
-    synchronizeDcosAccounts(clouddriverUserAgentApplicationName, dcosConfigurationProperties, null, applicationContext, accountCredentialsRepository, clientProvider, providerSynchronizerTypeWrappers)
+    synchronizeDcosAccounts(clouddriverUserAgentApplicationName,
+      dcosConfigurationProperties, null,
+      accountCredentialsRepository, clientProvider)
   }
 
   private List<? extends DcosAccountCredentials> synchronizeDcosAccounts(
     String clouddriverUserAgentApplicationName,
     DcosConfigurationProperties dcosConfigurationProperties,
     CatsModule catsModule,
-    ApplicationContext applicationContext,
     AccountCredentialsRepository accountCredentialsRepository,
-    DcosClientProvider clientProvider,
-    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    DcosClientProvider clientProvider) {
 
     // TODO what to do with clouddriverUserAgentApplicationName?
     Map<String, DcosConfigurationProperties.Cluster> clusterMap = new HashMap<>()
@@ -125,10 +122,6 @@ class DcosCredentialsInitializer {
     }
 
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
-
-    if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
-    }
 
     accountCredentialsRepository.all.findAll {
       it instanceof DcosAccountCredentials

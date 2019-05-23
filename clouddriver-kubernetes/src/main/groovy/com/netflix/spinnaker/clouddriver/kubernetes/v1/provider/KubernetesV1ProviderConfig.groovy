@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -27,11 +26,9 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -63,29 +60,13 @@ class KubernetesV1ProviderConfig implements Runnable {
   private AccountCredentialsRepository accountCredentialsRepository
   private KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher
 
-  @Bean
-  KubernetesV1ProviderSynchronizerTypeWrapper kubernetesV1ProviderSynchronizerTypeWrapper() {
-    new KubernetesV1ProviderSynchronizerTypeWrapper()
-  }
-
   @Override
   void run() {
     synchronizeKubernetesV1Provider(kubernetesV1Provider, accountCredentialsRepository)
   }
 
-  class KubernetesV1ProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return KubernetesV1ProviderSynchronizer
-    }
-  }
-
-  class KubernetesV1ProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  KubernetesV1ProviderSynchronizer synchronizeKubernetesV1Provider(KubernetesV1Provider kubernetesV1Provider,
-                                                                   AccountCredentialsRepository accountCredentialsRepository) {
+  private void synchronizeKubernetesV1Provider(KubernetesV1Provider kubernetesV1Provider,
+                                               AccountCredentialsRepository accountCredentialsRepository) {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials, ProviderVersion.v1)
 
     kubernetesV1Provider.agents.clear()
@@ -103,7 +84,5 @@ class KubernetesV1ProviderConfig implements Runnable {
 
       kubernetesV1Provider.agents.addAll(newlyAddedAgents)
     }
-
-    new KubernetesV1ProviderSynchronizer()
   }
 }

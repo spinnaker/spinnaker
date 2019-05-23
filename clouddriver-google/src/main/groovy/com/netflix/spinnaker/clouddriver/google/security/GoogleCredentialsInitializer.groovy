@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.config.GoogleConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -29,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -52,23 +48,18 @@ class GoogleCredentialsInitializer {
   List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(
     String clouddriverUserAgentApplicationName,
     GoogleConfigurationProperties googleConfigurationProperties,
-    ApplicationContext applicationContext,
     AccountCredentialsRepository accountCredentialsRepository,
-    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
     DeployDefaults googleDeployDefaults) {
     
     synchronizeGoogleAccounts(clouddriverUserAgentApplicationName, googleConfigurationProperties,
-      null, applicationContext, accountCredentialsRepository,
-      providerSynchronizerTypeWrappers, googleDeployDefaults)
+      null, accountCredentialsRepository, googleDeployDefaults)
   }
 
-  private List<? extends GoogleNamedAccountCredentials> synchronizeGoogleAccounts(
+  List<? extends GoogleNamedAccountCredentials> synchronizeGoogleAccounts(
     String clouddriverUserAgentApplicationName,
     GoogleConfigurationProperties googleConfigurationProperties,
     CatsModule catsModule,
-    ApplicationContext applicationContext,
     AccountCredentialsRepository accountCredentialsRepository,
-    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
     DeployDefaults googleDeployDefaults) {
 
     def (ArrayList<GoogleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
@@ -113,10 +104,6 @@ class GoogleCredentialsInitializer {
     }
 
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
-
-    if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
-    }
 
     accountCredentialsRepository.all.findAll {
       it instanceof GoogleNamedAccountCredentials

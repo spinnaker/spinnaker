@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
@@ -29,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 
@@ -62,29 +60,13 @@ class GoogleInfrastructureProviderConfig {
     googleInfrastructureProvider
   }
 
-  @Bean
-  GoogleInfrastructureProviderSynchronizerTypeWrapper googleInfrastructureProviderSynchronizerTypeWrapper() {
-    new GoogleInfrastructureProviderSynchronizerTypeWrapper()
-  }
-
-  class GoogleInfrastructureProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return GoogleInfrastructureProviderSynchronizer
-    }
-  }
-
-  class GoogleInfrastructureProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(
-      String clouddriverUserAgentApplicationName,
-      GoogleConfigurationProperties googleConfigurationProperties,
-      GoogleInfrastructureProvider googleInfrastructureProvider,
-      AccountCredentialsRepository accountCredentialsRepository,
-      ObjectMapper objectMapper,
-      Registry registry) {
+  private static void synchronizeGoogleInfrastructureProvider(
+    String clouddriverUserAgentApplicationName,
+    GoogleConfigurationProperties googleConfigurationProperties,
+    GoogleInfrastructureProvider googleInfrastructureProvider,
+    AccountCredentialsRepository accountCredentialsRepository,
+    ObjectMapper objectMapper,
+    Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(googleInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
                                                                  GoogleNamedAccountCredentials)
@@ -195,7 +177,5 @@ class GoogleInfrastructureProviderConfig {
         googleInfrastructureProvider.agents.addAll(newlyAddedAgents)
       }
     }
-
-    new GoogleInfrastructureProviderSynchronizer()
   }
 }

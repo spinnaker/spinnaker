@@ -147,15 +147,4 @@ public class ProviderUtils {
       }
     }
   }
-
-  /**
-   * Request from Spring's application context each of the provider synchronizer type wrapper beans. It is expected that
-   * the Accounts and Agents managed by each provider will be synchronized with the latest configured accounts as a
-   * result of requesting these beans.
-   */
-  public static void synchronizeAgentProviders(def appContext, def providerSynchronizerTypeWrappers) {
-    for (def providerSynchronizerTypeWrapper : providerSynchronizerTypeWrappers) {
-      appContext.getBean(providerSynchronizerTypeWrapper.synchronizerType)
-    }
-  }
 }

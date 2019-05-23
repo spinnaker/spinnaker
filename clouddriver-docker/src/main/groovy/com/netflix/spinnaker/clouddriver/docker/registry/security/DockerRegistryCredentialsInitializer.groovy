@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties
@@ -25,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -38,10 +36,8 @@ class DockerRegistryCredentialsInitializer {
   @Bean
   List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
                                                                                               AccountCredentialsRepository accountCredentialsRepository,
-                                                                                              ApplicationContext applicationContext,
-                                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
                                                                                               DockerOkClientProvider dockerOkClientProvider) {
-    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers, dockerOkClientProvider)
+    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, dockerOkClientProvider)
   }
 
   @Bean
@@ -54,8 +50,6 @@ class DockerRegistryCredentialsInitializer {
     DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
     AccountCredentialsRepository accountCredentialsRepository,
     CatsModule catsModule,
-    ApplicationContext applicationContext,
-    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
     DockerOkClientProvider dockerOkClientProvider) {
     
     def (ArrayList<DockerRegistryConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
@@ -95,10 +89,6 @@ class DockerRegistryCredentialsInitializer {
     }
 
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
-
-    if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
-    }
 
     accountCredentialsRepository.all.findAll {
       it instanceof DockerRegistryNamedAccountCredentials

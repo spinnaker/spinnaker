@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppengineProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppenginePlatformApplicationCachingAgent
@@ -29,11 +28,9 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppengineServe
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -55,26 +52,10 @@ class AppengineProviderConfig {
     appengineProvider
   }
 
-  @Bean
-  AppengineProviderSynchronizerTypeWrapper appengineProviderSynchronizerTypeWrapper() {
-    new AppengineProviderSynchronizerTypeWrapper()
-  }
-
-  class AppengineProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return AppengineProviderSynchronizer
-    }
-  }
-
-  class AppengineProviderSynchronizer { }
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  AppengineProviderSynchronizer synchronizeAppengineProvider(AppengineProvider appengineProvider,
-                                                             AccountCredentialsRepository accountCredentialsRepository,
-                                                             ObjectMapper objectMapper,
-                                                             Registry registry) {
+  private static void synchronizeAppengineProvider(AppengineProvider appengineProvider,
+                                                   AccountCredentialsRepository accountCredentialsRepository,
+                                                   ObjectMapper objectMapper,
+                                                   Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(appengineProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
                                                                  AppengineNamedAccountCredentials)
@@ -103,7 +84,5 @@ class AppengineProviderConfig {
     if (!newlyAddedAgents.isEmpty()) {
       appengineProvider.agents.addAll(newlyAddedAgents)
     }
-
-    new AppengineProviderSynchronizer()
   }
 }

@@ -34,11 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class EcsProviderConfig {
@@ -72,9 +70,7 @@ public class EcsProviderConfig {
     return provider;
   }
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  public EcsProviderSynchronizer synchronizeEcsProvider(
+  private void synchronizeEcsProvider(
       EcsProvider ecsProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       AmazonClientProvider amazonClientProvider,
@@ -171,8 +167,5 @@ public class EcsProviderConfig {
 
     ecsProvider.getAgents().addAll(newAgents);
     ecsProvider.synchronizeHealthAgents();
-    return new EcsProviderSynchronizer();
   }
-
-  class EcsProviderSynchronizer {}
 }

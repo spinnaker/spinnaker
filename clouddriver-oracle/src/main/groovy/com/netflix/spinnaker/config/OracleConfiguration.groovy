@@ -11,7 +11,6 @@ package com.netflix.spinnaker.config
 import com.netflix.spinnaker.clouddriver.oracle.config.OracleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.oracle.health.OracleHealthIndicator
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleCredentialsInitializer
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -26,7 +25,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @Import([ OracleCredentialsInitializer ])
 class OracleConfiguration {
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("oracle")
   OracleConfigurationProperties oracleConfigurationProperties() {

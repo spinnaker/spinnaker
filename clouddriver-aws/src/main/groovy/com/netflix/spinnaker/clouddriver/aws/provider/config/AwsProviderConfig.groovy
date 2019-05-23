@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent
@@ -45,14 +44,11 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -100,35 +96,19 @@ class AwsProviderConfig {
     return Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize)
   }
 
-  @Bean
-  AwsProviderSynchronizerTypeWrapper awsProviderSynchronizerTypeWrapper() {
-    new AwsProviderSynchronizerTypeWrapper()
-  }
-
-  class AwsProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return AwsProviderSynchronizer
-    }
-  }
-
-  class AwsProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  AwsProviderSynchronizer synchronizeAwsProvider(AwsProvider awsProvider,
-                                                 AmazonCloudProvider amazonCloudProvider,
-                                                 AmazonClientProvider amazonClientProvider,
-                                                 AmazonS3DataProvider amazonS3DataProvider,
-                                                 AccountCredentialsRepository accountCredentialsRepository,
-                                                 ObjectMapper objectMapper,
-                                                 EddaApiFactory eddaApiFactory,
-                                                 ApplicationContext ctx,
-                                                 Registry registry,
-                                                 ExecutorService reservationReportPool,
-                                                 Collection<AgentProvider> agentProviders,
-                                                 EddaTimeoutConfig eddaTimeoutConfig,
-                                                 DynamicConfigService dynamicConfigService) {
+  private void synchronizeAwsProvider(AwsProvider awsProvider,
+                                      AmazonCloudProvider amazonCloudProvider,
+                                      AmazonClientProvider amazonClientProvider,
+                                      AmazonS3DataProvider amazonS3DataProvider,
+                                      AccountCredentialsRepository accountCredentialsRepository,
+                                      ObjectMapper objectMapper,
+                                      EddaApiFactory eddaApiFactory,
+                                      ApplicationContext ctx,
+                                      Registry registry,
+                                      ExecutorService reservationReportPool,
+                                      Collection<AgentProvider> agentProviders,
+                                      EddaTimeoutConfig eddaTimeoutConfig,
+                                      DynamicConfigService dynamicConfigService) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -186,11 +166,10 @@ class AwsProviderConfig {
 
     awsProvider.agents.addAll(newlyAddedAgents)
     awsProvider.synchronizeHealthAgents()
-
-    new AwsProviderSynchronizer()
   }
 
-  private void synchronizeReservationReportCachingAgentAccounts(AwsProvider awsProvider, Collection<NetflixAmazonCredentials> allAccounts) {
+  private static void synchronizeReservationReportCachingAgentAccounts(AwsProvider awsProvider,
+                                                                       Collection<NetflixAmazonCredentials> allAccounts) {
     ReservationReportCachingAgent reservationReportCachingAgent = awsProvider.agents.find { agent ->
       agent instanceof ReservationReportCachingAgent
     }

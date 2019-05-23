@@ -42,7 +42,7 @@ class GoogleCredentialsInitializerSpec extends Specification {
 
 
     when:
-    init.synchronizeGoogleAccounts("clouddriver", configProps, null, null, accountRepo, [], deployDefaults)
+    init.synchronizeGoogleAccounts("clouddriver", configProps, null, accountRepo, deployDefaults)
 
     then:
     noExceptionThrown()
@@ -66,7 +66,7 @@ class GoogleCredentialsInitializerSpec extends Specification {
 
 
     when:
-    init.synchronizeGoogleAccounts("clouddriver", configProps, null, null, accountRepo, [], deployDefaults)
+    init.synchronizeGoogleAccounts("clouddriver", configProps, null, accountRepo, deployDefaults)
 
     then:
     thrown(IllegalArgumentException)

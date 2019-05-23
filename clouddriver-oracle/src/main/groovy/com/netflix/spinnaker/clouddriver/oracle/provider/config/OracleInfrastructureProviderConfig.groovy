@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.config.OracleConfiguration
 import com.netflix.spinnaker.clouddriver.oracle.provider.OracleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.oracle.provider.agent.*
@@ -20,7 +19,6 @@ import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.oracle.service.servergroup.OracleServerGroupService
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 
@@ -52,24 +50,7 @@ class OracleInfrastructureProviderConfig {
     return oracleInfrastructureProvider
   }
 
-  @Bean
-  OracleInfrastructureProviderSynchronizerTypeWrapper oracleInfrastructureProviderSynchronizerTypeWrapper() {
-    new OracleInfrastructureProviderSynchronizerTypeWrapper()
-  }
-
-  class OracleInfrastructureProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-
-    @Override
-    Class getSynchronizerType() {
-      return OracleInfrastructureProviderSynchronizer
-    }
-  }
-
-  class OracleInfrastructureProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  OracleInfrastructureProviderSynchronizer synchronizeOracleInfrastructureProvider(
+  private static void synchronizeOracleInfrastructureProvider(
     String clouddriverUserAgentApplicationName,
     OracleInfrastructureProvider oracleInfrastructureProvider,
     AccountCredentialsRepository accountCredentialsRepository,
@@ -125,7 +106,5 @@ class OracleInfrastructureProviderConfig {
         oracleInfrastructureProvider.agents.addAll(newlyAddedAgents)
       }
     }
-
-    return new OracleInfrastructureProviderSynchronizer()
   }
 }

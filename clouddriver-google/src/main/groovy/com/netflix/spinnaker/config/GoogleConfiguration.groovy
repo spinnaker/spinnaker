@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
 import groovy.transform.ToString
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -40,7 +39,6 @@ class GoogleConfiguration {
 
   private static final String DEFAULT_KEY = "default"
 
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("google")
   GoogleConfigurationProperties googleConfigurationProperties() {

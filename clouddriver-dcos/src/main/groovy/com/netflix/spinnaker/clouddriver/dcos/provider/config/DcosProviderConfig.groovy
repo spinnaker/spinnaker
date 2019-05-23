@@ -25,7 +25,6 @@ import com.google.common.collect.Multimap
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
@@ -40,11 +39,9 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.tuple.Pair
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -64,28 +61,11 @@ class DcosProviderConfig {
     provider
   }
 
-  @Bean
-  DcosProviderSynchronizerTypeWrapper dcosProviderSynchronizerTypeWrapper() {
-    new DcosProviderSynchronizerTypeWrapper()
-  }
-
-  class DcosProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-
-    @Override
-    Class getSynchronizerType() {
-      return DcosProviderSynchronizer
-    }
-  }
-
-  class DcosProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  DcosProviderSynchronizer synchronizeDcosProvider(DcosProvider dcosProvider,
-                                                   AccountCredentialsProvider accountCredentialsProvider,
-                                                   AccountCredentialsRepository accountCredentialsRepository,
-                                                   ObjectMapper objectMapper,
-                                                   Registry registry) {
+  private static void synchronizeDcosProvider(DcosProvider dcosProvider,
+                                              AccountCredentialsProvider accountCredentialsProvider,
+                                              AccountCredentialsRepository accountCredentialsRepository,
+                                              ObjectMapper objectMapper,
+                                              Registry registry) {
 
     Set<Pair<String, String>> scheduledAgents = getScheduledClusterAgents(dcosProvider)
 
@@ -116,8 +96,6 @@ class DcosProviderConfig {
     if (!newlyAddedAgents.isEmpty()) {
       dcosProvider.agents.addAll(newlyAddedAgents)
     }
-
-    new DcosProviderSynchronizer()
   }
 
   static def synchronizeAgent(DcosProvider dcosProvider, Pair<String, String> clusterKey, Collection<DcosAccountCredentials> allAccounts) {

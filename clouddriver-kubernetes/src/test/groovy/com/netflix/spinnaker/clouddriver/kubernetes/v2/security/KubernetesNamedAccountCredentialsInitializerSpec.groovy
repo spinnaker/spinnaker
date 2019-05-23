@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -29,14 +28,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
-import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 
 class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
   CatsModule catsModule = Mock(CatsModule)
-  ApplicationContext applicationContext = Mock(ApplicationContext)
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrapper = Collections.emptyList()
   NamerRegistry namerRegistry = Mock(NamerRegistry)
   KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
     "userAgent",
@@ -52,8 +48,7 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
 
   def synchronizeAccounts(KubernetesConfigurationProperties kubernetesConfigurationProperties) {
     return kubernetesNamedAccountCredentialsInitializer.synchronizeKubernetesAccounts(
-      credentialFactory, kubernetesConfigurationProperties, catsModule, applicationContext, accountCredentialsRepository, providerSynchronizerTypeWrapper
-    )
+      credentialFactory, kubernetesConfigurationProperties, catsModule, accountCredentialsRepository)
   }
 
   void "is a no-op when there are no configured accounts"() {

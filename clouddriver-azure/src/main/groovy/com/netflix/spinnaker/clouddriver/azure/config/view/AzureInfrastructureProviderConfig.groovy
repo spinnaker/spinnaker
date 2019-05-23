@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.azure.config.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache.AzureAppGatewayCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache.AzureLoadBalancerCachingAgent
@@ -31,12 +30,10 @@ import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -60,27 +57,11 @@ class AzureInfrastructureProviderConfig {
     azureInfrastructureProvider
   }
 
-  @Bean
-  AzureInfrastructureProviderSynchronizerTypeWrapper azureInfrastructureProviderSynchronizerTypeWrapper() {
-    new AzureInfrastructureProviderSynchronizerTypeWrapper()
-  }
-
-  class AzureInfrastructureProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return AzureInfrastructureProviderSynchronizer
-    }
-  }
-
-  class AzureInfrastructureProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  AzureInfrastructureProviderSynchronizer synchronizeAzureInfrastructureProvider(AzureInfrastructureProvider azureInfrastructureProvider,
-                                                                             AzureCloudProvider azureCloudProvider,
-                                                                             AccountCredentialsRepository accountCredentialsRepository,
-                                                                             ObjectMapper objectMapper,
-                                                                             Registry registry) {
+  private static void synchronizeAzureInfrastructureProvider(AzureInfrastructureProvider azureInfrastructureProvider,
+                                                             AzureCloudProvider azureCloudProvider,
+                                                             AccountCredentialsRepository accountCredentialsRepository,
+                                                             ObjectMapper objectMapper,
+                                                             Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(azureInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, AzureNamedAccountCredentials)
 
@@ -108,8 +89,6 @@ class AzureInfrastructureProviderConfig {
         }
       }
     }
-
-    new AzureInfrastructureProviderSynchronizer()
   }
 }
 

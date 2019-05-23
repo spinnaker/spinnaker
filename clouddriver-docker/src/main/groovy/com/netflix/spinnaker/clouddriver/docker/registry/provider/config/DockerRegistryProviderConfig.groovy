@@ -19,18 +19,15 @@ package com.netflix.spinnaker.clouddriver.docker.registry.provider.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryImageCachingAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -49,27 +46,11 @@ class DockerRegistryProviderConfig {
     dockerRegistryProvider
   }
 
-  @Bean
-  DockerRegistryProviderSynchronizerTypeWrapper dockerRegistryProviderSynchronizerTypeWrapper() {
-    new DockerRegistryProviderSynchronizerTypeWrapper()
-  }
-
-  class DockerRegistryProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return DockerRegistryProviderSynchronizer
-    }
-  }
-
-  class DockerRegistryProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  DockerRegistryProviderSynchronizer synchronizeDockerRegistryProvider(DockerRegistryProvider dockerRegistryProvider,
-                                                                       DockerRegistryCloudProvider dockerRegistryCloudProvider,
-                                                                       AccountCredentialsRepository accountCredentialsRepository,
-                                                                       ObjectMapper objectMapper,
-                                                                       Registry registry) {
+  private static void synchronizeDockerRegistryProvider(DockerRegistryProvider dockerRegistryProvider,
+                                                        DockerRegistryCloudProvider dockerRegistryCloudProvider,
+                                                        AccountCredentialsRepository accountCredentialsRepository,
+                                                        ObjectMapper objectMapper,
+                                                        Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(dockerRegistryProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, DockerRegistryNamedAccountCredentials)
 
@@ -90,7 +71,5 @@ class DockerRegistryProviderConfig {
         dockerRegistryProvider.agents.addAll(newlyAddedAgents)
       }
     }
-
-    new DockerRegistryProviderSynchronizer()
   }
 }

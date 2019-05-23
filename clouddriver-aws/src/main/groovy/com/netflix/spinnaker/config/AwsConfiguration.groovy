@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
@@ -51,7 +50,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -215,27 +213,11 @@ class AwsConfiguration {
     new SecurityGroupLookupFactory(amazonClientProvider, accountCredentialsRepository)
   }
 
-  @Bean
-  AwsCleanupProviderSynchronizerTypeWrapper awsCleanupProviderSynchronizerTypeWrapper() {
-    new AwsCleanupProviderSynchronizerTypeWrapper()
-  }
-
-  class AwsCleanupProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    Class getSynchronizerType() {
-      return AwsCleanupProviderSynchronizer
-    }
-  }
-
-  class AwsCleanupProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  AwsCleanupProviderSynchronizer synchronizeAwsCleanupProvider(AwsConfigurationProperties awsConfigurationProperties,
-                                                               AwsCleanupProvider awsCleanupProvider,
-                                                               AmazonClientProvider amazonClientProvider,
-                                                               AccountCredentialsRepository accountCredentialsRepository,
-                                                               DeployDefaults deployDefaults) {
+  private static void synchronizeAwsCleanupProvider(AwsConfigurationProperties awsConfigurationProperties,
+                                                    AwsCleanupProvider awsCleanupProvider,
+                                                    AmazonClientProvider amazonClientProvider,
+                                                    AccountCredentialsRepository accountCredentialsRepository,
+                                                    DeployDefaults deployDefaults) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsCleanupProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -260,8 +242,6 @@ class AwsConfiguration {
       awsCleanupProvider.agents.add(new CleanupDetachedInstancesAgent(amazonClientProvider, accountCredentialsRepository))
     }
     awsCleanupProvider.agents.addAll(newlyAddedAgents)
-
-    new AwsCleanupProviderSynchronizer()
   }
 
   @Bean

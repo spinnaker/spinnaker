@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
 import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -36,11 +35,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 
 @Configuration
 @Slf4j
@@ -71,23 +68,7 @@ class KubernetesV2ProviderConfig {
   private KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher;
   private KubernetesResourcePropertyRegistry kubernetesResourcePropertyRegistry;
 
-  @Bean
-  KubernetesV2ProviderSynchronizerTypeWrapper kubernetesV2ProviderSynchronizerTypeWrapper() {
-    return new KubernetesV2ProviderSynchronizerTypeWrapper();
-  }
-
-  class KubernetesV2ProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
-    @Override
-    public Class getSynchronizerType() {
-      return KubernetesV2ProviderSynchronizer.class;
-    }
-  }
-
-  class KubernetesV2ProviderSynchronizer {}
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  KubernetesV2ProviderSynchronizer synchronizeKubernetesV2Provider(
+  private void synchronizeKubernetesV2Provider(
       KubernetesV2Provider kubernetesV2Provider,
       AccountCredentialsRepository accountCredentialsRepository) {
     Set<KubernetesNamedAccountCredentials> allAccounts =
@@ -127,7 +108,6 @@ class KubernetesV2ProviderConfig {
     } catch (Exception e) {
       log.warn("Error encountered scheduling new agents -- using old agent set instead", e);
       kubernetesV2Provider.clearNewAgentSet();
-      return new KubernetesV2ProviderSynchronizer();
     }
 
     // If there is an agent scheduler, then this provider has been through the AgentController in
@@ -140,7 +120,5 @@ class KubernetesV2ProviderConfig {
     }
 
     kubernetesV2Provider.switchToNewAgents();
-
-    return new KubernetesV2ProviderSynchronizer();
   }
 }
