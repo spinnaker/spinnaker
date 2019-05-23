@@ -22,4 +22,3 @@ import java.lang.RuntimeException
 class UnsupportedStrategy(requestedStrategy: String, validStrategy: String) : RuntimeException("Strategy $requestedStrategy is not supported for $validStrategy")
 
 class InvalidPayload(strategy: String) : RuntimeException("Payload is not valid for $strategy")
-

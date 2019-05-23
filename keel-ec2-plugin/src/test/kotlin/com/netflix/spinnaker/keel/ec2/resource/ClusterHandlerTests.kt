@@ -38,6 +38,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -142,6 +143,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
   val imageService = mockk<ImageService>()
+  val dynamicConfigService = mockk<DynamicConfigService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
 
   val differ = ObjectDifferBuilder.buildDefault()
@@ -155,6 +157,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         cloudDriverCache,
         orcaService,
         imageService,
+        dynamicConfigService,
         Clock.systemDefaultZone(),
         objectMapper,
         normalizers

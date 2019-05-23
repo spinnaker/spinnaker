@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -60,6 +61,7 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val imageService: ImageService,
+  private val dynamicConfigService: DynamicConfigService,
   private val clock: Clock,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
@@ -96,7 +98,10 @@ class ClusterHandler(
       is LatestFromPackageImageProvider -> {
         val artifactName = imageProvider.deliveryArtifact.name
         val namedImage = runBlocking {
-          imageService.getLatestNamedImage(artifactName, "test")
+          imageService.getLatestNamedImage(
+            artifactName,
+            dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test")
+          )
         } ?: throw NoImageFound(artifactName)
 
         log.info("Image found for {}: {}", artifactName, namedImage)
@@ -108,7 +113,7 @@ class ClusterHandler(
         val namedImage = runBlocking {
           imageService.getNamedImageFromJenkinsInfo(
             imageProvider.packageName,
-            "test",
+            dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test"),
             imageProvider.buildHost,
             imageProvider.buildName,
             imageProvider.buildNumber

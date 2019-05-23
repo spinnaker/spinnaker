@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -42,6 +43,7 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     imageService: ImageService,
+    dynamicConfigService: DynamicConfigService,
     clock: Clock,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>
@@ -51,6 +53,7 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       imageService,
+      dynamicConfigService,
       clock,
       objectMapper,
       normalizers
