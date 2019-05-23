@@ -32,11 +32,11 @@ class ResourcePersister(
         resourceRepository.appendHistory(ResourceCreated(it, clock))
       }
 
-  fun update(resource: Resource<Any>): Resource<out Any> {
-    val normalized = handlers.supporting(resource.apiVersion, resource.kind)
-      .normalize(resource)
-
-    val existing = resourceRepository.get(normalized.metadata.uid, normalized.spec.javaClass)
+  fun update(name: ResourceName, updated: SubmittedResource<Any>): Resource<out Any> {
+    val handler = handlers.supporting(updated.apiVersion, updated.kind)
+    val existing = resourceRepository.get(name, Any::class.java)
+    val resource = existing.copy(spec = updated.spec)
+    val normalized = handler.normalize(resource)
 
     val diff = differ.compare(normalized.spec, existing.spec)
     return if (diff.hasChanges()) {

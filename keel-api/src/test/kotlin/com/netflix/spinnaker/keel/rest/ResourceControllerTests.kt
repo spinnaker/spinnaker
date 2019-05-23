@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -80,17 +81,16 @@ internal class ResourceControllerTests {
       .contentType(APPLICATION_YAML)
       .content(
         """---
-          |apiVersion: ec2.spinnaker.netflix.com/v1
-          |kind: securityGroup
-          |spec:
-          |  account: test
-          |  region: us-west-2
-          |  name: keel"""
+          |apiVersion: test.spinnaker.netflix.com/v1
+          |kind: whatever
+          |spec: o hai"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isCreated)
+
+    verify { resourcePersister.create(match { it.spec == "o hai" }) }
   }
 
   @Test
@@ -102,66 +102,57 @@ internal class ResourceControllerTests {
       .contentType(APPLICATION_JSON)
       .content(
         """{
-          |  "apiVersion": "ec2.spinnaker.netflix.com/v1",
-          |  "kind": "securityGroup",
-          |  "spec": {
-          |    "account": "test",
-          |    "region": "us-west-2",
-          |    "name": "keel"
-          |  }
+          |  "apiVersion": "test.spinnaker.netflix.com/v1",
+          |  "kind": "whatever",
+          |  "spec": "o hai"
           |}"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isCreated)
+
+    verify { resourcePersister.create(match { it.spec == "o hai" }) }
   }
 
   @Test
   fun `can update a resource`() {
-    resourceRepository.store(resource)
-    every { resourcePersister.update(any()) } returns resource
+    every { resourcePersister.update(resource.metadata.name, any()) } returns resource
 
     val request = put("/resources/${resource.metadata.name}")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
         """---
-          |apiVersion: ec2.spinnaker.netflix.com/v1
-          |kind: securityGroup
-          |spec:
-          |  account: test
-          |  region: us-west-2
-          |  name: keel"""
+          |apiVersion: test.spinnaker.netflix.com/v1
+          |kind: whatever
+          |spec: kthxbye"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.update(resource as Resource<Any>) }
+    verify { resourcePersister.update(resource.metadata.name, match { it.spec == "kthxbye" }) }
   }
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
+    every { resourcePersister.update(resource.metadata.name, any()) } throws NoSuchResourceName(resource.metadata.name)
+
     val request = put("/resources/${resource.metadata.name}")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
         """---
-          |apiVersion: ec2.spinnaker.netflix.com/v1
-          |kind: securityGroup
-          |spec:
-          |  account: test
-          |  region: us-west-2
-          |  name: keel"""
+          |apiVersion: test.spinnaker.netflix.com/v1
+          |kind: whatever
+          |spec: kthxbye"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isNotFound)
-
-    verify(exactly = 0) { resourcePersister.update(any()) }
   }
 
   @Test
@@ -171,14 +162,11 @@ internal class ResourceControllerTests {
       .contentType(APPLICATION_YAML)
       .content(
         """---
-          |apiVersion: ec2.spinnaker.netflix.com/v1
-          |kind: securityGroup
+          |apiVersion: test.spinnaker.netflix.com/v1
+          |kind: whatever
           |metadata:
           |  name: i-should-not-be-naming-my-resources-that-is-keels-job
-          |spec:
-          |  account: test
-          |  region: us-west-2
-          |  name: keel"""
+          |spec: o hai"""
           .trimMargin()
       )
     mvc

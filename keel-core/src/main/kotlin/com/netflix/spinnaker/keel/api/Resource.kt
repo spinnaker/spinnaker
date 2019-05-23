@@ -23,7 +23,10 @@ data class Resource<T : Any>(
   val kind: String, // TODO: create a type
   val metadata: ResourceMetadata,
   val spec: T
-)
+) {
+  constructor(resource: SubmittedResource<T>, metadata: ResourceMetadata) :
+    this(resource.apiVersion, resource.kind, metadata, resource.spec)
+}
 
 /**
  * External representation of a resource that would be submitted to the API

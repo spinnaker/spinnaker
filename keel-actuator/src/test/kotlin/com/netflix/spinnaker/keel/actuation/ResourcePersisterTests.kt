@@ -40,13 +40,17 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     lateinit var resource: Resource<String>
 
     @Suppress("UNCHECKED_CAST")
-    fun create(submittedResource: SubmittedResource<String>) {
-      resource = subject.create(submittedResource as SubmittedResource<Any>) as Resource<String>
+    fun create(submittedResource: SubmittedResource<Any>) {
+      resource = subject.create(submittedResource) as Resource<String>
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun update(updatedResource: Resource<String>) {
-      resource = subject.update(updatedResource as Resource<Any>) as Resource<String>
+    fun update(updatedSpec: Any) {
+      resource = subject.update(resource.metadata.name, SubmittedResource(
+        apiVersion = resource.apiVersion,
+        kind = resource.kind,
+        spec = updatedSpec
+      )) as Resource<String>
     }
 
     fun resourcesDueForCheck() =
@@ -99,7 +103,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         context("after an update") {
           before {
             resourcesDueForCheck()
-            update(resource.copy(spec = "kthxbye"))
+            update("kthxbye")
           }
 
           test("stores the updated resource") {
@@ -126,7 +130,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         context("after a no-op update") {
           before {
             resourcesDueForCheck()
-            update(resource)
+            update(resource.spec)
           }
 
           test("does not record that the resource was updated") {

@@ -72,9 +72,9 @@ class DeliveryConfigHandler(
           env.packageRef.getOrCreateResource().let { pkg ->
             env.copy(
               packageRef = pkg,
-              targets = env.targets.map { t ->
+              targets = env.targets/*.map { t ->
                 t.getOrCreateResource().updateMetadata(mapOf("packageResource" to pkg))
-              }
+              }*/
             )
           }
         }
@@ -114,13 +114,13 @@ class DeliveryConfigHandler(
       .get<Any>(this)
       .asBaseSubResource()
 
-  private fun ChildResource.updateMetadata(extraMetadata: Map<String, Any?>) =
-    resourcePersister
-      .update(
-        objectMapper.convertValue(
-          this.copy(
-            metadata = this.metadata?.let { it + extraMetadata }
-          ))).asBaseSubResource()
+//  private fun ChildResource.updateMetadata(extraMetadata: Map<String, Any?>) =
+//    resourcePersister
+//      .update(
+//        objectMapper.convertValue(
+//          this.copy(
+//            metadata = this.metadata?.let { it + extraMetadata }
+//          ))).asBaseSubResource()
 
   private fun ChildResource.asSubmittedResource() =
     objectMapper.convertValue<SubmittedResource<Any>>(
