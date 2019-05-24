@@ -26,7 +26,7 @@ class RegionalOperation implements WaitableComputeOperation {
     return poller.waitForRegionalOperation(
         credentials.getCompute(),
         credentials.getProject(),
-        operation.getRegion(),
+        GCEUtil.getLocalName(operation.getRegion()),
         operation.getName(),
         /* timeoutSeconds= */ null,
         task,
