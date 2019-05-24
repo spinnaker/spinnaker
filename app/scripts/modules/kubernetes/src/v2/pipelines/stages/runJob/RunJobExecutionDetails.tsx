@@ -39,6 +39,7 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
     const externalLink = get<string>(stage, ['context', 'execution', 'logs']);
     const podName = this.mostRecentlyCreatedPodName(get(stage.context, ['jobStatus', 'pods'], []));
     const podNameProvider = new DefaultPodNameProvider(podName);
+    const namespace = get(stage, ['context', 'jobStatus', 'location'], '');
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -49,23 +50,25 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
               <dd>
                 <AccountTag account={context.account} />
               </dd>
-              {stage.context.jobStatus && stage.context.jobStatus.location && (
-                <span>
+              {namespace && (
+                <>
                   <dt>Namespace</dt>
                   <dd>{stage.context.jobStatus.location}</dd>
-                </span>
+                  <dt>Logs</dt>
+                  <dd>
+                    <JobStageExecutionLogs
+                      manifest={manifest}
+                      deployedName={deployedName}
+                      account={this.props.stage.context.account}
+                      location={namespace}
+                      application={this.props.application}
+                      externalLink={externalLink}
+                      podNameProvider={podNameProvider}
+                    />
+                  </dd>
+                </>
               )}
-              <dt>Logs</dt>
-              <dd>
-                <JobStageExecutionLogs
-                  manifest={manifest}
-                  deployedName={deployedName}
-                  account={this.props.stage.context.account}
-                  application={this.props.application}
-                  externalLink={externalLink}
-                  podNameProvider={podNameProvider}
-                />
-              </dd>
+              {!namespace && <div className="well">Collecting additional details...</div>}
             </dl>
           </div>
         </div>
