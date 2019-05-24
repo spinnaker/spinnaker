@@ -234,6 +234,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   public Boolean liveManifestCalls;
 
+  @Parameter(
+          names = "--cache-threads",
+          arity = 1,
+          description = KubernetesCommandProperties.CACHE_THREADS
+  )
+  private Integer cacheThreads;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -249,11 +256,15 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setConfigureImagePullSecrets(isSet(configureImagePullSecrets) ? configureImagePullSecrets : account.getConfigureImagePullSecrets());
     account.setServiceAccount(isSet(serviceAccount) ? serviceAccount : account.getServiceAccount());
 
-    try {
-      account.setNamespaces(
-          updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --namespaces or --[add/remove]-namespace");
+    if (allNamespaces) {
+      account.setNamespaces(new ArrayList<>());
+    } else {
+      try {
+        account.setNamespaces(
+                updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Set either --namespaces or --[add/remove]-namespace");
+      }
     }
 
     try {
@@ -304,6 +315,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setOnlySpinnakerManaged(isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
     account.setCheckPermissionsOnStartup(isSet(checkPermissionsOnStartup) ? checkPermissionsOnStartup : account.getCheckPermissionsOnStartup());
     account.setLiveManifestCalls(isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
+    account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
     return account;
   }
 

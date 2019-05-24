@@ -52,5 +52,8 @@ public class KubernetesCommandProperties {
       + "during clouddriver startup when you have many kubernetes accounts configured. This disables the log messages at startup about missing permissions.";
 
   static final String LIVE_MANIFEST_CALLS = "When true, clouddriver will query manifest status during pipeline executions using live data rather than the cache.\n"
-      + "This eliminates all time spent in the \"force cache refresh\" task in pipelines, greatly reducing execution time.";
+          + "This eliminates all time spent in the \"force cache refresh\" task in pipelines, greatly reducing execution time.";
+
+  static final String CACHE_THREADS = "Number of caching agents for this kubernetes account. Each agent handles a subset of the namespaces available to this account. " +
+          "By default, only 1 agent caches all kinds for all namespaces in the account.";
 }

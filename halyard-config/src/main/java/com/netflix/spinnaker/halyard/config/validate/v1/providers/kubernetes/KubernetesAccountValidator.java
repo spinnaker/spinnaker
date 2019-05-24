@@ -75,6 +75,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     deploymentConfiguration = (DeploymentConfiguration) parent;
 
     validateKindConfig(psBuilder, account);
+    validateCacheThreads(psBuilder, account);
 
     // TODO(lwander) validate all config with clouddriver's v2 creds
     switch (account.getProviderVersion()) {
@@ -139,6 +140,12 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       if (onlySpinnakerManaged) {
         psBuilder.addProblem(WARNING, "Kubernetes accounts at V1 does not support configuring caching behavior for a only spinnaker managed resources.");
       }
+    }
+  }
+
+  private void validateCacheThreads(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
+    if (account.getCacheThreads() < 1) {
+      psBuilder.addProblem(ERROR, "\"cacheThreads\" should be greater or equal to 1.");
     }
   }
 

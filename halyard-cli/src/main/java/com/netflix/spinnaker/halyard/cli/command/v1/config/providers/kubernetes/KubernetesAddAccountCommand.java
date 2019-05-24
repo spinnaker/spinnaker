@@ -141,6 +141,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public Boolean liveManifestCalls;
 
+  @Parameter(
+          names = "--cache-threads",
+          arity = 1,
+          description = KubernetesCommandProperties.CACHE_THREADS
+  )
+  private int cacheThreads = 1;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -160,6 +167,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setOnlySpinnakerManaged(onlySpinnakerManaged);
     account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
     account.setLiveManifestCalls(liveManifestCalls);
+    account.setCacheThreads(cacheThreads);
     return account;
   }
 
