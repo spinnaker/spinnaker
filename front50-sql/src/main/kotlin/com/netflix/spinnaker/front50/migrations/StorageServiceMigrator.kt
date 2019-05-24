@@ -48,6 +48,33 @@ class StorageServiceMigrator(
     val sourceObjectKeys = source.listObjectKeys(objectType)
     val targetObjectKeys = target.listObjectKeys(objectType)
 
+    val deletableObjectKeys = targetObjectKeys.filter { e ->
+      !sourceObjectKeys.containsKey(e.key)
+    }
+
+    if (!deletableObjectKeys.isEmpty()) {
+      /*
+       * Handle a situation where deletes can still happen directly against the source/previous storage service.
+       *
+       * In these cases, the delete should also be reflected in the primary/target storage service.
+       */
+      log.info(
+        "Found orphaned objects in {} (keys: {})",
+        source.javaClass.simpleName,
+        deletableObjectKeys.keys.joinToString(", ")
+      )
+
+      deletableObjectKeys.keys.forEach {
+        target.deleteObject(objectType, it)
+      }
+
+      log.info(
+        "Deleted orphaned objects from {} (keys: {})",
+        target.javaClass.simpleName,
+        deletableObjectKeys.keys.joinToString(", ")
+      )
+    }
+
     val migratableObjectKeys = sourceObjectKeys.filter { e ->
       /*
        * A migratable object is one that:
