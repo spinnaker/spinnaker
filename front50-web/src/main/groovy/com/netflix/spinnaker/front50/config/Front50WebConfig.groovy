@@ -41,7 +41,7 @@ import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
@@ -62,9 +62,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
 
   @Bean
   TaskScheduler taskScheduler() {
-    //this is what implicitly gets created by @EnableScheduling but now exported
-    // as a bean for use elsewhere
-    new ConcurrentTaskScheduler(Executors.newSingleThreadScheduledExecutor())
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler()
+    scheduler.setThreadNamePrefix("scheduler-")
+    scheduler.setPoolSize(10)
+
+    return scheduler
   }
 
   @Override

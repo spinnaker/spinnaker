@@ -182,8 +182,19 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   /** @return Healthy if refreshed in the past `getHealthMillis()` */
   public boolean isHealthy() {
-    return (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis()
-        && allItemsCache.get() != null;
+    boolean isHealthy =
+        (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis()
+            && allItemsCache.get() != null;
+
+    if (!isHealthy) {
+      log.warn(
+          "{} is unhealthy (lag: {}, populatedCache: {})",
+          getClass().getSimpleName(),
+          System.currentTimeMillis() - lastRefreshedTime.get(),
+          allItemsCache.get() != null);
+    }
+
+    return isHealthy;
   }
 
   public long getHealthIntervalMillis() {

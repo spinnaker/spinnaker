@@ -52,7 +52,6 @@ class ItemDAOHealthIndicator implements HealthIndicator, Runnable {
       if (itemDAO.healthy) {
         healthBuilder.withDetail(itemDAO.class.simpleName, "Healthy")
       } else {
-        log.warn("ItemDAO {} was unhealthy", itemDAO.getClass())
         healthBuilder.down().withDetail(itemDAO.class.simpleName, "Unhealthy")
       }
     } catch (RuntimeException e) {
