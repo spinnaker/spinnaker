@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
@@ -166,10 +167,13 @@ public class PipelineInitiator {
 
   private void triggerPipeline(Pipeline pipeline, TriggerSource triggerSource)
       throws RejectedExecutionException {
-    executorService.submit(() -> triggerPipelineImpl(pipeline, triggerSource));
+    Callable<Void> triggerWithCapturedContext =
+        AuthenticatedRequest.propagate(() -> triggerPipelineImpl(pipeline, triggerSource));
+
+    executorService.submit(triggerWithCapturedContext);
   }
 
-  private void triggerPipelineImpl(Pipeline pipeline, TriggerSource triggerSource) {
+  private Void triggerPipelineImpl(Pipeline pipeline, TriggerSource triggerSource) {
     try {
       TriggerResponse response;
 
@@ -231,6 +235,8 @@ public class PipelineInitiator {
 
       logOrcaErrorMetric(e.getClass().getName(), triggerSource.name(), getTriggerType(pipeline));
     }
+
+    return null;
   }
 
   private TriggerResponse triggerWithRetries(Pipeline pipeline) {

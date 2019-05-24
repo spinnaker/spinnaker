@@ -12,8 +12,12 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class PipelineInitiatorSpec extends Specification {
   def registry = new NoopRegistry()
@@ -92,6 +96,51 @@ class PipelineInitiatorSpec extends Specification {
     "anonymous"     | true    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
     "not-anonymous" | true    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
     null            | true    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
+  }
+
+  def "propages auth headers to orca calls without runAs"() {
+    given:
+    def executor = Executors.newFixedThreadPool(2)
+    def pipelineInitiator = new PipelineInitiator(
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, true, 5, 5000
+    )
+
+    Trigger trigger = (new Trigger.TriggerBuilder().type("cron").build()).atPropagateAuth(true)
+
+    Pipeline pipeline = Pipeline
+      .builder()
+      .application("application")
+      .name("name")
+      .id("id")
+      .type("pipeline")
+      .trigger(trigger)
+      .build()
+
+    def user = "super-duper-user"
+    def account = "super-duper-account"
+
+    when:
+    MDC.put(AuthenticatedRequest.Header.USER.header, user)
+    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, account)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
+    MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
+    MDC.remove(AuthenticatedRequest.Header.USER.header)
+
+    // Wait for the trigger to actually be invoked (happens on separate thread)
+    executor.shutdown()
+    executor.awaitTermination(2, TimeUnit.SECONDS)
+
+    then:
+    _ * fiatStatus.isEnabled() >> { return enabled }
+    _ * fiatStatus.isLegacyFallbackEnabled() >> { return false }
+
+    1 * orca.trigger(pipeline) >> {
+      captureAuthorizationContext()
+      return new OrcaService.TriggerResponse()
+    }
+
+    capturedSpinnakerUser.orElse(null) == user
+    capturedSpinnakerAccounts.orElse(null) == account
   }
 
   @Unroll
