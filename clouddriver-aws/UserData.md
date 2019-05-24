@@ -13,10 +13,10 @@ The location of the template file is controlled by the `udf.udfRoot` property an
 ````yaml
 udf:
   udfRoot: /apps/nflx-udf
-  defaultLegacyUdf: true
+  defaultLegacyUdf: false
 ````
 
-You almost certainly want to change `udf.defaultLegacyUdf=false`, and possibly want to change the location on the filesystem where the template file lives to suit your deployment.
+As of Spinnaker 1.15, `udf.defaultLegacyUdf` defaults to false. You almost certainly want to change the location on the filesystem where the template file lives to suit your deployment.
 
 ## Template file
 
