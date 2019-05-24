@@ -38,6 +38,7 @@ public class EcsServerGroup implements ServerGroup {
   Set<String> loadBalancers;
   Set<String> securityGroups;
   Map<String, Object> launchConfig;
+  Image image;
   InstanceCounts instanceCounts;
   Capacity capacity;
   ImagesSummary imagesSummary;
@@ -60,5 +61,12 @@ public class EcsServerGroup implements ServerGroup {
     Integer minSize;
     Integer maxSize;
     Integer desiredCapacity;
+  }
+
+  @Data
+  @NoArgsConstructor
+  public static class Image {
+    public String imageId;
+    public String name;
   }
 }

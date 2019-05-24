@@ -355,6 +355,10 @@ class EcsServerClusterProviderSpec extends Specification {
         environmentVariables: [],
         iamRole: 'None'
       ),
+      image: new EcsServerGroup.Image(
+        imageId: 'my-image',
+        name: 'my-image'
+      ),
       metricAlarms: [],
     )
   }

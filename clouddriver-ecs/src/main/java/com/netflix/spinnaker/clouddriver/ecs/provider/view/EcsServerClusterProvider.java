@@ -300,6 +300,9 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
       List<String> eniSecurityGroups) {
     ServerGroup.InstanceCounts instanceCounts = buildInstanceCount(instances);
     TaskDefinition ecsTaskDefinition = buildTaskDefinition(taskDefinition);
+    EcsServerGroup.Image image = new EcsServerGroup.Image();
+    image.setImageId(ecsTaskDefinition.getContainerImage());
+    image.setName(ecsTaskDefinition.getContainerImage());
 
     String scalableTargetId = "service/" + ecsCluster + "/" + serviceName;
     String scalableTargetKey = Keys.getScalableTargetKey(account, region, scalableTargetId);
@@ -359,6 +362,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
             .setRegion(region)
             .setInstances(instances)
             .setCapacity(capacity)
+            .setImage(image)
             .setInstanceCounts(instanceCounts)
             .setCreatedTime(creationTime)
             .setEcsCluster(ecsCluster)
