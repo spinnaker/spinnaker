@@ -123,7 +123,10 @@ class CompositeStorageService(
     }
 
     try {
-      primary.storeObject(objectType, objectKey, item)
+      if (objectType != ObjectType.ENTITY_TAGS) {
+        // entity tags are currently unsupported in SQL
+        primary.storeObject(objectType, objectKey, item)
+      }
     } catch (e: Exception) {
       log.error(
         "{}.storeObject({}, {}) failed",
