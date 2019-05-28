@@ -16,7 +16,15 @@ export class ServerGroupInformationSection extends React.Component<ICloudFoundry
       <CollapsibleSection heading="Server Group Information" defaultExpanded={true}>
         <dl className="dl-horizontal dl-flex">
           <dt>Created</dt>
-          <dd>{timestamp(serverGroup.createdTime)}</dd>
+          {serverGroup.pipelineId ? (
+            <dd>
+              <a target="_blank" href={'/#/applications/' + serverGroup.app + '/executions/' + serverGroup.pipelineId}>
+                {timestamp(serverGroup.createdTime)}
+              </a>
+            </dd>
+          ) : (
+            <dd>{timestamp(serverGroup.createdTime)}</dd>
+          )}
           <dt>Account</dt>
           <dd>
             <AccountTag account={serverGroup.account} />
