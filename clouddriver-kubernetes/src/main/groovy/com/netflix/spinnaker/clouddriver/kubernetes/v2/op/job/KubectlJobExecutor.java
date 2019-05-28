@@ -88,7 +88,7 @@ public class KubectlJobExecutor {
     command.add("view");
     command.add("-o");
     String jsonPath = "{.contexts[?(@.name==\"" + configCurrentContext + "\")].context.namespace}";
-    command.add("\"jsonPath=" + jsonPath + "\"");
+    command.add("\"jsonpath=" + jsonPath + "\"");
 
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
 
