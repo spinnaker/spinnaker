@@ -42,4 +42,13 @@ public interface CacheResult {
   default Map<String, Object> getIntrospectionDetails() {
     return Collections.emptyMap();
   }
+
+  /**
+   * If true, no evictions of existing keys are done unless specified by the getEvictions() method.
+   *
+   * @return
+   */
+  default boolean isPartialResult() {
+    return false;
+  }
 }

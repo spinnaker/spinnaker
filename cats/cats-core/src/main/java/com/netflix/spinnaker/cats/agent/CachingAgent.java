@@ -133,7 +133,11 @@ public interface CachingAgent extends Agent {
         }
       }
 
-      cache.putCacheResult(agent.getAgentType(), authoritative, result);
+      if (result.isPartialResult()) {
+        cache.addCacheResult(agent.getAgentType(), authoritative, result);
+      } else {
+        cache.putCacheResult(agent.getAgentType(), authoritative, result);
+      }
     }
   }
 }

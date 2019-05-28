@@ -97,7 +97,11 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
               }
             }
             agent.metricsSupport.cacheWrite {
-              providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
+              if (result.cacheResult.isPartialResult()) {
+                providerCache.addCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
+              } else {
+                providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
+              }
             }
           }
           if (result.evictions) {

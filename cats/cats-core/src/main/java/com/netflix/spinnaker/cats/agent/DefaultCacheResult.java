@@ -27,9 +27,15 @@ public class DefaultCacheResult implements CacheResult {
   private final Map<String, Collection<CacheData>> cacheResults;
   private final Map<String, Collection<String>> evictions;
   @Getter private final Map<String, Object> introspectionDetails;
+  @Getter private final boolean partialResult;
 
   public DefaultCacheResult(Map<String, Collection<CacheData>> cacheResults) {
     this(cacheResults, new HashMap<>());
+  }
+
+  public DefaultCacheResult(
+      Map<String, Collection<CacheData>> cacheResults, boolean partialResult) {
+    this(cacheResults, new HashMap<>(), new HashMap<>(), partialResult);
   }
 
   public DefaultCacheResult(
@@ -41,9 +47,18 @@ public class DefaultCacheResult implements CacheResult {
       Map<String, Collection<CacheData>> cacheResults,
       Map<String, Collection<String>> evictions,
       Map<String, Object> introspectionDetails) {
+    this(cacheResults, evictions, introspectionDetails, false);
+  }
+
+  public DefaultCacheResult(
+      Map<String, Collection<CacheData>> cacheResults,
+      Map<String, Collection<String>> evictions,
+      Map<String, Object> introspectionDetails,
+      boolean partialResult) {
     this.cacheResults = cacheResults;
     this.evictions = evictions;
     this.introspectionDetails = introspectionDetails;
+    this.partialResult = partialResult;
   }
 
   @Override
