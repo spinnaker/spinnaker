@@ -30,6 +30,7 @@ import java.time.Clock
 import com.netflix.spinnaker.front50.model.ObjectType.*
 import com.netflix.spinnaker.front50.model.sql.*
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import java.util.ArrayList
 
 class SqlStorageService(
   private val objectMapper: ObjectMapper,
@@ -173,14 +174,19 @@ class SqlStorageService(
   override fun <T : Timestamped> listObjectVersions(objectType: ObjectType,
                                                     objectKey: String,
                                                     maxResults: Int): List<T> {
-    val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
+    if (maxResults == 1) {
+      // will throw NotFoundException if object does not exist
+      return listOf(loadObject(objectType, objectKey))
+    }
 
+    val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
       if (definitionsByType[objectType]!!.supportsHistory) {
         ctx
           .select(field("body", String::class.java))
           .from(definitionsByType[objectType]!!.historyTableName)
           .where(DSL.field("id", String::class.java).eq(objectKey))
           .orderBy(DSL.field("recorded_at").desc())
+          .limit(maxResults)
           .fetch()
           .getValues(field("body", String::class.java))
       } else {
