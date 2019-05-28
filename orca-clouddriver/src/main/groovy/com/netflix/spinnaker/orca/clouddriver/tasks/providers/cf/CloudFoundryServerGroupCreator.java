@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import java.util.*;
@@ -42,12 +43,15 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   @Override
   public List<Map> getOperations(Stage stage) {
     Map<String, Object> context = stage.getContext();
+    final Execution execution = stage.getExecution();
     ImmutableMap.Builder<String, Object> operation =
         ImmutableMap.<String, Object>builder()
             .put("application", context.get("application"))
             .put("credentials", context.get("account"))
             .put("startApplication", context.get("startApplication"))
             .put("region", context.get("region"))
+            .put("executionId", execution.getId())
+            .put("trigger", execution.getTrigger().getOther())
             .put(
                 "applicationArtifact",
                 applicationArtifact(stage, context.get("applicationArtifact")))
