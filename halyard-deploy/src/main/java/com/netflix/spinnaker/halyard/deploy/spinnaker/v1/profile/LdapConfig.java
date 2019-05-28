@@ -32,6 +32,8 @@ public class LdapConfig {
   String userDnPattern;
   String userSearchBase;
   String userSearchFilter;
+  String managerDn;
+  String managerPassword;
 
   public LdapConfig(Security security) {
     if (!security.getAuthn().getLdap().isEnabled()) {
@@ -45,5 +47,7 @@ public class LdapConfig {
     this.userDnPattern = ldap.getUserDnPattern();
     this.userSearchBase = ldap.getUserSearchBase();
     this.userSearchFilter = ldap.getUserSearchFilter();
+    this.managerDn = ldap.getManagerDn();
+    this.managerPassword = ldap.getManagerPassword();
   }
 }
