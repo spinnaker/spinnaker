@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest;
 import com.netflix.titus.grpc.protogen.JobChangeNotification;
 import com.netflix.titus.grpc.protogen.ObserveJobsQuery;
 import java.util.Iterator;
@@ -65,6 +66,9 @@ public interface TitusClient {
   /** @param jobDisruptionBudgetUpdateRequest */
   public void updateDisruptionBudget(
       JobDisruptionBudgetUpdateRequest jobDisruptionBudgetUpdateRequest);
+
+  /** @param serviceJobProcessesRequest */
+  public void updateScalingProcesses(ServiceJobProcessesRequest serviceJobProcessesRequest);
 
   /** @param resizeJobRequest */
   public void resizeJob(ResizeJobRequest resizeJobRequest);

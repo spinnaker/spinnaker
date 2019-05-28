@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task;
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.titus.grpc.protogen.*;
 import io.grpc.Status;
@@ -214,6 +215,25 @@ public class RegionScopedTitusClient implements TitusClient {
             JobDisruptionBudgetUpdate.newBuilder()
                 .setDisruptionBudget(disruptionBudget)
                 .setJobId(request.getJobId())
+                .build());
+  }
+
+  @Override
+  public void updateScalingProcesses(ServiceJobProcessesRequest serviceJobProcessesRequest) {
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub)
+        .updateJobProcesses(
+            JobProcessesUpdate.newBuilder()
+                .setServiceJobProcesses(
+                    ServiceJobSpec.ServiceJobProcesses.newBuilder()
+                        .setDisableDecreaseDesired(
+                            serviceJobProcessesRequest
+                                .getServiceJobProcesses()
+                                .isDisableDecreaseDesired())
+                        .setDisableIncreaseDesired(
+                            serviceJobProcessesRequest
+                                .getServiceJobProcesses()
+                                .isDisableIncreaseDesired()))
+                .setJobId(serviceJobProcessesRequest.getJobId())
                 .build());
   }
 
