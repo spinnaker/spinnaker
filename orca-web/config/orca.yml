@@ -23,7 +23,7 @@ igor:
   baseUrl: http://localhost:8088
 bakery:
   enabled: true
-  baseUrl: http://localhost:8089
+  baseUrl: http://localhost:8087
   # Rosco exposes more endpoints than Netflix's internal bakery. This disables
   # the use of those endpoints.
   roscoApisEnabled: true
