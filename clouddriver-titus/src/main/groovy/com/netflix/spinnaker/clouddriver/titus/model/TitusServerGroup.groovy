@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import com.netflix.spinnaker.clouddriver.titus.client.model.ServiceJobProcesses
+import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 
 /**
  * Equivalent of a Titus {@link com.netflix.spinnaker.clouddriver.titus.client.model.Job}
@@ -65,6 +66,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   Map buildInfo
   MigrationPolicy migrationPolicy
   ServiceJobProcesses serviceJobProcesses
+  SubmitJobRequest.Constraints constraints
 
   TitusServerGroup() {}
 
@@ -111,6 +113,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
       ]
     ]
     serviceJobProcesses = job.serviceJobProcesses
+    constraints = job.constraints
   }
 
   @Override
