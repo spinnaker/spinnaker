@@ -2,7 +2,4 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline', [
-  require('./pipelineStage').name,
-  require('./pipelineExecutionDetails.controller').name,
-]);
+module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline', [require('./pipelineStage').name]);

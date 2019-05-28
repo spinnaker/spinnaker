@@ -5,6 +5,9 @@ const angular = require('angular');
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
+import { ExecutionDetailsTasks } from '../common';
+import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';
+import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.pipelineStage', [])
@@ -18,7 +21,11 @@ module.exports = angular
       controllerAs: 'pipelineStageCtrl',
       producesArtifacts: true,
       templateUrl: require('./pipelineStage.html'),
-      executionDetailsUrl: require('./pipelineExecutionDetails.html'),
+      executionDetailsSections: [
+        PipelineStageExecutionDetails,
+        PipelineParametersExecutionDetails,
+        ExecutionDetailsTasks,
+      ],
       defaultTimeoutMs: 12 * 60 * 60 * 1000, // 12 hours
       validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
     });
