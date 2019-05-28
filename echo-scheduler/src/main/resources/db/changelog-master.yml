@@ -1,0 +1,4 @@
+databaseChangeLog:
+- include:
+    file: changelog/20190520-initial-schema.sql
+    relativeToChangelogFile: true

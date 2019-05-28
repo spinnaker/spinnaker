@@ -66,7 +66,7 @@ public class PipelineCache implements MonitoredPoller {
 
   @Autowired
   public PipelineCache(
-      @Value("${front50.polling-interval-ms:10000}") int pollingIntervalMs,
+      @Value("${front50.polling-interval-ms:30000}") int pollingIntervalMs,
       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
       ObjectMapper objectMapper,
       @NonNull Front50Service front50,

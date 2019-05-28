@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.config
 
-import com.netflix.spinnaker.echo.scheduler.actions.pipeline.AutowiringSpringBeanJobFactory
+
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineConfigsPollingJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
@@ -24,11 +24,11 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerConverter
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.squareup.okhttp.OkHttpClient
 import org.quartz.JobDetail
-import org.quartz.Trigger
-import org.quartz.spi.JobFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.context.ApplicationContext
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
+import org.springframework.boot.autoconfigure.quartz.QuartzProperties
+import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -42,45 +42,10 @@ import java.util.concurrent.TimeUnit
 
 @Configuration
 @ConditionalOnExpression('${scheduler.enabled:false}')
-@Import(DefaultSqlConfiguration)
+@Import([DefaultSqlConfiguration, QuartzAutoConfiguration])
 class SchedulerConfiguration {
   @Value('${scheduler.pipeline-configs-poller.polling-interval-ms:30000}')
   long syncInterval
-
-  @Bean
-  SchedulerFactoryBean schedulerFactoryBean(
-    Optional<DataSource> dataSourceOptional,
-    TriggerListener triggerListener,
-    JobDetail pipelineJobBean,
-    JobFactory jobFactory,
-    Optional<Trigger> syncJobTrigger
-  ) {
-    SchedulerFactoryBean factoryBean = new SchedulerFactoryBean()
-    if (dataSourceOptional.isPresent()) {
-      factoryBean.dataSource = dataSourceOptional.get()
-    }
-
-    factoryBean.setGlobalTriggerListeners(triggerListener)
-    factoryBean.setJobDetails(pipelineJobBean)
-    factoryBean.setJobFactory(jobFactory)
-
-    if (syncJobTrigger.isPresent()) {
-      factoryBean.setTriggers(syncJobTrigger.get())
-    }
-
-    return factoryBean
-  }
-
-  /**
-   * Job factory used to create jobs as beans on behalf of Quartz
-   */
-  @Bean
-  JobFactory jobFactory(ApplicationContext applicationContext) {
-    AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory()
-    jobFactory.setApplicationContext(applicationContext)
-
-    return jobFactory
-  }
 
   /**
    * Job for syncing pipeline triggers
@@ -90,10 +55,11 @@ class SchedulerConfiguration {
     @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId
   ) {
     JobDetailFactoryBean syncJob = new JobDetailFactoryBean()
-    syncJob.jobClass = PipelineConfigsPollingJob.class
+    syncJob.setJobClass(PipelineConfigsPollingJob.class)
     syncJob.jobDataMap.put("timeZoneId", timeZoneId)
-    syncJob.name = "Sync Pipelines"
-    syncJob.group = "Sync"
+    syncJob.setName("Sync Pipelines")
+    syncJob.setGroup("Sync")
+    syncJob.setDurability(true)
 
     return syncJob
   }
@@ -104,16 +70,16 @@ class SchedulerConfiguration {
   @Bean
   @ConditionalOnExpression('${scheduler.pipeline-configs-poller.enabled:true}')
   SimpleTriggerFactoryBean syncJobTriggerBean(
-    @Value('${scheduler.pipeline-configs-poller.polling-interval-ms:30000}') long intervalMs,
+    @Value('${scheduler.pipeline-configs-poller.polling-interval-ms:60000}') long intervalMs,
     JobDetail pipelineSyncJobBean
   ) {
     SimpleTriggerFactoryBean triggerBean = new SimpleTriggerFactoryBean()
 
-    triggerBean.name = "Sync Pipelines"
-    triggerBean.group = "Sync"
-    triggerBean.startDelay = 1 * 1000
-    triggerBean.repeatInterval = intervalMs
-    triggerBean.jobDetail = pipelineSyncJobBean
+    triggerBean.setName("Sync Pipelines")
+    triggerBean.setGroup("Sync")
+    triggerBean.setStartDelay(TimeUnit.SECONDS.toMillis(60 + new Random().nextInt() % 60))
+    triggerBean.setRepeatInterval(intervalMs)
+    triggerBean.setJobDetail(pipelineSyncJobBean)
 
     return triggerBean
   }
@@ -124,11 +90,35 @@ class SchedulerConfiguration {
   @Bean
   JobDetailFactoryBean pipelineJobBean() {
     JobDetailFactoryBean triggerJob = new JobDetailFactoryBean()
-    triggerJob.jobClass = PipelineTriggerJob.class
-    triggerJob.name = TriggerConverter.JOB_ID
-    triggerJob.durability = true
+    triggerJob.setJobClass(PipelineTriggerJob.class)
+    triggerJob.setName(TriggerConverter.JOB_ID)
+    triggerJob.setDurability(true)
 
     return triggerJob
+  }
+
+  @Bean
+  SchedulerFactoryBeanCustomizer echoSchedulerFactoryBeanCustomizer(
+    Optional<DataSource> dataSourceOptional,
+    TriggerListener triggerListener,
+    @Value('${sql.enabled:false}')
+    boolean sqlEnabled
+  ) {
+    return new SchedulerFactoryBeanCustomizer() {
+      @Override
+      void customize(SchedulerFactoryBean schedulerFactoryBean) {
+        if (dataSourceOptional.isPresent()) {
+          schedulerFactoryBean.setDataSource(dataSourceOptional.get())
+        }
+
+        if (sqlEnabled) {
+          Properties props = new Properties()
+          props.put("org.quartz.jobStore.isClustered", "true")
+          schedulerFactoryBean.setQuartzProperties(props)
+        }
+        schedulerFactoryBean.setGlobalTriggerListeners(triggerListener)
+      }
+    }
   }
 
   @Bean

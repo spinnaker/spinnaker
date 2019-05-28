@@ -44,7 +44,7 @@ public class TriggerListener extends TriggerListenerSupport {
   @Override
   public void triggerMisfired(Trigger trigger) {
     // Only track for actual pipeline trigger jobs
-    if (trigger.getKey().getGroup() == Scheduler.DEFAULT_GROUP) {
+    if (Scheduler.DEFAULT_GROUP.equals(trigger.getKey().getGroup())) {
       long misfireDeltaMs = System.currentTimeMillis() - trigger.getNextFireTime().getTime();
       registry.timer("echo.triggers.quartz.misfires").record(misfireDeltaMs, TimeUnit.MILLISECONDS);
     }

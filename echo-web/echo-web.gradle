@@ -51,7 +51,9 @@ dependencies {
     implementation 'net.redhogs.cronparser:cron-parser-core:2.8'
     implementation "org.springframework.data:spring-data-rest-webmvc"
     implementation "org.springframework:spring-context-support"
-    implementation "org.quartz-scheduler:quartz"
+    implementation("org.quartz-scheduler:quartz") {
+      exclude group: 'com.zaxxer', module: 'HikariCP-java7'
+    }
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -59,6 +61,6 @@ dependencies {
 }
 
 run {
-    systemProperty('spring.config.additional-location', project.springConfigLocation)
-    systemProperty('spring.profiles.active', project.springProfiles)
+  systemProperty('spring.config.additional-location', project.springConfigLocation)
+  systemProperty('spring.profiles.active', project.springProfiles)
 }
