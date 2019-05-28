@@ -105,6 +105,9 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @JsonView(Views.Cache.class)
   ArtifactInfo appArtifact;
 
+  @JsonView(Views.Cache.class)
+  String pipelineId;
+
   @Wither
   @JsonView(Views.Relationship.class)
   Set<CloudFoundryInstance> instances;

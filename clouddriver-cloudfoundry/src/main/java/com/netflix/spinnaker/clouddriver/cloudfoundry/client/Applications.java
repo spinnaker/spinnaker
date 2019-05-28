@@ -320,6 +320,7 @@ public class Applications {
 
     final CloudFoundryBuildInfo buildInfo = getBuildInfoFromEnvVars(environmentVars);
     final ArtifactInfo artifactInfo = getArtifactInfoFromEnvVars(environmentVars);
+    final String pipelineId = environmentVars.get(ServerGroupMetaDataEnvVar.PipelineId.envVarName);
     Arrays.asList(ServerGroupMetaDataEnvVar.values())
         .forEach(envVar -> environmentVars.remove(envVar.envVarName));
 
@@ -370,6 +371,7 @@ public class Applications {
         .env(environmentVars)
         .ciBuild(buildInfo)
         .appArtifact(artifactInfo)
+        .pipelineId(pipelineId)
         .build();
   }
 
@@ -382,15 +384,9 @@ public class Applications {
   }
 
   private ArtifactInfo getArtifactInfoFromEnvVars(Map<String, String> environmentVars) {
-    String version = environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName);
-    if (version == null) {
-      // This is here for backwards compatibility so that we will display the version on older
-      // server groups too.
-      version = environmentVars.get(ServerGroupMetaDataEnvVar.Version.envVarName);
-    }
     return ArtifactInfo.builder()
         .name(environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactName.envVarName))
-        .version(version)
+        .version(environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName))
         .url(environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName))
         .build();
   }

@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.*;
 import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.Deployment.*;
 import static java.util.stream.Collectors.toList;
 
+import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.maven.MavenArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
@@ -38,6 +39,8 @@ import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -182,40 +185,32 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         Optional.ofNullable(description.getApplicationAttributes().getEnv())
             .map(HashMap::new)
             .orElse(new HashMap<>());
-    final Artifact applicationArtifact = description.getApplicationArtifact();
-    if (applicationArtifact != null
-        && MavenArtifactCredentials.TYPES.contains(applicationArtifact.getType())) {
-      description
-          .getArtifactCredentials()
-          .resolveArtifactName(applicationArtifact)
-          .map(
-              resolvedName ->
-                  environmentVars.put(
-                      ServerGroupMetaDataEnvVar.ArtifactName.envVarName, resolvedName));
-      description
-          .getArtifactCredentials()
-          .resolveArtifactVersion(applicationArtifact)
-          .map(
-              resolvedVersion ->
-                  environmentVars.put(
-                      ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, resolvedVersion));
-      Optional.ofNullable(applicationArtifact.getLocation())
-          .map(
-              artifactUrl ->
-                  environmentVars.put(
-                      ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName, artifactUrl));
-      final Map<String, Object> metadata = applicationArtifact.getMetadata();
-      if (metadata != null) {
-        final Map<String, String> buildInfo =
-            (Map<String, String>) applicationArtifact.getMetadata().get("build");
-        if (buildInfo != null) {
-          environmentVars.put(ServerGroupMetaDataEnvVar.JobName.envVarName, buildInfo.get("name"));
-          environmentVars.put(
-              ServerGroupMetaDataEnvVar.JobNumber.envVarName, buildInfo.get("number"));
-          environmentVars.put(ServerGroupMetaDataEnvVar.JobUrl.envVarName, buildInfo.get("url"));
-        }
-      }
-    }
+    final ExternalReference artifactInfo = resolveArtifactInfo(description);
+    artifactInfo
+        .getName()
+        .map(name -> environmentVars.put(ServerGroupMetaDataEnvVar.ArtifactName.envVarName, name));
+    artifactInfo
+        .getNumber()
+        .map(
+            number ->
+                environmentVars.put(ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName, number));
+    artifactInfo
+        .getUrl()
+        .map(url -> environmentVars.put(ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName, url));
+    final ExternalReference buildInfo = resolveBuildInfo(description);
+    buildInfo
+        .getName()
+        .map(name -> environmentVars.put(ServerGroupMetaDataEnvVar.JobName.envVarName, name));
+    buildInfo
+        .getNumber()
+        .map(number -> environmentVars.put(ServerGroupMetaDataEnvVar.JobNumber.envVarName, number));
+    buildInfo
+        .getUrl()
+        .map(url -> environmentVars.put(ServerGroupMetaDataEnvVar.JobUrl.envVarName, url));
+    Optional.ofNullable(description.getExecutionId())
+        .ifPresent(
+            executionId ->
+                environmentVars.put(ServerGroupMetaDataEnvVar.PipelineId.envVarName, executionId));
 
     CloudFoundryServerGroup serverGroup =
         client
@@ -230,6 +225,68 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
 
     return serverGroup;
+  }
+
+  private static ExternalReference resolveArtifactInfo(
+      DeployCloudFoundryServerGroupDescription description) {
+    return Optional.ofNullable(description.getApplicationArtifact())
+        .map(
+            applicationArtifact -> {
+              final ExternalReference.ExternalReferenceBuilder artifactInfo =
+                  ExternalReference.builder();
+              if (MavenArtifactCredentials.TYPES.contains(applicationArtifact.getType())) {
+                final ArtifactCredentials artifactCredentials =
+                    description.getArtifactCredentials();
+                artifactInfo
+                    .name(artifactCredentials.resolveArtifactName(applicationArtifact))
+                    .number(artifactCredentials.resolveArtifactVersion(applicationArtifact))
+                    .url(Optional.ofNullable(applicationArtifact.getLocation()));
+              }
+              return artifactInfo.build();
+            })
+        .orElseGet(() -> ExternalReference.builder().build());
+  }
+
+  private static ExternalReference resolveBuildInfo(
+      DeployCloudFoundryServerGroupDescription description) {
+    Map<String, Object> buildInfo = null;
+    if (buildInfo == null) {
+      final Artifact applicationArtifact = description.getApplicationArtifact();
+      if (applicationArtifact != null) {
+        final Map<String, Object> metadata = applicationArtifact.getMetadata();
+        if (metadata != null) {
+          buildInfo = (Map<String, Object>) applicationArtifact.getMetadata().get("build");
+        }
+      }
+    }
+    if (buildInfo == null) {
+      final Map<String, Object> trigger = description.getTrigger();
+      if (trigger != null) {
+        final String triggerType = (String) trigger.get("type");
+        if (triggerType.equals("jenkins")) {
+          buildInfo = (Map<String, Object>) trigger.get("buildInfo");
+        }
+      }
+    }
+    return Optional.ofNullable(buildInfo)
+        .map(
+            buildInfoMap ->
+                ExternalReference.builder()
+                    .name(Optional.ofNullable(buildInfoMap.get("name")).map(Object::toString))
+                    .number(Optional.ofNullable(buildInfoMap.get("number")).map(Object::toString))
+                    .url(Optional.ofNullable(buildInfoMap.get("url")).map(Object::toString))
+                    .build())
+        .orElse(ExternalReference.builder().build());
+  }
+
+  @Data
+  @Builder
+  private static class ExternalReference {
+    @Builder.Default private Optional<String> name = Optional.empty();
+
+    @Builder.Default private Optional<String> number = Optional.empty();
+
+    @Builder.Default private Optional<String> url = Optional.empty();
   }
 
   @Nullable

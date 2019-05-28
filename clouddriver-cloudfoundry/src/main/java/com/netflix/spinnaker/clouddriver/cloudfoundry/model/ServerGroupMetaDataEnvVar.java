@@ -22,9 +22,8 @@ public enum ServerGroupMetaDataEnvVar {
   JobUrl(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_JOB_URL"),
   ArtifactName(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_NAME"),
   ArtifactVersion(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_VERSION"),
-  @Deprecated
-  Version(ServerGroupMetaDataEnvVar.PREFIX + "BUILD_VERSION"), // prefer ArtifactVersion
-  ArtifactUrl(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_URL");
+  ArtifactUrl(ServerGroupMetaDataEnvVar.PREFIX + "ARTIFACT_URL"),
+  PipelineId(ServerGroupMetaDataEnvVar.PREFIX + "PIPELINE_ID");
 
   public static final String PREFIX = "__SPINNAKER_";
   public final String envVarName;

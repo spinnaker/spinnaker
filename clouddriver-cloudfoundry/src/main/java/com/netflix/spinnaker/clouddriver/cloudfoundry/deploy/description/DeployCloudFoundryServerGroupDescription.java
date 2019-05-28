@@ -38,6 +38,8 @@ public class DeployCloudFoundryServerGroupDescription
   private boolean startApplication;
   private Artifact applicationArtifact;
   private Artifact manifest;
+  private String executionId;
+  private Map<String, Object> trigger;
 
   @JsonIgnore private ArtifactCredentials artifactCredentials;
 
