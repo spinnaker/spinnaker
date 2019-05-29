@@ -30,39 +30,68 @@ import java.sql.ResultSet
  * in this mapper as well.
  */
 class ExecutionMapper(
-  private val mapper: ObjectMapper
+  private val mapper: ObjectMapper,
+  private val stageBatchSize: Int
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   fun map(rs: ResultSet, context: DSLContext): Collection<Execution> {
     val results = mutableListOf<Execution>()
+    val executionMap = mutableMapOf<String, Execution>()
+    val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
       mapper.readValue<Execution>(rs.getString("body"))
-        .also { execution ->
-          context.selectExecutionStages(execution.type, rs.getString("id")).let { stageResultSet ->
-            while (stageResultSet.next()) {
-              mapStage(stageResultSet, execution)
-            }
+        .also {
+          execution -> results.add(execution)
+
+          if (rs.getString("id") != execution.id) {
+            // Map legacyId executions to their current ULID
+            legacyMap[execution.id] = rs.getString("id")
+            executionMap[rs.getString("id")] = execution
+          } else {
+            executionMap[execution.id] = execution
           }
+        }
+    }
+
+    if (results.isNotEmpty()) {
+      val type = results[0].type
+
+      results.chunked(stageBatchSize) { executions ->
+        val executionIds: List<String> = executions.map {
+          if (legacyMap.containsKey(it.id)) {
+            legacyMap[it.id]!!
+          } else {
+            it.id
+          }
+        }
+
+        context.selectExecutionStages(type, executionIds).let { stageResultSet ->
+          while (stageResultSet.next()) {
+            mapStage(stageResultSet, executionMap)
+          }
+        }
+
+        executions.forEach { execution ->
           execution.stages.sortBy { it.refId }
         }
-        .also {
-          if (!results.any { r -> r.id == it.id }) {
-            results.add(it)
-          } else {
-            log.warn("Duplicate execution for ${it.id} found in sql result")
-          }
-        }
+      }
     }
 
     return results
   }
 
-  private fun mapStage(rs: ResultSet, execution: Execution) {
-    execution.stages.add(mapper.readValue<Stage>(rs.getString("body")).apply {
-      setExecution(execution)
-    })
+  private fun mapStage(rs: ResultSet, executions: Map<String, Execution>) {
+    val executionId = rs.getString("execution_id")
+    executions.getValue(executionId)
+      .stages
+      .add(
+        mapper.readValue<Stage>(rs.getString("body"))
+          .apply {
+            execution = executions.getValue(executionId)
+          }
+      )
   }
 }

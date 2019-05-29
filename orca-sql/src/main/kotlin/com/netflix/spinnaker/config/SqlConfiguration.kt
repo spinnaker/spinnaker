@@ -112,7 +112,8 @@ class SqlConfiguration {
         dsl,
         mapper,
         properties.transactionRetry,
-        properties.batchReadSize
+        properties.batchReadSize,
+        properties.stageReadSize
       ),
       registry
     )

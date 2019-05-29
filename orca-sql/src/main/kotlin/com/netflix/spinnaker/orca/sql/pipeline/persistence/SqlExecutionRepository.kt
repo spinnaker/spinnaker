@@ -71,7 +71,8 @@ class SqlExecutionRepository(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
   private val transactionRetryProperties: TransactionRetryProperties,
-  private val batchReadSize: Int = 10
+  private val batchReadSize: Int = 10,
+  private val stageReadSize: Int = 200
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -798,7 +799,7 @@ class SqlExecutionRepository(
     listOf(field("id"), field("body"))
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
-    ExecutionMapper(mapper).map(fetch().intoResultSet(), jooq)
+    ExecutionMapper(mapper, stageReadSize).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()

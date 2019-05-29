@@ -33,7 +33,8 @@ data class SqlProperties(
   var connectionPool: ConnectionPoolProperties = ConnectionPoolProperties(),
   var transactionRetry: TransactionRetryProperties = TransactionRetryProperties(),
   var partitionName: String? = null,
-  var batchReadSize: Int = 10
+  var batchReadSize: Int = 10,
+  var stageReadSize: Int = 200
 )
 
 data class MigrationProperties(

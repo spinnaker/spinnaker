@@ -67,7 +67,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
 
   def setupSpec() {
     currentDatabase = initDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10)
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
   }
 
   @Ignore("Broken by H2's inversion of order by desc when using a limit")

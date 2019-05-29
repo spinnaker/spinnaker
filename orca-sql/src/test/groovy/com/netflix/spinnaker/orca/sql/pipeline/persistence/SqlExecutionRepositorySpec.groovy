@@ -67,12 +67,12 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
 
   @Override
   SqlExecutionRepository createExecutionRepository() {
-    new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10)
+    new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
   }
 
   @Override
   SqlExecutionRepository createExecutionRepositoryPrevious() {
-    new SqlExecutionRepository("test", previousDatabase.context, mapper, new TransactionRetryProperties(), 10)
+    new SqlExecutionRepository("test", previousDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
   }
 
   def "can store a new pipeline"() {
