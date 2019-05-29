@@ -83,7 +83,7 @@ class StorageServiceMigrator(
        * - has been more recently modified in 'source'
        *   (with "some" buffer to account for precision loss on s3 due to RFC 1123 being used for last modified values)
        */
-      !targetObjectKeys.containsKey(e.key) || targetObjectKeys[e.key]!! < (e.value - 1000)
+      !targetObjectKeys.containsKey(e.key) || targetObjectKeys[e.key]!! < (e.value - 1500)
     }
 
     if (migratableObjectKeys.isEmpty()) {
