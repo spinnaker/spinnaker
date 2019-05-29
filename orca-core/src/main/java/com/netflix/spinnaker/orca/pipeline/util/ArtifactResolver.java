@@ -32,7 +32,15 @@ import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -310,7 +318,7 @@ public class ArtifactResolver {
         break;
       default:
         if (requireUniqueMatches) {
-          throw new IllegalArgumentException(
+          throw new InvalidRequestException(
               "Expected artifact " + expectedArtifact + " matches multiple artifacts " + matches);
         }
         result = matches.get(0);
