@@ -623,7 +623,8 @@ class GCEUtil {
 
         new GoogleDisk(type: initializeParams.diskType,
                        sizeGb: initializeParams.diskSizeGb,
-                       autoDelete: attachedDisk.autoDelete)
+                       autoDelete: attachedDisk.autoDelete,
+                       labels: instanceTemplateProperties.labels)
       }
     } else {
       throw new GoogleOperationException("Instance templates must have at least one disk defined. Instance template " +
@@ -811,7 +812,8 @@ class GCEUtil {
       def attachedDiskInitializeParams =
         new AttachedDiskInitializeParams(sourceImage: sourceImage?.selfLink,
                                          diskSizeGb: disk.sizeGb,
-                                         diskType: diskType)
+                                         diskType: diskType,
+                                         labels: description.labels)
 
       new AttachedDisk(boot: disk.is(firstPersistentDisk),
                        autoDelete: disk.autoDelete,

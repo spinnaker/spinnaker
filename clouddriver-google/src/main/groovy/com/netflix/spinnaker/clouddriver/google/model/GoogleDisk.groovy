@@ -35,6 +35,8 @@ class GoogleDisk {
   // Only applicable for persistent disks.
   String deviceName
 
+  Map<String, String> labels
+
   void setType(String type) {
     this.type = GoogleDiskType.fromValue(type)
   }
