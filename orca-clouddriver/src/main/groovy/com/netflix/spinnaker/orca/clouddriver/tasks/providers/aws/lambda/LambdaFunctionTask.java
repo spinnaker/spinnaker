@@ -27,15 +27,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/*
+  lambdaFunctionTask creates a Clouddriver operation using the field labeled
+  'operation'. The context of the task are added to the operation body. Users
+  will have to know what Clouddriver is expecting to use this task. It
+  essentially just passes an arbitrary operation over to Clouddriver.
+*/
 @Component
-public class updateLambdaFunctionTask extends AbstractCloudProviderAwareTask implements Task {
+public class LambdaFunctionTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired KatoService katoService;
 
-  public static final String TASK_NAME = "updateLambdaFunctionConfiguration";
+  public static final String TASK_NAME = "lambdaFunction";
 
   @Nonnull
   @Override
@@ -44,8 +51,14 @@ public class updateLambdaFunctionTask extends AbstractCloudProviderAwareTask imp
 
     Map<String, Object> task = new HashMap<>(stage.getContext());
 
+    String operationName = (String) task.get("operation");
+    if (StringUtils.isBlank(operationName)) {
+      throw new IllegalArgumentException(
+          "Field 'operation' is missing and must be present in stage context");
+    }
+
     Map<String, Map> operation =
-        new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
+        new ImmutableMap.Builder<String, Map>().put(operationName, task).build();
 
     TaskId taskId =
         katoService
