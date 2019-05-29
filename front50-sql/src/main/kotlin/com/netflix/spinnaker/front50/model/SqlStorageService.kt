@@ -88,6 +88,7 @@ class SqlStorageService(
         ctx
           .update(table(definitionsByType[objectType]!!.tableName))
           .set(DSL.field("is_deleted", Boolean::class.java), true)
+          .set(DSL.field("last_modified_at", Long::class.java), clock.millis())
           .where(DSL.field("id", String::class.java).eq(objectKey))
           .execute()
       } else {
