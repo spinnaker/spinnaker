@@ -28,6 +28,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.scheduling.annotation.Scheduled
+import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
 class StorageServiceMigrator(
@@ -49,7 +50,9 @@ class StorageServiceMigrator(
     val targetObjectKeys = target.listObjectKeys(objectType)
 
     val deletableObjectKeys = targetObjectKeys.filter { e ->
-      !sourceObjectKeys.containsKey(e.key)
+      // only cleanup "orphans" if they don't exist in source _AND_ they are at least five minutes old
+      // (accounts for edge cases around eventual consistency reads in s3)9
+      !sourceObjectKeys.containsKey(e.key) && (e.value + TimeUnit.MINUTES.toMillis(5)) < System.currentTimeMillis()
     }
 
     if (!deletableObjectKeys.isEmpty()) {

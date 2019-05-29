@@ -44,6 +44,14 @@ class CompositeStorageService(
       .withTag("class", previous.javaClass.simpleName)
   )
 
+  override fun supportsEventing(objectType: ObjectType): Boolean {
+    if (!isPrimaryReadEnabled()) {
+      return true
+    }
+
+    return objectType == ObjectType.ENTITY_TAGS
+  }
+
   @Scheduled(fixedDelay = 60000L)
   fun status() {
     log.debug(
