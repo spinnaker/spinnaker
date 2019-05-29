@@ -176,7 +176,7 @@ class SqlStorageService(
                                                     maxResults: Int): List<T> {
     if (maxResults == 1) {
       // will throw NotFoundException if object does not exist
-      return listOf(loadObject(objectType, objectKey))
+      return mutableListOf(loadObject(objectType, objectKey))
     }
 
     val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
