@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
+import io.github.resilience4j.retry.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import java.net.SocketTimeoutException;
@@ -90,7 +91,11 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     final String callName = "cf.api.call";
     Retry retry =
         Retry.of(
-            callName, RetryConfig.custom().retryExceptions(RetryableApiException.class).build());
+            callName,
+            RetryConfig.custom()
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(10), 3))
+                .retryExceptions(RetryableApiException.class)
+                .build());
 
     AtomicReference<Response> lastResponse = new AtomicReference<>();
     try {
