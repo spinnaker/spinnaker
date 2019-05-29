@@ -20,6 +20,7 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.gate.services.EntityTagsService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -53,7 +54,10 @@ public class EntityTagsController {
 
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(
-      @RequestParam Map<String, Object> allParameters,
+      @ApiParam(
+              "Any parameters to filter by, passed as individual parameters. Options are: \n  cloudProvider, application, entityType, entityId, idPrefix, account, region, namespace, maxResults")
+          @RequestParam
+          Map<String, Object> allParameters,
       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return entityTagsService.list(allParameters, sourceApp);
   }
