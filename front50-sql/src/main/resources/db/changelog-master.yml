@@ -32,3 +32,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190415-initial-snapshots-schema.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190530-add-is-deleted-indexes.yml
+      relativeToChangelogFile: true
