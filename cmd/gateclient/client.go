@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	_ "net/http/pprof"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -128,6 +129,11 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	err = gateClient.authenticateGoogleServiceAccount()
 	if err != nil {
 		util.UI.Error(fmt.Sprintf("Google service account authentication failed: %v", err))
+		return nil, err
+	}
+
+	if err = gateClient.authenticateLdap(); err != nil {
+		util.UI.Error("LDAP Authentication Failed")
 		return nil, err
 	}
 
@@ -453,6 +459,35 @@ func (m *GatewayClient) login(accessToken string) error {
 	}
 	loginReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	m.httpClient.Do(loginReq) // Login to establish session.
+	return nil
+}
+
+func (m *GatewayClient) authenticateLdap() error {
+	auth := m.Config.Auth
+	if auth != nil && auth.Enabled && auth.Ldap != nil {
+		if !auth.Ldap.IsValid() {
+			return errors.New("Incorrect LDAP auth configuration. Must include username and password.")
+		}
+
+		form := url.Values{}
+		form.Add("username", auth.Ldap.Username)
+		form.Add("password", auth.Ldap.Password)
+
+		loginReq, err := http.NewRequest("POST", m.GateEndpoint()+"/login", strings.NewReader(form.Encode()))
+		loginReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		if err != nil {
+			return err
+		}
+
+		_, err = m.httpClient.Do(loginReq) // Login to establish session.
+
+		if err != nil {
+			return errors.New("ldap authentication failed")
+		}
+
+		m.Context = context.Background()
+	}
+
 	return nil
 }
 
