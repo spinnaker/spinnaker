@@ -20,7 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.model.v1.security.X509;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode(callSuper = false)
 @Data

@@ -1,18 +1,23 @@
 dependencies {
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compileOnly spinnaker.dependency('lombok')
-  annotationProcessor spinnaker.dependency('lombok')
-  compile spinnaker.dependency('clouddriverAws')
-  compile spinnaker.dependency('googleStorage')
-  compile spinnaker.dependency('korkSecrets')
-  compile spinnaker.dependency('korkSecretsAws')
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
 
-  compile 'com.beust:jcommander:1.48'
-  compile 'com.hubspot.jinjava:jinjava:2.2.3'
-  compile 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
-  compile 'org.apache.commons:commons-compress:1.14'
-  compile 'org.spockframework:spock-spring:1.1-groovy-2.4'
-  compile 'org.springframework.boot:spring-boot-gradle-plugin:1.4.7.RELEASE'
-  compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-gradle-plugin:1.4.7.RELEASE'
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-aws:$clouddriverVersion"
+  implementation 'com.netflix.spinnaker.kork:kork-secrets'
+  implementation 'com.netflix.spinnaker.kork:kork-secrets-aws'
+  implementation 'com.google.apis:google-api-services-storage'
+  implementation 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
+  implementation 'org.apache.commons:commons-exec'
+  implementation 'org.apache.commons:commons-compress:1.14'
+  implementation 'commons-io:commons-io:2.6'
+  implementation 'io.reactivex:rxjava'
+  implementation 'com.hubspot.jinjava:jinjava:2.2.3'
+  implementation 'org.spockframework:spock-spring:1.1-groovy-2.4'
+  implementation 'org.yaml:snakeyaml:1.24'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework:spring-test'
 }

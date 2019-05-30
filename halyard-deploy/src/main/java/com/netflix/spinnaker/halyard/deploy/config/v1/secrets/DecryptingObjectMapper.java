@@ -27,12 +27,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;

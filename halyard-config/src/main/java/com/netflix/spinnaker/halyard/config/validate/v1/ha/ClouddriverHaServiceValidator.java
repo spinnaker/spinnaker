@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ClouddriverHaServiceValidator extends Validator<ClouddriverHaService> {
   @Override

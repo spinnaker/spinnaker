@@ -21,7 +21,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;

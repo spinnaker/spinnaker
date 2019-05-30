@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.halyard.core.secrets.v1;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.SecretManager;
-import com.netflix.spinnaker.config.secrets.SecretSession;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretManager;
+import com.netflix.spinnaker.kork.secrets.SecretSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

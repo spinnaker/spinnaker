@@ -1,13 +1,34 @@
-import org.gradle.api.tasks.Exec
-
 dependencies {
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
 
-  compile project(':halyard-config')
-  compile project(':halyard-core')
-  compile project(':halyard-deploy')
-  compile project(':halyard-proto')
+  implementation 'org.springframework.boot:spring-boot'
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'org.apache.commons:commons-text:1.6'
+  implementation 'ch.qos.logback:logback-classic'
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation 'com.squareup.retrofit:converter-jackson'
+  implementation 'com.fasterxml.jackson.core:jackson-annotations'
+  implementation 'com.fasterxml.jackson.core:jackson-core'
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'org.aspectj:aspectjweaver'
+  implementation 'org.yaml:snakeyaml:1.24'
+  implementation 'org.codehaus.groovy:groovy'
+  implementation('com.beust:jcommander:1.71') {
+    // 1.72 made JCommander.getMainParameter() weird
+    // This was reverted in master but not released yet. Sticking with 1.71 instead of catching NPE in
+    // com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand :287 and :414
+    force = true
+  }
+
+  implementation project(':halyard-config')
+  implementation project(':halyard-core')
+  implementation project(':halyard-deploy')
+  implementation project(':halyard-proto')
+
+  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+  testImplementation 'org.springframework:spring-test'
 }
 
 apply plugin: 'java'

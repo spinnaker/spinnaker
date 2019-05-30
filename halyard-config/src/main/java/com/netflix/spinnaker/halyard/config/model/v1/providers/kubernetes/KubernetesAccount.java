@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;

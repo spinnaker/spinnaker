@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.OkHttpClient;
@@ -26,30 +27,32 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
 @Configuration
+@Import({OkHttpClientConfiguration.class, OkHttpClientComponents.class})
 class RetrofitConfig {
   @Autowired
   OkHttpClientConfiguration okHttpClientConfig;
 
-  @Value("${okHttpClient.connectionPool.maxIdleConnections:5}")
+  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   int maxIdleConnections;
 
-  @Value("${okHttpClient.connectionPool.keepAliveDurationMs:300000}")
+  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
   int keepAliveDurationMs;
 
-  @Value("${okHttpClient.retryOnConnectionFailure:true}")
+  @Value("${ok-http-client.retry-on-connection-failure:true}")
   boolean retryOnConnectionFailure;
 
   @Autowired
   RequestInterceptor spinnakerRequestInterceptor;
 
   @Bean
-  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:BASIC}") String retrofitLogLevel) {
+  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return RestAdapter.LogLevel.valueOf(retrofitLogLevel);
   }
 

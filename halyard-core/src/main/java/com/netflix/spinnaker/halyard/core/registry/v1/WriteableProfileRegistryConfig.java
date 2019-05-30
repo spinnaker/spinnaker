@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnExpression("${spinnaker.config.input.writerEnabled:false}")
+@ConditionalOnExpression("${spinnaker.config.input.writer-enabled:false}")
 @EnableConfigurationProperties(WriteableProfileRegistryProperties.class)
 @Slf4j
 public class WriteableProfileRegistryConfig {

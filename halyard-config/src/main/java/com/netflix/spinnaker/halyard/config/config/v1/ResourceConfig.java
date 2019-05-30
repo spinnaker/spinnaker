@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -68,7 +69,8 @@ public class ResourceConfig {
    */
   @Bean
   String halyardVersion() {
-    return getClass().getPackage().getImplementationVersion();
+    return Optional.ofNullable(getClass().getPackage().getImplementationVersion())
+        .orElse("Unknown");
   }
 
   @Bean

@@ -18,14 +18,13 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +38,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;

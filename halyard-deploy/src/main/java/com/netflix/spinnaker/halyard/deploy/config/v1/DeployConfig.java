@@ -30,17 +30,17 @@ public class DeployConfig {
   }
 
   @Bean
-  String vaultSecretPrefix(@Value("${spinnaker.vault.secretPrefix:secrets/spinnaker/}") String vaultSecretPrefix) {
+  String vaultSecretPrefix(@Value("${spinnaker.vault.secret-prefix:secrets/spinnaker/}") String vaultSecretPrefix) {
     return vaultSecretPrefix;
   }
 
   @Bean
-  Integer vaultTimeoutSeconds(@Value("${spinnaker.vault.timeoutSeconds:10}") Integer vaultTimeoutSeconds) {
+  Integer vaultTimeoutSeconds(@Value("${spinnaker.vault.timeout-seconds:10}") Integer vaultTimeoutSeconds) {
     return vaultTimeoutSeconds;
   }
 
   @Bean
-  String startupScriptPath(@Value("${spinnaker.startup.scriptsPath:/var/spinnaker/startup/}") String startupScriptPath) {
+  String startupScriptPath(@Value("${spinnaker.startup.scripts-path:/var/spinnaker/startup/}") String startupScriptPath) {
     return startupScriptPath;
   }
 }

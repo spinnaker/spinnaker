@@ -21,7 +21,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.security;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.PublicService;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.stereotype.Component;
 

@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 

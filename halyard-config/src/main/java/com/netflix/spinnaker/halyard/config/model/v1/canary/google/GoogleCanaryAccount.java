@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.google;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
@@ -31,7 +31,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.SortedSet;
 import java.util.TreeSet;

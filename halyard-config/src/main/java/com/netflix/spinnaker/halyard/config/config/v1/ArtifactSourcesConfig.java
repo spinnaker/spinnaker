@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import lombok.Data;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

@@ -42,7 +42,7 @@ public class GlobalApplicationOptions {
 
   static final String CONFIG_PATH = "/opt/spinnaker/hal.properties";
 
-  @Value("${useRemoteDaemon:false}")
+  @Value("${use-remote-daemon:false}")
   private boolean useRemoteDaemon = false;
 
   public boolean isUseRemoteDaemon() {

@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dcos;
 
-import com.beust.jcommander.Strings;
-import com.beust.jcommander.internal.Lists;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -12,12 +10,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.Docker
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry.DockerRegistryReferenceValidation.validateDockerRegistries;
@@ -88,11 +85,11 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
     accountClusters.removeAll(definedClusters);
     accountClusters.forEach(c -> problems.addProblem(ERROR, "Cluster \"" + c.toString() + "\" not defined for provider")
         .setRemediation("Add cluster to the provider or remove from the account")
-        .setOptions(Lists.newArrayList(definedClusters)));
+        .setOptions(new ArrayList<>(definedClusters)));
 
     Set<List<String>> credentials = new HashSet<>();
     account.getClusters().forEach(c -> {
-      final List<String> key = Lists.newArrayList(c.getName(), c.getUid());
+      final List<String> key = Arrays.asList(c.getName(), c.getUid());
       if (credentials.contains(key)) {
         problems.addProblem(ERROR,
             "Account contains duplicate credentials for cluster \"" + c.getName() + "\" and user id \"" + c.getUid()
@@ -103,21 +100,21 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
 
       // TODO(willgorman) once we have the clouddriver-dcos module pulled in we can just validate whether or not
       // we can connect without a password
-      if (Strings.isStringEmpty(c.getPassword()) && Strings.isStringEmpty(c.getServiceKeyFile())) {
+      if (StringUtils.isEmpty(c.getPassword()) && StringUtils.isEmpty(c.getServiceKeyFile())) {
         problems.addProblem(WARNING,
             "Account has no password or service key.  Unless the cluster has security disabled this may be an error")
             .setRemediation("Add a password or service key.");
       }
 
-      if (!Strings.isStringEmpty(c.getPassword()) && !Strings.isStringEmpty(c.getServiceKeyFile())) {
+      if (!StringUtils.isEmpty(c.getPassword()) && !StringUtils.isEmpty(c.getServiceKeyFile())) {
         problems.addProblem(ERROR, "Account has both a password and service key")
             .setRemediation("Remove either the password or service key.");
       }
 
-      if (!Strings.isStringEmpty(c.getServiceKeyFile())) {
+      if (StringUtils.isNotEmpty(c.getServiceKeyFile())) {
         String resolvedServiceKey = validatingFileDecrypt(problems, c.getServiceKeyFile());
 
-        if (Strings.isStringEmpty(resolvedServiceKey)) {
+        if (StringUtils.isEmpty(resolvedServiceKey)) {
           problems.addProblem(ERROR, "The supplied service key file does not exist or is empty.")
             .setRemediation("Supply a valid service key file.");
         }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;

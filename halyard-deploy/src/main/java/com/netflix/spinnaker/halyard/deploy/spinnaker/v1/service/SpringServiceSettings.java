@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;

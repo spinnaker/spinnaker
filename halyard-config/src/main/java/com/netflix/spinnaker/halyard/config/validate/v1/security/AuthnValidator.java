@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component

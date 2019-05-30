@@ -61,7 +61,7 @@ public class DistributedDeployer<T extends Account> implements
   @Autowired
   OrcaRunner orcaRunner;
 
-  @Value("${deploy.maxRemainingServerGroups:2}")
+  @Value("${deploy.max-remaining-server-groups:2}")
   private Integer MAX_REMAINING_SERVER_GROUPS;
 
   @Override

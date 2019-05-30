@@ -18,16 +18,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.deploy.sizing;
 
-import com.amazonaws.services.dynamodbv2.xspec.S;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.deploy.ha.ClouddriverHaServiceCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.deploy.ha.EchoHaServiceCommand;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type.*;
 
 @Parameters(separators = "=")
 public class ComponentSizingCommand extends NestableCommand {

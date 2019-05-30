@@ -22,11 +22,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.AbstractArtifactEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsCommandProperties;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
-import org.springframework.data.repository.query.Param;
 
 @Parameters(separators = "=")
 public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<S3ArtifactAccount> {

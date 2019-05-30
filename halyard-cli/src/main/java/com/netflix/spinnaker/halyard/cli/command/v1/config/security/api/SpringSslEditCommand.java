@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.embedded.Ssl;
+import org.springframework.boot.web.server.Ssl;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

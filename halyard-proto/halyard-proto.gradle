@@ -2,10 +2,10 @@ apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
 
 dependencies {
-  compile 'io.grpc:grpc-all:1.8.0'
-  compile 'com.google.protobuf:protobuf-java:3.0.0'
-  compile 'com.google.guava:guava:23.5-jre'
-  compile 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
+  implementation 'com.google.protobuf:protobuf-java:3.0.0'
+  implementation 'com.google.guava:guava:23.5-jre'
+  api 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
+  implementation 'io.grpc:grpc-all:1.8.0'
 }
 
 protobuf {

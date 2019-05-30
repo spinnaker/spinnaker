@@ -1,15 +1,39 @@
 dependencies {
-  compile spinnaker.dependency('clouddriverDocker')
-  compile spinnaker.dependency('clouddriverGoogle')
-  compile spinnaker.dependency('clouddriverKubernetes')
-  compile spinnaker.dependency('clouddriverAppengine')
-  compile spinnaker.dependency('clouddriverAzure')
-  compile spinnaker.dependency('clouddriverCloudfoundry')
-  compile spinnaker.dependency('front50Gcs')
-  compile spinnaker.dependency('front50S3')
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-kubernetes:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.front50:front50-core:$front50Version"
+  implementation "com.netflix.spinnaker.front50:front50-gcs:$front50Version"
+  implementation "com.netflix.spinnaker.front50:front50-s3:$front50Version"
+  implementation 'com.netflix.spinnaker.kork:kork-secrets'
+  implementation 'com.netflix.spinnaker.kork:kork-secrets-aws'
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
+  implementation 'com.amazonaws:aws-java-sdk-s3:1.11.534'
+  implementation 'com.google.apis:google-api-services-compute'
+  implementation 'com.google.apis:google-api-services-appengine:v1-rev92-1.25.0'
+  implementation 'com.microsoft.azure:adal4j:1.6.3'
+  implementation 'com.microsoft.azure:azure:1.19.0'
+  implementation 'commons-collections:commons-collections:3.2.1'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'commons-io:commons-io:2.6'
+  implementation 'io.fabric8:kubernetes-client'
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation 'com.jcraft:jsch'
 
 //  TODO: add clouddriverDCOS once that's merged
-  compile project(':halyard-core')
+  implementation project(':halyard-core')
+
+  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+  testImplementation 'org.springframework:spring-test'
+  testImplementation 'org.codehaus.groovy:groovy'
+  testRuntimeOnly 'net.bytebuddy:byte-buddy'
 }

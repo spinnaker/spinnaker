@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.AbstractEnableDisableCommand
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Supplier;
 

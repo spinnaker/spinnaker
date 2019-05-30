@@ -2,11 +2,11 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'spinnaker.application'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 run {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.config.additional-location', project.springConfigLocation)
 }
 mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
@@ -22,20 +22,22 @@ tasks.withType(JavaExec) {
 }
 
 dependencies {
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
 
-  compile project(':halyard-backup')
-  compile project(':halyard-cli')
-  compile project(':halyard-config')
-  compile project(':halyard-core')
-  compile project(':halyard-deploy')
-  compile project(':halyard-proto')
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation 'org.lognet:grpc-spring-boot-starter:2.3.2'
+  implementation 'org.codehaus.groovy:groovy'
 
-  compile('org.lognet:grpc-spring-boot-starter:2.3.2')
-  compile 'com.google.guava:guava:23.5-jre'
+  implementation project(':halyard-backup')
+  implementation project(':halyard-config')
+  implementation project(':halyard-core')
+  implementation project(':halyard-deploy')
+  implementation project(':halyard-proto')
 }
 
 def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts) {

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

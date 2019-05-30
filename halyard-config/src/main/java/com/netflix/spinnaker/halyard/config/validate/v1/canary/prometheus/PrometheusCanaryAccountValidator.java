@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.config.validate.v1.canary.CanaryAccountVali
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

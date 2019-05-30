@@ -28,7 +28,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.squareup.okhttp.Response;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.Body;

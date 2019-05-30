@@ -1,12 +1,33 @@
 dependencies {
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-  compile spinnaker.dependency('fabric8Api')
-  compile spinnaker.dependency('googleStorage')
-  compile group: 'org.apache.commons', name: 'commons-compress', version: '1.2'
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
 
-  compile project(':halyard-config')
-  compile project(':halyard-core')
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-core:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-kubernetes:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.kork:kork-secrets:${korkVersion}"
+  implementation 'com.netflix.frigga:frigga'
+  implementation 'com.google.apis:google-api-services-storage'
+  implementation 'com.google.apis:google-api-services-compute'
+  implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
+  implementation 'org.apache.commons:commons-compress:1.2'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'commons-io:commons-io:2.6'
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation 'com.squareup.okhttp:okhttp'
+  implementation 'io.fabric8:kubernetes-client'
+  implementation 'io.fabric8:fabric8-utils:2.2.216'
+  implementation 'redis.clients:jedis'
+  implementation 'org.codehaus.groovy:groovy'
+
+  implementation project(':halyard-config')
+  implementation project(':halyard-core')
+
+  testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+  testImplementation 'org.springframework:spring-test'
+  testRuntimeOnly 'net.bytebuddy:byte-buddy'
+  testRuntimeOnly 'org.objenesis:objenesis'
 }

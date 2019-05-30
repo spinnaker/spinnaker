@@ -54,7 +54,7 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERR
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
