@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
+import java.io.IOException
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
 @Configuration
@@ -82,18 +83,22 @@ class KeelRetrofitConfiguration {
   fun spinnakerRequestInterceptor(
     okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties
   ) =
-  // Inline version of SpinnakerRequestInterceptor from kork-web
+    // Inline version of SpinnakerRequestInterceptor from kork-web
     Interceptor { chain ->
       val requestBuilder = chain.request().newBuilder()
       if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
         AuthenticatedRequest
           .getAuthenticationHeaders()
-          .forEach { k, v ->
+          .forEach { (k, v) ->
             v.ifPresent {
               requestBuilder.addHeader(k, it)
             }
           }
       }
-      AuthenticatedRequest.allowAnonymous { chain.proceed(requestBuilder.build()) }
+      try {
+        AuthenticatedRequest.allowAnonymous { chain.proceed(requestBuilder.build()) }
+      } catch (ex: RuntimeException) {
+        throw IOException(ex)
+      }
     }
 }

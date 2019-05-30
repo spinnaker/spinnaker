@@ -23,6 +23,8 @@ dependencies {
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-retrofit"))
+  testImplementation("com.squareup.okhttp3:mockwebserver")
 }
 
 application {

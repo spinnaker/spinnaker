@@ -11,11 +11,13 @@ import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 
 internal object ResourceCheckSchedulerTests : JUnit5Minutests {
 
   private val resourceRepository = mockk<ResourceRepository>()
   private val resourceActuator = mockk<ResourceActuator>(relaxUnitFun = true)
+  private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
   private val resources = listOf(
     ResourceHeader(
       uid = randomUID(),
@@ -37,7 +39,8 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
         resourceRepository = resourceRepository,
         resourceActuator = resourceActuator,
         resourceCheckMinAgeMinutes = 5,
-        resourceCheckBatchSize = 2
+        resourceCheckBatchSize = 2,
+        publisher = publisher
       )
     }
 
