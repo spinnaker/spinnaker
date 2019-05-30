@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-indexes
+      author: ajordens
+      changes:
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: applications
+          columns:
+          - column:
+              name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: application_permissions
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: deliveries
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: entity_tags
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: notifications
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: pipeline_strategies
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: pipeline_templates
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: pipelines
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: projects
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: service_accounts
+          columns:
+            - column:
+                name: is_deleted
+      - createIndex:
+          indexName: is_deleted_idx
+          tableName: snapshots
+          columns:
+            - column:
+                name: is_deleted
+      rollback:
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: applications
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: application_permissions
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: deliveries
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: entity_tags
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: notifications
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: pipeline_strategies
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: pipeline_templates
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: pipelines
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: projects
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: service_accounts
+      - dropIndex:
+          indexName: is_deleted_idx
+          tableName: snapshots
