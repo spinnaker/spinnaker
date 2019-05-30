@@ -88,7 +88,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   public Collection<Map<String, String>> getRegions() {
     try {
-      return credentials.getSpaces().all().stream()
+      return getCredentials().getSpaces().all().stream()
           .map(space -> singletonMap("name", space.getRegion()))
           .collect(toList());
     } catch (CloudFoundryApiException e) {
