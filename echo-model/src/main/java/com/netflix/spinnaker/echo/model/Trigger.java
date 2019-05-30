@@ -65,7 +65,9 @@ import org.slf4j.LoggerFactory;
       "link",
       "linkText",
       "application",
-      "pipeline"
+      "pipeline",
+      "correlationId",
+      "executionId"
     },
     includeFieldNames = false)
 @Value
@@ -106,6 +108,8 @@ public class Trigger {
   // Configuration for pipeline triggers
   String application;
   String pipeline;
+  String correlationId;
+  String executionId;
 
   // Configuration for git triggers
   String project;
@@ -224,6 +228,14 @@ public class Trigger {
 
   public Trigger atEventId(final String eventId) {
     return this.toBuilder().eventId(eventId).build();
+  }
+
+  public Trigger atCorrelationId(final String correlationId) {
+    return this.toBuilder().correlationId(correlationId).build();
+  }
+
+  public Trigger atExecutionId(final String executionId) {
+    return this.toBuilder().executionId(executionId).build();
   }
 
   public Trigger atNotifications(final List<Map<String, Object>> notifications) {

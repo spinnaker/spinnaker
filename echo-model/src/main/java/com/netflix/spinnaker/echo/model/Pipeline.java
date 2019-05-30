@@ -23,7 +23,10 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import java.util.List;
 import java.util.Map;
-import lombok.*;
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.ToString;
+import lombok.Value;
 import lombok.experimental.Wither;
 
 @JsonDeserialize(builder = Pipeline.PipelineBuilder.class)
@@ -41,6 +44,8 @@ public class Pipeline {
   @JsonProperty @NonNull String name;
 
   @JsonProperty String id;
+
+  @JsonProperty String executionId;
 
   @JsonProperty String executionEngine;
 
