@@ -236,7 +236,7 @@ class SqlClusteredAgentScheduler(
     val newTtl = nextExecutionTime - System.currentTimeMillis()
 
     withPool(POOL_NAME) {
-      if (newTtl < 500L) {
+      if (newTtl < dynamicConfigService.getConfig(Long::class.java, "sql.agent.release-threshold-ms", 500)) {
         try {
           jooq.delete(table(lockTable)).where(field("agent_name").eq(agentType)).execute()
         } catch (e: SQLException) {
