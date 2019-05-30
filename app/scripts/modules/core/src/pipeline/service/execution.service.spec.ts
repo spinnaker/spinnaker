@@ -451,21 +451,18 @@ describe('Service: executionService', () => {
 
   describe('waitUntilTriggeredPipelineAppears', () => {
     const applicationName = 'deck';
-    const pipelineName = 'pipeline';
     const application: Application = { name: applicationName, executions: { refresh: () => $q.when(null) } } as any;
-    const eventId = 'abc';
-    const url =
-      [SETTINGS.gateUrl, 'applications', 'deck', 'executions', 'search'].join('/') +
-      '?eventId=abc&pipelineName=pipeline';
+    const pipelineId = '01DC2VMFBZ5PFW5G6SMKWW5CZC';
+    const url = [SETTINGS.gateUrl, 'pipelines', pipelineId].join('/');
     const execution: any = {}; // Stub execution
 
     it('resolves when the pipeline exists', () => {
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, [execution]);
+      $httpBackend.expectGET(url).respond(200, execution);
 
       executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .waitUntilTriggeredPipelineAppears(application, pipelineId)
         .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
@@ -477,10 +474,10 @@ describe('Service: executionService', () => {
     it('does not resolve when the pipeline does not exist', () => {
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, []);
+      $httpBackend.expectGET(url).respond(404, null);
 
       executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .waitUntilTriggeredPipelineAppears(application, pipelineId)
         .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
@@ -492,10 +489,10 @@ describe('Service: executionService', () => {
     it('resolves when the pipeline exists on a later poll', () => {
       let succeeded = false;
 
-      $httpBackend.expectGET(url).respond(200, []);
+      $httpBackend.expectGET(url).respond(404, null);
 
       executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .waitUntilTriggeredPipelineAppears(application, pipelineId)
         .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
@@ -505,7 +502,7 @@ describe('Service: executionService', () => {
       expect(succeeded).toBe(false);
 
       // return success on the second GET request
-      $httpBackend.expectGET(url).respond(200, [execution]);
+      $httpBackend.expectGET(url).respond(200, execution);
       timeout.flush();
       $httpBackend.flush();
 

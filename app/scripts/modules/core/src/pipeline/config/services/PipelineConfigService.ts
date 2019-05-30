@@ -10,6 +10,7 @@ import { IPipeline } from 'core/domain/IPipeline';
 
 export interface ITriggerPipelineResponse {
   eventId: string;
+  ref: string;
 }
 export class PipelineConfigService {
   private static configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
@@ -107,7 +108,7 @@ export class PipelineConfigService {
       .data(body)
       .post()
       .then((result: ITriggerPipelineResponse) => {
-        return result.eventId;
+        return result.ref.split('/').pop();
       });
   }
 
