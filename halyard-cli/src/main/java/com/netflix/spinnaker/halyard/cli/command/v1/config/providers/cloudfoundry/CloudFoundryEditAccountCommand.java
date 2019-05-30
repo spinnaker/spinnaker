@@ -31,7 +31,6 @@ public class CloudFoundryEditAccountCommand extends AbstractEditAccountCommand<C
 
     @Parameter(
             names = {"--api-host", "--api"},
-            required = true,
             description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION
     )
     private String apiHost;
@@ -50,14 +49,12 @@ public class CloudFoundryEditAccountCommand extends AbstractEditAccountCommand<C
 
     @Parameter(
             names = "--password",
-            required = true,
             description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION
     )
     private String password;
 
     @Parameter(
             names = "--user",
-            required = true,
             description = CloudFoundryCommandProperties.USER_DESCRIPTION
     )
     private String user;

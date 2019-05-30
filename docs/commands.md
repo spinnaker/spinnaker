@@ -7152,20 +7152,20 @@ hal config provider cloudfoundry account edit ACCOUNT [parameters]
  * `--add-read-permission`: Add this permission to the list of read permissions.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--add-write-permission`: Add this permission to the list of write permissions.
- * `--api-host, --api`: (*Required*) Host of the CloudFoundry Foundation API endpoint ie. `api.sys.somesystem.com`
+ * `--api-host, --api`: Host of the CloudFoundry Foundation API endpoint ie. `api.sys.somesystem.com`
  * `--apps-manager-uri, --appsManagerUri`: Full URI for the Apps Manager application for the CloudFoundry Foundation ie. `https://apps.sys.somesystem.com`
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--metrics-uri, --metricsUri`: Full URI for the metrics application for the CloudFoundry Foundation ie. `https://metrics.sys.somesystem.com`
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--password`: (*Required*) Password for the account to use on for this CloudFoundry Foundation
+ * `--password`: Password for the account to use on for this CloudFoundry Foundation
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--user`: (*Required*) User name for the account to use on for this CloudFoundry Foundation
+ * `--user`: User name for the account to use on for this CloudFoundry Foundation
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
