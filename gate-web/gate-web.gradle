@@ -42,6 +42,7 @@ dependencies {
 
   implementation 'commons-io:commons-io'
   implementation 'org.springframework.session:spring-session-data-redis'
+  implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
 
   implementation "org.springframework:spring-web"
 

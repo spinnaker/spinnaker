@@ -25,7 +25,7 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import groovy.transform.CompileStatic
+import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component
 @Slf4j
 class PipelineService {
   private static final String GROUP = "pipelines"
+
+  private final ULID ulid = new ULID();
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -98,7 +100,9 @@ class PipelineService {
 
   Map triggerViaEcho(String application, String pipelineNameOrId, Map parameters) {
     def eventId = UUID.randomUUID()
+    def executionId = ulid.nextValue().toString()
     parameters.put("eventId", eventId)
+    parameters.put("executionId", executionId)
 
     Map eventMap = [
       content: [
@@ -112,7 +116,10 @@ class PipelineService {
       ]
     ]
     echoService.postEvent(eventMap)
-    return [eventId: eventId]
+    return [
+      eventId: eventId,
+      ref: String.format("/pipelines/%s", executionId)
+    ]
   }
 
   Map startPipeline(Map pipelineConfig, String user) {
