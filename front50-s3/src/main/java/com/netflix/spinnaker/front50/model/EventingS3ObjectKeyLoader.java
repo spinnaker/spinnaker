@@ -65,7 +65,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
   private final ObjectMapper objectMapper;
   private final TemporarySQSQueue temporarySQSQueue;
-  private final S3StorageService s3StorageService;
+  private final StorageService storageService;
   private final Registry registry;
 
   private final Cache<KeyWithObjectType, Long> objectKeysByLastModifiedCache;
@@ -80,12 +80,12 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
       ObjectMapper objectMapper,
       S3Properties s3Properties,
       TemporarySQSQueue temporarySQSQueue,
-      S3StorageService s3StorageService,
+      StorageService storageService,
       Registry registry,
       boolean scheduleImmediately) {
     this.objectMapper = objectMapper;
     this.temporarySQSQueue = temporarySQSQueue;
-    this.s3StorageService = s3StorageService;
+    this.storageService = storageService;
     this.registry = registry;
 
     this.objectKeysByLastModifiedCache =
@@ -106,7 +106,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
                   @Override
                   public Map<String, Long> load(ObjectType objectType) throws Exception {
                     log.debug("Loading object keys for {}", value("type", objectType));
-                    return s3StorageService.listObjectKeys(objectType);
+                    return storageService.listObjectKeys(objectType);
                   }
 
                   @Override
@@ -118,7 +118,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
                               log.debug(
                                   "Refreshing object keys for {} (asynchronous)",
                                   value("type", objectType));
-                              return s3StorageService.listObjectKeys(objectType);
+                              return storageService.listObjectKeys(objectType);
                             });
                     executor.execute(task);
                     return task;
@@ -142,6 +142,10 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
   @Override
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
+    if (!storageService.supportsEventing(objectType)) {
+      return storageService.listObjectKeys(objectType);
+    }
+
     try {
       Map<String, Long> objectKeys = objectKeysByObjectTypeCache.get(objectType);
       objectKeysByLastModifiedCache.asMap().entrySet().stream()
@@ -173,7 +177,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
       return objectKeys;
     } catch (ExecutionException e) {
       log.error("Unable to fetch keys from cache", e);
-      return s3StorageService.listObjectKeys(objectType);
+      return storageService.listObjectKeys(objectType);
     }
   }
 

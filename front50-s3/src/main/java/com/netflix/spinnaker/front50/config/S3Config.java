@@ -18,6 +18,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.EventingS3ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.S3StorageService;
+import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.TemporarySQSQueue;
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import java.net.InetAddress;
@@ -123,7 +124,7 @@ public class S3Config extends CommonStorageServiceDAOConfig {
   public ObjectKeyLoader eventingS3ObjectKeyLoader(
       ObjectMapper objectMapper,
       S3Properties s3Properties,
-      S3StorageService s3StorageService,
+      StorageService storageService,
       TemporarySQSQueue temporaryQueueSupport,
       Registry registry) {
     return new EventingS3ObjectKeyLoader(
@@ -131,7 +132,7 @@ public class S3Config extends CommonStorageServiceDAOConfig {
         objectMapper,
         s3Properties,
         temporaryQueueSupport,
-        s3StorageService,
+        storageService,
         registry,
         true);
   }

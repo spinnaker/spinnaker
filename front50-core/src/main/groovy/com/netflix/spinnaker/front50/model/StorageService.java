@@ -28,6 +28,10 @@ public interface StorageService {
   /** Returns true if the storage service supports versioning. */
   boolean supportsVersioning();
 
+  default boolean supportsEventing(ObjectType objectType) {
+    return true;
+  }
+
   <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
       throws NotFoundException;
 

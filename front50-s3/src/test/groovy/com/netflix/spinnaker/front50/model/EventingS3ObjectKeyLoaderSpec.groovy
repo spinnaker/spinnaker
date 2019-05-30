@@ -75,6 +75,7 @@ class EventingS3ObjectKeyLoaderSpec extends Specification {
     def objectKeys = objectKeyLoader.listObjectKeys(ObjectType.APPLICATION)
 
     then:
+    1 * s3StorageService.supportsEventing(_) >> { return true }
     1 * s3StorageService.listObjectKeys(ObjectType.APPLICATION) >> {
       return [
         "key1": 100L,
