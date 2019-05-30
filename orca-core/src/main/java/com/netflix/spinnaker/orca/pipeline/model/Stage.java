@@ -436,7 +436,7 @@ public class Stage implements Serializable {
     return mapTo(null, type);
   }
 
-  @JsonIgnore private final transient ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
+  @JsonIgnore private final transient ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   /**
    * Maps the stage's context to a typed object at a provided pointer. Uses <a

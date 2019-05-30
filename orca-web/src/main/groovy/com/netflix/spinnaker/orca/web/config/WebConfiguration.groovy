@@ -53,7 +53,7 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
   }
 
   @Bean(name = "objectMapper", autowire = Autowire.BY_TYPE) ObjectMapper orcaObjectMapper() {
-    OrcaObjectMapper.newInstance()
+    OrcaObjectMapper.getInstance()
   }
 
   @Bean

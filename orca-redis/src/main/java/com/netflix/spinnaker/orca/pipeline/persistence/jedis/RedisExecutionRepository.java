@@ -79,7 +79,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> previousRedisClientDelegate;
-  private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
+  private final ObjectMapper mapper = OrcaObjectMapper.getInstance();
   private final int chunkSize;
   private final Scheduler queryAllScheduler;
   private final Scheduler queryByAppScheduler;

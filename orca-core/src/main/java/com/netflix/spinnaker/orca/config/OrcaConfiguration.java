@@ -97,7 +97,7 @@ public class OrcaConfiguration {
 
   @Bean
   public ObjectMapper mapper() {
-    return OrcaObjectMapper.newInstance();
+    return OrcaObjectMapper.getInstance();
   }
 
   @Bean

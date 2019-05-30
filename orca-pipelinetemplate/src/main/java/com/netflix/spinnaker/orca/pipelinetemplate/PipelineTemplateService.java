@@ -45,7 +45,7 @@ public class PipelineTemplateService {
 
   private final Renderer renderer;
 
-  private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
+  private final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
   @Autowired
   public PipelineTemplateService(

@@ -29,6 +29,8 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
 
+  private static final ObjectMapper INSTANCE = newInstance();
+
   public static ObjectMapper newInstance() {
     ObjectMapper instance = new ObjectMapper();
     instance.registerModule(new Jdk8Module());
@@ -40,5 +42,16 @@ public class OrcaObjectMapper {
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
     instance.setSerializationInclusion(NON_NULL);
     return instance;
+  }
+
+  /**
+   * Return an ObjectMapper instance that can be reused. Do not change the configuration of this
+   * instance as it will be shared across the entire application, use {@link #newInstance()}
+   * instead.
+   *
+   * @return Reusable ObjectMapper instance
+   */
+  public static ObjectMapper getInstance() {
+    return INSTANCE;
   }
 }

@@ -38,7 +38,7 @@ interface ExpressionAware {
   val contextParameterProcessor: ContextParameterProcessor
 
   companion object {
-    val mapper: ObjectMapper = OrcaObjectMapper.newInstance()
+    val mapper: ObjectMapper = OrcaObjectMapper.getInstance()
   }
 
   val log: Logger

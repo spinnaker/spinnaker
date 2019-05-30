@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 public class BuildDetailExtractor {
 
   private final List<DetailExtractor> detailExtractors;
-  private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
+  private final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
   public BuildDetailExtractor() {
     this.detailExtractors =

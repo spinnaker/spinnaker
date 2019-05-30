@@ -43,7 +43,7 @@ public class ContextParameterProcessor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private static final ObjectMapper mapper = OrcaObjectMapper.newInstance();
+  private static final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
   private ExpressionEvaluator expressionEvaluator;
 

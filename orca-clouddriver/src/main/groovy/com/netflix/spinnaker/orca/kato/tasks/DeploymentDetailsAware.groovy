@@ -33,7 +33,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.
  */
 trait DeploymentDetailsAware {
 
-  private ObjectMapper pipelineObjectMapper = OrcaObjectMapper.newInstance()
+  private ObjectMapper pipelineObjectMapper = OrcaObjectMapper.getInstance()
 
   void withImageFromPrecedingStage(
     Stage stage,

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionProvider {
   private static final String CREATE_SERVICE_KEY_STAGE_NAME = "createServiceKey";
-  private static final ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   @Nullable
   @Override
