@@ -3,6 +3,7 @@ apply plugin: "groovy"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  api "com.google.code.findbugs:jsr305"
 
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "org.spockframework:spock-core"

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.web.exceptions;
 
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;

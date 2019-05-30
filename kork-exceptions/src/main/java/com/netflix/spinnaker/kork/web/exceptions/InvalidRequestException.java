@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.kork.web.exceptions;
 
-public class InvalidRequestException extends RuntimeException {
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+
+public class InvalidRequestException extends SpinnakerException {
   public InvalidRequestException() {}
 
   public InvalidRequestException(String message) {

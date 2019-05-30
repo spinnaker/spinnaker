@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.core;
 
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.util.function.Supplier;
 
 public class RetrySupport {
@@ -25,6 +26,12 @@ public class RetrySupport {
       try {
         return fn.get();
       } catch (Exception e) {
+        if (e instanceof SpinnakerException) {
+          Boolean retryable = ((SpinnakerException) e).getRetryable();
+          if (retryable != null && !retryable) {
+            throw e;
+          }
+        }
         if (retries >= (maxRetries - 1)) {
           throw e;
         }

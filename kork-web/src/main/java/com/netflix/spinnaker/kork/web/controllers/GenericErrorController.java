@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.web.controllers;
 
-import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes;
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import java.util.Map;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.web.exceptions;
+package com.netflix.spinnaker.kork.exceptions;
 
 import java.util.Collections;
 import java.util.Map;
 
+/** Provides a standard way of attaching untyped, arbitrary metadata to an Exception. */
 public interface HasAdditionalAttributes {
   default Map<String, Object> getAdditionalAttributes() {
     return Collections.emptyMap();

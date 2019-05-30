@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.web.exceptions;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
