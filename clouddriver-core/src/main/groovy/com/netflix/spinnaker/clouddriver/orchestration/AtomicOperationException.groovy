@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
-import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
