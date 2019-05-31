@@ -15,10 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider
-import groovy.transform.Immutable
 import org.springframework.test.web.servlet.MockMvc
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -43,7 +41,7 @@ class CloudFormationControllerSpec extends Specification {
   def "request a list of stacks returns all the stacks for a given account (any region)"() {
     given:
     def accountName = 'aws-account-name'
-    cloudFormationProvider.list(accountName, '*') >> [ new CloudFormationStackTest(accountName: accountName) ]
+    cloudFormationProvider.list(accountName, '*') >> [ new AmazonCloudFormationStack(accountName: accountName) ]
 
     when:
     def results = mockMvc.perform(get("/aws/cloudFormation/stacks?accountName=$accountName"))
@@ -57,7 +55,7 @@ class CloudFormationControllerSpec extends Specification {
     given:
     def accountName = 'aws-account-name'
     def region = 'region'
-    cloudFormationProvider.list(accountName, region) >> [ new CloudFormationStackTest(accountName: accountName, region: region) ]
+    cloudFormationProvider.list(accountName, region) >> [ new AmazonCloudFormationStack(accountName: accountName, region: region) ]
 
     when:
     def results = mockMvc.perform(get("/aws/cloudFormation/stacks?accountName=$accountName&region=$region"))
@@ -71,7 +69,7 @@ class CloudFormationControllerSpec extends Specification {
   def "requesting a single stack by stackId"() {
     given:
     def stackId = "arn:cloudformation:stack/name"
-    cloudFormationProvider.get(stackId) >> Optional.of(new CloudFormationStackTest(stackId: stackId))
+    cloudFormationProvider.get(stackId) >> Optional.of(new AmazonCloudFormationStack(stackId: stackId))
 
     when:
     def results = mockMvc.perform(get("/aws/cloudFormation/stacks/$stackId"))
@@ -93,18 +91,4 @@ class CloudFormationControllerSpec extends Specification {
     thrown(Exception) //loosened because we removed the dependency on spring data rest
   }
 
-  @Immutable
-  @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  class CloudFormationStackTest implements CloudFormationStack {
-    final String stackId
-    final Map<String, String> tags
-    final Map<String, String> outputs
-    final String stackName
-    final String region
-    final String stackStatus
-    final String stackStatusReason
-    final String accountName
-    final String accountId
-    final Date creationTime
-  }
 }

@@ -23,8 +23,6 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
-import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationProvider;
-import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +34,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class AmazonCloudFormationProvider implements CloudFormationProvider<CloudFormationStack> {
+public class AmazonCloudFormationProvider {
 
   private final Cache cacheView;
   private final ObjectMapper objectMapper;
@@ -48,20 +46,19 @@ public class AmazonCloudFormationProvider implements CloudFormationProvider<Clou
     this.objectMapper = objectMapper;
   }
 
-  public List<CloudFormationStack> list(String accountName, String region) {
+  public List<AmazonCloudFormationStack> list(String accountName, String region) {
     String filter = Keys.getCloudFormationKey("*", region, accountName);
     log.debug("List all stacks with filter {}", filter);
     return loadResults(cacheView.filterIdentifiers(STACKS.getNs(), filter));
   }
 
-  @Override
-  public Optional<CloudFormationStack> get(String stackId) {
+  public Optional<AmazonCloudFormationStack> get(String stackId) {
     String filter = Keys.getCloudFormationKey(stackId, "*", "*");
     log.debug("Get stack with filter {}", filter);
     return loadResults(cacheView.filterIdentifiers(STACKS.getNs(), filter)).stream().findFirst();
   }
 
-  List<CloudFormationStack> loadResults(Collection<String> identifiers) {
+  List<AmazonCloudFormationStack> loadResults(Collection<String> identifiers) {
     return cacheView.getAll(STACKS.getNs(), identifiers, RelationshipCacheFilter.none()).stream()
         .map(
             data -> {

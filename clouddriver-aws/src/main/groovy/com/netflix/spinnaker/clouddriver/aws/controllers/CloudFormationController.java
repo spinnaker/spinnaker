@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers;
 
-import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack;
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
@@ -43,7 +43,7 @@ class CloudFormationController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  List<CloudFormationStack> list(
+  List<AmazonCloudFormationStack> list(
       @RequestParam String accountName,
       @RequestParam(required = false, defaultValue = "*") String region) {
     log.debug("Cloud formation list stacks for account {}", accountName);
@@ -51,7 +51,7 @@ class CloudFormationController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/**")
-  CloudFormationStack get(HttpServletRequest request) {
+  AmazonCloudFormationStack get(HttpServletRequest request) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
     String stackId =
         new AntPathMatcher().extractPathWithinPattern(pattern, request.getRequestURI());
