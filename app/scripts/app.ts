@@ -13,13 +13,14 @@ import { KAYENTA_MODULE } from '@spinnaker/kayenta';
 import { TITUS_MODULE } from '@spinnaker/titus';
 import { ECS_MODULE } from '@spinnaker/ecs';
 import '@spinnaker/cloudfoundry';
+import { AZURE_MODULE } from '@spinnaker/azure';
 
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
-  require('./modules/azure/azure.module').name,
+  AZURE_MODULE,
   KUBERNETES_V1_MODULE,
   DOCKER_MODULE,
   ORACLE_MODULE,

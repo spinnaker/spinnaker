@@ -12,7 +12,7 @@ nvm install ${NODE_JS_VERSION}
 
 # go find all the modules and add them
 if [[ ${#MODULES_TO_BE_BUILT[0]} -eq 0 ]]; then
-  SKIPPED_MODULES=("dcos" "azure" "canary" "oracle")  # skipped modules that are not following the module format
+  SKIPPED_MODULES=("dcos" "canary" "oracle")  # skipped modules that are not following the module format
 
   MODULES_TO_BE_BUILT=("core") # enforce module build order
 

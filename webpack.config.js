@@ -101,6 +101,8 @@ function configure(env, webpackOpts) {
         '@spinnaker/cloudfoundry': path.join(__dirname, 'app', 'scripts', 'modules', 'cloudfoundry', 'src'),
         titus: path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
         '@spinnaker/titus': path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
+        azure: path.join(__dirname, 'app', 'scripts', 'modules', 'azure', 'src'),
+        '@spinnaker/azure': path.join(__dirname, 'app', 'scripts', 'modules', 'azure', 'src'),
       },
     },
     module: {
