@@ -34,6 +34,10 @@ dependencies {
   implementation 'org.codehaus.groovy:groovy'
 
   implementation project(':halyard-backup')
+  // halyard-cli is required as a dependency even though it is not used directly by halyard-web
+  // because the halyard installation only install halyard-web but the CLI expects to find the
+  // halyard-cli jar file in the install directory
+  implementation project(':halyard-cli')
   implementation project(':halyard-config')
   implementation project(':halyard-core')
   implementation project(':halyard-deploy')
