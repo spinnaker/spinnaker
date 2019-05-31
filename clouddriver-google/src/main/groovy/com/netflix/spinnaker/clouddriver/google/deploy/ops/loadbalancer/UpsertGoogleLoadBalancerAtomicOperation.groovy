@@ -192,6 +192,11 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     def targetPoolResourceOperation
     def targetPoolResourceLink
 
+    if (needToUpdateSessionAffinity && existingTargetPool.instances.any()) {
+        task.updateStatus BASE_PHASE, "Impossible to change Session Affinity for target pool $targetPoolName with existing instances in $region"
+        task.fail()
+    }
+
     // There's a chance that the target pool doesn't in fact get updated. If needToUpdateTargetPool was set because
     // the description.instances property was specified, but the specified set matches the existing set of instances,
     // no updates will be made to the target pool.
