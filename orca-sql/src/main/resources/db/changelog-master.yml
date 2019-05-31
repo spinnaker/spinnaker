@@ -32,3 +32,6 @@ databaseChangeLog:
 - include:
     file: changelog/20190516-index-correlated-execution-ids.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20190530-pipeline-config-index.yml
+    relativeToChangelogFile: true

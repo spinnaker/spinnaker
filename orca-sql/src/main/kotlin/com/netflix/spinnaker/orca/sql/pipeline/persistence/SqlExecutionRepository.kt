@@ -268,16 +268,35 @@ class SqlExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<Execution> {
-    val select = jooq.selectExecutions(
-      PIPELINE,
-      conditions = {
-        it.where(field("config_id").eq(pipelineConfigId))
-          .statusIn(criteria.statuses)
-      },
-      seek = {
-        it.orderBy(field("id").desc()).limit(criteria.pageSize)
-      }
-    )
+    // When not filtering by status, provide an index hint to ensure use of `pipeline_config_id_idx` which
+    // fully satisfies the where clause and order by. Without, some lookups by config_id matching thousands
+    // of executions triggered costly full table scans.
+    val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
+      jooq.selectExecutions(
+        PIPELINE,
+        usingIndex = "pipeline_config_id_idx",
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
+    } else {
+      // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
+      // appears to be used reliably without hinting.
+      jooq.selectExecutions(
+        PIPELINE,
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
+    }
 
     return Observable.from(select.fetchExecutions())
   }
@@ -788,6 +807,18 @@ class SqlExecutionRepository(
   ) =
     select(fields)
       .from(type.tableName)
+      .let { conditions(it) }
+      .let { seek(it) }
+
+  private fun DSLContext.selectExecutions(
+    type: ExecutionType,
+    fields: List<Field<Any>> = selectFields(),
+    usingIndex: String,
+    conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
+    seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
+  ) =
+    select(fields)
+      .from(type.tableName.forceIndex(usingIndex))
       .let { conditions(it) }
       .let { seek(it) }
 
