@@ -35,7 +35,7 @@ import java.time.Clock
 internal object SqlStorageServiceTests : JUnit5Minutests {
   private val jooq = initDatabase(
     "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    SQLDialect.MYSQL_5_7
+    SQLDialect.MYSQL
   )
 
   private val sqlStorageService = SqlStorageService(

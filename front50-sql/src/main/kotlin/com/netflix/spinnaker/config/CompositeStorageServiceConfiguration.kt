@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.migrations.StorageServiceMigrator
 import com.netflix.spinnaker.front50.model.CompositeStorageService
 import com.netflix.spinnaker.front50.model.StorageService
+import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -49,11 +50,13 @@ class CompositeStorageServiceConfiguration() {
   @ConditionalOnProperty("spinnaker.migration.enabled")
   fun storageServiceMigrator(registry: Registry,
                              properties: StorageServiceMigratorConfigurationProperties,
-                             storageServices: List<StorageService>) =
+                             storageServices: List<StorageService>,
+                             entityTagsDAO : EntityTagsDAO) =
     StorageServiceMigrator(
       registry,
       storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
-      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) }
+      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) },
+      entityTagsDAO
     )
 }
 

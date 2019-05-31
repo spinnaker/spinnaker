@@ -30,7 +30,7 @@ import java.time.Clock
 import com.netflix.spinnaker.front50.model.ObjectType.*
 import com.netflix.spinnaker.front50.model.sql.*
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
-import java.util.ArrayList
+import kotlin.system.measureTimeMillis
 
 class SqlStorageService(
   private val objectMapper: ObjectMapper,
@@ -80,6 +80,41 @@ class SqlStorageService(
     } ?: throw NotFoundException("Object not found (key: $objectKey)")
 
     return objectMapper.readValue(result.get(field("body", String::class.java)), objectType.clazz as Class<T>)
+  }
+
+  override fun <T : Timestamped> loadObjects(objectType: ObjectType, objectKeys: List<String>): List<T> {
+    val objects = mutableListOf<T>()
+
+    val timeToLoadObjects = measureTimeMillis {
+      objects.addAll(
+        objectKeys.chunked(1000).flatMap { keys ->
+          val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
+            ctx
+              .select(field("body", String::class.java))
+              .from(definitionsByType[objectType]!!.tableName)
+              .where(
+                field("id", String::class.java).`in`(keys).and(
+                  DSL.field("is_deleted", Boolean::class.java).eq(false)
+                )
+              )
+              .fetch()
+              .getValues(field("body", String::class.java))
+          }
+
+          bodies.map {
+            objectMapper.readValue(it, objectType.clazz as Class<T>)
+          }
+        }
+      )
+    }
+
+    log.debug("Took {}ms to fetch {} objects for {}",
+      timeToLoadObjects,
+      objects.size,
+      objectType
+    )
+
+    return objects
   }
 
   override fun deleteObject(objectType: ObjectType, objectKey: String) {

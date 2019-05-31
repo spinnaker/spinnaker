@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.Timestamped
+import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -34,7 +35,9 @@ import kotlin.system.measureTimeMillis
 class StorageServiceMigrator(
   private val registry: Registry,
   private val target: StorageService,
-  private val source: StorageService
+  private val source: StorageService,
+  private val entityTagsDAO: EntityTagsDAO
+
 ) {
 
   companion object {
@@ -46,7 +49,14 @@ class StorageServiceMigrator(
   fun migrate(objectType: ObjectType) {
     log.info("Migrating {}", objectType)
 
-    val sourceObjectKeys = source.listObjectKeys(objectType)
+    val sourceObjectKeys = if (objectType == ObjectType.ENTITY_TAGS) {
+      entityTagsDAO.all(false).map {
+        it.id to it.lastModified
+      }.toMap()
+    } else {
+      source.listObjectKeys(objectType)
+    }
+
     val targetObjectKeys = target.listObjectKeys(objectType)
 
     val deletableObjectKeys = targetObjectKeys.filter { e ->
@@ -178,4 +188,13 @@ class StorageServiceMigrator(
 
     log.info("Migration complete in {}ms", migrationDurationMs)
   }
+
+//  @Scheduled(fixedDelay = 90000)
+//  fun migrateEntityTags() {
+//    val migrationDurationMs = measureTimeMillis {
+//      migrate(ObjectType.ENTITY_TAGS)
+//    }
+//
+//    log.info("Entity Tags Migration complete in {}ms", migrationDurationMs)
+//  }
 }
