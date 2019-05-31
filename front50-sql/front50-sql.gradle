@@ -1,19 +1,20 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
+  implementation project(":front50-sql-mariadb")
+
   implementation "com.netflix.spinnaker.front50:front50-core:${front50Version}"
 
   implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
 
-  implementation "org.jooq:jooq:3.11.11"
+//  implementation "org.jooq:jooq:3.11.11"
   implementation "io.strikt:strikt-core"
   implementation "com.netflix.hystrix:hystrix-core"
   implementation "io.github.resilience4j:resilience4j-retry"
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
-  implementation "org.mariadb.jdbc:mariadb-java-client:2.2.3"
   // runtimeOnly "mysql:mysql-connector-java"
 
   testImplementation "io.mockk:mockk"

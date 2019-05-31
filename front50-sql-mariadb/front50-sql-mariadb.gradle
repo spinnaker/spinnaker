@@ -1,0 +1,11 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+tasks.compileGroovy.enabled = false
+
+dependencies {
+  implementation "org.mariadb.jdbc:mariadb-java-client:2.4.0"
+  implementation "com.netflix.spinnaker.kork:kork-sql"
+  implementation("org.jooq:jooq:3.9.6"){
+    force = true
+  }
+}
