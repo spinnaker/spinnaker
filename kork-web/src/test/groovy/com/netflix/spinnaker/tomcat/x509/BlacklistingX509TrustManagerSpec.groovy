@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.tomcat.x509
 
+import com.netflix.spectator.api.NoopRegistry
 import spock.lang.Specification
 
 import javax.net.ssl.X509TrustManager
@@ -27,7 +28,7 @@ class BlacklistingX509TrustManagerSpec extends Specification {
   def delegate = Mock(X509TrustManager)
   def blacklist = Mock(Blacklist)
 
-  def trustManager = new BlacklistingX509TrustManager(delegate, blacklist)
+  def trustManager = new BlacklistingX509TrustManager(delegate, blacklist, new NoopRegistry())
 
   def "should delegate for server auth"() {
     when:

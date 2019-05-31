@@ -21,26 +21,26 @@ import com.netflix.spinnaker.tomcat.TomcatContainerCustomizerUtil
 import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
 import org.apache.catalina.connector.Connector
-import org.apache.coyote.http11.Http11NioProtocol
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.embedded.tomcat.SslConnectorCustomizer
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
-import org.springframework.boot.web.server.WebServerFactory
 import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.EnableScheduling
 
 @Slf4j
 @Configuration
-@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint"])
+@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint", "com.netflix.spinnaker.tomcat.x509"])
 @EnableConfigurationProperties([
   ResolvedEnvironmentConfigurationProperties,
   SslExtensionConfigurationProperties,
   TomcatConfigurationProperties
 ])
+@EnableScheduling
 class TomcatConfiguration {
 
   @Bean

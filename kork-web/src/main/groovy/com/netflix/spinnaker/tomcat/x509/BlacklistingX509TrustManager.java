@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.tomcat.x509;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import java.security.cert.CRLReason;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateRevokedException;
@@ -23,29 +25,47 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.X509TrustManager;
 
 public class BlacklistingX509TrustManager implements X509TrustManager {
+  // Hookpoint for shutoff via property monitor:
+  public static AtomicBoolean BLACKLIST_ENABLED = new AtomicBoolean(true);
   private final X509TrustManager delegate;
   private final Blacklist blacklist;
+  private final Registry registry;
+  private final Id checkClientTrusted;
 
-  public BlacklistingX509TrustManager(X509TrustManager delegate, Blacklist blacklist) {
+  public BlacklistingX509TrustManager(
+      X509TrustManager delegate, Blacklist blacklist, Registry registry) {
     this.delegate = Objects.requireNonNull(delegate);
     this.blacklist = Objects.requireNonNull(blacklist);
+    this.registry = Objects.requireNonNull(registry);
+    checkClientTrusted = registry.createId("ssl.blacklist.checkClientTrusted");
   }
 
   @Override
   public void checkClientTrusted(X509Certificate[] x509Certificates, String authType)
       throws CertificateException {
-    if (x509Certificates != null) {
-      for (X509Certificate cert : x509Certificates) {
-        if (blacklist.isBlacklisted(cert)) {
-          throw new CertificateRevokedException(
-              new Date(),
-              CRLReason.UNSPECIFIED,
-              cert.getIssuerX500Principal(),
-              Collections.emptyMap());
+    if (BLACKLIST_ENABLED.get()) {
+      boolean rejected = false;
+      try {
+        if (x509Certificates != null) {
+          for (X509Certificate cert : x509Certificates) {
+            if (blacklist.isBlacklisted(cert)) {
+              rejected = true;
+              throw new CertificateRevokedException(
+                  new Date(),
+                  CRLReason.UNSPECIFIED,
+                  cert.getIssuerX500Principal(),
+                  Collections.emptyMap());
+            }
+          }
         }
+      } finally {
+        registry
+            .counter(checkClientTrusted.withTag("rejected", Boolean.toString(rejected)))
+            .increment();
       }
     }
 

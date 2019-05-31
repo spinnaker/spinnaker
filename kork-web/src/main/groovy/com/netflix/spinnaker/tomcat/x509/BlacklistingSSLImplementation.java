@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.tomcat.x509;
 
+import com.netflix.spectator.api.Spectator;
 import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.apache.tomcat.util.net.SSLUtil;
 import org.apache.tomcat.util.net.jsse.JSSEImplementation;
@@ -37,6 +38,8 @@ public class BlacklistingSSLImplementation extends JSSEImplementation {
 
   @Override
   public SSLUtil getSSLUtil(SSLHostConfigCertificate certificate) {
-    return new BlacklistingJSSESocketFactory(certificate);
+    // this is not DI friendly since its instantiated by classname by Tomcat
+    // so we need to use Spectator.globalRegistry Singleton:
+    return new BlacklistingJSSESocketFactory(certificate, Spectator.globalRegistry());
   }
 }
