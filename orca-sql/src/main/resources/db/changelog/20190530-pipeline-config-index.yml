@@ -2,6 +2,11 @@ databaseChangeLog:
   - changeSet:
       id: 20190530-update-pipeline-config-indices
       author: afeldman
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            schemaName: pipelines
+            indexName: pipeline_config_idx
       changes:
       - createIndex:
           indexName: pipeline_config_id_idx
