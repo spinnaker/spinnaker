@@ -121,4 +121,74 @@ class KeysSpec extends Specification {
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "account" | "namespace" | ""
     KubernetesKind.INGRESS     | KubernetesApiVersion.EXTENSIONS_V1BETA1 | "ac"      | ""          | "nameer"
   }
+
+  def "correctly unpacks resource names containing a ';' character"() {
+    when:
+    def key = "kubernetes.v2:infrastructure:clusterRole:k8s::system;controller;resourcequota-controller"
+    def parsed = Keys.parseKey(key).get()
+
+    then:
+    parsed instanceof Keys.InfrastructureCacheKey
+    def parsedInfrastructureKey = (Keys.InfrastructureCacheKey) parsed
+    parsedInfrastructureKey.kubernetesKind == KubernetesKind.CLUSTER_ROLE
+    parsedInfrastructureKey.account == "k8s"
+    parsedInfrastructureKey.namespace == ""
+    parsedInfrastructureKey.name == "system:controller:resourcequota-controller"
+  }
+
+  @Unroll
+  def "Kind fromString returns the correct kind"() {
+    expect:
+    result == Keys.Kind.fromString(input)
+
+    where:
+    input               | result
+    "logical"           | Keys.Kind.LOGICAL
+    "LOGICAL"           | Keys.Kind.LOGICAL
+    "lOgiCAl"           | Keys.Kind.LOGICAL
+    "artifacT"          | Keys.Kind.ARTIFACT
+    "InfraStructurE"    | Keys.Kind.INFRASTRUCTURE
+    "KUBERNETES_METRIC" | Keys.Kind.KUBERNETES_METRIC
+    "kubernetes_metric" | Keys.Kind.KUBERNETES_METRIC
+    "kUbernetEs_meTriC" | Keys.Kind.KUBERNETES_METRIC
+  }
+
+  @Unroll
+  def "Kind toString correctly serializes the kind to lowercase"() {
+    expect:
+    result == input.toString()
+
+    where:
+    input                       | result
+    Keys.Kind.LOGICAL           | "logical"
+    Keys.Kind.ARTIFACT          | "artifact"
+    Keys.Kind.INFRASTRUCTURE    | "infrastructure"
+    Keys.Kind.KUBERNETES_METRIC | "kubernetes_metric"
+  }
+
+  @Unroll
+  def "LogicalKind toString returns the correct string"() {
+    expect:
+    result == Keys.LogicalKind.fromString(input)
+
+    where:
+    input          | result
+    "applications" | Keys.LogicalKind.APPLICATIONS
+    "APPLICATIONS" | Keys.LogicalKind.APPLICATIONS
+    "appliCatiOns" | Keys.LogicalKind.APPLICATIONS
+    "clusters"     | Keys.LogicalKind.CLUSTERS
+    "CLUSTERS"     | Keys.LogicalKind.CLUSTERS
+    "clUsTerS"     | Keys.LogicalKind.CLUSTERS
+  }
+
+  @Unroll
+  def "LogicalKind toString correctly serializes the logical kind to lowercase"() {
+    expect:
+    result == input.toString()
+
+    where:
+    input                         | result
+    Keys.LogicalKind.APPLICATIONS | "applications"
+    Keys.LogicalKind.CLUSTERS     | "clusters"
+  }
 }

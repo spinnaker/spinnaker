@@ -44,18 +44,24 @@ public class Keys {
     INFRASTRUCTURE,
     KUBERNETES_METRIC;
 
+    private final String lcName;
+
+    Kind() {
+      this.lcName = name().toLowerCase();
+    }
+
     @Override
     public String toString() {
-      return name().toLowerCase();
+      return lcName;
     }
 
     @JsonCreator
     public static Kind fromString(String name) {
-      return Arrays.stream(values())
-          .filter(k -> k.toString().equalsIgnoreCase(name))
-          .findFirst()
-          .orElseThrow(
-              () -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
+      try {
+        return valueOf(name.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("No matching kind with name " + name + " exists");
+      }
     }
   }
 
@@ -63,13 +69,19 @@ public class Keys {
     APPLICATIONS,
     CLUSTERS;
 
+    private final String lcName;
+
+    LogicalKind() {
+      this.lcName = name().toLowerCase();
+    }
+
     public static boolean isLogicalGroup(String group) {
       return group.equals(APPLICATIONS.toString()) || group.equals(CLUSTERS.toString());
     }
 
     @Override
     public String toString() {
-      return name().toLowerCase();
+      return lcName;
     }
 
     public String singular() {
@@ -79,11 +91,11 @@ public class Keys {
 
     @JsonCreator
     public static LogicalKind fromString(String name) {
-      return Arrays.stream(values())
-          .filter(k -> k.toString().equalsIgnoreCase(name))
-          .findFirst()
-          .orElseThrow(
-              () -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
+      try {
+        return valueOf(name.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("No matching kind with name " + name + " exists");
+      }
     }
   }
 
@@ -131,8 +143,10 @@ public class Keys {
       return Optional.empty();
     }
 
-    for (String part : parts) {
-      part.replaceAll(";", ":");
+    for (int i = 0; i < parts.length; i++) {
+      if (parts[i].contains(";")) {
+        parts[i] = parts[i].replaceAll(";", ":");
+      }
     }
 
     try {
