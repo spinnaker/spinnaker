@@ -18,6 +18,7 @@ import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.isEqualTo
+import java.time.Clock
 
 internal object TelemetryListenerTests : JUnit5Minutests {
 
@@ -32,7 +33,7 @@ internal object TelemetryListenerTests : JUnit5Minutests {
 
   fun tests() = rootContext<TelemetryListener> {
     fixture {
-      TelemetryListener(registry)
+      TelemetryListener(registry, Clock.systemDefaultZone())
     }
 
     before {
