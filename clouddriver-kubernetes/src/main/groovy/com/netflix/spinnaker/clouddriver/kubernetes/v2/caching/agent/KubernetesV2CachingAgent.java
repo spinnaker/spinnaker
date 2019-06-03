@@ -183,11 +183,7 @@ public abstract class KubernetesV2CachingAgent
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
-    List<CacheData> invertedRelationships =
-        resourceData.stream()
-            .map(KubernetesCacheDataConverter::invertRelationships)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+    resourceData.addAll(KubernetesCacheDataConverter.invertRelationships(resourceData));
 
     resourceData.addAll(
         resources.values().stream()
@@ -196,13 +192,8 @@ public abstract class KubernetesV2CachingAgent
             .filter(Objects::nonNull)
             .collect(Collectors.toList()));
 
-    resourceData.addAll(invertedRelationships);
-
     resourceData.addAll(
-        resourceData.stream()
-            .map(rs -> KubernetesCacheDataConverter.getClusterRelationships(accountName, rs))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList()));
+        KubernetesCacheDataConverter.getClusterRelationships(accountName, resourceData));
 
     Map<String, Collection<CacheData>> entries =
         KubernetesCacheDataConverter.stratifyCacheDataByGroup(

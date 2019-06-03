@@ -44,15 +44,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import io.kubernetes.client.JSON;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -400,55 +392,88 @@ public class KubernetesCacheDataConverter {
    * To ensure the entire relationship graph is bidirectional, invert any relationship entries here
    * to point back at the resource being cached (key).
    */
-  static List<CacheData> invertRelationships(CacheData cacheData) {
-    String key = cacheData.getId();
-    Keys.CacheKey parsedKey =
-        Keys.parseKey(key)
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "Cache data produced with illegal key format " + key));
-    String group = parsedKey.getGroup();
-    Map<String, Collection<String>> relationshipGroupings = cacheData.getRelationships();
-    List<CacheData> result = new ArrayList<>();
+  static List<CacheData> invertRelationships(List<CacheData> resourceData) {
+    Map<String, Set<String>> inverted = new HashMap<>();
+    resourceData.forEach(
+        cacheData ->
+            cacheData.getRelationships().values().stream()
+                .flatMap(Collection::stream)
+                .forEach(
+                    r -> inverted.computeIfAbsent(r, k -> new HashSet<>()).add(cacheData.getId())));
 
-    for (Collection<String> relationships : relationshipGroupings.values()) {
-      for (String relationship : relationships) {
-        invertSingleRelationship(group, key, relationship)
-            .flatMap(
-                cd -> {
-                  result.add(cd);
-                  return Optional.empty();
-                });
-      }
-    }
-
-    return result;
+    return inverted.entrySet().stream()
+        .map(e -> KubernetesCacheDataConverter.buildInverseRelationship(e.getKey(), e.getValue()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
-  static CacheData getClusterRelationships(String account, CacheData cacheData) {
-    Moniker moniker = getMoniker(cacheData);
-
-    if (moniker == null) {
-      return null;
+  private static Optional<CacheData> buildInverseRelationship(
+      String key, Set<String> relationshipKeys) {
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    for (String relationshipKey : relationshipKeys) {
+      Keys.CacheKey parsedKey =
+          Keys.parseKey(relationshipKey)
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Cache data produced with illegal key format " + relationshipKey));
+      relationships
+          .computeIfAbsent(parsedKey.getGroup(), k -> new HashSet<>())
+          .add(relationshipKey);
     }
 
-    String cluster = moniker.getCluster();
-    String application = moniker.getApp();
+    /*
+     * Worth noting the strange behavior here. If we are inverting a relationship to create a cache data for
+     * either a cluster or an application we need to insert attributes to ensure the cache data gets entered into
+     * the cache. If we are caching anything else, we don't want competing agents to overwrite attributes, so
+     * we leave them blank.
+     */
+    return Keys.parseKey(key)
+        .map(
+            k -> {
+              Map<String, Object> attributes;
+              int ttl;
+              if (Keys.LogicalKind.isLogicalGroup(k.getGroup())) {
+                ttl = logicalTtlSeconds;
+                attributes =
+                    new ImmutableMap.Builder<String, Object>().put("name", k.getName()).build();
+              } else {
+                ttl = infrastructureTtlSeconds;
+                attributes = new HashMap<>();
+              }
+              return defaultCacheData(key, ttl, attributes, relationships);
+            });
+  }
 
-    if (cluster == null || application == null) {
-      return null;
-    }
+  static List<CacheData> getClusterRelationships(String accountName, List<CacheData> resourceData) {
+    Map<String, List<Moniker>> monikers =
+        resourceData.stream()
+            .map(KubernetesCacheDataConverter::getMoniker)
+            .filter(Objects::nonNull)
+            .filter(m -> m.getApp() != null && m.getCluster() != null)
+            .collect(Collectors.groupingBy(Moniker::getApp));
+
+    return monikers.entrySet().stream()
+        .map(
+            e ->
+                KubernetesCacheDataConverter.getApplicationClusterRelationships(
+                    accountName, e.getKey(), e.getValue()))
+        .collect(Collectors.toList());
+  }
+
+  private static CacheData getApplicationClusterRelationships(
+      String account, String application, List<Moniker> monikers) {
+    Set<String> clusterRelationships =
+        monikers.stream()
+            .map(m -> Keys.cluster(account, application, m.getCluster()))
+            .collect(Collectors.toSet());
 
     Map<String, Object> attributes = new HashMap<>();
     Map<String, Collection<String>> relationships = new HashMap<>();
-    relationships.put(
-        CLUSTERS.toString(),
-        Collections.singletonList(Keys.cluster(account, application, cluster)));
-    CacheData appToCluster =
-        defaultCacheData(
-            Keys.application(application), logicalTtlSeconds, attributes, relationships);
-    return appToCluster;
+    relationships.put(CLUSTERS.toString(), clusterRelationships);
+    return defaultCacheData(
+        Keys.application(application), logicalTtlSeconds, attributes, relationships);
   }
 
   static void logStratifiedCacheData(
@@ -542,32 +567,5 @@ public class KubernetesCacheDataConverter {
             Collectors.groupingBy(
                 kp -> kp.key.getGroup(),
                 Collectors.mapping(kp -> kp.cacheData, Collectors.toCollection(ArrayList::new))));
-  }
-
-  /*
-   * Worth noting the strange behavior here. If we are inverting a relationship to create a cache data for
-   * either a cluster or an application we need to insert attributes to ensure the cache data gets entered into
-   * the cache. If we are caching anything else, we don't want competing agents to overwrite attributes, so
-   * we leave them blank.
-   */
-  private static Optional<CacheData> invertSingleRelationship(
-      String group, String key, String relationship) {
-    Map<String, Collection<String>> relationships = new HashMap<>();
-    relationships.put(group, Collections.singletonList(key));
-    return Keys.parseKey(relationship)
-        .map(
-            k -> {
-              Map<String, Object> attributes;
-              int ttl;
-              if (Keys.LogicalKind.isLogicalGroup(k.getGroup())) {
-                ttl = logicalTtlSeconds;
-                attributes =
-                    new ImmutableMap.Builder<String, Object>().put("name", k.getName()).build();
-              } else {
-                ttl = infrastructureTtlSeconds;
-                attributes = new HashMap<>();
-              }
-              return defaultCacheData(relationship, ttl, attributes, relationships);
-            });
   }
 }

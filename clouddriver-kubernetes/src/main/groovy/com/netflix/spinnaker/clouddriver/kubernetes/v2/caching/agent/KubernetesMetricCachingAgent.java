@@ -97,10 +97,7 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
             .collect(Collectors.toList());
 
     List<CacheData> invertedRelationships =
-        cacheData.stream()
-            .map(KubernetesCacheDataConverter::invertRelationships)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+        KubernetesCacheDataConverter.invertRelationships(cacheData);
 
     cacheData.addAll(invertedRelationships);
 
