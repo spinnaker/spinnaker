@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApi
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
@@ -93,20 +94,15 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
     log.info("Describing items in ${agentType}")
     EurekaApplications disco = eurekaApi.loadEurekaApplications()
 
-    Collection<CacheData> eurekaCacheData = new LinkedList<CacheData>()
-    Collection<CacheData> instanceCacheData = new LinkedList<CacheData>()
+    Map<String, Set<String>> instanceHealthRelationships = [:].withDefault { new HashSet<String>() }
+    Map<String, List<CacheData>> eurekaInstances = [:].withDefault { [] }
 
     for (EurekaApplication application : disco.applications) {
-      Map<String, Map<String, Object>> convertedInstancesById = ((List<Map>) objectMapper.convertValue(
-        application.instances.findAll { it.instanceId },
-        new TypeReference<List<Map<String, Object>>>() {}
-      )).collectEntries {
-        [it.instanceId, it]
-      }
+      List<Map<String, Object>> instanceAttributes = objectMapper.convertValue(application.instances,
+        new TypeReference<List<Map<String, Object>>>() {})
 
-      for (EurekaInstance instance : application.instances) {
-        if (instance.instanceId) {
-          Map<String, Object> attributes = convertedInstancesById[instance.instanceId]
+      for (Map<String, Object> attributes : instanceAttributes) {
+        if (attributes.instanceId) {
           attributes.eurekaAccountName = eurekaAccountName
           attributes.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
           attributes.application = application.name.toLowerCase()
@@ -116,20 +112,45 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
               String instanceKey = provider.getInstanceKey(attributes, region)
               if (instanceKey) {
                 String instanceHealthKey = provider.getInstanceHealthKey(attributes, region, healthId)
+                instanceHealthRelationships[instanceKey].add(instanceHealthKey)
                 Map<String, Collection<String>> healthRelationship = [(INSTANCES.ns): [instanceKey]]
-                Map<String, Collection<String>> instanceRelationship = [(HEALTH.ns): [instanceHealthKey]]
-                eurekaCacheData.add(new DefaultCacheData(instanceHealthKey, attributes, healthRelationship))
-                instanceCacheData.add(new DefaultCacheData(instanceKey, Collections.emptyMap(), instanceRelationship))
+                eurekaInstances[instanceHealthKey].add(new DefaultCacheData(instanceHealthKey, attributes, healthRelationship))
               }
             }
           }
         }
       }
     }
+    Collection<CacheData> instanceCacheData = instanceHealthRelationships.collect { instanceId, healths ->
+      new DefaultCacheData(instanceId, Collections.emptyMap(), [(HEALTH.ns): healths])
+    }
+
+    Set<String> dupeDetected = []
+    Collection<CacheData> eurekaCacheData = eurekaInstances.values().findResults { List<CacheData> cacheDatas ->
+      if (cacheDatas.size() == 1) {
+        return cacheDatas[0]
+      }
+
+      cacheDatas.sort(new EurekaHealthComparator())
+      def data = cacheDatas.first()
+      dupeDetected.add(data.id)
+      return data
+    }
+    if (dupeDetected) {
+      log.warn("Duplicate eureka records found for instances: $dupeDetected")
+    }
     log.info("Caching ${eurekaCacheData.size()} items in ${agentType}")
     new DefaultCacheResult(
       (INSTANCES.ns): instanceCacheData,
       (HEALTH.ns): eurekaCacheData)
+  }
+
+  private static class EurekaHealthComparator implements Comparator<CacheData> {
+    @Override
+    int compare(CacheData a, CacheData b) {
+      return HealthState.fromString(a.attributes.state) <=> HealthState.fromString(b.attributes.state) ?:
+        (Long) b.attributes.lastUpdatedTimestamp <=> (Long) a.attributes.lastUpdatedTimestamp
+    }
   }
 
   @Override

@@ -86,6 +86,16 @@ class EurekaInstance extends DiscoveryHealth {
       healthState = HealthState.Down
     }
 
+    // if this has an asgName and is not part of a titus task registration,
+    // prefer the app name derived from the asg name rather than the supplied
+    // app name. We index these records on application to associate them to
+    // a particular cluster, and with the name incorrect then the record will
+    // not be properly linked
+    if (metadata?.titusTaskId == null && asgName != null) {
+      def idx = asgName.indexOf('-')
+      def appFromAsg = idx == -1 ? asgName : asgName.substring(0, idx)
+      app = appFromAsg
+    }
 
     //the preferred instanceId value comes from DataCenterInfo Metadata
     // Jackson was doing some shenanigans whereby the top level registration

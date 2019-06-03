@@ -17,5 +17,9 @@
 package com.netflix.spinnaker.clouddriver.model
 
 enum HealthState {
-  Up, Down, Unknown, Starting, OutOfService, Succeeded, Failed
+  Failed, Down, OutOfService, Unknown, Starting, Succeeded, Up
+
+  static HealthState fromString(String name) {
+    values().find { it.name().equalsIgnoreCase(name) } ?: Unknown
+  }
 }
