@@ -16,21 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +44,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   private final String cloudProvider = "cloudfoundry";
 
   @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
+  private final boolean skipSslValidation;
 
   private CloudFoundryClient credentials;
 
@@ -64,7 +55,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       String apiHost,
       String userName,
       String password,
-      String environment) {
+      String environment,
+      boolean skipSslValidation) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -72,29 +64,20 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
     this.userName = userName;
     this.password = password;
     this.environment = Optional.ofNullable(environment).orElse("dev");
+    this.skipSslValidation = skipSslValidation;
   }
 
   public CloudFoundryClient getCredentials() {
     if (this.credentials == null) {
       this.credentials =
-          new HttpCloudFoundryClient(name, appsManagerUri, metricsUri, apiHost, userName, password);
+          new HttpCloudFoundryClient(
+              name, appsManagerUri, metricsUri, apiHost, userName, password, skipSslValidation);
     }
     return credentials;
   }
 
   public CloudFoundryClient getClient() {
     return getCredentials();
-  }
-
-  public Collection<Map<String, String>> getRegions() {
-    try {
-      return getCredentials().getSpaces().all().stream()
-          .map(space -> singletonMap("name", space.getRegion()))
-          .collect(toList());
-    } catch (CloudFoundryApiException e) {
-      log.warn("Unable to determine regions for Cloud Foundry account " + name, e);
-      return emptyList();
-    }
   }
 
   @Override
@@ -109,11 +92,13 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
         && Objects.equals(metricsUri, that.metricsUri)
         && Objects.equals(userName, that.userName)
         && Objects.equals(password, that.password)
-        && Objects.equals(environment, that.environment);
+        && Objects.equals(environment, that.environment)
+        && Objects.equals(skipSslValidation, that.skipSslValidation);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, appsManagerUri, metricsUri, userName, password, environment);
+    return Objects.hash(
+        name, appsManagerUri, metricsUri, userName, password, environment, skipSslValidation);
   }
 }

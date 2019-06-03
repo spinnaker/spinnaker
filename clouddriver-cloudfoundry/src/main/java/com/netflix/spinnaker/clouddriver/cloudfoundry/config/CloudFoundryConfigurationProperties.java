@@ -59,5 +59,6 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
     private String user;
     private String password;
     private String environment;
+    private boolean skipSslValidation;
   }
 }

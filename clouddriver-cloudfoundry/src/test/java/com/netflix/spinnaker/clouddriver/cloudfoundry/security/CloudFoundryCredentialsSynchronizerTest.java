@@ -115,7 +115,7 @@ class CloudFoundryCredentialsSynchronizerTest {
 
   private CloudFoundryCredentials createCredentials(String name) {
     return new CloudFoundryCredentials(
-        name, null, null, "api." + name, "user-" + name, "pwd-" + name, null);
+        name, null, null, "api." + name, "user-" + name, "pwd-" + name, null, false);
   }
 
   private void loadProviderFromRepository() {

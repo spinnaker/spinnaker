@@ -64,7 +64,8 @@ class ApplicationsTest {
             "some-metrics-uri",
             "api.run.pivotal.io",
             "baduser",
-            "badpassword");
+            "badpassword",
+            false);
 
     assertThatThrownBy(() -> client.getApplications().all())
         .isInstanceOf(CloudFoundryApiException.class);

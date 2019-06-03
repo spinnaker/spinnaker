@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import lombok.extern.slf4j.Slf4j;
 import okio.Buffer;
 import okio.BufferedSource;
 import retrofit.RequestInterceptor;
@@ -48,6 +49,7 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
+@Slf4j
 public class HttpCloudFoundryClient implements CloudFoundryClient {
   private final String apiHost;
   private final String user;
@@ -149,31 +151,15 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       String metricsUri,
       String apiHost,
       String user,
-      String password) {
+      String password,
+      boolean skipSslValidation) {
     this.apiHost = apiHost;
     this.user = user;
     this.password = password;
 
-    this.okHttpClient = new OkHttpClient();
+    this.okHttpClient = createHttpClient(skipSslValidation);
+
     okHttpClient.interceptors().add(this::createRetryInterceptor);
-
-    okHttpClient.setHostnameVerifier((s, sslSession) -> true);
-
-    TrustManager[] trustAllCerts =
-        new TrustManager[] {
-          new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-              return new X509Certificate[0];
-            }
-          }
-        };
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
@@ -182,16 +168,6 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     mapper.registerModule(new JavaTimeModule());
 
     this.jacksonConverter = new JacksonConverter(mapper);
-
-    SSLContext sslContext;
-    try {
-      sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustAllCerts, new SecureRandom());
-    } catch (KeyManagementException | NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-
-    okHttpClient.setSslSocketFactory(sslContext.getSocketFactory());
 
     this.uaaService =
         new RestAdapter.Builder()
@@ -218,6 +194,42 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
   }
 
+  private static OkHttpClient createHttpClient(boolean skipSslValidation) {
+    OkHttpClient client = new OkHttpClient();
+
+    if (skipSslValidation) {
+      client.setHostnameVerifier((s, sslSession) -> true);
+
+      TrustManager[] trustAllCerts =
+          new TrustManager[] {
+            new X509TrustManager() {
+              @Override
+              public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
+
+              @Override
+              public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {}
+
+              @Override
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+              }
+            }
+          };
+
+      SSLContext sslContext;
+      try {
+        sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+      } catch (KeyManagementException | NoSuchAlgorithmException e) {
+        throw new RuntimeException(e);
+      }
+
+      client.setSslSocketFactory(sslContext.getSocketFactory());
+    }
+
+    return client;
+  }
+
   private void refreshTokenIfNecessary() {
     long currentExpiration = tokenExpirationNs.get();
     long now = System.nanoTime();
@@ -228,7 +240,12 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   }
 
   private void refreshToken() {
-    token = uaaService.passwordToken("password", user, password, "cf", "");
+    try {
+      token = uaaService.passwordToken("password", user, password, "cf", "");
+    } catch (Exception e) {
+      log.warn("Failed to obtain a token", e);
+      throw e;
+    }
     tokenExpirationNs.addAndGet(Duration.ofSeconds(token.getExpiresIn()).toNanos());
   }
 

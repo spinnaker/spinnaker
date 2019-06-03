@@ -43,6 +43,8 @@ final class CloudFoundryClientUtils {
       return Optional.of(r.call());
     } catch (RetrofitError retrofitError) {
       if (retrofitError.getResponse() != null && retrofitError.getResponse().getStatus() == 404) {
+        // FIXME: The oauthInterceptor could use a misconfigured endpoint and return 404 and
+        //        this code would mask the issue.
         return Optional.empty();
       } else {
         ErrorDescription errorDescription =

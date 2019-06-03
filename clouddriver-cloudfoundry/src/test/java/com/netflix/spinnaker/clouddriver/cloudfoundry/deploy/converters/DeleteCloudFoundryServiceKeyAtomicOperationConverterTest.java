@@ -57,7 +57,7 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("my-account", "", "", "", "", "", "") {
+      new CloudFoundryCredentials("my-account", "", "", "", "", "", "", false) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

@@ -53,7 +53,7 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password");
+            "account", "appsManUri", "metricsUri", "host", "user", "password", false);
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -82,7 +82,7 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password");
+            "account", "appsManUri", "metricsUri", "host", "user", "password", false);
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -111,7 +111,7 @@ class HttpCloudFoundryClientTest {
 
     HttpCloudFoundryClient cloudFoundryClient =
         new HttpCloudFoundryClient(
-            "account", "appsManUri", "metricsUri", "host", "user", "password");
+            "account", "appsManUri", "metricsUri", "host", "user", "password", false);
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
