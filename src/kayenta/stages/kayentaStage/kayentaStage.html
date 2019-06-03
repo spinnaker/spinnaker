@@ -403,7 +403,10 @@
 
     <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, retrospective">
       <stage-config-field label="Scope Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'atlas'">
-        <select class="form-control input-sm" ng-model="kayentaCanaryStageCtrl.state.atlasScopeType" ng-options="(type === 'cluster' ? 'Cluster' : 'Query') for type in ['cluster', 'query']"
+        <select
+          required
+          class="form-control input-sm" ng-model="kayentaCanaryStageCtrl.state.atlasScopeType"
+          ng-options="(type === 'cluster' ? 'Cluster' : 'Query') for type in ['cluster', 'query']"
           ng-change="kayentaCanaryStageCtrl.onAtlasScopeTypeChange()">
         </select>
       </stage-config-field>

@@ -163,6 +163,28 @@ module(KAYENTA_CANARY_STAGE, [
         },
         {
           type: 'custom',
+          validate: (_pipeline: IPipeline, stage: IKayentaStage) => {
+            if (
+              !has(stage, 'canaryConfig.canaryConfigId') ||
+              stage.analysisType === KayentaAnalysisType.RealTimeAutomatic
+            ) {
+              return null;
+            }
+
+            return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+              if (
+                get(configDetails, 'metrics[0].query.type') === 'atlas' &&
+                !get(stage, 'canaryConfig.scopes[0].extendedScopeParams.type')
+              ) {
+                return 'Scope Type is required';
+              } else {
+                return null;
+              }
+            });
+          },
+        },
+        {
+          type: 'custom',
           validate: allScopesMustBeConfigured,
         },
         {
