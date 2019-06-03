@@ -17,7 +17,7 @@ class TelemetryListener(
   private val spectator: Registry,
   private val clock: Clock
 ) {
-  private var lastResourceCheck: Instant = Instant.EPOCH
+  private var lastResourceCheck: Instant = clock.instant()
 
   @PostConstruct
   fun registerMeters() {
