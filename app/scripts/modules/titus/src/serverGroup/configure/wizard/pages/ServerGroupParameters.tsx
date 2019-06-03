@@ -11,40 +11,29 @@ import {
   Application,
 } from '@spinnaker/core';
 
-import { ITitusServerGroupCommand, Constraint } from '../../../configure/serverGroupConfiguration.service';
+import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
+import { intersection } from 'lodash';
 
 export interface IServerGroupParametersProps {
   app: Application;
   formik: FormikProps<ITitusServerGroupCommand>;
 }
 
-export interface IServerGroupParametersState {
-  hardConstraintOptions: Array<Option<Constraint>>;
-  softConstraintOptions: Array<Option<Constraint>>;
-}
-
-const constraintOptions: Array<Option<Constraint>> = [
-  { label: 'ExclusiveHost', value: 'ExclusiveHost' },
-  { label: 'UniqueHost', value: 'UniqueHost' },
-  { label: 'ZoneBalance', value: 'ZoneBalance' },
-];
-
 const migrationPolicyOptions = [
   { label: 'System Default', value: 'systemDefault' },
   { label: 'Self Managed', value: 'selfManaged' },
 ];
 
-export class ServerGroupParameters extends React.Component<IServerGroupParametersProps, IServerGroupParametersState>
+export class ServerGroupParameters extends React.Component<IServerGroupParametersProps>
   implements IWizardPageComponent<ITitusServerGroupCommand> {
   private duplicateKeys: { [name: string]: boolean } = {};
 
   constructor(props: IServerGroupParametersProps) {
     super(props);
-
-    this.state = this.getConstraints(props.formik.values);
   }
 
   public validate(_values: ITitusServerGroupCommand) {
+    const { soft: softConstraints, hard: hardConstraints } = _values.constraints;
     const errors = {} as any;
 
     if (this.duplicateKeys.labels) {
@@ -55,6 +44,14 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
     }
     if (this.duplicateKeys.env) {
       errors.env = 'Environment Variables have duplicate keys.';
+    }
+
+    const duplicateConstraints = intersection(Object.keys(softConstraints), Object.keys(hardConstraints));
+    if (duplicateConstraints.length > 0) {
+      errors.constraints = errors.constraints || {};
+      errors.constraints.soft = errors.constraints.hard = `${duplicateConstraints.join(
+        ',',
+      )} constraints must be either soft or hard, not both.`;
     }
 
     return errors;
@@ -69,24 +66,9 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
     this.props.formik.setFieldValue('interestingHealthProviderNames', healthNames);
   };
 
-  private getConstraints = (values: ITitusServerGroupCommand) => {
-    return {
-      hardConstraintOptions: constraintOptions.filter(o => !values.softConstraints.includes(o.value as any)),
-      softConstraintOptions: constraintOptions.filter(o => !values.hardConstraints.includes(o.value as any)),
-    };
-  };
-
-  private updateConstraints = (name: string, constraints: Constraint[]) => {
-    const { values, setFieldValue } = this.props.formik;
-    setFieldValue(name, constraints);
-    (values as any)[name] = constraints;
-    this.setState(this.getConstraints(values));
-  };
-
   public render() {
     const { app } = this.props;
     const { setFieldValue, values } = this.props.formik;
-    const { softConstraintOptions, hardConstraintOptions } = this.state;
 
     return (
       <>
@@ -100,38 +82,6 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
           </div>
           <div className="col-md-1 small" style={{ whiteSpace: 'nowrap', paddingLeft: '0px', paddingTop: '7px' }}>
             in <AccountTag account={values.backingData.credentialsKeyedByAccount[values.credentials].awsAccount} />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Soft Constraints </b>
-            <HelpField id="titus.deploy.hardConstraints" />
-          </div>
-          <div className="col-md-5">
-            <Select
-              multi={true}
-              value={values.softConstraints}
-              options={softConstraintOptions}
-              onChange={(option: Array<Option<Constraint>>) =>
-                this.updateConstraints('softConstraints', option.map(o => o.value))
-              }
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-4 sm-label-right">
-            <b>Hard Constraints </b>
-            <HelpField id="titus.deploy.hardConstraints" />
-          </div>
-          <div className="col-md-5">
-            <Select
-              multi={true}
-              value={values.hardConstraints}
-              options={hardConstraintOptions}
-              onChange={(option: Array<Option<Constraint>>) =>
-                this.updateConstraints('hardConstraints', option.map(o => o.value))
-              }
-            />
           </div>
         </div>
         <div className="form-group">
@@ -156,6 +106,33 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
                 setFieldValue('migrationPolicy', { ...values.migrationPolicy, ...{ type: option.value } })
               }
               clearable={false}
+            />
+          </div>
+        </div>
+        <hr />
+        <div className="form-group">
+          <h4 className="col-sm-12">
+            <b>Soft Constraints </b>
+            <HelpField id="titus.deploy.softConstraints" />
+          </h4>
+          <div className="col-sm-12">
+            <MapEditor
+              model={values.constraints.soft}
+              allowEmpty={true}
+              onChange={(v: any, d) => this.mapChanged('constraints.soft', v, d)}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <h4 className="col-sm-12">
+            <b>Hard Constraints </b>
+            <HelpField id="titus.deploy.hardConstraints" />
+          </h4>
+          <div className="col-sm-12">
+            <MapEditor
+              model={values.constraints.hard}
+              allowEmpty={true}
+              onChange={(v: any, d) => this.mapChanged('constraints.hard', v, d)}
             />
           </div>
         </div>

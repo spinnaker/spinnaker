@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 
+import { set } from 'lodash';
 import { NameUtils } from '@spinnaker/core';
 import { TitusProviderSettings } from '../../titus.settings';
 
@@ -48,8 +49,10 @@ module.exports = angular
           cloudProvider: 'titus',
           selectedProvider: 'titus',
           iamProfile: defaultIamProfile,
-          softConstraints: [],
-          hardConstraints: [],
+          constraints: {
+            hard: {},
+            soft: {},
+          },
           viewState: {
             useSimpleCapacity: true,
             usePreferredZones: true,
@@ -99,8 +102,10 @@ module.exports = angular
           capacityGroup: serverGroup.capacityGroup,
           migrationPolicy: serverGroup.migrationPolicy ? serverGroup.migrationPolicy : { type: 'systemDefault' },
           securityGroups: serverGroup.securityGroups || [],
-          hardConstraints: serverGroup.hardConstraints || [],
-          softConstraints: serverGroup.softConstraints || [],
+          constraints: {
+            hard: (serverGroup.constraints && serverGroup.constraints.hard) || {},
+            soft: (serverGroup.constraints && serverGroup.constraints.soft) || {},
+          },
           inService: serverGroup.disabled ? false : true,
           source: {
             account: serverGroup.account,
@@ -168,8 +173,21 @@ module.exports = angular
 
         return asyncLoader.then(function(asyncData) {
           var command = asyncData.command;
-          command.hardConstraints = command.hardConstraints || [];
-          command.softConstraints = command.softConstraints || [];
+
+          command.constraints = {
+            hard:
+              (originalCluster.constraints && originalCluster.constraints.hard) ||
+              (originalCluster.hardConstraints &&
+                originalCluster.hardConstraints.reduce((a, c) => set(a, c, 'true'), {})) ||
+              {},
+            soft:
+              (originalCluster.constraints && originalCluster.constraints.soft) ||
+              (originalCluster.softConstraints &&
+                originalCluster.softConstraints.reduce((a, c) => set(a, c, 'true'), {})) ||
+              {},
+          };
+          delete pipelineCluster.hardConstraints;
+          delete pipelineCluster.softConstraints;
 
           var viewState = {
             disableImageSelection: true,

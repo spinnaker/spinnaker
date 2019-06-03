@@ -68,7 +68,6 @@ export const getDefaultJobDisruptionBudgetForApp = (application: Application): I
   return budget;
 };
 
-export type Constraint = 'ExclusiveHost' | 'UniqueHost' | 'ZoneBalance';
 export interface ITitusServerGroupCommand extends IServerGroupCommand {
   cluster?: ICluster;
   disruptionBudget?: IJobDisruptionBudget;
@@ -104,8 +103,10 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
   migrationPolicy: {
     type: string;
   };
-  softConstraints: Constraint[];
-  hardConstraints: Constraint[];
+  constraints: {
+    hard: { [key: string]: string };
+    soft: { [key: string]: string };
+  };
 }
 
 export class TitusServerGroupConfigurationService {
