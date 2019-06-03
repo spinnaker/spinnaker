@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import io.kubernetes.client.models.V1DeleteOptions;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -718,7 +719,12 @@ public class KubectlJobExecutor {
     return (BufferedReader r) -> {
       try (JsonReader reader = new JsonReader(r)) {
         List<KubernetesManifest> manifestList = new ArrayList<>();
-        reader.beginObject();
+        try {
+          reader.beginObject();
+        } catch (EOFException e) {
+          // If the stream we're parsing is empty, just return an empty list
+          return manifestList;
+        }
         while (reader.hasNext()) {
           if (reader.nextName().equals("items")) {
             reader.beginArray();
