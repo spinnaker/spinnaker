@@ -1,12 +1,11 @@
 apply plugin: 'spinnaker.application'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
+  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 run {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.config.additional-location', project.springConfigLocation)
 }
 mainClassName='com.netflix.kayenta.Main'
 
@@ -16,40 +15,27 @@ configurations.all {
 }
 
 dependencies {
-  compile project(':kayenta-atlas')
-  compile project(':kayenta-aws')
-  compile project(':kayenta-core')
-  compile project(':kayenta-datadog')
-  compile project(':kayenta-gcs')
-  compile project(':kayenta-google')
-  compile project(':kayenta-graphite')
-  compile project(':kayenta-influxdb')
-  compile project(':kayenta-judge')
-  compile project(':kayenta-newrelic-insights')
-  compile project(':kayenta-objectstore-configbin')
-  compile project(':kayenta-objectstore-memory')
-  compile project(':kayenta-orca')
-  compile project(':kayenta-prometheus')
-  compile project(':kayenta-s3')
-  compile project(':kayenta-signalfx')
-  compile project(':kayenta-stackdriver')
-  compile project(':kayenta-standalone-canary-analysis')
-  compile project(':kayenta-wavefront')
+  implementation project(':kayenta-atlas')
+  implementation project(':kayenta-aws')
+  implementation project(':kayenta-core')
+  implementation project(':kayenta-datadog')
+  implementation project(':kayenta-gcs')
+  implementation project(':kayenta-google')
+  implementation project(':kayenta-graphite')
+  implementation project(':kayenta-influxdb')
+  implementation project(':kayenta-judge')
+  implementation project(':kayenta-newrelic-insights')
+  implementation project(':kayenta-objectstore-configbin')
+  implementation project(':kayenta-objectstore-memory')
+  implementation project(':kayenta-orca')
+  implementation project(':kayenta-prometheus')
+  implementation project(':kayenta-s3')
+  implementation project(':kayenta-signalfx')
+  implementation project(':kayenta-stackdriver')
+  implementation project(':kayenta-standalone-canary-analysis')
+  implementation project(':kayenta-wavefront')
 
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency("korkWeb")
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
-}
-
-// SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
-configurations.all {
-  resolutionStrategy {
-    eachDependency {
-      if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-        it.useVersion spinnaker.version('jackson')
-      }
-    }
-  }
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws"
 }

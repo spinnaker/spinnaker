@@ -54,7 +54,7 @@ public class GraphiteConfiguration {
     }
 
     @Bean
-    @ConfigurationProperties("kayenta.graphite.testControllerDefaults")
+    @ConfigurationProperties("kayenta.graphite.test-controller-defaults")
     GraphiteConfigurationTestControllerDefaultProperties graphiteConfigurationTestControllerDefaultProperties() {
         return new GraphiteConfigurationTestControllerDefaultProperties();
     }

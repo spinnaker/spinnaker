@@ -1,9 +1,9 @@
 dependencies {
-  compile project(":kayenta-core")
-  compile project(":kayenta-aws")
+  implementation project(":kayenta-core")
+  implementation project(":kayenta-aws")
 
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('lombok')
-
-  spinnaker.group('amazon')
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
 }

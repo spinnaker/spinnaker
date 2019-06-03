@@ -1,40 +1,27 @@
 dependencies {
-  compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkJedisTest')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('spectatorApi')
+  implementation "redis.clients:jedis"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spectator:spectator-api"
 
   // TODO update korkSwagger?
   // Force a newer version than what comes with korkSwagger, so that the api docs page isn't broken.
-  compile "io.springfox:springfox-swagger-ui:2.9.2"
-  compile "io.springfox:springfox-swagger2:2.9.2"
+  implementation "io.springfox:springfox-swagger-ui:2.9.2"
+  implementation "io.springfox:springfox-swagger2:2.9.2"
 
-  compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
-  compile "com.netflix.spinnaker.orca:orca-retrofit:$orcaVersion"
-  compile "net.lariverosc:jesque-spring:1.0.1"
-  compile "net.greghaines:jesque:1.3.1"
+  implementation "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+  implementation "com.netflix.spinnaker.orca:orca-retrofit:$orcaVersion"
+  implementation "net.lariverosc:jesque-spring:1.0.1"
+  implementation "net.greghaines:jesque:1.3.1"
 
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-  spinnaker.group('bootWeb')
-  compile spinnaker.dependency('bootFreemarker')
+  
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-freemarker"
+  implementation "org.springframework.boot:spring-boot-starter-json"
+  implementation "net.logstash.logback:logstash-logback-encoder"
 
-  spinnaker.group('jackson')
-  compile spinnaker.dependency('jacksonJdk8')
-  compile spinnaker.dependency('jacksonJsr310')
-
-  spinnaker.group('retrofitDefault')
-
-  testCompile spinnaker.dependency('groovy')
-}
-
-
-configurations.all {
-  resolutionStrategy {
-    // springfox-swagger-ui:2.9.2, brings in a newer version of this that seems to break the spock spy functionality.
-    force 'net.bytebuddy:byte-buddy:1.6.14'
-  }
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }

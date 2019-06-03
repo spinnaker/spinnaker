@@ -51,7 +51,7 @@ public class PrometheusConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("kayenta.prometheus.testControllerDefaults")
+  @ConfigurationProperties("kayenta.prometheus.test-controller-defaults")
   PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties() {
     return new PrometheusConfigurationTestControllerDefaultProperties();
   }

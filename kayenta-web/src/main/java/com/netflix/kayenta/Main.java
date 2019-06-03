@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -75,7 +74,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAutoConfiguration
 @EnableAsync
 @EnableScheduling
-public class Main extends SpringBootServletInitializer {
+public class Main {
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 
   private static Map<String, Object> buildDefaults() {
@@ -94,10 +93,5 @@ public class Main extends SpringBootServletInitializer {
 
   public static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main.class).run(args);
-  }
-
-  @Override
-  protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    return application.properties(DEFAULT_PROPS).sources(Main.class);
   }
 }

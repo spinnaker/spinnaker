@@ -20,6 +20,7 @@ import com.netflix.kayenta.atlas.model.Backend;
 import com.netflix.kayenta.atlas.service.BackendsRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,7 +54,7 @@ public class BackendUpdater {
                                                                                      remoteService,
                                                                                      okHttpClient);
     try {
-      List<Backend> backends = backendsRemoteService.fetch();
+      List<Backend> backends = AuthenticatedRequest.allowAnonymous(backendsRemoteService::fetch);
       backendDatabase.update(backends);
     } catch (RetrofitError e) {
       log.warn("While fetching atlas backends from " + uri, e);

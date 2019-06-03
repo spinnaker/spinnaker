@@ -44,7 +44,7 @@ import static retrofit.Endpoints.newFixedEndpoint;
 @Component
 public class RetrofitClientFactory {
 
-  @Value("${retrofit.logLevel:BASIC}")
+  @Value("${retrofit.log-level:BASIC}")
   String retrofitLogLevel;
 
   @Bean

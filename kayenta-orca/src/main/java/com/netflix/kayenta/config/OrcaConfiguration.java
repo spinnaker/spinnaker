@@ -20,7 +20,6 @@ import com.netflix.spinnaker.config.QueueConfiguration;
 import com.netflix.spinnaker.orca.config.RedisConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import lombok.extern.slf4j.Slf4j;

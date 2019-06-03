@@ -83,6 +83,6 @@ public class SetupCanaryTask implements RetryableTask {
       outputs = Collections.singletonMap("canaryConfig", canaryConfig);
     }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }
 }

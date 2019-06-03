@@ -122,7 +122,7 @@ public class MonitorCanaryTask implements Task, OverridableTimeoutRetryableTask 
       resultContext.put("canaryScore", canaryScore);
       resultContext.put("warnings", warnings);
 
-      return new TaskResult(resultStatus, resultContext);
+      return TaskResult.builder(resultStatus).context(resultContext).build();
     }
 
     if (executionStatus.isHalt()) {
@@ -139,10 +139,10 @@ public class MonitorCanaryTask implements Task, OverridableTimeoutRetryableTask 
       resultContext.put(CANARY_EXECUTION_STATUS_RESPONSE, statusResponse);
 
       // Indicates a failure of some sort.
-      return new TaskResult(TERMINAL, resultContext);
+      return TaskResult.builder(TERMINAL).context(resultContext).build();
     }
 
-    return new TaskResult(RUNNING, singletonMap("canaryPipelineStatus", executionStatus));
+    return TaskResult.builder(RUNNING).context("canaryPipelineStatus", executionStatus).build();
   }
 
   /**

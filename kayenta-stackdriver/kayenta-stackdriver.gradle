@@ -1,12 +1,5 @@
 dependencies {
-  compile project(":kayenta-core")
-  compile project(":kayenta-google")
-
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency('lombok')
-
-  compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
-
-  compile spinnaker.dependency('googleMonitoring')
+  implementation project(":kayenta-core")
+  implementation project(":kayenta-google")
+  implementation "com.google.apis:google-api-services-monitoring"
 }

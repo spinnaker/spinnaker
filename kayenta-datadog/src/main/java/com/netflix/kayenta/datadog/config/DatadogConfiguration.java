@@ -52,7 +52,7 @@ public class DatadogConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("kayenta.datadog.testControllerDefaults")
+  @ConfigurationProperties("kayenta.datadog.test-controller-defaults")
   DatadogConfigurationTestControllerDefaultProperties datadogConfigurationTestControllerDefaultProperties() {
     return new DatadogConfigurationTestControllerDefaultProperties();
   }

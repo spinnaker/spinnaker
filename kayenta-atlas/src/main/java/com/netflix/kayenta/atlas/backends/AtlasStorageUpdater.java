@@ -20,6 +20,7 @@ import com.netflix.kayenta.atlas.model.AtlasStorage;
 import com.netflix.kayenta.atlas.service.AtlasStorageRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,7 +54,7 @@ public class AtlasStorageUpdater {
                                                                                              remoteService,
                                                                                              okHttpClient);
     try {
-      Map<String, Map<String, AtlasStorage>> atlasStorageMap = atlasStorageRemoteService.fetch();
+      Map<String, Map<String, AtlasStorage>> atlasStorageMap = AuthenticatedRequest.allowAnonymous(atlasStorageRemoteService::fetch);
       atlasStorageDatabase.update(atlasStorageMap);
     } catch (RetrofitError e) {
       log.warn("While fetching atlas backends from " + uri, e);

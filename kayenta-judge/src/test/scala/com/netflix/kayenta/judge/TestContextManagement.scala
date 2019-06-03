@@ -81,7 +81,7 @@ protected object AlwaysDirtiesContextTestExecutionListener extends DirtiesContex
     Assert.notNull(testClass, "The test class of the supplied TestContext must not be null")
 
     val annotationType: String = classOf[DirtiesContext].getName
-    val annAttrs: AnnotationAttributes = AnnotatedElementUtils.getAnnotationAttributes(testClass, annotationType)
+    val annAttrs: AnnotationAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(testClass, annotationType)
     val hierarchyMode: DirtiesContext.HierarchyMode = if ((annAttrs == null)) null else annAttrs.getEnum[DirtiesContext.HierarchyMode]("hierarchyMode")
     dirtyContext(testContext, hierarchyMode)
   }

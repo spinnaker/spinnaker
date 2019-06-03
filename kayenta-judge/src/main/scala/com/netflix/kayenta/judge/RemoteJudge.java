@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@ConditionalOnProperty("kayenta.remoteJudge.enabled")
+@ConditionalOnProperty("kayenta.remote-judge.enabled")
 @Slf4j
 public class RemoteJudge extends CanaryJudge {
 

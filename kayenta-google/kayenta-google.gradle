@@ -1,8 +1,6 @@
 dependencies {
-  compile project(":kayenta-core")
+  implementation project(":kayenta-core")
 
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('googleMonitoring')
-  compile spinnaker.dependency('googleStorage')
+  implementation "com.google.apis:google-api-services-monitoring"
+  implementation "com.google.apis:google-api-services-storage"
 }

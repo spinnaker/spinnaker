@@ -55,7 +55,7 @@ public class NewRelicConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("kayenta.newrelic.testControllerDefaults")
+  @ConfigurationProperties("kayenta.newrelic.test-controller-defaults")
   NewRelicConfigurationTestControllerDefaultProperties newrelicConfigurationTestControllerDefaultProperties() {
     return new NewRelicConfigurationTestControllerDefaultProperties();
   }

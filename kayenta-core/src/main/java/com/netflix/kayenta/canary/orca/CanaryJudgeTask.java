@@ -17,7 +17,6 @@
 package com.netflix.kayenta.canary.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
@@ -119,11 +118,7 @@ public class CanaryJudgeTask implements RetryableTask {
 
     CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
 
-    Map<String, Object> outputs =
-      ImmutableMap.<String, Object>builder()
-        .put("result", result)
-        .build();
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).output("result", result).build();
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
   }
 }

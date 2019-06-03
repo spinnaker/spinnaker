@@ -118,12 +118,12 @@ public class RunCanaryTask implements Task {
     CanaryScopePair firstScopePair = context.getScopes().entrySet().stream().findFirst()
         .orElseThrow(() -> new IllegalStateException("There should be at least 1 scope")).getValue();
 
-    return new TaskResult(SUCCEEDED, ImmutableMap.of(
-        "canaryPipelineExecutionId", canaryPipelineExecutionId,
-        "judgementStartTimeIso", firstScopePair.getControlScope().getStart().toString(),
-        "judgementStartTimeMillis", firstScopePair.getControlScope().getStart().toEpochMilli(),
-        "judgementEndTimeIso", firstScopePair.getControlScope().getEnd().toString(),
-        "judgementEndTimeMillis", firstScopePair.getControlScope().getEnd().toEpochMilli()
-    ));
+    return TaskResult.builder(SUCCEEDED)
+        .context("canaryPipelineExecutionId", canaryPipelineExecutionId)
+        .context("judgementStartTimeIso", firstScopePair.getControlScope().getStart().toString())
+        .context("judgementStartTimeMillis", firstScopePair.getControlScope().getStart().toEpochMilli())
+        .context("judgementEndTimeIso", firstScopePair.getControlScope().getEnd().toString())
+        .context("judgementEndTimeMillis", firstScopePair.getControlScope().getEnd().toEpochMilli())
+        .build();
   }
 }

@@ -18,7 +18,7 @@ package com.netflix.kayenta.judge.scorers
 
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
 import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Nodata, Pass, NodataFailMetric}
-import org.apache.commons.math.util.MathUtils
+import org.apache.commons.math3.util.Precision
 
 import scala.collection.JavaConverters._
 
@@ -74,7 +74,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
     }
 
     //Round the summary score to two decimal place
-    MathUtils.round(summaryScore, 2)
+    Precision.round(summaryScore, 2)
   }
 
   def criticalFailures(results: List[CanaryAnalysisResult]): List[CanaryAnalysisResult] = {

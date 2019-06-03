@@ -71,7 +71,7 @@ public class SignalFxMockServiceReportingConfig {
   private String testId;
   private Instant metricsReportingStartTime;
 
-  public SignalFxMockServiceReportingConfig(@Value("${kayenta.signalfx.apiKey}") final String signalFxApiToken) {
+  public SignalFxMockServiceReportingConfig(@Value("${kayenta.signalfx.api-key}") final String signalFxApiToken) {
     executorService = Executors.newFixedThreadPool(9);
     this.signalFxApiToken = signalFxApiToken;
   }

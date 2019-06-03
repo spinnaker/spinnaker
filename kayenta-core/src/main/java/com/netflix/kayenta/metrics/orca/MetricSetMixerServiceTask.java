@@ -115,9 +115,7 @@ public class MetricSetMixerServiceTask implements RetryableTask {
 
     storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, aggregatedMetricSetPairListId, aggregatedMetricSetPairList);
 
-    Map outputs = Collections.singletonMap("metricSetPairListId", aggregatedMetricSetPairListId);
-
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).output("metricSetPairListId", aggregatedMetricSetPairListId).build();
   }
 
   private List<String> getMetricSetListIds(Execution execution, String stagePrefix) {

@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties
-@ConditionalOnProperty("kayenta.standaloneCanaryAnalysis.enabled")
+@ConditionalOnProperty("kayenta.standalone-canary-analysis.enabled")
 @ComponentScan({"com.netflix.kayenta.canaryanalysis"})
 @Slf4j
 public class StandaloneCanaryAnalysisModuleConfiguration {

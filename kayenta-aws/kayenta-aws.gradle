@@ -1,8 +1,5 @@
 dependencies {
-  compile project(":kayenta-core")
+  implementation project(":kayenta-core")
 
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('aws')
-  compile spinnaker.dependency('awsS3')
+  implementation "com.amazonaws:aws-java-sdk"
 }

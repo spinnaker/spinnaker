@@ -1,18 +1,17 @@
+apply plugin: 'java-library'
 apply plugin: 'scala'
 
 dependencies {
-  compile project(':kayenta-core')
-  compile project(':kayenta-mannwhitney')
+  implementation project(':kayenta-core')
+  implementation project(':kayenta-mannwhitney')
 
-  compile spinnaker.dependency('lombok')
-
-  compile "org.apache.commons:commons-math3:$mathCommonsVersion"
+  implementation "org.apache.commons:commons-math3:$mathCommonsVersion"
 
   // scala support
-  compile 'org.scala-lang:scala-library-all:2.12.2'
-  compile 'org.scala-lang:scala-reflect:2.12.2'
-  compile 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
-  testCompile 'org.scalatest:scalatest_2.12:3.0.1'
+  implementation 'org.scala-lang:scala-library-all:2.12.2'
+  implementation 'org.scala-lang:scala-reflect:2.12.2'
+  implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
+  testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
 }
 
 task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {

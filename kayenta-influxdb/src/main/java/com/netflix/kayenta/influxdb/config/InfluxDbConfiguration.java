@@ -53,7 +53,7 @@ public class InfluxDbConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("kayenta.influxdb.testControllerDefaults")
+  @ConfigurationProperties("kayenta.influxdb.test-controller-defaults")
   InfluxDbConfigurationTestControllerDefaultProperties influxDbConfigurationTestControllerDefaultProperties() {
     return new InfluxDbConfigurationTestControllerDefaultProperties();
   }

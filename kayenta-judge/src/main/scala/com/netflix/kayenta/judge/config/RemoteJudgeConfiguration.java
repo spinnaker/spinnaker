@@ -30,11 +30,11 @@ import org.springframework.context.annotation.Configuration;
   "com.netflix.kayenta.judge.config"
 })
 
-@ConditionalOnProperty("kayenta.remoteJudge.enabled")
+@ConditionalOnProperty("kayenta.remote-judge.enabled")
 public class RemoteJudgeConfiguration {
 
   @Bean
-  @ConfigurationProperties("kayenta.remoteJudge")
+  @ConfigurationProperties("kayenta.remote-judge")
   RemoteJudgeConfigurationProperties remoteJudgeConfigurationProperties() {
     return new RemoteJudgeConfigurationProperties();
   }

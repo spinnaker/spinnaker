@@ -29,7 +29,7 @@ sourceSets {
 }
 
 configurations {
-    integrationTestCompile.extendsFrom testCompile
+    integrationTestCompile.extendsFrom testImplementation
     integrationTestRuntime.extendsFrom testRuntime
 }
 
@@ -168,23 +168,22 @@ integrationTest {
 }
 
 dependencies {
-    compile project(":kayenta-core")
+    implementation project(":kayenta-core")
 
-    compile spinnaker.dependency('bootWeb')
-    compile spinnaker.dependency("korkSwagger")
-    compile spinnaker.dependency('lombok')
+    implementation "org.apache.commons:commons-io:1.3.2"
 
-    compile "org.apache.commons:commons-io:1.3.2"
-
-    compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+ //   testImplementation "com.fasterxml.jackson.core:jackson-databind"
 
     // Integration Test dependencies
     integrationTestCompile sourceSets.main.output
-    integrationTestCompile configurations.testCompile
+    integrationTestCompile configurations.testImplementation
     integrationTestCompile sourceSets.test.output
     integrationTestRuntime configurations.testRuntime
     integrationTestCompile project(':kayenta-web')
 
     // Apache 2.0 https://github.com/rest-assured/rest-assured/blob/master/LICENSE
     integrationTestCompile 'io.rest-assured:rest-assured:3.1.1'
+    integrationTestAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    integrationTestAnnotationProcessor "org.projectlombok:lombok"
+    integrationTestCompileOnly "org.projectlombok:lombok"
 }

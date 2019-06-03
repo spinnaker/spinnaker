@@ -150,8 +150,7 @@ public class GenerateCanaryAnalysisResultTask implements Task {
         }).collect(Collectors.toList()))
         .build();
 
-    return new TaskResult(SUCCEEDED, emptyMap(),
-        Collections.singletonMap(CANARY_ANALYSIS_EXECUTION_RESULT, result));
+    return TaskResult.builder(SUCCEEDED).output(CANARY_ANALYSIS_EXECUTION_RESULT, result).build();
   }
 
   /**

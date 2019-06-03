@@ -17,7 +17,7 @@
 package com.netflix.kayenta.judge.stats
 
 import com.netflix.kayenta.judge.Metric
-import org.apache.commons.math.util.FastMath
+import org.apache.commons.math3.util.FastMath
 import org.apache.commons.math3.stat.StatUtils
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType

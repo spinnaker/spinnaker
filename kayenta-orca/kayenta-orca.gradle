@@ -1,15 +1,14 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile "com.netflix.spinnaker.orca:orca-queue-redis:$orcaVersion"
-
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency('lombok')
+  implementation "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
+  implementation "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
+  implementation "com.netflix.spinnaker.orca:orca-queue-redis:$orcaVersion"
+  implementation "com.netflix.spinnaker.orca:orca-redis:$orcaVersion"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
-  testCompile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
-  testCompile "com.netflix.spinnaker.orca:orca-test:$orcaVersion"
+  testImplementation "com.netflix.spinnaker.orca:orca-test:$orcaVersion"
 
-  testCompile spinnaker.dependency('hamkrest')
+  testImplementation "com.natpryce:hamkrest"
 }

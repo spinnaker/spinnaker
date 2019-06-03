@@ -32,13 +32,13 @@ import org.springframework.core.annotation.Order;
 @Configuration
 public class RetrofitClientConfiguration {
 
-  @Value("${okHttpClient.connectionPool.maxIdleConnections:5}")
+  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   int maxIdleConnections;
 
-  @Value("${okHttpClient.connectionPool.keepAliveDurationMs:300000}")
+  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
   int keepAliveDurationMs;
 
-  @Value("${okHttpClient.retryOnConnectionFailure:true}")
+  @Value("${ok-http-client.retry-on-connection-failure:true}")
   boolean retryOnConnectionFailure;
 
   @Bean

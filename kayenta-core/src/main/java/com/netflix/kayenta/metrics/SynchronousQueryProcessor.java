@@ -96,13 +96,13 @@ public class SynchronousQueryProcessor {
     return metricSetListId;
   }
 
-  public Map processQueryAndReturnMap(String metricsAccountName,
-                                      String storageAccountName,
-                                      CanaryConfig canaryConfig,
-                                      CanaryMetricConfig canaryMetricConfig,
-                                      int metricIndex,
-                                      CanaryScope canaryScope,
-                                      boolean dryRun) throws IOException {
+  public Map<String, ?> processQueryAndReturnMap(String metricsAccountName,
+                                                 String storageAccountName,
+                                                 CanaryConfig canaryConfig,
+                                                 CanaryMetricConfig canaryMetricConfig,
+                                                 int metricIndex,
+                                                 CanaryScope canaryScope,
+                                                 boolean dryRun) throws IOException {
     if (canaryConfig == null) {
       canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build();
     }
@@ -136,15 +136,16 @@ public class SynchronousQueryProcessor {
                                                      int metricIndex,
                                                      CanaryScope canaryScope) {
     try {
-      Map outputs = processQueryAndReturnMap(metricsAccountName,
-                                             storageAccountName,
-                                             canaryConfig,
-                                             null /* canaryMetricConfig */,
-                                             metricIndex,
-                                             canaryScope,
-                                             false /* dryRun */);
+      Map<String, ?> outputs = processQueryAndReturnMap(metricsAccountName,
+                                                        storageAccountName,
+                                                        canaryConfig,
+                                                        null /* canaryMetricConfig */,
+                                                        metricIndex,
+                                                        canaryScope,
+                                                        false /* dryRun */);
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -44,7 +44,7 @@ public class StackdriverConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("kayenta.stackdriver.testControllerDefaults")
+  @ConfigurationProperties("kayenta.stackdriver.test-controller-defaults")
   StackdriverConfigurationTestControllerDefaultProperties stackdriverConfigurationTestControllerDefaultProperties() {
     return new StackdriverConfigurationTestControllerDefaultProperties();
   }

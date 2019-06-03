@@ -22,7 +22,11 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion"
+    if (Boolean.valueOf(enablePublishing)) {
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion"
+    }
+
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
   }
 }
@@ -30,35 +34,19 @@ buildscript {
 allprojects {
   group = "com.netflix.kayenta"
   apply plugin: "spinnaker.base-project"
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: "spinnaker.project"
+  }
+  apply plugin: "java-library"
   apply plugin: "groovy"
-  apply plugin: "java"
   apply plugin: "kotlin"
 
-  ext {
-    spinnakerDependenciesVersion = '1.44.1'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  def localVersions = [korkVersion, orcaVersion].find { it.endsWith('-SNAPSHOT') }
   if (localVersions) {
     logger.info("Enabling mavenLocal repo for $localVersions")
     repositories {
       mavenLocal()
     }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
   }
 
   test {
@@ -80,19 +68,15 @@ allprojects {
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     exclude group: 'org.slf4j', module: 'slf4j-simple'
-    resolutionStrategy {
-      force 'com.google.guava:guava:20.0'
-    }
   }
 }
 
 subprojects { project ->
-  def licenseExtension = project.extensions.findByName('license')
-  if (licenseExtension) {
-    licenseExtension.exclude "**/*.json"
-    licenseExtension.exclude "**/*.md"
-    licenseExtension.exclude "**/*.sse"
-    licenseExtension.exclude "**/*.yml"
+  project.extensions.findByName('license')?.with {
+    exclude "**/*.json"
+    exclude "**/*.md"
+    exclude "**/*.sse"
+    exclude "**/*.yml"
   }
 
   repositories {
@@ -100,16 +84,36 @@ subprojects { project ->
     maven { url "https://dl.bintray.com/spinnaker/spinnaker"}
   }
 
-  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-  project.plugins.withType(JavaBasePlugin) {
-    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-    convention.sourceCompatibility = JavaVersion.VERSION_1_8
-    convention.targetCompatibility = JavaVersion.VERSION_1_8
-  }
-
   dependencies {
-    compile spinnaker.dependency('slf4j')
-    spinnaker.group('test')
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testCompileOnly "org.projectlombok:lombok"
+
+
+    implementation "org.slf4j:slf4j-api"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.netflix.spinnaker.kork:kork-swagger"
+    implementation "org.springframework.boot:spring-boot-properties-migrator"
+    implementation "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.squareup.okhttp:okhttp"
+    implementation "com.squareup.okhttp:okhttp-urlconnection"
+    implementation "com.squareup.okhttp:okhttp-apache"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.hamcrest:hamcrest-core"
+    testImplementation "org.codehaus.groovy:groovy-all"
+    testRuntimeOnly "cglib:cglib-nodep"
+    testRuntimeOnly "org.objenesis:objenesis"
   }
 }
 

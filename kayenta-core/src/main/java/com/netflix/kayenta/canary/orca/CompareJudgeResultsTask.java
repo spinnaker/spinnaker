@@ -86,6 +86,6 @@ public class CompareJudgeResultsTask implements RetryableTask {
         .build();
     Map<String, Map> outputs = Collections.singletonMap("comparisonResult", comparisonResult);
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }
 }

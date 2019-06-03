@@ -12,3 +12,4 @@ out/
 .settings/
 bin/
 /dump.rdb
+/.vscode/
