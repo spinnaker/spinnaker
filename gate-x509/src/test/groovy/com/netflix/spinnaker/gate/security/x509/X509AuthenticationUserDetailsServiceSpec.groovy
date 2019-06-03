@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -36,40 +37,34 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.setDynamicConfigService(config)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
     userDetails.registry = registry
+    fiatPermissionEvaluator.getPermission(email) >> view
 
     when: "initial login"
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
-    1 * fiatPermissionEvaluator.getPermission(email) >> view
     1 * perms.login(email)
-    0 * _
 
     when: "subsequent login during debounce window"
     clock.advanceTime(Duration.ofSeconds(30))
     userDetails.handleLogin(email, cert)
 
     then: "should not call login"
-    1 * fiatPermissionEvaluator.getPermission(email) >> view
-    0 * _
+    0 * perms.login(email)
 
     when: "subsequent login after debounce window"
     clock.advanceTime(Duration.ofMinutes(5))
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
-    1 * fiatPermissionEvaluator.getPermission(email) >> view
     1 * perms.login(email)
-    0 * _
 
     when: "login with no cached permission"
+    fiatPermissionEvaluator.getPermission(email) >> null
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
-    1 * fiatPermissionEvaluator.getPermission(email) >> null
     1 * perms.login(email)
-    0 * _
-
   }
 
   def "should always login if debounceDisabled"() {
@@ -92,7 +87,6 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     then:
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.login(email)
-    0 * _
 
     when:
     userDetails.handleLogin(email, cert)
@@ -100,7 +94,6 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     then:
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.login(email)
-    0 * _
 
     when:
     clock.advanceTime(Duration.ofSeconds(30))
@@ -109,7 +102,6 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     then:
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.login(email)
-    0 * _
   }
 
   def "should loginWithRoles if roleExtractor provided"() {
@@ -128,14 +120,19 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
     userDetails.registry = registry
 
+    def view = new UserPermission(id: email, roles: [new Role('bish')]).view
+    fiatPermissionEvaluator.getPermission(email) >> view
+
     when:
-    userDetails.handleLogin(email, cert)
+    def roles = userDetails.handleLogin(email, cert)
 
     then:
     1 * rolesExtractor.fromCertificate(cert) >> ['foo', 'bar']
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.loginWithRoles(email, [email, 'foo', 'bar'])
-    0 * _
+
+    and: 'the roles retrieved from fiatPermissionEvaluator are also added to the list of returned roles'
+    roles == [email, 'foo', 'bar', 'bish']
   }
 
 

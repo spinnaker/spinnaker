@@ -121,8 +121,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     if (requiredRoles) {
       if (!requiredRoles.any { it in roles }) {
-        log.debug("User $email does not have all roles $requiredRoles")
-        throw new BadCredentialsException("User $email does not have all roles $requiredRoles")
+        String errorMessage = "User $email with roles $roles does not have any of the required roles $requiredRoles"
+        log.debug(errorMessage)
+        throw new BadCredentialsException(errorMessage)
       }
     }
 
@@ -195,7 +196,13 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       }
     }
 
-    return roles
+    def permission = fiatPermissionEvaluator.getPermission(email)
+    def roleNames = permission?.getRoles()?.collect { it -> it.getName()}
+    log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
+    if (roleNames) {
+      roles.addAll(roleNames)
+    }
+    return roles.unique(/* mutate = */false)
   }
 
   /**
