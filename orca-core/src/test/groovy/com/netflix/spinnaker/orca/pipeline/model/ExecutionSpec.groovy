@@ -18,11 +18,19 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
+import org.slf4j.helpers.NOPMDCAdapter
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ExecutionSpec extends Specification {
+  void setupSpec() {
+    if (MDC.getMDCAdapter() instanceof NOPMDCAdapter) {
+      throw new IllegalStateException("ExecutionSpec.AuthenticationDetails tests cannot function " +
+              "without a real MDC implementation loaded by slf4j")
+    }
+  }
+
   def "should return Optional.empty if no authenticated details available"() {
     given:
     MDC.clear()

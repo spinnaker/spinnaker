@@ -58,7 +58,6 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
 
-  testRuntimeOnly("org.slf4j:slf4j-simple")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 }
