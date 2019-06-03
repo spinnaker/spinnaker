@@ -82,8 +82,12 @@ public class SavePipelineTask implements RetryableTask {
     if (serviceAccount != null) {
       updateServiceAccount(pipeline, serviceAccount);
     }
-
-    if (stage.getContext().get("pipeline.id") != null && pipeline.get("id") == null) {
+    final Boolean isSavingMultiplePipelines =
+        (Boolean)
+            Optional.ofNullable(stage.getContext().get("isSavingMultiplePipelines")).orElse(false);
+    if (stage.getContext().get("pipeline.id") != null
+        && pipeline.get("id") == null
+        && !isSavingMultiplePipelines) {
       pipeline.put("id", stage.getContext().get("pipeline.id"));
 
       // We need to tell front50 to regenerate cron trigger id's
@@ -117,10 +121,6 @@ public class SavePipelineTask implements RetryableTask {
     if (response.getStatus() == HttpStatus.OK.value()) {
       status = ExecutionStatus.SUCCEEDED;
     } else {
-      final Boolean isSavingMultiplePipelines =
-          (Boolean)
-              Optional.ofNullable(stage.getContext().get("isSavingMultiplePipelines"))
-                  .orElse(false);
       if (isSavingMultiplePipelines) {
         status = ExecutionStatus.FAILED_CONTINUE;
       } else {
