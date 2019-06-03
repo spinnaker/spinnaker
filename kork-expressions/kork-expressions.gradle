@@ -1,4 +1,5 @@
 apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 test {
   useJUnitPlatform()
@@ -15,8 +16,4 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "org.slf4j:slf4j-simple"
-
-  testCompileOnly "org.projectlombok:lombok"
-  testAnnotationProcessor(platform(project(":spinnaker-dependencies")))
-  testAnnotationProcessor "org.projectlombok:lombok"
 }

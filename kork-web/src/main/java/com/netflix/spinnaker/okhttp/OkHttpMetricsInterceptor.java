@@ -29,6 +29,12 @@ public class OkHttpMetricsInterceptor extends MetricsInterceptor
 
   @Override
   public Response intercept(Interceptor.Chain chain) throws IOException {
-    return (Response) doIntercept(chain);
+    try {
+      return (Response) doIntercept(chain);
+    } catch (IOException ioe) {
+      throw ioe;
+    } catch (Exception ex) {
+      throw new IOException(ex);
+    }
   }
 }

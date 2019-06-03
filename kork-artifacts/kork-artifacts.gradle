@@ -1,5 +1,6 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
@@ -12,8 +13,4 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
-
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor(platform(project(":spinnaker-dependencies")))
-  annotationProcessor "org.projectlombok:lombok"
 }

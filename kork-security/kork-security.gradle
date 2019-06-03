@@ -1,5 +1,6 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import lombok.SneakyThrows;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -77,16 +78,13 @@ public class AuthenticatedRequest {
    *
    * <pre><code>AuthenticatedRequest.allowAnonymous(() -&gt; { // do HTTP call here });</code></pre>
    */
+  @SneakyThrows(Exception.class)
   public static <V> V allowAnonymous(Callable<V> closure) {
     String originalValue = MDC.get(Header.XSpinnakerAnonymous);
     MDC.put(Header.XSpinnakerAnonymous, "anonymous");
 
     try {
       return closure.call();
-    } catch (RuntimeException re) {
-      throw re;
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
     } finally {
       setOrRemoveMdc(Header.XSpinnakerAnonymous, originalValue);
     }
