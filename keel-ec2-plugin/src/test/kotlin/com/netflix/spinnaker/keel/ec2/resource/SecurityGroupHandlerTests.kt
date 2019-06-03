@@ -15,16 +15,17 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.CidrRule
-import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.PortRange
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
-import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.PortRange
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol.TCP
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -61,59 +62,78 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.util.UUID.randomUUID
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as ClouddriverSecurityGroup
 
-internal object SecurityGroupHandlerTests : JUnit5Minutests {
-
-  val cloudDriverService: CloudDriverService = mockk()
-  val cloudDriverCache: CloudDriverCache = mockk()
-  val orcaService: OrcaService = mockk()
-  val objectMapper = configuredObjectMapper()
-  val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
+internal class SecurityGroupHandlerTests : JUnit5Minutests {
+  private val cloudDriverService: CloudDriverService = mockk()
+  private val cloudDriverCache: CloudDriverCache = mockk()
+  private val orcaService: OrcaService = mockk()
+  private val objectMapper = configuredObjectMapper()
+  private val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
 
   interface Fixture {
+    val cloudDriverService: CloudDriverService
+    val cloudDriverCache: CloudDriverCache
+    val orcaService: OrcaService
+    val objectMapper: ObjectMapper
+    val normalizers: List<ResourceNormalizer<SecurityGroup>>
     val vpc: Network
     val handler: SecurityGroupHandler
     val securityGroup: SecurityGroup
   }
 
   data class CurrentFixture(
+    override val cloudDriverService: CloudDriverService,
+    override val cloudDriverCache: CloudDriverCache,
+    override val orcaService: OrcaService,
+    override val objectMapper: ObjectMapper,
+    override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
-        application = "keel",
-        name = "fnord",
+        moniker = Moniker(
+          app = "keel",
+          stack = "fnord"
+        ),
         accountName = vpc.account,
         region = vpc.region,
         vpcName = vpc.name,
         description = "dummy security group"
       ),
-    val cloudDriverResponse: com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup =
-      com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
+    val cloudDriverResponse: ClouddriverSecurityGroup =
+      ClouddriverSecurityGroup(
         CLOUD_PROVIDER,
         "sg-3a0c495f",
-        "fnord",
+        "keel-fnord",
         "dummy security group",
         vpc.account,
         vpc.region,
         vpc.id,
         emptySet(),
-        Moniker("keel")
+        Moniker(app = "keel", stack = "fnord")
       ),
     val vpc2: Network = Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpc.region)
   ) : Fixture
 
   data class UpsertFixture(
+    override val cloudDriverService: CloudDriverService,
+    override val cloudDriverCache: CloudDriverCache,
+    override val orcaService: OrcaService,
+    override val objectMapper: ObjectMapper,
+    override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
-        application = "keel",
-        name = "fnord",
+        moniker = Moniker(
+          app = "keel",
+          stack = "fnord"
+        ),
         accountName = vpc.account,
         region = vpc.region,
         vpcName = vpc.name,
@@ -123,7 +143,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
   fun currentTests() = rootContext<CurrentFixture> {
     fixture {
-      CurrentFixture()
+      CurrentFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers)
     }
 
     before {
@@ -187,7 +207,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   fun upsertTests() = rootContext<UpsertFixture> {
-    fixture { UpsertFixture() }
+    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers) }
 
     before {
       setupVpc()
@@ -215,7 +235,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
             val slot = slot<OrchestrationRequest>()
             verify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.application)
+              application.isEqualTo(securityGroup.moniker.app)
               job
                 .hasSize(1)
                 .first()
@@ -263,7 +283,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
             val slot = slot<OrchestrationRequest>()
             verify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.application)
+              application.isEqualTo(securityGroup.moniker.app)
               job.hasSize(1)
               job[0].securityGroupIngress
                 .hasSize(1)
@@ -311,7 +331,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
             val slot = slot<OrchestrationRequest>()
             verify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.application)
+              application.isEqualTo(securityGroup.moniker.app)
               job.hasSize(1)
               job[0].ipIngress
                 .hasSize(1)
@@ -359,7 +379,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.application)
+          application.isEqualTo(securityGroup.moniker.app)
           job.hasSize(1)
           job.first().type.isEqualTo("upsertSecurityGroup")
           job.first().securityGroupIngress.hasSize(0)
@@ -397,7 +417,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.application)
+          application.isEqualTo(securityGroup.moniker.app)
           job.hasSize(1)
           job.first().type.isEqualTo("upsertSecurityGroup")
           job.first().securityGroupIngress.hasSize(1)
@@ -407,7 +427,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   fun deleteTests() = rootContext<UpsertFixture> {
-    fixture { UpsertFixture() }
+    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers) }
 
     context("deleting a security group") {
       before {
@@ -426,7 +446,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.application)
+          application.isEqualTo(securityGroup.moniker.app)
           job
             .hasSize(1)
             .first()
@@ -465,7 +485,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       apiVersion = SPINNAKER_API_V1,
       metadata = ResourceMetadata(
         name = with(securityGroup) {
-          ResourceName("ec2.SecurityGroup:$application:$accountName:$region:$name")
+          ResourceName("ec2.SecurityGroup:${moniker.app}:$accountName:$region:${moniker.name}")
         },
         uid = randomUID()
       ),

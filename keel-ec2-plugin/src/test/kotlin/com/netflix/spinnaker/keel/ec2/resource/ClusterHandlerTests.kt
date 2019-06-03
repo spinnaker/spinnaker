@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
@@ -55,7 +55,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
 import java.util.UUID
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker as CloudDriverMoniker
 
 internal class ClusterHandlerTests : JUnit5Minutests {
 
@@ -136,7 +135,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     CLOUD_PROVIDER,
     setOf(sg1.id, sg2.id),
     spec.location.accountName,
-    spec.moniker.run { CloudDriverMoniker(application, cluster, detail, stack, "69") }
+    spec.moniker.run { Moniker(app = app, cluster = cluster, detail = detail, stack = stack, sequence = "69") }
   )
 
   val cloudDriverService = mockk<CloudDriverService>()
@@ -277,9 +276,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   }
 
   private fun CloudDriverService.activeServerGroup() = activeServerGroup(
-    spec.moniker.application,
+    spec.moniker.app,
     spec.location.accountName,
-    spec.moniker.cluster,
+    spec.moniker.name,
     spec.location.region,
     CLOUD_PROVIDER
   )

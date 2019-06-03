@@ -19,7 +19,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.events.TaskRef
@@ -77,7 +77,7 @@ class ClusterHandler(
   ) to ClusterSpec::class.java
 
   override fun generateName(spec: ClusterSpec) = ResourceName(
-    "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.cluster}"
+    "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.name}"
   )
 
   override fun resolve(resource: Resource<ClusterSpec>): ResolvedResource<Cluster> {
@@ -164,9 +164,9 @@ class ClusterHandler(
 
       orcaService
         .orchestrate(OrchestrationRequest(
-          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
-          spec.moniker.application,
-          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
+          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
+          spec.moniker.app,
+          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
           listOf(Job(job["type"].toString(), job)),
           OrchestrationTrigger(resource.metadata.name.toString())
         ))
@@ -199,7 +199,7 @@ class ClusterHandler(
 
   private suspend fun Cluster.createServerGroupJob(): Map<String, Any?> =
     mutableMapOf(
-      "application" to moniker.application,
+      "application" to moniker.app,
       "credentials" to location.accountName,
       // <things to do with the strategy>
       // TODO: this will be parameterizable ultimately
@@ -240,10 +240,10 @@ class ClusterHandler(
       "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
       "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
       "moniker" to mapOf(
-        "app" to moniker.application,
+        "app" to moniker.app,
         "stack" to moniker.stack,
         "detail" to moniker.detail,
-        "cluster" to moniker.cluster
+        "cluster" to moniker.name
       ),
       "amiName" to launchConfiguration.imageId,
       "reason" to "Diff detected at ${clock.instant().iso()}",
@@ -288,7 +288,7 @@ class ClusterHandler(
           "serverGroupName" to currentServerGroup.asg.autoScalingGroupName
         )
       }
-      ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.cluster} in ${location.accountName} / ${location.region}")
+      ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.name} in ${location.accountName} / ${location.region}")
 
   override fun delete(resource: Resource<ClusterSpec>) {
     TODO("not implemented")
@@ -297,9 +297,9 @@ class ClusterHandler(
   private suspend fun CloudDriverService.getAncestorServerGroup(spec: Cluster): ClusterActiveServerGroup? =
     try {
       activeServerGroup(
-        spec.moniker.application,
+        spec.moniker.app,
         spec.location.accountName,
-        spec.moniker.cluster,
+        spec.moniker.name,
         spec.location.region,
         CLOUD_PROVIDER
       )
@@ -316,16 +316,16 @@ class ClusterHandler(
     try {
       return withContext(Dispatchers.Default) {
         activeServerGroup(
-          spec.moniker.application,
+          spec.moniker.app,
           spec.location.accountName,
-          spec.moniker.cluster,
+          spec.moniker.name,
           spec.location.region,
           CLOUD_PROVIDER
         )
           .await()
           .run {
             Cluster(
-              moniker = Moniker(moniker.app, moniker.stack, moniker.detail),
+              moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
               location = Location(
                 accountName,
                 region,
@@ -376,7 +376,7 @@ class ClusterHandler(
       .securityGroupNames
       // no need to specify these as Orca will auto-assign them, also the application security group
       // gets auto-created so may not exist yet
-      .filter { it !in setOf("nf-infrastructure", "nf-datacenter", moniker.application) }
+      .filter { it !in setOf("nf-infrastructure", "nf-datacenter", moniker.app) }
       .map {
         cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
       }

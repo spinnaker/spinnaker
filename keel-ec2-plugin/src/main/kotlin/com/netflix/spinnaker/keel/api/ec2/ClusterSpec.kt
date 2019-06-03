@@ -23,8 +23,8 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 
 @JsonInclude(NON_NULL)
 data class ClusterSpec(

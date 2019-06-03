@@ -15,10 +15,28 @@
  */
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 data class Moniker(
   val app: String,
-  val cluster: String? = null,
   val detail: String? = null,
   val stack: String? = null,
-  val sequence: String? = null
-)
+  val sequence: String? = null,
+  val cluster: String? = null
+) {
+  @get:JsonIgnore
+  val name: String
+    get() = when {
+      stack == null && detail == null -> app
+      detail == null -> "$app-$stack"
+      else -> "$app-${stack.orEmpty()}-$detail"
+    }
+
+  @get:JsonIgnore
+  val serverGroup: String
+    get() = when {
+      stack == null && detail == null -> "$app-$sequence"
+      detail == null && sequence != null -> "$app-$stack-$sequence"
+      else -> "$app-${stack.orEmpty()}-$detail-$sequence"
+  }
+}

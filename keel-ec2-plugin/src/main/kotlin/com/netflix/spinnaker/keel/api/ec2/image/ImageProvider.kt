@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.api.ec2.image
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.ec2.jackson.ImageProviderDeserializer
 
 /**
  * Base interface for providing an image

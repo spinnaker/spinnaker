@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api.ec2.securityGroup
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
@@ -46,7 +46,7 @@ data class ReferenceRule(
 ) : SecurityGroupRule() {
   constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
     protocol = protocol,
-    name = reference.name,
+    name = reference.moniker.name,
     portRange = portRange
   )
 }
@@ -61,7 +61,7 @@ data class CrossAccountReferenceRule(
 ) : SecurityGroupRule() {
   constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
     protocol = protocol,
-    name = reference.name,
+    name = reference.moniker.name,
     account = reference.accountName,
     vpcName = reference.vpcName!!,
     portRange = portRange

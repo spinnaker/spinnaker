@@ -20,16 +20,17 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.CidrRule
-import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.PortRange
-import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
-import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.PortRange
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.ReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol
+import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.model.Job
@@ -62,7 +63,7 @@ class SecurityGroupHandler(
   ) to SecurityGroup::class.java
 
   override fun generateName(spec: SecurityGroup) = ResourceName(
-    "ec2:securityGroup:${spec.accountName}:${spec.region}:${spec.name}"
+    "ec2:securityGroup:${spec.accountName}:${spec.region}:${spec.moniker.name}"
   )
 
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
@@ -76,9 +77,9 @@ class SecurityGroupHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(OrchestrationRequest(
-            "Create security group ${spec.name} in ${spec.accountName}/${spec.region}",
-            spec.application,
-            "Create security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
             listOf(spec.toCreateJob()),
             OrchestrationTrigger(resource.metadata.name.toString())
           ))
@@ -97,9 +98,9 @@ class SecurityGroupHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(OrchestrationRequest(
-            "Update security group ${spec.name} in ${spec.accountName}/${spec.region}",
-            spec.application,
-            "Update security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
             listOf(spec.toUpdateJob()),
             OrchestrationTrigger(resource.metadata.name.toString())
           ))
@@ -115,9 +116,9 @@ class SecurityGroupHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(OrchestrationRequest(
-            "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-            spec.application,
-            "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
             listOf(spec.toDeleteJob()),
             OrchestrationTrigger(resource.metadata.name.toString())
           ))
@@ -138,15 +139,14 @@ class SecurityGroupHandler(
         getSecurityGroup(
           spec.accountName,
           CLOUD_PROVIDER,
-          spec.name,
+          spec.moniker.name,
           spec.region,
           spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
         )
           .await()
           .let { response ->
             SecurityGroup(
-              response.moniker.app,
-              response.name,
+              Moniker(app = response.moniker.app, stack = response.moniker.stack, detail = response.moniker.detail),
               response.accountName,
               response.region,
               response.vpcId?.let { cloudDriverCache.networkBy(it).name },
@@ -205,7 +205,7 @@ class SecurityGroupHandler(
     Job(
       "upsertSecurityGroup",
       mapOf(
-        "application" to application,
+        "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to name,
@@ -231,7 +231,7 @@ class SecurityGroupHandler(
     Job(
       "upsertSecurityGroup",
       mapOf(
-        "application" to application,
+        "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to name,
@@ -252,7 +252,7 @@ class SecurityGroupHandler(
     return Job(
       "deleteSecurityGroup",
       mapOf(
-        "application" to application,
+        "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
         "securityGroupName" to name,
@@ -275,7 +275,7 @@ class SecurityGroupHandler(
         "type" to protocol.name.toLowerCase(),
         "startPort" to portRange.startPort,
         "endPort" to portRange.endPort,
-        "name" to spec.name
+        "name" to spec.moniker.name
       )
       is CrossAccountReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),

@@ -23,7 +23,7 @@ internal object ClusterTests : JUnit5Minutests {
           yaml = """
             |---
             |moniker:
-            |  application: fletch_test
+            |  app: fletch_test
             |  stack: keel
             |  detail: k8s
             |location:
@@ -64,7 +64,7 @@ internal object ClusterTests : JUnit5Minutests {
 
         test("can be deserialized to a cluster object") {
           expectThat(this)
-            .get { moniker.application }.isEqualTo("fletch_test")
+            .get { moniker.app }.isEqualTo("fletch_test")
         }
 
         test("populates optional fields") {

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api.ec2.securityGroup
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 @JsonInclude(NON_NULL)
 data class SecurityGroup(
-  val application: String,
-  val name: String,
+  val moniker: Moniker,
   val accountName: String,
   val region: String,
   val vpcName: String?,
