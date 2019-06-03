@@ -25,7 +25,7 @@ import com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.Pipeli
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.V2PipelineTemplateService;
-import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes;
+import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.transform.InheritConstructors;
 import io.swagger.annotations.ApiOperation;
