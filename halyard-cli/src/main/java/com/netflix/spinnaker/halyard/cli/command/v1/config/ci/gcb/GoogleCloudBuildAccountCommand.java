@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHasAccountCommand;
 
-/**
- * Interact with Google Cloud Build accounts
- */
+/** Interact with Google Cloud Build accounts */
 @Parameters(separators = "=")
 public class GoogleCloudBuildAccountCommand extends AbstractHasAccountCommand {
   protected String getCiName() {

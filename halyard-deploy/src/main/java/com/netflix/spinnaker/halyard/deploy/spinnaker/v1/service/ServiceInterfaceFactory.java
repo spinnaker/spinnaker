@@ -24,11 +24,9 @@ import retrofit.client.OkClient;
 
 @Component
 public class ServiceInterfaceFactory {
-  @Autowired
-  OkClient okClient;
+  @Autowired OkClient okClient;
 
-  @Autowired
-  RestAdapter.LogLevel retrofitLogLevel;
+  @Autowired RestAdapter.LogLevel retrofitLogLevel;
 
   public <T> T createService(String endpoint, SpinnakerService<T> service) {
     Class<T> clazz = service.getEndpointClass();

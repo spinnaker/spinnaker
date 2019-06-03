@@ -32,12 +32,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,38 +44,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class GenerateService {
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ServiceProviderFactory serviceProviderFactory;
+  @Autowired private ServiceProviderFactory serviceProviderFactory;
 
-  @Autowired
-  private String halconfigPath;
+  @Autowired private String halconfigPath;
 
-  @Autowired
-  private HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired
-  private List<SpinnakerService> spinnakerServices = new ArrayList<>();
+  @Autowired private List<SpinnakerService> spinnakerServices = new ArrayList<>();
 
-  @Autowired
-  private ConfigParser configParser;
+  @Autowired private ConfigParser configParser;
 
-  public ResolvedConfiguration generateConfigWithOptionalServices(String deploymentName, List<SpinnakerService.Type> serviceTypes) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+  public ResolvedConfiguration generateConfigWithOptionalServices(
+      String deploymentName, List<SpinnakerService.Type> serviceTypes) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
 
     if (serviceTypes.isEmpty()) {
-      serviceTypes = serviceProvider
-          .getServices()
-          .stream()
-          .map(SpinnakerService::getType)
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceProvider.getServices().stream()
+              .map(SpinnakerService::getType)
+              .collect(Collectors.toList());
     }
 
     return generateConfig(deploymentName, serviceTypes);
@@ -90,32 +85,42 @@ public class GenerateService {
   /**
    * Generate config for a given deployment.
    *
-   * This involves a few steps:
+   * <p>This involves a few steps:
    *
-   *   1. Clear out old config generated in a prior run.
-   *   2. Generate configuration using the halconfig as the source of truth, while collecting files needed by
-   *      the deployment.
+   * <p>1. Clear out old config generated in a prior run. 2. Generate configuration using the
+   * halconfig as the source of truth, while collecting files needed by the deployment.
    *
    * @param deploymentName is the deployment whose config to generate
    * @param services is the list of services to generate configs for
    * @return a mapping from components to the profile's required local files.
    */
-  public ResolvedConfiguration generateConfig(String deploymentName, List<SpinnakerService.Type> services) {
+  public ResolvedConfiguration generateConfig(
+      String deploymentName, List<SpinnakerService.Type> services) {
     DaemonTaskHandler.newStage("Generating all Spinnaker profile files and endpoints");
-    log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
+    log.info(
+        "Generating config from \""
+            + halconfigPath
+            + "\" with deploymentName \""
+            + deploymentName
+            + "\"");
     File spinnakerStaging = halconfigDirectoryStructure.getStagingPath(deploymentName).toFile();
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
 
     DaemonTaskHandler.message("Building service endpoints");
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
-    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings =
+        serviceProvider.buildRuntimeSettings(deploymentConfiguration);
 
     // Step 1.
     try {
       FileUtils.deleteDirectory(spinnakerStaging);
     } catch (IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".").build());
+          new ConfigProblemBuilder(
+                  Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".")
+              .build());
     }
 
     Path userProfilePath = halconfigDirectoryStructure.getUserProfilePath(deploymentName);
@@ -124,10 +129,8 @@ public class GenerateService {
     // Step 2.
     Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
     for (SpinnakerService service : serviceProvider.getServices()) {
-      boolean isDesiredService = services
-          .stream()
-          .filter(s -> s.equals(service.getType()))
-          .count() > 0;
+      boolean isDesiredService =
+          services.stream().filter(s -> s.equals(service.getType())).count() > 0;
 
       if (!isDesiredService) {
         continue;
@@ -144,16 +147,31 @@ public class GenerateService {
       String profileMessage = "Generated " + profiles.size() + " profile" + pluralModifier;
       Map<String, Profile> outputProfiles = processProfiles(spinnakerStaging, profiles);
 
-      List<Profile> customProfiles = userProfileNames.stream()
-          .map(s -> (Optional<Profile>) service.customProfile(deploymentConfiguration, runtimeSettings, Paths.get(userProfilePath.toString(), s), s))
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .collect(Collectors.toList());
+      List<Profile> customProfiles =
+          userProfileNames.stream()
+              .map(
+                  s ->
+                      (Optional<Profile>)
+                          service.customProfile(
+                              deploymentConfiguration,
+                              runtimeSettings,
+                              Paths.get(userProfilePath.toString(), s),
+                              s))
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .collect(Collectors.toList());
 
       pluralModifier = customProfiles.size() == 1 ? "" : "s";
-      profileMessage += " and discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName();
+      profileMessage +=
+          " and discovered "
+              + customProfiles.size()
+              + " custom profile"
+              + pluralModifier
+              + " for "
+              + service.getCanonicalName();
       DaemonTaskHandler.message(profileMessage);
-      mergeProfilesAndPreserveProperties(outputProfiles, processProfiles(spinnakerStaging, customProfiles));
+      mergeProfilesAndPreserveProperties(
+          outputProfiles, processProfiles(spinnakerStaging, customProfiles));
 
       serviceProfiles.put(service.getType(), outputProfiles);
     }
@@ -164,7 +182,8 @@ public class GenerateService {
         .setRuntimeSettings(runtimeSettings);
   }
 
-  private void mergeProfilesAndPreserveProperties(Map<String, Profile> existingProfiles, Map<String, Profile> newProfiles) {
+  private void mergeProfilesAndPreserveProperties(
+      Map<String, Profile> existingProfiles, Map<String, Profile> newProfiles) {
     for (Map.Entry<String, Profile> entry : newProfiles.entrySet()) {
       String name = entry.getKey();
       Profile newProfile = entry.getValue();
@@ -200,11 +219,17 @@ public class GenerateService {
 
     File currentPath = new File(basePath, relativePath);
     return Arrays.stream(currentPath.listFiles())
-        .map(f -> f.isFile() ? Collections.singletonList(filePrefix + f.getName()) : aggregateProfilesInPath(basePath, filePrefix + f.getName()))
-        .reduce(new ArrayList<>(), (a, b) -> {
-          a.addAll(b);
-          return a;
-        });
+        .map(
+            f ->
+                f.isFile()
+                    ? Collections.singletonList(filePrefix + f.getName())
+                    : aggregateProfilesInPath(basePath, filePrefix + f.getName()))
+        .reduce(
+            new ArrayList<>(),
+            (a, b) -> {
+              a.addAll(b);
+              return a;
+            });
   }
 
   @Data

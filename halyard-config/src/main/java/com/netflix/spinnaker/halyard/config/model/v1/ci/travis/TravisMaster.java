@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class TravisMaster extends CIAccount {
@@ -34,7 +33,6 @@ public class TravisMaster extends CIAccount {
 
   private String address;
   private String baseUrl;
-  @Secret
-  private String githubToken;
+  @Secret private String githubToken;
   private Integer numberOfRepositories;
 }

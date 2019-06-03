@@ -24,17 +24,21 @@ import com.netflix.spinnaker.halyard.cli.command.v1.GlobalConfigOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 @Parameters(separators = "=")
-abstract public class AbstractConfigCommand extends NestableCommand {
-  @Parameter(names = { "--no-validate" }, description = "Skip validation.")
+public abstract class AbstractConfigCommand extends NestableCommand {
+  @Parameter(
+      names = {"--no-validate"},
+      description = "Skip validation.")
   public boolean noValidate = false;
 
-  @Parameter(names = { "--deployment" }, description = "If supplied, use this Halyard deployment. This will _not_ create a new deployment.")
+  @Parameter(
+      names = {"--deployment"},
+      description =
+          "If supplied, use this Halyard deployment. This will _not_ create a new deployment.")
   public void setDeployment(String deployment) {
     GlobalConfigOptions.getGlobalConfigOptions().setDeployment(deployment);
   }
@@ -42,10 +46,11 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   protected String getCurrentDeployment() {
     String deployment = GlobalConfigOptions.getGlobalConfigOptions().getDeployment();
     if (StringUtils.isEmpty(deployment)) {
-      deployment = new OperationHandler<String>()
-          .setFailureMesssage("Failed to get deployment name.")
-          .setOperation(Daemon.getCurrentDeployment())
-          .get();
+      deployment =
+          new OperationHandler<String>()
+              .setFailureMesssage("Failed to get deployment name.")
+              .setOperation(Daemon.getCurrentDeployment())
+              .get();
     }
 
     return deployment;
@@ -56,7 +61,8 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   }
 
   /**
-   * Provides consistent update semantics for updating a list of entries given a new list, entries to remove, and entries to add.
+   * Provides consistent update semantics for updating a list of entries given a new list, entries
+   * to remove, and entries to add.
    *
    * @param old is the prior set of entries - these are modified to addTo and removeFrom.
    * @param setTo is a new set of entries. If provided, the old ones are discarded.
@@ -65,7 +71,8 @@ abstract public class AbstractConfigCommand extends NestableCommand {
    * @return the updated set of entries.
    * @throws IllegalArgumentException when setTo and (addTo or removeFrom) are provided.
    */
-  protected static List<String> updateStringList(List<String> old, List<String> setTo, String addTo, String removeFrom) {
+  protected static List<String> updateStringList(
+      List<String> old, List<String> setTo, String addTo, String removeFrom) {
     if (old == null) {
       old = new ArrayList<>();
     }
@@ -75,7 +82,8 @@ abstract public class AbstractConfigCommand extends NestableCommand {
     boolean remove = removeFrom != null && !removeFrom.isEmpty();
 
     if (set && (add || remove)) {
-      throw new IllegalArgumentException("If set is specified, neither addTo nor removeFrom can be specified");
+      throw new IllegalArgumentException(
+          "If set is specified, neither addTo nor removeFrom can be specified");
     }
 
     if (set) {
@@ -93,17 +101,26 @@ abstract public class AbstractConfigCommand extends NestableCommand {
     }
   }
 
-  protected static void updatePermissions(Permissions.Builder permissions,
-                                          List<String> readPermissions,
-                                          String addReadPermission,
-                                          String removeReadPermission,
-                                          List<String> writePermissions,
-                                          String addWritePermission,
-                                          String removeWritePermission) {
-    List<String> resolvedReadPermissions = updateStringList(
-        permissions.get(Authorization.READ), readPermissions, addReadPermission, removeReadPermission);
-    List<String> resolvedWritePermissions = updateStringList(
-        permissions.get(Authorization.WRITE), writePermissions, addWritePermission, removeWritePermission);
+  protected static void updatePermissions(
+      Permissions.Builder permissions,
+      List<String> readPermissions,
+      String addReadPermission,
+      String removeReadPermission,
+      List<String> writePermissions,
+      String addWritePermission,
+      String removeWritePermission) {
+    List<String> resolvedReadPermissions =
+        updateStringList(
+            permissions.get(Authorization.READ),
+            readPermissions,
+            addReadPermission,
+            removeReadPermission);
+    List<String> resolvedWritePermissions =
+        updateStringList(
+            permissions.get(Authorization.WRITE),
+            writePermissions,
+            addWritePermission,
+            removeWritePermission);
 
     permissions.clear();
     permissions.add(Authorization.READ, resolvedReadPermissions);

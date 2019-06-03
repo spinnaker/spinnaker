@@ -31,11 +31,10 @@ import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.StorageObject;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 class GoogleStorage {
@@ -50,7 +49,10 @@ class GoogleStorage {
     projectId = properties.getProject();
     locationId = properties.getBucketLocation();
     bucketId = properties.getBucket();
-    rootFolder = StringUtils.isEmpty(properties.getRootFolder()) ? "halyard-backup" : properties.getRootFolder();
+    rootFolder =
+        StringUtils.isEmpty(properties.getRootFolder())
+            ? "halyard-backup"
+            : properties.getRootFolder();
 
     ensureBucketExistsAndVersioned(storage, projectId, locationId, bucketId);
   }
@@ -58,14 +60,13 @@ class GoogleStorage {
   void writeBytes(String name, byte[] contents) {
     name = String.join("/", rootFolder, name);
     try {
-      StorageObject object = new StorageObject()
-          .setBucket(bucketId)
-          .setName(name);
+      StorageObject object = new StorageObject().setBucket(bucketId).setName(name);
 
       ByteArrayContent content = new ByteArrayContent("application/text", contents);
       storage.objects().insert(bucketId, object, content).execute();
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage(), e);
     }
   }
 
@@ -84,7 +85,8 @@ class GoogleStorage {
         .build();
   }
 
-  private static void ensureBucketExistsAndVersioned(Storage storage, String projectId, String locationId, String bucketId) {
+  private static void ensureBucketExistsAndVersioned(
+      Storage storage, String projectId, String locationId, String bucketId) {
     Bucket bucket;
     try {
       bucket = storage.buckets().get(bucketId).execute();
@@ -103,12 +105,14 @@ class GoogleStorage {
     }
   }
 
-  private static Bucket createBucket(Storage storage, String projectId, String locationId, String bucketId) {
+  private static Bucket createBucket(
+      Storage storage, String projectId, String locationId, String bucketId) {
     try {
-      Bucket bucket = new Bucket()
-          .setLocation(locationId)
-          .setName(bucketId)
-          .setVersioning(new Bucket.Versioning().setEnabled(true));
+      Bucket bucket =
+          new Bucket()
+              .setLocation(locationId)
+              .setName(bucketId)
+              .setVersioning(new Bucket.Versioning().setEnabled(true));
 
       if (!StringUtils.isEmpty(locationId)) {
         bucket.setLocation(locationId);
@@ -120,7 +124,8 @@ class GoogleStorage {
     }
   }
 
-  private static GoogleCredential loadStorageCredential(HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
+  private static GoogleCredential loadStorageCredential(
+      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
     GoogleCredential credential;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);

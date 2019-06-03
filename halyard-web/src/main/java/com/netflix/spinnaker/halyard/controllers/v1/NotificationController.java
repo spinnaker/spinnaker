@@ -43,7 +43,8 @@ public class NotificationController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{notificationName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Notification> notification(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Notification> notification(
+      @PathVariable String deploymentName,
       @PathVariable String notificationName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Notification>builder()
@@ -55,7 +56,8 @@ public class NotificationController {
   }
 
   @RequestMapping(value = "/{notificationName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String notificationName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -68,10 +70,10 @@ public class NotificationController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Notifications> notifications(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, Notifications> notifications(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Notifications>builder()
-        .getter( () -> notificationService.getNotifications(deploymentName))
+        .getter(() -> notificationService.getNotifications(deploymentName))
         .validator(() -> notificationService.validateAllNotifications(deploymentName))
         .description("Get all notification settings")
         .build()
@@ -79,14 +81,14 @@ public class NotificationController {
   }
 
   @RequestMapping(value = "/{notificationName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setNotification(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setNotification(
+      @PathVariable String deploymentName,
       @PathVariable String notificationName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawNotification) {
-    Notification notification = objectMapper.convertValue(
-        rawNotification,
-        Notifications.translateNotificationType(notificationName)
-    );
+    Notification notification =
+        objectMapper.convertValue(
+            rawNotification, Notifications.translateNotificationType(notificationName));
     return GenericUpdateRequest.<Notification>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(n -> notificationService.setNotification(deploymentName, n))

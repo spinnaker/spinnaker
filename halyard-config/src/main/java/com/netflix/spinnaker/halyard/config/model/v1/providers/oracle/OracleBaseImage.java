@@ -14,26 +14,27 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-
 @Data
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class OracleBaseImage extends BaseImage<OracleBaseImage.OracleImageSettings, OracleBaseImage.OracleVirtualizationSettings> {
+public class OracleBaseImage
+    extends BaseImage<
+        OracleBaseImage.OracleImageSettings, OracleBaseImage.OracleVirtualizationSettings> {
 
-    private OracleImageSettings baseImage;
-    private OracleVirtualizationSettings virtualizationSettings;
+  private OracleImageSettings baseImage;
+  private OracleVirtualizationSettings virtualizationSettings;
 
-    @EqualsAndHashCode(callSuper = true)
-    @Data
-    @ToString(callSuper = true)
-    public static class OracleImageSettings extends BaseImage.ImageSettings {
-        // We have none to set
-    }
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  @ToString(callSuper = true)
+  public static class OracleImageSettings extends BaseImage.ImageSettings {
+    // We have none to set
+  }
 
-    @Data
-    @ToString
-    public static class OracleVirtualizationSettings {
-        String baseImageId;
-        String sshUserName;
-    }
+  @Data
+  @ToString
+  public static class OracleVirtualizationSettings {
+    String baseImageId;
+    String sshUserName;
+  }
 }

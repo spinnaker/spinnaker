@@ -25,15 +25,15 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditAccountCommand<T extends Account> extends AbstractHasAccountCommand {
+public abstract class AbstractEditAccountCommand<T extends Account>
+    extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -43,74 +43,63 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   @Deprecated
   @Parameter(
       names = "--add-required-group-membership",
-      description = "Add this group to the list of required group memberships."
-  )
+      description = "Add this group to the list of required group memberships.")
   private String addRequiredGroupMembership;
 
   @Deprecated
   @Parameter(
       names = "--remove-required-group-membership",
-      description = "Remove this group from the list of required group memberships."
-  )
+      description = "Remove this group from the list of required group memberships.")
   private String removeRequiredGroupMembership;
 
   @Deprecated
   @Parameter(
       variableArity = true,
       names = "--required-group-membership",
-      description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
-  )
+      description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION)
   List<String> requiredGroupMembership;
 
   @Parameter(
       names = "--add-read-permission",
-      description = "Add this permission to the list of read permissions."
-  )
+      description = "Add this permission to the list of read permissions.")
   private String addReadPermission;
 
   @Parameter(
       names = "--remove-read-permission",
-      description = "Remove this permission from the list of read permissions."
-  )
+      description = "Remove this permission from the list of read permissions.")
   private String removeReadPermission;
 
   @Parameter(
       variableArity = true,
       names = "--read-permissions",
-      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION)
   private List<String> readPermissions;
 
   @Parameter(
       names = "--add-write-permission",
-      description = "Add this permission to the list of write permissions."
-  )
+      description = "Add this permission to the list of write permissions.")
   private String addWritePermission;
 
   @Parameter(
       names = "--remove-write-permission",
-      description = "Remove this permission to from list of write permissions."
-  )
+      description = "Remove this permission to from list of write permissions.")
   private String removeWritePermission;
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
-      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION)
   private List<String> writePermissions;
 
   @Parameter(
       names = "--provider-version",
-      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION)
   private Provider.ProviderVersion providerVersion;
 
   @Parameter(
-        names = "--environment",
-        arity = 1,
-        description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION
-  )
+      names = "--environment",
+      arity = 1,
+      description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION)
   private String environment;
 
   protected abstract Account editAccount(T account);
@@ -127,7 +116,9 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
 
     return new OperationHandler<List<String>>()
         .setFailureMesssage("Failed to get options for field " + fieldName)
-        .setOperation(Daemon.getExistingAccountOptions(currentDeployment, providerName, accountName, fieldName))
+        .setOperation(
+            Daemon.getExistingAccountOptions(
+                currentDeployment, providerName, accountName, fieldName))
         .get();
   }
 
@@ -137,22 +128,35 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Account account = new OperationHandler<Account>()
-        .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
-        .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
-        .get();
+    Account account =
+        new OperationHandler<Account>()
+            .setFailureMesssage(
+                "Failed to get account " + accountName + " for provider " + providerName + ".")
+            .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
+            .get();
 
     int originaHash = account.hashCode();
 
     account = editAccount((T) account);
 
     account.setRequiredGroupMembership(
-        updateStringList(account.getRequiredGroupMembership(), requiredGroupMembership, addRequiredGroupMembership, removeRequiredGroupMembership));
+        updateStringList(
+            account.getRequiredGroupMembership(),
+            requiredGroupMembership,
+            addRequiredGroupMembership,
+            removeRequiredGroupMembership));
 
-    updatePermissions(account.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
-        writePermissions, addWritePermission, removeWritePermission);
+    updatePermissions(
+        account.getPermissions(),
+        readPermissions,
+        addReadPermission,
+        removeReadPermission,
+        writePermissions,
+        addWritePermission,
+        removeWritePermission);
 
-    account.setProviderVersion(isSet(providerVersion) ? providerVersion : account.getProviderVersion());
+    account.setProviderVersion(
+        isSet(providerVersion) ? providerVersion : account.getProviderVersion());
 
     account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
 
@@ -162,9 +166,12 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     }
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to edit account " + accountName + " for provider " + providerName + ".")
-        .setSuccessMessage("Successfully edited account " + accountName + " for provider " + providerName + ".")
-        .setOperation(Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, account))
+        .setFailureMesssage(
+            "Failed to edit account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage(
+            "Successfully edited account " + accountName + " for provider " + providerName + ".")
+        .setOperation(
+            Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, account))
         .get();
   }
 }

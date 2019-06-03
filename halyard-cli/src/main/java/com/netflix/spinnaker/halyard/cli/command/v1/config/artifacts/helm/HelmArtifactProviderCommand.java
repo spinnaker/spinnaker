@@ -25,10 +25,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractNam
 public class HelmArtifactProviderCommand extends AbstractNamedArtifactProviderCommand {
   @Override
   protected String getArtifactProviderName() {
-        return "helm";
-    }
+    return "helm";
+  }
 
   public HelmArtifactProviderCommand() {
-        registerSubcommand(new HelmArtifactAccountCommand());
-    }
+    registerSubcommand(new HelmArtifactAccountCommand());
+  }
 }

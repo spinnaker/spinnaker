@@ -25,28 +25,28 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
- * searches.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig's searches.
  */
 @Component
 public class SearchService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private RepositoryService repositoryService;
+  @Autowired private RepositoryService repositoryService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public List<Search> getAllSearches(String deploymentName, String repositoryName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName).withAnySearch();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setRepository(repositoryName)
+            .withAnySearch();
 
     List<Search> matchingSearches = lookupService.getMatchingNodesOfType(filter, Search.class);
 
@@ -63,29 +63,44 @@ public class SearchService {
 
     switch (matchingSearches.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No search with name \"" + searchName + "\" was found")
-            .setRemediation("Check if this search was defined in another repository service, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No search with name \"" + searchName + "\" was found")
+                .setRemediation(
+                    "Check if this search was defined in another repository service, or create a new one")
+                .build());
       case 1:
         return matchingSearches.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one search named \"" + searchName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate searches with name \"" + searchName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "More than one search named \"" + searchName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate searches with name \""
+                        + searchName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  public Search getRepositorySearch(String deploymentName, String repositoryName, String searchName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName).setSearch(searchName);
+  public Search getRepositorySearch(
+      String deploymentName, String repositoryName, String searchName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setRepository(repositoryName)
+            .setSearch(searchName);
     return getSearch(filter, searchName);
   }
 
   public Search getAnyRepositorySearch(String deploymentName, String searchName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyRepository().setSearch(searchName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).withAnyRepository().setSearch(searchName);
     return getSearch(filter, searchName);
   }
 
-  public void setSearch(String deploymentName, String repositoryName, String searchName, Search newSearch) {
+  public void setSearch(
+      String deploymentName, String repositoryName, String searchName, Search newSearch) {
     Repository repository = repositoryService.getRepository(deploymentName, repositoryName);
 
     for (int i = 0; i < repository.getSearches().size(); i++) {
@@ -96,12 +111,15 @@ public class SearchService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Search \"" + searchName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(Severity.FATAL, "Search \"" + searchName + "\" wasn't found")
+            .build());
   }
 
   public void deleteSearch(String deploymentName, String repositoryName, String searchName) {
     Repository repository = repositoryService.getRepository(deploymentName, repositoryName);
-    boolean removed = repository.getSearches().removeIf(search -> ((Search) search).getName().equals(searchName));
+    boolean removed =
+        repository.getSearches().removeIf(search -> ((Search) search).getName().equals(searchName));
 
     if (!removed) {
       throw new HalException(
@@ -115,13 +133,22 @@ public class SearchService {
     repository.getSearches().add(newSearch);
   }
 
-  public ProblemSet validateSearch(String deploymentName, String repositoryName, String searchName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName).setSearch(searchName);
+  public ProblemSet validateSearch(
+      String deploymentName, String repositoryName, String searchName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setRepository(repositoryName)
+            .setSearch(searchName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllSearches(String deploymentName, String repositoryName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName).withAnySearch();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setRepository(repositoryName)
+            .withAnySearch();
     return validateService.validateMatchingFilter(filter);
   }
 }

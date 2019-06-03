@@ -22,9 +22,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import lombok.Data;
 import org.slf4j.LoggerFactory;
 
-/**
- * This is the collection of general, top-level flags to be interpreted by halyard.
- */
+/** This is the collection of general, top-level flags to be interpreted by halyard. */
 @Data
 public class GlobalOptions {
   private boolean color = true;
@@ -63,7 +61,7 @@ public class GlobalOptions {
     i = name.indexOf("-");
     if (i != -1) {
       String prefix = name.substring(0, i);
-      String suffix = name.substring(i+1, name.length());
+      String suffix = name.substring(i + 1, name.length());
       name = prefix + suffix.substring(0, 1).toUpperCase() + suffix.substring(1, suffix.length());
     }
     try {

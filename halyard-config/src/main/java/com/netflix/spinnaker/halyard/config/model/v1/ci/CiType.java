@@ -48,7 +48,9 @@ public enum CiType {
     try {
       return CiType.valueOf(ciType);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(String.format("No Continous Integration service with name '%s' handled by halyard", ciType));
+      throw new IllegalArgumentException(
+          String.format(
+              "No Continous Integration service with name '%s' handled by halyard", ciType));
     }
   }
 }

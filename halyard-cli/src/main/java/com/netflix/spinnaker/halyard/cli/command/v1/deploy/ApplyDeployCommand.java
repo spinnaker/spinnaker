@@ -22,80 +22,79 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.AbstractRemoteActionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "apply";
 
-  private final static String deployParamWarning = "WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.\n\n";
+  private static final String deployParamWarning =
+      "WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.\n\n";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Deploy or update the currently configured instance of Spinnaker to a selected environment.";
+  private String shortDescription =
+      "Deploy or update the currently configured instance of Spinnaker to a selected environment.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join("",
-      "This command deploys Spinnaker, depending on how you've configured your deployment. ",
-      "Local deployments are applied to the machine running Halyard, whereas Distributed deployments are applied to a cloud provider. ",
-      "Local deployments are subject to downtime during updates, whereas Distributed deployments are deployed and updated via a headless ",
-      "'bootstrap' deployment of Spinnaker, and don't suffer downtime."
-  );
+  private String longDescription =
+      String.join(
+          "",
+          "This command deploys Spinnaker, depending on how you've configured your deployment. ",
+          "Local deployments are applied to the machine running Halyard, whereas Distributed deployments are applied to a cloud provider. ",
+          "Local deployments are subject to downtime during updates, whereas Distributed deployments are deployed and updated via a headless ",
+          "'bootstrap' deployment of Spinnaker, and don't suffer downtime.");
 
   @Parameter(
       names = "--omit-config",
-      description = deployParamWarning
-          + "This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts "
-          + "for later manual configuration."
-  )
+      description =
+          deployParamWarning
+              + "This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts "
+              + "for later manual configuration.")
   boolean omitConfig;
 
   @Parameter(
       names = "--flush-infrastructure-caches",
-      description = deployParamWarning
-          + "This flushes infrastructure caches (clouddriver) after the deploy succeeds."
-  )
+      description =
+          deployParamWarning
+              + "This flushes infrastructure caches (clouddriver) after the deploy succeeds.")
   boolean flushInfrastructureCaches;
 
   @Parameter(
       names = "--prep-only",
-      description = "This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the "
-          + "repositories for a localgit setup."
-  )
+      description =
+          "This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the "
+              + "repositories for a localgit setup.")
   boolean prepOnly;
 
   @Parameter(
       names = "--service-names",
       description = "When supplied, only install or update the specified Spinnaker services.",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> serviceNames = new ArrayList<>();
 
   @Parameter(
       names = "--exclude-service-names",
       description = "When supplied, do not install or update the specified Spinnaker services.",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> excludeServiceNames = new ArrayList<>();
 
   @Parameter(
       names = "--delete-orphaned-services",
-      description = "Deletes unused Spinnaker services after the deploy succeeds. "
-          + "This flag is not allowed when using the --service-names or --exclude-service-names arg."
-  )
+      description =
+          "Deletes unused Spinnaker services after the deploy succeeds. "
+              + "This flag is not allowed when using the --service-names or --exclude-service-names arg.")
   boolean deleteOrphanedServices;
 
   @Parameter(
       names = "--wait-for-completion",
-      description = "When supplied, wait for all containers to be ready before returning (only applies to Kubernetes V2 provider)."
-  )
+      description =
+          "When supplied, wait for all containers to be ready before returning (only applies to Kubernetes V2 provider).")
   boolean waitForCompletion;
 
   @Override
@@ -118,7 +117,9 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
         new OperationHandler<RemoteAction>()
             .setFailureMesssage("Failed to prep Spinnaker deployment")
             .setSuccessMessage("Preparation complete... deploying Spinnaker")
-            .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames));
+            .setOperation(
+                Daemon.prepDeployment(
+                    getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames));
 
     if (prepOnly) {
       return prepHandler;
@@ -128,7 +129,9 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
       return new OperationHandler<RemoteAction>()
           .setFailureMesssage("Failed to deploy Spinnaker.")
           .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
-          .setOperation(Daemon.deployDeployment(getCurrentDeployment(), false, deployOptions, serviceNames, excludeServiceNames));
+          .setOperation(
+              Daemon.deployDeployment(
+                  getCurrentDeployment(), false, deployOptions, serviceNames, excludeServiceNames));
     }
   }
 }

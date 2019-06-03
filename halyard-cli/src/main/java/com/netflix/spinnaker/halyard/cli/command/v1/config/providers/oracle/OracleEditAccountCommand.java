@@ -24,47 +24,32 @@ public class OracleEditAccountCommand extends AbstractEditAccountCommand<OracleA
   }
 
   @Parameter(
-          names = "--compartment-id",
-          description = OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION
-  )
+      names = "--compartment-id",
+      description = OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION)
   private String compartmentId;
 
-  @Parameter(
-          names = "--user-id",
-          description = OracleCommandProperties.USER_ID_DESCRIPTION
-  )
+  @Parameter(names = "--user-id", description = OracleCommandProperties.USER_ID_DESCRIPTION)
   private String userId;
 
-  @Parameter(
-          names = "--fingerprint",
-          description = OracleCommandProperties.FINGERPRINT_DESCRIPTION
-  )
+  @Parameter(names = "--fingerprint", description = OracleCommandProperties.FINGERPRINT_DESCRIPTION)
   private String fingerprint;
 
   @Parameter(
-          names = "--ssh-private-key-file-path",
-          converter = LocalFileConverter.class,
-          description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
-  )
+      names = "--ssh-private-key-file-path",
+      converter = LocalFileConverter.class,
+      description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION)
   private String sshPrivateKeyFilePath;
 
   @Parameter(
-          names = "--private-key-passphrase",
-          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
-          password = true
-  )
+      names = "--private-key-passphrase",
+      description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+      password = true)
   private String privateKeyPassphrase;
 
-  @Parameter(
-          names = "--tenancyId",
-          description = OracleCommandProperties.TENANCY_ID_DESCRIPTION
-  )
+  @Parameter(names = "--tenancyId", description = OracleCommandProperties.TENANCY_ID_DESCRIPTION)
   private String tenancyId;
 
-  @Parameter(
-          names = "--region",
-          description = OracleCommandProperties.REGION_DESCRIPTION
-  )
+  @Parameter(names = "--region", description = OracleCommandProperties.REGION_DESCRIPTION)
   private String region;
 
   @Override
@@ -72,8 +57,10 @@ public class OracleEditAccountCommand extends AbstractEditAccountCommand<OracleA
     account.setCompartmentId(isSet(compartmentId) ? compartmentId : account.getCompartmentId());
     account.setUserId(isSet(userId) ? userId : account.getUserId());
     account.setFingerprint(isSet(fingerprint) ? fingerprint : account.getFingerprint());
-    account.setSshPrivateKeyFilePath(isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath : account.getSshPrivateKeyFilePath());
-    account.setPrivateKeyPassphrase(isSet(privateKeyPassphrase) ? privateKeyPassphrase : account.getPrivateKeyPassphrase());
+    account.setSshPrivateKeyFilePath(
+        isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath : account.getSshPrivateKeyFilePath());
+    account.setPrivateKeyPassphrase(
+        isSet(privateKeyPassphrase) ? privateKeyPassphrase : account.getPrivateKeyPassphrase());
     account.setTenancyId(isSet(tenancyId) ? tenancyId : account.getTenancyId());
     account.setRegion(isSet(region) ? region : account.getRegion());
     return account;

@@ -25,8 +25,8 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-abstract public class RoleProvider extends Node {
-  abstract public GroupMembership.RoleProviderType getRoleProviderType();
+public abstract class RoleProvider extends Node {
+  public abstract GroupMembership.RoleProviderType getRoleProviderType();
 
   @Override
   public NodeIterator getChildren() {

@@ -24,14 +24,14 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends AbstractHasBaseImageCommand {
+public abstract class AbstractEditBaseImageCommand<T extends BaseImage>
+    extends AbstractHasBaseImageCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -40,34 +40,27 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
 
   protected abstract BaseImage editBaseImage(T baseImage);
 
-  @Parameter(
-      names = "--id",
-      description = BakeryCommandProperties.IMAGE_ID_DESCRIPTION
-  )
+  @Parameter(names = "--id", description = BakeryCommandProperties.IMAGE_ID_DESCRIPTION)
   private String id;
 
   @Parameter(
       names = "--short-description",
-      description = BakeryCommandProperties.SHORT_DESCRIPTION_DESCRIPTION
-  )
+      description = BakeryCommandProperties.SHORT_DESCRIPTION_DESCRIPTION)
   private String shortDescription;
 
   @Parameter(
       names = "--detailed-description",
-      description = BakeryCommandProperties.DETAILED_DESCRIPTION_DESCRIPTION
-  )
+      description = BakeryCommandProperties.DETAILED_DESCRIPTION_DESCRIPTION)
   private String detailedDescription;
 
   @Parameter(
       names = "--package-type",
-      description = BakeryCommandProperties.PACKAGE_TYPE_DESCRIPTION
-  )
+      description = BakeryCommandProperties.PACKAGE_TYPE_DESCRIPTION)
   private String packageType;
 
   @Parameter(
       names = "--template-file",
-      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION
-  )
+      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION)
   private String templateFile;
 
   public String getShortDescription() {
@@ -80,23 +73,31 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    BaseImage baseImage = new OperationHandler<BaseImage>()
-        .setFailureMesssage("Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
-        .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
-        .get();
+    BaseImage baseImage =
+        new OperationHandler<BaseImage>()
+            .setFailureMesssage(
+                "Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
+            .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
+            .get();
 
     int originalHash = baseImage.hashCode();
 
     BaseImage.ImageSettings imageSettings = baseImage.getBaseImage();
     if (imageSettings == null) {
-      throw new RuntimeException("Image settings cannot be deleted during an edit. This is a bug in the " + getProviderName() + " provider's implementation of halyard.");
+      throw new RuntimeException(
+          "Image settings cannot be deleted during an edit. This is a bug in the "
+              + getProviderName()
+              + " provider's implementation of halyard.");
     }
 
     imageSettings.setId(isSet(id) ? id : imageSettings.getId());
-    imageSettings.setShortDescription(isSet(shortDescription) ? shortDescription : imageSettings.getShortDescription());
-    imageSettings.setDetailedDescription(isSet(detailedDescription) ? detailedDescription : imageSettings.getDetailedDescription());
+    imageSettings.setShortDescription(
+        isSet(shortDescription) ? shortDescription : imageSettings.getShortDescription());
+    imageSettings.setDetailedDescription(
+        isSet(detailedDescription) ? detailedDescription : imageSettings.getDetailedDescription());
     imageSettings.setPackageType(isSet(packageType) ? packageType : imageSettings.getPackageType());
-    imageSettings.setTemplateFile(isSet(templateFile) ? templateFile : imageSettings.getTemplateFile());
+    imageSettings.setTemplateFile(
+        isSet(templateFile) ? templateFile : imageSettings.getTemplateFile());
 
     baseImage = editBaseImage((T) baseImage);
 
@@ -106,9 +107,13 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
     }
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to edit base image " + baseImageId + " in" + providerName + "'s bakery.")
-        .setSuccessMessage("Successfully edited base image " + baseImageId + " in" + providerName + "'s bakery.")
-        .setOperation(Daemon.setBaseImage(currentDeployment, providerName, baseImageId, !noValidate, baseImage))
+        .setFailureMesssage(
+            "Failed to edit base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setSuccessMessage(
+            "Successfully edited base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setOperation(
+            Daemon.setBaseImage(
+                currentDeployment, providerName, baseImageId, !noValidate, baseImage))
         .get();
   }
 }

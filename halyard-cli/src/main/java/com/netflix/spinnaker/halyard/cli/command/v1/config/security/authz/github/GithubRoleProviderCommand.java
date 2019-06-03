@@ -26,7 +26,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @Parameters(separators = "=")
 public class GithubRoleProviderCommand extends AbstractRoleProviderCommand {
-  private GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GITHUB;
+  private GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.GITHUB;
 
   public GithubRoleProviderCommand() {
     registerSubcommand(new EditGithubRoleProviderCommand());

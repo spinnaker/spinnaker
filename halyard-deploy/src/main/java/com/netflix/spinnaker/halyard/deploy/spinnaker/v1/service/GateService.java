@@ -26,31 +26,28 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot128Prof
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot154ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class GateService extends SpringService<GateService.Gate> {
+public abstract class GateService extends SpringService<GateService.Gate> {
 
   private static final String BOOT_UPGRADED_VERSION = "0.7.0";
 
-  @Autowired
-  private GateBoot154ProfileFactory boot154ProfileFactory;
+  @Autowired private GateBoot154ProfileFactory boot154ProfileFactory;
 
-  @Autowired
-  private GateBoot128ProfileFactory boot128ProfileFactory;
+  @Autowired private GateBoot128ProfileFactory boot128ProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -67,17 +64,22 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     return Gate.class;
   }
 
-  protected void appendReadonlyClouddriverForDeck(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-  }
+  protected void appendReadonlyClouddriverForDeck(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {}
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "gate.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    GateProfileFactory gateProfileFactory = getGateProfileFactory(deploymentConfiguration.getName());
-    Profile profile = gateProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    GateProfileFactory gateProfileFactory =
+        getGateProfileFactory(deploymentConfiguration.getName());
+    Profile profile =
+        gateProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     appendReadonlyClouddriverForDeck(profile, deploymentConfiguration, endpoints);
 
@@ -86,7 +88,8 @@ abstract public class GateService extends SpringService<GateService.Gate> {
   }
 
   private GateProfileFactory getGateProfileFactory(String deploymentName) {
-    String version = getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
+    String version =
+        getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
     try {
       if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
         return boot128ProfileFactory;
@@ -101,7 +104,7 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     super();
   }
 
-  public interface Gate { }
+  public interface Gate {}
 
   @EqualsAndHashCode(callSuper = true)
   @Data

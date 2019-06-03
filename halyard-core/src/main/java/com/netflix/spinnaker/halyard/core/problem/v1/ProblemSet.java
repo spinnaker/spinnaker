@@ -19,24 +19,26 @@ package com.netflix.spinnaker.halyard.core.problem.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import java.util.*;
 import lombok.Getter;
 
-import java.util.*;
-
 /**
- * ProblemSet represents all problems collected when validating the currently loaded/modified halconfig.
+ * ProblemSet represents all problems collected when validating the currently loaded/modified
+ * halconfig.
  */
 public class ProblemSet {
-  @Getter
-  private List<Problem> problems = new ArrayList<>();
+  @Getter private List<Problem> problems = new ArrayList<>();
 
   public Map<String, List<Problem>> groupByLocation() {
     Map<String, List<Problem>> result = new HashMap<>();
     for (Problem problem : problems) {
-      result.merge(problem.getLocation(),
-          new ArrayList<Problem>() {{
-            add(problem);
-          }},
+      result.merge(
+          problem.getLocation(),
+          new ArrayList<Problem>() {
+            {
+              add(problem);
+            }
+          },
           (List a, List b) -> {
             a.addAll(b);
             return a;
@@ -71,7 +73,7 @@ public class ProblemSet {
     add(problem);
   }
 
-  public ProblemSet() { }
+  public ProblemSet() {}
 
   /**
    * Find the highest severity this problem set stores.
@@ -83,8 +85,7 @@ public class ProblemSet {
       return Problem.Severity.NONE;
     }
 
-    return problems
-        .stream()
+    return problems.stream()
         .map(Problem::getSeverity)
         .reduce(Problem.Severity.NONE, (a, b) -> a.compareTo(b) > 0 ? a : b);
   }
@@ -92,8 +93,9 @@ public class ProblemSet {
   /**
    * This is can be used to ignore errors that user deems frivolous.
    *
-   * Example: A client's Jenkins instance isn't connecting to Halyard, but they are sure it will connect to Igor, so they
-   * can force halyard to only generate an error if the severity exceeds "FATAL" (which is impossible).
+   * <p>Example: A client's Jenkins instance isn't connecting to Halyard, but they are sure it will
+   * connect to Igor, so they can force halyard to only generate an error if the severity exceeds
+   * "FATAL" (which is impossible).
    *
    * @param severity is the severity to compare all errors to that this problem set stores.
    */

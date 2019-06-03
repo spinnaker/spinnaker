@@ -32,120 +32,91 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     return "kubernetes";
   }
 
-  @Parameter(
-      names = "--context",
-      description = KubernetesCommandProperties.CONTEXT_DESCRIPTION
-  )
+  @Parameter(names = "--context", description = KubernetesCommandProperties.CONTEXT_DESCRIPTION)
   private String context;
 
   @Parameter(
       names = "--kubeconfig-file",
       converter = LocalFileConverter.class,
-      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION)
   private String kubeconfigFile;
 
   @Parameter(
       names = "--namespaces",
       variableArity = true,
-      description = KubernetesCommandProperties.NAMESPACES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.NAMESPACES_DESCRIPTION)
   public List<String> namespaces = new ArrayList<>();
 
   @Parameter(
       names = "--omit-namespaces",
       variableArity = true,
-      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION)
   public List<String> omitNamespaces = new ArrayList<>();
 
   @Parameter(
       names = "--kinds",
       variableArity = true,
-      description = KubernetesCommandProperties.KINDS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.KINDS_DESCRIPTION)
   public List<String> kinds = new ArrayList<>();
 
   @Parameter(
       names = "--omit-kinds",
       variableArity = true,
-      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION)
   public List<String> omitKinds = new ArrayList<>();
 
   @Parameter(
       names = "--docker-registries",
       variableArity = true,
-      description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION)
   public List<String> dockerRegistries = new ArrayList<>();
-  
-  @Parameter(
-      names = "--oauth-service-account",
-      hidden = true
-  )
+
+  @Parameter(names = "--oauth-service-account", hidden = true)
   public String oAuthServiceAccount;
-  
-  @Parameter(
-      names = "--oauth-scopes",
-      variableArity = true,
-      hidden = true
-  )
+
+  @Parameter(names = "--oauth-scopes", variableArity = true, hidden = true)
   public List<String> oAuthScopes = new ArrayList<>();
 
-  @Parameter(
-      names = "--naming-strategy",
-      hidden = true
-  )
+  @Parameter(names = "--naming-strategy", hidden = true)
   public String namingStrategy;
 
   @Parameter(
       names = "--service-account",
       arity = 1,
-      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION)
   public Boolean serviceAccount;
 
   @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
-      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION)
   public Boolean configureImagePullSecrets = true;
 
-  @Parameter(
-      names = "--skin",
-      arity = 1,
-      hidden = true
-  )
+  @Parameter(names = "--skin", arity = 1, hidden = true)
   public String skin;
 
   @Parameter(
       names = "--only-spinnaker-managed",
       arity = 1,
-      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION)
   public Boolean onlySpinnakerManaged = false;
 
   @Parameter(
-        names = "--check-permissions-on-startup",
-        arity = 1,
-        description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP
-  )
+      names = "--check-permissions-on-startup",
+      arity = 1,
+      description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP)
   public Boolean checkPermissionsOnStartup;
 
   @Parameter(
       names = "--live-manifest-calls",
       arity = 1,
-      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS
-  )
+      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS)
   public Boolean liveManifestCalls;
 
   @Parameter(
-          names = "--cache-threads",
-          arity = 1,
-          description = KubernetesCommandProperties.CACHE_THREADS
-  )
+      names = "--cache-threads",
+      arity = 1,
+      description = KubernetesCommandProperties.CACHE_THREADS)
   private int cacheThreads = 1;
 
   @Override
@@ -159,7 +130,11 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setOmitKinds(omitKinds);
     account.setConfigureImagePullSecrets(configureImagePullSecrets);
     account.setServiceAccount(serviceAccount);
-    dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
+    dockerRegistries.forEach(
+        registryName ->
+            account
+                .getDockerRegistries()
+                .add(new DockerRegistryReference().setAccountName(registryName)));
     account.setOAuthServiceAccount(oAuthServiceAccount);
     account.setOAuthScopes(oAuthScopes);
     account.setNamingStrategy(namingStrategy);

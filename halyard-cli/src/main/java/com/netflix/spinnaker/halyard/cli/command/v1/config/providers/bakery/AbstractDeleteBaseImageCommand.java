@@ -21,15 +21,12 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific PROVIDER base image
- */
+/** Delete a specific PROVIDER base image */
 @Parameters(separators = "=")
 public abstract class AbstractDeleteBaseImageCommand extends AbstractHasBaseImageCommand {
   @Getter(AccessLevel.PROTECTED)
@@ -48,9 +45,16 @@ public abstract class AbstractDeleteBaseImageCommand extends AbstractHasBaseImag
     String providerName = getProviderName();
     String baseImageId = getBaseImageId();
     new OperationHandler<Void>()
-        .setSuccessMessage("Successfully deleted base image " + baseImageId + " from " + providerName + "'s bakery.")
-        .setFailureMesssage("Failed to delete base image " + baseImageId + " from " + providerName + "'s bakery.")
-        .setOperation(Daemon.deleteBaseImage(currentDeployment, providerName, baseImageId, !noValidate))
+        .setSuccessMessage(
+            "Successfully deleted base image "
+                + baseImageId
+                + " from "
+                + providerName
+                + "'s bakery.")
+        .setFailureMesssage(
+            "Failed to delete base image " + baseImageId + " from " + providerName + "'s bakery.")
+        .setOperation(
+            Daemon.deleteBaseImage(currentDeployment, providerName, baseImageId, !noValidate))
         .get();
   }
 }

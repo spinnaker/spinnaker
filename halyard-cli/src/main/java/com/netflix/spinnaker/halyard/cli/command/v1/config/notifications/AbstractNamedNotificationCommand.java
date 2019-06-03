@@ -33,21 +33,23 @@ public abstract class AbstractNamedNotificationCommand extends AbstractNotificat
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getNotificationName() + " notification";
+    return "Manage and view Spinnaker configuration for the "
+        + getNotificationName()
+        + " notification";
   }
 
   protected AbstractNamedNotificationCommand() {
-    registerSubcommand(new NotificationEnableDisableCommandBuilder()
-        .setNotificationName(getNotificationName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new NotificationEnableDisableCommandBuilder()
+            .setNotificationName(getNotificationName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new NotificationEnableDisableCommandBuilder()
-        .setNotificationName(getNotificationName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new NotificationEnableDisableCommandBuilder()
+            .setNotificationName(getNotificationName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

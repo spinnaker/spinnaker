@@ -30,9 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Reports the entire contents of ~/.hal/config
- */
+/** Reports the entire contents of ~/.hal/config */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/backup")
@@ -41,17 +39,19 @@ public class BackupController {
 
   @RequestMapping(value = "/create", method = RequestMethod.PUT)
   DaemonTask<Halconfig, StringBodyRequest> create() {
-    StaticRequestBuilder<StringBodyRequest> builder = new StaticRequestBuilder<>(
-        () -> new StringBodyRequest(backupService.create()));
+    StaticRequestBuilder<StringBodyRequest> builder =
+        new StaticRequestBuilder<>(() -> new StringBodyRequest(backupService.create()));
     return DaemonTaskHandler.submitTask(builder::build, "Create backup");
   }
 
   @RequestMapping(value = "/restore", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> restore(@RequestParam String backupPath) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>( () -> {
-      backupService.restore(backupPath);
-      return null;
-    });
+    StaticRequestBuilder<Void> builder =
+        new StaticRequestBuilder<>(
+            () -> {
+              backupService.restore(backupPath);
+              return null;
+            });
     return DaemonTaskHandler.submitTask(builder::build, "Restore backup");
   }
 }

@@ -33,5 +33,5 @@ public class GitHubArtifactAccount extends ArtifactAccount {
   @Secret String password;
   @LocalFile @SecretFile String usernamePasswordFile;
   @Secret String token;
-  @LocalFile @SecretFile  String tokenFile;
+  @LocalFile @SecretFile String tokenFile;
 }

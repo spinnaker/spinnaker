@@ -23,20 +23,19 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianDeckService extends DeckService implements BakeDebianService<DeckService.Deck> {
-  @Autowired
-  ArtifactService artifactService;
+public class BakeDebianDeckService extends DeckService
+    implements BakeDebianService<DeckService.Deck> {
+  @Autowired ArtifactService artifactService;
 
   StartupPriority priority = new StartupPriority(StartupPriority.LOW);
 
@@ -48,7 +47,8 @@ public class BakeDebianDeckService extends DeckService implements BakeDebianServ
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 

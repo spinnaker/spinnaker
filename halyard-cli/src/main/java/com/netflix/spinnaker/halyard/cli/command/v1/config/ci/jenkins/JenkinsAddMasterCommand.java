@@ -32,37 +32,25 @@ public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
   @Parameter(
       names = "--address",
       required = true,
-      description = JenkinsCommandProperties.ADDRESS_DESCRIPTION
-  )
+      description = JenkinsCommandProperties.ADDRESS_DESCRIPTION)
   private String address;
 
-  @Parameter(
-      names = "--username",
-      description = JenkinsCommandProperties.USERNAME_DESCRIPTION
-  )
+  @Parameter(names = "--username", description = JenkinsCommandProperties.USERNAME_DESCRIPTION)
   public String username;
 
   @Parameter(
       names = "--password",
       password = true,
-      description = JenkinsCommandProperties.PASSWORD_DESCRIPTION
-  )
+      description = JenkinsCommandProperties.PASSWORD_DESCRIPTION)
   public String password;
 
-  @Parameter(
-      names = "--csrf",
-      arity = 1,
-      description = JenkinsCommandProperties.CSRF_DESCRIPTION
-  )
+  @Parameter(names = "--csrf", arity = 1, description = JenkinsCommandProperties.CSRF_DESCRIPTION)
   public Boolean csrf;
 
   @Override
   protected CIAccount buildMaster(String masterName) {
     JenkinsMaster master = (JenkinsMaster) new JenkinsMaster().setName(masterName);
-    master.setAddress(address)
-        .setPassword(password)
-        .setUsername(username)
-        .setCsrf(csrf);
+    master.setAddress(address).setPassword(password).setUsername(username).setCsrf(csrf);
 
     return master;
   }

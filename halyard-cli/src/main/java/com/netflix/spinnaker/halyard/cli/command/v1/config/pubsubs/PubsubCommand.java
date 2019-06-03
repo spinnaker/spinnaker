@@ -27,7 +27,7 @@ import lombok.Getter;
 /**
  * This is a top-level command for dealing with your halconfig.
  *
- * Usage is `$ hal config pubsub`
+ * <p>Usage is `$ hal config pubsub`
  */
 @Parameters(separators = "=")
 public class PubsubCommand extends NestableCommand {

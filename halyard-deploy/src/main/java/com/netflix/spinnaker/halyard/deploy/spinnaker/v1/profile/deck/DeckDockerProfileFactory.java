@@ -25,15 +25,13 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component
 public class DeckDockerProfileFactory extends DeckProfileFactory {
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
   @Override
   public String commentPrefix() {
@@ -46,12 +44,15 @@ public class DeckDockerProfileFactory extends DeckProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
     ServiceSettings deckSettings = endpoints.getServiceSettings(Type.DECK);
     ServiceSettings gateSettings = endpoints.getServiceSettings(Type.GATE);
-    ApacheSsl apacheSsl= deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
+    ApacheSsl apacheSsl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
     Map<String, String> env = profile.getEnv();
 
     if (apacheSsl.isEnabled()) {
@@ -63,7 +64,11 @@ public class DeckDockerProfileFactory extends DeckProfileFactory {
       env.put("PASSPHRASE", apacheSsl.getSslCertificatePassphrase());
     }
 
-    env.put("AUTH_ENABLED", Boolean.toString(deploymentConfiguration.getSecurity().getAuthn().isEnabled()));
-    env.put("FIAT_ENABLED", Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
+    env.put(
+        "AUTH_ENABLED",
+        Boolean.toString(deploymentConfiguration.getSecurity().getAuthn().isEnabled()));
+    env.put(
+        "FIAT_ENABLED",
+        Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
   }
 }

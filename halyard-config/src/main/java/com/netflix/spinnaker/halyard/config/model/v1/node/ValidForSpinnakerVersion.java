@@ -22,13 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation defines a strict subset of Spinnaker versions for which the field it annotates is valid.
+ * This annotation defines a strict subset of Spinnaker versions for which the field it annotates is
+ * valid.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ValidForSpinnakerVersion {
   String lowerBound();
+
   String upperBound() default "";
+
   String tooLowMessage();
+
   String tooHighMessage() default "";
 }

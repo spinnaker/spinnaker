@@ -22,19 +22,23 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import io.fabric8.utils.Strings;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public interface BakeService<T> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath(String deploymentName);
+
   String installArtifactCommand(DeploymentDetails deploymentDetails);
+
   StartupPriority getPriority();
+
   String getStartupCommand();
 
-  default String stageStartupScripts(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
+  default String stageStartupScripts(
+      DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
+    Map<String, Profile> profiles =
+        resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {
@@ -53,11 +57,12 @@ public interface BakeService<T> extends HasServiceSettings<T> {
   }
 
   class StartupPriority {
-    public final static int LOW = 0;
-    public final static int MODERATE = 5;
-    public final static int HIGH = 10;
+    public static final int LOW = 0;
+    public static final int MODERATE = 5;
+    public static final int HIGH = 10;
 
     final Integer priority;
+
     public StartupPriority(Integer priority) {
       this.priority = priority;
     }

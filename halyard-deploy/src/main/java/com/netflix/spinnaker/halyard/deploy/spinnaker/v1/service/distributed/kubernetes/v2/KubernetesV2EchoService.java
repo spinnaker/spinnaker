@@ -31,16 +31,19 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2EchoService extends EchoService implements KubernetesV2Service<EchoService.Echo> {
+public class KubernetesV2EchoService extends EchoService
+    implements KubernetesV2Service<EchoService.Echo> {
   final DeployPriority deployPriority = new DeployPriority(0);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
   public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
-    return !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getEcho().isEnabled();
+    return !deploymentConfiguration
+        .getDeploymentEnvironment()
+        .getHaServices()
+        .getEcho()
+        .isEnabled();
   }
 
   @Override

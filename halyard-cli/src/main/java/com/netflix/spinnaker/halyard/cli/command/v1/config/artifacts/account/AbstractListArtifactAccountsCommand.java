@@ -25,18 +25,18 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractListArtifactAccountsCommand extends AbstractArtifactProviderCommand {
   public String getShortDescription() {
-    return "List the artifact account names for the " + getArtifactProviderName() + " artifact provider.";
+    return "List the artifact account names for the "
+        + getArtifactProviderName()
+        + " artifact provider.";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private ArtifactProvider getArtifactProvider() {
     String currentDeployment = getCurrentDeployment();

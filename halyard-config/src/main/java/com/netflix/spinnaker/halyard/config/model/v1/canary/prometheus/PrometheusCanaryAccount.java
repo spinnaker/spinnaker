@@ -20,13 +20,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
+import java.util.Collections;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Collections;
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -37,11 +36,10 @@ public class PrometheusCanaryAccount extends AbstractCanaryAccount implements Cl
   private String username;
   private String password;
 
-  @LocalFile
-  @SecretFile
-  private String usernamePasswordFile;
+  @LocalFile @SecretFile private String usernamePasswordFile;
 
-  private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
+  private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes =
+      Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
 
   @Data
   public static class Endpoint {

@@ -22,15 +22,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHas
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific Google Cloud Build account
- */
+/** Delete a specific Google Cloud Build account */
 @Parameters(separators = "=")
 public class GooglecloudBuildDeleteAccountCommand extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
@@ -55,7 +52,8 @@ public class GooglecloudBuildDeleteAccountCommand extends AbstractHasAccountComm
     new OperationHandler<Void>()
         .setOperation(Daemon.deleteMaster(currentDeployment, ciName, accountName, !noValidate))
         .setSuccessMessage(String.format("Deleted Google Cloud Build account %s.", accountName))
-        .setFailureMesssage(String.format("Failed to delete Google Cloud Build account %s.", accountName))
+        .setFailureMesssage(
+            String.format("Failed to delete Google Cloud Build account %s.", accountName))
         .get();
     AnsiUi.success("Deleted " + accountName);
   }

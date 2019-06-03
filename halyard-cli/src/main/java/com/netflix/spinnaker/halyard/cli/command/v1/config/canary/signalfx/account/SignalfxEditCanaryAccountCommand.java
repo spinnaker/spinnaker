@@ -23,18 +23,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryAccount;
 
 @Parameters(separators = "=")
-public class SignalfxEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<SignalfxCanaryAccount> {
+public class SignalfxEditCanaryAccountCommand
+    extends AbstractEditCanaryAccountCommand<SignalfxCanaryAccount> {
 
   @Override
   protected String getServiceIntegration() {
     return "Signalfx";
   }
 
-  @Parameter(
-      names = "--access-token",
-      password = true,
-      description = "The SignalFx access token."
-  )
+  @Parameter(names = "--access-token", password = true, description = "The SignalFx access token.")
   private String accessToken;
 
   @Override

@@ -35,36 +35,31 @@ public class PrometheusAddCanaryAccountCommand extends AbstractAddCanaryAccountC
   @Parameter(
       names = "--base-url",
       required = true,
-      description = "The base URL to the Prometheus server."
-  )
+      description = "The base URL to the Prometheus server.")
   private String baseUrl;
 
-  @Parameter(
-      names = "--username",
-      description = "A basic auth username."
-  )
+  @Parameter(names = "--username", description = "A basic auth username.")
   private String username;
 
-  @Parameter(
-      names = "--password",
-      description = "A basic auth password.",
-      password = true
-  )
+  @Parameter(names = "--password", description = "A basic auth password.", password = true)
   private String password;
 
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "The path to a file containing \"username:password\"."
-  )
+      description = "The path to a file containing \"username:password\".")
   private String usernamePasswordFile;
 
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    PrometheusCanaryAccount account = (PrometheusCanaryAccount)new PrometheusCanaryAccount().setName(accountName);
+    PrometheusCanaryAccount account =
+        (PrometheusCanaryAccount) new PrometheusCanaryAccount().setName(accountName);
 
     account.setEndpoint(new PrometheusCanaryAccount.Endpoint().setBaseUrl(baseUrl));
-    account.setUsername(username).setPassword(password).setUsernamePasswordFile(usernamePasswordFile);
+    account
+        .setUsername(username)
+        .setPassword(password)
+        .setUsernamePasswordFile(usernamePasswordFile);
 
     return account;
   }

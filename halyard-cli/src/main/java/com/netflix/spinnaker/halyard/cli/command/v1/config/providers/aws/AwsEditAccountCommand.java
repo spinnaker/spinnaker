@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,52 +33,36 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
   }
 
   @Parameter(
-    names = "--default-key-pair",
-    description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
-  )
+      names = "--default-key-pair",
+      description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION)
   private String defaultKeyPair;
 
-  @Parameter(
-    names = "--edda",
-    description = AwsCommandProperties.EDDA_DESCRIPTION
-  )
+  @Parameter(names = "--edda", description = AwsCommandProperties.EDDA_DESCRIPTION)
   private String edda;
 
-  @Parameter(
-    names = "--discovery",
-    description = AwsCommandProperties.DISCOVERY_DESCRIPTION
-  )
+  @Parameter(names = "--discovery", description = AwsCommandProperties.DISCOVERY_DESCRIPTION)
   private String discovery;
 
-  @Parameter(
-    names = "--account-id",
-    description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION
-  )
+  @Parameter(names = "--account-id", description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION)
   private String accountId;
 
   @Parameter(
-    names = "--regions",
-    variableArity = true,
-    description = AwsCommandProperties.REGIONS_DESCRIPTION
-  )
+      names = "--regions",
+      variableArity = true,
+      description = AwsCommandProperties.REGIONS_DESCRIPTION)
   private List<String> regions;
 
   @Parameter(
-    names = "--add-region",
-    description = "Add this region to the list of managed regions."
-  )
+      names = "--add-region",
+      description = "Add this region to the list of managed regions.")
   private String addRegion;
 
   @Parameter(
-    names = "--remove-region",
-    description = "Remove this region from the list of managed regions."
-  )
+      names = "--remove-region",
+      description = "Remove this region from the list of managed regions.")
   private String removeRegion;
 
-  @Parameter(
-    names = "--assume-role",
-    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
-  )
+  @Parameter(names = "--assume-role", description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION)
   private String assumeRole;
 
   @Override
@@ -91,16 +74,15 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
     account.setAssumeRole(isSet(assumeRole) ? assumeRole : account.getAssumeRole());
 
     try {
-      List<String> existingRegions = account
-        .getRegions()
-        .stream()
-        .map(AwsProvider.AwsRegion::getName).collect(Collectors.toList());
+      List<String> existingRegions =
+          account.getRegions().stream()
+              .map(AwsProvider.AwsRegion::getName)
+              .collect(Collectors.toList());
       regions = updateStringList(existingRegions, regions, addRegion, removeRegion);
-      account.setRegions(regions
-        .stream()
-        .map(r -> new AwsProvider.AwsRegion().setName(r))
-        .collect(Collectors.toList())
-      );
+      account.setRegions(
+          regions.stream()
+              .map(r -> new AwsProvider.AwsRegion().setName(r))
+              .collect(Collectors.toList()));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --regions or --[add/remove]-region");
     }

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
+
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-
-import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
 
 @Parameters(separators = "=")
 public abstract class AbstractNamedProviderCommand extends AbstractProviderCommand {
@@ -36,17 +36,17 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
   }
 
   protected AbstractNamedProviderCommand() {
-    registerSubcommand(new ProviderEnableDisableCommandBuilder()
-        .setProviderName(getProviderName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new ProviderEnableDisableCommandBuilder()
+            .setProviderName(getProviderName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new ProviderEnableDisableCommandBuilder()
-        .setProviderName(getProviderName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new ProviderEnableDisableCommandBuilder()
+            .setProviderName(getProviderName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

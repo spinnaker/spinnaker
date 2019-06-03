@@ -23,21 +23,19 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSetti
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.KayentaService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1KayentaService extends KayentaService implements KubernetesV1DistributedService<KayentaService.Kayenta> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1KayentaService extends KayentaService
+    implements KubernetesV1DistributedService<KayentaService.Kayenta> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -45,19 +43,24 @@ public class KubernetesV1KayentaService extends KayentaService implements Kubern
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory()).ifPresent(profiles::add);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(profiles::add);
+    generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory())
+        .ifPresent(profiles::add);
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory())
+        .ifPresent(profiles::add);
     return profiles;
   }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
     String location = kubernetesSharedServiceSettings.getDeployLocation();
-    settings.setAddress(buildAddress(location))
+    settings
+        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
         .setEnabled(deploymentConfiguration.getCanary().isEnabled());

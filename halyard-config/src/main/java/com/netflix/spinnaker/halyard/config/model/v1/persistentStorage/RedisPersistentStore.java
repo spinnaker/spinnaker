@@ -19,10 +19,9 @@
 package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import java.net.URI;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.net.URI;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

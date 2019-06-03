@@ -27,45 +27,43 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class HelmAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-      names = "--repository",
-      description = "Helm chart repository"
-  )
+  @Parameter(names = "--repository", description = "Helm chart repository")
   private String repository;
-  @Parameter(
-      names = "--username",
-      description = "Helm chart repository basic auth username"
-  )
+
+  @Parameter(names = "--username", description = "Helm chart repository basic auth username")
   private String username;
+
   @Parameter(
       names = "--password",
       password = true,
-      description = "Helm chart repository basic auth password"
-  )
+      description = "Helm chart repository basic auth password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for helm chart repository basic auth"
-  )
+      description =
+          "File containing \"username:password\" to use for helm chart repository basic auth")
   private String usernamePasswordFile;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     HelmArtifactAccount artifactAccount = new HelmArtifactAccount().setName(accountName);
-    artifactAccount.setRepository(repository)
+    artifactAccount
+        .setRepository(repository)
         .setUsername(username)
         .setPassword(password)
         .setUsernamePasswordFile(usernamePasswordFile);
     return artifactAccount;
   }
 
-
   @Override
-  protected ArtifactAccount emptyArtifactAccount() { return new HelmArtifactAccount(); }
+  protected ArtifactAccount emptyArtifactAccount() {
+    return new HelmArtifactAccount();
+  }
 
   @Override
   protected String getArtifactProviderName() {
-        return "helm";
-    }
+    return "helm";
+  }
 }

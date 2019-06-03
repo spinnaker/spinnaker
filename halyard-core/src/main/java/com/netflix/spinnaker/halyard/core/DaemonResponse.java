@@ -21,36 +21,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
+import java.util.function.Supplier;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
- * This serves to return exceptions encountered during validation that the client can explicitly chose to ignore alongside the desired response.
+ * This serves to return exceptions encountered during validation that the client can explicitly
+ * chose to ignore alongside the desired response.
+ *
  * @param <T> is the type of the response expected by the client.
  */
 @Slf4j
 public class DaemonResponse<T> {
-  @Getter
-  @Setter
-  private T responseBody;
+  @Getter @Setter private T responseBody;
 
-  @Getter
-  private final ProblemSet problemSet;
+  @Getter private final ProblemSet problemSet;
 
   @JsonCreator
-  public DaemonResponse(@JsonProperty("responseBody") T responseBody, @JsonProperty("problemSet") ProblemSet problemSet) {
+  public DaemonResponse(
+      @JsonProperty("responseBody") T responseBody,
+      @JsonProperty("problemSet") ProblemSet problemSet) {
     this.responseBody = responseBody;
     this.problemSet = problemSet;
   }
 
-  /**
-   * This asks for options if "hypothetically" the update was applied
-   */
+  /** This asks for options if "hypothetically" the update was applied */
   @Data
   public static class UpdateOptionsRequestBuilder {
     private Runnable update;
@@ -72,9 +70,7 @@ public class DaemonResponse<T> {
     }
   }
 
-  /**
-   * This asks for options given the current state of the context
-   */
+  /** This asks for options given the current state of the context */
   @Data
   public static class StaticOptionsRequestBuilder {
     private Supplier<FieldOptions> fieldOptionsResponse;
@@ -175,6 +171,7 @@ public class DaemonResponse<T> {
 
   public interface FieldOptions {
     List<String> getOptions();
+
     ProblemSet getProblemSet();
   }
 }

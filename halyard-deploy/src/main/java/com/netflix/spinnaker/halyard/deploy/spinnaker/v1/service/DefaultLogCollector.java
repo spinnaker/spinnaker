@@ -22,7 +22,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 
-abstract public class DefaultLogCollector<T, D extends DeploymentDetails> implements LogCollector<T, D> {
+public abstract class DefaultLogCollector<T, D extends DeploymentDetails>
+    implements LogCollector<T, D> {
   final HasServiceSettings<T> service;
 
   public DefaultLogCollector(HasServiceSettings<T> service) {
@@ -35,7 +36,8 @@ abstract public class DefaultLogCollector<T, D extends DeploymentDetails> implem
   }
 
   @Override
-  public ServiceSettings getDefaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+  public ServiceSettings getDefaultServiceSettings(
+      DeploymentConfiguration deploymentConfiguration) {
     return service.getDefaultServiceSettings(deploymentConfiguration);
   }
 

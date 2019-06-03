@@ -21,16 +21,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-abstract public class AuthnMethod extends Node {
+public abstract class AuthnMethod extends Node {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();
@@ -39,18 +38,20 @@ abstract public class AuthnMethod extends Node {
   private boolean enabled;
 
   @JsonIgnore
-  abstract public Method getMethod();
+  public abstract Method getMethod();
 
   public static Class<? extends AuthnMethod> translateAuthnMethodName(String authnMethodName) {
-    Optional<? extends Class<?>> res = Arrays.stream(Authn.class.getDeclaredFields())
-        .filter(f -> f.getName().equals(authnMethodName))
-        .map(Field::getType)
-        .findFirst();
+    Optional<? extends Class<?>> res =
+        Arrays.stream(Authn.class.getDeclaredFields())
+            .filter(f -> f.getName().equals(authnMethodName))
+            .map(Field::getType)
+            .findFirst();
 
     if (res.isPresent()) {
-      return (Class<? extends AuthnMethod>)res.get();
+      return (Class<? extends AuthnMethod>) res.get();
     } else {
-      throw new IllegalArgumentException("No authn method with name \"" + authnMethodName + "\" handled by halyard");
+      throw new IllegalArgumentException(
+          "No authn method with name \"" + authnMethodName + "\" handled by halyard");
     }
   }
 

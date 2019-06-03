@@ -26,30 +26,26 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.bitbucket.Bitbuck
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class BitbucketEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<BitbucketArtifactAccount> {
-  @Parameter(
-      names = "--username",
-      description = "Bitbucket username"
-  )
+public class BitbucketEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<BitbucketArtifactAccount> {
+  @Parameter(names = "--username", description = "Bitbucket username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "Bitbucket password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "Bitbucket password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for Bitbucket authentication"
-  )
+      description = "File containing \"username:password\" to use for Bitbucket authentication")
   private String usernamePasswordFile;
 
   @Override
   protected ArtifactAccount editArtifactAccount(BitbucketArtifactAccount account) {
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
-    account.setUsernamePasswordFile(isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
+    account.setUsernamePasswordFile(
+        isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
     return account;
   }
 

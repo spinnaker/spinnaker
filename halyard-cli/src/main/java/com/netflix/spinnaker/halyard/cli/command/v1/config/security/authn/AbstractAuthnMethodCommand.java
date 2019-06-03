@@ -22,6 +22,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
 @Parameters(separators = "=")
-abstract public class AbstractAuthnMethodCommand extends AbstractConfigCommand {
-  abstract public AuthnMethod.Method getMethod();
+public abstract class AbstractAuthnMethodCommand extends AbstractConfigCommand {
+  public abstract AuthnMethod.Method getMethod();
 }

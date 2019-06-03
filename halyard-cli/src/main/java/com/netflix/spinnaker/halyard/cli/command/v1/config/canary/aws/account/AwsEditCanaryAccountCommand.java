@@ -25,54 +25,42 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
 
 @Parameters(separators = "=")
-public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<AwsCanaryAccount> {
+public class AwsEditCanaryAccountCommand
+    extends AbstractEditCanaryAccountCommand<AwsCanaryAccount> {
 
   @Override
   protected String getServiceIntegration() {
     return "AWS";
   }
 
-  @Parameter(
-      names = "--bucket",
-      description = CommonCanaryCommandProperties.BUCKET
-  )
+  @Parameter(names = "--bucket", description = CommonCanaryCommandProperties.BUCKET)
   private String bucket;
 
-  @Parameter(
-      names = "--region",
-      description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION
-  )
+  @Parameter(names = "--region", description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION)
   private String region;
 
-  @Parameter(
-      names = "--root-folder",
-      description = CommonCanaryCommandProperties.ROOT_FOLDER
-  )
+  @Parameter(names = "--root-folder", description = CommonCanaryCommandProperties.ROOT_FOLDER)
   private String rootFolder;
 
   @Parameter(
       names = "--profile-name",
-      description = CommonCanaryAwsCommandProperties.PROFILE_NAME_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.PROFILE_NAME_DESCRIPTION)
   private String profileName;
 
   @Parameter(
       names = "--endpoint",
-      description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION)
   private String endpoint;
 
   @Parameter(
       names = "--access-key-id",
-      description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION)
   private String accessKeyId;
 
   @Parameter(
       names = "--secret-access-key",
       description = CommonCanaryAwsCommandProperties.SECRET_KEY_DESCRIPTION,
-      password = true
-  )
+      password = true)
   private String secretAccessKey;
 
   @Override
@@ -83,7 +71,8 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
     account.setProfileName(isSet(profileName) ? profileName : account.getProfileName());
     account.setEndpoint(isSet(endpoint) ? endpoint : account.getEndpoint());
     account.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : account.getAccessKeyId());
-    account.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : account.getSecretAccessKey());
+    account.setSecretAccessKey(
+        isSet(secretAccessKey) ? secretAccessKey : account.getSecretAccessKey());
 
     return account;
   }

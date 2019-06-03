@@ -30,10 +30,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,7 +44,8 @@ public class ArtifactProviderController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ArtifactProvider> get(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, ArtifactProvider> get(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<ArtifactProvider>builder()
@@ -57,14 +57,14 @@ public class ArtifactProviderController {
   }
 
   @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setArtifactProvider(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setArtifactProvider(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawArtifactProvider) {
-    ArtifactProvider provider = objectMapper.convertValue(
-        rawArtifactProvider,
-        Artifacts.translateArtifactProviderType(providerName)
-    );
+    ArtifactProvider provider =
+        objectMapper.convertValue(
+            rawArtifactProvider, Artifacts.translateArtifactProviderType(providerName));
     return GenericUpdateRequest.<ArtifactProvider>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(p -> providerService.setArtifactProvider(deploymentName, p))
@@ -75,7 +75,8 @@ public class ArtifactProviderController {
   }
 
   @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -88,8 +89,8 @@ public class ArtifactProviderController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<ArtifactProvider>> providers(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<ArtifactProvider>> providers(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<ArtifactProvider>>builder()
         .getter(() -> providerService.getAllArtifactProviders(deploymentName))
         .validator(() -> providerService.validateAllArtifactProviders(deploymentName))

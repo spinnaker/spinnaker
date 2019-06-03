@@ -23,7 +23,7 @@ import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 
-abstract public class JinjaTemplatedResource extends TemplatedResource {
+public abstract class JinjaTemplatedResource extends TemplatedResource {
   private Jinjava jinjava = new Jinjava();
 
   @Override
@@ -32,7 +32,10 @@ abstract public class JinjaTemplatedResource extends TemplatedResource {
     try {
       return jinjava.render(contents, bindings);
     } catch (FatalTemplateErrorsException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to render template:\n" + contents + "\n" + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Unable to render template:\n" + contents + "\n" + e.getMessage(),
+          e);
     }
   }
 }

@@ -19,13 +19,13 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.model.ConsulServiceNodeDetails;
+import java.util.List;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
 
-import java.util.List;
-
 public interface ConsulApi {
   @GET("/v1/health/service/{serviceName}")
-  List<ConsulServiceNodeDetails> serviceHealth(@Path("serviceName") String serviceName, @Query("passing") boolean passing);
+  List<ConsulServiceNodeDetails> serviceHealth(
+      @Path("serviceName") String serviceName, @Query("passing") boolean passing);
 }

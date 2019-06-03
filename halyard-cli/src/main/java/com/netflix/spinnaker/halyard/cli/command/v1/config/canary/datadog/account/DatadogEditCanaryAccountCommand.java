@@ -23,36 +23,37 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryAccount;
 
 @Parameters(separators = "=")
-public class DatadogEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<DatadogCanaryAccount> {
+public class DatadogEditCanaryAccountCommand
+    extends AbstractEditCanaryAccountCommand<DatadogCanaryAccount> {
 
   @Override
   protected String getServiceIntegration() {
     return "Datadog";
   }
 
-  @Parameter(
-      names = "--base-url",
-      description = "The base URL to the Datadog server."
-  )
+  @Parameter(names = "--base-url", description = "The base URL to the Datadog server.")
   private String baseUrl;
 
   @Parameter(
       names = "--api-key",
       password = true,
-      description = "Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api."
-  )
+      description =
+          "Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api.")
   private String apiKey;
 
   @Parameter(
       names = "--application-key",
       password = true,
-      description = "Your Datadog application key. See https://app.datadoghq.com/account/settings#api."
-  )
+      description =
+          "Your Datadog application key. See https://app.datadoghq.com/account/settings#api.")
   private String applicationKey;
 
   @Override
   protected AbstractCanaryAccount editAccount(DatadogCanaryAccount account) {
-    account.setEndpoint(isSet(baseUrl) ? new DatadogCanaryAccount.Endpoint().setBaseUrl(baseUrl) : account.getEndpoint());
+    account.setEndpoint(
+        isSet(baseUrl)
+            ? new DatadogCanaryAccount.Endpoint().setBaseUrl(baseUrl)
+            : account.getEndpoint());
     account.setApiKey(isSet(apiKey) ? apiKey : account.getApiKey());
     account.setApplicationKey(isSet(applicationKey) ? applicationKey : account.getApplicationKey());
 

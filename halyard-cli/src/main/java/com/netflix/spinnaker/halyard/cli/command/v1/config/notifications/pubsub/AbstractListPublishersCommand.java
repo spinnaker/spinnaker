@@ -33,8 +33,7 @@ public abstract class AbstractListPublishersCommand extends AbstractPubsubComman
     return "List the publisher names for the " + getPubsubName() + " pubsub.";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private Pubsub getPubsub() {
     String currentDeployment = getCurrentDeployment();

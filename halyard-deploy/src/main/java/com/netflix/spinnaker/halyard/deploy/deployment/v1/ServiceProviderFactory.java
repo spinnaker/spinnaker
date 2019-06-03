@@ -36,29 +36,23 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceProviderFactory {
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
-  @Autowired
-  KubernetesV1DistributedServiceProvider kubernetesV1DistributedServiceProvider;
+  @Autowired KubernetesV1DistributedServiceProvider kubernetesV1DistributedServiceProvider;
 
-  @Autowired
-  KubectlServiceProvider kubectlServiceProvider;
+  @Autowired KubectlServiceProvider kubectlServiceProvider;
 
-  @Autowired
-  GoogleDistributedServiceProvider googleDistributedServiceProvider;
+  @Autowired GoogleDistributedServiceProvider googleDistributedServiceProvider;
 
-  @Autowired
-  LocalDebianServiceProvider localDebianServiceProvider;
+  @Autowired LocalDebianServiceProvider localDebianServiceProvider;
 
-  @Autowired
-  LocalGitServiceProvider localGitServiceProvider;
+  @Autowired LocalGitServiceProvider localGitServiceProvider;
 
-  @Autowired
-  BakeDebianServiceProvider bakeDebianServiceProvider;
+  @Autowired BakeDebianServiceProvider bakeDebianServiceProvider;
 
   public SpinnakerServiceProvider create(DeploymentConfiguration deploymentConfiguration) {
-    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
+    DeploymentEnvironment.DeploymentType type =
+        deploymentConfiguration.getDeploymentEnvironment().getType();
     // TODO(lwander) what's the best UX here? mashing together deploys & installs feels wrong.
     switch (type) {
       case BakeDebian:
@@ -74,16 +68,23 @@ public class ServiceProviderFactory {
     }
   }
 
-  private SpinnakerServiceProvider createDeployableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
-    DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
+  private SpinnakerServiceProvider createDeployableServiceProvider(
+      DeploymentConfiguration deploymentConfiguration) {
+    DeploymentEnvironment deploymentEnvironment =
+        deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
 
     if (accountName == null || accountName.isEmpty()) {
-      throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "An account name must be "
-          + "specified as the desired place to run your simple clustered deployment.").build());
+      throw new HalException(
+          new ConfigProblemBuilder(
+                  Problem.Severity.FATAL,
+                  "An account name must be "
+                      + "specified as the desired place to run your simple clustered deployment.")
+              .build());
     }
 
-    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
+    Account account =
+        accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
     Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
 
     switch (providerType) {
@@ -99,7 +100,8 @@ public class ServiceProviderFactory {
       case GOOGLE:
         return googleDistributedServiceProvider;
       default:
-        throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getName());
+        throw new IllegalArgumentException(
+            "No Clustered Simple Deployment for " + providerType.getName());
     }
   }
 }

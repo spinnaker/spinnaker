@@ -33,19 +33,19 @@ public class DeprecateVersionCommand extends NestableCommand {
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.";
+  private String shortDescription =
+      "Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.";
 
   @Parameter(
       names = "--version",
       required = true,
-      description = "The version (x.y.z) of Spinnaker to be deprecated."
-  )
+      description = "The version (x.y.z) of Spinnaker to be deprecated.")
   private String version;
 
   @Parameter(
       names = "--illegal-reason",
-      description = "If supplied, the version will not only be deprecated, but will no longer be installable by Halyard for the supplied reason"
-  )
+      description =
+          "If supplied, the version will not only be deprecated, but will no longer be installable by Halyard for the supplied reason")
   private String illegalReason;
 
   @Override
@@ -53,7 +53,8 @@ public class DeprecateVersionCommand extends NestableCommand {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to deprecate your version.")
         .setSuccessMessage("Successfully deprecated your version.")
-        .setOperation(Daemon.deprecateVersion(new Versions.Version().setVersion(version), illegalReason))
+        .setOperation(
+            Daemon.deprecateVersion(new Versions.Version().setVersion(version), illegalReason))
         .get();
   }
 }

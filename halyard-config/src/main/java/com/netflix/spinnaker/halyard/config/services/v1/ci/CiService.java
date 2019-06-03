@@ -28,14 +28,13 @@ import com.netflix.spinnaker.halyard.config.services.v1.ValidateService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * cis.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs cis.
  */
 @RequiredArgsConstructor
 public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
@@ -72,13 +71,21 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            String.format("No Continuous Integration service with name '%s' could be found", ciName())).build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    String.format(
+                        "No Continuous Integration service with name '%s' could be found",
+                        ciName()))
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            String.format("More than one CI with name '%s' found", ciName())).build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    String.format("More than one CI with name '%s' found", ciName()))
+                .build());
     }
   }
 
@@ -88,16 +95,15 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
   }
 
   public ProblemSet validateCi(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setCi(ciName())
-        .withAnyAccount();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public List<T> getAllMasters(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyMaster();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyMaster();
 
     List<T> matchingAccounts = getMatchingAccountNodes(filter);
 
@@ -114,20 +120,29 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, String.format("No master with name '%s' was found", masterName))
-            .setRemediation("Check if this master was defined in another Continuous Integration service, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, String.format("No master with name '%s' was found", masterName))
+                .setRemediation(
+                    "Check if this master was defined in another Continuous Integration service, or create a new one")
+                .build());
       case 1:
         return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, String.format("No master with name '%s' was found", masterName))
-            .setRemediation(String.format("Manually delete/rename duplicate masters with name '%s' in your halconfig file", masterName)).build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, String.format("No master with name '%s' was found", masterName))
+                .setRemediation(
+                    String.format(
+                        "Manually delete/rename duplicate masters with name '%s' in your halconfig file",
+                        masterName))
+                .build());
     }
   }
 
   public T getCiMaster(String deploymentName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName()).setMaster(masterName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setCi(ciName()).setMaster(masterName);
     return getMaster(filter, masterName);
   }
 
@@ -142,7 +157,10 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, String.format("Master '%s' wasn't found", masterName)).build());
+    throw new HalException(
+        new ConfigProblemBuilder(
+                Severity.FATAL, String.format("Master '%s' wasn't found", masterName))
+            .build());
   }
 
   public void deleteMaster(String deploymentName, String masterName) {
@@ -151,7 +169,8 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
 
     if (!removed) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, String.format("Master '%s' wasn't found", masterName))
+          new ConfigProblemBuilder(
+                  Severity.FATAL, String.format("Master '%s' wasn't found", masterName))
               .build());
     }
   }
@@ -162,12 +181,14 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
   }
 
   public ProblemSet validateMaster(String deploymentName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName()).setMaster(masterName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setCi(ciName()).setMaster(masterName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllMasters(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyMaster();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setCi(ciName()).withAnyMaster();
     return validateService.validateMatchingFilter(filter);
   }
 }

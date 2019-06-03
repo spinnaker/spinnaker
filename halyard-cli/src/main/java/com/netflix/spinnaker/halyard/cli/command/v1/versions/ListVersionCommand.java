@@ -35,26 +35,30 @@ public class ListVersionCommand extends AbstractConfigCommand {
   private String shortDescription = "List the available Spinnaker versions and their changelogs.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ",
-      "All Spinnaker releases that have been fully validated are listed here.",
-      "You can pick one of these releases to deploy using the `hal config version edit`",
-      "command. There are unlisted, non-supported releases as well, but we advise against",
-      "running them. For more information, contact the developers at http://join.spinnaker.io."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "All Spinnaker releases that have been fully validated are listed here.",
+          "You can pick one of these releases to deploy using the `hal config version edit`",
+          "command. There are unlisted, non-supported releases as well, but we advise against",
+          "running them. For more information, contact the developers at http://join.spinnaker.io.");
 
   @Override
   protected void executeThis() {
-    String version = new OperationHandler<String>()
-        .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
-        .setFailureMesssage("Failed to load your version of Spinnaker.")
-        .get();
+    String version =
+        new OperationHandler<String>()
+            .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
+            .setFailureMesssage("Failed to load your version of Spinnaker.")
+            .get();
 
-    Versions versions = new OperationHandler<Versions>()
-        .setOperation(Daemon.getVersions())
-        .setFailureMesssage("Failed to load available Spinnaker versions.")
-        .setSuccessMessage("You are on version \"" + version + "\", and the following are available:")
-        .setFormat(AnsiFormatUtils.Format.STRING)
-        .setUserFormatted(true)
-        .get();
+    Versions versions =
+        new OperationHandler<Versions>()
+            .setOperation(Daemon.getVersions())
+            .setFailureMesssage("Failed to load available Spinnaker versions.")
+            .setSuccessMessage(
+                "You are on version \"" + version + "\", and the following are available:")
+            .setFormat(AnsiFormatUtils.Format.STRING)
+            .setUserFormatted(true)
+            .get();
   }
 }

@@ -29,7 +29,8 @@ public class HaServiceCommand extends NestableCommand {
   private String commandName = "ha";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure, validate, and view the specified high availability Spinnaker service configuration.";
+  private String shortDescription =
+      "Configure, validate, and view the specified high availability Spinnaker service configuration.";
 
   public HaServiceCommand() {
     registerSubcommand(new ClouddriverHaServiceCommand());

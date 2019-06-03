@@ -34,11 +34,9 @@ import org.springframework.stereotype.Component;
 public class LocalGitFiatService extends FiatService implements LocalGitService<FiatService.Fiat> {
   String startCommand = "./gradlew";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   protected String getConfigOutputPath() {
@@ -47,7 +45,8 @@ public class LocalGitFiatService extends FiatService implements LocalGitService<
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(deploymentConfiguration.getSecurity().getAuthz().isEnabled());
   }

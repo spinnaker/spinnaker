@@ -19,10 +19,9 @@ package com.netflix.spinnaker.halyard.config.model.v1.security;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
+import java.net.URL;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.net.URL;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -31,16 +30,12 @@ public class Saml extends AuthnMethod {
   private final Method method = Method.SAML;
   private final String nodeName = "saml";
 
-  @LocalFile
-  private String metadataLocal;
+  @LocalFile private String metadataLocal;
   private String metadataRemote;
   private String issuerId;
 
-  @LocalFile
-  @SecretFile
-  private String keyStore;
-  @Secret
-  private String keyStorePassword;
+  @LocalFile @SecretFile private String keyStore;
+  @Secret private String keyStorePassword;
   private String keyStoreAliasName;
 
   private URL serviceAddress;

@@ -26,13 +26,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
-@Parameters(separators =  "=")
+@Parameters(separators = "=")
 public class GcsAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Override

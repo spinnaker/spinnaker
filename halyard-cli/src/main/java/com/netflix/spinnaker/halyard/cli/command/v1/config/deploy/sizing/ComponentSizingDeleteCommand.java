@@ -18,41 +18,29 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.deploy.sizing;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-import lombok.AccessLevel;
-import lombok.Getter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Parameters(separators = "=")
 public class ComponentSizingDeleteCommand extends AbstractComponentSizingUpdateCommand {
 
-    public ComponentSizingDeleteCommand(SpinnakerService.Type spinnakerService) {
-        super(spinnakerService, "delete");
-    }
+  public ComponentSizingDeleteCommand(SpinnakerService.Type spinnakerService) {
+    super(spinnakerService, "delete");
+  }
 
-    @Override
-    protected String getShortDescription() {
-        return "Delete the custom component sizings for service " + spinnakerService.getCanonicalName();
-    }
+  @Override
+  protected String getShortDescription() {
+    return "Delete the custom component sizings for service " + spinnakerService.getCanonicalName();
+  }
 
-    @Override
-    protected CustomSizing update(CustomSizing customSizing) {
-        return delete(customSizing);
-    }
+  @Override
+  protected CustomSizing update(CustomSizing customSizing) {
+    return delete(customSizing);
+  }
 
-    private CustomSizing delete(CustomSizing customSizing) {
-        customSizing.put(spinnakerService.getServiceName(), null);
-        return customSizing;
-    }
+  private CustomSizing delete(CustomSizing customSizing) {
+    customSizing.put(spinnakerService.getServiceName(), null);
+    return customSizing;
+  }
 }

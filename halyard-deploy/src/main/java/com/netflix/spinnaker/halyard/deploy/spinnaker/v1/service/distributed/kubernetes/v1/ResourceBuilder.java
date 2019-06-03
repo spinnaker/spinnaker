@@ -33,28 +33,41 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 class ResourceBuilder {
-  static Container buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment) {
+  static Container buildContainer(
+      String name,
+      ServiceSettings settings,
+      List<ConfigSource> configSources,
+      DeploymentEnvironment deploymentEnvironment) {
     int port = settings.getPort();
-    List<EnvVar> envVars = settings.getEnv().entrySet().stream().map(e -> {
-      EnvVarBuilder envVarBuilder = new EnvVarBuilder();
-      return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
-    }).collect(Collectors.toList());
+    List<EnvVar> envVars =
+        settings.getEnv().entrySet().stream()
+            .map(
+                e -> {
+                  EnvVarBuilder envVarBuilder = new EnvVarBuilder();
+                  return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
+                })
+            .collect(Collectors.toList());
 
-    configSources.forEach(c -> {
-      c.getEnv().entrySet().forEach(envEntry -> {
-        EnvVarBuilder envVarBuilder = new EnvVarBuilder();
-        envVars.add(envVarBuilder.withName(envEntry.getKey())
-            .withValue(envEntry.getValue())
-            .build());
-      });
-    });
+    configSources.forEach(
+        c -> {
+          c.getEnv()
+              .entrySet()
+              .forEach(
+                  envEntry -> {
+                    EnvVarBuilder envVarBuilder = new EnvVarBuilder();
+                    envVars.add(
+                        envVarBuilder
+                            .withName(envEntry.getKey())
+                            .withValue(envEntry.getValue())
+                            .build());
+                  });
+        });
 
     ProbeBuilder probeBuilder = new ProbeBuilder();
 
@@ -66,39 +79,45 @@ class ResourceBuilder {
     }
 
     if (settings.getHealthEndpoint() != null) {
-      probeBuilder = probeBuilder
-          .withNewHttpGet()
-          .withNewPort(port)
-          .withPath(settings.getHealthEndpoint())
-          .withScheme(scheme)
-          .endHttpGet();
+      probeBuilder =
+          probeBuilder
+              .withNewHttpGet()
+              .withNewPort(port)
+              .withPath(settings.getHealthEndpoint())
+              .withScheme(scheme)
+              .endHttpGet();
     } else {
-      probeBuilder = probeBuilder
-          .withNewTcpSocket()
-          .withNewPort()
-          .withIntVal(port)
-          .endPort()
-          .endTcpSocket();
+      probeBuilder =
+          probeBuilder.withNewTcpSocket().withNewPort().withIntVal(port).endPort().endTcpSocket();
     }
 
-    List<VolumeMount> volumeMounts = configSources.stream().map(c -> {
-      return new VolumeMountBuilder().withMountPath(c.getMountPath()).withName(c.getId()).build();
-    }).collect(Collectors.toList());
+    List<VolumeMount> volumeMounts =
+        configSources.stream()
+            .map(
+                c -> {
+                  return new VolumeMountBuilder()
+                      .withMountPath(c.getMountPath())
+                      .withName(c.getId())
+                      .build();
+                })
+            .collect(Collectors.toList());
 
     ContainerBuilder containerBuilder = new ContainerBuilder();
-    containerBuilder = containerBuilder
-        .withName(name)
-        .withImage(settings.getArtifactId())
-        .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
-        .withVolumeMounts(volumeMounts)
-        .withEnv(envVars)
-        .withReadinessProbe(probeBuilder.build())
-        .withResources(buildResourceRequirements(name, deploymentEnvironment));
+    containerBuilder =
+        containerBuilder
+            .withName(name)
+            .withImage(settings.getArtifactId())
+            .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
+            .withVolumeMounts(volumeMounts)
+            .withEnv(envVars)
+            .withReadinessProbe(probeBuilder.build())
+            .withResources(buildResourceRequirements(name, deploymentEnvironment));
 
     return containerBuilder.build();
   }
 
-  static ResourceRequirements buildResourceRequirements(String serviceName, DeploymentEnvironment deploymentEnvironment) {
+  static ResourceRequirements buildResourceRequirements(
+      String serviceName, DeploymentEnvironment deploymentEnvironment) {
     Map<String, Map> customSizing = deploymentEnvironment.getCustomSizing().get(serviceName);
 
     if (customSizing == null) {
@@ -107,12 +126,28 @@ class ResourceBuilder {
 
     ResourceRequirementsBuilder resourceRequirementsBuilder = new ResourceRequirementsBuilder();
     if (customSizing.get("requests") != null) {
-      resourceRequirementsBuilder.addToRequests("memory", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("memory"))).build());
-      resourceRequirementsBuilder.addToRequests("cpu", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("cpu"))).build());
+      resourceRequirementsBuilder.addToRequests(
+          "memory",
+          new QuantityBuilder()
+              .withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("memory")))
+              .build());
+      resourceRequirementsBuilder.addToRequests(
+          "cpu",
+          new QuantityBuilder()
+              .withAmount(CustomSizing.stringOrNull(customSizing.get("requests").get("cpu")))
+              .build());
     }
     if (customSizing.get("limits") != null) {
-      resourceRequirementsBuilder.addToLimits("memory", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("memory"))).build());
-      resourceRequirementsBuilder.addToLimits("cpu", new QuantityBuilder().withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("cpu"))).build());
+      resourceRequirementsBuilder.addToLimits(
+          "memory",
+          new QuantityBuilder()
+              .withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("memory")))
+              .build());
+      resourceRequirementsBuilder.addToLimits(
+          "cpu",
+          new QuantityBuilder()
+              .withAmount(CustomSizing.stringOrNull(customSizing.get("limits").get("cpu")))
+              .build());
     }
 
     return resourceRequirementsBuilder.build();

@@ -38,32 +38,54 @@ public class EditCanaryAwsCommand extends AbstractEditCanaryServiceIntegrationCo
   @Parameter(
       names = "--s3-enabled",
       arity = 1,
-      description = "Whether or not to enable S3 as a persistent store (*Default*: `false`)."
-  )
+      description = "Whether or not to enable S3 as a persistent store (*Default*: `false`).")
   private Boolean s3Enabled;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, false))
-        .get();
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
 
     int originalHash = canary.hashCode();
 
     AwsCanaryServiceIntegration awsCanaryServiceIntegration =
-        (AwsCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
+        (AwsCanaryServiceIntegration)
+            CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
 
-    awsCanaryServiceIntegration.setS3Enabled(isSet(s3Enabled) ? s3Enabled : awsCanaryServiceIntegration.isS3Enabled());
+    awsCanaryServiceIntegration.setS3Enabled(
+        isSet(s3Enabled) ? s3Enabled : awsCanaryServiceIntegration.isS3Enabled());
 
     if (awsCanaryServiceIntegration.isS3Enabled()) {
-      awsCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      awsCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+      awsCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
+      awsCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
     } else {
-      awsCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().remove(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      awsCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().remove(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+      awsCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
+      awsCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
     }
 
     if (originalHash == canary.hashCode()) {

@@ -21,26 +21,23 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class DeploymentEnvironmentService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public DeploymentEnvironment getDeploymentEnvironment(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setDeploymentEnvironment();
 
-    List<DeploymentEnvironment> matching = lookupService.getMatchingNodesOfType(filter, DeploymentEnvironment.class);
+    List<DeploymentEnvironment> matching =
+        lookupService.getMatchingNodesOfType(filter, DeploymentEnvironment.class);
 
     switch (matching.size()) {
       case 0:
@@ -50,19 +47,20 @@ public class DeploymentEnvironmentService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple deploymentEnvironment nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple deploymentEnvironment nodes. This is a bug.");
     }
   }
 
-  public void setDeploymentEnvironment(String deploymentName, DeploymentEnvironment newDeploymentEnvironment) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+  public void setDeploymentEnvironment(
+      String deploymentName, DeploymentEnvironment newDeploymentEnvironment) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setDeploymentEnvironment(newDeploymentEnvironment);
   }
 
   public ProblemSet validateDeploymentEnvironment(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setDeploymentEnvironment();
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setDeploymentEnvironment();
 
     return validateService.validateMatchingFilter(filter);
   }

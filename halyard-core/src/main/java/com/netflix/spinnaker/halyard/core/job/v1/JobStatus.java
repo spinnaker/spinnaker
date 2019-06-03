@@ -28,11 +28,12 @@ public class JobStatus {
   String stdErr;
 
   public enum State {
-    RUNNING, COMPLETED
+    RUNNING,
+    COMPLETED
   }
 
   public enum Result {
-    SUCCESS, FAILURE
+    SUCCESS,
+    FAILURE
   }
 }
-

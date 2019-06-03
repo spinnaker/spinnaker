@@ -31,7 +31,8 @@ public class LatestVersionCommand extends NestableCommand {
   private String commandName = "latest";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Get the latest released, validated version number of Spinnaker.";
+  private String shortDescription =
+      "Get the latest released, validated version number of Spinnaker.";
 
   @Override
   protected void executeThis() {

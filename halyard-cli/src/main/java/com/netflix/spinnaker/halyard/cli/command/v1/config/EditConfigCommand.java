@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters(separators =  "=")
+@Parameters(separators = "=")
 public class EditConfigCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
@@ -36,26 +36,29 @@ public class EditConfigCommand extends AbstractConfigCommand {
   private String shortDescription = "Configure top-level, global configuration parameters.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = "Configure top-level, global configuration parameters. The properties edited here affect all "
-      + "Spinnaker subcomponents.";
+  private String longDescription =
+      "Configure top-level, global configuration parameters. The properties edited here affect all "
+          + "Spinnaker subcomponents.";
 
   @Parameter(
       names = "--timezone",
-      description = "The timezone your Spinnaker instance runs in. This affects what the UI will display as well as how CRON triggers are run."
-  )
+      description =
+          "The timezone your Spinnaker instance runs in. This affects what the UI will display as well as how CRON triggers are run.")
   private String timezone;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    DeploymentConfiguration deploymentConfiguration = new OperationHandler<DeploymentConfiguration>()
-        .setOperation(Daemon.getDeploymentConfiguration(currentDeployment, false))
-        .setFailureMesssage("Failed to get your deployment configuration for edits.")
-        .get();
+    DeploymentConfiguration deploymentConfiguration =
+        new OperationHandler<DeploymentConfiguration>()
+            .setOperation(Daemon.getDeploymentConfiguration(currentDeployment, false))
+            .setFailureMesssage("Failed to get your deployment configuration for edits.")
+            .get();
 
     int hash = deploymentConfiguration.hashCode();
 
-    deploymentConfiguration.setTimezone(isSet(timezone) ? timezone : deploymentConfiguration.getTimezone());
+    deploymentConfiguration.setTimezone(
+        isSet(timezone) ? timezone : deploymentConfiguration.getTimezone());
 
     if (deploymentConfiguration.hashCode() == hash) {
       AnsiUi.error("No changes supplied.");
@@ -63,7 +66,9 @@ public class EditConfigCommand extends AbstractConfigCommand {
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setDeploymentConfiguration(currentDeployment, !noValidate, deploymentConfiguration))
+        .setOperation(
+            Daemon.setDeploymentConfiguration(
+                currentDeployment, !noValidate, deploymentConfiguration))
         .setFailureMesssage("Failed to apply edits to your deployment configuration")
         .setSuccessMessage("Successfully edited your deployment configuration")
         .get();

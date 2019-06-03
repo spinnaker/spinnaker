@@ -17,7 +17,9 @@
 
 package com.netflix.spinnaker.halyard.core;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.nio.file.StandardOpenOption.*;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -26,10 +28,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardOpenOption.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AtomicFileWriter {
@@ -47,8 +46,7 @@ public class AtomicFileWriter {
     path.getParent().toFile().mkdirs();
     String tmpDir = System.getProperty("java.io.tmpdir");
     this.tmpPath = defaultFileSystem.getPath(tmpDir, UUID.randomUUID().toString());
-    this.writer = Files.newBufferedWriter(this.tmpPath, UTF_8,
-            WRITE, APPEND, CREATE);
+    this.writer = Files.newBufferedWriter(this.tmpPath, UTF_8, WRITE, APPEND, CREATE);
   }
 
   public void write(String contents) throws IOException {

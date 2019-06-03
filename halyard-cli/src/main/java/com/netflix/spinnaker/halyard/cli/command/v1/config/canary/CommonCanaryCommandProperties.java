@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
 
 public class CommonCanaryCommandProperties {
-  public static final String BUCKET = "The name of a storage bucket that your specified account has access to. If you "
-      + "specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.";
+  public static final String BUCKET =
+      "The name of a storage bucket that your specified account has access to. If you "
+          + "specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.";
 
-  public static final String ROOT_FOLDER = "The root folder in the chosen bucket to place all of the canary service's persistent data in "
-      + "(*Default*: `kayenta`).";
+  public static final String ROOT_FOLDER =
+      "The root folder in the chosen bucket to place all of the canary service's persistent data in "
+          + "(*Default*: `kayenta`).";
 }

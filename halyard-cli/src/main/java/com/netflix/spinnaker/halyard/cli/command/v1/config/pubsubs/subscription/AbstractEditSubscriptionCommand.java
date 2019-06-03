@@ -24,14 +24,14 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEditSubscriptionCommand<T extends Subscription> extends AbstractHasSubscriptionCommand {
+public abstract class AbstractEditSubscriptionCommand<T extends Subscription>
+    extends AbstractHasSubscriptionCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -50,10 +50,17 @@ public abstract class AbstractEditSubscriptionCommand<T extends Subscription> ex
     String pubsubName = getPubsubName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Subscription subscription = new OperationHandler<Subscription>()
-        .setFailureMesssage("Failed to get subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
-        .setOperation(Daemon.getSubscription(currentDeployment, pubsubName, subscriptionName, false))
-        .get();
+    Subscription subscription =
+        new OperationHandler<Subscription>()
+            .setFailureMesssage(
+                "Failed to get subscription "
+                    + subscriptionName
+                    + " for pubsub "
+                    + pubsubName
+                    + ".")
+            .setOperation(
+                Daemon.getSubscription(currentDeployment, pubsubName, subscriptionName, false))
+            .get();
 
     int originaHash = subscription.hashCode();
 
@@ -65,9 +72,17 @@ public abstract class AbstractEditSubscriptionCommand<T extends Subscription> ex
     }
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to edit subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
-        .setSuccessMessage("Successfully edited subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
-        .setOperation(Daemon.setSubscription(currentDeployment, pubsubName, subscriptionName, !noValidate, subscription))
+        .setFailureMesssage(
+            "Failed to edit subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
+        .setSuccessMessage(
+            "Successfully edited subscription "
+                + subscriptionName
+                + " for pubsub "
+                + pubsubName
+                + ".")
+        .setOperation(
+            Daemon.setSubscription(
+                currentDeployment, pubsubName, subscriptionName, !noValidate, subscription))
         .get();
   }
 }

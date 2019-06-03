@@ -27,25 +27,23 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulCl
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServiceProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.ConsulApi;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.nio.file.Paths;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class ConsulClientService extends SpinnakerService<ConsulApi> implements SidecarService {
+public abstract class ConsulClientService extends SpinnakerService<ConsulApi>
+    implements SidecarService {
   protected final String CLIENT_OUTPUT_PATH = "/etc/consul.d";
 
-  @Autowired
-  ConsulServiceProfileFactoryBuilder consulServiceProfileFactoryBuilder;
+  @Autowired ConsulServiceProfileFactoryBuilder consulServiceProfileFactoryBuilder;
 
-  @Autowired
-  ConsulClientProfileFactory consulClientProfileFactory;
+  @Autowired ConsulClientProfileFactory consulClientProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -69,7 +67,8 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
   static String clientProfileName = "consul/client.json";
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     for (Map.Entry<Type, ServiceSettings> entry : endpoints.getAllServiceSettings().entrySet()) {
       ServiceSettings settings = entry.getValue();
@@ -79,19 +78,23 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
         String profileName = consulClientService(serviceName);
         String profilePath = Paths.get(CLIENT_OUTPUT_PATH, serviceName + ".json").toString();
         ProfileFactory factory = consulServiceProfileFactoryBuilder.build(type, settings);
-        result.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+        result.add(
+            factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
       }
     }
 
     String profileName = clientProfileName;
     String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName.split("/")[1]).toString();
 
-    result.add(consulClientProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+    result.add(
+        consulClientProfileFactory.getProfile(
+            profileName, profilePath, deploymentConfiguration, endpoints));
     return result;
   }
 
   @Override
-  public List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+  public List<Profile> getSidecarProfiles(
+      GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
     List<Profile> result = new ArrayList<>();
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getType());
     Profile profile = profiles.get(consulClientService(service.getCanonicalName()));
@@ -119,7 +122,7 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
     Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
-    public Settings() { }
+    public Settings() {}
   }
 
   @Override

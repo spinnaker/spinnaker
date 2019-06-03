@@ -22,25 +22,23 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class GoogleOrcaBootstrapService extends OrcaBootstrapService implements GoogleDistributedService<OrcaBootstrapService.Orca> {
+public class GoogleOrcaBootstrapService extends OrcaBootstrapService
+    implements GoogleDistributedService<OrcaBootstrapService.Orca> {
   final DeployPriority deployPriority = new DeployPriority(6);
   final boolean requiredToBootstrap = true;
 
-  @Delegate
-  @Autowired
-  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
@@ -56,7 +54,8 @@ public class GoogleOrcaBootstrapService extends OrcaBootstrapService implements 
     profiles.add("bootstrap");
     profiles.add("bootstrap-local");
     Settings settings = new Settings(profiles);
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setAddress(buildAddress())
         .setLocation("us-central1-f")
         .setEnabled(true);

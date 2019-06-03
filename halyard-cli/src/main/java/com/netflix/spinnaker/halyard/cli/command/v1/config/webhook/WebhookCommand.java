@@ -27,26 +27,26 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 public class WebhookCommand extends AbstractConfigCommand {
-    @Getter(AccessLevel.PUBLIC)
-    private String commandName = "webhook";
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "webhook";
 
-    @Getter(AccessLevel.PUBLIC)
-    private String shortDescription = "Show Spinnaker's webhook configuration.";
+  @Getter(AccessLevel.PUBLIC)
+  private String shortDescription = "Show Spinnaker's webhook configuration.";
 
-    public WebhookCommand() {
-        registerSubcommand(new WebhookTrustCommand());
-    }
+  public WebhookCommand() {
+    registerSubcommand(new WebhookTrustCommand());
+  }
 
-    @Override
-    protected void executeThis() {
-        String currentDeployment = getCurrentDeployment();
+  @Override
+  protected void executeThis() {
+    String currentDeployment = getCurrentDeployment();
 
-        new OperationHandler<Webhook>()
-                .setOperation(Daemon.getWebhook(currentDeployment, !noValidate))
-                .setFailureMesssage("Failed to load webhook.")
-                .setSuccessMessage("Configured webhook: ")
-                .setFormat(AnsiFormatUtils.Format.STRING)
-                .setUserFormatted(true)
-                .get();
-    }
+    new OperationHandler<Webhook>()
+        .setOperation(Daemon.getWebhook(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load webhook.")
+        .setSuccessMessage("Configured webhook: ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
+        .get();
+  }
 }

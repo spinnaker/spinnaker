@@ -26,27 +26,20 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 @Component
 public class KubernetesV2ServiceDelegate {
-  @Autowired
-  ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired ArtifactSourcesConfig artifactSourcesConfig;
 
   public String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact) {
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName, artifact);
+    BillOfMaterials.ArtifactSources artifactSources =
+        artifactService.getArtifactSources(deploymentName, artifact);
     return artifactSourcesConfig.mergeWithBomSources(artifactSources).getDockerRegistry();
   }
 
-  @Autowired
-  @Getter
-  ArtifactService artifactService;
+  @Autowired @Getter ArtifactService artifactService;
 
-  @Autowired
-  @Getter
-  ObjectMapper objectMapper;
+  @Autowired @Getter ObjectMapper objectMapper;
 
-  @Autowired
-  @Getter
-  KubernetesV2MonitoringDaemonService monitoringDaemonService;
+  @Autowired @Getter KubernetesV2MonitoringDaemonService monitoringDaemonService;
 }

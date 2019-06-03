@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractBaseImageCommand;
 
-/**
- * Interact with the google provider's bakery
- */
+/** Interact with the google provider's bakery */
 @Parameters(separators = "=")
 public class GoogleBaseImageCommand extends AbstractBaseImageCommand {
   protected String getProviderName() {
@@ -35,4 +33,3 @@ public class GoogleBaseImageCommand extends AbstractBaseImageCommand {
     registerSubcommand(new GoogleEditBaseImageCommand());
   }
 }
-

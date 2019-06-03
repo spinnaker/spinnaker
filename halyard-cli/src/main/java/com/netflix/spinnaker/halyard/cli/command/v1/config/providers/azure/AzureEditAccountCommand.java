@@ -21,10 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Parameters(separators = "=")
 public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAccount> {
@@ -32,72 +29,55 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
     return "azure";
   }
 
-  @Parameter(
-      names = "--client-id",
-      description = AzureCommandProperties.CLIENT_ID_DESCRIPTION
-  )
+  @Parameter(names = "--client-id", description = AzureCommandProperties.CLIENT_ID_DESCRIPTION)
   private String clientId;
 
   @Parameter(
       names = "--app-key",
       password = true,
-      description = AzureCommandProperties.APP_KEY_DESCRIPTION
-  )
+      description = AzureCommandProperties.APP_KEY_DESCRIPTION)
   private String appKey;
 
-  @Parameter(
-      names = "--tenant-id",
-      description = AzureCommandProperties.TENANT_ID_DESCRIPTION
-  )
+  @Parameter(names = "--tenant-id", description = AzureCommandProperties.TENANT_ID_DESCRIPTION)
   private String tenantId;
 
   @Parameter(
       names = "--subscription-id",
-      description = AzureCommandProperties.SUBSCRIPTION_ID_DESCRIPTION
-  )
+      description = AzureCommandProperties.SUBSCRIPTION_ID_DESCRIPTION)
   private String subscriptionId;
 
-  @Parameter(
-      names = "--object-id",
-      description = AzureCommandProperties.OBJECT_ID_DESCRIPTION
-  )
+  @Parameter(names = "--object-id", description = AzureCommandProperties.OBJECT_ID_DESCRIPTION)
   private String objectId;
 
   @Parameter(
       names = "--default-resource-group",
-      description = AzureCommandProperties.DEFAULT_RESOURCE_GROUP_DESCRIPTION
-  )
+      description = AzureCommandProperties.DEFAULT_RESOURCE_GROUP_DESCRIPTION)
   private String defaultResourceGroup;
 
   @Parameter(
       names = "--default-key-vault",
-      description = AzureCommandProperties.DEFAULT_KEY_VAULT_DESCRIPTION
-  )
+      description = AzureCommandProperties.DEFAULT_KEY_VAULT_DESCRIPTION)
   private String defaultKeyVault;
 
   @Parameter(
       names = "--packer-resource-group",
-      description = AzureCommandProperties.PACKER_RESOURCE_GROUP_DESCRIPTION
-  )
+      description = AzureCommandProperties.PACKER_RESOURCE_GROUP_DESCRIPTION)
   private String packerResourceGroup;
 
   @Parameter(
       names = "--packer-storage-account",
-      description = AzureCommandProperties.PACKER_STORAGE_ACCOUNT_DESCRIPTION
-  )
+      description = AzureCommandProperties.PACKER_STORAGE_ACCOUNT_DESCRIPTION)
   private String packerStorageAccount;
 
   @Parameter(
       names = "--regions",
       variableArity = true,
-      description = AzureCommandProperties.REGIONS_DESCRIPTION
-  )
+      description = AzureCommandProperties.REGIONS_DESCRIPTION)
   private List<String> regions;
 
   @Parameter(
       names = "--useSshPublicKey",
-      description = AzureCommandProperties.USE_SSH_PUBLIC_KEY_DESCRIPTION
-  )
+      description = AzureCommandProperties.USE_SSH_PUBLIC_KEY_DESCRIPTION)
   private String useSshPublicKey;
 
   @Override
@@ -107,18 +87,23 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
     account.setTenantId(isSet(tenantId) ? tenantId : account.getTenantId());
     account.setSubscriptionId(isSet(subscriptionId) ? subscriptionId : account.getSubscriptionId());
     account.setObjectId(isSet(objectId) ? objectId : account.getObjectId());
-    account.setDefaultResourceGroup(isSet(defaultResourceGroup) ? defaultResourceGroup : account.getDefaultResourceGroup());
-    account.setDefaultKeyVault(isSet(defaultKeyVault) ? defaultKeyVault : account.getDefaultKeyVault());
-    account.setPackerResourceGroup(isSet(packerResourceGroup) ? packerResourceGroup : account.getPackerResourceGroup());
-    account.setPackerStorageAccount(isSet(packerStorageAccount) ? packerStorageAccount : account.getPackerStorageAccount());
-    account.setUseSshPublicKey(isSet(useSshPublicKey) ? useSshPublicKey : account.getUseSshPublicKey());
+    account.setDefaultResourceGroup(
+        isSet(defaultResourceGroup) ? defaultResourceGroup : account.getDefaultResourceGroup());
+    account.setDefaultKeyVault(
+        isSet(defaultKeyVault) ? defaultKeyVault : account.getDefaultKeyVault());
+    account.setPackerResourceGroup(
+        isSet(packerResourceGroup) ? packerResourceGroup : account.getPackerResourceGroup());
+    account.setPackerStorageAccount(
+        isSet(packerStorageAccount) ? packerStorageAccount : account.getPackerStorageAccount());
+    account.setUseSshPublicKey(
+        isSet(useSshPublicKey) ? useSshPublicKey : account.getUseSshPublicKey());
 
     try {
       account.setRegions(regions);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set --regions");
     }
-    
+
     return account;
   }
 }

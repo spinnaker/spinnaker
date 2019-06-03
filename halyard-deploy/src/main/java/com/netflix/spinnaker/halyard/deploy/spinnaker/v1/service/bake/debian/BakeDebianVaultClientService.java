@@ -28,45 +28,38 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultMoun
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultClientService;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianVaultClientService extends VaultClientService implements BakeDebianService<VaultClientService.Vault> {
+public class BakeDebianVaultClientService extends VaultClientService
+    implements BakeDebianService<VaultClientService.Vault> {
   final String upstartServiceName = null;
 
   StartupPriority priority = new StartupPriority(StartupPriority.HIGH);
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  VaultMountConfigProfileFactory mountConfigProfileFactory;
+  @Autowired VaultMountConfigProfileFactory mountConfigProfileFactory;
 
-  @Autowired
-  VaultMountGoogleConfigProfileFactory mountGoogleConfigProfileFactory;
+  @Autowired VaultMountGoogleConfigProfileFactory mountGoogleConfigProfileFactory;
 
-  @Autowired
-  VaultStartupProfileFactory vaultStartupProfileFactory;
+  @Autowired VaultStartupProfileFactory vaultStartupProfileFactory;
 
-  @Autowired
-  String startupScriptPath;
+  @Autowired String startupScriptPath;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings()
-        .setArtifactId("vault")
-        .setEnabled(true);
+    return new Settings().setArtifactId("vault").setEnabled(true);
   }
 
   @Override
@@ -75,17 +68,21 @@ public class BakeDebianVaultClientService extends VaultClientService implements 
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     String name = "mount-config.py";
     String path = Paths.get(startupScriptPath, name).toString();
-    result.add(mountConfigProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(
+        mountConfigProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
     name = "startup-vault.sh";
     path = Paths.get(startupScriptPath, name).toString();
-    result.add(vaultStartupProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(
+        vaultStartupProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
     name = "google/mount-config.sh";
     path = Paths.get(startupScriptPath, name).toString();
-    result.add(mountGoogleConfigProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(
+        mountGoogleConfigProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
     return result;
   }
 

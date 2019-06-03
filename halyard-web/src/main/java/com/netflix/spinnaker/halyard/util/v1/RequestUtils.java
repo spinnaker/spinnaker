@@ -20,19 +20,20 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
-
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
 class RequestUtils {
-  static DaemonResponse.UpdateRequestBuilder getUpdateRequestBuilder(HalconfigParser halconfigParser) {
+  static DaemonResponse.UpdateRequestBuilder getUpdateRequestBuilder(
+      HalconfigParser halconfigParser) {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
     builder.setRevert(halconfigParser::undoChanges);
     builder.setSave(halconfigParser::saveConfig);
     return builder;
   }
 
-  static void addValidation(DaemonResponse.UpdateRequestBuilder builder,
+  static void addValidation(
+      DaemonResponse.UpdateRequestBuilder builder,
       ValidationSettings validationSettings,
       Supplier<ProblemSet> validator) {
     builder.setSeverity(validationSettings.getSeverity());
@@ -43,7 +44,10 @@ class RequestUtils {
     }
   }
 
-  static void addCleanStep(DaemonResponse.UpdateRequestBuilder builder, HalconfigParser halconfigParser, Path stagePath) {
+  static void addCleanStep(
+      DaemonResponse.UpdateRequestBuilder builder,
+      HalconfigParser halconfigParser,
+      Path stagePath) {
     builder.setClean(() -> halconfigParser.cleanLocalFiles(stagePath));
   }
 }

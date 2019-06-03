@@ -23,5 +23,5 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 
 @Parameters(separators = "=")
 public abstract class AbstractArtifactProviderCommand extends AbstractConfigCommand {
-  abstract protected String getArtifactProviderName();
+  protected abstract String getArtifactProviderName();
 }

@@ -41,8 +41,8 @@ public class SecurityController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Security> getSecurity(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, Security> getSecurity(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Security>builder()
         .getter(() -> securityService.getSecurity(deploymentName))
         .validator(() -> securityService.validateSecurity(deploymentName))
@@ -52,8 +52,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/ui/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, UiSecurity> getUiSecurity(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, UiSecurity> getUiSecurity(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<UiSecurity>builder()
         .getter(() -> securityService.getUiSecurity(deploymentName))
         .validator(() -> securityService.validateUiSecurity(deploymentName))
@@ -63,7 +63,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/ui/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setUiSecurity(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setUiSecurity(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody UiSecurity uiSecurity) {
     return GenericUpdateRequest.<UiSecurity>builder(halconfigParser)
@@ -76,8 +77,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/ui/ssl/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ApacheSsl> getApacheSsl(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, ApacheSsl> getApacheSsl(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<ApacheSsl>builder()
         .getter(() -> securityService.getApacheSsl(deploymentName))
         .validator(() -> securityService.validateApacheSsl(deploymentName))
@@ -87,7 +88,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/ui/ssl/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setApacheSSl(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setApacheSSl(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ApacheSsl apacheSsl) {
     return GenericUpdateRequest.<ApacheSsl>builder(halconfigParser)
@@ -100,7 +102,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/ui/ssl/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setApacheSSlEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setApacheSSlEnabled(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     return GenericEnableDisableRequest.builder(halconfigParser)
@@ -112,8 +115,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/api/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ApiSecurity> getApiSecurity(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, ApiSecurity> getApiSecurity(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<ApiSecurity>builder()
         .getter(() -> securityService.getApiSecurity(deploymentName))
         .validator(() -> securityService.validateApiSecurity(deploymentName))
@@ -123,7 +126,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/api/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setApiSecurity(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setApiSecurity(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ApiSecurity apiSecurity) {
     return GenericUpdateRequest.<ApiSecurity>builder(halconfigParser)
@@ -136,8 +140,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/api/ssl/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, SpringSsl> getSpringSsl(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, SpringSsl> getSpringSsl(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<SpringSsl>builder()
         .getter(() -> securityService.getSpringSsl(deploymentName))
         .validator(() -> securityService.validateSpringSsl(deploymentName))
@@ -147,7 +151,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/api/ssl/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setSpringSSl(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setSpringSSl(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody SpringSsl apacheSsl) {
     return GenericUpdateRequest.<SpringSsl>builder(halconfigParser)
@@ -160,7 +165,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/api/ssl/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setSpringSSlEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setSpringSSlEnabled(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     return GenericEnableDisableRequest.builder(halconfigParser)
@@ -172,7 +178,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setGroupMembership(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setGroupMembership(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody GroupMembership membership) {
     return GenericUpdateRequest.<GroupMembership>builder(halconfigParser)
@@ -185,8 +192,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.GET)
-  DaemonTask<Halconfig, GroupMembership> getGroupMembership(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, GroupMembership> getGroupMembership(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<GroupMembership>builder()
         .getter(() -> securityService.getGroupMembership(deploymentName))
         .validator(() -> securityService.validateAuthz(deploymentName))
@@ -196,7 +203,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, AuthnMethod> getAuthmethod(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, AuthnMethod> getAuthmethod(
+      @PathVariable String deploymentName,
       @PathVariable String methodName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<AuthnMethod>builder()
@@ -207,8 +215,11 @@ public class SecurityController {
         .execute(validationSettings);
   }
 
-  @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, RoleProvider> getRoleProvider(@PathVariable String deploymentName,
+  @RequestMapping(
+      value = "/authz/groupMembership/{roleProviderName:.+}",
+      method = RequestMethod.GET)
+  DaemonTask<Halconfig, RoleProvider> getRoleProvider(
+      @PathVariable String deploymentName,
       @PathVariable String roleProviderName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<RoleProvider>builder()
@@ -220,7 +231,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setSecurity(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setSecurity(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Security security) {
     return GenericUpdateRequest.<Security>builder(halconfigParser)
@@ -233,14 +245,13 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setAuthnMethod(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setAuthnMethod(
+      @PathVariable String deploymentName,
       @PathVariable String methodName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMethod) {
-    AuthnMethod method = objectMapper.convertValue(
-        rawMethod,
-        AuthnMethod.translateAuthnMethodName(methodName)
-    );
+    AuthnMethod method =
+        objectMapper.convertValue(rawMethod, AuthnMethod.translateAuthnMethodName(methodName));
     return GenericUpdateRequest.<AuthnMethod>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(m -> securityService.setAuthnMethod(deploymentName, m))
@@ -250,15 +261,17 @@ public class SecurityController {
         .execute(validationSettings, method);
   }
 
-  @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setRoleProvider(@PathVariable String deploymentName,
+  @RequestMapping(
+      value = "/authz/groupMembership/{roleProviderName:.+}",
+      method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setRoleProvider(
+      @PathVariable String deploymentName,
       @PathVariable String roleProviderName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawProvider) {
-    RoleProvider roleProvider = objectMapper.convertValue(
-        rawProvider,
-        GroupMembership.translateRoleProviderType(roleProviderName)
-    );
+    RoleProvider roleProvider =
+        objectMapper.convertValue(
+            rawProvider, GroupMembership.translateRoleProviderType(roleProviderName));
     return GenericUpdateRequest.<RoleProvider>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(r -> securityService.setRoleProvider(deploymentName, r))
@@ -269,7 +282,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMethodEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String methodName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -282,7 +296,8 @@ public class SecurityController {
   }
 
   @RequestMapping(value = "/authz/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMethodEnabled(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     return GenericEnableDisableRequest.builder(halconfigParser)

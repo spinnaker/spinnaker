@@ -29,59 +29,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesV1DistributedServiceProvider extends DistributedServiceProvider<KubernetesAccount> {
-  @Autowired
-  KubernetesV1ClouddriverBootstrapService clouddriverBootstrapService;
+public class KubernetesV1DistributedServiceProvider
+    extends DistributedServiceProvider<KubernetesAccount> {
+  @Autowired KubernetesV1ClouddriverBootstrapService clouddriverBootstrapService;
 
-  @Autowired
-  KubernetesV1ClouddriverService clouddriverService;
+  @Autowired KubernetesV1ClouddriverService clouddriverService;
 
-  @Autowired
-  KubernetesV1DeckService deckService;
+  @Autowired KubernetesV1DeckService deckService;
 
-  @Autowired
-  KubernetesV1EchoService echoService;
+  @Autowired KubernetesV1EchoService echoService;
 
-  @Autowired
-  KubernetesV1FiatService fiatService;
+  @Autowired KubernetesV1FiatService fiatService;
 
-  @Autowired
-  KubernetesV1Front50Service front50Service;
+  @Autowired KubernetesV1Front50Service front50Service;
 
-  @Autowired
-  KubernetesV1GateService gateService;
+  @Autowired KubernetesV1GateService gateService;
 
-  @Autowired
-  KubernetesV1IgorService igorService;
+  @Autowired KubernetesV1IgorService igorService;
 
-  @Autowired
-  KubernetesV1KayentaService kayentaService;
+  @Autowired KubernetesV1KayentaService kayentaService;
 
-  @Autowired
-  KubernetesV1MonitoringDaemonService monitoringDaemonService;
+  @Autowired KubernetesV1MonitoringDaemonService monitoringDaemonService;
 
-  @Autowired
-  KubernetesV1OrcaBootstrapService orcaBootstrapService;
+  @Autowired KubernetesV1OrcaBootstrapService orcaBootstrapService;
 
-  @Autowired
-  KubernetesV1OrcaService orcaService;
+  @Autowired KubernetesV1OrcaService orcaService;
 
-  @Autowired
-  KubernetesV1RedisBootstrapService redisBootstrapService;
+  @Autowired KubernetesV1RedisBootstrapService redisBootstrapService;
 
-  @Autowired
-  KubernetesV1RedisService redisService;
+  @Autowired KubernetesV1RedisService redisService;
 
-  @Autowired
-  KubernetesV1RoscoService roscoService;
+  @Autowired KubernetesV1RoscoService roscoService;
 
   // For serialization
   public KubernetesV1DistributedServiceProvider() {}
 
   @Override
-  public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
-    KubernetesV1ProviderUtils.kubectlDeleteNamespaceCommand(DaemonTaskHandler.getJobExecutor(), details, kubernetesSharedServiceSettings.getDeployLocation());
+  public RemoteAction clean(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
+    KubernetesV1ProviderUtils.kubectlDeleteNamespaceCommand(
+        DaemonTaskHandler.getJobExecutor(),
+        details,
+        kubernetesSharedServiceSettings.getDeployLocation());
     return new RemoteAction();
   }
 }

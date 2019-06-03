@@ -42,8 +42,8 @@ public class MetricStoresController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, MetricStores> getMetricStores(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, MetricStores> getMetricStores(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<MetricStores>builder()
         .getter(() -> metricStoresService.getMetricStores(deploymentName))
         .validator(() -> metricStoresService.validateMetricStores(deploymentName))
@@ -53,7 +53,8 @@ public class MetricStoresController {
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, MetricStore> getMetricStore(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, MetricStore> getMetricStore(
+      @PathVariable String deploymentName,
       @PathVariable String metricStoreType,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<MetricStore>builder()
@@ -65,7 +66,8 @@ public class MetricStoresController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMetricStores(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMetricStores(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody MetricStores metricStores) {
     return GenericUpdateRequest.<MetricStores>builder(halconfigParser)
@@ -78,14 +80,14 @@ public class MetricStoresController {
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMetricStore(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMetricStore(
+      @PathVariable String deploymentName,
       @PathVariable String metricStoreType,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMetricStore) {
-    MetricStore metricStore = objectMapper.convertValue(
-        rawMetricStore,
-        MetricStores.translateMetricStoreType(metricStoreType)
-    );
+    MetricStore metricStore =
+        objectMapper.convertValue(
+            rawMetricStore, MetricStores.translateMetricStoreType(metricStoreType));
     return GenericUpdateRequest.<MetricStore>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(m -> metricStoresService.setMetricStore(deploymentName, m))
@@ -96,7 +98,8 @@ public class MetricStoresController {
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMethodEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String metricStoreType,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {

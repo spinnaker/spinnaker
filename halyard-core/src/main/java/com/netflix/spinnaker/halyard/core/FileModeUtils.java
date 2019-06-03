@@ -21,17 +21,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class FileModeUtils {
-  private static PosixFilePermission[] permissionBits = new PosixFilePermission[]{
-      PosixFilePermission.OTHERS_EXECUTE,
-      PosixFilePermission.OTHERS_WRITE,
-      PosixFilePermission.OTHERS_READ,
-      PosixFilePermission.GROUP_EXECUTE,
-      PosixFilePermission.GROUP_WRITE,
-      PosixFilePermission.GROUP_READ,
-      PosixFilePermission.OWNER_EXECUTE,
-      PosixFilePermission.OWNER_WRITE,
-      PosixFilePermission.OWNER_READ
-  };
+  private static PosixFilePermission[] permissionBits =
+      new PosixFilePermission[] {
+        PosixFilePermission.OTHERS_EXECUTE,
+        PosixFilePermission.OTHERS_WRITE,
+        PosixFilePermission.OTHERS_READ,
+        PosixFilePermission.GROUP_EXECUTE,
+        PosixFilePermission.GROUP_WRITE,
+        PosixFilePermission.GROUP_READ,
+        PosixFilePermission.OWNER_EXECUTE,
+        PosixFilePermission.OWNER_WRITE,
+        PosixFilePermission.OWNER_READ
+      };
 
   private static int directoryBit = 1 << 14;
   private static int fileBit = 1 << 15;
@@ -39,6 +40,7 @@ public class FileModeUtils {
   /**
    * Given a set of PosixFilePermissions, returns an integer with the corresponding permission bits
    * set
+   *
    * @param posixPermissions Set of permissions to represent as an integer
    * @return Integer representing the permission bits
    */
@@ -56,6 +58,7 @@ public class FileModeUtils {
   /**
    * Given an integer representing file permissions, returns a set of PosixFilePermissions
    * representing the corresponding permissions.
+   *
    * @param fileMode Integer representing a file mode
    * @return Set of permissions in the input mode
    */
@@ -75,6 +78,7 @@ public class FileModeUtils {
   /**
    * Given an integer representing a file mode, sets the bit indicating this is a file, and unsets
    * the bit indicating it is a directory.
+   *
    * @param fileMode Integer representing a file mode
    * @return Input file mode, with the file bit set and the directory bit unset
    */
@@ -83,8 +87,9 @@ public class FileModeUtils {
   }
 
   /**
-   * Given an integer representing a file mode, sets the bit indicating this is a directory, and unsets
-   * the bit indicating it is a file.
+   * Given an integer representing a file mode, sets the bit indicating this is a directory, and
+   * unsets the bit indicating it is a file.
+   *
    * @param fileMode Integer representing a file mode
    * @return Input file mode, with the directory bit set and the file bit unset
    */

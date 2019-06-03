@@ -7,7 +7,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Notes:
  *
- * * Editing clusters is tricky since the name/uid are like a composite key
+ * <p>* Editing clusters is tricky since the name/uid are like a composite key
  */
 @Parameters(separators = "=")
 public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccount> {
@@ -25,44 +24,40 @@ public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccou
 
   @Parameter(
       names = "--remove-credential",
-      description = "Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user",
-      arity = 2
-  )
+      description =
+          "Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user",
+      arity = 2)
   private List<String> removeCredential = new ArrayList<>();
 
   @Parameter(
       names = "--update-user-credential",
       description = DCOSCommandProperties.USER_CREDENTIAL,
-      variableArity = true
-  )
+      variableArity = true)
   private List<String> updateUserCredential = new ArrayList<>();
 
   @Parameter(
       names = "--update-service-credential",
       description = DCOSCommandProperties.SERVICE_CREDENTIAL,
-      variableArity = true
-  )
+      variableArity = true)
   private List<String> updateServiceCredential = new ArrayList<>();
 
   @Parameter(
       names = "--docker-registries",
       variableArity = true,
-      description = DCOSCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
-  )
+      description = DCOSCommandProperties.DOCKER_REGISTRIES_DESCRIPTION)
   public List<String> dockerRegistries = new ArrayList<>();
 
   @Parameter(
       names = "--add-docker-registry",
-      description = "Add this docker registry to the list of docker registries to use as a source of images."
-  )
+      description =
+          "Add this docker registry to the list of docker registries to use as a source of images.")
   private String addDockerRegistry;
 
   @Parameter(
       names = "--remove-docker-registry",
-      description = "Remove this docker registry from the list of docker registries to use as a source of images."
-  )
+      description =
+          "Remove this docker registry from the list of docker registries to use as a source of images.")
   private String removeDockerRegistry;
-
 
   @Override
   protected Account editAccount(DCOSAccount account) {
@@ -77,8 +72,8 @@ public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccou
       final String uid = updateUserCredential.get(1);
       final String password = updateUserCredential.get(2);
       account.removeCredential(clusterName, uid);
-      final DCOSAccount.ClusterCredential credential = new DCOSAccount.ClusterCredential(clusterName,
-          uid, password, null);
+      final DCOSAccount.ClusterCredential credential =
+          new DCOSAccount.ClusterCredential(clusterName, uid, password, null);
       account.getClusters().add(credential);
     }
 
@@ -89,26 +84,27 @@ public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccou
       final String serviceKeyFile = updateServiceCredential.get(2);
 
       account.removeCredential(clusterName, uid);
-      final DCOSAccount.ClusterCredential credential = new DCOSAccount.ClusterCredential(clusterName,
-          uid, null, serviceKeyFile);
+      final DCOSAccount.ClusterCredential credential =
+          new DCOSAccount.ClusterCredential(clusterName, uid, null, serviceKeyFile);
       account.getClusters().add(credential);
     }
 
     try {
-      List<String> oldRegistries = account.getDockerRegistries()
-          .stream()
-          .map(DockerRegistryReference::getAccountName)
-          .collect(Collectors.toList());
+      List<String> oldRegistries =
+          account.getDockerRegistries().stream()
+              .map(DockerRegistryReference::getAccountName)
+              .collect(Collectors.toList());
 
-      List<DockerRegistryReference> newRegistries = updateStringList(oldRegistries, dockerRegistries, addDockerRegistry,
-          removeDockerRegistry)
-          .stream()
-          .map(s -> new DockerRegistryReference().setAccountName(s))
-          .collect(Collectors.toList());
+      List<DockerRegistryReference> newRegistries =
+          updateStringList(oldRegistries, dockerRegistries, addDockerRegistry, removeDockerRegistry)
+              .stream()
+              .map(s -> new DockerRegistryReference().setAccountName(s))
+              .collect(Collectors.toList());
 
       account.setDockerRegistries(newRegistries);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --docker-registries or --[add/remove]-docker-registry");
+      throw new IllegalArgumentException(
+          "Set either --docker-registries or --[add/remove]-docker-registry");
     }
     return account;
   }
@@ -123,5 +119,4 @@ public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccou
           "Credential may have at most 3 parts: cluster name, uid, and password/service account key");
     }
   }
-
 }

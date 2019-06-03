@@ -27,33 +27,27 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class BitbucketAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-      names = "--username",
-      description = "Bitbucket username"
-  )
+  @Parameter(names = "--username", description = "Bitbucket username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "Bitbucket password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "Bitbucket password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for Bitbucket authentication"
-  )
+      description = "File containing \"username:password\" to use for Bitbucket authentication")
   private String usernamePasswordFile;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     BitbucketArtifactAccount artifactAccount = new BitbucketArtifactAccount().setName(accountName);
-    artifactAccount.setUsername(username)
+    artifactAccount
+        .setUsername(username)
         .setPassword(password)
         .setUsernamePasswordFile(usernamePasswordFile);
     return artifactAccount;
   }
-
 
   @Override
   protected ArtifactAccount emptyArtifactAccount() {

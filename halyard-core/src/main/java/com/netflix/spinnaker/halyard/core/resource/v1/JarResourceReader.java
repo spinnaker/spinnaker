@@ -18,10 +18,9 @@
 
 package com.netflix.spinnaker.halyard.core.resource.v1;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
 
 public class JarResourceReader {
   static String readResource(String path) {

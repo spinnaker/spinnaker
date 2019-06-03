@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -25,17 +24,19 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.integrations.IntegrationsConfigWrapper;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-
 public abstract class GateProfileFactory extends SpringProfileFactory {
-  // Some versions of gate have integrations in the base halyard config; we'll generate an invalid config
-  // if we add another integrations block.  As a workaround we'll remove that block from the base profile
+  // Some versions of gate have integrations in the base halyard config; we'll generate an invalid
+  // config
+  // if we add another integrations block.  As a workaround we'll remove that block from the base
+  // profile
   // if we encounter it.
-  private static final String INTEGRATION_BLOCK = "integrations:\n  gremlin:\n    enabled: ${features.gremlin:false}\n    baseUrl: https://api.gremlin.com/v1\n";
+  private static final String INTEGRATION_BLOCK =
+      "integrations:\n  gremlin:\n    enabled: ${features.gremlin:false}\n    baseUrl: https://api.gremlin.com/v1\n";
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -48,24 +49,30 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  public void setProfile(Profile profile,
+  public void setProfile(
+      Profile profile,
       DeploymentConfiguration deploymentConfiguration,
       SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
     Security security = deploymentConfiguration.getSecurity();
-    List<String> requiredFiles = backupRequiredFiles(security.getApiSecurity(), deploymentConfiguration.getName());
-    requiredFiles.addAll(backupRequiredFiles(security.getAuthn(), deploymentConfiguration.getName()));
-    requiredFiles.addAll(backupRequiredFiles(security.getAuthz(), deploymentConfiguration.getName()));
+    List<String> requiredFiles =
+        backupRequiredFiles(security.getApiSecurity(), deploymentConfiguration.getName());
+    requiredFiles.addAll(
+        backupRequiredFiles(security.getAuthn(), deploymentConfiguration.getName()));
+    requiredFiles.addAll(
+        backupRequiredFiles(security.getAuthz(), deploymentConfiguration.getName()));
     GateConfig gateConfig = getGateConfig(endpoints.getServiceSettings(Type.GATE), security);
     gateConfig.getCors().setAllowedOriginsPattern(security.getApiSecurity());
-    IntegrationsConfigWrapper integrationsConfig = new IntegrationsConfigWrapper(deploymentConfiguration.getFeatures());
+    IntegrationsConfigWrapper integrationsConfig =
+        new IntegrationsConfigWrapper(deploymentConfiguration.getFeatures());
 
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, gateConfig))
-            .appendContents(yamlToString(deploymentConfiguration.getName(), profile, integrationsConfig))
-            .appendContents(profile.getBaseContents().replace(INTEGRATION_BLOCK,""))
-            .setRequiredFiles(requiredFiles);
-
+    profile
+        .appendContents(yamlToString(deploymentConfiguration.getName(), profile, gateConfig))
+        .appendContents(
+            yamlToString(deploymentConfiguration.getName(), profile, integrationsConfig))
+        .appendContents(profile.getBaseContents().replace(INTEGRATION_BLOCK, ""))
+        .setRequiredFiles(requiredFiles);
   }
 
   protected abstract GateConfig getGateConfig(ServiceSettings gate, Security security);

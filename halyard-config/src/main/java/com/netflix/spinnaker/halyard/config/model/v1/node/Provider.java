@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -37,10 +36,13 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
       primaryAccount = null;
     } else if (primaryAccount == null || !hasAccount(primaryAccount)) {
       DeploymentConfiguration deploymentConfiguration = parentOfType(DeploymentConfiguration.class);
-      DeploymentEnvironment deploymentEnvironment = deploymentConfiguration
-          .getDeploymentEnvironment();
+      DeploymentEnvironment deploymentEnvironment =
+          deploymentConfiguration.getDeploymentEnvironment();
       if (Boolean.TRUE.equals(deploymentEnvironment.getBootstrapOnly())) {
-        List<Account> nonBootstrapAccounts = accounts.stream().filter(a -> !a.name.equals(deploymentEnvironment.getAccountName())).collect(Collectors.toList());
+        List<Account> nonBootstrapAccounts =
+            accounts.stream()
+                .filter(a -> !a.name.equals(deploymentEnvironment.getAccountName()))
+                .collect(Collectors.toList());
         if (nonBootstrapAccounts.size() == 0) {
           return null;
         } else {
@@ -59,8 +61,8 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory
-        .makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   @Override
@@ -68,7 +70,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     return providerType().getName();
   }
 
-  abstract public ProviderType providerType();
+  public abstract ProviderType providerType();
 
   public enum ProviderVersion {
     V1("v1"),
@@ -99,11 +101,9 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     ORACLE("oracle"),
     ORACLEBMCS("oraclebmcs"); // obsolete, replaced by ORACLE
 
-    @Getter
-    String name;
+    @Getter String name;
 
-    @Getter
-    String id;
+    @Getter String id;
 
     ProviderType(String name) {
       this.name = name;

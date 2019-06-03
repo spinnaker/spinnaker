@@ -27,7 +27,8 @@ public class OracleAccountValidator extends Validator<OracleAccount> {
     notNullOrEmpty(account.getTenancyId(), "tenancy id", psBuilder);
     notNullOrEmpty(account.getRegion(), "region", psBuilder);
 
-    // TODO (simonlord): Once BMCS SDK is in maven we can access via spinnaker.dependency("clouddriverOracleBmcs") and test account login
+    // TODO (simonlord): Once BMCS SDK is in maven we can access via
+    // spinnaker.dependency("clouddriverOracleBmcs") and test account login
   }
 
   private void notNullOrEmpty(String param, String paramName, ConfigProblemSetBuilder psBuilder) {

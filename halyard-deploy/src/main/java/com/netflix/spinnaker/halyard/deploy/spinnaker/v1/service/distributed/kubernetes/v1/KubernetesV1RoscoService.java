@@ -32,10 +32,9 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1RoscoService extends RoscoService implements KubernetesV1DistributedService<RoscoService.Rosco> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1RoscoService extends RoscoService
+    implements KubernetesV1DistributedService<RoscoService.Rosco> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -44,10 +43,12 @@ public class KubernetesV1RoscoService extends RoscoService implements Kubernetes
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
     String location = kubernetesSharedServiceSettings.getDeployLocation();
-    settings.setAddress(buildAddress(location))
+    settings
+        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
         .setEnabled(true);

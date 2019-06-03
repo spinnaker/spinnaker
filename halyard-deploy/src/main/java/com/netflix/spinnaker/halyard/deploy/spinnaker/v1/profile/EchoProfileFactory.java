@@ -21,11 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
-import lombok.Data;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 
 @Component
 public class EchoProfileFactory extends SpringProfileFactory {
@@ -40,30 +39,37 @@ public class EchoProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
     List<String> files = new ArrayList<>();
 
     profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
-    profile.appendContents("spinnaker.baseUrl: " + endpoints.getServiceSettings(Type.DECK).getBaseUrl());
+    profile.appendContents(
+        "spinnaker.baseUrl: " + endpoints.getServiceSettings(Type.DECK).getBaseUrl());
 
     Notifications notifications = deploymentConfiguration.getNotifications();
     if (notifications != null) {
       files.addAll(backupRequiredFiles(notifications, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, notifications));
+      profile.appendContents(
+          yamlToString(deploymentConfiguration.getName(), profile, notifications));
     }
 
     Pubsubs pubsubs = deploymentConfiguration.getPubsub();
     if (pubsubs != null) {
       files.addAll(backupRequiredFiles(pubsubs, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new PubsubWrapper(pubsubs)));
+      profile.appendContents(
+          yamlToString(deploymentConfiguration.getName(), profile, new PubsubWrapper(pubsubs)));
     }
 
     Artifacts artifacts = deploymentConfiguration.getArtifacts();
     if (artifacts != null) {
       files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
+      profile.appendContents(
+          yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
     }
 
     Cis cis = deploymentConfiguration.getCi();
@@ -71,12 +77,12 @@ public class EchoProfileFactory extends SpringProfileFactory {
       GoogleCloudBuild gcb = cis.getGcb();
       if (gcb != null) {
         files.addAll(backupRequiredFiles(gcb, deploymentConfiguration.getName()));
-        profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new GCBWrapper(gcb)));
+        profile.appendContents(
+            yamlToString(deploymentConfiguration.getName(), profile, new GCBWrapper(gcb)));
       }
     }
 
-    profile.appendContents(profile.getBaseContents())
-        .setRequiredFiles(files);
+    profile.appendContents(profile.getBaseContents()).setRequiredFiles(files);
   }
 
   @Data

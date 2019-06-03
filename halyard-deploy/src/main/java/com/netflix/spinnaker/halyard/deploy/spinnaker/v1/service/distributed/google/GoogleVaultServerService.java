@@ -23,22 +23,20 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetai
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class GoogleVaultServerService extends VaultServerService implements GoogleDistributedService<VaultServerService.Vault> {
-  @Delegate
-  @Autowired
-  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+public class GoogleVaultServerService extends VaultServerService
+    implements GoogleDistributedService<VaultServerService.Vault> {
+  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public String getDefaultInstanceType() {
@@ -46,11 +44,13 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
   }
 
   @Override
-  public void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
+  public void ensureRunning(
+      AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<ConfigSource> configSources,
       boolean recreate) {
-    GoogleDistributedService.super.ensureRunning(details, resolvedConfiguration, configSources, recreate);
+    GoogleDistributedService.super.ensureRunning(
+        details, resolvedConfiguration, configSources, recreate);
     Vault vault = connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
     getToken(details.getDeploymentName(), vault);
   }
@@ -58,14 +58,16 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation("us-central1-f")
         .setEnabled(true);
     return settings;
   }
 
   @Override
-  public List<ConfigSource> stageProfiles(AccountDeploymentDetails<GoogleAccount> details,
+  public List<ConfigSource> stageProfiles(
+      AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     /* vault server may not stage profiles, since it acts as our config server */
     return new ArrayList<>();

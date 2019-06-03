@@ -35,11 +35,20 @@ public class CanarySignalfxCommand extends AbstractConfigCommand {
 
   String commandName = SignalfxCanaryServiceIntegration.NAME;
 
-  String shortDescription = "Configure your canary analysis SignalFx service integration settings for Spinnaker.";
+  String shortDescription =
+      "Configure your canary analysis SignalFx service integration settings for Spinnaker.";
 
   public CanarySignalfxCommand() {
-    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(false).build());
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("Signalfx")
+            .setEnable(true)
+            .build());
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("Signalfx")
+            .setEnable(false)
+            .build());
     registerSubcommand(new SignalfxCanaryAccountCommand());
   }
 

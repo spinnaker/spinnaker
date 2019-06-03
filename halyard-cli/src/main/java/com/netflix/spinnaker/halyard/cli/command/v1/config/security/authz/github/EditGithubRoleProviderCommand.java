@@ -28,33 +28,35 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Parameters(separators = "=")
-public class EditGithubRoleProviderCommand extends AbstractEditRoleProviderCommand<GithubRoleProvider> {
-  private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GITHUB;
+public class EditGithubRoleProviderCommand
+    extends AbstractEditRoleProviderCommand<GithubRoleProvider> {
+  private final GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.GITHUB;
 
   @Parameter(
       names = "--baseUrl",
-      description = "Used if using GitHub enterprise some other non github.com GitHub installation."
-  )
+      description =
+          "Used if using GitHub enterprise some other non github.com GitHub installation.")
   private String baseUrl;
 
   @Parameter(
       names = "--accessToken",
-      description = "A personal access token of an account with access to your organization's " +
-          "GitHub Teams structure."
-  )
+      description =
+          "A personal access token of an account with access to your organization's "
+              + "GitHub Teams structure.")
   private String accessToken;
 
   @Parameter(
       names = "--organization",
-      description = "The GitHub organization under which to query for GitHub Teams."
-  )
+      description = "The GitHub organization under which to query for GitHub Teams.")
   private String organization;
 
   @Override
   protected RoleProvider editRoleProvider(GithubRoleProvider roleProvider) {
     roleProvider.setBaseUrl(isSet(baseUrl) ? baseUrl : roleProvider.getBaseUrl());
     roleProvider.setAccessToken(isSet(accessToken) ? accessToken : roleProvider.getAccessToken());
-    roleProvider.setOrganization(isSet(organization) ? organization : roleProvider.getOrganization());
+    roleProvider.setOrganization(
+        isSet(organization) ? organization : roleProvider.getOrganization());
     return roleProvider;
   }
 }

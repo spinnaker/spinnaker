@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Slf4j
-public class AwsCanaryServiceIntegration extends AbstractCanaryServiceIntegration<AwsCanaryAccount> implements Cloneable {
+public class AwsCanaryServiceIntegration extends AbstractCanaryServiceIntegration<AwsCanaryAccount>
+    implements Cloneable {
   public static final String NAME = "aws";
 
   String name = NAME;

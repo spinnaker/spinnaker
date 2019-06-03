@@ -17,17 +17,15 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.canary;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.stereotype.Component;
-
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CanaryAccountValidator extends Validator<AbstractCanaryAccount> {
-  private final static String namePattern = "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$";
+  private static final String namePattern = "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$";
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
@@ -35,7 +33,8 @@ public class CanaryAccountValidator extends Validator<AbstractCanaryAccount> {
       p.addProblem(Severity.FATAL, "Canary account name must be specified");
     } else if (!Pattern.matches(namePattern, n.getName())) {
       p.addProblem(Severity.ERROR, "Canary account name must match pattern " + namePattern)
-        .setRemediation("It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, dashes, or underscores");
+          .setRemediation(
+              "It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, dashes, or underscores");
     }
   }
 }

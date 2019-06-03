@@ -29,7 +29,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import io.fabric8.utils.Strings;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,11 +37,13 @@ import java.util.Map;
 
 public interface LocalGitService<T> extends LocalService<T> {
   ArtifactService getArtifactService();
+
   default String getDefaultHost() {
     return "localhost";
   }
 
   String getGitRoot();
+
   String getStartCommand();
 
   default String getScriptsDir() {
@@ -102,8 +103,8 @@ public interface LocalGitService<T> extends LocalService<T> {
     bindings.put("version", getArtifactCommit(deploymentDetails.getDeploymentName()));
     bindings.put("git-root", getGitRoot());
 
-    DeploymentEnvironment env = deploymentDetails.getDeploymentConfiguration()
-        .getDeploymentEnvironment();
+    DeploymentEnvironment env =
+        deploymentDetails.getDeploymentConfiguration().getDeploymentEnvironment();
     DeploymentEnvironment.GitConfig gitConfig = env.getGitConfig();
     boolean update = env.getUpdateVersions();
 
@@ -118,8 +119,10 @@ public interface LocalGitService<T> extends LocalService<T> {
     return prepResource.toString();
   }
 
-  default String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
+  default String stageProfilesCommand(
+      DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
+    Map<String, Profile> profiles =
+        resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {

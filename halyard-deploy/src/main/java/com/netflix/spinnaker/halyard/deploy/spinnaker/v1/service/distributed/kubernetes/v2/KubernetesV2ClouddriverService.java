@@ -26,6 +26,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -33,22 +35,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class KubernetesV2ClouddriverService extends ClouddriverService implements KubernetesV2Service<ClouddriverService.Clouddriver> {
+public class KubernetesV2ClouddriverService extends ClouddriverService
+    implements KubernetesV2Service<ClouddriverService.Clouddriver> {
   final DeployPriority deployPriority = new DeployPriority(4);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
-  @Autowired
-  KubernetesV2ClouddriverProfileFactory kubernetesV2ClouddriverProfileFactory;
+  @Autowired KubernetesV2ClouddriverProfileFactory kubernetesV2ClouddriverProfileFactory;
 
   @Override
   public int terminationGracePeriodSeconds() {
@@ -64,14 +61,21 @@ public class KubernetesV2ClouddriverService extends ClouddriverService implement
 
   @Override
   public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
-    return !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isEnabled();
+    return !deploymentConfiguration
+        .getDeploymentEnvironment()
+        .getHaServices()
+        .getClouddriver()
+        .isEnabled();
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory()).ifPresent(profiles::add);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(profiles::add);
+    generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory())
+        .ifPresent(profiles::add);
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory())
+        .ifPresent(profiles::add);
     return profiles;
   }
 

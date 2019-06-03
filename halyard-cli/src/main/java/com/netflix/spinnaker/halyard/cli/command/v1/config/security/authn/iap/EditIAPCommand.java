@@ -28,45 +28,40 @@ import lombok.Getter;
 public class EditIAPCommand extends AbstractEditAuthnMethodCommand<IAP> {
 
   @Getter
-  private String shortDescription = "Configure authentication using the Google Cloud Identity-Aware "
-      + "Proxy authentication model.";
+  private String shortDescription =
+      "Configure authentication using the Google Cloud Identity-Aware "
+          + "Proxy authentication model.";
+
+  @Getter private AuthnMethod.Method method = Method.IAP;
 
   @Getter
-  private AuthnMethod.Method method = Method.IAP;
-
-  @Getter
-  private String longDescription = "Google Cloud Identity-Aware Proxy (IAP) is an authentication "
-      + "model that utilizes Google OAuth2.0 and an authorization service to provide access control "
-      + "for users of GCP. After a user has been authenticated and authorized by IAP's service, "
-      + "a JWT token is passed along which Spinnaker uses to check for authenticity and to get "
-      + "the user email from the payload and sign the user in. To configure IAP, set the audience field"
-      + " retrieved from the IAP console.";
+  private String longDescription =
+      "Google Cloud Identity-Aware Proxy (IAP) is an authentication "
+          + "model that utilizes Google OAuth2.0 and an authorization service to provide access control "
+          + "for users of GCP. After a user has been authenticated and authorized by IAP's service, "
+          + "a JWT token is passed along which Spinnaker uses to check for authenticity and to get "
+          + "the user email from the payload and sign the user in. To configure IAP, set the audience field"
+          + " retrieved from the IAP console.";
 
   @Parameter(
       names = "--audience",
-      description = "The Audience from the ID token payload. You can retrieve this field from the"
-          + " IAP console: https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header."
-  )
+      description =
+          "The Audience from the ID token payload. You can retrieve this field from the"
+              + " IAP console: https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.")
   private String audience;
 
   @Parameter(
       names = "--jwt-header",
-      description = "The HTTP request header that contains the JWT token."
-  )
+      description = "The HTTP request header that contains the JWT token.")
   private String jwtHeader;
 
-  @Parameter(
-      names = "--issuer-id",
-      description = "The Issuer from the ID token payload."
-  )
+  @Parameter(names = "--issuer-id", description = "The Issuer from the ID token payload.")
   private String issuerId;
 
   @Parameter(
       names = "--iap-verify-key-url",
-      description = "The URL containing the Cloud IAP public keys in JWK format."
-  )
+      description = "The URL containing the Cloud IAP public keys in JWK format.")
   private String iapVerifyKeyUrl;
-
 
   @Override
   protected AuthnMethod editAuthnMethod(IAP iap) {

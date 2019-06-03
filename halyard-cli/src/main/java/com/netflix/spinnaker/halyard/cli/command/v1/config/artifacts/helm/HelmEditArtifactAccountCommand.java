@@ -24,32 +24,27 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.Abs
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm.HelmArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
-import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 
 @Parameters(separators = "=")
-public class HelmEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<HelmArtifactAccount> {
-  @Parameter(
-      names = "--repository",
-      description = "Helm chart repository"
-  )
+public class HelmEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<HelmArtifactAccount> {
+  @Parameter(names = "--repository", description = "Helm chart repository")
   private String repository;
-  @Parameter(
-      names = "--username",
-      description = "Helm chart repository basic auth username"
-  )
+
+  @Parameter(names = "--username", description = "Helm chart repository basic auth username")
   private String username;
+
   @Parameter(
       names = "--password",
       password = true,
-      description = "Helm chart repository basic auth password"
-  )
+      description = "Helm chart repository basic auth password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for helm chart repository basic auth"
-  )
+      description =
+          "File containing \"username:password\" to use for helm chart repository basic auth")
   private String usernamePasswordFile;
 
   @Override
@@ -57,12 +52,13 @@ public class HelmEditArtifactAccountCommand extends AbstractArtifactEditAccountC
     account.setRepository(isSet(repository) ? repository : account.getRepository());
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
-    account.setUsernamePasswordFile(isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
+    account.setUsernamePasswordFile(
+        isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
     return account;
   }
 
   @Override
   protected String getArtifactProviderName() {
-        return "helm";
-    }
+    return "helm";
+  }
 }

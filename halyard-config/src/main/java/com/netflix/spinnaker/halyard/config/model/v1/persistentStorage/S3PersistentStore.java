@@ -28,8 +28,12 @@ public class S3PersistentStore extends PersistentStore {
   private String bucket;
   private String rootFolder = "front50";
   private String region;
-  @ValidForSpinnakerVersion(lowerBound = "1.13.0", tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.13.0",
+      tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
   private Boolean pathStyleAccess;
+
   private String endpoint;
   private String accessKeyId;
   @Secret private String secretAccessKey;

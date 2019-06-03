@@ -23,20 +23,23 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import io.fabric8.utils.Strings;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public interface LocalService<T> extends HasServiceSettings<T>, LogCollector<T, DeploymentDetails> {
   String getSpinnakerStagingPath(String deploymentName);
+
   String installArtifactCommand(DeploymentDetails deploymentDetails);
+
   default String prepArtifactCommand(DeploymentDetails deploymentDetails) {
     return "";
   }
 
-  default String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
+  default String stageProfilesCommand(
+      DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
+    Map<String, Profile> profiles =
+        resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {

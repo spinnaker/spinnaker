@@ -20,15 +20,13 @@ package com.netflix.spinnaker.halyard.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.Data;
-
 import java.io.IOException;
 import java.nio.file.Path;
+import lombok.Data;
 
 @Data
 public class RemoteAction {
-  @JsonIgnore
-  private String script = "";
+  @JsonIgnore private String script = "";
   private String scriptPath;
   private String scriptDescription;
   private boolean autoRun;
@@ -41,9 +39,12 @@ public class RemoteAction {
       writer.commit();
     } catch (IOException ioe) {
       ioe.printStackTrace();
-      throw new HalException(Problem.Severity.FATAL,
-              "Failed to write config for profile " + path.toFile().getName() + ": " + ioe
-                  .getMessage() );
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Failed to write config for profile "
+              + path.toFile().getName()
+              + ": "
+              + ioe.getMessage());
     } finally {
       if (writer != null) {
         writer.close();

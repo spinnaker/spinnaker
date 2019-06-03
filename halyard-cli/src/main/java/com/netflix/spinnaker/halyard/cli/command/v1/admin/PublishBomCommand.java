@@ -38,10 +38,8 @@ public class PublishBomCommand extends NestableCommand {
       names = "--bom-path",
       converter = LocalFileConverter.class,
       required = true,
-      description = "The path to the BOM owning the artifact to publish."
-  )
+      description = "The path to the BOM owning the artifact to publish.")
   private String bomPath;
-
 
   @Override
   protected void executeThis() {

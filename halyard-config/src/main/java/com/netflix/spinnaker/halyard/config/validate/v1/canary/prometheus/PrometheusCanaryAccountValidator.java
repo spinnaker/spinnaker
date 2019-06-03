@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.CanaryAccountValidator;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,23 +31,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
 public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
 
-  @Autowired
-  private SecretSessionManager secretSessionManager;
+  @Autowired private SecretSessionManager secretSessionManager;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
     super.validate(p, n);
 
-    PrometheusCanaryAccount canaryAccount = (PrometheusCanaryAccount)n;
+    PrometheusCanaryAccount canaryAccount = (PrometheusCanaryAccount) n;
 
-    DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + PrometheusCanaryAccountValidator.class.getSimpleName());
+    DaemonTaskHandler.message(
+        "Validating "
+            + n.getNodeName()
+            + " with "
+            + PrometheusCanaryAccountValidator.class.getSimpleName());
 
     String usernamePasswordFile = canaryAccount.getUsernamePasswordFile();
 

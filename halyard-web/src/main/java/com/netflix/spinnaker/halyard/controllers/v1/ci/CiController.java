@@ -29,11 +29,10 @@ import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -56,8 +55,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   private final HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, U> ci(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, U> ci(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<U>builder()
         .getter(() -> ciService.getCi(deploymentName))
         .validator(() -> ciService.validateCi(deploymentName))
@@ -67,7 +66,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     return GenericEnableDisableRequest.builder(halconfigParser)
@@ -79,8 +79,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/masters", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<T>> masters(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<T>> masters(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<T>>builder()
         .getter(() -> ciService.getAllMasters(deploymentName))
         .validator(() -> ciService.validateAllMasters(deploymentName))
@@ -90,7 +90,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/masters/{masterName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, T> master(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, T> master(
+      @PathVariable String deploymentName,
       @PathVariable String masterName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<T>builder()
@@ -102,7 +103,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/masters/{masterName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteMaster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteMaster(
+      @PathVariable String deploymentName,
       @PathVariable String masterName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericDeleteRequest.builder(halconfigParser)
@@ -115,7 +117,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/masters/{masterName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMaster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMaster(
+      @PathVariable String deploymentName,
       @PathVariable String masterName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMaster) {
@@ -130,7 +133,8 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
   }
 
   @RequestMapping(value = "/masters", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addMaster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addMaster(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMaster) {
     T account = ciService.convertToAccount(rawMaster);

@@ -31,28 +31,21 @@ import lombok.Getter;
 @Parameters(separators = "=")
 public class GoogleAddPublisherCommand extends AbstractAddPublisherCommand {
 
-  @Getter
-  private String pubsubName = "google";
+  @Getter private String pubsubName = "google";
 
-  @Parameter(
-      names = "--project",
-      description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION
-  )
+  @Parameter(names = "--project", description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--topic-name",
-      description = GooglePubsubCommandProperties.TOPIC_NAME_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.TOPIC_NAME_DESCRIPTION)
   private String topicName;
-
 
   @Override
   protected Publisher buildPublisher(String publisherName) {

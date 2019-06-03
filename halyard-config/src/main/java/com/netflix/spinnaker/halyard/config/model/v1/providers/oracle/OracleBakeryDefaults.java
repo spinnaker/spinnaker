@@ -16,8 +16,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class OracleBakeryDefaults extends BakeryDefaults<OracleBaseImage> {
-    private String availabilityDomain;
-    private String subnetId;
-    private String instanceShape;
+  private String availabilityDomain;
+  private String subnetId;
+  private String instanceShape;
 }
-

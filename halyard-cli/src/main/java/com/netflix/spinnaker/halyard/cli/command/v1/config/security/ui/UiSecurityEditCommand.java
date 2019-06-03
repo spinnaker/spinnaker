@@ -35,30 +35,33 @@ public class UiSecurityEditCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure access policies specific to Spinnaker's UI server.";
 
-  private String longDescription = String.join(" ",
-      "When Spinnaker is deployed to a remote host, the UI server may be configured to",
-      "do SSL termination, or sit behind an externally configured proxy server or load balancer."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "When Spinnaker is deployed to a remote host, the UI server may be configured to",
+          "do SSL termination, or sit behind an externally configured proxy server or load balancer.");
 
   @Parameter(
       names = "--override-base-url",
-      description = "If you are accessing the UI server remotely, provide the full base URL of whatever proxy or "
-          + "load balancer is fronting the UI requests."
-  )
+      description =
+          "If you are accessing the UI server remotely, provide the full base URL of whatever proxy or "
+              + "load balancer is fronting the UI requests.")
   String overrideBaseUrl;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    UiSecurity uiSecurity = new OperationHandler<UiSecurity>()
-        .setOperation(Daemon.getUiSecurity(currentDeployment, false))
-        .setFailureMesssage("Failed to load UI security settings.")
-        .get();
+    UiSecurity uiSecurity =
+        new OperationHandler<UiSecurity>()
+            .setOperation(Daemon.getUiSecurity(currentDeployment, false))
+            .setFailureMesssage("Failed to load UI security settings.")
+            .get();
 
     int originalHash = uiSecurity.hashCode();
 
-    uiSecurity.setOverrideBaseUrl(isSet(overrideBaseUrl) ? overrideBaseUrl : uiSecurity.getOverrideBaseUrl());
+    uiSecurity.setOverrideBaseUrl(
+        isSet(overrideBaseUrl) ? overrideBaseUrl : uiSecurity.getOverrideBaseUrl());
 
     if (originalHash == uiSecurity.hashCode()) {
       AnsiUi.failure("No changes supplied.");

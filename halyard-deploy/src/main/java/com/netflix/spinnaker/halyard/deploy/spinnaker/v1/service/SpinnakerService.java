@@ -30,13 +30,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.CustomProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -44,22 +37,24 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Data
 @Component
 @Slf4j
-abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
-  @Autowired
-  ObjectMapper objectMapper;
+public abstract class SpinnakerService<T> implements HasServiceSettings<T> {
+  @Autowired ObjectMapper objectMapper;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Override
   public SpinnakerService<T> getService() {
@@ -87,21 +82,23 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     return halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString();
   }
 
-  public ServiceSettings getDefaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    File userSettingsFile = new File(
-        halconfigDirectoryStructure.getUserServiceSettingsPath(deploymentConfiguration.getName()).toString(),
-        getCanonicalName() + ".yml"
-    );
+  public ServiceSettings getDefaultServiceSettings(
+      DeploymentConfiguration deploymentConfiguration) {
+    File userSettingsFile =
+        new File(
+            halconfigDirectoryStructure
+                .getUserServiceSettingsPath(deploymentConfiguration.getName())
+                .toString(),
+            getCanonicalName() + ".yml");
 
     if (userSettingsFile.exists() && userSettingsFile.length() != 0) {
       try {
         log.info("Reading user provided service settings from " + userSettingsFile);
         return objectMapper.convertValue(
-            yamlParser.load(new FileInputStream(userSettingsFile)),
-            ServiceSettings.class
-        );
+            yamlParser.load(new FileInputStream(userSettingsFile)), ServiceSettings.class);
       } catch (FileNotFoundException e) {
-        throw new HalException(Problem.Severity.FATAL, "Unable to read provided user settings: " + e.getMessage(), e);
+        throw new HalException(
+            Problem.Severity.FATAL, "Unable to read provided user settings: " + e.getMessage(), e);
       }
     } else {
       return new ServiceSettings();
@@ -113,33 +110,45 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     return (version != null);
   }
 
-  abstract public Type getType();
-  abstract public Class<T> getEndpointClass();
-  abstract public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
+  public abstract Type getType();
 
-  abstract protected Optional<String> customProfileOutputPath(String profileName);
+  public abstract Class<T> getEndpointClass();
 
-  public Optional<Profile> customProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings runtimeSettings, Path profilePath, String profileName) {
-    return customProfileOutputPath(profileName).flatMap(outputPath -> {
-      SpinnakerArtifact artifact = getArtifact();
-      ProfileFactory factory = new CustomProfileFactory() {
-        @Override
-        public SpinnakerArtifact getArtifact() {
-          return artifact;
-        }
+  public abstract List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
 
-        protected ArtifactService getArtifactService() {
-          return artifactService;
-        }
+  protected abstract Optional<String> customProfileOutputPath(String profileName);
 
-        @Override
-        protected Path getUserProfilePath() {
-          return profilePath;
-        }
-      };
+  public Optional<Profile> customProfile(
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings runtimeSettings,
+      Path profilePath,
+      String profileName) {
+    return customProfileOutputPath(profileName)
+        .flatMap(
+            outputPath -> {
+              SpinnakerArtifact artifact = getArtifact();
+              ProfileFactory factory =
+                  new CustomProfileFactory() {
+                    @Override
+                    public SpinnakerArtifact getArtifact() {
+                      return artifact;
+                    }
 
-      return Optional.of(factory.getProfile(profileName, outputPath, deploymentConfiguration, runtimeSettings));
-    });
+                    protected ArtifactService getArtifactService() {
+                      return artifactService;
+                    }
+
+                    @Override
+                    protected Path getUserProfilePath() {
+                      return profilePath;
+                    }
+                  };
+
+              return Optional.of(
+                  factory.getProfile(
+                      profileName, outputPath, deploymentConfiguration, runtimeSettings));
+            });
   }
 
   public boolean hasTypeModifier() {
@@ -177,14 +186,10 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     VAULT_CLIENT("vault-client"),
     VAULT_SERVER("vault-server");
 
-    @Getter
-    final String canonicalName;
-    @Getter
-    final String serviceName;
-    @Getter
-    final String modifier;
-    @Getter
-    final Type baseType;
+    @Getter final String canonicalName;
+    @Getter final String serviceName;
+    @Getter final String modifier;
+    @Getter final Type baseType;
 
     Type(String canonicalName) {
       this.canonicalName = canonicalName;
@@ -216,7 +221,10 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
       return Arrays.stream(values())
           .filter(t -> reduceName(t.getCanonicalName()).equalsIgnoreCase(finalName))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException("No service with canonical name " + canonicalName + " exists."));
+          .orElseThrow(
+              () ->
+                  new IllegalArgumentException(
+                      "No service with canonical name " + canonicalName + " exists."));
     }
   }
 }

@@ -17,13 +17,11 @@
 
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository.ShallowTaskInfo;
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class ShallowTaskList {
@@ -32,4 +30,3 @@ public class ShallowTaskList {
 
   private List<ShallowTaskInfo> tasks = new ArrayList<>();
 }
-

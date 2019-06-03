@@ -27,45 +27,42 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class WebhookService {
-    private final LookupService lookupService;
-    private final DeploymentService deploymentService;
-    private final ValidateService validateService;
+  private final LookupService lookupService;
+  private final DeploymentService deploymentService;
+  private final ValidateService validateService;
 
-    public Webhook getWebhook(String deploymentName) {
-        NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook();
+  public Webhook getWebhook(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook();
 
-        return lookupService.getSingularNodeOrDefault(filter,
-                Webhook.class,
-                Webhook::new,
-                n -> setWebhook(deploymentName, n));
-    }
+    return lookupService.getSingularNodeOrDefault(
+        filter, Webhook.class, Webhook::new, n -> setWebhook(deploymentName, n));
+  }
 
-    public void setWebhook(String deploymentName, Webhook newWebhook) {
-        DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-        deploymentConfiguration.setWebhook(newWebhook);
-    }
+  public void setWebhook(String deploymentName, Webhook newWebhook) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    deploymentConfiguration.setWebhook(newWebhook);
+  }
 
-    public ProblemSet validateWebhook(String deploymentName) {
-        NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook();
-        return validateService.validateMatchingFilter(filter);
-    }
+  public ProblemSet validateWebhook(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook();
+    return validateService.validateMatchingFilter(filter);
+  }
 
-    public WebhookTrust getWebhookTrust(String deploymentName) {
-        NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhookTrust();
+  public WebhookTrust getWebhookTrust(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhookTrust();
 
-        return lookupService.getSingularNodeOrDefault(filter,
-                WebhookTrust.class,
-                WebhookTrust::new,
-                n -> setWebhookTrust(deploymentName, n));
-    }
+    return lookupService.getSingularNodeOrDefault(
+        filter, WebhookTrust.class, WebhookTrust::new, n -> setWebhookTrust(deploymentName, n));
+  }
 
-    public void setWebhookTrust(String deploymentName, WebhookTrust newWebhookTrust) {
-        Webhook webhook = getWebhook(deploymentName);
-        webhook.setTrust(newWebhookTrust);
-    }
+  public void setWebhookTrust(String deploymentName, WebhookTrust newWebhookTrust) {
+    Webhook webhook = getWebhook(deploymentName);
+    webhook.setTrust(newWebhookTrust);
+  }
 
-    public ProblemSet validateWebhookTrust(String deploymentName) {
-        NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhookTrust();
-        return validateService.validateMatchingFilter(filter);
-    }
+  public ProblemSet validateWebhookTrust(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhookTrust();
+    return validateService.validateMatchingFilter(filter);
+  }
 }

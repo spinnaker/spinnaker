@@ -26,8 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class DeleteSubscriptionCommandBuilder implements CommandBuilder {
-  @Setter
-  String pubsubName;
+  @Setter String pubsubName;
 
   @Override
   public NestableCommand build() {

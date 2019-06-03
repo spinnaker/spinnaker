@@ -35,19 +35,18 @@ import redis.clients.jedis.Jedis;
 public class LocalGitRedisService extends RedisService implements LocalGitService<Jedis> {
   String startCommand = "";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId("redis")
+    return new Settings()
+        .setArtifactId("redis")
         .setHost(getDefaultHost())
         .setSkipLifeCycleManagement(true)
         .setEnabled(true);
   }
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {

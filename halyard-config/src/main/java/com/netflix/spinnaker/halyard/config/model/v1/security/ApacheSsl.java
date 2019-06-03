@@ -30,8 +30,7 @@ import lombok.Getter;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class ApacheSsl extends Node {
-  @Getter
-  private final String nodeName = "ssl";
+  @Getter private final String nodeName = "ssl";
 
   @Override
   public NodeIterator getChildren() {
@@ -39,15 +38,8 @@ public class ApacheSsl extends Node {
   }
 
   boolean enabled = false;
-  @LocalFile
-  @SecretFile
-  String sslCertificateFile;
-  @LocalFile
-  @SecretFile
-  String sslCertificateKeyFile;
-  @LocalFile
-  @SecretFile
-  String sslCACertificateFile;
-  @Secret
-  String sslCertificatePassphrase;
+  @LocalFile @SecretFile String sslCertificateFile;
+  @LocalFile @SecretFile String sslCertificateKeyFile;
+  @LocalFile @SecretFile String sslCACertificateFile;
+  @Secret String sslCertificatePassphrase;
 }

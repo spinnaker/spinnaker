@@ -30,12 +30,15 @@ public class BackupCommand extends NestableCommand {
   private String commandName = "backup";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Backup and restore (remote or local) copies of your halconfig and all required files.";
+  private String shortDescription =
+      "Backup and restore (remote or local) copies of your halconfig and all required files.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ", "This is used to periodically checkpoint your configured Spinnaker installation as well as",
-      "allow you to store all aspects of your configured Spinnaker installation, to be picked up by an installation of Halyard on another machine.");
-
+  private String longDescription =
+      String.join(
+          " ",
+          "This is used to periodically checkpoint your configured Spinnaker installation as well as",
+          "allow you to store all aspects of your configured Spinnaker installation, to be picked up by an installation of Halyard on another machine.");
 
   public BackupCommand() {
     registerSubcommand(new CreateBackupCommand());

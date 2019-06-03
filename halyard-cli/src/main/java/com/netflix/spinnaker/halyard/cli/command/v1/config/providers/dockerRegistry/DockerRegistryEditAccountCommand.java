@@ -26,111 +26,92 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(separators = "=")
-public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand<DockerRegistryAccount> {
+public class DockerRegistryEditAccountCommand
+    extends AbstractEditAccountCommand<DockerRegistryAccount> {
   protected String getProviderName() {
     return "dockerRegistry";
   }
 
-  @Parameter(
-      names = "--address",
-      description = DockerRegistryCommandProperties.ADDRESS_DESCRIPTION
-  )
+  @Parameter(names = "--address", description = DockerRegistryCommandProperties.ADDRESS_DESCRIPTION)
   private String address;
 
   @Parameter(
       names = "--repositories",
       variableArity = true,
-      description = DockerRegistryCommandProperties.REPOSITORIES_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.REPOSITORIES_DESCRIPTION)
   private List<String> repositories = new ArrayList<>();
 
   @Parameter(
       names = "--add-repository",
-      description = "Add this repository to the list of repositories to cache images from."
-  )
+      description = "Add this repository to the list of repositories to cache images from.")
   private String addRepository;
 
   @Parameter(
       names = "--remove-repository",
-      description = "Remove this repository to the list of repositories to cache images from."
-  )
+      description = "Remove this repository to the list of repositories to cache images from.")
   private String removeRepository;
 
   @Parameter(
       names = "--password",
       password = true,
-      description = DockerRegistryCommandProperties.PASSWORD_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.PASSWORD_DESCRIPTION)
   private String password;
 
   @Parameter(
       names = "--password-command",
-      description = DockerRegistryCommandProperties.PASSWORD_COMMAND_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.PASSWORD_COMMAND_DESCRIPTION)
   private String passwordCommand;
 
   @Parameter(
       names = "--password-file",
       converter = LocalFileConverter.class,
-      description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION)
   private String passwordFile;
 
   @Parameter(
       names = "--username",
-      description = DockerRegistryCommandProperties.USERNAME_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.USERNAME_DESCRIPTION)
   private String username;
 
-  @Parameter(
-      names = "--email",
-      description = DockerRegistryCommandProperties.EMAIL_DESCRIPTION
-  )
+  @Parameter(names = "--email", description = DockerRegistryCommandProperties.EMAIL_DESCRIPTION)
   private String email;
 
   @Parameter(
       names = "--cache-interval-seconds",
-      description = DockerRegistryCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION
-  )
+      description = DockerRegistryCommandProperties.CACHE_INTERVAL_SECONDS_DESCRIPTION)
   private Long cacheIntervalSeconds;
 
   @Parameter(
-          names = "--client-timeout-millis",
-          description = DockerRegistryCommandProperties.CLIENT_TIMEOUT_MILLIS_DESCRIPTION
-  )
+      names = "--client-timeout-millis",
+      description = DockerRegistryCommandProperties.CLIENT_TIMEOUT_MILLIS_DESCRIPTION)
   private Long clientTimeoutMillis;
 
   @Parameter(
-          names = "--cache-threads",
-          description = DockerRegistryCommandProperties.CACHE_THREADS_DESCRIPTION
-  )
+      names = "--cache-threads",
+      description = DockerRegistryCommandProperties.CACHE_THREADS_DESCRIPTION)
   private Integer cacheThreads;
 
   @Parameter(
       names = "--insecure-registry",
       description = DockerRegistryCommandProperties.INSECURE_REGISTRY_DESCRIPTION,
-      arity = 1
-  )
+      arity = 1)
   private Boolean insecureRegistry;
 
   @Parameter(
-          names = "--paginate-size",
-          description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION
-  )
+      names = "--paginate-size",
+      description = DockerRegistryCommandProperties.PAGINATE_SIZE_DESCRIPTION)
   private Integer paginateSize;
 
   @Parameter(
-          names = "--sort-tags-by-date",
-          arity = 1,
-          description = DockerRegistryCommandProperties.SORT_TAGS_BY_DATE_DESCRIPTION
-  )
+      names = "--sort-tags-by-date",
+      arity = 1,
+      description = DockerRegistryCommandProperties.SORT_TAGS_BY_DATE_DESCRIPTION)
   private Boolean sortTagsByDate;
 
   @Parameter(
-          names = "--track-digests",
-          arity = 1,
-          description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION
-  )
+      names = "--track-digests",
+      arity = 1,
+      description = DockerRegistryCommandProperties.TRACK_DIGESTS_DESCRIPTION)
   private Boolean trackDigests;
 
   @Override
@@ -139,7 +120,8 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
 
     try {
       account.setRepositories(
-          updateStringList(account.getRepositories(), repositories, addRepository, removeRepository));
+          updateStringList(
+              account.getRepositories(), repositories, addRepository, removeRepository));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --repositories or --[add/remove]-repository");
     }
@@ -148,8 +130,11 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
     boolean passwordFileSet = isSet(passwordFile);
     boolean passwordCommandSet = isSet(passwordCommand);
 
-    if (passwordSet && passwordFileSet || passwordSet && passwordCommandSet || passwordCommandSet && passwordFileSet)  {
-      throw new IllegalArgumentException("Set either --password or --password-command or --password-file");
+    if (passwordSet && passwordFileSet
+        || passwordSet && passwordCommandSet
+        || passwordCommandSet && passwordFileSet) {
+      throw new IllegalArgumentException(
+          "Set either --password or --password-command or --password-file");
     } else if (passwordSet) {
       account.setPassword(password);
       account.setPasswordCommand(null);
@@ -166,13 +151,16 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
 
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setEmail(isSet(email) ? email : account.getEmail());
-    account.setCacheIntervalSeconds(isSet(cacheIntervalSeconds) ? cacheIntervalSeconds : account.getCacheIntervalSeconds());
-    account.setClientTimeoutMillis(isSet(clientTimeoutMillis) ? clientTimeoutMillis : account.getClientTimeoutMillis());
+    account.setCacheIntervalSeconds(
+        isSet(cacheIntervalSeconds) ? cacheIntervalSeconds : account.getCacheIntervalSeconds());
+    account.setClientTimeoutMillis(
+        isSet(clientTimeoutMillis) ? clientTimeoutMillis : account.getClientTimeoutMillis());
     account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
     account.setPaginateSize(isSet(paginateSize) ? paginateSize : account.getPaginateSize());
     account.setSortTagsByDate(isSet(sortTagsByDate) ? sortTagsByDate : account.getSortTagsByDate());
     account.setTrackDigests(isSet(trackDigests) ? trackDigests : account.getTrackDigests());
-    account.setInsecureRegistry(isSet(insecureRegistry) ? insecureRegistry : account.getInsecureRegistry());
+    account.setInsecureRegistry(
+        isSet(insecureRegistry) ? insecureRegistry : account.getInsecureRegistry());
 
     return account;
   }

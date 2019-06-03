@@ -31,33 +31,26 @@ public class AzureEditBaseImageCommand extends AbstractEditBaseImageCommand<Azur
 
   @Parameter(
       names = "--publisher",
-      description = AzureCommandProperties.IMAGE_PUBLISHER_DESCRIPTION
-  )
+      description = AzureCommandProperties.IMAGE_PUBLISHER_DESCRIPTION)
   private String publisher;
 
-  @Parameter(
-          names = "--offer",
-          description = AzureCommandProperties.IMAGE_OFFER_DESCRIPTION
-  )
+  @Parameter(names = "--offer", description = AzureCommandProperties.IMAGE_OFFER_DESCRIPTION)
   private String offer;
 
-  @Parameter(
-          names = "--sku",
-          description = AzureCommandProperties.IMAGE_SKU_DESCRIPTION
-  )
+  @Parameter(names = "--sku", description = AzureCommandProperties.IMAGE_SKU_DESCRIPTION)
   private String sku;
 
   @Parameter(
-          names = "--image-version", // just using '--version' would conflict with the global parameter
-          description = AzureCommandProperties.IMAGE_VERSION_DESCRIPTION
-  )
+      names = "--image-version", // just using '--version' would conflict with the global parameter
+      description = AzureCommandProperties.IMAGE_VERSION_DESCRIPTION)
   private String version;
 
   @Override
   protected BaseImage editBaseImage(AzureBaseImage baseImage) {
     AzureBaseImage.AzureOperatingSystemSettings imageSettings = baseImage.getBaseImage();
-    imageSettings = imageSettings != null ? imageSettings : new AzureBaseImage.AzureOperatingSystemSettings();
-    
+    imageSettings =
+        imageSettings != null ? imageSettings : new AzureBaseImage.AzureOperatingSystemSettings();
+
     imageSettings.setPublisher(isSet(publisher) ? publisher : imageSettings.getPublisher());
     imageSettings.setOffer(isSet(offer) ? offer : imageSettings.getOffer());
     imageSettings.setSku(isSet(sku) ? sku : imageSettings.getSku());

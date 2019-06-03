@@ -23,12 +23,12 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GithubRoleProvider extends RoleProvider {
-  private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GITHUB;
+  private final GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.GITHUB;
 
   private final String nodeName = "github";
 
   private String baseUrl;
-  @Secret
-  private String accessToken;
+  @Secret private String accessToken;
   private String organization;
 }

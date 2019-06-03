@@ -22,11 +22,10 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractAddCanaryAccountCommand extends AbstractHasCanaryAccountCommand {
@@ -42,25 +41,39 @@ public abstract class AbstractAddCanaryAccountCommand extends AbstractHasCanaryA
   protected abstract AbstractCanaryAccount emptyAccount();
 
   @Getter(AccessLevel.PUBLIC)
-  String shortDescription = "Add a canary account to the " + getServiceIntegration() + " service integration.";
+  String shortDescription =
+      "Add a canary account to the " + getServiceIntegration() + " service integration.";
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, false))
-        .get();
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
 
     String accountName = getAccountName();
     AbstractCanaryAccount account = buildAccount(canary, accountName);
     String serviceIntegration = getServiceIntegration();
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to add canary account " + accountName + " for service integration " + serviceIntegration + ".")
-        .setSuccessMessage("Successfully added canary account " + accountName + " for service integration " + serviceIntegration + ".")
-        .setOperation(Daemon.addCanaryAccount(currentDeployment, serviceIntegration.toLowerCase(), !noValidate, account))
+        .setFailureMesssage(
+            "Failed to add canary account "
+                + accountName
+                + " for service integration "
+                + serviceIntegration
+                + ".")
+        .setSuccessMessage(
+            "Successfully added canary account "
+                + accountName
+                + " for service integration "
+                + serviceIntegration
+                + ".")
+        .setOperation(
+            Daemon.addCanaryAccount(
+                currentDeployment, serviceIntegration.toLowerCase(), !noValidate, account))
         .get();
   }
 }

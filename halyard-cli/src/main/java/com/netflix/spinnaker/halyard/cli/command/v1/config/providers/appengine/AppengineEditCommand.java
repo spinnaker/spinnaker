@@ -40,16 +40,14 @@ public class AppengineEditCommand extends AbstractProviderCommand {
 
   @Parameter(
       names = "--gcloudPath",
-      description = "The path to the gcloud executable on the machine running clouddriver."
-  )
+      description = "The path to the gcloud executable on the machine running clouddriver.")
   private String gcloudPath;
 
   protected String getProviderName() {
     return "appengine";
   }
 
-  public AppengineEditCommand() {
-  }
+  public AppengineEditCommand() {}
 
   @Override
   protected void executeThis() {
@@ -64,10 +62,12 @@ public class AppengineEditCommand extends AbstractProviderCommand {
         .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
         .get();
 
-    AppengineProvider provider = (AppengineProvider) new OperationHandler<Provider>()
-        .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
-        .setFailureMesssage("Failed to get provider " + providerName + ".")
-        .get();
+    AppengineProvider provider =
+        (AppengineProvider)
+            new OperationHandler<Provider>()
+                .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
+                .setFailureMesssage("Failed to get provider " + providerName + ".")
+                .get();
 
     int originalHash = provider.hashCode();
 

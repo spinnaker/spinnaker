@@ -26,11 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class NotificationEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String notificationName;
+  @Setter String notificationName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -38,7 +36,8 @@ public class NotificationEnableDisableCommandBuilder implements CommandBuilder {
   }
 
   @Parameters(separators = "=")
-  private static class NotificationEnableDisableCommand extends AbstractNotificationEnableDisableCommand {
+  private static class NotificationEnableDisableCommand
+      extends AbstractNotificationEnableDisableCommand {
     private NotificationEnableDisableCommand(String notificationName, boolean enable) {
       this.notificationName = notificationName;
       this.enable = enable;

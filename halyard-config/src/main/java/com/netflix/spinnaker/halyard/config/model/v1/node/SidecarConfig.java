@@ -18,12 +18,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class SidecarConfig {
@@ -48,6 +47,7 @@ public class SidecarConfig {
     String configMapName;
     String mountPath;
   }
+
   @Data
   public static class SecretVolumeMount {
     String secretName;

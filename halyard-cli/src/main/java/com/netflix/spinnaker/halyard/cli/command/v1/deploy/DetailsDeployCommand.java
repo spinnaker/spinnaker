@@ -33,13 +33,13 @@ public class DetailsDeployCommand extends AbstractConfigCommand {
   private String commandName = "details";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Get details about your currently deployed Spinnaker installation.";
+  private String shortDescription =
+      "Get details about your currently deployed Spinnaker installation.";
 
   @Parameter(
       names = "--service-name",
       required = true,
-      description = "The name of the service to inspect."
-  )
+      description = "The name of the service to inspect.")
   private String serviceName;
 
   @Override

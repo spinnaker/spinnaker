@@ -29,11 +29,6 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,6 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Component
 @Slf4j
@@ -56,40 +55,46 @@ public class RoscoProfileFactory extends SpringProfileFactory {
     return "0.9.1";
   }
 
-  @Autowired
-  ProfileRegistry profileRegistry;
+  @Autowired ProfileRegistry profileRegistry;
 
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   protected Providers getImageProviders(String version, String deploymentName) {
     Providers providers;
 
-    try (InputStream is = profileRegistry.readProfile(getArtifact().getName(), version, "images.yml")) {
+    try (InputStream is =
+        profileRegistry.readProfile(getArtifact().getName(), version, "images.yml")) {
       Object obj = yamlParser.load(is);
 
       providers = objectMapper.convertValue(obj, Providers.class);
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to read images.yml for rosco: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Unable to read images.yml for rosco: " + e.getMessage(), e);
     }
 
-    File f = halconfigDirectoryStructure.getUserProfilePath(deploymentName).resolve("images-local.yml").toFile();
+    File f =
+        halconfigDirectoryStructure
+            .getUserProfilePath(deploymentName)
+            .resolve("images-local.yml")
+            .toFile();
     Providers localProviders = null;
 
     if (f.exists()) {
-      // Need just the $PROVIDER.bakeryDefaults.baseImages list items to merge in with the content from rosco/halconfig/images.yml.
+      // Need just the $PROVIDER.bakeryDefaults.baseImages list items to merge in with the content
+      // from rosco/halconfig/images.yml.
       try (FileInputStream fis = new FileInputStream(f)) {
         Object localObj = yamlParser.load(fis);
 
         localProviders = objectMapper.convertValue(localObj, Providers.class);
       } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Unable to read images-local.yml for rosco: " + e.getMessage(), e);
+        throw new HalException(
+            Problem.Severity.FATAL,
+            "Unable to read images-local.yml for rosco: " + e.getMessage(),
+            e);
       }
     }
 
@@ -101,11 +106,15 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
     Providers providers = deploymentConfiguration.getProviders();
-    Providers otherProviders = getImageProviders(profile.getVersion(), deploymentConfiguration.getName());
+    Providers otherProviders =
+        getImageProviders(profile.getVersion(), deploymentConfiguration.getName());
 
     augmentProvidersBaseImages(providers, otherProviders);
 
@@ -117,7 +126,8 @@ public class RoscoProfileFactory extends SpringProfileFactory {
     while (child != null) {
       if (child instanceof HasImageProvider && child.isEnabled()) {
         files.addAll(backupRequiredFiles(child, deploymentConfiguration.getName()));
-        imageProviders.put(child.getNodeName(), convertToMap(deploymentConfiguration.getName(), profile, child));
+        imageProviders.put(
+            child.getNodeName(), convertToMap(deploymentConfiguration.getName(), profile, child));
       }
 
       child = (Provider) iterator.getNext();
@@ -127,8 +137,7 @@ public class RoscoProfileFactory extends SpringProfileFactory {
       profile.appendContents(yamlParser.dump(imageProviders));
     }
 
-    profile.appendContents(profile.getBaseContents())
-        .setRequiredFiles(files);
+    profile.appendContents(profile.getBaseContents()).setRequiredFiles(files);
   }
 
   private void augmentProvidersBaseImages(Providers providers, Providers otherProviders) {
@@ -143,7 +152,9 @@ public class RoscoProfileFactory extends SpringProfileFactory {
           log.warn("images.yml has no images stored for " + child.getNodeName());
         } else {
           log.info("Adding default images for " + child.getNodeName());
-          ((HasImageProvider) child).getBakeryDefaults().addDefaultImages(otherChild.getBakeryDefaults().getBaseImages());
+          ((HasImageProvider) child)
+              .getBakeryDefaults()
+              .addDefaultImages(otherChild.getBakeryDefaults().getBaseImages());
         }
       }
 

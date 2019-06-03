@@ -8,37 +8,34 @@ import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.config.services.v1.ConfigService;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-
 @Component
 public class EcsAccountValidator extends Validator<EcsAccount> {
-    @Autowired
-    ProviderService providerService;
+  @Autowired ProviderService providerService;
 
-    @Autowired
-    AccountService accountService;
+  @Autowired AccountService accountService;
 
-    @Autowired
-    ConfigService configService;
+  @Autowired ConfigService configService;
 
-    @Override
-    public void validate(ConfigProblemSetBuilder p, EcsAccount n) {
-        p.addProblem(Severity.WARNING, "This only validates that a corresponding AWS account has been " +
-                "created for your ECS account.");
-        String ecsAwsAccount = n.getAwsAccount();
+  @Override
+  public void validate(ConfigProblemSetBuilder p, EcsAccount n) {
+    p.addProblem(
+        Severity.WARNING,
+        "This only validates that a corresponding AWS account has been "
+            + "created for your ECS account.");
+    String ecsAwsAccount = n.getAwsAccount();
 
-        List<Account> accounts = accountService.getAllAccounts(configService.getCurrentDeployment(), "aws");
-        Optional<Account> account =
-                accounts.stream().filter(act -> act.getName().equals(ecsAwsAccount)).findAny();
+    List<Account> accounts =
+        accountService.getAllAccounts(configService.getCurrentDeployment(), "aws");
+    Optional<Account> account =
+        accounts.stream().filter(act -> act.getName().equals(ecsAwsAccount)).findAny();
 
-        if (!account.isPresent()) {
-            p.addProblem(Severity.ERROR, "No AWS Account found matching " + ecsAwsAccount);
-        }
+    if (!account.isPresent()) {
+      p.addProblem(Severity.ERROR, "No AWS Account found matching " + ecsAwsAccount);
     }
-
+  }
 }
-

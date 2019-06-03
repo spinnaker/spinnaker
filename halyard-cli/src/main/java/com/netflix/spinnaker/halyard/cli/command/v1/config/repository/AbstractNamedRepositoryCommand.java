@@ -35,17 +35,17 @@ public abstract class AbstractNamedRepositoryCommand extends AbstractRepositoryC
   }
 
   protected AbstractNamedRepositoryCommand() {
-    registerSubcommand(new RepositoryEnableDisableCommandBuilder()
-        .setRepositoryName(getRepositoryName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new RepositoryEnableDisableCommandBuilder()
+            .setRepositoryName(getRepositoryName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new RepositoryEnableDisableCommandBuilder()
-        .setRepositoryName(getRepositoryName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new RepositoryEnableDisableCommandBuilder()
+            .setRepositoryName(getRepositoryName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

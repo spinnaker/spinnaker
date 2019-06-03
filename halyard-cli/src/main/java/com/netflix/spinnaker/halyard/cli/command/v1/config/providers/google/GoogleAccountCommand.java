@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 
-/**
- * Interact with the google provider
- */
+/** Interact with the google provider */
 @Parameters(separators = "=")
 public class GoogleAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
@@ -35,4 +33,3 @@ public class GoogleAccountCommand extends AbstractAccountCommand {
     registerSubcommand(new GoogleEditAccountCommand());
   }
 }
-

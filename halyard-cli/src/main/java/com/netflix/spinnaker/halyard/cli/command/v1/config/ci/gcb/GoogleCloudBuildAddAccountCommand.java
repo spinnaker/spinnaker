@@ -24,11 +24,10 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuildAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class GoogleCloudBuildAddAccountCommand extends AbstractHasAccountCommand {
@@ -49,20 +48,17 @@ public class GoogleCloudBuildAddAccountCommand extends AbstractHasAccountCommand
   @Parameter(
       names = "--project",
       required = true,
-      description = "The name of the GCP project in which to trigger and monitor builds"
-  )
+      description = "The name of the GCP project in which to trigger and monitor builds")
   private String project;
 
   @Parameter(
       names = "--subscription-name",
-      description = "The name of the PubSub subscription on which to listen for build changes"
-  )
+      description = "The name of the PubSub subscription on which to listen for build changes")
   private String subscriptionName;
 
   @Parameter(
       names = "--json-key",
-      description = "The path to a JSON service account that Spinnaker will use as credentials"
-  )
+      description = "The path to a JSON service account that Spinnaker will use as credentials")
   private String jsonKey;
 
   protected GoogleCloudBuildAccount buildAccount(String accountName) {
@@ -83,7 +79,8 @@ public class GoogleCloudBuildAddAccountCommand extends AbstractHasAccountCommand
     new OperationHandler<Void>()
         .setOperation(Daemon.addMaster(currentDeployment, ciName, !noValidate, account))
         .setSuccessMessage(String.format("Added Google Cloud Build account %s.", accountName))
-        .setFailureMesssage(String.format("Failed to add Google Cloud Build account %s.", accountName))
+        .setFailureMesssage(
+            String.format("Failed to add Google Cloud Build account %s.", accountName))
         .get();
   }
 }

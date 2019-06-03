@@ -17,18 +17,16 @@
 
 package com.netflix.spinnaker.halyard.core.resource.v1;
 
-import lombok.Setter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Setter;
 
 /**
- * Given a key/value set of bindings, and a resource that has "bindable" sites matching
- * {%key%} (this can be overridden), this class replaces those sites with their appropriate values.
+ * Given a key/value set of bindings, and a resource that has "bindable" sites matching {%key%}
+ * (this can be overridden), this class replaces those sites with their appropriate values.
  */
-abstract public class TemplatedResource {
-  @Setter
-  Map<String, Object> bindings = new HashMap<>();
+public abstract class TemplatedResource {
+  @Setter Map<String, Object> bindings = new HashMap<>();
 
   public TemplatedResource extendBindings(Map<String, Object> bindings) {
     this.bindings.putAll(bindings);
@@ -40,5 +38,5 @@ abstract public class TemplatedResource {
     return this;
   }
 
-  abstract protected String getContents();
+  protected abstract String getContents();
 }

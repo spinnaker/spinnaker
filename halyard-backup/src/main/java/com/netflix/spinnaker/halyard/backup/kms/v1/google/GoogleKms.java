@@ -29,13 +29,12 @@ import com.google.api.services.cloudkms.v1.CloudKMSScopes;
 import com.google.api.services.cloudkms.v1.model.*;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Collections;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 class GoogleKms {
@@ -54,9 +53,24 @@ class GoogleKms {
   GoogleKms(GoogleSecureStorageProperties properties) {
     cloudKms = buildCredentials(properties);
     projectId = properties.getProject();
-    locationId = locationId(projectId, StringUtils.isEmpty(properties.getKeyRingLocation()) ? "global" : properties.getKeyRingLocation());
-    keyRingId = keyRingId(locationId, StringUtils.isEmpty(properties.getKeyRingName()) ? "halyard" : properties.getKeyRingName());
-    cryptoKeyId = cryptoKeyId(keyRingId, StringUtils.isEmpty(properties.getCryptoKeyName()) ? "config" : properties.getCryptoKeyName());
+    locationId =
+        locationId(
+            projectId,
+            StringUtils.isEmpty(properties.getKeyRingLocation())
+                ? "global"
+                : properties.getKeyRingLocation());
+    keyRingId =
+        keyRingId(
+            locationId,
+            StringUtils.isEmpty(properties.getKeyRingName())
+                ? "halyard"
+                : properties.getKeyRingName());
+    cryptoKeyId =
+        cryptoKeyId(
+            keyRingId,
+            StringUtils.isEmpty(properties.getCryptoKeyName())
+                ? "config"
+                : properties.getCryptoKeyName());
 
     keyRing = ensureKeyRingExists(cloudKms, locationId, keyRingId);
     cryptoKey = ensureCryptoKeyExists(cloudKms, credential, keyRingId, cryptoKeyId);
@@ -67,11 +81,17 @@ class GoogleKms {
     EncryptRequest encryptRequest = new EncryptRequest().encodePlaintext(plaintext.getBytes());
     EncryptResponse response;
     try {
-      response = cloudKms.projects().locations().keyRings().cryptoKeys()
-          .encrypt(cryptoKey.getName(), encryptRequest)
-          .execute();
+      response =
+          cloudKms
+              .projects()
+              .locations()
+              .keyRings()
+              .cryptoKeys()
+              .encrypt(cryptoKey.getName(), encryptRequest)
+              .execute();
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to encrypt user data: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to encrypt user data: " + e.getMessage(), e);
     }
 
     return response.decodeCiphertext();
@@ -103,18 +123,22 @@ class GoogleKms {
     return String.format("%s/cryptoKeys/%s", keyRingId, cryptoKeyId);
   }
 
-  private static CryptoKey ensureCryptoKeyExists(CloudKMS cloudKms, GoogleCredential credential, String keyRingId, String cryptoKeyId) {
+  private static CryptoKey ensureCryptoKeyExists(
+      CloudKMS cloudKms, GoogleCredential credential, String keyRingId, String cryptoKeyId) {
     CryptoKey cryptoKey;
     try {
-      cryptoKey = cloudKms.projects().locations().keyRings().cryptoKeys().get(cryptoKeyId).execute();
+      cryptoKey =
+          cloudKms.projects().locations().keyRings().cryptoKeys().get(cryptoKeyId).execute();
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 404) {
         cryptoKey = null;
       } else {
-        throw new HalException(Problem.Severity.FATAL, "Unexpected error retrieving crypto key: " + e.getMessage(), e);
+        throw new HalException(
+            Problem.Severity.FATAL, "Unexpected error retrieving crypto key: " + e.getMessage(), e);
       }
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unexpected error retrieving crypto key: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Unexpected error retrieving crypto key: " + e.getMessage(), e);
     }
 
     if (cryptoKey == null) {
@@ -127,25 +151,31 @@ class GoogleKms {
     return cryptoKey;
   }
 
-  private static CryptoKey createCryptoKey(CloudKMS cloudKms, String keyRingId, String cryptoKeyName, String user) {
+  private static CryptoKey createCryptoKey(
+      CloudKMS cloudKms, String keyRingId, String cryptoKeyName, String user) {
     CryptoKey cryptoKey;
     try {
-      cryptoKey = cloudKms.projects()
-          .locations()
-          .keyRings()
-          .cryptoKeys()
-          .create(keyRingId, new CryptoKey().setPurpose(KEY_PURPOSE))
-          .setCryptoKeyId(cryptoKeyName)
-          .execute();
+      cryptoKey =
+          cloudKms
+              .projects()
+              .locations()
+              .keyRings()
+              .cryptoKeys()
+              .create(keyRingId, new CryptoKey().setPurpose(KEY_PURPOSE))
+              .setCryptoKeyId(cryptoKeyName)
+              .execute();
 
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to create a halyard crypto key: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to create a halyard crypto key: " + e.getMessage(), e);
     }
 
     Policy policy = getCryptoKeyPolicy(cloudKms, cryptoKey.getName());
-    policy.setBindings(Collections.singletonList(new Binding()
-            .setRole("roles/cloudkms.cryptoKeyEncrypterDecrypter")
-            .setMembers(Collections.singletonList(user))));
+    policy.setBindings(
+        Collections.singletonList(
+            new Binding()
+                .setRole("roles/cloudkms.cryptoKeyEncrypterDecrypter")
+                .setMembers(Collections.singletonList(user))));
 
     log.info("Updating iam policy for " + cryptoKey.getName());
     setCryptoKeyPolicy(cloudKms, cryptoKey.getName(), policy);
@@ -156,26 +186,36 @@ class GoogleKms {
   private static void setCryptoKeyPolicy(CloudKMS cloudKms, String cryptoKeyId, Policy policy) {
     try {
       SetIamPolicyRequest iamPolicyRequest = new SetIamPolicyRequest().setPolicy(policy);
-      cloudKms.projects().locations().keyRings().cryptoKeys()
+      cloudKms
+          .projects()
+          .locations()
+          .keyRings()
+          .cryptoKeys()
           .setIamPolicy(cryptoKeyId, iamPolicyRequest)
           .execute();
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to set crypo key policy: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to set crypo key policy: " + e.getMessage(), e);
     }
   }
-
 
   private static Policy getCryptoKeyPolicy(CloudKMS cloudKms, String cryptoKeyId) {
     try {
-      return cloudKms.projects().locations().keyRings().cryptoKeys()
+      return cloudKms
+          .projects()
+          .locations()
+          .keyRings()
+          .cryptoKeys()
           .getIamPolicy(cryptoKeyId)
           .execute();
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to load crypo key policy: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to load crypo key policy: " + e.getMessage(), e);
     }
   }
 
-  private static KeyRing ensureKeyRingExists(CloudKMS cloudKms, String locationId, String keyRingId) {
+  private static KeyRing ensureKeyRingExists(
+      CloudKMS cloudKms, String locationId, String keyRingId) {
     KeyRing keyRing;
     try {
       keyRing = cloudKms.projects().locations().keyRings().get(keyRingId).execute();
@@ -183,10 +223,12 @@ class GoogleKms {
       if (e.getStatusCode() == 404) {
         keyRing = null;
       } else {
-        throw new HalException(Problem.Severity.FATAL, "Unexpected error retrieving key ring: " + e.getMessage(), e);
+        throw new HalException(
+            Problem.Severity.FATAL, "Unexpected error retrieving key ring: " + e.getMessage(), e);
       }
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unexpected error retrieving key ring: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Unexpected error retrieving key ring: " + e.getMessage(), e);
     }
 
     if (keyRing == null) {
@@ -200,18 +242,21 @@ class GoogleKms {
 
   private static KeyRing createKeyRing(CloudKMS cloudKms, String locationId, String keyRingName) {
     try {
-      return cloudKms.projects()
+      return cloudKms
+          .projects()
           .locations()
           .keyRings()
           .create(locationId, new KeyRing())
           .setKeyRingId(keyRingName)
           .execute();
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to create a halyard key ring: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to create a halyard key ring: " + e.getMessage(), e);
     }
   }
 
-  private static GoogleCredential loadKmsCredential(HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
+  private static GoogleCredential loadKmsCredential(
+      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
     GoogleCredential credential;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);

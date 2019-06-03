@@ -18,17 +18,16 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.PublicService;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.stereotype.Component;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
 
 @Component
 public class PublicServiceValidator extends Validator<PublicService> {

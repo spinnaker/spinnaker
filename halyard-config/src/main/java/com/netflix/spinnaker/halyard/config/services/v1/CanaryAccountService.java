@@ -26,61 +26,77 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig
- * deployment's canary configurations.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig deployment's canary configurations.
  */
 @Component
 public class CanaryAccountService {
 
-  @Autowired
-  private CanaryService canaryService;
+  @Autowired private CanaryService canaryService;
 
-  @Autowired
-  private OptionsService optionsService;
+  @Autowired private OptionsService optionsService;
 
-  public AbstractCanaryAccount getCanaryAccount(String deploymentName, String serviceIntegrationName, String accountName) {
-    AbstractCanaryServiceIntegration serviceIntegration = getServiceIntegration(deploymentName, serviceIntegrationName);
+  public AbstractCanaryAccount getCanaryAccount(
+      String deploymentName, String serviceIntegrationName, String accountName) {
+    AbstractCanaryServiceIntegration serviceIntegration =
+        getServiceIntegration(deploymentName, serviceIntegrationName);
     List<AbstractCanaryAccount> matchingAccounts =
-        (List<AbstractCanaryAccount>)serviceIntegration.getAccounts()
-            .stream()
-            .filter(a -> (((AbstractCanaryAccount)a).getName().equals(accountName)))
-            .collect(Collectors.toList());
+        (List<AbstractCanaryAccount>)
+            serviceIntegration.getAccounts().stream()
+                .filter(a -> (((AbstractCanaryAccount) a).getName().equals(accountName)))
+                .collect(Collectors.toList());
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No account with name \"" + accountName + "\" was found")
-            .setRemediation("Check if this account was defined in another service integration, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No account with name \"" + accountName + "\" was found")
+                .setRemediation(
+                    "Check if this account was defined in another service integration, or create a new one")
+                .build());
       case 1:
         return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate canary accounts with name \"" + accountName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate canary accounts with name \""
+                        + accountName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  private AbstractCanaryServiceIntegration getServiceIntegration(String deploymentName, String serviceIntegrationName) {
+  private AbstractCanaryServiceIntegration getServiceIntegration(
+      String deploymentName, String serviceIntegrationName) {
     Canary canary = canaryService.getCanary(deploymentName);
-    return canary.getServiceIntegrations()
-        .stream()
+    return canary.getServiceIntegrations().stream()
         .filter(s -> s.getName().equals(serviceIntegrationName))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Canary service integration " + serviceIntegrationName + " not found."));
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Canary service integration " + serviceIntegrationName + " not found."));
   }
 
-  public void setAccount(String deploymentName, String serviceIntegrationName, String accountName, AbstractCanaryAccount newAccount) {
-    AbstractCanaryServiceIntegration serviceIntegration = getServiceIntegration(deploymentName, serviceIntegrationName);
+  public void setAccount(
+      String deploymentName,
+      String serviceIntegrationName,
+      String accountName,
+      AbstractCanaryAccount newAccount) {
+    AbstractCanaryServiceIntegration serviceIntegration =
+        getServiceIntegration(deploymentName, serviceIntegrationName);
 
     for (int i = 0; i < serviceIntegration.getAccounts().size(); i++) {
-      AbstractCanaryAccount account = (AbstractCanaryAccount)serviceIntegration.getAccounts().get(i);
+      AbstractCanaryAccount account =
+          (AbstractCanaryAccount) serviceIntegration.getAccounts().get(i);
 
       if (account.getNodeName().equals(accountName)) {
         serviceIntegration.getAccounts().set(i, newAccount);
@@ -88,25 +104,45 @@ public class CanaryAccountService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Canary account \"" + accountName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(
+                Severity.FATAL, "Canary account \"" + accountName + "\" wasn't found")
+            .build());
   }
 
-  public void deleteAccount(String deploymentName, String serviceIntegrationName, String accountName) {
-    AbstractCanaryServiceIntegration serviceIntegration = getServiceIntegration(deploymentName, serviceIntegrationName);
-    boolean removed = serviceIntegration.getAccounts().removeIf(account -> ((AbstractCanaryAccount)account).getName().equals(accountName));
+  public void deleteAccount(
+      String deploymentName, String serviceIntegrationName, String accountName) {
+    AbstractCanaryServiceIntegration serviceIntegration =
+        getServiceIntegration(deploymentName, serviceIntegrationName);
+    boolean removed =
+        serviceIntegration
+            .getAccounts()
+            .removeIf(account -> ((AbstractCanaryAccount) account).getName().equals(accountName));
 
     if (!removed) {
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Canary account \"" + accountName + "\" wasn't found").build());
+      throw new HalException(
+          new ConfigProblemBuilder(
+                  Severity.FATAL, "Canary account \"" + accountName + "\" wasn't found")
+              .build());
     }
   }
 
-  public void addAccount(String deploymentName, String serviceIntegrationName, AbstractCanaryAccount newCanaryAccount) {
-    AbstractCanaryServiceIntegration serviceIntegration = getServiceIntegration(deploymentName, serviceIntegrationName);
+  public void addAccount(
+      String deploymentName,
+      String serviceIntegrationName,
+      AbstractCanaryAccount newCanaryAccount) {
+    AbstractCanaryServiceIntegration serviceIntegration =
+        getServiceIntegration(deploymentName, serviceIntegrationName);
     serviceIntegration.getAccounts().add(newCanaryAccount);
   }
 
-  public OptionsService.FieldOptions getAccountOptions(String deploymentName, String providerName, String accountName, String fieldName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setAccount(accountName);
+  public OptionsService.FieldOptions getAccountOptions(
+      String deploymentName, String providerName, String accountName, String fieldName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setAccount(accountName);
     return optionsService.options(filter, Account.class, fieldName);
   }
 }

@@ -36,8 +36,7 @@ import retrofit.client.OkClient;
 @Configuration
 @Import({OkHttpClientConfiguration.class, OkHttpClientComponents.class})
 class RetrofitConfig {
-  @Autowired
-  OkHttpClientConfiguration okHttpClientConfig;
+  @Autowired OkHttpClientConfiguration okHttpClientConfig;
 
   @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   int maxIdleConnections;
@@ -48,11 +47,11 @@ class RetrofitConfig {
   @Value("${ok-http-client.retry-on-connection-failure:true}")
   boolean retryOnConnectionFailure;
 
-  @Autowired
-  RequestInterceptor spinnakerRequestInterceptor;
+  @Autowired RequestInterceptor spinnakerRequestInterceptor;
 
   @Bean
-  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
+  RestAdapter.LogLevel retrofitLogLevel(
+      @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return RestAdapter.LogLevel.valueOf(retrofitLogLevel);
   }
 
@@ -82,4 +81,3 @@ class RetrofitConfig {
     }
   }
 }
-

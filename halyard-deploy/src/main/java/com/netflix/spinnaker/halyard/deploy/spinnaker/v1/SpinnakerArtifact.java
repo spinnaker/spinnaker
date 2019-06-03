@@ -19,8 +19,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 import lombok.Getter;
 
 /**
- * An artifact is something deployed as a part of Spinnaker. It can be run with a number
- * of Profiles, but ultimately refers to a compiled/distributable binary of some format.
+ * An artifact is something deployed as a part of Spinnaker. It can be run with a number of
+ * Profiles, but ultimately refers to a compiled/distributable binary of some format.
  */
 public enum SpinnakerArtifact {
   CLOUDDRIVER("clouddriver", true),

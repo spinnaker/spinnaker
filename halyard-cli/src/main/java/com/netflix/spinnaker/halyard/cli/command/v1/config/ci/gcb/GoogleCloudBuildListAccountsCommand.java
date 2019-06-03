@@ -23,9 +23,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 class GoogleCloudBuildListAccountsCommand extends AbstractCiCommand {
@@ -38,8 +37,7 @@ class GoogleCloudBuildListAccountsCommand extends AbstractCiCommand {
     return "gcb";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private Ci getCi() {
     String currentDeployment = getCurrentDeployment();

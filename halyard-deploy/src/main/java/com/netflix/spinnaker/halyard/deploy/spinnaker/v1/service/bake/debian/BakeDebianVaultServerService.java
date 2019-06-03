@@ -26,42 +26,35 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultMoun
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianVaultServerService extends VaultServerService implements BakeDebianService<VaultServerService.Vault> {
+public class BakeDebianVaultServerService extends VaultServerService
+    implements BakeDebianService<VaultServerService.Vault> {
   final String upstartServiceName = "vault";
 
   StartupPriority priority = new StartupPriority(StartupPriority.LOW);
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  VaultMountConfigProfileFactory mountConfigProfileFactory;
+  @Autowired VaultMountConfigProfileFactory mountConfigProfileFactory;
 
-  @Autowired
-  VaultMountGoogleConfigProfileFactory mountGoogleConfigProfileFactory;
+  @Autowired VaultMountGoogleConfigProfileFactory mountGoogleConfigProfileFactory;
 
-  @Autowired
-  VaultStartupProfileFactory vaultStartupProfileFactory;
+  @Autowired VaultStartupProfileFactory vaultStartupProfileFactory;
 
-  @Autowired
-  String startupScriptPath;
+  @Autowired String startupScriptPath;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings()
-        .setArtifactId("vault")
-        .setEnabled(true);
+    return new Settings().setArtifactId("vault").setEnabled(true);
   }
 
   @Override

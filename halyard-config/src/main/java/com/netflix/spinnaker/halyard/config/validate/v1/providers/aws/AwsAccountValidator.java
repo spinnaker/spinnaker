@@ -31,15 +31,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AwsAccountValidator extends Validator<AwsAccount> {
-  @Autowired
-  ProviderService providerService;
+  @Autowired ProviderService providerService;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AwsAccount n) {
     p.addProblem(Severity.WARNING, "No validation for the AWS provider has been implemented.");
   }
 
-  public static AWSCredentialsProvider getAwsCredentialsProvider(String accessKeyId, String secretKey) {
+  public static AWSCredentialsProvider getAwsCredentialsProvider(
+      String accessKeyId, String secretKey) {
     if (accessKeyId != null && secretKey != null) {
       return new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretKey));
     } else {

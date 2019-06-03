@@ -18,12 +18,12 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs;
 
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
+
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-
-import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
 
 @Parameters(separators = "=")
 public abstract class AbstractNamedPubsubCommand extends AbstractPubsubCommand {
@@ -38,17 +38,17 @@ public abstract class AbstractNamedPubsubCommand extends AbstractPubsubCommand {
   }
 
   protected AbstractNamedPubsubCommand() {
-    registerSubcommand(new PubsubEnableDisableCommandBuilder()
-        .setPubsubName(getPubsubName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new PubsubEnableDisableCommandBuilder()
+            .setPubsubName(getPubsubName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new PubsubEnableDisableCommandBuilder()
-        .setPubsubName(getPubsubName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new PubsubEnableDisableCommandBuilder()
+            .setPubsubName(getPubsubName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

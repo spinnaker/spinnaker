@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.consul;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class ConsulConfig {

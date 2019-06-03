@@ -18,17 +18,16 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
+public abstract class ArtifactProvider<A extends ArtifactAccount> extends Node {
   boolean enabled = false;
   List<A> accounts = new ArrayList<>();
 
@@ -38,7 +37,8 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   @Override
@@ -46,7 +46,7 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
     return providerType().getName();
   }
 
-  abstract public ProviderType providerType();
+  public abstract ProviderType providerType();
 
   public enum ProviderType {
     BITBUCKET("bitbucket"),
@@ -59,8 +59,7 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
     S3("s3"),
     MAVEN("maven");
 
-    @Getter
-    final private String name;
+    @Getter private final String name;
 
     ProviderType(String name) {
       this.name = name;

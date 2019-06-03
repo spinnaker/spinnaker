@@ -22,29 +22,19 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.AbstractEditNotificationCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 
-/**
- * Interact with the slack notification
- */
+/** Interact with the slack notification */
 @Parameters(separators = "=")
 public class EditSlackCommand extends AbstractEditNotificationCommand<SlackNotification> {
   protected String getNotificationName() {
     return "slack";
   }
 
-  @Parameter(
-      names = "--bot-name",
-      description = "The name of your slack bot."
-  )
+  @Parameter(names = "--bot-name", description = "The name of your slack bot.")
   private String botName;
 
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "Your slack bot token."
-  )
+  @Parameter(names = "--token", password = true, description = "Your slack bot token.")
   private String token;
 
   @Override

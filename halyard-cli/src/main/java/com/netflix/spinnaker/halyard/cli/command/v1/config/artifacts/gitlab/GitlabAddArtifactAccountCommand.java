@@ -27,27 +27,21 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class GitlabAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "Gitlab token"
-  )
+  @Parameter(names = "--token", password = true, description = "Gitlab token")
   private String token;
+
   @Parameter(
       names = "--token-file",
       converter = LocalFileConverter.class,
-      description = "File containing a Gitlab authentication token"
-  )
+      description = "File containing a Gitlab authentication token")
   private String tokenFile;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     GitlabArtifactAccount artifactAccount = new GitlabArtifactAccount().setName(accountName);
-    artifactAccount.setToken(token)
-        .setTokenFile(tokenFile);
+    artifactAccount.setToken(token).setTokenFile(tokenFile);
     return artifactAccount;
   }
-
 
   @Override
   protected ArtifactAccount emptyArtifactAccount() {

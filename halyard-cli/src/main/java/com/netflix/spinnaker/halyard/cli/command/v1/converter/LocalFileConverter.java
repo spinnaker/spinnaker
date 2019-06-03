@@ -21,10 +21,9 @@ import com.beust.jcommander.IStringConverter;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import org.aspectj.util.FileUtil;
-
 import java.io.File;
 import java.io.IOException;
+import org.aspectj.util.FileUtil;
 
 public class LocalFileConverter implements IStringConverter<String> {
 
@@ -34,7 +33,8 @@ public class LocalFileConverter implements IStringConverter<String> {
       try {
         return FileUtil.readAsString(new File(value));
       } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL,
+        throw new HalException(
+            Problem.Severity.FATAL,
             "Was passed parameter " + value + " to unreadable file: " + e.getMessage());
       }
     }

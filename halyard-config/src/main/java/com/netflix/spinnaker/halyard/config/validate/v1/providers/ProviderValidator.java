@@ -30,7 +30,9 @@ public class ProviderValidator extends Validator<Provider> {
   public void validate(ConfigProblemSetBuilder p, Provider n) {
     if (n.isEnabled()) {
       if (n.getAccounts() == null || n.getAccounts().isEmpty()) {
-        p.addProblem(Problem.Severity.WARNING, "Provider " + n.getNodeName() + " is enabled, but no accounts have been configured.");
+        p.addProblem(
+            Problem.Severity.WARNING,
+            "Provider " + n.getNodeName() + " is enabled, but no accounts have been configured.");
       }
     }
   }

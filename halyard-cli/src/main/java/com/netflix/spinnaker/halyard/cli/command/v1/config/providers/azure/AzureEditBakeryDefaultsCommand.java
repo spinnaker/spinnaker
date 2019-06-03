@@ -21,11 +21,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.Abst
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBakeryDefaults;
 
-/**
- * Interact with the azure provider's bakery
- */
+/** Interact with the azure provider's bakery */
 @Parameters(separators = "=")
-public class AzureEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsCommand<AzureBakeryDefaults> {
+public class AzureEditBakeryDefaultsCommand
+    extends AbstractEditBakeryDefaultsCommand<AzureBakeryDefaults> {
   protected String getProviderName() {
     return "azure";
   }

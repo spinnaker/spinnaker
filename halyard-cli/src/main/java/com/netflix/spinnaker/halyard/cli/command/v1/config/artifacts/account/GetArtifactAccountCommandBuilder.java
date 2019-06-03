@@ -26,8 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class GetArtifactAccountCommandBuilder implements CommandBuilder {
-  @Setter
-  String artifactProviderName;
+  @Setter String artifactProviderName;
 
   @Override
   public NestableCommand build() {

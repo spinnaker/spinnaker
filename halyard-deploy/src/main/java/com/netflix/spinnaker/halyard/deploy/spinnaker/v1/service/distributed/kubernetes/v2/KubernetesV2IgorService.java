@@ -34,17 +34,16 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2IgorService extends IgorService implements KubernetesV2Service<IgorService.Igor> {
+public class KubernetesV2IgorService extends IgorService
+    implements KubernetesV2Service<IgorService.Igor> {
   final DeployPriority deployPriority = new DeployPriority(0);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
   public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
-    return deploymentConfiguration.getProviders().getDockerRegistry().isEnabled() ||
-        deploymentConfiguration.getCi().ciEnabled();
+    return deploymentConfiguration.getProviders().getDockerRegistry().isEnabled()
+        || deploymentConfiguration.getCi().ciEnabled();
   }
 
   @Override
@@ -60,9 +59,6 @@ public class KubernetesV2IgorService extends IgorService implements KubernetesV2
 
   @Override
   protected List<Type> overrideServiceEndpoints() {
-    return Arrays.asList(
-        Type.CLOUDDRIVER_RO,
-        Type.ECHO_WORKER
-    );
+    return Arrays.asList(Type.CLOUDDRIVER_RO, Type.ECHO_WORKER);
   }
 }

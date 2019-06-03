@@ -42,12 +42,14 @@ public class KubernetesV2EchoWorkerService extends KubernetesV2EchoService {
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
     String filename = "echo-worker.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    profiles.add(getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
+    profiles.add(
+        getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
 
     return profiles;
   }

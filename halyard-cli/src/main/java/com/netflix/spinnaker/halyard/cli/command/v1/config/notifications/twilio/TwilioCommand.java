@@ -21,9 +21,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.twilio
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.AbstractNamedNotificationCommand;
 
-/**
- * Interact with the Twilio SMS notification
- */
+/** Interact with the Twilio SMS notification */
 @Parameters(separators = "=")
 public class TwilioCommand extends AbstractNamedNotificationCommand {
   protected String getNotificationName() {

@@ -23,5 +23,5 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 
 @Parameters(separators = "=")
 public abstract class AbstractPubsubCommand extends AbstractConfigCommand {
-  abstract protected String getPubsubName();
+  protected abstract String getPubsubName();
 }

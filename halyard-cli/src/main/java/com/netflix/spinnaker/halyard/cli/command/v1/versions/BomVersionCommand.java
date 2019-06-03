@@ -26,11 +26,10 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class BomVersionCommand extends AbstractConfigCommand {
@@ -44,18 +43,18 @@ public class BomVersionCommand extends AbstractConfigCommand {
   private String shortDescription = "Get the Bill of Materials (BOM) for the specified version.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ",
-      "The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use",
-      "to agree on what subcomponent versions comprise a top-level release of",
-      "Spinnaker. This command can be used with a main parameter (VERSION) to",
-      "get the BOM for a given version of Spinnaker, or without a parameter to",
-      "get the BOM for whatever version of Spinnaker you are currently configuring."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use",
+          "to agree on what subcomponent versions comprise a top-level release of",
+          "Spinnaker. This command can be used with a main parameter (VERSION) to",
+          "get the BOM for a given version of Spinnaker, or without a parameter to",
+          "get the BOM for whatever version of Spinnaker you are currently configuring.");
 
   @Parameter(
       names = "--artifact-name",
-      description = "When supplied, print the version of this artifact only."
-  )
+      description = "When supplied, print the version of this artifact only.")
   String artifactName;
 
   @Override
@@ -79,10 +78,11 @@ public class BomVersionCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    BillOfMaterials bom = new OperationHandler<BillOfMaterials>()
-        .setOperation(Daemon.getBillOfMaterials(getVersion()))
-        .setFailureMesssage("Failed to get Bill of Materials for version " + getVersion())
-        .get();
+    BillOfMaterials bom =
+        new OperationHandler<BillOfMaterials>()
+            .setOperation(Daemon.getBillOfMaterials(getVersion()))
+            .setFailureMesssage("Failed to get Bill of Materials for version " + getVersion())
+            .get();
 
     String result;
     if (artifactName == null) {

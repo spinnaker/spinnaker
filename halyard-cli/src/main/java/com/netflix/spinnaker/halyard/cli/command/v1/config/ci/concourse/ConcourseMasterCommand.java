@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.concourse;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
 
-/**
- * Interact with the Concourse ci's masters
- */
+/** Interact with the Concourse ci's masters */
 @Parameters(separators = "=")
 public class ConcourseMasterCommand extends AbstractMasterCommand {
   protected String getCiName() {

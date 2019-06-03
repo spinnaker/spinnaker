@@ -29,56 +29,55 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 public class WebhookTrustEditCommand extends AbstractConfigCommand {
-    @Getter(AccessLevel.PUBLIC)
-    private String commandName = "edit";
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "edit";
 
-    @Getter(AccessLevel.PUBLIC)
-    private String shortDescription = "Edit Spinnaker's webhook trust configuration.";
+  @Getter(AccessLevel.PUBLIC)
+  private String shortDescription = "Edit Spinnaker's webhook trust configuration.";
 
-    @Parameter(
-            names = "--trustStore",
-            converter = LocalFileConverter.class,
-            description = "The path to a key store in JKS format containing certification authorities that should be trusted by webhook stages."
-    )
-    private String trustStore;
+  @Parameter(
+      names = "--trustStore",
+      converter = LocalFileConverter.class,
+      description =
+          "The path to a key store in JKS format containing certification authorities that should be trusted by webhook stages.")
+  private String trustStore;
 
-    @Parameter(
-            names = "--trustStorePassword",
-            password = true,
-            description = "The password for the supplied trustStore."
-    )
-    private String trustStorePassword;
+  @Parameter(
+      names = "--trustStorePassword",
+      password = true,
+      description = "The password for the supplied trustStore.")
+  private String trustStorePassword;
 
-    public WebhookTrustEditCommand() {
+  public WebhookTrustEditCommand() {}
+
+  @Override
+  protected void executeThis() {
+    String currentDeployment = getCurrentDeployment();
+
+    WebhookTrust webhookTrust =
+        new OperationHandler<WebhookTrust>()
+            .setOperation(Daemon.getWebhookTrust(currentDeployment, false))
+            .setFailureMesssage("Failed to load webhook trust.")
+            .get();
+
+    int originalHash = webhookTrust.hashCode();
+
+    if (isSet(trustStore)) {
+      webhookTrust.setTrustStore(trustStore);
+    }
+    if (isSet(trustStorePassword)) {
+      webhookTrust.setTrustStorePassword(trustStorePassword);
     }
 
-    @Override
-    protected void executeThis() {
-        String currentDeployment = getCurrentDeployment();
-
-        WebhookTrust webhookTrust = new OperationHandler<WebhookTrust>()
-                .setOperation(Daemon.getWebhookTrust(currentDeployment, false))
-                .setFailureMesssage("Failed to load webhook trust.")
-                .get();
-
-        int originalHash = webhookTrust.hashCode();
-
-        if (isSet(trustStore)) {
-            webhookTrust.setTrustStore(trustStore);
-        }
-        if (isSet(trustStorePassword)) {
-            webhookTrust.setTrustStorePassword(trustStorePassword);
-        }
-
-        if (originalHash == webhookTrust.hashCode()) {
-            AnsiUi.failure("No changes supplied.");
-            return;
-        }
-
-        new OperationHandler<Void>()
-                .setFailureMesssage("Failed to edit webhook trust.")
-                .setSuccessMessage("Successfully edited webhook trust.")
-                .setOperation(Daemon.setWebhookTrust(currentDeployment, !noValidate, webhookTrust))
-                .get();
+    if (originalHash == webhookTrust.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
     }
+
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to edit webhook trust.")
+        .setSuccessMessage("Successfully edited webhook trust.")
+        .setOperation(Daemon.setWebhookTrust(currentDeployment, !noValidate, webhookTrust))
+        .get();
+  }
 }

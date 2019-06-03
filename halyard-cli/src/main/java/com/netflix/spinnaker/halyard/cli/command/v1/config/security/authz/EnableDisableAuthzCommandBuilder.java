@@ -25,8 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class EnableDisableAuthzCommandBuilder implements CommandBuilder {
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {

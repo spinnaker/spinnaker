@@ -24,14 +24,14 @@ import org.apache.commons.lang3.StringUtils;
 
 public class KubernetesSharedServiceSettings extends SharedDistributedServiceSettings {
 
-    public KubernetesSharedServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-        super(deploymentConfiguration);
-    }
+  public KubernetesSharedServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    super(deploymentConfiguration);
+  }
 
-    @Override
-    public String getDeployLocation() {
-        return StringUtils.isEmpty(deploymentConfiguration.getDeploymentEnvironment().getLocation())
-                ? "spinnaker"
-                : deploymentConfiguration.getDeploymentEnvironment().getLocation();
-    }
+  @Override
+  public String getDeployLocation() {
+    return StringUtils.isEmpty(deploymentConfiguration.getDeploymentEnvironment().getLocation())
+        ? "spinnaker"
+        : deploymentConfiguration.getDeploymentEnvironment().getLocation();
+  }
 }

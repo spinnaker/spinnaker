@@ -30,27 +30,28 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBaseImage;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import java.io.IOException;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
-  final private static List<String> baseImageProjects = Lists.newArrayList("centos-cloud",
-      "coreos-cloud",
-      "debian-cloud",
-      "opensuse-cloud",
-      "rhel-cloud",
-      "suse-cloud",
-      "ubuntu-os-cloud",
-      "windows-cloud");
-  final private List<GoogleNamedAccountCredentials> credentialsList;
+  private static final List<String> baseImageProjects =
+      Lists.newArrayList(
+          "centos-cloud",
+          "coreos-cloud",
+          "debian-cloud",
+          "opensuse-cloud",
+          "rhel-cloud",
+          "suse-cloud",
+          "ubuntu-os-cloud",
+          "windows-cloud");
+  private final List<GoogleNamedAccountCredentials> credentialsList;
 
-  final private String halyardVersion;
+  private final String halyardVersion;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleBaseImage n) {
@@ -58,7 +59,11 @@ public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
     String sourceImageFamily = n.getVirtualizationSettings().getSourceImageFamily();
 
     if (StringUtils.isEmpty(sourceImage) && StringUtils.isEmpty(sourceImageFamily)) {
-      p.addProblem(Problem.Severity.ERROR, "Either source image or source image family must be specified for " + n.getBaseImage().getId() + ".");
+      p.addProblem(
+          Problem.Severity.ERROR,
+          "Either source image or source image family must be specified for "
+              + n.getBaseImage().getId()
+              + ".");
     }
 
     if (!StringUtils.isEmpty(sourceImage)) {
@@ -74,28 +79,37 @@ public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
 
         Compute compute = credentials.getCompute();
         BatchRequest imageListBatch = buildBatchRequest(compute);
-        JsonBatchCallback<ImageList> imageListCallback = new JsonBatchCallback<ImageList>() {
-          @Override
-          public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-            p.addProblem(Problem.Severity.ERROR, "Error locating " + sourceImage + " in these projects: " + imageProjects + ": " + e.getMessage() + ".");
-          }
-
-          @Override
-          public void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
-            // No need to look through these images if the requested image was already found.
-            if (!foundSourceImageHolder[0]) {
-              if (imageList.getItems() != null) {
-                foundSourceImageHolder[0] =
-                  imageList
-                    .getItems()
-                    .stream()
-                    .filter(image -> image.getName().equals(sourceImage))
-                    .findFirst()
-                    .isPresent();
+        JsonBatchCallback<ImageList> imageListCallback =
+            new JsonBatchCallback<ImageList>() {
+              @Override
+              public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders)
+                  throws IOException {
+                p.addProblem(
+                    Problem.Severity.ERROR,
+                    "Error locating "
+                        + sourceImage
+                        + " in these projects: "
+                        + imageProjects
+                        + ": "
+                        + e.getMessage()
+                        + ".");
               }
-            }
-          }
-        };
+
+              @Override
+              public void onSuccess(ImageList imageList, HttpHeaders responseHeaders)
+                  throws IOException {
+                // No need to look through these images if the requested image was already found.
+                if (!foundSourceImageHolder[0]) {
+                  if (imageList.getItems() != null) {
+                    foundSourceImageHolder[0] =
+                        imageList.getItems().stream()
+                            .filter(image -> image.getName().equals(sourceImage))
+                            .findFirst()
+                            .isPresent();
+                  }
+                }
+              }
+            };
 
         try {
           for (String imageProject : imageProjects) {
@@ -104,14 +118,24 @@ public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
 
           imageListBatch.execute();
         } catch (IOException e) {
-          p.addProblem(Problem.Severity.ERROR, "Error locating " + sourceImage + " in these projects: " + imageProjects + ": " + e.getMessage() + ".");
+          p.addProblem(
+              Problem.Severity.ERROR,
+              "Error locating "
+                  + sourceImage
+                  + " in these projects: "
+                  + imageProjects
+                  + ": "
+                  + e.getMessage()
+                  + ".");
         }
 
         i++;
       }
 
       if (!foundSourceImageHolder[0]) {
-        p.addProblem(Problem.Severity.ERROR, "Image " + sourceImage + " not found via any configured google account.");
+        p.addProblem(
+            Problem.Severity.ERROR,
+            "Image " + sourceImage + " not found via any configured google account.");
       }
     }
 
@@ -128,28 +152,38 @@ public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
 
         Compute compute = credentials.getCompute();
         BatchRequest imageListBatch = buildBatchRequest(compute);
-        JsonBatchCallback<ImageList> imageListCallback = new JsonBatchCallback<ImageList>() {
-          @Override
-          public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-            p.addProblem(Problem.Severity.ERROR, "Error locating " + sourceImageFamily + " in these projects: " + imageProjects + ": " + e.getMessage() + ".");
-          }
-
-          @Override
-          public void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
-            // No need to look through these images if the requested image family was already found.
-            if (!foundSourceImageFamilyHolder[0]) {
-              if (imageList.getItems() != null) {
-                foundSourceImageFamilyHolder[0] =
-                  imageList
-                    .getItems()
-                    .stream()
-                    .filter(image -> sourceImageFamily.equals(image.getFamily()))
-                    .findFirst()
-                    .isPresent();
+        JsonBatchCallback<ImageList> imageListCallback =
+            new JsonBatchCallback<ImageList>() {
+              @Override
+              public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders)
+                  throws IOException {
+                p.addProblem(
+                    Problem.Severity.ERROR,
+                    "Error locating "
+                        + sourceImageFamily
+                        + " in these projects: "
+                        + imageProjects
+                        + ": "
+                        + e.getMessage()
+                        + ".");
               }
-            }
-          }
-        };
+
+              @Override
+              public void onSuccess(ImageList imageList, HttpHeaders responseHeaders)
+                  throws IOException {
+                // No need to look through these images if the requested image family was already
+                // found.
+                if (!foundSourceImageFamilyHolder[0]) {
+                  if (imageList.getItems() != null) {
+                    foundSourceImageFamilyHolder[0] =
+                        imageList.getItems().stream()
+                            .filter(image -> sourceImageFamily.equals(image.getFamily()))
+                            .findFirst()
+                            .isPresent();
+                  }
+                }
+              }
+            };
 
         try {
           for (String imageProject : imageProjects) {
@@ -158,27 +192,38 @@ public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
 
           imageListBatch.execute();
         } catch (IOException e) {
-          p.addProblem(Problem.Severity.ERROR, "Error locating " + sourceImageFamily + " in these projects: " + imageProjects + ": " + e.getMessage() + ".");
+          p.addProblem(
+              Problem.Severity.ERROR,
+              "Error locating "
+                  + sourceImageFamily
+                  + " in these projects: "
+                  + imageProjects
+                  + ": "
+                  + e.getMessage()
+                  + ".");
         }
 
         i++;
       }
 
       if (!foundSourceImageFamilyHolder[0]) {
-        p.addProblem(Problem.Severity.ERROR, "Image family " + sourceImageFamily + " not found via any configured google account.");
+        p.addProblem(
+            Problem.Severity.ERROR,
+            "Image family " + sourceImageFamily + " not found via any configured google account.");
       }
     }
 
     if (StringUtils.isEmpty(n.getBaseImage().getPackageType())) {
-      p.addProblem(Problem.Severity.ERROR, "Package type must be specified for " + n.getBaseImage().getId() + ".");
+      p.addProblem(
+          Problem.Severity.ERROR,
+          "Package type must be specified for " + n.getBaseImage().getId() + ".");
     }
   }
 
   private BatchRequest buildBatchRequest(Compute compute) {
     return compute.batch(
-      (HttpRequest request) -> {
-        request.getHeaders().setUserAgent("halyard " + halyardVersion);
-      }
-    );
+        (HttpRequest request) -> {
+          request.getHeaders().setUserAgent("halyard " + halyardVersion);
+        });
   }
 }

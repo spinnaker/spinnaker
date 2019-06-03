@@ -24,11 +24,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class ProviderEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String providerName;
+  @Setter String providerName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {

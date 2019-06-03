@@ -27,10 +27,9 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
+import java.io.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 
 @Component
 public class GoogleDistributedLogCollectorFactory {
@@ -38,8 +37,7 @@ public class GoogleDistributedLogCollectorFactory {
     return new GoogleDistributedLogCollector<>(service);
   }
 
-  @Autowired
-  HalconfigDirectoryStructure directoryStructure;
+  @Autowired HalconfigDirectoryStructure directoryStructure;
 
   private class GoogleDistributedLogCollector<T> extends DistributedLogCollector<T, GoogleAccount> {
     GoogleDistributedLogCollector(HasServiceSettings<T> service) {

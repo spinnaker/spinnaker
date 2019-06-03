@@ -34,9 +34,7 @@ public class JenkinsMaster extends CIAccount {
   private String username;
   @Secret private String password;
   private Boolean csrf;
-  @LocalFile
-  @SecretFile
-  private String trustStore;
+  @LocalFile @SecretFile private String trustStore;
   private String trustStoreType;
   @Secret private String trustStorePassword;
 }

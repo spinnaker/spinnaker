@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.ac
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractCanaryAccountCommand;
 
-/**
- * Interact with the Prometheus service integration
- */
+/** Interact with the Prometheus service integration */
 @Parameters(separators = "=")
 public class PrometheusCanaryAccountCommand extends AbstractCanaryAccountCommand {
 
@@ -35,4 +33,3 @@ public class PrometheusCanaryAccountCommand extends AbstractCanaryAccountCommand
     registerSubcommand(new PrometheusEditCanaryAccountCommand());
   }
 }
-

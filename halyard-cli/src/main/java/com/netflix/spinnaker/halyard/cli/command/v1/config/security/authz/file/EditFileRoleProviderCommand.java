@@ -35,8 +35,7 @@ public class EditFileRoleProviderCommand extends AbstractEditRoleProviderCommand
   @Parameter(
       names = "--file-path",
       converter = LocalFileConverter.class,
-      description = "A path to a file describing the roles of each user."
-  )
+      description = "A path to a file describing the roles of each user.")
   private String filePath;
 
   @Override

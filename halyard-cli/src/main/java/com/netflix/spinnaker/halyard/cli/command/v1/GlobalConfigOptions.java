@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import lombok.Data;
 
-/**
- * This is the collection of global config-level flags to be interpreted by halyard.
- */
+/** This is the collection of global config-level flags to be interpreted by halyard. */
 @Data
 public class GlobalConfigOptions {
   private String deployment;

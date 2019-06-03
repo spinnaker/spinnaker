@@ -33,10 +33,9 @@ import redis.clients.jedis.Jedis;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1RedisBootstrapService extends RedisBootstrapService implements KubernetesV1DistributedService<Jedis> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1RedisBootstrapService extends RedisBootstrapService
+    implements KubernetesV1DistributedService<Jedis> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -45,13 +44,17 @@ public class KubernetesV1RedisBootstrapService extends RedisBootstrapService imp
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
     String location = kubernetesSharedServiceSettings.getDeployLocation();
-    settings.setAddress(buildAddress(location))
+    settings
+        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
-        .setSafeToUpdate(true) // It's OK to flush this redis fully since we generally redeploy bootstrap clouddriver & orca
+        .setSafeToUpdate(
+            true) // It's OK to flush this redis fully since we generally redeploy bootstrap
+        // clouddriver & orca
         .setEnabled(true);
     return settings;
   }

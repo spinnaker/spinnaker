@@ -29,27 +29,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesV1DistributedServiceDelegate {
-  @Autowired
-  ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired ArtifactSourcesConfig artifactSourcesConfig;
 
-  @Autowired
-  @Getter
-  KubernetesV1DistributedLogCollectorFactory logCollectorFactory;
+  @Autowired @Getter KubernetesV1DistributedLogCollectorFactory logCollectorFactory;
 
   public String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact) {
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName, artifact);
+    BillOfMaterials.ArtifactSources artifactSources =
+        artifactService.getArtifactSources(deploymentName, artifact);
     return artifactSourcesConfig.mergeWithBomSources(artifactSources).getDockerRegistry();
   }
 
-  @Autowired
-  @Getter
-  ArtifactService artifactService;
+  @Autowired @Getter ArtifactService artifactService;
 
-  @Autowired
-  @Getter
-  ServiceInterfaceFactory serviceInterfaceFactory;
+  @Autowired @Getter ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  @Getter
-  KubernetesV1MonitoringDaemonService monitoringDaemonService;
+  @Autowired @Getter KubernetesV1MonitoringDaemonService monitoringDaemonService;
 }

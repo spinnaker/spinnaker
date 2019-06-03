@@ -20,21 +20,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class FeaturesService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
-  
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private DeploymentService deploymentService;
+
+  @Autowired private ValidateService validateService;
 
   public Features getFeatures(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
@@ -49,15 +45,17 @@ public class FeaturesService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple features nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple features nodes. This is a bug.");
     }
   }
 
   public void setFeatures(String deploymentName, Features newFeatures) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setFeatures(newFeatures);
   }
-  
+
   public ProblemSet validateFeatures(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
     return validateService.validateMatchingFilter(filter);

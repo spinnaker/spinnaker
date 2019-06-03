@@ -32,10 +32,9 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1GateService extends GateService implements KubernetesV1DistributedService<GateService.Gate> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1GateService extends GateService
+    implements KubernetesV1DistributedService<GateService.Gate> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -44,9 +43,11 @@ public class KubernetesV1GateService extends GateService implements KubernetesV1
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getApiSecurity());
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;

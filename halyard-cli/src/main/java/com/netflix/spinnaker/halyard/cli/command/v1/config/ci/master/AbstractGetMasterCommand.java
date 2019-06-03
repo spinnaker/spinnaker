@@ -30,8 +30,7 @@ abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
     return "Get the specified master details for " + getCiName() + ".";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {

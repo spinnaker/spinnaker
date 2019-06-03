@@ -30,31 +30,31 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Parameters(separators = "=")
 @Data
-public class GoogleEditProviderCommand extends AbstractEditProviderCommand<GoogleAccount, GoogleProvider> {
+public class GoogleEditProviderCommand
+    extends AbstractEditProviderCommand<GoogleAccount, GoogleProvider> {
   String shortDescription = "Set provider-wide properties for the Google provider";
 
-  String longDescription = "You can edit the list of default regions used in caching and "
-      + "mutating calls here. This list will become the default for all accounts, unless"
-      + "specifically overridden on a per-account basis.";
+  String longDescription =
+      "You can edit the list of default regions used in caching and "
+          + "mutating calls here. This list will become the default for all accounts, unless"
+          + "specifically overridden on a per-account basis.";
 
   @Parameter(
       names = "--default-regions",
       variableArity = true,
-      description = "A list of regions for caching and mutating calls, applied to all accounts "
-          + "unless overridden."
-  )
+      description =
+          "A list of regions for caching and mutating calls, applied to all accounts "
+              + "unless overridden.")
   private List<String> defaultRegions;
 
   @Parameter(
       names = "--add-default-region",
-      description = GoogleCommandProperties.ADD_REGION_DESCRIPTION
-  )
+      description = GoogleCommandProperties.ADD_REGION_DESCRIPTION)
   private String addDefaultRegion;
 
   @Parameter(
       names = "--remove-default-region",
-      description = GoogleCommandProperties.REMOVE_REGION_DESCRIPTION
-  )
+      description = GoogleCommandProperties.REMOVE_REGION_DESCRIPTION)
   private String removeDefaultRegion;
 
   protected String getProviderName() {
@@ -65,9 +65,11 @@ public class GoogleEditProviderCommand extends AbstractEditProviderCommand<Googl
   protected Provider editProvider(GoogleProvider provider) {
     try {
       provider.setDefaultRegions(
-          updateStringList(provider.getDefaultRegions(), defaultRegions, addDefaultRegion, removeDefaultRegion));
+          updateStringList(
+              provider.getDefaultRegions(), defaultRegions, addDefaultRegion, removeDefaultRegion));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --default-regions or --[add/remove]-default-region");
+      throw new IllegalArgumentException(
+          "Set either --default-regions or --[add/remove]-default-region");
     }
 
     return provider;

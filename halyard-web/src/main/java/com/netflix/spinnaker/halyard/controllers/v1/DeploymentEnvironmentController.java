@@ -38,8 +38,8 @@ public class DeploymentEnvironmentController {
   private final HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<DeploymentEnvironment>builder()
         .getter(() -> deploymentEnvironmentService.getDeploymentEnvironment(deploymentName))
         .validator(() -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName))
@@ -49,7 +49,8 @@ public class DeploymentEnvironmentController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setDeploymentEnvironment(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setDeploymentEnvironment(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody DeploymentEnvironment deploymentEnvironment) {
     return GenericUpdateRequest.<DeploymentEnvironment>builder(halconfigParser)

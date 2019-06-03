@@ -34,27 +34,28 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements LocalDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+public class LocalDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService
+    implements LocalDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final String upstartServiceName = "spinnaker-monitoring";
   final String pipRequirementsFile = "/opt/spinnaker-monitoring/requirements.txt";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
-    return localLogCollectorFactory.build(this, new String[]{
-        "/var/log/upstart/spinnaker-monitoring.log",
-        "/var/log/spinnaker-monitoring/"
-    });
+    return localLogCollectorFactory.build(
+        this,
+        new String[] {
+          "/var/log/upstart/spinnaker-monitoring.log", "/var/log/spinnaker-monitoring/"
+        });
   }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
   }
@@ -62,11 +63,12 @@ public class LocalDebianMonitoringDaemonService extends SpinnakerMonitoringDaemo
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     String installCommand = LocalDebianService.super.installArtifactCommand(deploymentDetails);
-    return String.join("\n", installCommand,
+    return String.join(
+        "\n",
+        installCommand,
         "apt-get install -y python-dev",
         "sed -i -e 's/#@ //g' " + pipRequirementsFile,
-        "pip install -r " + pipRequirementsFile
-    );
+        "pip install -r " + pipRequirementsFile);
   }
 
   public String getArtifactId(String deploymentName) {

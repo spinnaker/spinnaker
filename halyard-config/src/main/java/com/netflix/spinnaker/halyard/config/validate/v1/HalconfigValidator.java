@@ -25,18 +25,16 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-
 @Component
 @Slf4j
 public class HalconfigValidator extends Validator<Halconfig> {
-  @Autowired
-  VersionsService versionsService;
+  @Autowired VersionsService versionsService;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, Halconfig n) {
@@ -54,13 +52,19 @@ public class HalconfigValidator extends Validator<Halconfig> {
       }
 
       if (Versions.lessThan(runningVersion, latestVersion)) {
-        ConfigProblemBuilder problemBuilder = p.addProblem(Problem.Severity.WARNING, "There is a newer version of Halyard available (" + latestVersion + "), please update when possible");
+        ConfigProblemBuilder problemBuilder =
+            p.addProblem(
+                Problem.Severity.WARNING,
+                "There is a newer version of Halyard available ("
+                    + latestVersion
+                    + "), please update when possible");
 
         File updateScript = new File("/usr/local/bin/update-halyard");
         if (updateScript.exists() && !updateScript.isDirectory()) {
           problemBuilder.setRemediation("Run 'sudo update-halyard' to upgrade");
         } else {
-          problemBuilder.setRemediation("Run 'sudo apt-get update && sudo apt-get install spinnaker-halyard -y' to upgrade");
+          problemBuilder.setRemediation(
+              "Run 'sudo apt-get update && sudo apt-get install spinnaker-halyard -y' to upgrade");
         }
       }
     } catch (Exception e) {

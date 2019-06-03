@@ -25,11 +25,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class CiEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String ciName;
+  @Setter String ciName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {

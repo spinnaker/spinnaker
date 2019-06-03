@@ -24,14 +24,14 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEditNotificationCommand<N extends Notification> extends AbstractNotificationCommand {
+public abstract class AbstractEditNotificationCommand<N extends Notification>
+    extends AbstractNotificationCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -49,10 +49,11 @@ public abstract class AbstractEditNotificationCommand<N extends Notification> ex
     String notificationName = getNotificationName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Notification notification = new OperationHandler<Notification>()
-        .setOperation(Daemon.getNotification(currentDeployment, notificationName, !noValidate))
-        .setFailureMesssage("Failed to get " + notificationName + ".")
-        .get();
+    Notification notification =
+        new OperationHandler<Notification>()
+            .setOperation(Daemon.getNotification(currentDeployment, notificationName, !noValidate))
+            .setFailureMesssage("Failed to get " + notificationName + ".")
+            .get();
 
     int originalHash = notification.hashCode();
 
@@ -64,7 +65,8 @@ public abstract class AbstractEditNotificationCommand<N extends Notification> ex
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setNotification(currentDeployment, notificationName, !noValidate, notification))
+        .setOperation(
+            Daemon.setNotification(currentDeployment, notificationName, !noValidate, notification))
         .setSuccessMessage("Edited " + notificationName + ".")
         .setFailureMesssage("Failed to edit " + notificationName + ".")
         .get();

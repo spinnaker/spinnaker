@@ -26,22 +26,34 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCan
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "name")
-@JsonSubTypes({@JsonSubTypes.Type(value = GoogleCanaryServiceIntegration.class, name = GoogleCanaryServiceIntegration.NAME),
-               @JsonSubTypes.Type(value = PrometheusCanaryServiceIntegration.class, name = PrometheusCanaryServiceIntegration.NAME),
-               @JsonSubTypes.Type(value = DatadogCanaryServiceIntegration.class, name = DatadogCanaryServiceIntegration.NAME),
-               @JsonSubTypes.Type(value = SignalfxCanaryServiceIntegration.class, name = SignalfxCanaryServiceIntegration.NAME),
-               @JsonSubTypes.Type(value = AwsCanaryServiceIntegration.class, name = AwsCanaryServiceIntegration.NAME)})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "name")
+@JsonSubTypes({
+  @JsonSubTypes.Type(
+      value = GoogleCanaryServiceIntegration.class,
+      name = GoogleCanaryServiceIntegration.NAME),
+  @JsonSubTypes.Type(
+      value = PrometheusCanaryServiceIntegration.class,
+      name = PrometheusCanaryServiceIntegration.NAME),
+  @JsonSubTypes.Type(
+      value = DatadogCanaryServiceIntegration.class,
+      name = DatadogCanaryServiceIntegration.NAME),
+  @JsonSubTypes.Type(
+      value = SignalfxCanaryServiceIntegration.class,
+      name = SignalfxCanaryServiceIntegration.NAME),
+  @JsonSubTypes.Type(
+      value = AwsCanaryServiceIntegration.class,
+      name = AwsCanaryServiceIntegration.NAME)
+})
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class AbstractCanaryServiceIntegration<A extends AbstractCanaryAccount> extends Node implements Cloneable {
+public abstract class AbstractCanaryServiceIntegration<A extends AbstractCanaryAccount> extends Node
+    implements Cloneable {
   boolean enabled;
   List<A> accounts = new ArrayList<>();
 
@@ -54,7 +66,8 @@ public abstract class AbstractCanaryServiceIntegration<A extends AbstractCanaryA
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node)a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   public static enum SupportedTypes {

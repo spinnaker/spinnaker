@@ -29,13 +29,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
     return settings;
   }

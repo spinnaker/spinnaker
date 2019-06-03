@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.containers;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class DockerRegistryReference {

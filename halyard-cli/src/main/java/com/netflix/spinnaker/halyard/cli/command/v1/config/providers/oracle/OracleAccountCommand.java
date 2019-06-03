@@ -13,9 +13,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
-/**
- * Interact with the Oracle provider's accounts
- */
+/** Interact with the Oracle provider's accounts */
 @Parameters(separators = "=")
 public class OracleAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {

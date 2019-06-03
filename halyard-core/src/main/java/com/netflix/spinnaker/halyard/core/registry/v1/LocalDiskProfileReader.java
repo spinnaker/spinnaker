@@ -19,14 +19,6 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -38,23 +30,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Component
 @Slf4j
 public class LocalDiskProfileReader implements ProfileReader {
-  @Autowired
-  String localBomPath;
+  @Autowired String localBomPath;
 
-  @Autowired
-  ObjectMapper relaxedObjectMapper;
+  @Autowired ObjectMapper relaxedObjectMapper;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
-  private final static String HALCONFIG_DIR = "halconfig";
+  private static final String HALCONFIG_DIR = "halconfig";
 
   @Override
-  public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readProfile(String artifactName, String version, String profileName)
+      throws IOException {
     version = version.substring("local:".length());
     try {
       String path = profilePath(artifactName, version, profileName);
@@ -69,14 +66,13 @@ public class LocalDiskProfileReader implements ProfileReader {
   @Override
   public BillOfMaterials readBom(String version) throws IOException {
     if (!Versions.isLocal(version)) {
-      throw new IllegalArgumentException("Versions using a local BOM must be prefixed with \"local:\"");
+      throw new IllegalArgumentException(
+          "Versions using a local BOM must be prefixed with \"local:\"");
     }
     String versionName = Versions.fromLocal(version);
     String bomName = bomPath(versionName);
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents(bomName)),
-        BillOfMaterials.class
-    );
+        yamlParser.load(getContents(bomName)), BillOfMaterials.class);
   }
 
   @Override
@@ -85,7 +81,8 @@ public class LocalDiskProfileReader implements ProfileReader {
   }
 
   @Override
-  public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readArchiveProfile(String artifactName, String version, String profileName)
+      throws IOException {
     version = version.substring("local:".length());
 
     try {
@@ -109,7 +106,8 @@ public class LocalDiskProfileReader implements ProfileReader {
             .collect(Collectors.toCollection(ArrayList::new));
 
     for (Path path : filePathsToAdd) {
-      TarArchiveEntry tarEntry = new TarArchiveEntry(path.toFile(), profilePath.relativize(path).toString());
+      TarArchiveEntry tarEntry =
+          new TarArchiveEntry(path.toFile(), profilePath.relativize(path).toString());
       tarArchive.putArchiveEntry(tarEntry);
       IOUtils.copy(Files.newInputStream(path), tarArchive);
       tarArchive.closeArchiveEntry();
@@ -137,5 +135,4 @@ public class LocalDiskProfileReader implements ProfileReader {
     log.info("Getting file contents of " + objectName);
     return new FileInputStream(objectName);
   }
-
 }

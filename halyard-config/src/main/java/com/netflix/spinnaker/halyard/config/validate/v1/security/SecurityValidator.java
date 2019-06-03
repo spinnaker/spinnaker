@@ -31,17 +31,22 @@ public class SecurityValidator extends Validator<Security> {
   public void validate(ConfigProblemSetBuilder p, Security n) {
     DeploymentConfiguration deploymentConfiguration = n.parentOfType(DeploymentConfiguration.class);
 
-    boolean localhostAccess = StringUtils.isEmpty(n.getApiSecurity().getOverrideBaseUrl())
-        || StringUtils.isEmpty(n.getUiSecurity().getOverrideBaseUrl()) ;
+    boolean localhostAccess =
+        StringUtils.isEmpty(n.getApiSecurity().getOverrideBaseUrl())
+            || StringUtils.isEmpty(n.getUiSecurity().getOverrideBaseUrl());
     switch (deploymentConfiguration.getDeploymentEnvironment().getType()) {
       case Distributed:
         if (localhostAccess) {
-          p.addProblem(Problem.Severity.WARNING, "Your UI or API domain does not have override base URLs set "
-              + "even though your Spinnaker deployment is a Distributed deployment on a remote cloud provider. "
-              + "As a result, you will need to open SSH tunnels against that deployment to access Spinnaker.")
-              .setRemediation("We recommend that you instead configure an authentication mechanism (OAuth2, SAML2, or x509) "
-                  + "to make it easier to access Spinnaker securely, and then register the intended Domain and IP addresses "
-                  + "that your publicly facing services will be using."); // TODO(lwander) point to a guide here
+          p.addProblem(
+                  Problem.Severity.WARNING,
+                  "Your UI or API domain does not have override base URLs set "
+                      + "even though your Spinnaker deployment is a Distributed deployment on a remote cloud provider. "
+                      + "As a result, you will need to open SSH tunnels against that deployment to access Spinnaker.")
+              .setRemediation(
+                  "We recommend that you instead configure an authentication mechanism (OAuth2, SAML2, or x509) "
+                      + "to make it easier to access Spinnaker securely, and then register the intended Domain and IP addresses "
+                      + "that your publicly facing services will be using."); // TODO(lwander) point
+          // to a guide here
         }
         break;
       case LocalDebian:

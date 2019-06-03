@@ -24,11 +24,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
@@ -42,22 +42,19 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RegistryBackedProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
-  @Autowired
-  VersionsService versionsService;
+  @Autowired VersionsService versionsService;
 
   @Override
   public String commentPrefix() {
@@ -70,7 +67,10 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     StringResource configTemplate = new StringResource(profile.getBaseContents());
     UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
     profile.setUser(ApacheSettings.APACHE_USER);
@@ -106,16 +106,46 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
     bindings.put("features.chaos", Boolean.toString(features.isChaos()));
     bindings.put("features.jobs", Boolean.toString(features.isJobs()));
-    bindings.put("features.fiat", Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
-    bindings.put("features.pipelineTemplates", Boolean.toString(features.getPipelineTemplates() != null ? features.getPipelineTemplates() : false));
-    bindings.put("features.artifacts", Boolean.toString(features.getArtifacts() != null ? features.getArtifacts() : false));
-    bindings.put("features.mineCanary", Boolean.toString(features.getMineCanary() != null ? features.getMineCanary() : false));
-    bindings.put("features.appengineContainerImageUrlDeployments", Boolean.toString(features.getAppengineContainerImageUrlDeployments() != null ? features.getAppengineContainerImageUrlDeployments() : false));
-    bindings.put("features.travis", Boolean.toString(features.getTravis() != null ? features.getTravis() : false));
-    bindings.put("features.wercker", Boolean.toString(features.getWercker() != null ? features.getWercker() : false));
-    bindings.put("features.managedPipelineTemplatesV2UI", Boolean.toString(features.getManagedPipelineTemplatesV2UI() != null ? features.getManagedPipelineTemplatesV2UI() : false));
-    bindings.put("features.gremlin", Boolean.toString(features.getGremlin() != null ? features.getGremlin() : false));
-    bindings.put("features.infrastructureStages", Boolean.toString(features.getInfrastructureStages() != null ? features.getInfrastructureStages() : false));
+    bindings.put(
+        "features.fiat",
+        Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
+    bindings.put(
+        "features.pipelineTemplates",
+        Boolean.toString(
+            features.getPipelineTemplates() != null ? features.getPipelineTemplates() : false));
+    bindings.put(
+        "features.artifacts",
+        Boolean.toString(features.getArtifacts() != null ? features.getArtifacts() : false));
+    bindings.put(
+        "features.mineCanary",
+        Boolean.toString(features.getMineCanary() != null ? features.getMineCanary() : false));
+    bindings.put(
+        "features.appengineContainerImageUrlDeployments",
+        Boolean.toString(
+            features.getAppengineContainerImageUrlDeployments() != null
+                ? features.getAppengineContainerImageUrlDeployments()
+                : false));
+    bindings.put(
+        "features.travis",
+        Boolean.toString(features.getTravis() != null ? features.getTravis() : false));
+    bindings.put(
+        "features.wercker",
+        Boolean.toString(features.getWercker() != null ? features.getWercker() : false));
+    bindings.put(
+        "features.managedPipelineTemplatesV2UI",
+        Boolean.toString(
+            features.getManagedPipelineTemplatesV2UI() != null
+                ? features.getManagedPipelineTemplatesV2UI()
+                : false));
+    bindings.put(
+        "features.gremlin",
+        Boolean.toString(features.getGremlin() != null ? features.getGremlin() : false));
+    bindings.put(
+        "features.infrastructureStages",
+        Boolean.toString(
+            features.getInfrastructureStages() != null
+                ? features.getInfrastructureStages()
+                : false));
 
     // Configure Kubernetes
     KubernetesProvider kubernetesProvider = deploymentConfiguration.getProviders().getKubernetes();
@@ -137,18 +167,22 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure Appengine
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
     bindings.put("appengine.default.account", appengineProvider.getPrimaryAccount());
-    bindings.put("appengine.enabled", Boolean.toString(appengineProvider.getPrimaryAccount() != null));
+    bindings.put(
+        "appengine.enabled", Boolean.toString(appengineProvider.getPrimaryAccount() != null));
 
     // Configure DC/OS
     final DCOSProvider dcosProvider = deploymentConfiguration.getProviders().getDcos();
     bindings.put("dcos.default.account", dcosProvider.getPrimaryAccount());
-    //TODO(willgorman) need to set the proxy url somehow
+    // TODO(willgorman) need to set the proxy url somehow
 
     // Configure AWS
     AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
     bindings.put("aws.default.account", awsProvider.getPrimaryAccount());
     if (awsProvider.getPrimaryAccount() != null) {
-      AwsAccount awsAccount = (AwsAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "aws", awsProvider.getPrimaryAccount());
+      AwsAccount awsAccount =
+          (AwsAccount)
+              accountService.getProviderAccount(
+                  deploymentConfiguration.getName(), "aws", awsProvider.getPrimaryAccount());
       List<AwsProvider.AwsRegion> regionList = awsAccount.getRegions();
       if (!regionList.isEmpty() && regionList.get(0) != null) {
         bindings.put("aws.default.region", regionList.get(0).getName());
@@ -160,7 +194,8 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("ecs.default.account", ecsProvider.getPrimaryAccount());
 
     // Configure CloudFoundry
-    CloudFoundryProvider cloudFoundryProvider = deploymentConfiguration.getProviders().getCloudfoundry();
+    CloudFoundryProvider cloudFoundryProvider =
+        deploymentConfiguration.getProviders().getCloudfoundry();
     bindings.put("cloudfoundry.default.account", cloudFoundryProvider.getPrimaryAccount());
 
     // Configure notifications
@@ -189,7 +224,8 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
       bindings.put("canary.showAllCanaryConfigs", canary.isShowAllConfigsEnabled());
     }
 
-    profile.appendContents(configTemplate.setBindings(bindings).toString())
+    profile
+        .appendContents(configTemplate.setBindings(bindings).toString())
         .setRequiredFiles(backupRequiredFiles(uiSecurity, deploymentConfiguration.getName()));
   }
 }

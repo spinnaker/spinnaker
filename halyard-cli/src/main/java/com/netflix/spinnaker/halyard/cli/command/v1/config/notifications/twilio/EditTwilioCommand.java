@@ -24,32 +24,22 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.Abstrac
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
 
-/**
- * Interact with the Twilio SMS notification
- */
+/** Interact with the Twilio SMS notification */
 @Parameters(separators = "=")
 public class EditTwilioCommand extends AbstractEditNotificationCommand<TwilioNotification> {
   protected String getNotificationName() {
     return "twilio";
   }
 
-  @Parameter(
-      names = "--account",
-      description = "Your Twilio account SID."
-  )
+  @Parameter(names = "--account", description = "Your Twilio account SID.")
   private String account;
 
   @Parameter(
       names = "--from",
-      description = "The phone number from which the SMS will be sent (i.e. +1234-567-8910)."
-  )
+      description = "The phone number from which the SMS will be sent (i.e. +1234-567-8910).")
   private String from;
 
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "Your Twilio auth token."
-  )
+  @Parameter(names = "--token", password = true, description = "Your Twilio auth token.")
   private String token;
 
   @Override

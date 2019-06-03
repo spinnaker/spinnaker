@@ -30,26 +30,23 @@ import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3Persist
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class PersistentStorageService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public PersistentStorage getPersistentStorage(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStorage();
 
-    List<PersistentStorage> matching = lookupService.getMatchingNodesOfType(filter, PersistentStorage.class);
+    List<PersistentStorage> matching =
+        lookupService.getMatchingNodesOfType(filter, PersistentStorage.class);
 
     switch (matching.size()) {
       case 0:
@@ -59,31 +56,47 @@ public class PersistentStorageService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple persistentStorage nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple persistentStorage nodes. This is a bug.");
     }
   }
 
   public PersistentStore getPersistentStore(String deploymentName, String persistentStoreType) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStore(persistentStoreType);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPersistentStore(persistentStoreType);
 
-    List<PersistentStore> matching = lookupService.getMatchingNodesOfType(filter, PersistentStore.class);
+    List<PersistentStore> matching =
+        lookupService.getMatchingNodesOfType(filter, PersistentStore.class);
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Problem.Severity.FATAL,
-            "No persistent store with name \"" + persistentStoreType + "\" could be found")
-            .setRemediation("Create a new persistent store with name \"" + persistentStoreType + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL,
+                    "No persistent store with name \"" + persistentStoreType + "\" could be found")
+                .setRemediation(
+                    "Create a new persistent store with name \"" + persistentStoreType + "\"")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Problem.Severity.FATAL,
-            "More than one persistent store with name \"" + persistentStoreType + "\" found")
-            .setRemediation("Manually delete or rename duplicate persistent stores with name \"" + persistentStoreType + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL,
+                    "More than one persistent store with name \""
+                        + persistentStoreType
+                        + "\" found")
+                .setRemediation(
+                    "Manually delete or rename duplicate persistent stores with name \""
+                        + persistentStoreType
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
   public void setPersistentStorage(String deploymentName, PersistentStorage newPersistentStorage) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setPersistentStorage(newPersistentStorage);
   }
 
@@ -106,28 +119,26 @@ public class PersistentStorageService {
         persistentStorage.setOraclebmcs((OracleBMCSPersistentStore) newPersistentStore);
         break;
       default:
-        throw new RuntimeException("Unknown persistent store " + newPersistentStore.persistentStoreType());
+        throw new RuntimeException(
+            "Unknown persistent store " + newPersistentStore.persistentStoreType());
     }
   }
 
   public ProblemSet validatePersistentStorage(String deploymentName) {
     PersistentStorage storage = getPersistentStorage(deploymentName);
 
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setPersistentStorage();
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStorage();
 
     if (storage.getPersistentStoreType() != null) {
-        filter.setPersistentStore(storage.getPersistentStoreType().getId());
+      filter.setPersistentStore(storage.getPersistentStoreType().getId());
     }
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validatePersistentStore(String deploymentName, String persistentStoreType) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setPersistentStore(persistentStoreType);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPersistentStore(persistentStoreType);
 
     return validateService.validateMatchingFilter(filter);
   }

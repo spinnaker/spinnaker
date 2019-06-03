@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,57 +34,47 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
   }
 
   @Parameter(
-    names = "--default-key-pair",
-    description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
-  )
+      names = "--default-key-pair",
+      description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION)
   private String defaultKeyPair;
 
-  @Parameter(
-    names = "--edda",
-    description = AwsCommandProperties.EDDA_DESCRIPTION
-  )
+  @Parameter(names = "--edda", description = AwsCommandProperties.EDDA_DESCRIPTION)
   private String edda;
 
-  @Parameter(
-    names = "--discovery",
-    description = AwsCommandProperties.DISCOVERY_DESCRIPTION
-  )
+  @Parameter(names = "--discovery", description = AwsCommandProperties.DISCOVERY_DESCRIPTION)
   private String discovery;
 
   @Parameter(
-    names = "--account-id",
-    description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION,
-    required = true
-  )
+      names = "--account-id",
+      description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION,
+      required = true)
   private String accountId;
 
   @Parameter(
-    names = "--regions",
-    variableArity = true,
-    description = AwsCommandProperties.REGIONS_DESCRIPTION
-  )
+      names = "--regions",
+      variableArity = true,
+      description = AwsCommandProperties.REGIONS_DESCRIPTION)
   private List<String> regions = new ArrayList<>();
 
   @Parameter(
-    names = "--assume-role",
-    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION,
-    required = true
-  )
+      names = "--assume-role",
+      description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION,
+      required = true)
   private String assumeRole;
 
   @Override
   protected Account buildAccount(String accountName) {
     AwsAccount account = (AwsAccount) new AwsAccount().setName(accountName);
-    account.setDefaultKeyPair(defaultKeyPair)
-      .setEdda(edda)
-      .setDiscovery(discovery)
-      .setAccountId(accountId)
-      .setRegions(regions
-        .stream()
-        .map(r -> new AwsProvider.AwsRegion().setName(r))
-        .collect(Collectors.toList())
-      )
-      .setAssumeRole(assumeRole);
+    account
+        .setDefaultKeyPair(defaultKeyPair)
+        .setEdda(edda)
+        .setDiscovery(discovery)
+        .setAccountId(accountId)
+        .setRegions(
+            regions.stream()
+                .map(r -> new AwsProvider.AwsRegion().setName(r))
+                .collect(Collectors.toList()))
+        .setAssumeRole(assumeRole);
 
     return account;
   }

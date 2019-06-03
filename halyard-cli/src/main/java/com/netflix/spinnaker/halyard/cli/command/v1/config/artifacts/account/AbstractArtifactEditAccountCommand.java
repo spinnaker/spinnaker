@@ -24,14 +24,14 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractArtifactEditAccountCommand<T extends ArtifactAccount> extends AbstractHasArtifactAccountCommand {
+public abstract class AbstractArtifactEditAccountCommand<T extends ArtifactAccount>
+    extends AbstractHasArtifactAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -50,10 +50,13 @@ public abstract class AbstractArtifactEditAccountCommand<T extends ArtifactAccou
     String providerName = getArtifactProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    ArtifactAccount account = new OperationHandler<ArtifactAccount>()
-        .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
-        .setOperation(Daemon.getArtifactAccount(currentDeployment, providerName, accountName, false))
-        .get();
+    ArtifactAccount account =
+        new OperationHandler<ArtifactAccount>()
+            .setFailureMesssage(
+                "Failed to get account " + accountName + " for provider " + providerName + ".")
+            .setOperation(
+                Daemon.getArtifactAccount(currentDeployment, providerName, accountName, false))
+            .get();
 
     int originaHash = account.hashCode();
 
@@ -65,9 +68,21 @@ public abstract class AbstractArtifactEditAccountCommand<T extends ArtifactAccou
     }
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to edit artifact account " + accountName + " for artifact provider " + providerName + ".")
-        .setSuccessMessage("Successfully edited artifact account " + accountName + " for artifact provider " + providerName + ".")
-        .setOperation(Daemon.setArtifactAccount(currentDeployment, providerName, accountName, !noValidate, account))
+        .setFailureMesssage(
+            "Failed to edit artifact account "
+                + accountName
+                + " for artifact provider "
+                + providerName
+                + ".")
+        .setSuccessMessage(
+            "Successfully edited artifact account "
+                + accountName
+                + " for artifact provider "
+                + providerName
+                + ".")
+        .setOperation(
+            Daemon.setArtifactAccount(
+                currentDeployment, providerName, accountName, !noValidate, account))
         .get();
   }
 }

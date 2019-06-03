@@ -17,16 +17,15 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-abstract public class SpringServiceSettings extends ServiceSettings {
+public abstract class SpringServiceSettings extends ServiceSettings {
   SpringServiceSettings() {}
 
   public void enableAuth() {

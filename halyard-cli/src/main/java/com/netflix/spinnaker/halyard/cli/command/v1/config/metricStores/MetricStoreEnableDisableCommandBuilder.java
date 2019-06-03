@@ -26,11 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class MetricStoreEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  MetricStores.MetricStoreType metricStoreType;
+  @Setter MetricStores.MetricStoreType metricStoreType;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -38,7 +36,8 @@ public class MetricStoreEnableDisableCommandBuilder implements CommandBuilder {
   }
 
   @Parameters(separators = "=")
-  private static class MetricStoreEnableDisableCommand extends AbstractMetricStoreEnableDisableCommand {
+  private static class MetricStoreEnableDisableCommand
+      extends AbstractMetricStoreEnableDisableCommand {
     private MetricStoreEnableDisableCommand(MetricStores.MetricStoreType type, boolean enable) {
       this.metricStoreType = type;
       this.enable = enable;
@@ -47,7 +46,6 @@ public class MetricStoreEnableDisableCommandBuilder implements CommandBuilder {
     @Getter(AccessLevel.PROTECTED)
     boolean enable;
 
-    @Getter
-    private MetricStores.MetricStoreType metricStoreType;
+    @Getter private MetricStores.MetricStoreType metricStoreType;
   }
 }

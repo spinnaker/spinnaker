@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBakeryCommand;
 
-/**
- * Interact with the azure provider's bakery
- */
+/** Interact with the azure provider's bakery */
 @Parameters(separators = "=")
 public class AzureBakeryCommand extends AbstractBakeryCommand {
   protected String getProviderName() {
@@ -34,4 +32,3 @@ public class AzureBakeryCommand extends AbstractBakeryCommand {
     registerSubcommand(new AzureBaseImageCommand());
   }
 }
-

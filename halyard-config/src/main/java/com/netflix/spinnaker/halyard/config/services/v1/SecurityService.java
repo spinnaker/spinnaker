@@ -26,22 +26,22 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SecurityService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public SpringSsl getSpringSsl(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity().setSpringSsl();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setSecurity()
+            .setApiSecurity()
+            .setSpringSsl();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        SpringSsl.class,
-        SpringSsl::new,
-        n -> setSpringSsl(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, SpringSsl.class, SpringSsl::new, n -> setSpringSsl(deploymentName, n));
   }
 
   public void setSpringSsl(String deploymentName, SpringSsl apacheSsl) {
@@ -54,12 +54,11 @@ public class SecurityService {
   }
 
   public ApacheSsl getApacheSsl(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        ApacheSsl.class,
-        ApacheSsl::new,
-        n -> setApacheSsl(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, ApacheSsl.class, ApacheSsl::new, n -> setApacheSsl(deploymentName, n));
   }
 
   public void setApacheSsl(String deploymentName, ApacheSsl apacheSsl) {
@@ -72,12 +71,11 @@ public class SecurityService {
   }
 
   public UiSecurity getUiSecurity(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        UiSecurity.class,
-        UiSecurity::new,
-        n -> setUiSecurity(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, UiSecurity.class, UiSecurity::new, n -> setUiSecurity(deploymentName, n));
   }
 
   public void setUiSecurity(String deploymentName, UiSecurity apiSecurity) {
@@ -86,12 +84,11 @@ public class SecurityService {
   }
 
   public ApiSecurity getApiSecurity(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        ApiSecurity.class,
-        ApiSecurity::new,
-        n -> setApiSecurity(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, ApiSecurity.class, ApiSecurity::new, n -> setApiSecurity(deploymentName, n));
   }
 
   public void setApiSecurity(String deploymentName, ApiSecurity apiSecurity) {
@@ -102,10 +99,8 @@ public class SecurityService {
   public Security getSecurity(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        Security.class,
-        Security::new,
-        n -> setSecurity(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, Security.class, Security::new, n -> setSecurity(deploymentName, n));
   }
 
   public void setAuthnMethodEnabled(String deploymentName, String methodName, boolean enabled) {
@@ -152,9 +147,11 @@ public class SecurityService {
   }
 
   public AuthnMethod getAuthnMethod(String deploymentName, String methodName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
 
-    return lookupService.getSingularNodeOrDefault(filter,
+    return lookupService.getSingularNodeOrDefault(
+        filter,
         AuthnMethod.class,
         () -> {
           try {
@@ -167,9 +164,14 @@ public class SecurityService {
   }
 
   public RoleProvider getRoleProvider(String deploymentName, String roleProviderName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setRoleProvider(roleProviderName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setSecurity()
+            .setRoleProvider(roleProviderName);
 
-    return lookupService.getSingularNodeOrDefault(filter,
+    return lookupService.getSingularNodeOrDefault(
+        filter,
         RoleProvider.class,
         () -> {
           try {
@@ -182,7 +184,8 @@ public class SecurityService {
   }
 
   public void setSecurity(String deploymentName, Security newSecurity) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setSecurity(newSecurity);
   }
 
@@ -248,22 +251,30 @@ public class SecurityService {
   }
 
   public ProblemSet validateApacheSsl(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateSpringSsl(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity().setSpringSsl();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setSecurity()
+            .setApiSecurity()
+            .setSpringSsl();
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateUiSecurity(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateApiSecurity(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
     return validateService.validateMatchingFilter(filter);
   }
 
@@ -273,17 +284,23 @@ public class SecurityService {
   }
 
   public ProblemSet validateAuthnMethod(String deploymentName, String methodName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAuthz(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().withAnyRoleProvider();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setSecurity().withAnyRoleProvider();
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateRoleProvider(String deploymentName, String roleProviderName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setRoleProvider(roleProviderName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setSecurity()
+            .setRoleProvider(roleProviderName);
     return validateService.validateMatchingFilter(filter);
   }
 }

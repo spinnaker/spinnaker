@@ -26,13 +26,12 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDetails> {
@@ -43,31 +42,46 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
       boolean waitForCompletion) {
-    List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceTypes)
-        .stream()
-        .filter(i -> {
-          ServiceSettings serviceSettings = resolvedConfiguration.getServiceSettings(i.getService());
-          return serviceSettings != null && serviceSettings.getEnabled();
-        })
-        .collect(Collectors.toList());
+    List<BakeService> enabledServices =
+        serviceProvider.getPrioritizedBakeableServices(serviceTypes).stream()
+            .filter(
+                i -> {
+                  ServiceSettings serviceSettings =
+                      resolvedConfiguration.getServiceSettings(i.getService());
+                  return serviceSettings != null && serviceSettings.getEnabled();
+                })
+            .collect(Collectors.toList());
 
-    Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {
-      String command = String.join("\n",
-          installable.installArtifactCommand(deploymentDetails),
-          installable.stageStartupScripts(deploymentDetails, resolvedConfiguration));
-      commands.put(installable.getService().getCanonicalName(), command);
-      return commands;
-    }, (m1, m2) -> {
-      m1.putAll(m2);
-      return m1;
-    });
+    Map<String, String> installCommands =
+        enabledServices.stream()
+            .reduce(
+                new HashMap<>(),
+                (commands, installable) -> {
+                  String command =
+                      String.join(
+                          "\n",
+                          installable.installArtifactCommand(deploymentDetails),
+                          installable.stageStartupScripts(
+                              deploymentDetails, resolvedConfiguration));
+                  commands.put(installable.getService().getCanonicalName(), command);
+                  return commands;
+                },
+                (m1, m2) -> {
+                  m1.putAll(m2);
+                  return m1;
+                });
 
-    String startupCommand = String.join("\n", enabledServices.stream()
-        .map(BakeService::getStartupCommand)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList()));
+    String startupCommand =
+        String.join(
+            "\n",
+            enabledServices.stream()
+                .map(BakeService::getStartupCommand)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
 
-    String installCommand = serviceProvider.getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands, startupCommand);
+    String installCommand =
+        serviceProvider.getInstallCommand(
+            deploymentDetails, resolvedConfiguration, installCommands, startupCommand);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);
@@ -80,21 +94,37 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       DeploymentDetails deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
-    throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be rolled back.");
+    throw new HalException(
+        Problem.Severity.FATAL, "This type of deployment cannot be rolled back.");
   }
 
   @Override
-  public void collectLogs(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
-    throw new HalException(Problem.Severity.FATAL, "This type of deployment does not generate logs that can be collected.");
+  public void collectLogs(
+      BakeServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
+    throw new HalException(
+        Problem.Severity.FATAL,
+        "This type of deployment does not generate logs that can be collected.");
   }
 
   @Override
-  public RemoteAction connectCommand(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
-    throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be run or connected to.");
+  public RemoteAction connectCommand(
+      BakeServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
+    throw new HalException(
+        Problem.Severity.FATAL, "This type of deployment cannot be run or connected to.");
   }
 
   @Override
-  public void flushInfrastructureCaches(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new HalException(Problem.Severity.FATAL, "This type of deployment does not have an active redis to flush.");
+  public void flushInfrastructureCaches(
+      BakeServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings) {
+    throw new HalException(
+        Problem.Severity.FATAL, "This type of deployment does not have an active redis to flush.");
   }
 }

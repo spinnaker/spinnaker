@@ -25,8 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class GetAccountCommandBuilder implements CommandBuilder {
-  @Setter
-  String providerName;
+  @Setter String providerName;
 
   @Override
   public NestableCommand build() {

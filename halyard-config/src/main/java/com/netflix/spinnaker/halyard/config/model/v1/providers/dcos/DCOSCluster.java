@@ -4,8 +4,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class DCOSCluster extends Cluster {
@@ -31,4 +29,3 @@ public class DCOSCluster extends Cluster {
     @Secret String serviceAccountSecret;
   }
 }
-

@@ -20,19 +20,16 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 @Component
 public class HalconfigDirectoryStructure {
-  @Autowired
-  @Getter
-  String halconfigDirectory;
+  @Autowired @Getter String halconfigDirectory;
 
   public Path getLogsPath(String deploymentName) {
     return ensureRelativeHalDirectory(deploymentName, "service-logs");
@@ -137,24 +134,27 @@ public class HalconfigDirectoryStructure {
     if (file.exists()) {
       if (!file.isDirectory()) {
         throw new HalException(
-            new ConfigProblemBuilder(Problem.Severity.FATAL, "The path " + path + " may not be a file.")
-                .setRemediation("Please backup the file and remove it from your halconfig directory.")
-                .build()
-        );
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL, "The path " + path + " may not be a file.")
+                .setRemediation(
+                    "Please backup the file and remove it from your halconfig directory.")
+                .build());
       }
     } else {
       try {
         if (!file.mkdirs()) {
           throw new HalException(
-              new ConfigProblemBuilder(Problem.Severity.FATAL, "Error creating the directory " + path + " with unknown reason.")
-                  .build()
-          );
+              new ConfigProblemBuilder(
+                      Problem.Severity.FATAL,
+                      "Error creating the directory " + path + " with unknown reason.")
+                  .build());
         }
       } catch (Exception e) {
         throw new HalException(
-            new ConfigProblemBuilder(Problem.Severity.FATAL, "Error creating the directory " + path + ": " + e.getMessage())
-                .build()
-        );
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL,
+                    "Error creating the directory " + path + ": " + e.getMessage())
+                .build());
       }
     }
 

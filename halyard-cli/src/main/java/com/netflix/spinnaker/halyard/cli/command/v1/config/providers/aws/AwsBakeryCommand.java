@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBakeryCommand;
 
-/**
- * Interact with the aws provider's bakery
- */
+/** Interact with the aws provider's bakery */
 @Parameters(separators = "=")
 public class AwsBakeryCommand extends AbstractBakeryCommand {
   protected String getProviderName() {
@@ -33,4 +31,3 @@ public class AwsBakeryCommand extends AbstractBakeryCommand {
     registerSubcommand(new AwsEditBakeryDefaultsCommand());
   }
 }
-

@@ -27,7 +27,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 
 @Parameters(separators = "=")
-public class GoogleEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<GoogleCanaryAccount> {
+public class GoogleEditCanaryAccountCommand
+    extends AbstractEditCanaryAccountCommand<GoogleCanaryAccount> {
 
   @Override
   protected String getServiceIntegration() {
@@ -36,33 +37,24 @@ public class GoogleEditCanaryAccountCommand extends AbstractEditCanaryAccountCom
 
   @Parameter(
       names = "--project",
-      description = CommonCanaryGoogleCommandProperties.PROJECT_DESCRIPTION
-  )
+      description = CommonCanaryGoogleCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
-  @Parameter(
-      names = "--bucket",
-      description = CommonCanaryCommandProperties.BUCKET
-  )
+  @Parameter(names = "--bucket", description = CommonCanaryCommandProperties.BUCKET)
   private String bucket;
 
-  @Parameter(
-      names = "--root-folder",
-      description = CommonCanaryCommandProperties.ROOT_FOLDER
-  )
+  @Parameter(names = "--root-folder", description = CommonCanaryCommandProperties.ROOT_FOLDER)
   private String rootFolder;
 
   @Parameter(
       names = "--bucket-location",
-      description = CommonCanaryGoogleCommandProperties.BUCKET_LOCATION
-  )
+      description = CommonCanaryGoogleCommandProperties.BUCKET_LOCATION)
   private String bucketLocation;
 
   @Override

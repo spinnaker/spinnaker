@@ -33,14 +33,13 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianIgorService extends IgorService implements LocalDebianService<IgorService.Igor> {
+public class LocalDebianIgorService extends IgorService
+    implements LocalDebianService<IgorService.Igor> {
   final String upstartServiceName = "igor";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
@@ -49,7 +48,8 @@ public class LocalDebianIgorService extends IgorService implements LocalDebianSe
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(true);
   }

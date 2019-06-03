@@ -34,15 +34,15 @@ public class VersionsController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Versions> config() {
-    DaemonResponse.StaticRequestBuilder<Versions> builder = new DaemonResponse.StaticRequestBuilder<>(
-        versionsService::getVersions);
+    DaemonResponse.StaticRequestBuilder<Versions> builder =
+        new DaemonResponse.StaticRequestBuilder<>(versionsService::getVersions);
     return DaemonTaskHandler.submitTask(builder::build, "Get released versions");
   }
 
   @RequestMapping(value = "/latest/", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> latest() {
-    DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>(
-        versionsService::getLatestSpinnakerVersion);
+    DaemonResponse.StaticRequestBuilder<String> builder =
+        new DaemonResponse.StaticRequestBuilder<>(versionsService::getLatestSpinnakerVersion);
     return DaemonTaskHandler.submitTask(builder::build, "Get latest released version");
   }
 
@@ -51,9 +51,9 @@ public class VersionsController {
    * path variable. Although it is possible to configure Spring to allow this, it is recommended
    * that the variable be moved to a request variable:
    *
-   * https://stackoverflow.com/questions/13482020/encoded-slash-2f-with-spring-requestmapping-path-param-gives-http-400
+   * <p>https://stackoverflow.com/questions/13482020/encoded-slash-2f-with-spring-requestmapping-path-param-gives-http-400
    *
-   * Please use bomV2 instead.
+   * <p>Please use bomV2 instead.
    */
   @Deprecated
   @RequestMapping(value = "/bom/{version:.+}", method = RequestMethod.GET)
@@ -63,8 +63,9 @@ public class VersionsController {
 
   @RequestMapping(value = "/bom", method = RequestMethod.GET)
   DaemonTask<Halconfig, BillOfMaterials> bomV2(@RequestParam(value = "version") String version) {
-    DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>(
-        () -> versionsService.getBillOfMaterials(version));
+    DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder =
+        new DaemonResponse.StaticRequestBuilder<>(
+            () -> versionsService.getBillOfMaterials(version));
     return DaemonTaskHandler.submitTask(builder::build, "Get BOM for " + version);
   }
 }

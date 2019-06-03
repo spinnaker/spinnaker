@@ -25,8 +25,7 @@ import lombok.Getter;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Authn extends Node {
-  @Getter
-  private String nodeName = "authn";
+  @Getter private String nodeName = "authn";
 
   private OAuth2 oauth2 = new OAuth2();
   private Saml saml = new Saml();
@@ -36,8 +35,11 @@ public class Authn extends Node {
   private boolean enabled;
 
   public boolean isEnabled() {
-    return getOauth2().isEnabled() || getSaml().isEnabled() || getLdap().isEnabled()
-        || getX509().isEnabled() || getIap().isEnabled();
+    return getOauth2().isEnabled()
+        || getSaml().isEnabled()
+        || getLdap().isEnabled()
+        || getX509().isEnabled()
+        || getIap().isEnabled();
   }
 
   public void setEnabled(boolean _ignored) {}

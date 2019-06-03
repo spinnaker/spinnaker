@@ -15,13 +15,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
 @Parameters(separators = "=")
 public class OracleBaseImageCommand extends AbstractBaseImageCommand {
-    protected String getProviderName() {
-        return Provider.ProviderType.ORACLE.getName();
-    }
+  protected String getProviderName() {
+    return Provider.ProviderType.ORACLE.getName();
+  }
 
-    public OracleBaseImageCommand() {
-        super();
-        registerSubcommand(new OracleAddBaseImageCommand());
-        registerSubcommand(new OracleEditBaseImageCommand());
-    }
+  public OracleBaseImageCommand() {
+    super();
+    registerSubcommand(new OracleAddBaseImageCommand());
+    registerSubcommand(new OracleEditBaseImageCommand());
+  }
 }

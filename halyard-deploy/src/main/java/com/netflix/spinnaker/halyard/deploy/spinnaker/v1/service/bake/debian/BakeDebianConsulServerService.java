@@ -28,42 +28,36 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulSe
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulServerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.ConsulApi;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianConsulServerService extends ConsulServerService implements BakeDebianService<ConsulApi> {
-  @Autowired
-  ArtifactService artifactService;
+public class BakeDebianConsulServerService extends ConsulServerService
+    implements BakeDebianService<ConsulApi> {
+  @Autowired ArtifactService artifactService;
 
   StartupPriority priority = new StartupPriority(StartupPriority.LOW);
 
   final String upstartServiceName = "consul";
 
-  @Autowired
-  String startupScriptPath;
+  @Autowired String startupScriptPath;
 
-  @Autowired
-  ConsulServerStartupProfileFactory consulServerStartupProfileFactory;
+  @Autowired ConsulServerStartupProfileFactory consulServerStartupProfileFactory;
 
-  @Autowired
-  ConsulServerBootstrapGoogleProfileFactory consulServerBootstrapGoogleProfileFactory;
+  @Autowired ConsulServerBootstrapGoogleProfileFactory consulServerBootstrapGoogleProfileFactory;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings()
-        .setArtifactId("consul")
-        .setEnabled(true);
+    return new Settings().setArtifactId("consul").setEnabled(true);
   }
 
   @Override
@@ -72,14 +66,19 @@ public class BakeDebianConsulServerService extends ConsulServerService implement
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     String name = "startup-consul.sh";
     String path = Paths.get(startupScriptPath, name).toString();
-    result.add(consulServerStartupProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(
+        consulServerStartupProfileFactory.getProfile(
+            name, path, deploymentConfiguration, endpoints));
     name = "google/bootstrap-consul.sh";
     path = Paths.get(startupScriptPath, name).toString();
-    result.add(consulServerBootstrapGoogleProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(
+        consulServerBootstrapGoogleProfileFactory.getProfile(
+            name, path, deploymentConfiguration, endpoints));
     return result;
   }
 

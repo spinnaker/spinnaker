@@ -34,10 +34,12 @@ public class CleanDeployCommand extends AbstractConfigCommand implements Protect
   private String prompt = "This command cannot be undone.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Remove all Spinnaker artifacts in your target deployment environment.";
+  private String shortDescription =
+      "Remove all Spinnaker artifacts in your target deployment environment.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = "This command destroys all Spinnaker artifacts in your target deployment environment. This cannot be undone, so use with care. This does not delete Halyard nor any of the configuration.";
+  private String longDescription =
+      "This command destroys all Spinnaker artifacts in your target deployment environment. This cannot be undone, so use with care. This does not delete Halyard nor any of the configuration.";
 
   @Override
   protected void executeThis() {

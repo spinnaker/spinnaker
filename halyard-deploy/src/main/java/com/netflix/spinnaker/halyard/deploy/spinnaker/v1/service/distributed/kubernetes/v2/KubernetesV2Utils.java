@@ -20,13 +20,21 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -36,22 +44,12 @@ import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Slf4j
 @Component
 public class KubernetesV2Utils {
   private ObjectMapper mapper = new ObjectMapper();
 
-  @Autowired
-  private SecretSessionManager secretSessionManager;
+  @Autowired private SecretSessionManager secretSessionManager;
 
   public List<String> kubectlPrefix(KubernetesAccount account) {
     List<String> command = new ArrayList<>();
@@ -81,7 +79,8 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  List<String> kubectlPodServiceCommand(KubernetesAccount account, String namespace, String service) {
+  List<String> kubectlPodServiceCommand(
+      KubernetesAccount account, String namespace, String service) {
     List<String> command = kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
@@ -97,7 +96,8 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  List<String> kubectlConnectPodCommand(KubernetesAccount account, String namespace, String name, int port) {
+  List<String> kubectlConnectPodCommand(
+      KubernetesAccount account, String namespace, String name, int port) {
     List<String> command = kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
@@ -111,17 +111,27 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  public SecretSpec createSecretSpec(String namespace, String clusterName, String name, List<SecretMountPair> files) {
+  public SecretSpec createSecretSpec(
+      String namespace, String clusterName, String name, List<SecretMountPair> files) {
     Map<String, String> contentMap = new HashMap<>();
-    for (SecretMountPair pair: files) {
+    for (SecretMountPair pair : files) {
       String contents;
       if (pair.getContentBytes() != null) {
         contents = new String(Base64.getEncoder().encode(pair.getContentBytes()));
       } else {
         try {
-          contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
+          contents =
+              new String(
+                  Base64.getEncoder()
+                      .encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
         } catch (IOException e) {
-          throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
+          throw new HalException(
+              Problem.Severity.FATAL,
+              "Failed to read required config file: "
+                  + pair.getContents().getAbsolutePath()
+                  + ": "
+                  + e.getMessage(),
+              e);
         }
       }
 
@@ -154,13 +164,13 @@ public class KubernetesV2Utils {
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
   }
 
-  static public class SecretSpec {
+  public static class SecretSpec {
     TemplatedResource resource;
     String name;
   }
 
   @Data
-  static public class SecretMountPair {
+  public static class SecretMountPair {
     File contents;
     byte[] contentBytes;
     String name;

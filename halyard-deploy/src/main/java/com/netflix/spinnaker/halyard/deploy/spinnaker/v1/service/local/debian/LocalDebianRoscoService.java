@@ -33,14 +33,13 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianRoscoService extends RoscoService implements LocalDebianService<RoscoService.Rosco> {
+public class LocalDebianRoscoService extends RoscoService
+    implements LocalDebianService<RoscoService.Rosco> {
   final String upstartServiceName = "rosco";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
@@ -49,7 +48,8 @@ public class LocalDebianRoscoService extends RoscoService implements LocalDebian
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(true);
   }

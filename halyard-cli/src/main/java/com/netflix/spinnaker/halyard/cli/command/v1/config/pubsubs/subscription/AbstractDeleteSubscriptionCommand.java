@@ -20,18 +20,14 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription.AbstractHasSubscriptionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific PROVIDER subscription
- */
+/** Delete a specific PROVIDER subscription */
 @Parameters(separators = "=")
 public abstract class AbstractDeleteSubscriptionCommand extends AbstractHasSubscriptionCommand {
   @Getter(AccessLevel.PROTECTED)
@@ -53,9 +49,16 @@ public abstract class AbstractDeleteSubscriptionCommand extends AbstractHasSubsc
     String currentDeployment = getCurrentDeployment();
     String pubsubName = getPubsubName();
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to delete subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
-        .setSuccessMessage("Successfully deleted subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
-        .setOperation(Daemon.deleteSubscription(currentDeployment, pubsubName, subscriptionName, !noValidate))
+        .setFailureMesssage(
+            "Failed to delete subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
+        .setSuccessMessage(
+            "Successfully deleted subscription "
+                + subscriptionName
+                + " for pubsub "
+                + pubsubName
+                + ".")
+        .setOperation(
+            Daemon.deleteSubscription(currentDeployment, pubsubName, subscriptionName, !noValidate))
         .get();
   }
 }

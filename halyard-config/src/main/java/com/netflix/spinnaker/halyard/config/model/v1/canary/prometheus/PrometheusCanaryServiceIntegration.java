@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Slf4j
-public class PrometheusCanaryServiceIntegration extends AbstractCanaryServiceIntegration<PrometheusCanaryAccount> implements Cloneable {
+public class PrometheusCanaryServiceIntegration
+    extends AbstractCanaryServiceIntegration<PrometheusCanaryAccount> implements Cloneable {
   public static final String NAME = "prometheus";
 
   String name = NAME;

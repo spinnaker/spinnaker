@@ -18,11 +18,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -38,7 +37,8 @@ public abstract class Account extends Node implements Cloneable {
     return name;
   }
 
-  // Override this method if your cloud provider account needs special settings enabled for it act as a bootstrapping account.
+  // Override this method if your cloud provider account needs special settings enabled for it act
+  // as a bootstrapping account.
   public void makeBootstrappingAccount(ArtifactSourcesConfig artifactSourcesConfig) {
     permissions.clear();
     requiredGroupMembership.clear();

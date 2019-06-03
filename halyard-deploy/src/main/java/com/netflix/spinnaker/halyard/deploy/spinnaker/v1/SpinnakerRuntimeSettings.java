@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import java.util.Collections;
-import java.util.List;
-import lombok.Data;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class SpinnakerRuntimeSettings {
@@ -38,7 +37,8 @@ public class SpinnakerRuntimeSettings {
     SpinnakerRuntimeSettings serviceOverrides = new SpinnakerRuntimeSettings();
     for (Type type : overrideServiceEndpoints) {
       if (this.serviceIsEnabled(type)) {
-        serviceOverrides.setServiceSettings(type.getBaseType(), this.getServiceSettings(type).withOnlyBaseUrl());
+        serviceOverrides.setServiceSettings(
+            type.getBaseType(), this.getServiceSettings(type).withOnlyBaseUrl());
       }
     }
     return serviceOverrides;

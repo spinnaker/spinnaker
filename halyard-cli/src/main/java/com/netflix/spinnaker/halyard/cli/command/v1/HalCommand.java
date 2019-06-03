@@ -23,9 +23,7 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- * This is the base command, where we will register all the subcommands.
- */
+/** This is the base command, where we will register all the subcommands. */
 @Parameters(separators = "=")
 public class HalCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
@@ -33,26 +31,22 @@ public class HalCommand extends NestableCommand {
 
   @Parameter(
       names = "--print-bash-completion",
-      description = "Print bash command completion. This is used during the installation of Halyard."
-  )
+      description =
+          "Print bash command completion. This is used during the installation of Halyard.")
   private boolean printBashCompletion;
 
   @Parameter(
       names = {"--version", "-v"},
-      description = "Version of Halyard."
-  )
+      description = "Version of Halyard.")
   private boolean version;
 
   @Parameter(
       names = "--ready",
-      description = "Check if Halyard is up and running. Will exit with non-zero return code when it isn't."
-  )
+      description =
+          "Check if Halyard is up and running. Will exit with non-zero return code when it isn't.")
   private boolean healthy;
 
-  @Parameter(
-      names = "--docs",
-      description = "Print markdown docs for the hal CLI."
-  )
+  @Parameter(names = "--docs", description = "Print markdown docs for the hal CLI.")
   private boolean docs;
 
   public HalCommand() {
@@ -67,8 +61,8 @@ public class HalCommand extends NestableCommand {
   }
 
   static String getVersion() {
-    return Optional
-        .ofNullable(HalCommand.class.getPackage().getImplementationVersion()).orElse("Unknown");
+    return Optional.ofNullable(HalCommand.class.getPackage().getImplementationVersion())
+        .orElse("Unknown");
   }
 
   @Override

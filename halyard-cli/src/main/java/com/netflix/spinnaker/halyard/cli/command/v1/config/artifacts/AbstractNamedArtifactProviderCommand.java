@@ -18,12 +18,12 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts;
 
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
+
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-
-import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
 
 @Parameters(separators = "=")
 public abstract class AbstractNamedArtifactProviderCommand extends AbstractArtifactProviderCommand {
@@ -34,21 +34,23 @@ public abstract class AbstractNamedArtifactProviderCommand extends AbstractArtif
 
   @Override
   protected String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getArtifactProviderName() + " provider";
+    return "Manage and view Spinnaker configuration for the "
+        + getArtifactProviderName()
+        + " provider";
   }
 
   protected AbstractNamedArtifactProviderCommand() {
-    registerSubcommand(new ArtifactProviderEnableDisableCommandBuilder()
-        .setArtifactProviderName(getArtifactProviderName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new ArtifactProviderEnableDisableCommandBuilder()
+            .setArtifactProviderName(getArtifactProviderName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new ArtifactProviderEnableDisableCommandBuilder()
-        .setArtifactProviderName(getArtifactProviderName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new ArtifactProviderEnableDisableCommandBuilder()
+            .setArtifactProviderName(getArtifactProviderName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

@@ -24,9 +24,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractListMastersCommand extends AbstractCiCommand {
@@ -34,8 +33,7 @@ abstract class AbstractListMastersCommand extends AbstractCiCommand {
     return "List the master names for " + getCiName() + ".";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private Ci getCi() {
     String currentDeployment = getCurrentDeployment();

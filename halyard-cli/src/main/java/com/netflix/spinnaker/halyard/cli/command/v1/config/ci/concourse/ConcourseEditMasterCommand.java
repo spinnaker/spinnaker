@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.concourse;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
-
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 
@@ -29,23 +28,16 @@ public class ConcourseEditMasterCommand extends AbstractEditMasterCommand<Concou
     return "concourse";
   }
 
-  @Parameter(
-      names = "--url",
-      description = ConcourseCommandProperties.URL_DESCRIPTION
-  )
+  @Parameter(names = "--url", description = ConcourseCommandProperties.URL_DESCRIPTION)
   private String url;
 
-  @Parameter(
-      names = "--username",
-      description = ConcourseCommandProperties.USERNAME_DESCRIPTION
-  )
+  @Parameter(names = "--username", description = ConcourseCommandProperties.USERNAME_DESCRIPTION)
   public String username;
 
   @Parameter(
       names = "--password",
       password = true,
-      description = ConcourseCommandProperties.PASSWORD_DESCRIPTION
-  )
+      description = ConcourseCommandProperties.PASSWORD_DESCRIPTION)
   public String password;
 
   @Override
@@ -56,5 +48,4 @@ public class ConcourseEditMasterCommand extends AbstractEditMasterCommand<Concou
 
     return master;
   }
-
 }

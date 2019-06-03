@@ -22,15 +22,15 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.List;
 
 @Parameters(separators = "=")
 public class ListArtifactTemplatesCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "list";
+
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "List an artifact templates";
 

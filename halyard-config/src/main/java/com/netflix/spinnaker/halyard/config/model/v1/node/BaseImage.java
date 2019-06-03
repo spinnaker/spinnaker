@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import lombok.Data;
 import lombok.ToString;
 
-abstract public class BaseImage<I extends BaseImage.ImageSettings, V> extends Node {
+public abstract class BaseImage<I extends BaseImage.ImageSettings, V> extends Node {
   public String getNodeName() {
     return getBaseImage().getId();
   }
@@ -30,13 +30,13 @@ abstract public class BaseImage<I extends BaseImage.ImageSettings, V> extends No
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  abstract public I getBaseImage();
+  public abstract I getBaseImage();
 
-  abstract public V getVirtualizationSettings();
+  public abstract V getVirtualizationSettings();
 
   @Data
   @ToString
-  public static abstract class ImageSettings {
+  public abstract static class ImageSettings {
     String id;
     String shortDescription;
     String detailedDescription;

@@ -23,30 +23,38 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBaseImage;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class AzureBaseImageValidator extends Validator<AzureBaseImage> {
-  final private List<AzureCredentials> credentialsList;
+  private final List<AzureCredentials> credentialsList;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AzureBaseImage n) {
 
-    AzureCredentials credentials = credentialsList.get(0); // The first credentials should be fine since we're validating against public images
+    AzureCredentials credentials =
+        credentialsList.get(
+            0); // The first credentials should be fine since we're validating against public images
     AzureComputeClient computeClient = credentials.getComputeClient();
     AzureBaseImage.AzureOperatingSystemSettings osSettings = n.getBaseImage();
     String version = osSettings.getVersion();
 
     try {
-      computeClient.getVMImage("westus", osSettings.getPublisher(), osSettings.getOffer(), osSettings.getSku(), version);
+      computeClient.getVMImage(
+          "westus", osSettings.getPublisher(), osSettings.getOffer(), osSettings.getSku(), version);
     } catch (Exception e) {
-      String message =  e instanceof CloudException ? CloudException.class.cast(e).body().message() : e.getMessage();
-      p.addProblem(Problem.Severity.WARNING, "Error getting image '" + n.getNodeName() + "' in region 'westus': " + message)
-        .setRemediation("If you are not targeting 'westus' and know the image is available in other regions, you can ignore this warning and select a different region when baking images. See available images here: https://aka.ms/azspinimage");
+      String message =
+          e instanceof CloudException
+              ? CloudException.class.cast(e).body().message()
+              : e.getMessage();
+      p.addProblem(
+              Problem.Severity.WARNING,
+              "Error getting image '" + n.getNodeName() + "' in region 'westus': " + message)
+          .setRemediation(
+              "If you are not targeting 'westus' and know the image is available in other regions, you can ignore this warning and select a different region when baking images. See available images here: https://aka.ms/azspinimage");
     }
   }
 }

@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HaClouddriverValidator extends Validator<DeploymentEnvironment>  {
+public class HaClouddriverValidator extends Validator<DeploymentEnvironment> {
 
   @Override
   public void validate(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
@@ -36,17 +35,20 @@ public class HaClouddriverValidator extends Validator<DeploymentEnvironment>  {
 
     boolean haCloudDriverEnabled = haServices.getClouddriver().isEnabled();
     if (haCloudDriverEnabled && customSizing.hasCustomSizing("spin-clouddriver")) {
-      p.addProblem(Problem.Severity.WARNING, "High Availability (HA) is enabled for clouddriver, but found custom sizing for the main service (this setting will be ignored). " +
-              "With HA enabled, the service is split into multiple sub-services (eg. clouddriver-caching, clouddriver-rw). You need to update the component sizing for each sub-service, individually.");
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "High Availability (HA) is enabled for clouddriver, but found custom sizing for the main service (this setting will be ignored). "
+              + "With HA enabled, the service is split into multiple sub-services (eg. clouddriver-caching, clouddriver-rw). You need to update the component sizing for each sub-service, individually.");
     }
 
-    if (!haCloudDriverEnabled &&
-            (customSizing.hasCustomSizing("spin-clouddriver-rw") ||
-                    customSizing.hasCustomSizing("spin-clouddriver-ro") ||
-                    customSizing.hasCustomSizing("spin-clouddriver-ro-deck") ||
-                    customSizing.hasCustomSizing("spin-clouddriver-caching")
-            )) {
-      p.addProblem(Problem.Severity.WARNING, "Discovered custom sizing for HA clouddriver subcomponent, but High Availability (HA) is not enabled. Please enable HA or edit the clouddriver main service directly.");
+    if (!haCloudDriverEnabled
+        && (customSizing.hasCustomSizing("spin-clouddriver-rw")
+            || customSizing.hasCustomSizing("spin-clouddriver-ro")
+            || customSizing.hasCustomSizing("spin-clouddriver-ro-deck")
+            || customSizing.hasCustomSizing("spin-clouddriver-caching"))) {
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "Discovered custom sizing for HA clouddriver subcomponent, but High Availability (HA) is not enabled. Please enable HA or edit the clouddriver main service directly.");
     }
   }
 }

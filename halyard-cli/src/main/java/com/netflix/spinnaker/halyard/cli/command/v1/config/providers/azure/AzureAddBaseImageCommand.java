@@ -29,39 +29,36 @@ public class AzureAddBaseImageCommand extends AbstractAddBaseImageCommand {
   }
 
   @Parameter(
-        names = "--publisher",
-        required = true,
-        description = AzureCommandProperties.IMAGE_PUBLISHER_DESCRIPTION
-  )
+      names = "--publisher",
+      required = true,
+      description = AzureCommandProperties.IMAGE_PUBLISHER_DESCRIPTION)
   private String publisher;
 
   @Parameter(
-        names = "--offer",
-        required = true,
-        description = AzureCommandProperties.IMAGE_OFFER_DESCRIPTION
-  )
+      names = "--offer",
+      required = true,
+      description = AzureCommandProperties.IMAGE_OFFER_DESCRIPTION)
   private String offer;
 
   @Parameter(
-        names = "--sku",
-        required = true,
-        description = AzureCommandProperties.IMAGE_SKU_DESCRIPTION
-  )
+      names = "--sku",
+      required = true,
+      description = AzureCommandProperties.IMAGE_SKU_DESCRIPTION)
   private String sku;
 
   @Parameter(
-        names = "--image-version", // just using '--version' would conflict with the global parameter
-        description = AzureCommandProperties.IMAGE_VERSION_DESCRIPTION
-  )
+      names = "--image-version", // just using '--version' would conflict with the global parameter
+      description = AzureCommandProperties.IMAGE_VERSION_DESCRIPTION)
   private String version;
 
   @Override
   protected BaseImage buildBaseImage(String baseImageId) {
-    AzureBaseImage.AzureOperatingSystemSettings imageSettings = (new AzureBaseImage.AzureOperatingSystemSettings())
-        .setPublisher(publisher)
-        .setOffer(offer)
-        .setSku(sku)
-        .setVersion(isSet(version) ? version : "latest");
+    AzureBaseImage.AzureOperatingSystemSettings imageSettings =
+        (new AzureBaseImage.AzureOperatingSystemSettings())
+            .setPublisher(publisher)
+            .setOffer(offer)
+            .setSku(sku)
+            .setVersion(isSet(version) ? version : "latest");
 
     return (new AzureBaseImage()).setBaseImage(imageSettings);
   }

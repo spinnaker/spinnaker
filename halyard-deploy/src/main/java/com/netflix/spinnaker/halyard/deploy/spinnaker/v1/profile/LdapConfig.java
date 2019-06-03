@@ -18,10 +18,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.security.Ldap;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import java.net.URI;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.net.URI;
 
 @EqualsAndHashCode(callSuper = false)
 @Data

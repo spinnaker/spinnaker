@@ -27,53 +27,61 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
 public abstract class AbstractComponentSizingUpdateCommand extends AbstractConfigCommand {
-    @Getter(AccessLevel.PROTECTED)
-    private Map<String, NestableCommand> subcommands = new HashMap<>();
+  @Getter(AccessLevel.PROTECTED)
+  private Map<String, NestableCommand> subcommands = new HashMap<>();
 
-    @Getter(AccessLevel.PUBLIC)
-    private String commandName;
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName;
 
-    @Getter(AccessLevel.PUBLIC)
-    protected SpinnakerService.Type spinnakerService;
+  @Getter(AccessLevel.PUBLIC)
+  protected SpinnakerService.Type spinnakerService;
 
-    public AbstractComponentSizingUpdateCommand(SpinnakerService.Type spinnakerService, String commandName) {
-        this.spinnakerService = spinnakerService;
-        this.commandName = commandName;
+  public AbstractComponentSizingUpdateCommand(
+      SpinnakerService.Type spinnakerService, String commandName) {
+    this.spinnakerService = spinnakerService;
+    this.commandName = commandName;
+  }
+
+  @Override
+  protected void executeThis() {
+    String serviceName = spinnakerService.getCanonicalName();
+    String currentDeployment = getCurrentDeployment();
+    DeploymentEnvironment deploymentEnvironment =
+        new OperationHandler<DeploymentEnvironment>()
+            .setFailureMesssage("Failed to get component sizing for service " + serviceName + ".")
+            .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
+            .get();
+
+    CustomSizing customSizing = deploymentEnvironment.getCustomSizing();
+    int originalHash = customSizing.hashCode();
+
+    update(customSizing);
+
+    if (originalHash == customSizing.hashCode()) {
+      AnsiUi.failure("Nothing to do.");
+      return;
     }
 
-    @Override
-    protected void executeThis() {
-        String serviceName = spinnakerService.getCanonicalName();
-        String currentDeployment = getCurrentDeployment();
-        DeploymentEnvironment deploymentEnvironment = new OperationHandler<DeploymentEnvironment>()
-                .setFailureMesssage("Failed to get component sizing for service " + serviceName + ".")
-                .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
-                .get();
+    new OperationHandler<Void>()
+        .setFailureMesssage(
+            "Failed to " + commandName + " custom component sizings for " + serviceName + ".")
+        .setSuccessMessage(
+            "Successfully managed to "
+                + commandName
+                + " the custom component sizings for service "
+                + serviceName
+                + ".")
+        .setOperation(
+            Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
+        .get();
+  }
 
-        CustomSizing customSizing = deploymentEnvironment.getCustomSizing();
-        int originalHash = customSizing.hashCode();
-
-        update(customSizing);
-
-        if (originalHash == customSizing.hashCode()) {
-            AnsiUi.failure("Nothing to do.");
-            return;
-        }
-
-        new OperationHandler<Void>()
-                .setFailureMesssage("Failed to " + commandName + " custom component sizings for " + serviceName + ".")
-                .setSuccessMessage("Successfully managed to " + commandName + " the custom component sizings for service " + serviceName + ".")
-                .setOperation(Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
-                .get();
-    }
-
-    protected abstract CustomSizing update(CustomSizing customSizing);
+  protected abstract CustomSizing update(CustomSizing customSizing);
 }

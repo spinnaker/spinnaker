@@ -40,8 +40,8 @@ public class PersistentStorageController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<PersistentStorage>builder()
         .getter(() -> persistentStorageService.getPersistentStorage(deploymentName))
         .validator(() -> persistentStorageService.validatePersistentStorage(deploymentName))
@@ -51,7 +51,8 @@ public class PersistentStorageController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPersistentStorage(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setPersistentStorage(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody PersistentStorage persistentStorage) {
     return GenericUpdateRequest.<PersistentStorage>builder(halconfigParser)
@@ -64,28 +65,39 @@ public class PersistentStorageController {
   }
 
   @RequestMapping(value = "/{persistentStoreType:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, PersistentStore> getPersistentStore(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, PersistentStore> getPersistentStore(
+      @PathVariable String deploymentName,
       @PathVariable String persistentStoreType,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<PersistentStore>builder()
-        .getter(() -> persistentStorageService.getPersistentStore(deploymentName, persistentStoreType))
-        .validator(() -> persistentStorageService.validatePersistentStore(deploymentName, persistentStoreType))
+        .getter(
+            () -> persistentStorageService.getPersistentStore(deploymentName, persistentStoreType))
+        .validator(
+            () ->
+                persistentStorageService.validatePersistentStore(
+                    deploymentName, persistentStoreType))
         .description("Get persistent store")
         .build()
         .execute(validationSettings);
   }
 
   @RequestMapping(value = "/{persistentStoreType:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPersistentStore(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setPersistentStore(
+      @PathVariable String deploymentName,
       @PathVariable String persistentStoreType,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawPersistentStore) {
-    PersistentStore persistentStore = objectMapper.convertValue(rawPersistentStore,
-        PersistentStorage.translatePersistentStoreType(persistentStoreType));
+    PersistentStore persistentStore =
+        objectMapper.convertValue(
+            rawPersistentStore,
+            PersistentStorage.translatePersistentStoreType(persistentStoreType));
     return GenericUpdateRequest.<PersistentStore>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(p -> persistentStorageService.setPersistentStore(deploymentName, p))
-        .validator(() -> persistentStorageService.validatePersistentStore(deploymentName, persistentStoreType))
+        .validator(
+            () ->
+                persistentStorageService.validatePersistentStore(
+                    deploymentName, persistentStoreType))
         .description("Edit persistent store")
         .build()
         .execute(validationSettings, persistentStore);

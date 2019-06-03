@@ -17,34 +17,30 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RegistryBackedArchiveProfileBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RoscoProfileFactory;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
-  @Autowired
-  RoscoProfileFactory roscoProfileFactory;
+public abstract class RoscoService extends SpringService<RoscoService.Rosco> {
+  @Autowired RoscoProfileFactory roscoProfileFactory;
 
-  @Autowired
-  RegistryBackedArchiveProfileBuilder prefixProfileBuilder;
+  @Autowired RegistryBackedArchiveProfileBuilder prefixProfileBuilder;
 
   protected String getRoscoConfigPath() {
     return "/opt/rosco/config";
@@ -77,21 +73,24 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     return result;
   }
 
-  protected void appendCustomConfigDir(Profile profile) {
-  }
+  protected void appendCustomConfigDir(Profile profile) {}
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "rosco.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    Profile profile = roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile =
+        roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     appendCustomConfigDir(profile);
 
     profiles.add(profile);
-    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, getRoscoConfigPath(), getArtifact(), "packer"));
+    profiles.addAll(
+        prefixProfileBuilder.build(
+            deploymentConfiguration, getRoscoConfigPath(), getArtifact(), "packer"));
     return profiles;
   }
 

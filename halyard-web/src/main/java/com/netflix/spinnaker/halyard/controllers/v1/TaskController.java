@@ -44,7 +44,9 @@ public class TaskController extends OperationsGrpc.OperationsImplBase {
   }
 
   @Override
-  public void getOperation(GetOperationRequest request, io.grpc.stub.StreamObserver<com.google.longrunning.Operation> responseObserver) {
+  public void getOperation(
+      GetOperationRequest request,
+      io.grpc.stub.StreamObserver<com.google.longrunning.Operation> responseObserver) {
     responseObserver.onNext(TaskRepository.getTask(request.getName()).getLRO());
     responseObserver.onCompleted();
   }

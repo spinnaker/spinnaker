@@ -24,10 +24,9 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,9 +36,10 @@ public class RepositoriesController {
   private final RepositoryService repositoryService;
 
   @RequestMapping(value = "/{repositoryName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Repository> repository(@PathVariable String deploymentName,
-       @PathVariable String repositoryName,
-       @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, Repository> repository(
+      @PathVariable String deploymentName,
+      @PathVariable String repositoryName,
+      @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Repository>builder()
         .getter(() -> repositoryService.getRepository(deploymentName, repositoryName))
         .validator(() -> repositoryService.validateRepository(deploymentName, repositoryName))
@@ -49,7 +49,8 @@ public class RepositoriesController {
   }
 
   @RequestMapping(value = "/{repositoryName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -62,8 +63,8 @@ public class RepositoriesController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Repository>> repositories(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<Repository>> repositories(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Repository>>builder()
         .getter(() -> repositoryService.getAllRepositories(deploymentName))
         .validator(() -> repositoryService.validateAllRepositories(deploymentName))

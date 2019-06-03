@@ -21,9 +21,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.slack;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.AbstractNamedNotificationCommand;
 
-/**
- * Interact with the jenkins notification
- */
+/** Interact with the jenkins notification */
 @Parameters(separators = "=")
 public class SlackCommand extends AbstractNamedNotificationCommand {
   protected String getNotificationName() {

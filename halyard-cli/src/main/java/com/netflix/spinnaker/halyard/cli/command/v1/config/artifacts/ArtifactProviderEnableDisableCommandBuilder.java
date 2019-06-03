@@ -26,11 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class ArtifactProviderEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String artifactProviderName;
+  @Setter String artifactProviderName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -38,7 +36,8 @@ public class ArtifactProviderEnableDisableCommandBuilder implements CommandBuild
   }
 
   @Parameters(separators = "=")
-  private static class ArtifactProviderEnableDisableCommand extends AbstractArtifactProviderEnableDisableCommand {
+  private static class ArtifactProviderEnableDisableCommand
+      extends AbstractArtifactProviderEnableDisableCommand {
     private ArtifactProviderEnableDisableCommand(String artifactProviderName, boolean enable) {
       this.artifactProviderName = artifactProviderName;
       this.enable = enable;

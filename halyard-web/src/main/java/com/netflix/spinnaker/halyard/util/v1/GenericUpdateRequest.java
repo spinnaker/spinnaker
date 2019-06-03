@@ -24,11 +24,10 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
-import lombok.Builder;
-
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lombok.Builder;
 
 @Builder(builderMethodName = "privateBuilder")
 public class GenericUpdateRequest<T extends Node> {
@@ -39,8 +38,10 @@ public class GenericUpdateRequest<T extends Node> {
   private final Supplier<ProblemSet> validator;
   private final String description;
 
-  public DaemonTask<Halconfig, Void> execute(ValidationSettings validationSettings, T updatedValue) {
-    DaemonResponse.UpdateRequestBuilder builder = RequestUtils.getUpdateRequestBuilder(halconfigParser);
+  public DaemonTask<Halconfig, Void> execute(
+      ValidationSettings validationSettings, T updatedValue) {
+    DaemonResponse.UpdateRequestBuilder builder =
+        RequestUtils.getUpdateRequestBuilder(halconfigParser);
     RequestUtils.addValidation(builder, validationSettings, validator);
     builder.setUpdate(() -> updater.accept(updatedValue));
     builder.setStage(() -> updatedValue.stageLocalFiles(stagePath));
@@ -52,7 +53,8 @@ public class GenericUpdateRequest<T extends Node> {
     return new GenericUpdateRequestBuilder<T>();
   }
 
-  public static <T extends Node> GenericUpdateRequestBuilder<T> builder(HalconfigParser halconfigParser) {
+  public static <T extends Node> GenericUpdateRequestBuilder<T> builder(
+      HalconfigParser halconfigParser) {
     return GenericUpdateRequest.<T>privateBuilder().halconfigParser(halconfigParser);
   }
 }

@@ -28,21 +28,17 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 public class MetricStoresService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public MetricStores getMetricStores(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setMetricStores();
@@ -57,42 +53,55 @@ public class MetricStoresService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple metricStores nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple metricStores nodes. This is a bug.");
     }
   }
 
-  public void setMetricStoreEnabled(String deploymentName, String metricStoreType, boolean enabled) {
+  public void setMetricStoreEnabled(
+      String deploymentName, String metricStoreType, boolean enabled) {
     MetricStore metricStore = getMetricStore(deploymentName, metricStoreType);
     metricStore.setEnabled(enabled);
     setMetricStore(deploymentName, metricStore);
   }
 
-
   public MetricStore getMetricStore(String deploymentName, String metricStoreType) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setMetricStores().setMetricStore(metricStoreType);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setMetricStores()
+            .setMetricStore(metricStoreType);
 
     List<MetricStore> matching = lookupService.getMatchingNodesOfType(filter, MetricStore.class);
 
     try {
       switch (matching.size()) {
         case 0:
-          MetricStore metricStores = MetricStores.translateMetricStoreType(metricStoreType).newInstance();
+          MetricStore metricStores =
+              MetricStores.translateMetricStoreType(metricStoreType).newInstance();
           setMetricStore(deploymentName, metricStores);
           return metricStores;
         case 1:
           return matching.get(0);
         default:
-          throw new RuntimeException("It shouldn't be possible to have multiple metricStore nodes of the same type. This is a bug.");
+          throw new RuntimeException(
+              "It shouldn't be possible to have multiple metricStore nodes of the same type. This is a bug.");
       }
     } catch (InstantiationException | IllegalAccessException e) {
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Can't create an empty metric store node "
-          + "for metricStore type \"" + metricStoreType + "\"").build()
-      );
+      throw new HalException(
+          new ConfigProblemBuilder(
+                  Severity.FATAL,
+                  "Can't create an empty metric store node "
+                      + "for metricStore type \""
+                      + metricStoreType
+                      + "\"")
+              .build());
     }
   }
 
   public void setMetricStores(String deploymentName, MetricStores newMetricStores) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setMetricStores(newMetricStores);
   }
 
@@ -119,7 +128,11 @@ public class MetricStoresService {
   }
 
   public ProblemSet validateMetricStore(String deploymentName, String metricStoreType) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setMetricStores().setMetricStore(metricStoreType);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setMetricStores()
+            .setMetricStore(metricStoreType);
     return validateService.validateMatchingFilter(filter);
   }
 }

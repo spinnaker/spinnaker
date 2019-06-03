@@ -37,80 +37,79 @@ public class SpringSslEditCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Edit SSL settings for your API server.";
 
-  private String longDescription = "Configure SSL termination to handled by the API server's Tomcat server.";
+  private String longDescription =
+      "Configure SSL termination to handled by the API server's Tomcat server.";
 
   @Parameter(
       names = "--key-alias",
-      description = "Name of your keystore entry as generated with your keytool."
-  )
+      description = "Name of your keystore entry as generated with your keytool.")
   String keyAlias;
 
   @Parameter(
       names = "--keystore",
       converter = LocalFileConverter.class,
-      description = "Path to the keystore holding your security certificates."
-  )
+      description = "Path to the keystore holding your security certificates.")
   String keyStore;
 
   @Parameter(
       names = "--keystore-type",
-      description = "The type of your keystore. Examples include JKS, and PKCS12."
-  )
+      description = "The type of your keystore. Examples include JKS, and PKCS12.")
   String keyStoreType;
 
   @Parameter(
       names = "--keystore-password",
       password = true,
-      description = "The password to unlock your keystore. Due to a limitation in Tomcat, this must match "
-          + "your key's password in the keystore."
-  )
+      description =
+          "The password to unlock your keystore. Due to a limitation in Tomcat, this must match "
+              + "your key's password in the keystore.")
   String keyStorePassword;
 
   @Parameter(
       names = "--truststore",
       converter = LocalFileConverter.class,
-      description = "Path to the truststore holding your trusted certificates."
-  )
+      description = "Path to the truststore holding your trusted certificates.")
   String trustStore;
 
   @Parameter(
       names = "--truststore-type",
-      description = "The type of your truststore. Examples include JKS, and PKCS12."
-  )
+      description = "The type of your truststore. Examples include JKS, and PKCS12.")
   String trustStoreType;
 
   @Parameter(
       names = "--truststore-password",
       password = true,
-      description = "The password to unlock your truststore."
-  )
+      description = "The password to unlock your truststore.")
   String trustStorePassword;
 
   @Parameter(
       names = "--client-auth",
-      description = "Declare 'WANT' when client auth is wanted but not mandatory, "
-          + "or 'NEED', when client auth is mandatory."
-  )
+      description =
+          "Declare 'WANT' when client auth is wanted but not mandatory, "
+              + "or 'NEED', when client auth is mandatory.")
   Ssl.ClientAuth clientAuth;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    SpringSsl springSsl = new OperationHandler<SpringSsl>()
-        .setOperation(Daemon.getSpringSsl(currentDeployment, false))
-        .setFailureMesssage("Failed to load SSL settings.")
-        .get();
+    SpringSsl springSsl =
+        new OperationHandler<SpringSsl>()
+            .setOperation(Daemon.getSpringSsl(currentDeployment, false))
+            .setFailureMesssage("Failed to load SSL settings.")
+            .get();
 
     int originalHash = springSsl.hashCode();
 
     springSsl.setKeyAlias(isSet(keyAlias) ? keyAlias : springSsl.getKeyAlias());
     springSsl.setKeyStore(isSet(keyStore) ? keyStore : springSsl.getKeyStore());
     springSsl.setKeyStoreType(isSet(keyStoreType) ? keyStoreType : springSsl.getKeyStoreType());
-    springSsl.setKeyStorePassword(isSet(keyStorePassword) ? keyStorePassword : springSsl.getKeyStorePassword());
+    springSsl.setKeyStorePassword(
+        isSet(keyStorePassword) ? keyStorePassword : springSsl.getKeyStorePassword());
     springSsl.setTrustStore(isSet(trustStore) ? trustStore : springSsl.getTrustStore());
-    springSsl.setTrustStoreType(isSet(trustStoreType) ? trustStoreType : springSsl.getTrustStoreType());
-    springSsl.setTrustStorePassword(isSet(trustStorePassword) ? trustStorePassword : springSsl.getTrustStorePassword());
+    springSsl.setTrustStoreType(
+        isSet(trustStoreType) ? trustStoreType : springSsl.getTrustStoreType());
+    springSsl.setTrustStorePassword(
+        isSet(trustStorePassword) ? trustStorePassword : springSsl.getTrustStorePassword());
     springSsl.setClientAuth(isSet(clientAuth) ? clientAuth : springSsl.getClientAuth());
 
     if (originalHash == springSsl.hashCode()) {

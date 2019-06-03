@@ -17,18 +17,17 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 @Data
 public class Versions {
-  public final static String BRANCH_PREFIX = "branch:";
-  public final static String LOCAL_PREFIX = "local:";
+  public static final String BRANCH_PREFIX = "branch:";
+  public static final String LOCAL_PREFIX = "local:";
 
   @Data
   public static class Version {
@@ -40,7 +39,10 @@ public class Versions {
 
     @Override
     public String toString() {
-      String result = String.format("%s (%s):\n   Changelog: %s\n   Published: %s", version, alias, changelog, lastUpdate);
+      String result =
+          String.format(
+              "%s (%s):\n   Changelog: %s\n   Published: %s",
+              version, alias, changelog, lastUpdate);
       if (!StringUtils.isEmpty(minimumHalyardVersion)) {
         result += String.format("\n   (Requires Halyard >= %s)", minimumHalyardVersion);
       }
@@ -78,14 +80,15 @@ public class Versions {
         throw new IllegalArgumentException("Versions must satisfy the X.Y.Z naming convention");
       }
 
-      List<Integer> intParts = Arrays.stream(parts).map(Integer::parseInt).collect(Collectors.toList());
+      List<Integer> intParts =
+          Arrays.stream(parts).map(Integer::parseInt).collect(Collectors.toList());
       return new SemVer(intParts.get(0), intParts.get(1), intParts.get(2));
     }
 
     static Comparator<SemVer> comparator() {
       return Comparator.comparing(SemVer::getMajor)
-              .thenComparing(SemVer::getMinor)
-              .thenComparing(SemVer::getPatch);
+          .thenComparing(SemVer::getMinor)
+          .thenComparing(SemVer::getPatch);
     }
   }
 
@@ -128,8 +131,9 @@ public class Versions {
     }
 
     StringBuilder result = new StringBuilder();
-    versions.stream().sorted(Version.comparator()).forEach(version ->
-            result.append(String.format(" - %s\n", version.toString())));
+    versions.stream()
+        .sorted(Version.comparator())
+        .forEach(version -> result.append(String.format(" - %s\n", version.toString())));
 
     return result.toString();
   }
@@ -154,7 +158,8 @@ public class Versions {
 
   public static Comparator<String> orderBySemVer() {
     Comparator<SemVer> comparator = Comparator.nullsLast(SemVer.comparator());
-    return Comparator.comparing(SemVer::fromString, comparator).thenComparing(Comparator.naturalOrder());
+    return Comparator.comparing(SemVer::fromString, comparator)
+        .thenComparing(Comparator.naturalOrder());
   }
 
   public static boolean lessThan(String v1, String v2) {

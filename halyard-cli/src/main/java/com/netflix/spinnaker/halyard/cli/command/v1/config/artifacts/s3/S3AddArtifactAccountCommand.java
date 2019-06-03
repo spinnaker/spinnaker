@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.AbstractAddArtifactAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsCommandProperties;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
@@ -30,42 +29,39 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 public class S3AddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
   @Parameter(
       names = "--api-endpoint",
-      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION
-  )
+      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION)
   private String apiEndpoint;
+
   @Parameter(
       names = "--api-region",
-      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION
-  )
+      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION)
   private String apiRegion;
-  @Parameter(
-      names = "--region",
-      description = S3ArtifactCommandProperties.REGION_DESCRIPTION
-  )
+
+  @Parameter(names = "--region", description = S3ArtifactCommandProperties.REGION_DESCRIPTION)
   private String region;
+
   @Parameter(
       names = "--aws-access-key-id",
-      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
+      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION)
   private String awsAccessKeyId;
+
   @Parameter(
       names = "--aws-secret-access-key",
       description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
-      password = true
-  )
+      password = true)
   private String awsSecretAccessKey;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     S3ArtifactAccount artifactAccount = new S3ArtifactAccount().setName(accountName);
-    artifactAccount.setApiEndpoint(apiEndpoint)
+    artifactAccount
+        .setApiEndpoint(apiEndpoint)
         .setApiRegion(apiRegion)
         .setRegion(region)
         .setAwsAccessKeyId(awsAccessKeyId)
         .setAwsSecretAccessKey(awsSecretAccessKey);
     return artifactAccount;
   }
-
 
   @Override
   protected ArtifactAccount emptyArtifactAccount() {

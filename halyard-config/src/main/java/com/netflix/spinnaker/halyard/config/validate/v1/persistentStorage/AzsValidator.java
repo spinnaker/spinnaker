@@ -18,30 +18,39 @@ package com.netflix.spinnaker.halyard.config.validate.v1.persistentStorage;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.AzsPersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AzsValidator extends Validator<AzsPersistentStore> {
-  @Autowired
-  private SecretSessionManager secretSessionManager;
+  @Autowired private SecretSessionManager secretSessionManager;
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, AzsPersistentStore n) {
-    String connectionString = "DefaultEndpointsProtocol=https;AccountName=" + n.getStorageAccountName() + ";AccountKey=" + secretSessionManager.decrypt(n.getStorageAccountKey());
+    String connectionString =
+        "DefaultEndpointsProtocol=https;AccountName="
+            + n.getStorageAccountName()
+            + ";AccountKey="
+            + secretSessionManager.decrypt(n.getStorageAccountKey());
 
     try {
       CloudStorageAccount storageAccount = CloudStorageAccount.parse(connectionString);
 
-      CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(n.getStorageContainerName());
+      CloudBlobContainer container =
+          storageAccount.createCloudBlobClient().getContainerReference(n.getStorageContainerName());
       container.exists();
     } catch (Exception e) {
-      ps.addProblem(Problem.Severity.ERROR, "Failed to connect to the Azure storage account \"" + n.getStorageAccountName() + "\": " + e.getMessage());
+      ps.addProblem(
+          Problem.Severity.ERROR,
+          "Failed to connect to the Azure storage account \""
+              + n.getStorageAccountName()
+              + "\": "
+              + e.getMessage());
       return;
     }
   }

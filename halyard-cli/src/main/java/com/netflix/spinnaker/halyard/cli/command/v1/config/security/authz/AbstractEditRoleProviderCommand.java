@@ -22,14 +22,14 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEditRoleProviderCommand<T extends RoleProvider> extends AbstractRoleProviderCommand {
+public abstract class AbstractEditRoleProviderCommand<T extends RoleProvider>
+    extends AbstractRoleProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -47,13 +47,19 @@ public abstract class AbstractEditRoleProviderCommand<T extends RoleProvider> ex
     String currentDeployment = getCurrentDeployment();
     String roleProviderName = getRoleProviderType() + "";
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    RoleProvider roleProvider = new OperationHandler<RoleProvider>()
-        .setOperation(Daemon.getRoleProvider(currentDeployment, roleProviderName, false))
-        .setFailureMesssage("Failed to get " + roleProviderName + " method.")
-        .get();
+    RoleProvider roleProvider =
+        new OperationHandler<RoleProvider>()
+            .setOperation(Daemon.getRoleProvider(currentDeployment, roleProviderName, false))
+            .setFailureMesssage("Failed to get " + roleProviderName + " method.")
+            .get();
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setRoleProvider(currentDeployment, roleProviderName, !noValidate, editRoleProvider((T) roleProvider)))
+        .setOperation(
+            Daemon.setRoleProvider(
+                currentDeployment,
+                roleProviderName,
+                !noValidate,
+                editRoleProvider((T) roleProvider)))
         .setFailureMesssage("Failed to edit " + roleProviderName + " method.")
         .setSuccessMessage("Successfully edited " + roleProviderName + " method.")
         .get();

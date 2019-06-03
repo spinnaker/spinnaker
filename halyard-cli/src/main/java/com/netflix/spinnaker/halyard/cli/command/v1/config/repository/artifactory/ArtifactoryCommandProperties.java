@@ -17,13 +17,16 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifactory;
 
 public class ArtifactoryCommandProperties {
-    static final String USERNAME_DESCRIPTION = "The username of the artifactory user to authenticate as.";
+  static final String USERNAME_DESCRIPTION =
+      "The username of the artifactory user to authenticate as.";
 
-    static final String PASSWORD_DESCRIPTION = "The password of the artifactory user to authenticate as.";
+  static final String PASSWORD_DESCRIPTION =
+      "The password of the artifactory user to authenticate as.";
 
-    static final String BASE_URL_DESCRIPTION = "The base url your artifactory search is reachable at.";
+  static final String BASE_URL_DESCRIPTION =
+      "The base url your artifactory search is reachable at.";
 
-    static final String REPO_DESCRIPTION = "The repo in your artifactory to be searched.";
+  static final String REPO_DESCRIPTION = "The repo in your artifactory to be searched.";
 
-    static final String GROUP_ID_DESCRIPTION = "The group id in your artifactory to be searched.";
+  static final String GROUP_ID_DESCRIPTION = "The group id in your artifactory to be searched.";
 }

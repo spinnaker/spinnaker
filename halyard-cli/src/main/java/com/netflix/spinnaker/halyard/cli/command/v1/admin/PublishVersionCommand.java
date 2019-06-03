@@ -23,10 +23,9 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import java.util.Date;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.Date;
 
 @Parameters(separators = "=")
 public class PublishVersionCommand extends NestableCommand {
@@ -34,44 +33,42 @@ public class PublishVersionCommand extends NestableCommand {
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Publish a version of Spinnaker to the global versions.yml tracking file.";
+  private String shortDescription =
+      "Publish a version of Spinnaker to the global versions.yml tracking file.";
 
   @Parameter(
       names = "--version",
       required = true,
-      description = "The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM."
-  )
+      description = "The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM.")
   private String version;
 
   @Parameter(
       names = "--alias",
       required = true,
-      description = "The alias this version of Spinnaker goes by."
-  )
+      description = "The alias this version of Spinnaker goes by.")
   private String alias;
 
   @Parameter(
       names = "--changelog",
       required = true,
-      description = "A link to this Spinnaker release's changelog."
-  )
+      description = "A link to this Spinnaker release's changelog.")
   private String changelog;
 
   @Parameter(
       names = "--minimum-halyard-version",
       required = true,
-      description = "Minimum version of halyard required to install this release"
-  )
+      description = "Minimum version of halyard required to install this release")
   private String minimumHalyardVersion;
 
   @Override
   protected void executeThis() {
-    Versions.Version publishedVersion = new Versions.Version()
-        .setVersion(version)
-        .setAlias(alias)
-        .setChangelog(changelog)
-        .setMinimumHalyardVersion(minimumHalyardVersion)
-        .setLastUpdate(new Date());
+    Versions.Version publishedVersion =
+        new Versions.Version()
+            .setVersion(version)
+            .setAlias(alias)
+            .setChangelog(changelog)
+            .setMinimumHalyardVersion(minimumHalyardVersion)
+            .setLastUpdate(new Date());
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to publish your version.")

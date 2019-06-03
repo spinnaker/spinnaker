@@ -25,19 +25,18 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalGitClouddriverService extends ClouddriverService implements LocalGitService<ClouddriverService.Clouddriver> {
-  @Autowired
-  ArtifactService artifactService;
+public class LocalGitClouddriverService extends ClouddriverService
+    implements LocalGitService<ClouddriverService.Clouddriver> {
+  @Autowired ArtifactService artifactService;
 
   @Override
   protected String getConfigOutputPath() {
@@ -46,19 +45,21 @@ public class LocalGitClouddriverService extends ClouddriverService implements Lo
 
   String startCommand = "./gradlew";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory())
+        .ifPresent(p -> profiles.add(p));
     return profiles;
   }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(true);
   }

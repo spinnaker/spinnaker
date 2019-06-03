@@ -30,22 +30,22 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCan
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Canary extends Node implements Cloneable {
   boolean enabled;
   List<? extends AbstractCanaryServiceIntegration> serviceIntegrations =
-      Lists.newArrayList(new GoogleCanaryServiceIntegration(),
-                         new PrometheusCanaryServiceIntegration(),
-                         new DatadogCanaryServiceIntegration(),
-                         new SignalfxCanaryServiceIntegration(),
-                         new AwsCanaryServiceIntegration());
+      Lists.newArrayList(
+          new GoogleCanaryServiceIntegration(),
+          new PrometheusCanaryServiceIntegration(),
+          new DatadogCanaryServiceIntegration(),
+          new SignalfxCanaryServiceIntegration(),
+          new AwsCanaryServiceIntegration());
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
   String defaultStorageAccount;
@@ -63,23 +63,26 @@ public class Canary extends Node implements Cloneable {
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(serviceIntegrations.stream().map(m -> (Node)m).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        serviceIntegrations.stream().map(m -> (Node) m).collect(Collectors.toList()));
   }
 
-  public static Class<? extends AbstractCanaryAccount> translateCanaryAccountType(String serviceIntegrationName) {
+  public static Class<? extends AbstractCanaryAccount> translateCanaryAccountType(
+      String serviceIntegrationName) {
     switch (serviceIntegrationName) {
-      case GoogleCanaryServiceIntegration.NAME :
+      case GoogleCanaryServiceIntegration.NAME:
         return GoogleCanaryAccount.class;
-      case PrometheusCanaryServiceIntegration.NAME :
+      case PrometheusCanaryServiceIntegration.NAME:
         return PrometheusCanaryAccount.class;
-      case DatadogCanaryServiceIntegration.NAME :
+      case DatadogCanaryServiceIntegration.NAME:
         return DatadogCanaryAccount.class;
-      case SignalfxCanaryServiceIntegration.NAME :
+      case SignalfxCanaryServiceIntegration.NAME:
         return SignalfxCanaryAccount.class;
-      case AwsCanaryServiceIntegration.NAME :
+      case AwsCanaryServiceIntegration.NAME:
         return AwsCanaryAccount.class;
       default:
-        throw new IllegalArgumentException("No account type for canary service integration " + serviceIntegrationName + ".");
+        throw new IllegalArgumentException(
+            "No account type for canary service integration " + serviceIntegrationName + ".");
     }
   }
 }

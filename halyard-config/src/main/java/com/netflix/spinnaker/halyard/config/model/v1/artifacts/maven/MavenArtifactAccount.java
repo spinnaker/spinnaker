@@ -23,6 +23,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class MavenArtifactAccount extends ArtifactAccount {
-    String name;
-    String repositoryUrl;
+  String name;
+  String repositoryUrl;
 }

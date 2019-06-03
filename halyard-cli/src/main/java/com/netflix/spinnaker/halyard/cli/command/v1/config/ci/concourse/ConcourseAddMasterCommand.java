@@ -31,32 +31,26 @@ public class ConcourseAddMasterCommand extends AbstractAddMasterCommand {
   @Parameter(
       names = "--url",
       required = true,
-      description = ConcourseCommandProperties.URL_DESCRIPTION
-  )
+      description = ConcourseCommandProperties.URL_DESCRIPTION)
   private String url;
 
   @Parameter(
       names = "--username",
       required = true,
-      description = ConcourseCommandProperties.USERNAME_DESCRIPTION
-  )
+      description = ConcourseCommandProperties.USERNAME_DESCRIPTION)
   public String username;
 
   @Parameter(
       names = "--password",
       required = true,
       password = true,
-      description = ConcourseCommandProperties.PASSWORD_DESCRIPTION
-  )
+      description = ConcourseCommandProperties.PASSWORD_DESCRIPTION)
   public String password;
-
 
   @Override
   protected CIAccount buildMaster(String masterName) {
     ConcourseMaster master = (ConcourseMaster) new ConcourseMaster().setName(masterName);
-    master.setUrl(url)
-        .setPassword(password)
-        .setUsername(username);
+    master.setUrl(url).setPassword(password).setUsername(username);
 
     return master;
   }

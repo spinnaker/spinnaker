@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.pubsub
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.pubsub.AbstractAddPublisherCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.pubsub.AbstractEditPublisherCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.google.GooglePubsubCommandProperties;
@@ -32,28 +31,21 @@ import lombok.Getter;
 @Parameters(separators = "=")
 public class GoogleEditPublisherCommand extends AbstractEditPublisherCommand<GooglePublisher> {
 
-  @Getter
-  private String pubsubName = "google";
+  @Getter private String pubsubName = "google";
 
-  @Parameter(
-      names = "--project",
-      description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION
-  )
+  @Parameter(names = "--project", description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--topic-name",
-      description = GooglePubsubCommandProperties.TOPIC_NAME_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.TOPIC_NAME_DESCRIPTION)
   private String topicName;
-
 
   @Override
   protected Publisher editPublisher(GooglePublisher publisher) {

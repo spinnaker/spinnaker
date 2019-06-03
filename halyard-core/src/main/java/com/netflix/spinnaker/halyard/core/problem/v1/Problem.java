@@ -19,15 +19,14 @@ package com.netflix.spinnaker.halyard.core.problem.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 public class Problem {
   public enum Severity {
     /**
-     * Indicates no problem at all. This exists as a point of comparison against the greater severity levels, and
-     * may not be used to instantiate a problem.
+     * Indicates no problem at all. This exists as a point of comparison against the greater
+     * severity levels, and may not be used to instantiate a problem.
      */
     NONE,
 
@@ -38,56 +37,43 @@ public class Problem {
     WARNING,
 
     /**
-     * Indicates the deployment of Spinnaker will fail as-is (but the request can be performed).
-     * For example: using an incorrect password in your docker registry.
+     * Indicates the deployment of Spinnaker will fail as-is (but the request can be performed). For
+     * example: using an incorrect password in your docker registry.
      */
     ERROR,
 
     /**
-     * Indicates this request cannot hope to be performed.
-     * For example: asking to update an account that doesn't exist.
+     * Indicates this request cannot hope to be performed. For example: asking to update an account
+     * that doesn't exist.
      */
     FATAL,
   }
 
-  /**
-   * A human-readable message describing the problem.
-   */
-  @Getter
-  final private String message;
+  /** A human-readable message describing the problem. */
+  @Getter private final String message;
 
-  /**
-   * An optional human-readable message describing how to fix the problem.
-   */
-  @Getter
-  final private String remediation;
+  /** An optional human-readable message describing how to fix the problem. */
+  @Getter private final String remediation;
 
-  /**
-   * An optional list of alternative entries.
-   */
-  @Getter
-  final private List<String> options;
+  /** An optional list of alternative entries. */
+  @Getter private final List<String> options;
 
-  /**
-   * Indicates if this will cause the deployment to fail or not.
-   */
-  @Getter
-  final private Severity severity;
+  /** Indicates if this will cause the deployment to fail or not. */
+  @Getter private final Severity severity;
 
-  /**
-   * Where this problem occured.
-   */
-  @Getter
-  final private String location;
+  /** Where this problem occured. */
+  @Getter private final String location;
 
   @JsonCreator
-  public Problem(@JsonProperty("message") String message,
+  public Problem(
+      @JsonProperty("message") String message,
       @JsonProperty("remediation") String remediation,
       @JsonProperty("options") List<String> options,
       @JsonProperty("severity") Severity severity,
       @JsonProperty("location") String location) {
     if (severity == Severity.NONE) {
-      throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
+      throw new RuntimeException(
+          "A halconfig problem may not be intialized with \"NONE\" severity");
     }
     this.severity = severity;
     this.message = message;

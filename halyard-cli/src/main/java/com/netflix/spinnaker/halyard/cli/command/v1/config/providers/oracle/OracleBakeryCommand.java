@@ -13,16 +13,16 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBakeryCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
-/**
- * Interact with oracle provider's bakery
- */
+/** Interact with oracle provider's bakery */
 @Parameters(separators = "=")
 public class OracleBakeryCommand extends AbstractBakeryCommand {
-    protected String getProviderName() { return Provider.ProviderType.ORACLE.getName(); }
+  protected String getProviderName() {
+    return Provider.ProviderType.ORACLE.getName();
+  }
 
-    public OracleBakeryCommand() {
-        super();
-        registerSubcommand(new OracleEditBakeryDefaultsCommand());
-        registerSubcommand(new OracleBaseImageCommand());
-    }
+  public OracleBakeryCommand() {
+    super();
+    registerSubcommand(new OracleEditBakeryDefaultsCommand());
+    registerSubcommand(new OracleBaseImageCommand());
+  }
 }

@@ -31,97 +31,98 @@ import lombok.Getter;
 @Parameters(separators = "=")
 public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  final private String commandName = "edit";
+  private final String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  final private String shortDescription = "Edit Spinnaker's deployment footprint and configuration.";
+  private final String shortDescription =
+      "Edit Spinnaker's deployment footprint and configuration.";
 
   @Parameter(
       names = "--account-name",
-      description = "The Spinnaker account that Spinnaker will be deployed to, assuming you are running "
-          + "a deployment of Spinnaker that requires an active cloud provider."
-  )
+      description =
+          "The Spinnaker account that Spinnaker will be deployed to, assuming you are running "
+              + "a deployment of Spinnaker that requires an active cloud provider.")
   private String accountName;
 
   @Parameter(
       names = "--bootstrap-only",
-      description = "A bootstrap-only account is the account in which Spinnaker itself is deployed. " +
-          "When true, this account will not be included the accounts managed by Spinnaker."
-  )
+      description =
+          "A bootstrap-only account is the account in which Spinnaker itself is deployed. "
+              + "When true, this account will not be included the accounts managed by Spinnaker.")
   Boolean bootstrapOnly;
 
   @Parameter(
       names = "--update-versions",
       arity = 1,
-      description = "When set to \"false\", any *local* version of Spinnaker components will be used instead of attempting " +
-          "to update. This does not work for distributed installations of Spinnaker, where no *local* version exists."
-  )
+      description =
+          "When set to \"false\", any *local* version of Spinnaker components will be used instead of attempting "
+              + "to update. This does not work for distributed installations of Spinnaker, where no *local* version exists.")
   Boolean updateVersions;
 
   @Parameter(
       names = "--type",
-      description = "Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.\n"
-          + "LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.\n"
-          + "LocalGit: Download and run the Spinnaker git repos on the machine running the Daemon.",
-      converter = DeploymentTypeConverter.class
-  )
+      description =
+          "Distributed: Deploy Spinnaker with one server group per microservice, and a single shared Redis.\n"
+              + "LocalDebian: Download and run the Spinnaker debians on the machine running the Daemon.\n"
+              + "LocalGit: Download and run the Spinnaker git repos on the machine running the Daemon.",
+      converter = DeploymentTypeConverter.class)
   private DeploymentType type;
 
   @Parameter(
       names = "--consul-enabled",
       arity = 1,
-      description = "Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker."
-  )
+      description =
+          "Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.")
   private Boolean consulEnabled;
 
   @Parameter(
       names = "--consul-address",
-      description = "The address of a running Consul cluster. See https://www.consul.io/.\n"
-          + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
-  )
+      description =
+          "The address of a running Consul cluster. See https://www.consul.io/.\n"
+              + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.")
   private String consulAddress;
 
   @Parameter(
       names = "--vault-enabled",
       arity = 1,
-      description = "Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker."
-  )
+      description =
+          "Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.")
   private Boolean vaultEnabled;
 
   @Parameter(
       names = "--vault-address",
-      description = "The address of a running Vault datastore. See https://www.vaultproject.io/. "
-          + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
-  )
+      description =
+          "The address of a running Vault datastore. See https://www.vaultproject.io/. "
+              + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.")
   private String vaultAddress;
 
   @Parameter(
       names = "--location",
-      description = "This is the location spinnaker will be deployed to. When deploying to "
-          + "Kubernetes, use this flag to specify the namespace to deploy to (defaults to 'spinnaker')"
-  )
+      description =
+          "This is the location spinnaker will be deployed to. When deploying to "
+              + "Kubernetes, use this flag to specify the namespace to deploy to (defaults to 'spinnaker')")
   private String location;
 
   @Parameter(
       names = "--git-upstream-user",
-      description = "This is the upstream git user you are configuring to pull changes from & push PRs to."
-  )
+      description =
+          "This is the upstream git user you are configuring to pull changes from & push PRs to.")
   private String gitUpstreamUser;
 
   @Parameter(
       names = "--git-origin-user",
-      description = "This is the git user your github fork exists under."
-  )
+      description = "This is the git user your github fork exists under.")
   private String gitOriginUser;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    DeploymentEnvironment deploymentEnvironment = new OperationHandler<DeploymentEnvironment>()
-        .setFailureMesssage("Failed to get your deployment environment.")
-        .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
-        .get();
+    DeploymentEnvironment deploymentEnvironment =
+        new OperationHandler<DeploymentEnvironment>()
+            .setFailureMesssage("Failed to get your deployment environment.")
+            .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
+            .get();
 
     int originalHash = deploymentEnvironment.hashCode();
 
@@ -131,7 +132,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     }
 
     gitConfig.setOriginUser(isSet(gitOriginUser) ? gitOriginUser : gitConfig.getOriginUser());
-    gitConfig.setUpstreamUser(isSet(gitUpstreamUser) ? gitUpstreamUser : gitConfig.getUpstreamUser());
+    gitConfig.setUpstreamUser(
+        isSet(gitUpstreamUser) ? gitUpstreamUser : gitConfig.getUpstreamUser());
     deploymentEnvironment.setGitConfig(gitConfig);
 
     DeploymentEnvironment.Consul consul = deploymentEnvironment.getConsul();
@@ -144,9 +146,12 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
       vault = new DeploymentEnvironment.Vault();
     }
 
-    deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
-    deploymentEnvironment.setBootstrapOnly(isSet(bootstrapOnly) ? bootstrapOnly : deploymentEnvironment.getBootstrapOnly());
-    deploymentEnvironment.setUpdateVersions(isSet(updateVersions) ? updateVersions : deploymentEnvironment.getUpdateVersions());
+    deploymentEnvironment.setAccountName(
+        isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
+    deploymentEnvironment.setBootstrapOnly(
+        isSet(bootstrapOnly) ? bootstrapOnly : deploymentEnvironment.getBootstrapOnly());
+    deploymentEnvironment.setUpdateVersions(
+        isSet(updateVersions) ? updateVersions : deploymentEnvironment.getUpdateVersions());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
 
     consul.setAddress(isSet(consulAddress) ? consulAddress : consul.getAddress());
@@ -157,7 +162,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     vault.setEnabled(isSet(vaultEnabled) ? vaultEnabled : vault.isEnabled());
     deploymentEnvironment.setVault(vault);
 
-    deploymentEnvironment.setLocation(isSet(location) ? location : deploymentEnvironment.getLocation());
+    deploymentEnvironment.setLocation(
+        isSet(location) ? location : deploymentEnvironment.getLocation());
 
     if (originalHash == deploymentEnvironment.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -167,7 +173,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to update your deployment environment.")
         .setSuccessMessage("Successfully updated your deployment environment.")
-        .setOperation(Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
+        .setOperation(
+            Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
         .get();
   }
 }

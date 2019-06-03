@@ -37,4 +37,3 @@ public abstract class AbstractCanaryAccount extends Node implements Cloneable {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 }
-

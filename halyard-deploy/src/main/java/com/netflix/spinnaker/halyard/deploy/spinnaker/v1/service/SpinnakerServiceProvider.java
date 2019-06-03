@@ -23,17 +23,17 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import lombok.extern.slf4j.Slf4j;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
-  public SpinnakerRuntimeSettings buildRuntimeSettings(DeploymentConfiguration deploymentConfiguration) {
+public abstract class SpinnakerServiceProvider<D extends DeploymentDetails> {
+  public SpinnakerRuntimeSettings buildRuntimeSettings(
+      DeploymentConfiguration deploymentConfiguration) {
     SpinnakerRuntimeSettings endpoints = new SpinnakerRuntimeSettings();
     for (SpinnakerService service : getServices()) {
       if (service != null && service.isInBillOfMaterials(deploymentConfiguration)) {
@@ -51,9 +51,10 @@ abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
   protected Field getField(String name) {
     String reducedName = reduceFieldName(name);
 
-    Optional<Field> matchingField = Arrays.stream(this.getClass().getDeclaredFields())
-        .filter(f -> f.getName().equalsIgnoreCase(reducedName))
-        .findFirst();
+    Optional<Field> matchingField =
+        Arrays.stream(this.getClass().getDeclaredFields())
+            .filter(f -> f.getName().equalsIgnoreCase(reducedName))
+            .findFirst();
 
     return matchingField.orElse(null);
   }
@@ -61,19 +62,20 @@ abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
   protected <T> List<T> getFieldsOfType(Class<T> clazz) {
     return Arrays.stream(this.getClass().getDeclaredFields())
         .filter(f -> clazz.isAssignableFrom(f.getType()))
-        .map(f -> {
-          f.setAccessible(true);
-          try {
-            return (T) f.get(this);
-          } catch (IllegalAccessException e) {
-            throw new RuntimeException("Unable to read service " + f.getName());
-          }
-        }).collect(Collectors.toList());
+        .map(
+            f -> {
+              f.setAccessible(true);
+              try {
+                return (T) f.get(this);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException("Unable to read service " + f.getName());
+              }
+            })
+        .collect(Collectors.toList());
   }
 
   public List<SpinnakerService> getServices() {
-    return getFieldsOfType(SpinnakerService.class)
-        .stream()
+    return getFieldsOfType(SpinnakerService.class).stream()
         .filter(s -> s != null)
         .collect(Collectors.toList());
   }
@@ -88,7 +90,8 @@ abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
     try {
       return (SpinnakerService) serviceField.get(this);
     } catch (IllegalAccessException e) {
-      throw new HalException(Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
+      throw new HalException(
+          Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
     } finally {
       serviceField.setAccessible(false);
     }

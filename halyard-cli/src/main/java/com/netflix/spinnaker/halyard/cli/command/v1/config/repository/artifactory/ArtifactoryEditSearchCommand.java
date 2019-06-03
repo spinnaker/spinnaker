@@ -28,34 +28,19 @@ public class ArtifactoryEditSearchCommand extends AbstractEditSearchCommand<Arti
     return "artifactory";
   }
 
-  @Parameter(
-          names = "--username",
-          description = ArtifactoryCommandProperties.USERNAME_DESCRIPTION
-  )
+  @Parameter(names = "--username", description = ArtifactoryCommandProperties.USERNAME_DESCRIPTION)
   public String username;
 
-  @Parameter(
-          names = "--password",
-          description = ArtifactoryCommandProperties.PASSWORD_DESCRIPTION
-  )
+  @Parameter(names = "--password", description = ArtifactoryCommandProperties.PASSWORD_DESCRIPTION)
   public String password;
 
-  @Parameter(
-          names = "--base-url",
-          description = ArtifactoryCommandProperties.BASE_URL_DESCRIPTION
-  )
+  @Parameter(names = "--base-url", description = ArtifactoryCommandProperties.BASE_URL_DESCRIPTION)
   private String baseUrl;
 
-  @Parameter(
-          names = "--repo",
-          description = ArtifactoryCommandProperties.REPO_DESCRIPTION
-  )
+  @Parameter(names = "--repo", description = ArtifactoryCommandProperties.REPO_DESCRIPTION)
   public String repo;
 
-  @Parameter(
-          names = "--groupId",
-          description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION
-  )
+  @Parameter(names = "--groupId", description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION)
   public String groupId;
 
   @Override
@@ -67,5 +52,4 @@ public class ArtifactoryEditSearchCommand extends AbstractEditSearchCommand<Arti
     search.setPassword(isSet(password) ? password : search.getPassword());
     return search;
   }
-
 }

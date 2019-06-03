@@ -24,10 +24,9 @@ public class PrometheusCanaryValidator extends Validator<PrometheusCanaryService
 
   @Override
   public void validate(ConfigProblemSetBuilder p, PrometheusCanaryServiceIntegration n) {
-    PrometheusCanaryAccountValidator prometheusCanaryAccountValidator = new PrometheusCanaryAccountValidator();
+    PrometheusCanaryAccountValidator prometheusCanaryAccountValidator =
+        new PrometheusCanaryAccountValidator();
 
-    n.getAccounts()
-        .stream()
-        .forEach(a -> prometheusCanaryAccountValidator.validate(p, a));
+    n.getAccounts().stream().forEach(a -> prometheusCanaryAccountValidator.validate(p, a));
   }
 }

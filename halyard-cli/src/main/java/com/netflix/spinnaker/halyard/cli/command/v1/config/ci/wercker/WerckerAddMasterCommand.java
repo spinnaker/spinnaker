@@ -31,31 +31,24 @@ public class WerckerAddMasterCommand extends AbstractAddMasterCommand {
   }
 
   @Parameter(
-    names = "--address",
-    required = true,
-    description = WerckerCommandProperties.ADDRESS_DESCRIPTION
-  )
+      names = "--address",
+      required = true,
+      description = WerckerCommandProperties.ADDRESS_DESCRIPTION)
   private String address;
 
-  @Parameter(
-    names = "--user",
-    description = WerckerCommandProperties.USER_DESCRIPTION
-  )
+  @Parameter(names = "--user", description = WerckerCommandProperties.USER_DESCRIPTION)
   public String user;
 
   @Parameter(
-    names = "--token",
-    password = true,
-    description = WerckerCommandProperties.TOKEN_DESCRIPTION
-  )
+      names = "--token",
+      password = true,
+      description = WerckerCommandProperties.TOKEN_DESCRIPTION)
   public String token;
 
   @Override
   protected CIAccount buildMaster(String masterName) {
     WerckerMaster master = (WerckerMaster) new WerckerMaster().setName(masterName);
-    master.setAddress(address)
-        .setToken(token)
-        .setUser(user);
+    master.setAddress(address).setToken(token).setUser(user);
 
     return master;
   }

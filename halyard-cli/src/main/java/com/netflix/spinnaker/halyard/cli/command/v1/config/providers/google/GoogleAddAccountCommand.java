@@ -34,52 +34,46 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   @Parameter(
       names = "--project",
       required = true,
-      description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--image-projects",
       variableArity = true,
-      description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION
-  )
+      description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION)
   private List<String> imageProjects = new ArrayList<>();
 
   @Parameter(
       names = "--alpha-listed",
-      description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION
-  )
+      description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION)
   private boolean alphaListed = false;
 
   @Parameter(
       names = "--user-data",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION)
   private String userDataFile;
 
   @Parameter(
       names = "--regions",
       variableArity = true,
-      description = "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider."
-  )
+      description =
+          "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.")
   private List<String> regions;
-
 
   @Override
   protected Account buildAccount(String accountName) {
     GoogleAccount account = (GoogleAccount) new GoogleAccount().setName(accountName);
-    account = (GoogleAccount) account.setJsonPath(jsonPath)
-        .setProject(project);
+    account = (GoogleAccount) account.setJsonPath(jsonPath).setProject(project);
 
-    account.setAlphaListed(alphaListed)
+    account
+        .setAlphaListed(alphaListed)
         .setImageProjects(imageProjects)
         .setUserDataFile(userDataFile)
         .setRegions(regions);

@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class PublishProfileCommand extends NestableCommand {
@@ -35,25 +34,26 @@ public class PublishProfileCommand extends NestableCommand {
   private String commandName = "profile";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Publish a base halconfig profile for a specific Spinnaker artifact.";
+  private String shortDescription =
+      "Publish a base halconfig profile for a specific Spinnaker artifact.";
 
   @Parameter(
       names = "--bom-path",
       converter = LocalFileConverter.class,
       required = true,
-      description = "The path to the BOM owning the artifact to publish."
-  )
+      description = "The path to the BOM owning the artifact to publish.")
   private String bomPath;
 
   @Parameter(
       names = "--profile-path",
       converter = LocalFileConverter.class,
       required = true,
-      description = "The path to the artifact profile to publish."
-  )
+      description = "The path to the artifact profile to publish.")
   private String profilePath;
 
-  @Parameter(description = "The name of the artifact whose profile is being published (e.g. clouddriver).", arity = 1)
+  @Parameter(
+      description = "The name of the artifact whose profile is being published (e.g. clouddriver).",
+      arity = 1)
   List<String> artifacts = new ArrayList<>();
 
   @Override
@@ -75,8 +75,10 @@ public class PublishProfileCommand extends NestableCommand {
   @Override
   protected void executeThis() {
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to publish your profile for artifact " + getArtifactName() + ".")
-        .setSuccessMessage("Successfully published your profile for artifact " + getArtifactName() + ".")
+        .setFailureMesssage(
+            "Failed to publish your profile for artifact " + getArtifactName() + ".")
+        .setSuccessMessage(
+            "Successfully published your profile for artifact " + getArtifactName() + ".")
         .setOperation(Daemon.publishProfile(bomPath, getArtifactName(), profilePath))
         .get();
   }

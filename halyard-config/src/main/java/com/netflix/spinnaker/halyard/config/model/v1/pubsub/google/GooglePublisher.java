@@ -31,9 +31,7 @@ import lombok.ToString;
 public class GooglePublisher extends Publisher {
   private String project;
   private String topicName;
-  @LocalFile
-  @SecretFile
-  private String jsonPath;
+  @LocalFile @SecretFile private String jsonPath;
   private Content content;
 
   public enum Content {

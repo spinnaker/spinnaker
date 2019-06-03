@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-/**
- * Interact with the aws provider
- */
+/** Interact with the aws provider */
 @Parameters(separators = "=")
 public class AwsCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {

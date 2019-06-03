@@ -40,8 +40,7 @@ public enum AnsiMove implements AnsiCode {
     return String.format(code, count);
   }
 
-  @Setter
-  private Integer count;
+  @Setter private Integer count;
 
   AnsiMove(String code) {
     this.code = code;

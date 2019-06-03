@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.core;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
 import lombok.Data;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,17 +29,16 @@ import org.springframework.context.annotation.PropertySource;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
- * This is the collection of general, top-level flags that come from the application configuration for halyard.
- * This class is both @AutoWired'able and can act as a singleton via the getInstance() function. This is so the same
- * class may be reused between halyard's CLI and daemon.
+ * This is the collection of general, top-level flags that come from the application configuration
+ * for halyard. This class is both @AutoWired'able and can act as a singleton via the getInstance()
+ * function. This is so the same class may be reused between halyard's CLI and daemon.
  */
 @Data
 @Configuration
-@PropertySource(value="file:" + GlobalApplicationOptions.CONFIG_PATH, ignoreResourceNotFound=true)
+@PropertySource(
+    value = "file:" + GlobalApplicationOptions.CONFIG_PATH,
+    ignoreResourceNotFound = true)
 public class GlobalApplicationOptions {
 
   static final String CONFIG_PATH = "/opt/spinnaker/hal.properties";
@@ -59,10 +60,10 @@ public class GlobalApplicationOptions {
       objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
       try {
-        GlobalApplicationOptions.options = objectMapper.convertValue(
-            yamlParser.load(FileUtils.openInputStream(new File(CONFIG_PATH))),
-            GlobalApplicationOptions.class
-        );
+        GlobalApplicationOptions.options =
+            objectMapper.convertValue(
+                yamlParser.load(FileUtils.openInputStream(new File(CONFIG_PATH))),
+                GlobalApplicationOptions.class);
       } catch (IOException e) {
         GlobalApplicationOptions.options = new GlobalApplicationOptions();
       }

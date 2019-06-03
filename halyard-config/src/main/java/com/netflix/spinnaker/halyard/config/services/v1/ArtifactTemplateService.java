@@ -26,10 +26,9 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -41,14 +40,13 @@ public class ArtifactTemplateService {
   private Artifacts getArtifacts(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifacts();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        Artifacts.class,
-        Artifacts::new,
-        n -> setArtifacts(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, Artifacts.class, Artifacts::new, n -> setArtifacts(deploymentName, n));
   }
 
   private void setArtifacts(String deploymentName, Artifacts newArtifacts) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setArtifacts(newArtifacts);
   }
 
@@ -57,24 +55,36 @@ public class ArtifactTemplateService {
   }
 
   public ArtifactTemplate getArtifactTemplate(String deploymentName, String templateName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactTemplate(templateName);
-    List<ArtifactTemplate> matchingArtifactTemplates = lookupService.getMatchingNodesOfType(filter, ArtifactTemplate.class);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setArtifactTemplate(templateName);
+    List<ArtifactTemplate> matchingArtifactTemplates =
+        lookupService.getMatchingNodesOfType(filter, ArtifactTemplate.class);
 
     switch (matchingArtifactTemplates.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Problem.Severity.FATAL, "No artifact template with name \"" + templateName + "\" was found")
-            .setRemediation("Create a new artifact template with name\"" + templateName + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL,
+                    "No artifact template with name \"" + templateName + "\" was found")
+                .setRemediation("Create a new artifact template with name\"" + templateName + "\"")
+                .build());
       case 1:
         return matchingArtifactTemplates.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Problem.Severity.FATAL, "More than one artifact template named \"" + templateName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate artifact templates with name \"" + templateName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Problem.Severity.FATAL,
+                    "More than one artifact template named \"" + templateName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate artifact templates with name \""
+                        + templateName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  public void setArtifactTemplate(String deploymentName, String artifactTemplateName, ArtifactTemplate newArtifactTemplate) {
+  public void setArtifactTemplate(
+      String deploymentName, String artifactTemplateName, ArtifactTemplate newArtifactTemplate) {
     List<ArtifactTemplate> artifactTemplates = getAllArtifactTemplates(deploymentName);
     for (int i = 0; i < artifactTemplates.size(); i++) {
       if (artifactTemplates.get(i).getNodeName().equals(artifactTemplateName)) {
@@ -82,16 +92,23 @@ public class ArtifactTemplateService {
         return;
       }
     }
-    throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "Artifact template \"" + artifactTemplateName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(
+                Problem.Severity.FATAL,
+                "Artifact template \"" + artifactTemplateName + "\" wasn't found")
+            .build());
   }
 
   public void deleteArtifactTemplate(String deploymentName, String artifactTemplateName) {
     List<ArtifactTemplate> artifactTemplates = getAllArtifactTemplates(deploymentName);
-    boolean removed = artifactTemplates.removeIf(template -> template.getName().equals(artifactTemplateName));
+    boolean removed =
+        artifactTemplates.removeIf(template -> template.getName().equals(artifactTemplateName));
 
     if (!removed) {
       throw new HalException(
-          new ConfigProblemBuilder(Problem.Severity.FATAL, "Artifact template \"" + artifactTemplateName + "\" wasn't found")
+          new ConfigProblemBuilder(
+                  Problem.Severity.FATAL,
+                  "Artifact template \"" + artifactTemplateName + "\" wasn't found")
               .build());
     }
   }
@@ -107,7 +124,8 @@ public class ArtifactTemplateService {
   }
 
   public ProblemSet validateArtifactTemplate(String deploymentName, String artifactTemplateName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactTemplate(artifactTemplateName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setArtifactTemplate(artifactTemplateName);
     return validateService.validateMatchingFilter(filter);
   }
 }

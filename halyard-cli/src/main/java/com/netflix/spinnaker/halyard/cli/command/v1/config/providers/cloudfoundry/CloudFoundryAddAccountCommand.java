@@ -24,57 +24,53 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.Clou
 
 @Parameters(separators = "=")
 public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
-    @Parameter(
-            names = {"--api-host", "--api"},
-            required = true,
-            description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION
-    )
-    private String apiHost;
+  @Parameter(
+      names = {"--api-host", "--api"},
+      required = true,
+      description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION)
+  private String apiHost;
 
-    @Parameter(
-            names = {"--apps-manager-uri", "--appsManagerUri"},
-            description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION
-    )
-    private String appsManagerUri;
+  @Parameter(
+      names = {"--apps-manager-uri", "--appsManagerUri"},
+      description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION)
+  private String appsManagerUri;
 
-    @Parameter(
-            names = {"--metrics-uri", "--metricsUri"},
-            description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION
-    )
-    private String metricsUri;
+  @Parameter(
+      names = {"--metrics-uri", "--metricsUri"},
+      description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION)
+  private String metricsUri;
 
-    @Parameter(
-            names = "--password",
-            required = true,
-            description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION
-    )
-    private String password;
+  @Parameter(
+      names = "--password",
+      required = true,
+      description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION)
+  private String password;
 
-    @Parameter(
-            names = "--user",
-            required = true,
-            description = CloudFoundryCommandProperties.USER_DESCRIPTION
-    )
-    private String user;
+  @Parameter(
+      names = "--user",
+      required = true,
+      description = CloudFoundryCommandProperties.USER_DESCRIPTION)
+  private String user;
 
-    @Override
-    protected Account buildAccount(String accountName) {
-        CloudFoundryAccount cloudFoundryAccount = (CloudFoundryAccount) new CloudFoundryAccount().setName(accountName);
-        return cloudFoundryAccount
-                .setApiHost(apiHost)
-                .setAppsManagerUri(appsManagerUri)
-                .setMetricsUri(metricsUri)
-                .setPassword(password)
-                .setUser(user);
-    }
+  @Override
+  protected Account buildAccount(String accountName) {
+    CloudFoundryAccount cloudFoundryAccount =
+        (CloudFoundryAccount) new CloudFoundryAccount().setName(accountName);
+    return cloudFoundryAccount
+        .setApiHost(apiHost)
+        .setAppsManagerUri(appsManagerUri)
+        .setMetricsUri(metricsUri)
+        .setPassword(password)
+        .setUser(user);
+  }
 
-    @Override
-    protected Account emptyAccount() {
-        return new CloudFoundryAccount();
-    }
+  @Override
+  protected Account emptyAccount() {
+    return new CloudFoundryAccount();
+  }
 
-    @Override
-    protected String getProviderName() {
-        return "cloudfoundry";
-    }
+  @Override
+  protected String getProviderName() {
+    return "cloudfoundry";
+  }
 }

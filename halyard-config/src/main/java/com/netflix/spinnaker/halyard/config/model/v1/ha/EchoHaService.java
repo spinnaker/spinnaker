@@ -25,5 +25,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class EchoHaService extends HaService {
   @Override
-  public HaServiceType haServiceType() { return HaServiceType.ECHO; }
+  public HaServiceType haServiceType() {
+    return HaServiceType.ECHO;
+  }
 }

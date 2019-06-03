@@ -35,47 +35,49 @@ import retrofit.RetrofitError;
 
 @Component
 public class VersionsService {
-  @Autowired
-  ProfileRegistry profileRegistry;
+  @Autowired ProfileRegistry profileRegistry;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
-  @Autowired
-  RelaxedObjectMapper relaxedObjectMapper;
+  @Autowired RelaxedObjectMapper relaxedObjectMapper;
 
-  static private ExpiringConcurrentMap<String, String> concurrentMap = ExpiringConcurrentMap.fromMinutes(10);
+  private static ExpiringConcurrentMap<String, String> concurrentMap =
+      ExpiringConcurrentMap.fromMinutes(10);
 
-  static private String latestHalyardKey = "__latest-halyard__";
+  private static String latestHalyardKey = "__latest-halyard__";
 
-  static private String latestSpinnakerKey = "__latest-spinnaker__";
+  private static String latestSpinnakerKey = "__latest-spinnaker__";
 
   public Versions getVersions() {
     try {
       return profileRegistry.readVersions();
     } catch (IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
+          new ConfigProblemBuilder(
+                  FATAL,
+                  "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".")
+              .build());
     }
   }
 
   public BillOfMaterials getBillOfMaterials(String version) {
     if (version == null || version.isEmpty()) {
       throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "You must pick a version of Spinnaker to deploy.")
-              .build()
-      );
+          new ConfigProblemBuilder(FATAL, "You must pick a version of Spinnaker to deploy.")
+              .build());
     }
 
     try {
       return profileRegistry.readBom(version);
     } catch (RetrofitError | IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "Unable to retrieve the Spinnaker bill of materials for version \"" + version + "\": " + e.getMessage())
-              .build()
-      );
+          new ConfigProblemBuilder(
+                  FATAL,
+                  "Unable to retrieve the Spinnaker bill of materials for version \""
+                      + version
+                      + "\": "
+                      + e.getMessage())
+              .build());
     }
   }
 
@@ -95,9 +97,8 @@ public class VersionsService {
   }
 
   public String getRunningHalyardVersion() {
-    return Optional.ofNullable(VersionsService.class
-        .getPackage()
-        .getImplementationVersion()).orElse("Unknown");
+    return Optional.ofNullable(VersionsService.class.getPackage().getImplementationVersion())
+        .orElse("Unknown");
   }
 
   public String getLatestSpinnakerVersion() {

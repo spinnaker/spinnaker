@@ -33,16 +33,18 @@ public class DiffDeployCommand extends AbstractConfigCommand {
   private String commandName = "diff";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "This shows what changes you have made since Spinnaker was last deployed.";
+  private String shortDescription =
+      "This shows what changes you have made since Spinnaker was last deployed.";
 
   @Override
   protected void executeThis() {
     String deploymentName = getCurrentDeployment();
 
-    NodeDiff result = new OperationHandler<NodeDiff>()
-        .setFailureMesssage("Failed to generate config diff.")
-        .setOperation(Daemon.configDiff(deploymentName, !noValidate))
-        .get();
+    NodeDiff result =
+        new OperationHandler<NodeDiff>()
+            .setFailureMesssage("Failed to generate config diff.")
+            .setOperation(Daemon.configDiff(deploymentName, !noValidate))
+            .get();
 
     if (result == null) {
       AnsiUi.raw("No changes have been made to your configuration.");

@@ -21,14 +21,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription.AbstractGetSubscriptionCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 public class GetSubscriptionCommandBuilder implements CommandBuilder {
-  @Setter
-  String pubsubName;
+  @Setter String pubsubName;
 
   @Override
   public NestableCommand build() {

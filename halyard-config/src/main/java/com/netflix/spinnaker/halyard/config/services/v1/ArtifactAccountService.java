@@ -27,33 +27,33 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
- * deployments.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig's deployments.
  */
 @Component
 public class ArtifactAccountService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ArtifactProviderService artifactProviderService;
+  @Autowired private ArtifactProviderService artifactProviderService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private OptionsService optionsService;
+  @Autowired private OptionsService optionsService;
 
   public List<ArtifactAccount> getAllArtifactAccounts(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactProvider(providerName).withAnyArtifactAccount();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setArtifactProvider(providerName)
+            .withAnyArtifactAccount();
 
-    List<ArtifactAccount> matchingArtifactAccounts = lookupService.getMatchingNodesOfType(filter, ArtifactAccount.class);
+    List<ArtifactAccount> matchingArtifactAccounts =
+        lookupService.getMatchingNodesOfType(filter, ArtifactAccount.class);
 
     if (matchingArtifactAccounts.size() == 0) {
       throw new ConfigNotFoundException(
@@ -64,34 +64,58 @@ public class ArtifactAccountService {
   }
 
   private ArtifactAccount getArtifactAccount(NodeFilter filter, String accountName) {
-    List<ArtifactAccount> matchingArtifactAccounts = lookupService.getMatchingNodesOfType(filter, ArtifactAccount.class);
+    List<ArtifactAccount> matchingArtifactAccounts =
+        lookupService.getMatchingNodesOfType(filter, ArtifactAccount.class);
 
     switch (matchingArtifactAccounts.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No account with name \"" + accountName + "\" was found")
-            .setRemediation("Check if this artifact account was defined in another provider, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No account with name \"" + accountName + "\" was found")
+                .setRemediation(
+                    "Check if this artifact account was defined in another provider, or create a new one")
+                .build());
       case 1:
         return matchingArtifactAccounts.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate artifact accounts with name \"" + accountName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate artifact accounts with name \""
+                        + accountName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  public ArtifactAccount getArtifactProviderArtifactAccount(String deploymentName, String providerName, String accountName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactProvider(providerName).setArtifactAccount(accountName);
+  public ArtifactAccount getArtifactProviderArtifactAccount(
+      String deploymentName, String providerName, String accountName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setArtifactProvider(providerName)
+            .setArtifactAccount(accountName);
     return getArtifactAccount(filter, accountName);
   }
 
-  public ArtifactAccount getAnyArtifactProviderArtifactAccount(String deploymentName, String accountName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyArtifactProvider().setArtifactAccount(accountName);
+  public ArtifactAccount getAnyArtifactProviderArtifactAccount(
+      String deploymentName, String accountName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .withAnyArtifactProvider()
+            .setArtifactAccount(accountName);
     return getArtifactAccount(filter, accountName);
   }
 
-  public void setArtifactAccount(String deploymentName, String providerName, String accountName, ArtifactAccount newArtifactAccount) {
-    ArtifactProvider provider = artifactProviderService.getArtifactProvider(deploymentName, providerName);
+  public void setArtifactAccount(
+      String deploymentName,
+      String providerName,
+      String accountName,
+      ArtifactAccount newArtifactAccount) {
+    ArtifactProvider provider =
+        artifactProviderService.getArtifactProvider(deploymentName, providerName);
 
     for (int i = 0; i < provider.getAccounts().size(); i++) {
       ArtifactAccount account = (ArtifactAccount) provider.getAccounts().get(i);
@@ -101,32 +125,52 @@ public class ArtifactAccountService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Artifact account \"" + accountName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(
+                Severity.FATAL, "Artifact account \"" + accountName + "\" wasn't found")
+            .build());
   }
 
-  public void deleteArtifactAccount(String deploymentName, String providerName, String accountName) {
-    ArtifactProvider provider = artifactProviderService.getArtifactProvider(deploymentName, providerName);
-    boolean removed = provider.getAccounts().removeIf(account -> ((ArtifactAccount) account).getName().equals(accountName));
+  public void deleteArtifactAccount(
+      String deploymentName, String providerName, String accountName) {
+    ArtifactProvider provider =
+        artifactProviderService.getArtifactProvider(deploymentName, providerName);
+    boolean removed =
+        provider
+            .getAccounts()
+            .removeIf(account -> ((ArtifactAccount) account).getName().equals(accountName));
 
     if (!removed) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Artifact account \"" + accountName + "\" wasn't found")
+          new ConfigProblemBuilder(
+                  Severity.FATAL, "Artifact account \"" + accountName + "\" wasn't found")
               .build());
     }
   }
 
-  public void addArtifactAccount(String deploymentName, String providerName, ArtifactAccount newArtifactAccount) {
-    ArtifactProvider provider = artifactProviderService.getArtifactProvider(deploymentName, providerName);
+  public void addArtifactAccount(
+      String deploymentName, String providerName, ArtifactAccount newArtifactAccount) {
+    ArtifactProvider provider =
+        artifactProviderService.getArtifactProvider(deploymentName, providerName);
     provider.getAccounts().add(newArtifactAccount);
   }
 
-  public ProblemSet validateArtifactAccount(String deploymentName, String providerName, String accountName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactProvider(providerName).setArtifactAccount(accountName);
+  public ProblemSet validateArtifactAccount(
+      String deploymentName, String providerName, String accountName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setArtifactProvider(providerName)
+            .setArtifactAccount(accountName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllArtifactAccounts(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setArtifactProvider(providerName).withAnyArtifactAccount();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setArtifactProvider(providerName)
+            .withAnyArtifactAccount();
     return validateService.validateMatchingFilter(filter);
   }
 }

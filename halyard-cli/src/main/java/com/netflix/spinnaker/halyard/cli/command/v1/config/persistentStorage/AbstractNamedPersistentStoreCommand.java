@@ -30,7 +30,10 @@ public abstract class AbstractNamedPersistentStoreCommand extends AbstractPersis
   private String commandName = getPersistentStoreType();
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Manage and view Spinnaker configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
+  private String shortDescription =
+      "Manage and view Spinnaker configuration for the \""
+          + getPersistentStoreType()
+          + "\" persistent store.";
 
   @Override
   protected void executeThis() {
@@ -39,7 +42,8 @@ public abstract class AbstractNamedPersistentStoreCommand extends AbstractPersis
     new OperationHandler<PersistentStore>()
         .setFailureMesssage("Failed to get persistent store \"" + persistentStoreType + "\".")
         .setSuccessMessage("Successfully got persistent store \"" + persistentStoreType + "\".")
-        .setOperation(Daemon.getPersistentStore(currentDeployment, persistentStoreType, !noValidate))
+        .setOperation(
+            Daemon.getPersistentStore(currentDeployment, persistentStoreType, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)
         .get();

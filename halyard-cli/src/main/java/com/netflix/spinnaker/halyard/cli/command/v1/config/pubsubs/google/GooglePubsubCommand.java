@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.google;
 
-
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.AbstractNamedPubsubCommand;
 

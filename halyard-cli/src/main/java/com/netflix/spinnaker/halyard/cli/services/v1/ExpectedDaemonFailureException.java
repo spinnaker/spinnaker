@@ -18,11 +18,12 @@
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
 /**
- * This is used for the CLI to indicate that the Daemon failed to process a request in an expected way.
+ * This is used for the CLI to indicate that the Daemon failed to process a request in an expected
+ * way.
  *
- * Examples include: An account couldn't be added because of a duplicate name.
+ * <p>Examples include: An account couldn't be added because of a duplicate name.
  *
- * Non-examples include: The CLI encountered an NPE.
+ * <p>Non-examples include: The CLI encountered an NPE.
  */
 public class ExpectedDaemonFailureException extends RuntimeException {
   ExpectedDaemonFailureException(Throwable cause) {

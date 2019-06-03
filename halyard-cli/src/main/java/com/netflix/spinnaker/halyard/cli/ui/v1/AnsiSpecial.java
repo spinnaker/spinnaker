@@ -21,8 +21,7 @@ import lombok.Getter;
 public enum AnsiSpecial implements AnsiCode {
   RESET("\033[0m");
 
-  @Getter
-  private final String code;
+  @Getter private final String code;
 
   AnsiSpecial(String code) {
     this.code = code;

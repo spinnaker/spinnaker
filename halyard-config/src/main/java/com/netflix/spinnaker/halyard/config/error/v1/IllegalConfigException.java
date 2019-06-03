@@ -19,13 +19,13 @@ package com.netflix.spinnaker.halyard.config.error.v1;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-
 import java.util.List;
 
 /**
- * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
- * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
- * it is readable by our yaml parser into the halconfig Object, this is thrown
+ * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and
+ * incorrectly configured (provider-specific error). Essentially, when a config has problems that
+ * prevent halyard from validating it, although it is readable by our yaml parser into the halconfig
+ * Object, this is thrown
  */
 public class IllegalConfigException extends HalException {
   public IllegalConfigException(List<Problem> problems) {

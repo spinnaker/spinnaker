@@ -25,9 +25,8 @@ public class IAPCommand extends AuthnMethodCommand {
     return Method.IAP;
   }
 
-  public IAPCommand(){
+  public IAPCommand() {
     super();
     registerSubcommand(new EditIAPCommand());
   }
-
 }

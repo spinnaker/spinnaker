@@ -25,8 +25,7 @@ import lombok.Setter;
 
 public class EnableDisableWebhookTrustCommandBuilder implements CommandBuilder {
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -34,7 +33,8 @@ public class EnableDisableWebhookTrustCommandBuilder implements CommandBuilder {
   }
 
   @Parameters(separators = "=")
-  private static class EnableDisableWebhookCommand extends AbstractEnableDisableWebhookTrustCommand {
+  private static class EnableDisableWebhookCommand
+      extends AbstractEnableDisableWebhookTrustCommand {
     private EnableDisableWebhookCommand(boolean enable) {
       this.enable = enable;
     }

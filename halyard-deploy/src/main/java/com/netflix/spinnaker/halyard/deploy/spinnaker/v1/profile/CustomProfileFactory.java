@@ -21,20 +21,22 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import org.apache.commons.io.IOUtils;
-import org.springframework.stereotype.Component;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
+import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Component;
 
 @Component
-abstract public class CustomProfileFactory extends ProfileFactory {
-  abstract protected Path getUserProfilePath();
+public abstract class CustomProfileFactory extends ProfileFactory {
+  protected abstract Path getUserProfilePath();
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     profile.appendContents(profile.getBaseContents());
     // No modifications are made to user-supplied profiles.
   }
@@ -44,12 +46,13 @@ abstract public class CustomProfileFactory extends ProfileFactory {
     try {
       return new Profile(name, version, outputFile, readUserProfile());
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to read user profile contents: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Unable to read user profile contents: " + e.getMessage(), e);
     }
   }
 
   private String readUserProfile() throws IOException {
-    try(FileInputStream fis = new FileInputStream(getUserProfilePath().toFile())) {
+    try (FileInputStream fis = new FileInputStream(getUserProfilePath().toFile())) {
       return IOUtils.toString(fis);
     } catch (FileNotFoundException e) {
       return "";

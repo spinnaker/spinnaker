@@ -23,9 +23,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Repository;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Search;
-import lombok.Getter;
-
 import java.util.List;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractListSearchesCommand extends AbstractRepositoryCommand {
@@ -33,8 +32,7 @@ abstract class AbstractListSearchesCommand extends AbstractRepositoryCommand {
     return "List the search names for " + getRepositoryName() + ".";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private Repository getRepository() {
     String currentDeployment = getCurrentDeployment();

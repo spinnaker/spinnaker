@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -27,30 +26,28 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerMonitoringDaemonProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.nio.file.Paths;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> implements SidecarService {
+public abstract class SpinnakerMonitoringDaemonService
+    extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon>
+    implements SidecarService {
   protected final String CONFIG_OUTPUT_PATH = "/opt/spinnaker-monitoring/config/";
   protected final String REGISTRY_OUTPUT_PATH = "/opt/spinnaker-monitoring/registry/";
   protected final String FILTERS_OUTPUT_PATH = "/opt/spinnaker-monitoring/filters/";
 
-  @Autowired
-  SpinnakerMonitoringDaemonProfileFactory spinnakerMonitoringDaemonProfileFactory;
+  @Autowired SpinnakerMonitoringDaemonProfileFactory spinnakerMonitoringDaemonProfileFactory;
 
-  @Autowired
-  MetricRegistryProfileFactoryBuilder metricRegistryProfileFactoryBuilder;
+  @Autowired MetricRegistryProfileFactoryBuilder metricRegistryProfileFactoryBuilder;
 
-  @Autowired
-  List<SpinnakerService> services;
+  @Autowired List<SpinnakerService> services;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -84,7 +81,8 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> results = new ArrayList<>();
     for (Map.Entry<Type, ServiceSettings> entry : endpoints.getAllServiceSettings().entrySet()) {
       ServiceSettings settings = entry.getValue();
@@ -93,22 +91,27 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
         String profileName = serviceRegistryProfileName(serviceName);
         String profilePath = Paths.get(REGISTRY_OUTPUT_PATH, serviceName + ".yml").toString();
         ProfileFactory factory = metricRegistryProfileFactoryBuilder.build(settings);
-        results.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+        results.add(
+            factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
       }
     }
 
     String profileName = monitoringProfileName();
     String profilePath = Paths.get(CONFIG_OUTPUT_PATH, profileName).toString();
 
-    results.add(spinnakerMonitoringDaemonProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+    results.add(
+        spinnakerMonitoringDaemonProfileFactory.getProfile(
+            profileName, profilePath, deploymentConfiguration, endpoints));
 
     return results;
   }
 
   @Override
-  public List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+  public List<Profile> getSidecarProfiles(
+      GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
     List<Profile> result = new ArrayList<>();
-    Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(getType());
+    Map<String, Profile> monitoringProfiles =
+        resolvedConfiguration.getProfilesForService(getType());
 
     String profileName = serviceRegistryProfileName(service.getCanonicalName());
     Profile profile = monitoringProfiles.get(profileName);
@@ -130,7 +133,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     return result;
   }
 
-  public interface SpinnakerMonitoringDaemon { }
+  public interface SpinnakerMonitoringDaemon {}
 
   @EqualsAndHashCode(callSuper = true)
   @Data

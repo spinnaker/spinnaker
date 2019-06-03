@@ -34,11 +34,9 @@ import org.springframework.stereotype.Component;
 public class LocalGitGateService extends GateService implements LocalGitService<GateService.Gate> {
   String startCommand = "./gradlew";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   protected String getConfigOutputPath() {

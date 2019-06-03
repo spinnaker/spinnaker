@@ -33,14 +33,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ValidateService {
-  @Autowired
-  HalconfigParser parser;
+  @Autowired HalconfigParser parser;
 
-  @Autowired
-  ValidatorCollection validatorCollection;
+  @Autowired ValidatorCollection validatorCollection;
 
-  @Autowired
-  private ApplicationContext applicationContext;
+  @Autowired private ApplicationContext applicationContext;
 
   public ProblemSet validateMatchingFilter(NodeFilter filter) {
     DaemonTaskHandler.newStage("Running validation");
@@ -54,7 +51,14 @@ public class ValidateService {
   private void recursiveValidate(ConfigProblemSetBuilder psBuilder, Node node, NodeFilter filter) {
     int runCount = validatorCollection.runAllValidators(psBuilder, node);
 
-    log.info("Ran " + runCount + " validators for node \"" + node.getNodeName() + "\" with class \"" + node.getClass().getSimpleName() + "\"");
+    log.info(
+        "Ran "
+            + runCount
+            + " validators for node \""
+            + node.getNodeName()
+            + "\" with class \""
+            + node.getClass().getSimpleName()
+            + "\"");
 
     NodeIterator children = node.getChildren();
 

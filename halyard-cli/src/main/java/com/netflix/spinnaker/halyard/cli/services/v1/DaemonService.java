@@ -29,18 +29,17 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
-import retrofit.client.Response;
-import retrofit.http.*;
-
 import java.util.List;
 import java.util.Map;
+import retrofit.client.Response;
+import retrofit.http.*;
 
 public interface DaemonService {
   @GET("/health")
   Map<String, String> getHealth();
 
   @POST("/shutdown")
-  Map<String, String>  shutdown(@Body String _ignore);
+  Map<String, String> shutdown(@Body String _ignore);
 
   @GET("/v1/tasks/")
   ShallowTaskList getTasks();
@@ -56,8 +55,7 @@ public interface DaemonService {
 
   @PUT("/v1/backup/restore")
   DaemonTask<Halconfig, Void> restoreBackup(
-      @Query("backupPath") String backupPath,
-      @Body String _ignore);
+      @Query("backupPath") String backupPath, @Body String _ignore);
 
   @GET("/v1/config/")
   DaemonTask<Halconfig, Halconfig> getHalconfig();
@@ -73,8 +71,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/")
   DaemonTask<Halconfig, Object> getDeployment(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/")
   DaemonTask<Halconfig, Void> setDeployment(
@@ -136,13 +133,11 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")
   DaemonTask<Halconfig, Object> configDiff(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/deploymentEnvironment/")
   DaemonTask<Halconfig, Object> getDeploymentEnvironment(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/deploymentEnvironment/")
   DaemonTask<Halconfig, Void> setDeploymentEnvironment(
@@ -163,7 +158,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body HaService haService);
 
-  @PUT("/v1/config/deployments/{deploymentName}/deploymentEnvironment/haServices/{serviceName}/enabled/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/deploymentEnvironment/haServices/{serviceName}/enabled/")
   DaemonTask<Halconfig, Void> setHaServiceEnabled(
       @Path("deploymentName") String deploymentName,
       @Path("serviceName") String serviceName,
@@ -172,8 +168,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/features/")
   DaemonTask<Halconfig, Object> getFeatures(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/features/")
   DaemonTask<Halconfig, Void> setFeatures(
@@ -261,14 +256,16 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Publisher publisher);
 
-  @GET("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
   DaemonTask<Halconfig, Object> getPublisher(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
       @Path("publisherName") String publisherName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
   DaemonTask<Halconfig, Void> setPublisher(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
@@ -276,7 +273,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Publisher publisher);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
   DaemonTask<Halconfig, Void> deletePublisher(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
@@ -290,14 +288,16 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Subscription subscription);
 
-  @GET("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
   DaemonTask<Halconfig, Object> getSubscription(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
       @Path("subscriptionName") String subscriptionName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
   DaemonTask<Halconfig, Void> setSubscription(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
@@ -305,7 +305,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Subscription subscription);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/subscription/{subscriptionName}/")
   DaemonTask<Halconfig, Void> deleteSubscription(
       @Path("deploymentName") String deploymentName,
       @Path("pubsubName") String pubsubName,
@@ -319,14 +320,16 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Account account);
 
-  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Object> getAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> setAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -334,7 +337,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Account account);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> deleteAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -348,14 +352,16 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body AbstractCanaryAccount account);
 
-  @GET("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Object> getCanaryAccount(
       @Path("deploymentName") String deploymentName,
       @Path("serviceIntegrationName") String serviceIntegrationName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> setCanaryAccount(
       @Path("deploymentName") String deploymentName,
       @Path("serviceIntegrationName") String serviceIntegrationName,
@@ -363,28 +369,32 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body AbstractCanaryAccount account);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> deleteCanaryAccount(
       @Path("deploymentName") String deploymentName,
       @Path("serviceIntegrationName") String serviceIntegrationName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
-  @POST("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/")
+  @POST(
+      "/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/")
   DaemonTask<Halconfig, Void> addArtifactAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body ArtifactAccount account);
 
-  @GET("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
   DaemonTask<Halconfig, Object> getArtifactAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> setArtifactAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -392,7 +402,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body ArtifactAccount account);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/artifactProviders/{providerName}/artifactAccounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> deleteArtifactAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -405,7 +416,8 @@ public interface DaemonService {
       @Path("providerName") String providerName,
       @Body DaemonOptions<Account> options);
 
-  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/options")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/options")
   DaemonTask<Halconfig, List<String>> getExistingAccountOptions(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -419,14 +431,16 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Cluster cluster);
 
-  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
   DaemonTask<Halconfig, Object> getCluster(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("clusterName") String clusterName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
   DaemonTask<Halconfig, Void> setCluster(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -434,7 +448,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Cluster cluster);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
   DaemonTask<Halconfig, Void> deleteCluster(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -443,8 +458,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/")
   DaemonTask<Halconfig, Security> getSecurity(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/security/")
   DaemonTask<Halconfig, Void> setSecurity(
@@ -454,8 +468,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/metricStores/")
   DaemonTask<Halconfig, Object> getMetricStores(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/metricStores/")
   DaemonTask<Halconfig, Void> setMetricStores(
@@ -485,8 +498,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/canary/")
   DaemonTask<Halconfig, Canary> getCanary(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/canary/")
   DaemonTask<Halconfig, Void> setCanary(
@@ -502,8 +514,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/version/")
   DaemonTask<Halconfig, String> getVersion(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/version/")
   DaemonTask<Halconfig, Void> setVersion(
@@ -519,8 +530,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/api/")
   DaemonTask<Halconfig, Object> getApiSecurity(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/security/api/")
   DaemonTask<Halconfig, Void> setApiSecurity(
@@ -530,8 +540,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/api/ssl/")
   DaemonTask<Halconfig, Object> getSpringSsl(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/security/api/ssl/")
   DaemonTask<Halconfig, Void> setSpringSsl(
@@ -547,8 +556,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/ui/")
   DaemonTask<Halconfig, Object> getUiSecurity(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/security/ui/")
   DaemonTask<Halconfig, Void> setUiSecurity(
@@ -558,8 +566,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/ui/ssl/")
   DaemonTask<Halconfig, Object> getApacheSsl(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/security/ui/ssl/")
   DaemonTask<Halconfig, Void> setApacheSsl(
@@ -601,8 +608,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/security/authz/groupMembership")
   DaemonTask<Halconfig, Object> getGroupMembership(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/security/authz/groupMembership/{roleProviderName}/")
   DaemonTask<Halconfig, Object> getRoleProvider(
@@ -631,8 +637,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
   DaemonTask<Halconfig, Object> getPersistentStorage(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/")
   DaemonTask<Halconfig, Void> setBakeryDefaults(
@@ -647,21 +652,24 @@ public interface DaemonService {
       @Path("providerName") String providerName,
       @Query("validate") boolean validate);
 
-  @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/")
+  @POST(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/")
   DaemonTask<Halconfig, Void> addBaseImage(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body BaseImage baseImage);
 
-  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  @GET(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
   DaemonTask<Halconfig, Object> getBaseImage(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("baseImageId") String baseImageId,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  @PUT(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
   DaemonTask<Halconfig, Void> setBaseImage(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -669,7 +677,8 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body BaseImage baseImage);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
   DaemonTask<Halconfig, Void> deleteBaseImage(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -678,8 +687,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/notifications/")
   DaemonTask<Halconfig, Object> getNotifications(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/notifications/{notificationName}/")
   DaemonTask<Halconfig, Object> getNotification(
@@ -745,45 +753,46 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/")
   DaemonTask<Halconfig, Object> getRepository(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String repositoryName,
-          @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String repositoryName,
+      @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/enabled/")
   DaemonTask<Halconfig, Void> setRepositoryEnabled(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String repositoryName,
-          @Query("validate") boolean validate,
-          @Body boolean enabled);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String repositoryName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @POST("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/")
   DaemonTask<Halconfig, Void> addSearch(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String ciName,
-          @Query("validate") boolean validate,
-          @Body Search search);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String ciName,
+      @Query("validate") boolean validate,
+      @Body Search search);
 
   @GET("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
   DaemonTask<Halconfig, Object> getSearch(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String repositoryName,
-          @Path("searchName") String searchName,
-          @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String repositoryName,
+      @Path("searchName") String searchName,
+      @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
   DaemonTask<Halconfig, Void> setSearch(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String repositoryName,
-          @Path("searchName") String searchName,
-          @Query("validate") boolean validate,
-          @Body Search search);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String repositoryName,
+      @Path("searchName") String searchName,
+      @Query("validate") boolean validate,
+      @Body Search search);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
+  @DELETE(
+      "/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
   DaemonTask<Halconfig, Void> deleteSearch(
-          @Path("deploymentName") String deploymentName,
-          @Path("repositoryName") String repositoryName,
-          @Path("searchName") String searchName,
-          @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String repositoryName,
+      @Path("searchName") String searchName,
+      @Query("validate") boolean validate);
 
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
@@ -810,50 +819,42 @@ public interface DaemonService {
       @Body String _ignore);
 
   @PUT("/v1/admin/publishBom")
-  DaemonTask<Halconfig, Void> publishBom(
-      @Query("bomPath") String bomPath,
-      @Body String _ignore);
+  DaemonTask<Halconfig, Void> publishBom(@Query("bomPath") String bomPath, @Body String _ignore);
 
   @PUT("/v1/admin/deprecateVersion")
   DaemonTask<Halconfig, Void> deprecateVersion(
-      @Body Versions.Version version,
-      @Query("illegalReason") String illegalReason);
+      @Body Versions.Version version, @Query("illegalReason") String illegalReason);
 
   @PUT("/v1/admin/publishVersion")
-  DaemonTask<Halconfig, Void> publishVersion(
-      @Body Versions.Version version);
+  DaemonTask<Halconfig, Void> publishVersion(@Body Versions.Version version);
 
   @PUT("/v1/admin/publishLatest")
   DaemonTask<Halconfig, Void> publishLatestHalyard(
-      @Query("latestHalyard") String latestHalyard,
-      @Body String _ignore);
+      @Query("latestHalyard") String latestHalyard, @Body String _ignore);
 
   @PUT("/v1/admin/publishLatest")
   DaemonTask<Halconfig, Void> publishLatestSpinnaker(
-      @Query("latestSpinnaker") String latestSpinnaker,
-      @Body String _ignore);
+      @Query("latestSpinnaker") String latestSpinnaker, @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/webhook/")
   DaemonTask<Halconfig, Object> getWebhook(
-          @Path("deploymentName") String deploymentName,
-          @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/webhook/")
   DaemonTask<Halconfig, Void> setWebhook(
-          @Path("deploymentName") String deploymentName,
-          @Query("validate") boolean validate,
-          @Body Webhook webhook);
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Webhook webhook);
 
   @GET("/v1/config/deployments/{deploymentName}/webhook/trust/")
   DaemonTask<Halconfig, Object> getWebhookTrust(
-          @Path("deploymentName") String deploymentName,
-          @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/webhook/trust/")
   DaemonTask<Halconfig, Void> setWebhookTrust(
-          @Path("deploymentName") String deploymentName,
-          @Query("validate") boolean validate,
-          @Body WebhookTrust webhookTrust);
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body WebhookTrust webhookTrust);
 
   @POST("/v1/config/deployments/{deploymentName}/artifactTemplates/")
   DaemonTask<Halconfig, Void> addArtifactTemplate(
@@ -863,8 +864,7 @@ public interface DaemonService {
 
   @GET("/v1/config/deployments/{deploymentName}/artifactTemplates/")
   DaemonTask<Halconfig, Object> getArtifactTemplates(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/artifactTemplates/{templateName}/")
   DaemonTask<Halconfig, Object> getArtifactTemplate(

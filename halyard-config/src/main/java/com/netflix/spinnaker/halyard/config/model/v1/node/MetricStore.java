@@ -23,11 +23,11 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-abstract public class MetricStore extends Node {
+public abstract class MetricStore extends Node {
   boolean enabled;
 
   @JsonIgnore
-  abstract public MetricStores.MetricStoreType getMetricStoreType();
+  public abstract MetricStores.MetricStoreType getMetricStoreType();
 
   @Override
   public NodeIterator getChildren() {

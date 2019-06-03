@@ -28,7 +28,9 @@ public abstract class AbstractCanaryAccountCommand extends AbstractHasCanaryAcco
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getServiceIntegration() + " service integration's canary accounts.";
+    return "Manage and view Spinnaker configuration for the "
+        + getServiceIntegration()
+        + " service integration's canary accounts.";
   }
 
   protected AbstractCanaryAccountCommand() {

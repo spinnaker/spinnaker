@@ -29,7 +29,9 @@ public class PersistentStorageValidator extends Validator<PersistentStorage> {
   public void validate(ConfigProblemSetBuilder ps, PersistentStorage n) {
     PersistentStore.PersistentStoreType persistentStoreType = n.getPersistentStoreType();
     if (persistentStoreType == null) {
-      ps.addProblem(Severity.WARNING, "Your deployment will most likely fail until you configure and enable a persistent store.");
+      ps.addProblem(
+          Severity.WARNING,
+          "Your deployment will most likely fail until you configure and enable a persistent store.");
     }
   }
 }

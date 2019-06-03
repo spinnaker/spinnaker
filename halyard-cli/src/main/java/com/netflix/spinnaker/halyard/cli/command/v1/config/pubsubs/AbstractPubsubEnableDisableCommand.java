@@ -20,14 +20,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.AbstractPubsubCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractPubsubEnableDisableCommand extends AbstractPubsubCommand {
@@ -54,8 +52,7 @@ public abstract class AbstractPubsubEnableDisableCommand extends AbstractPubsubC
     return "Set the " + getPubsubName() + " pubsub as " + subjunctivePerfectAction();
   }
 
-  private void setEnable() {
-  }
+  private void setEnable() {}
 
   @Override
   protected void executeThis() {
@@ -65,7 +62,8 @@ public abstract class AbstractPubsubEnableDisableCommand extends AbstractPubsubC
     new OperationHandler<Void>()
         .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + pubsubName)
         .setFailureMesssage("Failed to " + getCommandName() + " " + pubsubName)
-        .setOperation(Daemon.setPubsubEnableDisable(currentDeployment, pubsubName, !noValidate, enable))
+        .setOperation(
+            Daemon.setPubsubEnableDisable(currentDeployment, pubsubName, !noValidate, enable))
         .get();
   }
 }

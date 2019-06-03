@@ -37,16 +37,16 @@ public class RestoreBackupCommand extends NestableCommand implements ProtectedCo
   private String shortDescription = "Restore an existing backup.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = "Restore an existing backup. This backup does _not_ necessarily have to come from "
-      + "the machine it is being restored on - since all files referenced by your halconfig are included in the halconfig backup. "
-      + "As a result of this, keep in mind that after restoring a backup, all your required files are now in $halconfig/.backup/required-files.";
+  private String longDescription =
+      "Restore an existing backup. This backup does _not_ necessarily have to come from "
+          + "the machine it is being restored on - since all files referenced by your halconfig are included in the halconfig backup. "
+          + "As a result of this, keep in mind that after restoring a backup, all your required files are now in $halconfig/.backup/required-files.";
 
   @Parameter(
       names = "--backup-path",
       converter = LocalFileConverter.class,
       required = true,
-      description = "This is the path to the .tar file created by running `hal backup create`."
-  )
+      description = "This is the path to the .tar file created by running `hal backup create`.")
   private String backupPath;
 
   @Override

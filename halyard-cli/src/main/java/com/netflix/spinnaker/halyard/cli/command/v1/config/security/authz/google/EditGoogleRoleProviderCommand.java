@@ -29,32 +29,33 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Parameters(separators = "=")
-public class EditGoogleRoleProviderCommand extends AbstractEditRoleProviderCommand<GoogleRoleProvider> {
+public class EditGoogleRoleProviderCommand
+    extends AbstractEditRoleProviderCommand<GoogleRoleProvider> {
   GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GOOGLE;
 
   @Parameter(
       names = "--credential-path",
       converter = LocalFileConverter.class,
-      description = "A path to a valid json service account that can authenticate against the Google role provider."
-  )
+      description =
+          "A path to a valid json service account that can authenticate against the Google role provider.")
   private String credentialPath;
 
   @Parameter(
       names = "--admin-username",
-      description = "Your role provider's admin username e.g. admin@myorg.net"
-  )
+      description = "Your role provider's admin username e.g. admin@myorg.net")
   private String adminUsername;
 
   @Parameter(
       names = "--domain",
-      description = "The domain your role provider is configured for e.g. myorg.net."
-  )
+      description = "The domain your role provider is configured for e.g. myorg.net.")
   private String domain;
 
   @Override
   protected RoleProvider editRoleProvider(GoogleRoleProvider roleProvider) {
-    roleProvider.setCredentialPath(isSet(credentialPath) ? credentialPath : roleProvider.getCredentialPath());
-    roleProvider.setAdminUsername(isSet(adminUsername) ? adminUsername : roleProvider.getAdminUsername());
+    roleProvider.setCredentialPath(
+        isSet(credentialPath) ? credentialPath : roleProvider.getCredentialPath());
+    roleProvider.setAdminUsername(
+        isSet(adminUsername) ? adminUsername : roleProvider.getAdminUsername());
     roleProvider.setDomain(isSet(domain) ? domain : roleProvider.getDomain());
     return roleProvider;
   }

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,9 +29,6 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
-
-import java.io.File;
-import java.nio.file.Paths;
 
 @Component
 public class ResourceConfig {
@@ -58,12 +57,12 @@ public class ResourceConfig {
   String localBomPath(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
     return normalizePath(Paths.get(path, ".boms").toString());
   }
-  
+
   /**
    * Version of halyard.
    *
-   * This is useful for implementing breaking version changes in Spinnaker that need to be migrated by some tool
-   * (in this case Halyard).
+   * <p>This is useful for implementing breaking version changes in Spinnaker that need to be
+   * migrated by some tool (in this case Halyard).
    *
    * @return the version of halyard.
    */
@@ -74,7 +73,8 @@ public class ResourceConfig {
   }
 
   @Bean
-  String spinconfigBucket(@Value("${spinnaker.config.input.bucket:halconfig}") String spinconfigBucket) {
+  String spinconfigBucket(
+      @Value("${spinnaker.config.input.bucket:halconfig}") String spinconfigBucket) {
     return spinconfigBucket;
   }
 
@@ -84,7 +84,8 @@ public class ResourceConfig {
   }
 
   @Bean
-  String spinnakerStagingDependencyPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
+  String spinnakerStagingDependencyPath(
+      @Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
     return Paths.get(normalizePath(path), "dependency").toString();
   }
 

@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HaEchoValidator extends Validator<DeploymentEnvironment>  {
+public class HaEchoValidator extends Validator<DeploymentEnvironment> {
 
   @Override
   public void validate(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
@@ -36,15 +35,18 @@ public class HaEchoValidator extends Validator<DeploymentEnvironment>  {
 
     boolean haEchoEnabled = haServices.getEcho().isEnabled();
     if (haEchoEnabled && customSizing.hasCustomSizing("spin-echo")) {
-      p.addProblem(Problem.Severity.WARNING, "High Availability (HA) is enabled for echo, but found custom sizing for the main service (this setting will be ignored). " +
-              "With HA enabled, the service is split into multiple sub-services (echo-scheduler, echo-scheduler). You need to update the component sizing for each sub-service, individually.");
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "High Availability (HA) is enabled for echo, but found custom sizing for the main service (this setting will be ignored). "
+              + "With HA enabled, the service is split into multiple sub-services (echo-scheduler, echo-scheduler). You need to update the component sizing for each sub-service, individually.");
     }
 
-    if (!haEchoEnabled &&
-            (customSizing.hasCustomSizing("spin-echo-worker") ||
-             customSizing.hasCustomSizing("spin-echo-scheduler")
-            )) {
-      p.addProblem(Problem.Severity.WARNING, "Discovered custom sizing for HA echo subcomponent, but High Availability (HA) is not enabled. Please enable HA or edit the echo main service directly.");
+    if (!haEchoEnabled
+        && (customSizing.hasCustomSizing("spin-echo-worker")
+            || customSizing.hasCustomSizing("spin-echo-scheduler"))) {
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "Discovered custom sizing for HA echo subcomponent, but High Availability (HA) is not enabled. Please enable HA or edit the echo main service directly.");
     }
   }
 }

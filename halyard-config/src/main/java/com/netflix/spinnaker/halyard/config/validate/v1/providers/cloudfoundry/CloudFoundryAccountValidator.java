@@ -22,69 +22,83 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.Clou
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount> {
-    final private List<CloudFoundryCredentials> credentialsList;
-    final private String halyardVersion;
+  private final List<CloudFoundryCredentials> credentialsList;
+  private final String halyardVersion;
 
-    @Override
-    public void validate(ConfigProblemSetBuilder problemSetBuilder, CloudFoundryAccount cloudFoundryAccount) {
-        String accountName = cloudFoundryAccount.getName();
+  @Override
+  public void validate(
+      ConfigProblemSetBuilder problemSetBuilder, CloudFoundryAccount cloudFoundryAccount) {
+    String accountName = cloudFoundryAccount.getName();
 
-        DaemonTaskHandler.message("Validating " + accountName + " with " + CloudFoundryAccountValidator.class.getSimpleName());
+    DaemonTaskHandler.message(
+        "Validating "
+            + accountName
+            + " with "
+            + CloudFoundryAccountValidator.class.getSimpleName());
 
-        String environment = cloudFoundryAccount.getEnvironment();
-        String apiHost = cloudFoundryAccount.getApiHost();
-        String appsManagerUri = cloudFoundryAccount.getAppsManagerUri();
-        String metricsUri = cloudFoundryAccount.getMetricsUri();
-        String password = cloudFoundryAccount.getPassword();
-        String user = cloudFoundryAccount.getUser();
+    String environment = cloudFoundryAccount.getEnvironment();
+    String apiHost = cloudFoundryAccount.getApiHost();
+    String appsManagerUri = cloudFoundryAccount.getAppsManagerUri();
+    String metricsUri = cloudFoundryAccount.getMetricsUri();
+    String password = cloudFoundryAccount.getPassword();
+    String user = cloudFoundryAccount.getUser();
 
-        if (StringUtils.isEmpty(user) || StringUtils.isEmpty(password)) {
-            problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a user and a password");
-        }
-
-        if (StringUtils.isEmpty(apiHost)) {
-            problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a CF api endpoint host");
-        }
-
-        if (StringUtils.isEmpty(appsManagerUri)) {
-            problemSetBuilder.addProblem(Problem.Severity.WARNING,
-                    "To be able to link server groups to CF Appsmanager a URI is required: " + accountName);
-        }
-
-        if (StringUtils.isEmpty(metricsUri)) {
-            problemSetBuilder.addProblem(Problem.Severity.WARNING,
-                    "To be able to link server groups to CF Metrics a URI is required: " + accountName);
-        }
-
-        try {
-            CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-                    cloudFoundryAccount.getName(),
-                    appsManagerUri,
-                    metricsUri,
-                    apiHost,
-                    user,
-                    password,
-                    environment
-            );
-            credentialsList.add(cloudFoundryCredentials);
-            Collection<Map<String, String>> regions = cloudFoundryCredentials.getRegions();
-            if (regions.isEmpty()) {
-                throw new Exception(accountName + " does not have access to any Cloud Foundry Orgs and Spaces");
-            }
-        } catch (Exception e) {
-            problemSetBuilder.addProblem(Problem.Severity.ERROR, "Failed to establish a connection for account '"
-                    + accountName + "': " + e.getMessage() + ".");
-        }
+    if (StringUtils.isEmpty(user) || StringUtils.isEmpty(password)) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.ERROR, "You must provide a user and a password");
     }
+
+    if (StringUtils.isEmpty(apiHost)) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.ERROR, "You must provide a CF api endpoint host");
+    }
+
+    if (StringUtils.isEmpty(appsManagerUri)) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.WARNING,
+          "To be able to link server groups to CF Appsmanager a URI is required: " + accountName);
+    }
+
+    if (StringUtils.isEmpty(metricsUri)) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.WARNING,
+          "To be able to link server groups to CF Metrics a URI is required: " + accountName);
+    }
+
+    try {
+      CloudFoundryCredentials cloudFoundryCredentials =
+          new CloudFoundryCredentials(
+              cloudFoundryAccount.getName(),
+              appsManagerUri,
+              metricsUri,
+              apiHost,
+              user,
+              password,
+              environment);
+      credentialsList.add(cloudFoundryCredentials);
+      Collection<Map<String, String>> regions = cloudFoundryCredentials.getRegions();
+      if (regions.isEmpty()) {
+        throw new Exception(
+            accountName + " does not have access to any Cloud Foundry Orgs and Spaces");
+      }
+    } catch (Exception e) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.ERROR,
+          "Failed to establish a connection for account '"
+              + accountName
+              + "': "
+              + e.getMessage()
+              + ".");
+    }
+  }
 }

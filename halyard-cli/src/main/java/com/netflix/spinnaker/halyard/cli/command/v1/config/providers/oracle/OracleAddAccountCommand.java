@@ -24,55 +24,47 @@ public class OracleAddAccountCommand extends AbstractAddAccountCommand {
   }
 
   @Parameter(
-          names = "--compartment-id",
-          description = OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION,
-          required = true
-  )
+      names = "--compartment-id",
+      description = OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION,
+      required = true)
   private String compartmentId;
 
   @Parameter(
-          names = "--user-id",
-          description = OracleCommandProperties.USER_ID_DESCRIPTION,
-          required = true
-  )
+      names = "--user-id",
+      description = OracleCommandProperties.USER_ID_DESCRIPTION,
+      required = true)
   private String userId;
 
   @Parameter(
-          names = "--fingerprint",
-          description = OracleCommandProperties.FINGERPRINT_DESCRIPTION,
-          required = true
-  )
+      names = "--fingerprint",
+      description = OracleCommandProperties.FINGERPRINT_DESCRIPTION,
+      required = true)
   private String fingerprint;
 
   @Parameter(
-          names = "--ssh-private-key-file-path",
-          converter = LocalFileConverter.class,
-          description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION,
-          required = true
-  )
+      names = "--ssh-private-key-file-path",
+      converter = LocalFileConverter.class,
+      description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION,
+      required = true)
   private String sshPrivateKeyFilePath;
 
   @Parameter(
-          names = "--private-key-passphrase",
-          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
-          password = true
-  )
+      names = "--private-key-passphrase",
+      description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+      password = true)
   private String privateKeyPassphrase;
 
   @Parameter(
-          names = "--tenancyId",
-          description = OracleCommandProperties.TENANCY_ID_DESCRIPTION,
-          required = true
-  )
+      names = "--tenancyId",
+      description = OracleCommandProperties.TENANCY_ID_DESCRIPTION,
+      required = true)
   private String tenancyId;
 
   @Parameter(
-          names = "--region",
-          description = OracleCommandProperties.REGION_DESCRIPTION,
-          required = true
-  )
+      names = "--region",
+      description = OracleCommandProperties.REGION_DESCRIPTION,
+      required = true)
   private String region;
-
 
   @Override
   protected Account buildAccount(String accountName) {

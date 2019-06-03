@@ -31,24 +31,20 @@ public abstract class AbstractSearchCommand extends AbstractHasSearchCommand {
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getRepositoryName() + " repository services's search";
+    return "Manage and view Spinnaker configuration for the "
+        + getRepositoryName()
+        + " repository services's search";
   }
 
   protected AbstractSearchCommand() {
-    registerSubcommand(new DeleteSearchCommandBuilder()
-        .setRepositoryName(getRepositoryName())
-        .build()
-    );
+    registerSubcommand(
+        new DeleteSearchCommandBuilder().setRepositoryName(getRepositoryName()).build());
 
-    registerSubcommand(new GetSearchCommandBuilder()
-        .setRepositoryName(getRepositoryName())
-        .build()
-    );
+    registerSubcommand(
+        new GetSearchCommandBuilder().setRepositoryName(getRepositoryName()).build());
 
-    registerSubcommand(new ListSearchesCommandBuilder()
-        .setRepositoryName(getRepositoryName())
-        .build()
-    );
+    registerSubcommand(
+        new ListSearchesCommandBuilder().setRepositoryName(getRepositoryName()).build());
   }
 
   @Override

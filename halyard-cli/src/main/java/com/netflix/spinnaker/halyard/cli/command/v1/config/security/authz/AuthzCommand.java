@@ -35,7 +35,8 @@ public class AuthzCommand extends AbstractConfigCommand {
   String shortDescription = "Configure your authorization settings for Spinnaker.";
 
   // This merits a better description.
-  String longDescription = "This set of commands allows you to configure what resources users of Spinnaker can read and modify.";
+  String longDescription =
+      "This set of commands allows you to configure what resources users of Spinnaker can read and modify.";
 
   @Override
   protected void executeThis() {

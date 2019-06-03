@@ -25,9 +25,6 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -35,31 +32,35 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class VaultService {
-  @Autowired
-  JobExecutor jobExecutor;
+  @Autowired JobExecutor jobExecutor;
 
-  @Autowired
-  String vaultSecretPrefix;
+  @Autowired String vaultSecretPrefix;
 
-  @Autowired
-  Integer vaultTimeoutSeconds;
+  @Autowired Integer vaultTimeoutSeconds;
 
-  public void publishSecret(DeploymentConfiguration deploymentConfiguration, String name, Path path) {
+  public void publishSecret(
+      DeploymentConfiguration deploymentConfiguration, String name, Path path) {
     String contents;
     try {
       contents = IOUtils.toString(new FileInputStream(path.toFile()));
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to read config file " + path.toString() + ": " + e.getMessage());
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Failed to read config file " + path.toString() + ": " + e.getMessage());
     }
 
     publishSecret(deploymentConfiguration, name, contents);
   }
 
-  public void publishSecret(DeploymentConfiguration deploymentConfiguration, String name, String contents) {
-    String vaultAddress = deploymentConfiguration.getDeploymentEnvironment().getVault().getAddress();
+  public void publishSecret(
+      DeploymentConfiguration deploymentConfiguration, String name, String contents) {
+    String vaultAddress =
+        deploymentConfiguration.getDeploymentEnvironment().getVault().getAddress();
     String encodedContents = Base64.getEncoder().encodeToString(contents.getBytes());
     String secretName = vaultSecretPrefix + name;
 
@@ -71,16 +72,19 @@ public class VaultService {
     command.add(secretName);
     command.add(encodedContents);
 
-    JobRequest request = new JobRequest()
-        .setTokenizedCommand(command)
-        .setTimeoutMillis(TimeUnit.SECONDS.toMillis(vaultTimeoutSeconds));
+    JobRequest request =
+        new JobRequest()
+            .setTokenizedCommand(command)
+            .setTimeoutMillis(TimeUnit.SECONDS.toMillis(vaultTimeoutSeconds));
 
     String id = jobExecutor.startJob(request);
     DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
     JobStatus status = jobExecutor.updateJob(id);
 
     if (!status.getResult().equals(JobStatus.Result.SUCCESS)) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to publish secret " + name + ": " + status.getStdOut() + status.getStdErr());
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Failed to publish secret " + name + ": " + status.getStdOut() + status.getStdErr());
     }
   }
 }

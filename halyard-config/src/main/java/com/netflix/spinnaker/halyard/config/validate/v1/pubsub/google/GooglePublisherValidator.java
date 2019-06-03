@@ -31,13 +31,13 @@ public class GooglePublisherValidator extends Validator<GooglePublisher> {
   @Override
   public void validate(ConfigProblemSetBuilder p, GooglePublisher n) {
     if (StringUtils.isEmpty(n.getProject())) {
-      p.addProblem(Severity.ERROR, "Missing project ID for Google publisher " + n.getName(),
-          "project");
+      p.addProblem(
+          Severity.ERROR, "Missing project ID for Google publisher " + n.getName(), "project");
     }
 
     if (StringUtils.isEmpty(n.getTopicName())) {
-      p.addProblem(Severity.ERROR, "Missing topic name for Google publisher " + n.getName(),
-          "topic-name");
+      p.addProblem(
+          Severity.ERROR, "Missing topic name for Google publisher " + n.getName(), "topic-name");
     }
   }
 }

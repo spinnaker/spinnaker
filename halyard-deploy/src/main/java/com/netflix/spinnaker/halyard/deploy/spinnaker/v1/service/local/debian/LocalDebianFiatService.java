@@ -33,14 +33,13 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianFiatService extends FiatService implements LocalDebianService<FiatService.Fiat> {
+public class LocalDebianFiatService extends FiatService
+    implements LocalDebianService<FiatService.Fiat> {
   final String upstartServiceName = "fiat";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
@@ -49,7 +48,8 @@ public class LocalDebianFiatService extends FiatService implements LocalDebianSe
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(deploymentConfiguration.getSecurity().getAuthz().isEnabled());
   }

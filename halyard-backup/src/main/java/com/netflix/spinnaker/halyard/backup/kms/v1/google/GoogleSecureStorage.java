@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.backup.kms.v1.google;
 
-
 import com.netflix.spinnaker.halyard.backup.kms.v1.SecureStorage;
 
 public class GoogleSecureStorage extends SecureStorage {

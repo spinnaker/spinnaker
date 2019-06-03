@@ -25,11 +25,9 @@ import lombok.Setter;
 
 public class EnableDisableCanaryServiceIntegrationCommandBuilder implements CommandBuilder {
 
-  @Setter
-  String name;
+  @Setter String name;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -37,7 +35,8 @@ public class EnableDisableCanaryServiceIntegrationCommandBuilder implements Comm
   }
 
   @Parameters(separators = "=")
-  private static class EnableDisableCanaryServiceIntegrationCommand extends AbstractEnableDisableCanaryServiceIntegrationCommand {
+  private static class EnableDisableCanaryServiceIntegrationCommand
+      extends AbstractEnableDisableCanaryServiceIntegrationCommand {
     private EnableDisableCanaryServiceIntegrationCommand(String name, boolean enable) {
       this.name = name;
       this.enable = enable;

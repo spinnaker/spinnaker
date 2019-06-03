@@ -24,10 +24,10 @@ import lombok.EqualsAndHashCode;
 @Data
 public class FileRoleProvider extends RoleProvider {
 
-  private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.FILE;
+  private final GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.FILE;
 
   private final String nodeName = "file";
 
-  @LocalFile
-  private String path;
+  @LocalFile private String path;
 }

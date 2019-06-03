@@ -5,14 +5,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-
-import org.springframework.stereotype.Component;
-
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
-/**
- */
+/** */
 @Component
 public class DCOSProviderValidator extends Validator<DCOSProvider> {
   @Override
@@ -21,7 +18,9 @@ public class DCOSProviderValidator extends Validator<DCOSProvider> {
 
     for (DCOSCluster cluster : provider.getClusters()) {
       if (clusters.contains(cluster.getName())) {
-        p.addProblem(Problem.Severity.FATAL, "Account \"" + cluster.getName() + "\" appears more than once")
+        p.addProblem(
+                Problem.Severity.FATAL,
+                "Account \"" + cluster.getName() + "\" appears more than once")
             .setRemediation("Change the name of the cluster in " + provider.getNodeName());
       } else {
         clusters.add(cluster.getName());

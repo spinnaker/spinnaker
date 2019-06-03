@@ -29,22 +29,21 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 @Parameters(separators = "=")
-abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand {
+public abstract class AbstractRemoteActionCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--auto-run",
       arity = 1,
-      description = "This command will generate a script to be run on your behalf. By default, the script will run "
-        + "without intervention - if you want to override this, provide \"true\" or \"false\" to this flag."
-  )
+      description =
+          "This command will generate a script to be run on your behalf. By default, the script will run "
+              + "without intervention - if you want to override this, provide \"true\" or \"false\" to this flag.")
   Boolean autoRun;
 
-  abstract protected OperationHandler<RemoteAction> getRemoteAction();
+  protected abstract OperationHandler<RemoteAction> getRemoteAction();
 
   protected void runRemoteAction(OperationHandler<RemoteAction> operation) {
     RemoteAction action = operation.get();

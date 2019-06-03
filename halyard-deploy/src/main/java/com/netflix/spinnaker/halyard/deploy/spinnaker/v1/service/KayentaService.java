@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
@@ -27,6 +26,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.AwsCredentialsProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.KayentaProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -34,22 +38,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class KayentaService extends SpringService<KayentaService.Kayenta> {
+public abstract class KayentaService extends SpringService<KayentaService.Kayenta> {
 
-  @Autowired
-  KayentaProfileFactory kayentaProfileFactory;
+  @Autowired KayentaProfileFactory kayentaProfileFactory;
 
-  @Autowired
-  AwsCredentialsProfileFactoryBuilder awsCredentialsProfileFactoryBuilder;
+  @Autowired AwsCredentialsProfileFactoryBuilder awsCredentialsProfileFactoryBuilder;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -67,46 +63,59 @@ abstract public class KayentaService extends SpringService<KayentaService.Kayent
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "kayenta.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    Profile profile = kayentaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile =
+        kayentaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;
   }
 
-  protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
+  protected Optional<Profile> generateAwsProfile(
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints,
+      String spinnakerHome) {
     String name = "aws/kayenta-credentials" + spinnakerHome.replace("/", "_");
     Canary canary = deploymentConfiguration.getCanary();
 
     if (canary.isEnabled()) {
       AwsCanaryServiceIntegration awsCanaryServiceIntegration =
-          (AwsCanaryServiceIntegration)getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
+          (AwsCanaryServiceIntegration)
+              getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
 
-      // TODO(lwander/duftler): Seems like this approach leaves us open to potential collision between kayenta aws
+      // TODO(lwander/duftler): Seems like this approach leaves us open to potential collision
+      // between kayenta aws
       // accounts, and front50 and clouddriver configuration.
       if (awsCanaryServiceIntegration.isS3Enabled()) {
         Optional<AwsCanaryAccount> optionalAwsCanaryAccount =
-            awsCanaryServiceIntegration.getAccounts()
-                .stream()
-                .filter(a -> !StringUtils.isEmpty(a.getAccessKeyId()) && !StringUtils.isEmpty(a.getSecretAccessKey()))
+            awsCanaryServiceIntegration.getAccounts().stream()
+                .filter(
+                    a ->
+                        !StringUtils.isEmpty(a.getAccessKeyId())
+                            && !StringUtils.isEmpty(a.getSecretAccessKey()))
                 .findFirst();
 
         if (optionalAwsCanaryAccount.isPresent()) {
           AwsCanaryAccount awsCanaryAccount = optionalAwsCanaryAccount.get();
           String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
 
-          awsCredentialsProfileFactoryBuilder.setProfileName(StringUtils.isNotBlank(awsCanaryAccount.getProfileName()) ? awsCanaryAccount.getProfileName() : "default");
+          awsCredentialsProfileFactoryBuilder.setProfileName(
+              StringUtils.isNotBlank(awsCanaryAccount.getProfileName())
+                  ? awsCanaryAccount.getProfileName()
+                  : "default");
 
-          return Optional.of(awsCredentialsProfileFactoryBuilder
-              .setArtifact(SpinnakerArtifact.KAYENTA)
-              .setAccessKeyId(awsCanaryAccount.getAccessKeyId())
-              .setSecretAccessKey(awsCanaryAccount.getSecretAccessKey())
-              .build()
-              .getProfile(name, outputFile, deploymentConfiguration, endpoints));
+          return Optional.of(
+              awsCredentialsProfileFactoryBuilder
+                  .setArtifact(SpinnakerArtifact.KAYENTA)
+                  .setAccessKeyId(awsCanaryAccount.getAccessKeyId())
+                  .setSecretAccessKey(awsCanaryAccount.getSecretAccessKey())
+                  .build()
+                  .getProfile(name, outputFile, deploymentConfiguration, endpoints));
         }
       }
     }
@@ -143,12 +152,16 @@ abstract public class KayentaService extends SpringService<KayentaService.Kayent
     public Settings() {}
   }
 
-  private static AbstractCanaryServiceIntegration getServiceIntegrationByClass(Canary canary,
-                                                                              Class<? extends AbstractCanaryServiceIntegration> serviceIntegrationClass) {
-    return canary.getServiceIntegrations()
-        .stream()
+  private static AbstractCanaryServiceIntegration getServiceIntegrationByClass(
+      Canary canary, Class<? extends AbstractCanaryServiceIntegration> serviceIntegrationClass) {
+    return canary.getServiceIntegrations().stream()
         .filter(s -> serviceIntegrationClass.isAssignableFrom(s.getClass()))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Canary service integration of type " + serviceIntegrationClass.getSimpleName() + " not found."));
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Canary service integration of type "
+                        + serviceIntegrationClass.getSimpleName()
+                        + " not found."));
   }
 }

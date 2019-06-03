@@ -33,7 +33,8 @@ public class ArtifactSourcesConfig {
   String dockerRegistry = "gcr.io/spinnaker-marketplace";
   String debianRepository = "https://dl.bintray.com/spinnaker-releases/debians";
 
-  public ArtifactSourcesConfig mergeWithBomSources(BillOfMaterials.ArtifactSources artifactSources) {
+  public ArtifactSourcesConfig mergeWithBomSources(
+      BillOfMaterials.ArtifactSources artifactSources) {
     if (artifactSources == null) {
       return this;
     }

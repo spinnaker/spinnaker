@@ -17,58 +17,60 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.repository.artifactory.ArtifactoryRepository;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Repositories extends Node implements Cloneable {
-    ArtifactoryRepository artifactory = new ArtifactoryRepository();
+  ArtifactoryRepository artifactory = new ArtifactoryRepository();
 
-    @Override
-    public String getNodeName() {
-        return "repository";
+  @Override
+  public String getNodeName() {
+    return "repository";
+  }
+
+  public boolean repositoryEnabled() {
+    NodeIterator iterator = getChildren();
+    Repository child = (Repository) iterator.getNext();
+    while (child != null) {
+      if (child.isEnabled()) {
+        return true;
+      }
+
+      child = (Repository) iterator.getNext();
     }
 
-    public boolean repositoryEnabled() {
-        NodeIterator iterator = getChildren();
-        Repository child = (Repository) iterator.getNext();
-        while (child != null) {
-            if (child.isEnabled()) {
-                return true;
-            }
+    return false;
+  }
 
-            child = (Repository) iterator.getNext();
-        }
+  public static Class<? extends Repository> translateReposiroryType(String repositoryName) {
+    Optional<? extends Class<?>> res =
+        Arrays.stream(Repositories.class.getDeclaredFields())
+            .filter(f -> f.getName().equals(repositoryName))
+            .map(Field::getType)
+            .findFirst();
 
-        return false;
+    if (res.isPresent()) {
+      return (Class<? extends Repository>) res.get();
+    } else {
+      throw new IllegalArgumentException(
+          "No repository service with name \"" + repositoryName + "\" handled by halyard");
     }
+  }
 
-    public static Class<? extends Repository> translateReposiroryType(String repositoryName) {
-        Optional<? extends Class<?>> res = Arrays.stream(Repositories.class.getDeclaredFields())
-                .filter(f -> f.getName().equals(repositoryName))
-                .map(Field::getType)
-                .findFirst();
+  public static Class<? extends Search> translateSearchType(String repositoryName) {
+    Class<? extends Repository> repositoryClass = translateReposiroryType(repositoryName);
 
-        if (res.isPresent()) {
-            return (Class<? extends Repository>)res.get();
-        } else {
-            throw new IllegalArgumentException("No repository service with name \"" + repositoryName + "\" handled by halyard");
-        }
+    String searchClassName = repositoryClass.getName().replaceAll("Repository", "Search");
+    try {
+      return (Class<? extends Search>) Class.forName(searchClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException(
+          "No search for class \"" + searchClassName + "\" found", e);
     }
-
-    public static Class<? extends Search> translateSearchType(String repositoryName) {
-        Class<? extends Repository> repositoryClass = translateReposiroryType(repositoryName);
-
-        String searchClassName = repositoryClass.getName().replaceAll("Repository", "Search");
-        try {
-            return (Class<? extends Search>) Class.forName(searchClassName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("No search for class \"" + searchClassName + "\" found", e);
-        }
-    }
+  }
 }

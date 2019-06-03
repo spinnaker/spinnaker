@@ -18,33 +18,38 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBase
 
 @Parameters(separators = "=")
 public class OracleEditBaseImageCommand extends AbstractEditBaseImageCommand<OracleBaseImage> {
-    @Override
-    protected String getProviderName() {
-        return Provider.ProviderType.ORACLE.getName();
-    }
+  @Override
+  protected String getProviderName() {
+    return Provider.ProviderType.ORACLE.getName();
+  }
 
-    @Parameter(
-            names = "--base-image-id",
-            description = OracleCommandProperties.BASE_IMAGE_ID_DESCRIPTION
-    )
-    private String baseImageId;
+  @Parameter(
+      names = "--base-image-id",
+      description = OracleCommandProperties.BASE_IMAGE_ID_DESCRIPTION)
+  private String baseImageId;
 
-    @Parameter(
-            names = "--ssh-user-name",
-            description = OracleCommandProperties.SSH_USER_NAME_DESCRIPTION
-    )
-    private String sshUserName;
+  @Parameter(
+      names = "--ssh-user-name",
+      description = OracleCommandProperties.SSH_USER_NAME_DESCRIPTION)
+  private String sshUserName;
 
-    @Override
-    protected BaseImage editBaseImage(OracleBaseImage baseImage){
-        OracleBaseImage.OracleImageSettings imageSettings = baseImage.getBaseImage();
-        imageSettings = imageSettings != null ? imageSettings : new OracleBaseImage.OracleImageSettings();
-        baseImage.setBaseImage(imageSettings);
-        OracleBaseImage.OracleVirtualizationSettings virtualizationSettings = baseImage.getVirtualizationSettings();
-        virtualizationSettings = virtualizationSettings != null ? virtualizationSettings : new OracleBaseImage.OracleVirtualizationSettings();
-        virtualizationSettings.setBaseImageId(isSet(baseImageId) ? baseImageId : virtualizationSettings.getBaseImageId());
-        virtualizationSettings.setSshUserName(isSet(sshUserName) ? sshUserName : virtualizationSettings.getSshUserName());
-        baseImage.setVirtualizationSettings(virtualizationSettings);
-        return baseImage;
-    }
+  @Override
+  protected BaseImage editBaseImage(OracleBaseImage baseImage) {
+    OracleBaseImage.OracleImageSettings imageSettings = baseImage.getBaseImage();
+    imageSettings =
+        imageSettings != null ? imageSettings : new OracleBaseImage.OracleImageSettings();
+    baseImage.setBaseImage(imageSettings);
+    OracleBaseImage.OracleVirtualizationSettings virtualizationSettings =
+        baseImage.getVirtualizationSettings();
+    virtualizationSettings =
+        virtualizationSettings != null
+            ? virtualizationSettings
+            : new OracleBaseImage.OracleVirtualizationSettings();
+    virtualizationSettings.setBaseImageId(
+        isSet(baseImageId) ? baseImageId : virtualizationSettings.getBaseImageId());
+    virtualizationSettings.setSshUserName(
+        isSet(sshUserName) ? sshUserName : virtualizationSettings.getSshUserName());
+    baseImage.setVirtualizationSettings(virtualizationSettings);
+    return baseImage;
+  }
 }

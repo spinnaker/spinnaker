@@ -33,15 +33,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class KubernetesV1MonitoringDaemonService extends SpinnakerMonitoringDaemonService {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
     return settings;
@@ -51,11 +51,12 @@ public class KubernetesV1MonitoringDaemonService extends SpinnakerMonitoringDaem
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
 
-    KubernetesImageDescription image = KubernetesImageDescription.builder()
-        .registry(getDockerRegistry(deploymentName, getArtifact()))
-        .repository(artifactName)
-        .tag(version)
-        .build();
+    KubernetesImageDescription image =
+        KubernetesImageDescription.builder()
+            .registry(getDockerRegistry(deploymentName, getArtifact()))
+            .repository(artifactName)
+            .tag(version)
+            .build();
     return KubernetesUtil.getImageId(image);
   }
 }

@@ -23,6 +23,5 @@ import lombok.Getter;
 
 public class GoogleDeletePublisherCommand extends AbstractDeletePublisherCommand {
 
-  @Getter
-  private String pubsubName = "google";
+  @Getter private String pubsubName = "google";
 }

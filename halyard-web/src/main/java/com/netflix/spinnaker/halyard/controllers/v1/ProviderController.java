@@ -28,10 +28,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +42,8 @@ public class ProviderController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Provider> get(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Provider> get(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Provider>builder()
@@ -55,14 +55,13 @@ public class ProviderController {
   }
 
   @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setProvider(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setProvider(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawProvider) {
-    Provider provider = objectMapper.convertValue(
-        rawProvider,
-        Providers.translateProviderType(providerName)
-    );
+    Provider provider =
+        objectMapper.convertValue(rawProvider, Providers.translateProviderType(providerName));
     return GenericUpdateRequest.<Provider>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(p -> providerService.setProvider(deploymentName, p))
@@ -73,7 +72,8 @@ public class ProviderController {
   }
 
   @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -86,8 +86,8 @@ public class ProviderController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Provider>> providers(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<Provider>> providers(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Provider>>builder()
         .getter(() -> providerService.getAllProviders(deploymentName))
         .validator(() -> providerService.validateAllProviders(deploymentName))

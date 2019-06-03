@@ -21,11 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import java.net.URL;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
-
-import java.net.URL;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -37,10 +36,10 @@ public class SamlConfig {
   String metadataUrl;
 
   @LocalFile
-  @SecretFile(prefix="file:")
+  @SecretFile(prefix = "file:")
   String keyStore;
-  @Secret
-  String keyStorePassword;
+
+  @Secret String keyStorePassword;
   String keyStoreAliasName;
 
   String redirectProtocol;

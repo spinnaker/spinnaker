@@ -32,6 +32,10 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -39,18 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1RedisService extends RedisService implements KubernetesV1DistributedService<Jedis> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1RedisService extends RedisService
+    implements KubernetesV1DistributedService<Jedis> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -58,9 +56,13 @@ public class KubernetesV1RedisService extends RedisService implements Kubernetes
   }
 
   @Override
-  public Jedis connectToPrimaryService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  public Jedis connectToPrimaryService(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(this);
-    List<String> command = Arrays.stream(connectCommand(details, runtimeSettings).split(" ")).collect(Collectors.toList());
+    List<String> command =
+        Arrays.stream(connectCommand(details, runtimeSettings).split(" "))
+            .collect(Collectors.toList());
     JobRequest request = new JobRequest().setTokenizedCommand(command);
     String jobId = getJobExecutor().startJob(request);
     // Wait for the proxy to spin up.
@@ -71,9 +73,12 @@ public class KubernetesV1RedisService extends RedisService implements Kubernetes
 
     // This should be a long-running job.
     if (status.getState() == JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL,
-          "Unable to establish a proxy against Redis:\n" + status.getStdOut()
-              + "\n" + status.getStdErr());
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Unable to establish a proxy against Redis:\n"
+              + status.getStdOut()
+              + "\n"
+              + status.getStdErr());
     }
 
     return new Jedis("localhost", settings.getPort());
@@ -81,10 +86,12 @@ public class KubernetesV1RedisService extends RedisService implements Kubernetes
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings();
     String location = kubernetesSharedServiceSettings.getDeployLocation();
-    settings.setAddress(buildAddress(location))
+    settings
+        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
         .setEnabled(true);

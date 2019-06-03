@@ -20,10 +20,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.security.Authz;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import java.util.List;
 import lombok.Data;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class FiatProfileFactory extends SpringProfileFactory {
@@ -38,12 +37,16 @@ public class FiatProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Authz authz = deploymentConfiguration.getSecurity().getAuthz();
     List<String> files = backupRequiredFiles(authz, deploymentConfiguration.getName());
     AuthConfig authConfig = new AuthConfig().setAuth(authz);
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, authConfig))
+    profile
+        .appendContents(yamlToString(deploymentConfiguration.getName(), profile, authConfig))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

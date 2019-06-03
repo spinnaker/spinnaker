@@ -23,11 +23,10 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class PublishLatestSpinnakerCommand extends NestableCommand {
@@ -35,7 +34,8 @@ public class PublishLatestSpinnakerCommand extends NestableCommand {
   private String commandName = "latest-spinnaker";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
+  private String shortDescription =
+      "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
 
   @Override
   public String getMainParameter() {

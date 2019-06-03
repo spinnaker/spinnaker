@@ -19,13 +19,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.saml;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.AbstractEditAuthnMethodCommand;
-import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
-import lombok.Getter;
-
-import java.net.MalformedURLException;
 import java.net.URL;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
@@ -34,86 +31,79 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
   private String shortDescription = "Configure authentication using a SAML identity provider.";
 
   @Getter
-  private String longDescription = String.join(" ",
-    "SAML authenticates users by passing cryptographically signed XML documents between the Gate",
-    "server and an identity provider. Gate's key is stored and accessed via the --keystore ",
-    "parameters, while the identity provider's keys are included in the metadata.xml. Finally,",
-    "the identity provider must redirect the control flow (through the user's browser) back to",
-    "Gate by way of the --serviceAddressUrl. This is likely the address of Gate's load balancer."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "SAML authenticates users by passing cryptographically signed XML documents between the Gate",
+          "server and an identity provider. Gate's key is stored and accessed via the --keystore ",
+          "parameters, while the identity provider's keys are included in the metadata.xml. Finally,",
+          "the identity provider must redirect the control flow (through the user's browser) back to",
+          "Gate by way of the --serviceAddressUrl. This is likely the address of Gate's load balancer.");
 
-  @Getter
-  private AuthnMethod.Method method = AuthnMethod.Method.SAML;
+  @Getter private AuthnMethod.Method method = AuthnMethod.Method.SAML;
 
   @Parameter(
       names = "--metadata",
-      description = "The address to your identity provider's metadata XML file. This can be a URL" +
-          " or the path of a local file."
-  )
+      description =
+          "The address to your identity provider's metadata XML file. This can be a URL"
+              + " or the path of a local file.")
   private String metadata;
 
   @Parameter(
       names = "--issuer-id",
-      description = "The identity of the Spinnaker application registered with the SAML provider."
-  )
+      description = "The identity of the Spinnaker application registered with the SAML provider.")
   private String issuerId;
 
   @Parameter(
       names = "--keystore",
-      description = "Path to the keystore that contains this server's private key. This key is " +
-          "used to cryptographically sign SAML AuthNRequest objects."
-  )
+      description =
+          "Path to the keystore that contains this server's private key. This key is "
+              + "used to cryptographically sign SAML AuthNRequest objects.")
   private String keystore;
 
   @Parameter(
       names = "--keystore-password",
-      description = "The password used to access the file specified in --keystore"
-  )
+      description = "The password used to access the file specified in --keystore")
   private String keystorePassword;
 
   @Parameter(
       names = "--keystore-alias",
-      description = "The name of the alias under which this server's private key is stored in the" +
-          " --keystore file."
-  )
+      description =
+          "The name of the alias under which this server's private key is stored in the"
+              + " --keystore file.")
   private String keystoreAliasName;
 
   @Parameter(
       names = "--service-address-url",
-      description = "The address of the Gate server that will be accesible by the SAML identity " +
-          "provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/" +
-          ". If deployed behind a load balancer, this would be the laod balancer's address."
-  )
+      description =
+          "The address of the Gate server that will be accesible by the SAML identity "
+              + "provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/"
+              + ". If deployed behind a load balancer, this would be the laod balancer's address.")
   private URL serviceAddress;
 
   @Parameter(
-    names = "--user-attribute-mapping-first-name",
-    description = "The first name field returned from your SAML provider."
-  )
+      names = "--user-attribute-mapping-first-name",
+      description = "The first name field returned from your SAML provider.")
   private String userInfoMappingFirstName;
 
   @Parameter(
-    names = "--user-attribute-mapping-last-name",
-    description = "The last name field returned from your SAML provider."
-  )
+      names = "--user-attribute-mapping-last-name",
+      description = "The last name field returned from your SAML provider.")
   private String userAttributeMappingLastName;
 
   @Parameter(
-    names = "--user-attribute-mapping-username",
-    description = "The username field returned from your SAML provider."
-  )
+      names = "--user-attribute-mapping-username",
+      description = "The username field returned from your SAML provider.")
   private String userAttributeMappingUsername;
 
   @Parameter(
-    names = "--user-attribute-mapping-roles",
-    description = "The roles field returned from your SAML provider."
-  )
+      names = "--user-attribute-mapping-roles",
+      description = "The roles field returned from your SAML provider.")
   private String userAttributeMappingRoles;
 
   @Parameter(
-    names = "--user-attribute-mapping-roles-delimiter",
-    description = "The roles delimiter field returned from your SAML provider."
-  )
+      names = "--user-attribute-mapping-roles-delimiter",
+      description = "The roles delimiter field returned from your SAML provider.")
   private String userAttributeMappingRolesDelimiter;
 
   @Override
@@ -135,11 +125,26 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
     }
 
     Saml.UserAttributeMapping userAttributeMapping = s.getUserAttributeMapping();
-    userAttributeMapping.setFirstName(isSet(userInfoMappingFirstName) ? userInfoMappingFirstName : userAttributeMapping.getFirstName());
-    userAttributeMapping.setLastName(isSet(userAttributeMappingLastName) ? userAttributeMappingLastName : userAttributeMapping.getLastName());
-    userAttributeMapping.setRoles(isSet(userAttributeMappingRoles) ? userAttributeMappingRoles : userAttributeMapping.getRoles());
-    userAttributeMapping.setRolesDelimiter(isSet(userAttributeMappingRolesDelimiter) ? userAttributeMappingRolesDelimiter : userAttributeMapping.getRolesDelimiter());
-    userAttributeMapping.setUsername(isSet(userAttributeMappingUsername) ? userAttributeMappingUsername : userAttributeMapping.getUsername());
+    userAttributeMapping.setFirstName(
+        isSet(userInfoMappingFirstName)
+            ? userInfoMappingFirstName
+            : userAttributeMapping.getFirstName());
+    userAttributeMapping.setLastName(
+        isSet(userAttributeMappingLastName)
+            ? userAttributeMappingLastName
+            : userAttributeMapping.getLastName());
+    userAttributeMapping.setRoles(
+        isSet(userAttributeMappingRoles)
+            ? userAttributeMappingRoles
+            : userAttributeMapping.getRoles());
+    userAttributeMapping.setRolesDelimiter(
+        isSet(userAttributeMappingRolesDelimiter)
+            ? userAttributeMappingRolesDelimiter
+            : userAttributeMapping.getRolesDelimiter());
+    userAttributeMapping.setUsername(
+        isSet(userAttributeMappingUsername)
+            ? userAttributeMappingUsername
+            : userAttributeMapping.getUsername());
 
     return s;
   }

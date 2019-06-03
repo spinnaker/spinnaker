@@ -32,24 +32,18 @@ public abstract class AbstractAccountCommand extends AbstractHasAccountCommand {
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's account";
+    return "Manage and view Spinnaker configuration for the "
+        + getProviderName()
+        + " provider's account";
   }
 
   protected AbstractAccountCommand() {
-    registerSubcommand(new DeleteAccountCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new DeleteAccountCommandBuilder().setProviderName(getProviderName()).build());
 
-    registerSubcommand(new GetAccountCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(new GetAccountCommandBuilder().setProviderName(getProviderName()).build());
 
-    registerSubcommand(new ListAccountsCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(new ListAccountsCommandBuilder().setProviderName(getProviderName()).build());
   }
 
   @Override

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spin.v1;
 
-
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +24,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpinService {
 
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   public RemoteAction install() {
     RemoteAction result = new RemoteAction();
-    String script = "#!/bin/bash\n"
-        + "curl -LO https://storage.googleapis.com/spinnaker-artifacts/spin/$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)/linux/amd64/spin\n"
-        + "chmod +x spin\n"
-        + "sudo mv spin /usr/local/bin/spin";
+    String script =
+        "#!/bin/bash\n"
+            + "curl -LO https://storage.googleapis.com/spinnaker-artifacts/spin/$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)/linux/amd64/spin\n"
+            + "chmod +x spin\n"
+            + "sudo mv spin /usr/local/bin/spin";
     result.setScript(script);
     result.setScriptDescription("The generated script will install the latest version of spin CLI");
     result.setAutoRun(true);

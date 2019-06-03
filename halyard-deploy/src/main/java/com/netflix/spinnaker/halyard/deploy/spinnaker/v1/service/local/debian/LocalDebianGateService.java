@@ -33,14 +33,13 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianGateService extends GateService implements LocalDebianService<GateService.Gate> {
+public class LocalDebianGateService extends GateService
+    implements LocalDebianService<GateService.Gate> {
   final String upstartServiceName = "gate";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {

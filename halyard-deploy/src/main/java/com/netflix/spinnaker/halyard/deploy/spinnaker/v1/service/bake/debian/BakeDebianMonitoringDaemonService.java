@@ -24,52 +24,53 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements BakeDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService
+    implements BakeDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final String upstartServiceName = "spinnaker-monitoring";
   final String pipRequirementsFile = "/opt/spinnaker-monitoring/requirements.txt";
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   StartupPriority priority = new StartupPriority(StartupPriority.MODERATE);
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(true);
   }
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     String installCommand = BakeDebianService.super.installArtifactCommand(deploymentDetails);
-    return String.join("\n", installCommand,
-        "apt-get install -y python-dev"
-    );
+    return String.join("\n", installCommand, "apt-get install -y python-dev");
   }
 
-  // TODO(lwander): put back into `installArtifactCommand` once pip/datadog issue is resolved that corrupts GCE hostname
+  // TODO(lwander): put back into `installArtifactCommand` once pip/datadog issue is resolved that
+  // corrupts GCE hostname
   @Override
   public String getStartupCommand() {
-    return String.join("\n", "sed -i -e 's/#@ //g' " + pipRequirementsFile,
+    return String.join(
+        "\n",
+        "sed -i -e 's/#@ //g' " + pipRequirementsFile,
         "pip install -r " + pipRequirementsFile,
-        "sudo service " + upstartServiceName + " restart"
-    );
+        "sudo service " + upstartServiceName + " restart");
   }
 
   public String getArtifactId(String deploymentName) {

@@ -22,14 +22,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
-/**
- * A way to identify a spot in your halconfig.
- */
+/** A way to identify a spot in your halconfig. */
 @Data
 public class NodeFilter implements Cloneable {
   List<NodeMatcher> matchers = new ArrayList<>();

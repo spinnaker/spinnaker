@@ -23,28 +23,27 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 @Component
 public class OrcaRunner {
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   public void monitorTask(Supplier<String> submitTask, Orca orca) {
     final String id = getTaskEndpoint(submitTask);
 
-    Supplier<Pipeline> getPipeline = () -> {
-      Map<String, Object> execution = orca.getRef(id);
-      return objectMapper.convertValue(execution, Task.class).getExecution();
-    };
+    Supplier<Pipeline> getPipeline =
+        () -> {
+          Map<String, Object> execution = orca.getRef(id);
+          return objectMapper.convertValue(execution, Task.class).getExecution();
+        };
 
     monitor(getPipeline);
   }
@@ -52,10 +51,11 @@ public class OrcaRunner {
   public void monitorPipeline(Supplier<String> submitPipeline, Orca orca) {
     final String id = getTaskEndpoint(submitPipeline);
 
-    Supplier<Pipeline> getPipeline = () -> {
-      Map<String, Object> execution = orca.getRef(id);
-      return objectMapper.convertValue(execution, Pipeline.class);
-    };
+    Supplier<Pipeline> getPipeline =
+        () -> {
+          Map<String, Object> execution = orca.getRef(id);
+          return objectMapper.convertValue(execution, Pipeline.class);
+        };
 
     monitor(getPipeline);
   }
@@ -76,7 +76,9 @@ public class OrcaRunner {
     }
 
     if (problem == null) {
-      problem = new ProblemBuilder(Problem.Severity.FATAL, "Pipeline failed, but no error was found.").build();
+      problem =
+          new ProblemBuilder(Problem.Severity.FATAL, "Pipeline failed, but no error was found.")
+              .build();
     }
     return problem;
   }
@@ -132,7 +134,9 @@ public class OrcaRunner {
         status = pipeline.getStatus();
       }
     } catch (RetrofitError e) {
-      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Failed to monitor task: " + e.getMessage()).build());
+      throw new HalException(
+          new ProblemBuilder(Problem.Severity.FATAL, "Failed to monitor task: " + e.getMessage())
+              .build());
     }
 
     logPipelineOutput(pipeline, loggedTasks);
@@ -151,8 +155,9 @@ public class OrcaRunner {
         String taskName = formatId(task.name != null ? task.name : task.id);
         String fullTaskId = stageName + ": " + taskName;
         String taskStatus = task.getStatus();
-        if (!loggedTasks.contains(fullTaskId) &&
-            (taskStatus.equalsIgnoreCase("running") || taskStatus.equalsIgnoreCase("succeeded"))) {
+        if (!loggedTasks.contains(fullTaskId)
+            && (taskStatus.equalsIgnoreCase("running")
+                || taskStatus.equalsIgnoreCase("succeeded"))) {
           DaemonTaskHandler.message(taskName);
           loggedTasks.add(fullTaskId);
         }
@@ -230,8 +235,7 @@ public class OrcaRunner {
 
     @EqualsAndHashCode(callSuper = true)
     @Data
-    static class Step extends Atom {
-    }
+    static class Step extends Atom {}
   }
 
   @EqualsAndHashCode(callSuper = true)
@@ -249,8 +253,7 @@ public class OrcaRunner {
 
       @EqualsAndHashCode(callSuper = true)
       @Data
-      static class Task extends Atom {
-      }
+      static class Task extends Atom {}
     }
   }
 

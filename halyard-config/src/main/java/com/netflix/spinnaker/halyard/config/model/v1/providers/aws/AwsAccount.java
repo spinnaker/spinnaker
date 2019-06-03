@@ -18,11 +18,10 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

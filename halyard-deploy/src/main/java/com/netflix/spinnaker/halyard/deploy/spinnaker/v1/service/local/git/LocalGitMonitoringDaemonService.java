@@ -31,21 +31,21 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalGitMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements LocalGitService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+public class LocalGitMonitoringDaemonService extends SpinnakerMonitoringDaemonService
+    implements LocalGitService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final String upstartServiceName = "spinnaker-monitoring";
   final String pipRequirementsFile = "/opt/spinnaker-monitoring/requirements.txt";
 
   String startCommand = "";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
   }
@@ -54,11 +54,12 @@ public class LocalGitMonitoringDaemonService extends SpinnakerMonitoringDaemonSe
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     // TODO(brnelson): Clearly wrong...
     String installCommand = LocalGitService.super.installArtifactCommand(deploymentDetails);
-    return String.join("\n", installCommand,
+    return String.join(
+        "\n",
+        installCommand,
         "apt-get install -y python-dev",
         "sed -i -e 's/#@ //g' " + pipRequirementsFile,
-        "pip install -r " + pipRequirementsFile
-    );
+        "pip install -r " + pipRequirementsFile);
   }
 
   public String getArtifactId(String deploymentName) {

@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
 
-/**
- * Interact with the jenkins ci's masters
- */
+/** Interact with the jenkins ci's masters */
 @Parameters(separators = "=")
 public class WerckerMasterCommand extends AbstractMasterCommand {
   protected String getCiName() {

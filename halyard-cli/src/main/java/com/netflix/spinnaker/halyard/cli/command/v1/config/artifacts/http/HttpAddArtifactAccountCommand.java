@@ -27,33 +27,27 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class HttpAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-      names = "--username",
-      description = "HTTP basic auth username"
-  )
+  @Parameter(names = "--username", description = "HTTP basic auth username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "HTTP basic auth password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "HTTP basic auth password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for HTTP basic auth"
-  )
+      description = "File containing \"username:password\" to use for HTTP basic auth")
   private String usernamePasswordFile;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     HttpArtifactAccount artifactAccount = new HttpArtifactAccount().setName(accountName);
-    artifactAccount.setUsername(username)
+    artifactAccount
+        .setUsername(username)
         .setPassword(password)
         .setUsernamePasswordFile(usernamePasswordFile);
     return artifactAccount;
   }
-
 
   @Override
   protected ArtifactAccount emptyArtifactAccount() {

@@ -25,7 +25,7 @@ import lombok.Getter;
 /**
  * This is a top-level command for stopping the halyard daemon.
  *
- * Usage is `$ hal shutdown`
+ * <p>Usage is `$ hal shutdown`
  */
 @Parameters(separators = "=")
 public class ShutdownCommand extends NestableCommand {

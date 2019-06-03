@@ -21,7 +21,8 @@ import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 
-public class PersistentStoreTypeConverter implements IStringConverter<PersistentStore.PersistentStoreType> {
+public class PersistentStoreTypeConverter
+    implements IStringConverter<PersistentStore.PersistentStoreType> {
   @Override
   public PersistentStore.PersistentStoreType convert(String value) {
     try {

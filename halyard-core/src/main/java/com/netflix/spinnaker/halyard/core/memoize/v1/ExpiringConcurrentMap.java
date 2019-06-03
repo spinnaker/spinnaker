@@ -18,8 +18,6 @@
 
 package com.netflix.spinnaker.halyard.core.memoize.v1;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Map;
@@ -27,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ExpiringConcurrentMap<K, V> implements Map<K, V> {
@@ -104,24 +103,20 @@ public class ExpiringConcurrentMap<K, V> implements Map<K, V> {
 
   @Override
   public Set<K> keySet() {
-    return entrySet().stream()
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toSet());
+    return entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toSet());
   }
 
   @Override
   public Collection<V> values() {
-    return entrySet().stream()
-        .map(Map.Entry::getValue)
-        .collect(Collectors.toList());
+    return entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
   }
 
   @Override
   public Set<Map.Entry<K, V>> entrySet() {
-    Set<Map.Entry> result = delegate.entrySet()
-        .stream()
-        .filter(e -> !e.getValue().expired())
-        .collect(Collectors.toSet());
+    Set<Map.Entry> result =
+        delegate.entrySet().stream()
+            .filter(e -> !e.getValue().expired())
+            .collect(Collectors.toSet());
 
     return result.stream()
         .map(e -> new AbstractMap.SimpleEntry<>((K) e.getKey(), ((Entry) e.getValue()).value))
@@ -132,7 +127,7 @@ public class ExpiringConcurrentMap<K, V> implements Map<K, V> {
     long lastUpdate;
     V value;
 
-    public Entry() { }
+    public Entry() {}
 
     public Entry(V value) {
       this.value = value;

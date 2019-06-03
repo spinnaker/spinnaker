@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.IAP;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.stereotype.Component;
@@ -34,9 +33,10 @@ public class IAPValidator extends Validator<IAP> {
     }
 
     if (iap.getAudience() == null) {
-      p.addProblem(Problem.Severity.ERROR,
+      p.addProblem(
+          Problem.Severity.ERROR,
           "No Audience was supplied. You can retrieve this field from the IAP console: "
-          + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
+              + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
     }
   }
 }

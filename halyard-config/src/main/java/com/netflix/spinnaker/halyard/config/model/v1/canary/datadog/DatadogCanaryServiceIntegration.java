@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Slf4j
-public class DatadogCanaryServiceIntegration extends AbstractCanaryServiceIntegration<DatadogCanaryAccount> implements Cloneable {
+public class DatadogCanaryServiceIntegration
+    extends AbstractCanaryServiceIntegration<DatadogCanaryAccount> implements Cloneable {
   public static final String NAME = "datadog";
 
   String name = NAME;

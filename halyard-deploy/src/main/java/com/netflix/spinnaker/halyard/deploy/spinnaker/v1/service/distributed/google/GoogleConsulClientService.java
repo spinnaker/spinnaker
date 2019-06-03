@@ -29,14 +29,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class GoogleConsulClientService extends ConsulClientService {
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setEnabled(true);
+    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName())).setEnabled(true);
     return settings;
   }
 

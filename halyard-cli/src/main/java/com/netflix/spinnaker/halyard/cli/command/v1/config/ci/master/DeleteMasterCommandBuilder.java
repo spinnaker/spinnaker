@@ -25,8 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class DeleteMasterCommandBuilder implements CommandBuilder {
-  @Setter
-  String ciName;
+  @Setter String ciName;
 
   @Override
   public NestableCommand build() {

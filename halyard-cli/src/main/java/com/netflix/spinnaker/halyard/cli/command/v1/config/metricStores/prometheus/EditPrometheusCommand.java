@@ -32,14 +32,15 @@ public class EditPrometheusCommand extends AbstractEditMetricStoreCommand<Promet
 
   @Parameter(
       names = "--push-gateway",
-      description = "The endpoint the monitoring Daemon should push metrics to. If you have configured Prometheus to "
-          + "automatically discover all your Spinnaker services and pull metrics from them this is not required."
-  )
+      description =
+          "The endpoint the monitoring Daemon should push metrics to. If you have configured Prometheus to "
+              + "automatically discover all your Spinnaker services and pull metrics from them this is not required.")
   private String pushGateway;
 
   @Override
   protected MetricStore editMetricStore(PrometheusStore prometheusStore) {
-    prometheusStore.setPushGateway(isSet(pushGateway) ? pushGateway : prometheusStore.getPushGateway());
+    prometheusStore.setPushGateway(
+        isSet(pushGateway) ? pushGateway : prometheusStore.getPushGateway());
 
     return prometheusStore;
   }

@@ -31,8 +31,7 @@ abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
     return "Get the specified account details for the " + getProviderName() + " provider.";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {
@@ -43,7 +42,8 @@ abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
     String currentDeployment = getCurrentDeployment();
     String providerName = getProviderName();
     return new OperationHandler<Account>()
-        .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
+        .setFailureMesssage(
+            "Failed to get account " + accountName + " for provider " + providerName + ".")
         .setSuccessMessage("Account " + accountName + ": ")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)

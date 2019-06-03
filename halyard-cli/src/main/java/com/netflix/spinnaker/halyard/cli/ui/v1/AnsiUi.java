@@ -16,21 +16,17 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
-/**
- * A shared colored terminal output class
- */
+/** A shared colored terminal output class */
 public class AnsiUi {
   public static void raw(String message) {
     AnsiPrinter.out.println(new AnsiSnippet(message).toString());
   }
 
   public static void listItem(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(4);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(4);
 
-    builder.addSnippet("  - ")
-        .addStyle(AnsiStyle.BOLD);
+    builder.addSnippet("  - ").addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(message);
 
@@ -38,14 +34,12 @@ public class AnsiUi {
   }
 
   public static void problemLocation(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
     builder.addSnippet("Problems in ");
 
-    builder.addSnippet(message)
-        .addStyle(AnsiStyle.BOLD);
+    builder.addSnippet(message).addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(":");
 
@@ -53,11 +47,11 @@ public class AnsiUi {
   }
 
   public static void warning(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("- WARNING ")
+    builder
+        .addSnippet("- WARNING ")
         .setForegroundColor(AnsiForegroundColor.YELLOW)
         .addStyle(AnsiStyle.BOLD);
 
@@ -67,11 +61,11 @@ public class AnsiUi {
   }
 
   public static void error(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("! ERROR ")
+    builder
+        .addSnippet("! ERROR ")
         .setForegroundColor(AnsiForegroundColor.RED)
         .addStyle(AnsiStyle.BOLD);
 
@@ -81,11 +75,11 @@ public class AnsiUi {
   }
 
   public static void remediation(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("? ")
+    builder
+        .addSnippet("? ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)
         .addStyle(AnsiStyle.BOLD);
 
@@ -95,12 +89,10 @@ public class AnsiUi {
   }
 
   public static void listRemediation(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(4);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(4);
 
-    builder.addSnippet("  - ")
-        .addStyle(AnsiStyle.BOLD);
+    builder.addSnippet("  - ").addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(message);
 
@@ -108,13 +100,10 @@ public class AnsiUi {
   }
 
   public static void success(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("+ ")
-        .setForegroundColor(AnsiForegroundColor.GREEN)
-        .addStyle(AnsiStyle.BOLD);
+    builder.addSnippet("+ ").setForegroundColor(AnsiForegroundColor.GREEN).addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(message);
 
@@ -122,13 +111,10 @@ public class AnsiUi {
   }
 
   public static void failure(String message) {
-    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false)
-        .setIndentWidth(2);
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("- ")
-        .setForegroundColor(AnsiForegroundColor.RED)
-        .addStyle(AnsiStyle.BOLD);
+    builder.addSnippet("- ").setForegroundColor(AnsiForegroundColor.RED).addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(message);
 

@@ -20,19 +20,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import java.util.List;
+import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.util.List;
-import java.util.Map;
-
 public class AnsiFormatUtils {
-  private static ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(AnsiFormatUtils::getYamlParser);
+  private static ThreadLocal<Yaml> yamlParser =
+      ThreadLocal.withInitial(AnsiFormatUtils::getYamlParser);
   private static ObjectMapper objectMapper = null;
 
-  public enum Format  {
+  public enum Format {
     YAML,
     JSON,
     STRING,
@@ -45,7 +45,8 @@ public class AnsiFormatUtils {
         }
       }
 
-      throw new IllegalArgumentException("Unknown format type: " + value + " valid arguments are YAML, JSON, STRING, or NONE.");
+      throw new IllegalArgumentException(
+          "Unknown format type: " + value + " valid arguments are YAML, JSON, STRING, or NONE.");
     }
   }
 
@@ -67,7 +68,7 @@ public class AnsiFormatUtils {
   }
 
   private static String formatYaml(Object yaml) {
-    if(yaml instanceof List) {
+    if (yaml instanceof List) {
       return yamlParser.get().dump(getObjectMapper().convertValue(yaml, List.class));
     }
 
@@ -135,11 +136,13 @@ public class AnsiFormatUtils {
     if (accounts == null || accounts.isEmpty()) {
       paragraph.addSnippet("[]");
     } else {
-      accounts.forEach(account -> {
-        AnsiParagraphBuilder list = resultBuilder.addParagraph().setIndentFirstLine(true).setIndentWidth(1);
-        list.addSnippet("- ");
-        list.addSnippet(account.getName());
-      });
+      accounts.forEach(
+          account -> {
+            AnsiParagraphBuilder list =
+                resultBuilder.addParagraph().setIndentFirstLine(true).setIndentWidth(1);
+            list.addSnippet("- ");
+            list.addSnippet(account.getName());
+          });
     }
 
     return resultBuilder.toString();

@@ -29,45 +29,49 @@ import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotific
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * notifications.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs notifications.
  */
 @Component
 public class NotificationService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
   public Notification getNotification(String deploymentName, String notificationName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setNotification(notificationName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setNotification(notificationName);
 
     List<Notification> matching = lookupService.getMatchingNodesOfType(filter, Notification.class);
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No notification type with name \"" + notificationName + "\" could be found").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "No notification type with name \"" + notificationName + "\" could be found")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one notification type with name \"" + notificationName + "\" found").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one notification type with name \"" + notificationName + "\" found")
+                .build());
     }
   }
 
   public Notifications getNotifications(String deploymentName) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     Notifications notifications = deploymentConfiguration.getNotifications();
     if (notifications == null) {
       notifications = new Notifications();
@@ -78,7 +82,8 @@ public class NotificationService {
   }
 
   public void setNotification(String deploymentName, Notification notification) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     Notifications notifications = deploymentConfiguration.getNotifications();
     switch (notification.getNotificationType()) {
       case SLACK:
@@ -88,7 +93,8 @@ public class NotificationService {
         notifications.setTwilio((TwilioNotification) notification);
         break;
       default:
-        throw new IllegalArgumentException("Unknown notification type " + notification.getNotificationType());
+        throw new IllegalArgumentException(
+            "Unknown notification type " + notification.getNotificationType());
     }
   }
 
@@ -98,17 +104,14 @@ public class NotificationService {
   }
 
   public ProblemSet validateNotification(String deploymentName, String notificationName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setNotification(notificationName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setNotification(notificationName);
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllNotifications(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyNotification();
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyNotification();
 
     return validateService.validateMatchingFilter(filter);
   }

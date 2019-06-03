@@ -28,15 +28,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifact
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.maven.MavenArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactProvider;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -61,20 +60,23 @@ public class Artifacts extends Node {
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeAppendNodeIterator(
         NodeIteratorFactory.makeReflectiveIterator(this),
-        NodeIteratorFactory.makeListIterator(templates.stream().map(t -> (Node) t).collect(Collectors.toList()))
-    );
+        NodeIteratorFactory.makeListIterator(
+            templates.stream().map(t -> (Node) t).collect(Collectors.toList())));
   }
 
-  public static Class<? extends ArtifactProvider> translateArtifactProviderType(String providerName) {
-    Optional<? extends Class<?>> res = Arrays.stream(Artifacts.class.getDeclaredFields())
-        .filter(f -> f.getName().equals(providerName))
-        .map(Field::getType)
-        .findFirst();
+  public static Class<? extends ArtifactProvider> translateArtifactProviderType(
+      String providerName) {
+    Optional<? extends Class<?>> res =
+        Arrays.stream(Artifacts.class.getDeclaredFields())
+            .filter(f -> f.getName().equals(providerName))
+            .map(Field::getType)
+            .findFirst();
 
     if (res.isPresent()) {
-      return (Class<? extends ArtifactProvider>)res.get();
+      return (Class<? extends ArtifactProvider>) res.get();
     } else {
-      throw new IllegalArgumentException("No artifact provider with name \"" + providerName + "\" handled by halyard");
+      throw new IllegalArgumentException(
+          "No artifact provider with name \"" + providerName + "\" handled by halyard");
     }
   }
 
@@ -85,7 +87,8 @@ public class Artifacts extends Node {
     try {
       return (Class<? extends ArtifactAccount>) Class.forName(accountClassName);
     } catch (ClassNotFoundException e) {
-      throw new IllegalArgumentException("No artifact account for class \"" + accountClassName + "\" found", e);
+      throw new IllegalArgumentException(
+          "No artifact account for class \"" + accountClassName + "\" found", e);
     }
   }
 }

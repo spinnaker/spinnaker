@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-abstract public class ArtifactAccount extends Node {
-  abstract public String getName();
+public abstract class ArtifactAccount extends Node {
+  public abstract String getName();
 
   @Override
   public String getNodeName() {

@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog.accou
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractCanaryAccountCommand;
 
-/**
- * Interact with the Datadog service integration
- */
+/** Interact with the Datadog service integration */
 @Parameters(separators = "=")
 public class DatadogCanaryAccountCommand extends AbstractCanaryAccountCommand {
 
@@ -35,4 +33,3 @@ public class DatadogCanaryAccountCommand extends AbstractCanaryAccountCommand {
     registerSubcommand(new DatadogEditCanaryAccountCommand());
   }
 }
-

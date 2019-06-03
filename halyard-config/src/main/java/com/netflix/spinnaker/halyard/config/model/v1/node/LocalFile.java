@@ -22,7 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotates a field that points to a file that needs to be present on the machine running Spinnaker.
+ * This annotates a field that points to a file that needs to be present on the machine running
+ * Spinnaker.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

@@ -21,8 +21,8 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Publisher;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -32,24 +32,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
- * deployments.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig's deployments.
  */
 @Component
 public class PublisherService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private PubsubService pubsubService;
+  @Autowired private PubsubService pubsubService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public List<Publisher> getAllPublishers(String deploymentName, String pubsubName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnyPublisher();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnyPublisher();
 
-    List<Publisher> matchingPublishers = lookupService.getMatchingNodesOfType(filter, Publisher.class);
+    List<Publisher> matchingPublishers =
+        lookupService.getMatchingNodesOfType(filter, Publisher.class);
 
     if (matchingPublishers.size() == 0) {
       throw new ConfigNotFoundException(
@@ -60,33 +59,50 @@ public class PublisherService {
   }
 
   private Publisher getPublisher(NodeFilter filter, String publisherName) {
-    List<Publisher> matchingPublishers = lookupService.getMatchingNodesOfType(filter, Publisher.class);
+    List<Publisher> matchingPublishers =
+        lookupService.getMatchingNodesOfType(filter, Publisher.class);
 
     switch (matchingPublishers.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No publisher with name \"" + publisherName + "\" was found")
-            .setRemediation("Check if this publisher was defined in another pubsub, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No publisher with name \"" + publisherName + "\" was found")
+                .setRemediation(
+                    "Check if this publisher was defined in another pubsub, or create a new one")
+                .build());
       case 1:
         return matchingPublishers.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one publisher named \"" + publisherName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate publishers with name \"" + publisherName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one publisher named \"" + publisherName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate publishers with name \""
+                        + publisherName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  public Publisher getPubsubPublisher(String deploymentName, String pubsubName, String publisherName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).setPublisher(publisherName);
+  public Publisher getPubsubPublisher(
+      String deploymentName, String pubsubName, String publisherName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setPubsub(pubsubName)
+            .setPublisher(publisherName);
     return getPublisher(filter, publisherName);
   }
 
   public Publisher getAnyPubsubPublisher(String deploymentName, String publisherName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyPubsub().setPublisher(publisherName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).withAnyPubsub().setPublisher(publisherName);
     return getPublisher(filter, publisherName);
   }
 
-  public void setPublisher(String deploymentName, String pubsubName, String publisherName, Publisher newPublisher) {
+  public void setPublisher(
+      String deploymentName, String pubsubName, String publisherName, Publisher newPublisher) {
     Pubsub pubsub = pubsubService.getPubsub(deploymentName, pubsubName);
 
     for (int i = 0; i < pubsub.getPublishers().size(); i++) {
@@ -97,16 +113,22 @@ public class PublisherService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Publisher \"" + publisherName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(Severity.FATAL, "Publisher \"" + publisherName + "\" wasn't found")
+            .build());
   }
 
   public void deletePublisher(String deploymentName, String pubsubName, String publisherName) {
     Pubsub pubsub = pubsubService.getPubsub(deploymentName, pubsubName);
-    boolean removed = pubsub.getPublishers().removeIf(publisher -> ((Publisher) publisher).getName().equals(publisherName));
+    boolean removed =
+        pubsub
+            .getPublishers()
+            .removeIf(publisher -> ((Publisher) publisher).getName().equals(publisherName));
 
     if (!removed) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Publisher \"" + publisherName + "\" wasn't found")
+          new ConfigProblemBuilder(
+                  Severity.FATAL, "Publisher \"" + publisherName + "\" wasn't found")
               .build());
     }
   }
@@ -116,13 +138,19 @@ public class PublisherService {
     pubsub.getPublishers().add(newPublisher);
   }
 
-  public ProblemSet validatePublisher(String deploymentName, String pubsubName, String publisherName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).setPublisher(publisherName);
+  public ProblemSet validatePublisher(
+      String deploymentName, String pubsubName, String publisherName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setPubsub(pubsubName)
+            .setPublisher(publisherName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllPublishers(String deploymentName, String pubsubName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnyPublisher();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnyPublisher();
     return validateService.validateMatchingFilter(filter);
   }
 }

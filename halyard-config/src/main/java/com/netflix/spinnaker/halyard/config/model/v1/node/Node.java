@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -38,20 +38,19 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
  *
- * The motivation for this is to allow us to navigate YAML paths in our halconfig, and validate each node (if necessary)
- * along the way.
+ * <p>The motivation for this is to allow us to navigate YAML paths in our halconfig, and validate
+ * each node (if necessary) along the way.
  */
 @Slf4j
-abstract public class Node implements Validatable {
+public abstract class Node implements Validatable {
 
   @JsonIgnore
   public abstract String getNodeName();
@@ -96,7 +95,8 @@ abstract public class Node implements Validatable {
    * Checks if the filter matches this node all the way to the root.
    *
    * @param filter the filter being checked.
-   * @return true iff the filter accepts this node, as a part of its full context (yaml tree ending at this node).
+   * @return true iff the filter accepts this node, as a part of its full context (yaml tree ending
+   *     at this node).
    */
   @JsonIgnore
   public boolean matchesToRoot(NodeFilter filter) {
@@ -116,14 +116,18 @@ abstract public class Node implements Validatable {
     }
 
     log.info(
-        "Looking for options for field " + fieldName + " in node " + getNodeName() + " for type "
+        "Looking for options for field "
+            + fieldName
+            + " in node "
+            + getNodeName()
+            + " for type "
             + getClass().getSimpleName());
     String fieldOptions = fieldName + "Options";
     Method optionsMethod = null;
 
     try {
-      optionsMethod = this.getClass()
-          .getDeclaredMethod(fieldOptions, ConfigProblemSetBuilder.class);
+      optionsMethod =
+          this.getClass().getDeclaredMethod(fieldOptions, ConfigProblemSetBuilder.class);
       optionsMethod.setAccessible(true);
 
       return (List<String>) optionsMethod.invoke(this, problemSetBuilder);
@@ -155,9 +159,7 @@ abstract public class Node implements Validatable {
     }
   }
 
-  @Getter
-  @JsonIgnore
-  protected Node parent = null;
+  @Getter @JsonIgnore protected Node parent = null;
 
   @JsonIgnore
   public void parentify() {
@@ -176,9 +178,10 @@ abstract public class Node implements Validatable {
     List<Field> res = new ArrayList<>();
 
     while (clazz != null) {
-      res.addAll(Arrays.stream(clazz.getDeclaredFields())
+      res.addAll(
+          Arrays.stream(clazz.getDeclaredFields())
               .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null && !isSecretFile(f))
-          .collect(Collectors.toList()));
+              .collect(Collectors.toList()));
       clazz = clazz.getSuperclass();
     }
 
@@ -202,25 +205,30 @@ abstract public class Node implements Validatable {
     if (!GlobalApplicationOptions.getInstance().isUseRemoteDaemon()) {
       return;
     }
-    localFiles().forEach(f -> {
-      try {
-        f.setAccessible(true);
-        String fContent = (String) f.get(this);
-        if (fContent != null) {
-          CRC32 crc = new CRC32();
-          crc.update(fContent.getBytes());
-          String fPath = Paths
-              .get(outputPath.toAbsolutePath().toString(), Long.toHexString(crc.getValue()))
-              .toString();
-          FileUtils.writeStringToFile(new File(fPath), fContent);
-          f.set(this, fPath);
-        }
-      } catch (IllegalAccessException | IOException e) {
-        throw new RuntimeException("Failed to get local files for node " + this.getNodeName(), e);
-      } finally {
-        f.setAccessible(false);
-      }
-    });
+    localFiles()
+        .forEach(
+            f -> {
+              try {
+                f.setAccessible(true);
+                String fContent = (String) f.get(this);
+                if (fContent != null) {
+                  CRC32 crc = new CRC32();
+                  crc.update(fContent.getBytes());
+                  String fPath =
+                      Paths.get(
+                              outputPath.toAbsolutePath().toString(),
+                              Long.toHexString(crc.getValue()))
+                          .toString();
+                  FileUtils.writeStringToFile(new File(fPath), fContent);
+                  f.set(this, fPath);
+                }
+              } catch (IllegalAccessException | IOException e) {
+                throw new RuntimeException(
+                    "Failed to get local files for node " + this.getNodeName(), e);
+              } finally {
+                f.setAccessible(false);
+              }
+            });
   }
 
   public void recursiveConsume(Consumer<Node> consumer) {
@@ -238,7 +246,7 @@ abstract public class Node implements Validatable {
    * @param clazz the class to check against.
    * @return a NodeMatcher that matches all nodes of given clazz.
    */
-  static public NodeMatcher thisNodeAcceptor(Class clazz) {
+  public static NodeMatcher thisNodeAcceptor(Class clazz) {
     return new NodeMatcher() {
       @Override
       public boolean matches(Node n) {
@@ -257,7 +265,7 @@ abstract public class Node implements Validatable {
    * @param name is the name to match on.
    * @return a NodeMatcher that matches all nodes of given clazz that also have the right name.
    */
-  static public NodeMatcher namedNodeAcceptor(Class clazz, String name) {
+  public static NodeMatcher namedNodeAcceptor(Class clazz, String name) {
     return new NodeMatcher() {
       @Override
       public boolean matches(Node n) {
@@ -275,14 +283,17 @@ abstract public class Node implements Validatable {
     return "[" + getClass().getSimpleName() + ":" + getNodeName() + "]";
   }
 
-
   private Map<String, Object> serializedNonNodeFields() {
-    List<Field> fields = Arrays.stream(this.getClass().getDeclaredFields()).filter(f -> {
-      return (!(Node.class.isAssignableFrom(f.getType()) ||
-          List.class.isAssignableFrom(f.getType()) ||
-          Map.class.isAssignableFrom(f.getType()) ||
-          f.getAnnotation(JsonIgnore.class) != null));
-    }).collect(Collectors.toList());
+    List<Field> fields =
+        Arrays.stream(this.getClass().getDeclaredFields())
+            .filter(
+                f -> {
+                  return (!(Node.class.isAssignableFrom(f.getType())
+                      || List.class.isAssignableFrom(f.getType())
+                      || Map.class.isAssignableFrom(f.getType())
+                      || f.getAnnotation(JsonIgnore.class) != null));
+                })
+            .collect(Collectors.toList());
 
     Map<String, Object> res = new HashMap<>();
     for (Field field : fields) {
@@ -346,10 +357,8 @@ abstract public class Node implements Validatable {
         continue;
       }
 
-      NodeDiff.FieldDiff fc = new NodeDiff.FieldDiff()
-          .setFieldName(fnt)
-          .setNewValue(ot)
-          .setOldValue(oo);
+      NodeDiff.FieldDiff fc =
+          new NodeDiff.FieldDiff().setFieldName(fnt).setNewValue(ot).setOldValue(oo);
 
       result.addFieldDiff(fc);
     }
@@ -391,32 +400,42 @@ abstract public class Node implements Validatable {
   }
 
   private void swapLocalFilePrefixes(String to, String from) {
-    Consumer<Node> fileFinder = n -> n.localFiles().forEach(f -> {
-      try {
-        f.setAccessible(true);
-        String fPath = (String) f.get(n);
-        if (fPath == null) {
-          return;
-        }
+    Consumer<Node> fileFinder =
+        n ->
+            n.localFiles()
+                .forEach(
+                    f -> {
+                      try {
+                        f.setAccessible(true);
+                        String fPath = (String) f.get(n);
+                        if (fPath == null) {
+                          return;
+                        }
 
-        if (fPath.startsWith(to)) {
-          log.info("File " + f.getName() + " was already in correct format " + fPath);
-          return;
-        }
+                        if (fPath.startsWith(to)) {
+                          log.info(
+                              "File " + f.getName() + " was already in correct format " + fPath);
+                          return;
+                        }
 
-        if (!fPath.startsWith(from)) {
-          throw new HalException(FATAL,
-              "Local file: " + fPath + " has incorrect prefix - must match " + from);
-        }
+                        if (!fPath.startsWith(from)) {
+                          throw new HalException(
+                              FATAL,
+                              "Local file: "
+                                  + fPath
+                                  + " has incorrect prefix - must match "
+                                  + from);
+                        }
 
-        fPath = to + fPath.substring(from.length());
-        f.set(n, fPath);
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
-      } finally {
-        f.setAccessible(false);
-      }
-    });
+                        fPath = to + fPath.substring(from.length());
+                        f.set(n, fPath);
+                      } catch (IllegalAccessException e) {
+                        throw new RuntimeException(
+                            "Failed to get local files for node " + n.getNodeName(), e);
+                      } finally {
+                        f.setAccessible(false);
+                      }
+                    });
 
     recursiveConsume(fileFinder);
   }
@@ -432,45 +451,59 @@ abstract public class Node implements Validatable {
   public List<String> backupLocalFiles(String outputPath) {
     List<String> files = new ArrayList<>();
 
-    Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {
-      try {
-        f.setAccessible(true);
-        String fPath = (String) f.get(n);
-        if (fPath == null) {
-          try {
-            fPath = (String) n.getClass().getMethod("get" + StringUtils.capitalize(f.getName())).invoke(n);
-          } catch (NoSuchMethodException | InvocationTargetException ignored) {
-          }
-        }
+    Consumer<Node> fileFinder =
+        n ->
+            files.addAll(
+                n.localFiles().stream()
+                    .map(
+                        f -> {
+                          try {
+                            f.setAccessible(true);
+                            String fPath = (String) f.get(n);
+                            if (fPath == null) {
+                              try {
+                                fPath =
+                                    (String)
+                                        n.getClass()
+                                            .getMethod("get" + StringUtils.capitalize(f.getName()))
+                                            .invoke(n);
+                              } catch (NoSuchMethodException | InvocationTargetException ignored) {
+                              }
+                            }
 
-        if (fPath == null) {
-          return null;
-        }
+                            if (fPath == null) {
+                              return null;
+                            }
 
-        File fFile = new File(fPath);
-        String fName = fFile.getName().replaceAll("[^-._a-zA-Z0-9]", "-");
+                            File fFile = new File(fPath);
+                            String fName = fFile.getName().replaceAll("[^-._a-zA-Z0-9]", "-");
 
-        // Hash the path to uniquely flatten all files into the output directory
-        Path newName = Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
-        File parent = newName.toFile().getParentFile();
-        if (!parent.exists()) {
-          parent.mkdirs();
-        } else if (fFile.getParent().equals(parent.toString())) {
-          // Don't move paths that are already in the right folder
-          return fPath;
-        }
-        Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
+                            // Hash the path to uniquely flatten all files into the output directory
+                            Path newName =
+                                Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
+                            File parent = newName.toFile().getParentFile();
+                            if (!parent.exists()) {
+                              parent.mkdirs();
+                            } else if (fFile.getParent().equals(parent.toString())) {
+                              // Don't move paths that are already in the right folder
+                              return fPath;
+                            }
+                            Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
 
-        f.set(n, newName.toString());
-        return newName.toString();
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Failed to backup user file: " + e.getMessage(), e);
-      } finally {
-        f.setAccessible(false);
-      }
-    }).filter(Objects::nonNull).collect(Collectors.toList()));
+                            f.set(n, newName.toString());
+                            return newName.toString();
+                          } catch (IllegalAccessException e) {
+                            throw new RuntimeException(
+                                "Failed to get local files for node " + n.getNodeName(), e);
+                          } catch (IOException e) {
+                            throw new HalException(
+                                FATAL, "Failed to backup user file: " + e.getMessage(), e);
+                          } finally {
+                            f.setAccessible(false);
+                          }
+                        })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
     recursiveConsume(fileFinder);
 
     return files;

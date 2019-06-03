@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-
 import java.util.List;
 
 public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends DeploymentDetails> {
@@ -52,25 +51,18 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       List<SpinnakerService.Type> serviceTypes);
 
   default RemoteAction clean(
-      S serviceProvider,
-      D deploymentDetails,
-      SpinnakerRuntimeSettings runtimeSettings
-  ) {
+      S serviceProvider, D deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
     return serviceProvider.clean(deploymentDetails, runtimeSettings);
   }
 
   void flushInfrastructureCaches(
-      S serviceProvider,
-      D deploymentDetails,
-      SpinnakerRuntimeSettings runtimeSettings
-  );
+      S serviceProvider, D deploymentDetails, SpinnakerRuntimeSettings runtimeSettings);
 
   default RemoteAction prep(
       S serviceProvider,
       D deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
-      List<SpinnakerService.Type> serviceTypes
-  ) {
+      List<SpinnakerService.Type> serviceTypes) {
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript("");
@@ -81,6 +73,5 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       S serviceProvider,
       D deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes
-  ) {}
+      List<SpinnakerService.Type> serviceTypes) {}
 }

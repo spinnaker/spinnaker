@@ -21,15 +21,12 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- * Delete a specific PROVIDER account
- */
+/** Delete a specific PROVIDER account */
 @Parameters(separators = "=")
 public abstract class AbstractDeleteAccountCommand extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
@@ -51,9 +48,12 @@ public abstract class AbstractDeleteAccountCommand extends AbstractHasAccountCom
     String currentDeployment = getCurrentDeployment();
     String providerName = getProviderName();
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to delete account " + accountName + " for provider " + providerName + ".")
-        .setSuccessMessage("Successfully deleted account " + accountName + " for provider " + providerName + ".")
-        .setOperation(Daemon.deleteAccount(currentDeployment, providerName, accountName, !noValidate))
+        .setFailureMesssage(
+            "Failed to delete account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage(
+            "Successfully deleted account " + accountName + " for provider " + providerName + ".")
+        .setOperation(
+            Daemon.deleteAccount(currentDeployment, providerName, accountName, !noValidate))
         .get();
   }
 }

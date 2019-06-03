@@ -26,26 +26,35 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 
 public class ParseConfigException extends HalException {
   public ParseConfigException(UnrecognizedPropertyException e) {
-    Problem problem = new ConfigProblemBuilder(Problem.Severity.FATAL,
-        "Unrecognized property in your halconfig: " + e.getMessage()).build();
+    Problem problem =
+        new ConfigProblemBuilder(
+                Problem.Severity.FATAL,
+                "Unrecognized property in your halconfig: " + e.getMessage())
+            .build();
     getProblems().add(problem);
   }
 
   public ParseConfigException(ParserException e) {
-    Problem problem = new ConfigProblemBuilder(Problem.Severity.FATAL,
-        "Could not parse your halconfig: " + e.getMessage()).build();
+    Problem problem =
+        new ConfigProblemBuilder(
+                Problem.Severity.FATAL, "Could not parse your halconfig: " + e.getMessage())
+            .build();
     getProblems().add(problem);
   }
 
   public ParseConfigException(ScannerException e) {
-    Problem problem = new ConfigProblemBuilder(Problem.Severity.FATAL,
-        "Could not parse your halconfig: " + e.getMessage()).build();
+    Problem problem =
+        new ConfigProblemBuilder(
+                Problem.Severity.FATAL, "Could not parse your halconfig: " + e.getMessage())
+            .build();
     getProblems().add(problem);
   }
 
   public ParseConfigException(IllegalArgumentException e) {
-    Problem problem = new ConfigProblemBuilder(Problem.Severity.FATAL,
-        "Could not translate your halconfig: " + e.getMessage()).build();
+    Problem problem =
+        new ConfigProblemBuilder(
+                Problem.Severity.FATAL, "Could not translate your halconfig: " + e.getMessage())
+            .build();
     getProblems().add(problem);
   }
 }

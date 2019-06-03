@@ -23,15 +23,13 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory {
-  private static String PASSPHRASE_TEMPLATE = "#!/usr/bin/env bash\n"
-      + "echo {%passphrase%}\n";
+  private static String PASSPHRASE_TEMPLATE = "#!/usr/bin/env bash\n" + "echo {%passphrase%}\n";
 
   @Override
   protected String getTemplate() {
@@ -44,13 +42,17 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.setUser(ApacheSettings.APACHE_USER);
   }
 
   @Override
-  protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected Map<String, Object> getBindings(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
     bindings.put("passphrase", ssl.getSslCertificatePassphrase());

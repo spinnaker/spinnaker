@@ -26,7 +26,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @Parameters(separators = "=")
 public class GoogleRoleProviderCommand extends AbstractRoleProviderCommand {
-  private GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GOOGLE;
+  private GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.GOOGLE;
 
   public GoogleRoleProviderCommand() {
     registerSubcommand(new EditGoogleRoleProviderCommand());

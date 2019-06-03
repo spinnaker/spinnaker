@@ -23,12 +23,11 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * A DeploymentConfiguration is an installation of Spinnaker, described in your Halconfig.
@@ -38,9 +37,7 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class DeploymentConfiguration extends Node {
-  /**
-   * Human-readable name for this deployment of Spinnaker.
-   */
+  /** Human-readable name for this deployment of Spinnaker. */
   String name = "default";
 
   /**
@@ -50,56 +47,39 @@ public class DeploymentConfiguration extends Node {
    */
   String version = "";
 
-  /**
-   * Providers, e.g. Kubernetes, GCE, AWS, etc...
-   */
+  /** Providers, e.g. Kubernetes, GCE, AWS, etc... */
   Providers providers = new Providers();
 
   /**
-   * Details about how Spinnaker is deployed, e.g. which account is it running in, what's the footprint, etc...
+   * Details about how Spinnaker is deployed, e.g. which account is it running in, what's the
+   * footprint, etc...
    */
   DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
 
-  /**
-   * Persistent storage configuration for front50.
-   */
+  /** Persistent storage configuration for front50. */
   PersistentStorage persistentStorage = new PersistentStorage();
 
-  /**
-   * Spinnaker feature flags.
-   */
+  /** Spinnaker feature flags. */
   Features features = new Features();
 
-  /**
-   * Metric Store configuraton
-   */
+  /** Metric Store configuraton */
   MetricStores metricStores = new MetricStores();
 
-  /**
-   * Notification configuration
-   */
+  /** Notification configuration */
   Notifications notifications = new Notifications();
 
   String timezone = "America/Los_Angeles";
 
-  /**
-   * Continuous integration services, e.g. Jenkins, TravisCI, etc...
-   */
+  /** Continuous integration services, e.g. Jenkins, TravisCI, etc... */
   Cis ci = new Cis();
 
-  /**
-   * Repository services, e.g. Artifactory
-   */
+  /** Repository services, e.g. Artifactory */
   Repositories repository = new Repositories();
 
-  /**
-   * Authn & Authz configuration.
-   */
+  /** Authn & Authz configuration. */
   Security security = new Security();
 
-  /**
-   * Artifact configuration (how to talk to git, gcs, s3, etc...)
-   */
+  /** Artifact configuration (how to talk to git, gcs, s3, etc...) */
   Artifacts artifacts = new Artifacts();
 
   Pubsubs pubsub = new Pubsubs();

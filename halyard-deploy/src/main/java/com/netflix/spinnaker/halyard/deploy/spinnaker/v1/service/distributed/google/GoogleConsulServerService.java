@@ -24,22 +24,20 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulServerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.ConsulApi;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class GoogleConsulServerService extends ConsulServerService implements GoogleDistributedService<ConsulApi> {
-  @Delegate
-  @Autowired
-  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+public class GoogleConsulServerService extends ConsulServerService
+    implements GoogleDistributedService<ConsulApi> {
+  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public String getDefaultInstanceType() {
@@ -56,14 +54,16 @@ public class GoogleConsulServerService extends ConsulServerService implements Go
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation("us-central1-f")
         .setEnabled(true);
     return settings;
   }
 
   @Override
-  public List<ConfigSource> stageProfiles(AccountDeploymentDetails<GoogleAccount> details,
+  public List<ConfigSource> stageProfiles(
+      AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     /* consul server may not stage profiles, it may be a backend for the config server */
     return new ArrayList<>();

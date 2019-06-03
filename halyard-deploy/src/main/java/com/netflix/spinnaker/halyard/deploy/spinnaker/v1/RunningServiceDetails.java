@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
+import java.util.*;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
-import java.util.*;
 
 @Data
 public class RunningServiceDetails {
@@ -43,7 +42,7 @@ public class RunningServiceDetails {
         .filter(is -> is.getRight().stream().allMatch(i -> i.isHealthy() && i.isRunning()))
         .findFirst()
         .orElse(new ImmutablePair<>(null, null))
-    .getLeft();
+        .getLeft();
   }
 
   @Data

@@ -21,12 +21,11 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -45,15 +44,17 @@ public class Notifications extends Node implements Cloneable {
   }
 
   public static Class<? extends Notification> translateNotificationType(String notificationName) {
-    Optional<? extends Class<?>> res = Arrays.stream(Notifications.class.getDeclaredFields())
-        .filter(f -> f.getName().equals(notificationName))
-        .map(Field::getType)
-        .findFirst();
+    Optional<? extends Class<?>> res =
+        Arrays.stream(Notifications.class.getDeclaredFields())
+            .filter(f -> f.getName().equals(notificationName))
+            .map(Field::getType)
+            .findFirst();
 
     if (res.isPresent()) {
-      return (Class<? extends Notification>)res.get();
+      return (Class<? extends Notification>) res.get();
     } else {
-      throw new IllegalArgumentException("No notification type with name \"" + notificationName + "\" handled by halyard");
+      throw new IllegalArgumentException(
+          "No notification type with name \"" + notificationName + "\" handled by halyard");
     }
   }
 }

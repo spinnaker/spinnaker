@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,211 +33,164 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     return "kubernetes";
   }
 
-  @Parameter(
-      names = "--context",
-      description = KubernetesCommandProperties.CONTEXT_DESCRIPTION
-  )
+  @Parameter(names = "--context", description = KubernetesCommandProperties.CONTEXT_DESCRIPTION)
   private String context;
 
   @Parameter(
       names = "--kubeconfig-file",
       converter = LocalFileConverter.class,
-      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION)
   private String kubeconfigFile;
 
   @Parameter(
       names = "--clear-context",
-      description = "Removes the currently configured context, defaulting to 'current-context' in your kubeconfig."
-          + "See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information."
-  )
+      description =
+          "Removes the currently configured context, defaulting to 'current-context' in your kubeconfig."
+              + "See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.")
   private boolean clearContext;
 
   @Parameter(
       names = "--namespaces",
       variableArity = true,
-      description = KubernetesCommandProperties.NAMESPACES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.NAMESPACES_DESCRIPTION)
   private List<String> namespaces = new ArrayList<>();
 
   @Parameter(
       names = "--all-namespaces",
-      description = "Set the list of namespaces to cache and deploy to every namespace available to your supplied credentials."
-  )
+      description =
+          "Set the list of namespaces to cache and deploy to every namespace available to your supplied credentials.")
   private boolean allNamespaces;
 
   @Parameter(
       names = "--add-namespace",
-      description = "Add this namespace to the list of namespaces to manage."
-  )
+      description = "Add this namespace to the list of namespaces to manage.")
   private String addNamespace;
 
   @Parameter(
       names = "--remove-namespace",
-      description = "Remove this namespace to the list of namespaces to manage."
-  )
+      description = "Remove this namespace to the list of namespaces to manage.")
   private String removeNamespace;
 
   @Parameter(
       names = "--omit-namespaces",
       variableArity = true,
-      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION)
   private List<String> omitNamespaces = new ArrayList<>();
 
   @Parameter(
       names = "--add-omit-namespace",
-      description = "Add this namespace to the list of namespaces to omit."
-  )
+      description = "Add this namespace to the list of namespaces to omit.")
   private String addOmitNamespace;
 
   @Parameter(
       names = "--remove-omit-namespace",
-      description = "Remove this namespace to the list of namespaces to omit."
-  )
+      description = "Remove this namespace to the list of namespaces to omit.")
   private String removeOmitNamespace;
 
   @Parameter(
       names = "--kinds",
       variableArity = true,
-      description = KubernetesCommandProperties.KINDS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.KINDS_DESCRIPTION)
   private List<String> kinds = new ArrayList<>();
 
   @Parameter(
       names = "--all-kinds",
-      description = "Set the list of kinds to cache and deploy to every kind available to your supplied credentials."
-  )
+      description =
+          "Set the list of kinds to cache and deploy to every kind available to your supplied credentials.")
   private boolean allKinds;
 
-  @Parameter(
-      names = "--add-kind",
-      description = "Add this kind to the list of kinds to manage."
-  )
+  @Parameter(names = "--add-kind", description = "Add this kind to the list of kinds to manage.")
   private String addKind;
 
   @Parameter(
       names = "--remove-kind",
-      description = "Remove this kind to the list of kinds to manage."
-  )
+      description = "Remove this kind to the list of kinds to manage.")
   private String removeKind;
 
   @Parameter(
       names = "--omit-kinds",
       variableArity = true,
-      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION)
   private List<String> omitKinds = new ArrayList<>();
 
-  @Parameter(
-      names = "--add-omit-kind",
-      description = "Add this kind to the list of kinds to omit."
-  )
+  @Parameter(names = "--add-omit-kind", description = "Add this kind to the list of kinds to omit.")
   private String addOmitKind;
 
   @Parameter(
       names = "--remove-omit-kind",
-      description = "Remove this kind to the list of kinds to omit."
-  )
+      description = "Remove this kind to the list of kinds to omit.")
   private String removeOmitKind;
 
   @Parameter(
       names = "--docker-registries",
       variableArity = true,
-      description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION)
   public List<String> dockerRegistries = new ArrayList<>();
 
   @Parameter(
       names = "--add-docker-registry",
-      description = "Add this docker registry to the list of docker registries to use as a source of images."
-  )
+      description =
+          "Add this docker registry to the list of docker registries to use as a source of images.")
   private String addDockerRegistry;
 
   @Parameter(
       names = "--remove-docker-registry",
-      description = "Remove this docker registry from the list of docker registries to use as a source of images."
-  )
+      description =
+          "Remove this docker registry from the list of docker registries to use as a source of images.")
   private String removeDockerRegistry;
-  
-  @Parameter(
-      names = "--oauth-service-account",
-      hidden = true
-  )
+
+  @Parameter(names = "--oauth-service-account", hidden = true)
   public String oAuthServiceAccount;
 
-  @Parameter(
-      names = "--oauth-scopes",
-      variableArity = true,
-      hidden = true
-  )
+  @Parameter(names = "--oauth-scopes", variableArity = true, hidden = true)
   public List<String> oAuthScopes = new ArrayList<>();
 
-  @Parameter(
-      names = "--add-oauth-scope",
-      hidden = true
-  )
+  @Parameter(names = "--add-oauth-scope", hidden = true)
   public String addOAuthScope;
-  
-  @Parameter(
-      names = "--remove-oauth-scope",
-      hidden = true
-  )
+
+  @Parameter(names = "--remove-oauth-scope", hidden = true)
   public String removeOAuthScope;
 
-  @Parameter(
-      names = "--naming-strategy",
-      hidden = true
-  )
+  @Parameter(names = "--naming-strategy", hidden = true)
   public String namingStrategy;
 
   @Parameter(
       names = "--service-account",
       arity = 1,
-      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION)
   public Boolean serviceAccount;
 
   @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
-      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION)
   public Boolean configureImagePullSecrets;
 
-  @Parameter(
-      names = "--skin",
-      arity = 1,
-      hidden = true
-  )
+  @Parameter(names = "--skin", arity = 1, hidden = true)
   public String skin;
 
   @Parameter(
       names = "--only-spinnaker-managed",
       arity = 1,
-      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION
-  )
+      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION)
   public Boolean onlySpinnakerManaged;
 
   @Parameter(
-        names = "--check-permissions-on-startup",
-        arity = 1,
-        description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP
-  )
+      names = "--check-permissions-on-startup",
+      arity = 1,
+      description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP)
   public Boolean checkPermissionsOnStartup;
 
   @Parameter(
       names = "--live-manifest-calls",
       arity = 1,
-      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS
-  )
+      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS)
   public Boolean liveManifestCalls;
 
   @Parameter(
-          names = "--cache-threads",
-          arity = 1,
-          description = KubernetesCommandProperties.CACHE_THREADS
-  )
+      names = "--cache-threads",
+      arity = 1,
+      description = KubernetesCommandProperties.CACHE_THREADS)
   private Integer cacheThreads;
 
   @Override
@@ -253,7 +205,10 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     }
 
     account.setKubeconfigFile(isSet(kubeconfigFile) ? kubeconfigFile : account.getKubeconfigFile());
-    account.setConfigureImagePullSecrets(isSet(configureImagePullSecrets) ? configureImagePullSecrets : account.getConfigureImagePullSecrets());
+    account.setConfigureImagePullSecrets(
+        isSet(configureImagePullSecrets)
+            ? configureImagePullSecrets
+            : account.getConfigureImagePullSecrets());
     account.setServiceAccount(isSet(serviceAccount) ? serviceAccount : account.getServiceAccount());
 
     if (allNamespaces) {
@@ -261,7 +216,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     } else {
       try {
         account.setNamespaces(
-                updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
+            updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("Set either --namespaces or --[add/remove]-namespace");
       }
@@ -269,9 +224,11 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
 
     try {
       account.setOmitNamespaces(
-          updateStringList(account.getOmitNamespaces(), omitNamespaces, addOmitNamespace, removeOmitNamespace));
+          updateStringList(
+              account.getOmitNamespaces(), omitNamespaces, addOmitNamespace, removeOmitNamespace));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --omit-namespaces or --[add/remove]-omit-namespace");
+      throw new IllegalArgumentException(
+          "Set either --omit-namespaces or --[add/remove]-omit-namespace");
     }
 
     try {
@@ -281,42 +238,50 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     }
 
     try {
-      account.setOmitKinds(updateStringList(account.getOmitKinds(), omitKinds, addOmitKind, removeOmitKind));
+      account.setOmitKinds(
+          updateStringList(account.getOmitKinds(), omitKinds, addOmitKind, removeOmitKind));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --omit-kinds or --[add/remove]-omit-kind");
     }
 
     try {
-      List<String> oldRegistries = account.getDockerRegistries()
-          .stream()
-          .map(DockerRegistryReference::getAccountName)
-          .collect(Collectors.toList());
+      List<String> oldRegistries =
+          account.getDockerRegistries().stream()
+              .map(DockerRegistryReference::getAccountName)
+              .collect(Collectors.toList());
 
-      List<DockerRegistryReference> newRegistries = updateStringList(oldRegistries, dockerRegistries, addDockerRegistry, removeDockerRegistry)
-          .stream()
-          .map(s -> new DockerRegistryReference().setAccountName(s))
-          .collect(Collectors.toList());
+      List<DockerRegistryReference> newRegistries =
+          updateStringList(oldRegistries, dockerRegistries, addDockerRegistry, removeDockerRegistry)
+              .stream()
+              .map(s -> new DockerRegistryReference().setAccountName(s))
+              .collect(Collectors.toList());
 
       account.setDockerRegistries(newRegistries);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --docker-registries or --[add/remove]-docker-registry");
+      throw new IllegalArgumentException(
+          "Set either --docker-registries or --[add/remove]-docker-registry");
     }
-    
+
     try {
       account.setOAuthScopes(
-        updateStringList(account.getOAuthScopes(), oAuthScopes, addOAuthScope, removeOAuthScope));
+          updateStringList(account.getOAuthScopes(), oAuthScopes, addOAuthScope, removeOAuthScope));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --oauth-scopes or --[add/remove]-oauth-scope");
     }
-    
-    account.setOAuthServiceAccount(isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
+
+    account.setOAuthServiceAccount(
+        isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
     account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
     account.setSkin(isSet(skin) ? skin : account.getSkin());
-    account.setOnlySpinnakerManaged(isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
-    account.setCheckPermissionsOnStartup(isSet(checkPermissionsOnStartup) ? checkPermissionsOnStartup : account.getCheckPermissionsOnStartup());
-    account.setLiveManifestCalls(isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
+    account.setOnlySpinnakerManaged(
+        isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
+    account.setCheckPermissionsOnStartup(
+        isSet(checkPermissionsOnStartup)
+            ? checkPermissionsOnStartup
+            : account.getCheckPermissionsOnStartup());
+    account.setLiveManifestCalls(
+        isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
     account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
     return account;
   }
-
 }

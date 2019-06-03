@@ -35,11 +35,12 @@ public class MetricStoresCommand extends AbstractConfigCommand {
   private String commandName = "metric-stores";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure Spinnaker's metric stores. Metrics stores are used to store metrics for the various "
-      + "Spinnaker micro-services. These metrics are not related in any way to canary deployments. The technologies backing both "
-      + "are similar, but metrics stores are places to push metrics regarding Spinnaker metrics, whereas canary metrics stores "
-      + "are used to pull metrics to analyze deployments. This configuration only affects the publishing of metrics against "
-      + "whichever metric stores you enable (it can be more than one).";
+  private String shortDescription =
+      "Configure Spinnaker's metric stores. Metrics stores are used to store metrics for the various "
+          + "Spinnaker micro-services. These metrics are not related in any way to canary deployments. The technologies backing both "
+          + "are similar, but metrics stores are places to push metrics regarding Spinnaker metrics, whereas canary metrics stores "
+          + "are used to pull metrics to analyze deployments. This configuration only affects the publishing of metrics against "
+          + "whichever metric stores you enable (it can be more than one).";
 
   public MetricStoresCommand() {
     registerSubcommand(new EditMetricStoresCommand());

@@ -33,12 +33,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class KayentaProfileFactory extends SpringProfileFactory {
@@ -54,16 +53,23 @@ public class KayentaProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.appendContents(profile.getBaseContents());
 
     Canary canary = deploymentConfiguration.getCanary();
 
     if (canary.isEnabled()) {
-      List<String> files = new ArrayList<>(backupRequiredFiles(canary, deploymentConfiguration.getName()));
-      KayentaConfigWrapper kayentaConfig = new KayentaConfigWrapper(endpoints.getServiceSettings(Type.KAYENTA), canary);
-      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, kayentaConfig)).setRequiredFiles(files);
+      List<String> files =
+          new ArrayList<>(backupRequiredFiles(canary, deploymentConfiguration.getName()));
+      KayentaConfigWrapper kayentaConfig =
+          new KayentaConfigWrapper(endpoints.getServiceSettings(Type.KAYENTA), canary);
+      profile
+          .appendContents(yamlToString(deploymentConfiguration.getName(), profile, kayentaConfig))
+          .setRequiredFiles(files);
     }
   }
 
@@ -91,22 +97,23 @@ public class KayentaProfileFactory extends SpringProfileFactory {
       KayentaConfig(Canary canary) {
         for (AbstractCanaryServiceIntegration svc : canary.getServiceIntegrations()) {
           if (svc instanceof GoogleCanaryServiceIntegration) {
-            GoogleCanaryServiceIntegration googleSvc = (GoogleCanaryServiceIntegration)svc;
+            GoogleCanaryServiceIntegration googleSvc = (GoogleCanaryServiceIntegration) svc;
             google = new GoogleConfig(googleSvc);
             stackdriver = new StackdriverConfig(googleSvc);
             gcs = new GcsConfig(googleSvc);
           } else if (svc instanceof PrometheusCanaryServiceIntegration) {
-            PrometheusCanaryServiceIntegration prometheusSvc = (PrometheusCanaryServiceIntegration)svc;
+            PrometheusCanaryServiceIntegration prometheusSvc =
+                (PrometheusCanaryServiceIntegration) svc;
             prometheus = new PrometheusConfig(prometheusSvc);
           } else if (svc instanceof DatadogCanaryServiceIntegration) {
-            DatadogCanaryServiceIntegration datadogSvc = (DatadogCanaryServiceIntegration)svc;
+            DatadogCanaryServiceIntegration datadogSvc = (DatadogCanaryServiceIntegration) svc;
             datadog = new DatadogConfig(datadogSvc);
           } else if (svc instanceof AwsCanaryServiceIntegration) {
-            AwsCanaryServiceIntegration awsSvc = (AwsCanaryServiceIntegration)svc;
+            AwsCanaryServiceIntegration awsSvc = (AwsCanaryServiceIntegration) svc;
             aws = new AwsConfig(awsSvc);
             s3 = new S3Config(awsSvc);
           } else if (svc instanceof SignalfxCanaryServiceIntegration) {
-            SignalfxCanaryServiceIntegration signalfxSvc = (SignalfxCanaryServiceIntegration)svc;
+            SignalfxCanaryServiceIntegration signalfxSvc = (SignalfxCanaryServiceIntegration) svc;
             signalfx = new SignalFxConfig(signalfxSvc);
           }
         }

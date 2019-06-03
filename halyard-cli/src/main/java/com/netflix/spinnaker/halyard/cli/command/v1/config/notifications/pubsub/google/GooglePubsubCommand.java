@@ -25,8 +25,7 @@ import lombok.Getter;
 @Parameters(separators = "=")
 public class GooglePubsubCommand extends AbstractNamedPubsubCommand {
 
-  @Getter
-  private final String pubsubName = "google";
+  @Getter private final String pubsubName = "google";
 
   public GooglePubsubCommand() {
     registerSubcommand(new GoogleAddPublisherCommand());

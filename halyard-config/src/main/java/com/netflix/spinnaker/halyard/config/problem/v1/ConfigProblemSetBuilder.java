@@ -22,20 +22,18 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class ConfigProblemSetBuilder {
   private List<ConfigProblemBuilder> builders = new ArrayList<>();
 
-  @Getter
-  private final ApplicationContext context;
+  @Getter private final ApplicationContext context;
 
   @Setter(AccessLevel.PUBLIC)
   private Node node;
@@ -65,19 +63,18 @@ public class ConfigProblemSetBuilder {
   public ConfigProblemSetBuilder extend(HalException e) {
     e.getProblems()
         .getProblems()
-        .forEach(p -> addProblem(p.getSeverity(), p.getMessage())
-            .setOptions(p.getOptions())
-            .setRemediation(p.getRemediation())
-        );
+        .forEach(
+            p ->
+                addProblem(p.getSeverity(), p.getMessage())
+                    .setOptions(p.getOptions())
+                    .setRemediation(p.getRemediation()));
 
     return this;
   }
 
   public ProblemSet build() {
-    List<Problem> problems = builders
-        .stream()
-        .map(ConfigProblemBuilder::build)
-        .collect(Collectors.toList());
+    List<Problem> problems =
+        builders.stream().map(ConfigProblemBuilder::build).collect(Collectors.toList());
 
     return new ProblemSet(problems);
   }

@@ -32,35 +32,41 @@ public class GoogleEditBaseImageCommand extends AbstractEditBaseImageCommand<Goo
 
   @Parameter(
       names = "--source-image",
-      description = GoogleCommandProperties.SOURCE_IMAGE_DESCRIPTION
-  )
+      description = GoogleCommandProperties.SOURCE_IMAGE_DESCRIPTION)
   private String sourceImage;
 
   @Parameter(
       names = "--source-image-family",
-      description = GoogleCommandProperties.SOURCE_IMAGE_FAMILY_DESCRIPTION
-  )
+      description = GoogleCommandProperties.SOURCE_IMAGE_FAMILY_DESCRIPTION)
   private String sourceImageFamily;
 
   @Parameter(
       names = "--is-image-family",
       arity = 1,
-      description = GoogleCommandProperties.IS_IMAGE_FAMILY_DESCRIPTION
-  )
+      description = GoogleCommandProperties.IS_IMAGE_FAMILY_DESCRIPTION)
   private Boolean isImageFamily = null;
-
 
   @Override
   protected BaseImage editBaseImage(GoogleBaseImage baseImage) {
     GoogleBaseImage.GoogleImageSettings imageSettings = baseImage.getBaseImage();
-    imageSettings = imageSettings != null ? imageSettings : new GoogleBaseImage.GoogleImageSettings();
-    imageSettings.setImageFamily(isSet(isImageFamily) ? isImageFamily : imageSettings.isImageFamily());
+    imageSettings =
+        imageSettings != null ? imageSettings : new GoogleBaseImage.GoogleImageSettings();
+    imageSettings.setImageFamily(
+        isSet(isImageFamily) ? isImageFamily : imageSettings.isImageFamily());
     baseImage.setBaseImage(imageSettings);
 
-    GoogleBaseImage.GoogleVirtualizationSettings virtualizationSettings = baseImage.getVirtualizationSettings();
-    virtualizationSettings = virtualizationSettings != null ? virtualizationSettings : new GoogleBaseImage.GoogleVirtualizationSettings();
-    virtualizationSettings.setSourceImage(isSet(sourceImage) ? sourceImage : virtualizationSettings.getSourceImage());
-    virtualizationSettings.setSourceImageFamily(isSet(sourceImageFamily) ? sourceImageFamily : virtualizationSettings.getSourceImageFamily());
+    GoogleBaseImage.GoogleVirtualizationSettings virtualizationSettings =
+        baseImage.getVirtualizationSettings();
+    virtualizationSettings =
+        virtualizationSettings != null
+            ? virtualizationSettings
+            : new GoogleBaseImage.GoogleVirtualizationSettings();
+    virtualizationSettings.setSourceImage(
+        isSet(sourceImage) ? sourceImage : virtualizationSettings.getSourceImage());
+    virtualizationSettings.setSourceImageFamily(
+        isSet(sourceImageFamily)
+            ? sourceImageFamily
+            : virtualizationSettings.getSourceImageFamily());
     baseImage.setVirtualizationSettings(virtualizationSettings);
 
     return baseImage;

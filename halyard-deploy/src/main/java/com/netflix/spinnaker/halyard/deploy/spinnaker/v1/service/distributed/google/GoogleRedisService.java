@@ -26,15 +26,14 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RedisConfProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -43,12 +42,11 @@ public class GoogleRedisService extends RedisService implements GoogleDistribute
   final DeployPriority deployPriority = new DeployPriority(8);
   final boolean requiredToBootstrap = true;
 
-  @Delegate
-  @Autowired
-  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
-  public Jedis connectToPrimaryService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  public Jedis connectToPrimaryService(
+      AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     return new Jedis(sshTunnelIntoService(details, runtimeSettings, getService()));
   }
 
@@ -60,20 +58,23 @@ public class GoogleRedisService extends RedisService implements GoogleDistribute
     return result;
   }
 
-  @Autowired
-  RedisConfProfileFactory redisConfProfileFactory;
+  @Autowired RedisConfProfileFactory redisConfProfileFactory;
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
-    result.add(redisConfProfileFactory.getProfile("redis.conf", "/etc/redis/redis.conf", deploymentConfiguration, endpoints));
+    result.add(
+        redisConfProfileFactory.getProfile(
+            "redis.conf", "/etc/redis/redis.conf", deploymentConfiguration, endpoints));
     return result;
   }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setAddress(buildAddress())
         .setLocation("us-central1-f")
         .setSafeToUpdate(false)

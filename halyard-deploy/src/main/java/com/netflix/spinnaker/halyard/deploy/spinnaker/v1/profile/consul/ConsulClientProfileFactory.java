@@ -23,34 +23,35 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
 public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
-  private String template = String.join("\n",
-      "{",
-      "    \"server\": false,",
-      "    \"datacenter\": \"spinnaker\",",
-      "    \"data_dir\": \"/var/consul\",",
-      "    \"log_level\": \"INFO\",",
-      "    \"enable_syslog\": true,",
-      "    \"ports\": {",
-      "        \"dns\": 53,",
-      "        \"{%scheme%}\": {%port%}",
-      "    },",
-      "    \"recursors\": [ \"169.254.169.254\" ]",
-      "}"
-  );
+  private String template =
+      String.join(
+          "\n",
+          "{",
+          "    \"server\": false,",
+          "    \"datacenter\": \"spinnaker\",",
+          "    \"data_dir\": \"/var/consul\",",
+          "    \"log_level\": \"INFO\",",
+          "    \"enable_syslog\": true,",
+          "    \"ports\": {",
+          "        \"dns\": 53,",
+          "        \"{%scheme%}\": {%port%}",
+          "    },",
+          "    \"recursors\": [ \"169.254.169.254\" ]",
+          "}");
 
   @Override
-  protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected Map<String, Object> getBindings(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     ServiceSettings consul = endpoints.getServiceSettings(Type.CONSUL_CLIENT);
     bindings.put("scheme", consul.getScheme());

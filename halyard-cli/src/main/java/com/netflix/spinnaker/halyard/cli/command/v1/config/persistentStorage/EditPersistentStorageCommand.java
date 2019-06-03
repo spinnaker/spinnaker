@@ -40,22 +40,23 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
       names = "--type",
       required = true,
       converter = PersistentStoreTypeConverter.class,
-      description = "The type of the persistent store to use for Spinnaker."
-  )
+      description = "The type of the persistent store to use for Spinnaker.")
   private PersistentStore.PersistentStoreType type;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    PersistentStorage persistentStorage = new OperationHandler<PersistentStorage>()
-        .setFailureMesssage("Failed to get persistent storage.")
-        .setOperation(Daemon.getPersistentStorage(currentDeployment, false))
-        .get();
+    PersistentStorage persistentStorage =
+        new OperationHandler<PersistentStorage>()
+            .setFailureMesssage("Failed to get persistent storage.")
+            .setOperation(Daemon.getPersistentStorage(currentDeployment, false))
+            .get();
 
     int originalHash = persistentStorage.hashCode();
 
-    persistentStorage.setPersistentStoreType(isSet(type) ? type : persistentStorage.getPersistentStoreType());
+    persistentStorage.setPersistentStoreType(
+        isSet(type) ? type : persistentStorage.getPersistentStoreType());
 
     if (originalHash == persistentStorage.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -63,7 +64,8 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setPersistentStorage(currentDeployment, !noValidate, persistentStorage))
+        .setOperation(
+            Daemon.setPersistentStorage(currentDeployment, !noValidate, persistentStorage))
         .setFailureMesssage("Failed to edit persistent storage.")
         .setSuccessMessage("Successfully edited persistent storage.")
         .get();

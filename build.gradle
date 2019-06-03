@@ -61,12 +61,6 @@ allprojects {
     testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
   }
-
-  // TODO: Remove this after the big code style reformat commit
-  spinnakerCodeStyle {
-    enabled = false
-  }
-  
 }
 
 defaultTasks ':halyard-web:run'

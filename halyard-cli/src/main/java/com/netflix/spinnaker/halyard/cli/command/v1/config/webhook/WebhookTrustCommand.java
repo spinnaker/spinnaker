@@ -27,28 +27,28 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 public class WebhookTrustCommand extends AbstractConfigCommand {
-    @Getter(AccessLevel.PUBLIC)
-    private String commandName = "trust";
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "trust";
 
-    @Getter(AccessLevel.PUBLIC)
-    private String shortDescription = "Show Spinnaker's webhook trust configuration.";
+  @Getter(AccessLevel.PUBLIC)
+  private String shortDescription = "Show Spinnaker's webhook trust configuration.";
 
-    public WebhookTrustCommand() {
-        registerSubcommand(new WebhookTrustEditCommand());
-        registerSubcommand(new EnableDisableWebhookTrustCommandBuilder().setEnable(true).build());
-        registerSubcommand(new EnableDisableWebhookTrustCommandBuilder().setEnable(false).build());
-    }
+  public WebhookTrustCommand() {
+    registerSubcommand(new WebhookTrustEditCommand());
+    registerSubcommand(new EnableDisableWebhookTrustCommandBuilder().setEnable(true).build());
+    registerSubcommand(new EnableDisableWebhookTrustCommandBuilder().setEnable(false).build());
+  }
 
-    @Override
-    protected void executeThis() {
-        String currentDeployment = getCurrentDeployment();
+  @Override
+  protected void executeThis() {
+    String currentDeployment = getCurrentDeployment();
 
-        new OperationHandler<WebhookTrust>()
-                .setOperation(Daemon.getWebhookTrust(currentDeployment, !noValidate))
-                .setFailureMesssage("Failed to load webhook trust.")
-                .setSuccessMessage("Configured webhook trust: ")
-                .setFormat(AnsiFormatUtils.Format.STRING)
-                .setUserFormatted(true)
-                .get();
-    }
+    new OperationHandler<WebhookTrust>()
+        .setOperation(Daemon.getWebhookTrust(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load webhook trust.")
+        .setSuccessMessage("Configured webhook trust: ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
+        .get();
+  }
 }

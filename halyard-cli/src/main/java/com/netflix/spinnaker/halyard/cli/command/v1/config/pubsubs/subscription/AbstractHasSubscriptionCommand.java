@@ -21,13 +21,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.AbstractPubsubCommand;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An abstract definition for commands that accept ACCOUNT as a main parameter
- */
+/** An abstract definition for commands that accept ACCOUNT as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasSubscriptionCommand extends AbstractPubsubCommand {
   @Parameter(description = "The name of the subscription to operate on.", arity = 1)

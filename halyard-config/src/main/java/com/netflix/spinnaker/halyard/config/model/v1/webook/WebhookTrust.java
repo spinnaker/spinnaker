@@ -27,7 +27,6 @@ public class WebhookTrust extends Node {
   private final String nodeName = "trust";
 
   boolean enabled;
-  @LocalFile
-  String trustStore;
+  @LocalFile String trustStore;
   String trustStorePassword;
 }

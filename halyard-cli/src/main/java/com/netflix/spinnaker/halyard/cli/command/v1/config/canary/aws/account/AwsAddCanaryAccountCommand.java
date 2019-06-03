@@ -27,7 +27,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServic
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 
 @Parameters(separators = "=")
 public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
@@ -37,52 +36,39 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
     return "AWS";
   }
 
-  @Parameter(
-      names = "--bucket",
-      description = CommonCanaryCommandProperties.BUCKET
-  )
+  @Parameter(names = "--bucket", description = CommonCanaryCommandProperties.BUCKET)
   private String bucket;
 
-  @Parameter(
-      names = "--region",
-      description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION
-  )
+  @Parameter(names = "--region", description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION)
   private String region;
 
-  @Parameter(
-      names = "--root-folder",
-      description = CommonCanaryCommandProperties.ROOT_FOLDER
-  )
+  @Parameter(names = "--root-folder", description = CommonCanaryCommandProperties.ROOT_FOLDER)
   private String rootFolder;
 
   @Parameter(
       names = "--profile-name",
-      description = CommonCanaryAwsCommandProperties.PROFILE_NAME_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.PROFILE_NAME_DESCRIPTION)
   private String profileName;
 
   @Parameter(
       names = "--endpoint",
-      description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION)
   private String endpoint;
 
   @Parameter(
       names = "--access-key-id",
-      description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
+      description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION)
   private String accessKeyId;
 
   @Parameter(
       names = "--secret-access-key",
       description = CommonCanaryAwsCommandProperties.SECRET_KEY_DESCRIPTION,
-      password = true
-  )
+      password = true)
   private String secretAccessKey;
 
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    AwsCanaryAccount account = (AwsCanaryAccount)new AwsCanaryAccount().setName(accountName);
+    AwsCanaryAccount account = (AwsCanaryAccount) new AwsCanaryAccount().setName(accountName);
 
     account.setBucket(bucket);
     account.setRegion(region);
@@ -93,10 +79,13 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
     account.setSecretAccessKey(secretAccessKey);
 
     AwsCanaryServiceIntegration awsCanaryServiceIntegration =
-        (AwsCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
+        (AwsCanaryServiceIntegration)
+            CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
 
     if (awsCanaryServiceIntegration.isS3Enabled()) {
-      account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
+      account
+          .getSupportedTypes()
+          .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
       account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE);
     }
 

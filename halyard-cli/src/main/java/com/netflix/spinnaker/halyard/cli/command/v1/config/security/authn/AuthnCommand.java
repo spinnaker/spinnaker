@@ -36,7 +36,8 @@ public class AuthnCommand extends AbstractConfigCommand {
   String shortDescription = "Configure your authentication settings for Spinnaker.";
 
   // This merits a better description.
-  String longDescription = "This set of commands allows you to configure how users can authenticate against Spinnaker.";
+  String longDescription =
+      "This set of commands allows you to configure how users can authenticate against Spinnaker.";
 
   @Override
   protected void executeThis() {

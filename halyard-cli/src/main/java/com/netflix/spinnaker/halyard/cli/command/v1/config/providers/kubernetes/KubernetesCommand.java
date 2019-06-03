@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-/**
- * Interact with the kubernetes provider
- */
+/** Interact with the kubernetes provider */
 @Parameters(separators = "=")
 public class KubernetesCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
@@ -30,7 +28,8 @@ public class KubernetesCommand extends AbstractNamedProviderCommand {
 
   @Override
   protected String getLongDescription() {
-    return String.join("",
+    return String.join(
+        "",
         "The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. ",
         "Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: ",
         "https://kubernetes.io/docs/getting-started-guides/. \n\nBefore proceeding, please visit ",

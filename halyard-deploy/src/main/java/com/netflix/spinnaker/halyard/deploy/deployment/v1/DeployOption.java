@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import java.util.Arrays;
 
 public enum DeployOption {
@@ -40,9 +39,9 @@ public enum DeployOption {
 
   public static DeployOption fromString(String name) {
     return Arrays.stream(values())
-        .filter(o -> o.toString()
-            .equalsIgnoreCase(name))
+        .filter(o -> o.toString().equalsIgnoreCase(name))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("There is no DeployType with name " + name));
+        .orElseThrow(
+            () -> new IllegalArgumentException("There is no DeployType with name " + name));
   }
 }

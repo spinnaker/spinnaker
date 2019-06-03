@@ -25,23 +25,26 @@ import lombok.Getter;
 @Parameters(separators = "=")
 public class ClouddriverHaServiceCommand extends AbstractNamedHaServiceCommand {
   @Override
-  protected String getServiceName() { return "clouddriver"; }
+  protected String getServiceName() {
+    return "clouddriver";
+  }
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ",
-      getShortDescription(),
-      "Manage and view Spinnaker configuration for the clouddriver high availability service.",
-      "When clouddriver high availability is enabled, Halyard will deploy clouddriver",
-      "as three separate services in order to increase availability: clouddriver-rw,",
-      "clouddriver-ro, and clouddriver-caching. The clouddriver-rw service handles mutation",
-      "operations sent via orca. The clouddriver-ro service handles read queries and does not",
-      "perform write operations to redis. The clouddriver-caching service handles the periodic",
-      "caching of cloud provider data, and is isolated from the rest of Spinnaker. The three",
-      "services are configured to use the shared redis provisioned by Halyard, by default.",
-      "To achieve more scale, a redis master endpoint and a redis slave endpoint can be supplied.",
-      "The clouddriver-rw and clouddriver-caching services will use the redis master and the",
-      "clouddriver-ro service will use the redis slave."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          getShortDescription(),
+          "Manage and view Spinnaker configuration for the clouddriver high availability service.",
+          "When clouddriver high availability is enabled, Halyard will deploy clouddriver",
+          "as three separate services in order to increase availability: clouddriver-rw,",
+          "clouddriver-ro, and clouddriver-caching. The clouddriver-rw service handles mutation",
+          "operations sent via orca. The clouddriver-ro service handles read queries and does not",
+          "perform write operations to redis. The clouddriver-caching service handles the periodic",
+          "caching of cloud provider data, and is isolated from the rest of Spinnaker. The three",
+          "services are configured to use the shared redis provisioned by Halyard, by default.",
+          "To achieve more scale, a redis master endpoint and a redis slave endpoint can be supplied.",
+          "The clouddriver-rw and clouddriver-caching services will use the redis master and the",
+          "clouddriver-ro service will use the redis slave.");
 
   public ClouddriverHaServiceCommand() {
     super();

@@ -28,8 +28,7 @@ public enum AnsiBackgroundColor implements AnsiCode {
   CYAN("\033[46m"),
   WHITE("\033[47m");
 
-  @Getter
-  final String code;
+  @Getter final String code;
 
   AnsiBackgroundColor(String code) {
     this.code = code;

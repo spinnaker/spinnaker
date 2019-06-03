@@ -20,10 +20,9 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.List;
 
 @Parameters(separators = "=")
 public class ListCanaryAccountsCommand extends AbstractCanaryServiceIntegrationCommand {
@@ -40,12 +39,16 @@ public class ListCanaryAccountsCommand extends AbstractCanaryServiceIntegrationC
 
   @Override
   public String getShortDescription() {
-    return "List the canary account names for the " + getServiceIntegration() + " service integration.";
+    return "List the canary account names for the "
+        + getServiceIntegration()
+        + " service integration.";
   }
 
   @Override
   protected void executeThis() {
-    AbstractCanaryServiceIntegration serviceIntegration = CanaryUtils.getServiceIntegrationByName(null, getCurrentDeployment(), getServiceIntegration(), noValidate);
+    AbstractCanaryServiceIntegration serviceIntegration =
+        CanaryUtils.getServiceIntegrationByName(
+            null, getCurrentDeployment(), getServiceIntegration(), noValidate);
     List<AbstractCanaryAccount> accounts = serviceIntegration.getAccounts();
 
     if (accounts.isEmpty()) {

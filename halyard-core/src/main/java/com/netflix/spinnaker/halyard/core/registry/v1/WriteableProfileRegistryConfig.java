@@ -29,8 +29,8 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class WriteableProfileRegistryConfig {
   @Bean
-  public GoogleWriteableProfileRegistry defaultWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
+  public GoogleWriteableProfileRegistry defaultWriteableProfileRegistry(
+      WriteableProfileRegistryProperties properties) {
     return new GoogleWriteableProfileRegistry(properties);
   }
 }
-

@@ -26,10 +26,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/artifactTemplates")
@@ -40,8 +39,8 @@ public class ArtifactTemplateController {
   private final HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<ArtifactTemplate>> getArtifactTemplates(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<ArtifactTemplate>> getArtifactTemplates(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<ArtifactTemplate>>builder()
         .getter(() -> artifactTemplateService.getAllArtifactTemplates(deploymentName))
         .validator(() -> artifactTemplateService.validateAllArtifactTemplates(deploymentName))
@@ -51,46 +50,55 @@ public class ArtifactTemplateController {
   }
 
   @RequestMapping(value = "/{templateName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ArtifactTemplate> getArtifactTemplate(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, ArtifactTemplate> getArtifactTemplate(
+      @PathVariable String deploymentName,
       @PathVariable String templateName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<ArtifactTemplate>builder()
         .getter(() -> artifactTemplateService.getArtifactTemplate(deploymentName, templateName))
-        .validator(() -> artifactTemplateService.validateArtifactTemplate(deploymentName, templateName))
+        .validator(
+            () -> artifactTemplateService.validateArtifactTemplate(deploymentName, templateName))
         .description("Get the " + templateName + " artifact template")
         .build()
         .execute(validationSettings);
   }
 
   @RequestMapping(value = "/{templateName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setArtifactTemplate(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setArtifactTemplate(
+      @PathVariable String deploymentName,
       @PathVariable String templateName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ArtifactTemplate artifactTemplate) {
     return GenericUpdateRequest.<ArtifactTemplate>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(t -> artifactTemplateService.setArtifactTemplate(deploymentName, templateName, t))
-        .validator(() -> artifactTemplateService.validateArtifactTemplate(deploymentName, templateName))
+        .validator(
+            () -> artifactTemplateService.validateArtifactTemplate(deploymentName, templateName))
         .description("Edit the " + templateName + " artifact template")
         .build()
         .execute(validationSettings, artifactTemplate);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addArtifactTemplate(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addArtifactTemplate(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ArtifactTemplate artifactTemplate) {
     return GenericUpdateRequest.<ArtifactTemplate>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(t -> artifactTemplateService.addArtifactTemplate(deploymentName, t))
-        .validator(() -> artifactTemplateService.validateArtifactTemplate(deploymentName, artifactTemplate.getName()))
+        .validator(
+            () ->
+                artifactTemplateService.validateArtifactTemplate(
+                    deploymentName, artifactTemplate.getName()))
         .description("Add the " + artifactTemplate.getName() + " artifact template")
         .build()
         .execute(validationSettings, artifactTemplate);
   }
 
   @RequestMapping(value = "/{templateName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteArtifactTemplate(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteArtifactTemplate(
+      @PathVariable String deploymentName,
       @PathVariable String templateName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericDeleteRequest.builder(halconfigParser)

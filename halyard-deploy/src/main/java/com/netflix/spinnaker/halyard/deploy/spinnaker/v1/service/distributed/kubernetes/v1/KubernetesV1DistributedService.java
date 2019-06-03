@@ -79,11 +79,6 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.util.SocketUtils;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -95,11 +90,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.SocketUtils;
 
-public interface KubernetesV1DistributedService<T> extends DistributedService<T, KubernetesAccount>, LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
+public interface KubernetesV1DistributedService<T>
+    extends DistributedService<T, KubernetesAccount>,
+        LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
   String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
+
   ArtifactService getArtifactService();
+
   ServiceInterfaceFactory getServiceInterfaceFactory();
+
   ObjectMapper getObjectMapper();
 
   default String getRootHomeDirectory() {
@@ -127,17 +131,18 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
 
-    KubernetesImageDescription image = KubernetesImageDescription.builder()
-        .registry(getDockerRegistry(deploymentName, getArtifact()))
-        .repository(artifactName)
-        .tag(version)
-        .build();
+    KubernetesImageDescription image =
+        KubernetesImageDescription.builder()
+            .registry(getDockerRegistry(deploymentName, getArtifact()))
+            .repository(artifactName)
+            .tag(version)
+            .build();
     return KubernetesUtil.getImageId(image);
   }
 
   default List<LocalObjectReference> getImagePullSecrets(ServiceSettings settings) {
     List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
-    if (settings.getKubernetes().getImagePullSecrets()!= null) {
+    if (settings.getKubernetes().getImagePullSecrets() != null) {
       for (String imagePullSecret : settings.getKubernetes().getImagePullSecrets()) {
         imagePullSecrets.add(new LocalObjectReference(imagePullSecret));
       }
@@ -165,19 +170,26 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     return availabilityZones;
   }
 
-  default void resizeVersion(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, int version, int targetSize) {
+  default void resizeVersion(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      ServiceSettings settings,
+      int version,
+      int targetSize) {
     String name = getVersionedName(version);
     String namespace = getNamespace(settings);
     KubernetesV1ProviderUtils.resize(details, namespace, name, targetSize);
   }
 
   @Override
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default Map<String, Object> buildRollbackPipeline(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
-    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details, runtimeSettings);
+    Map<String, Object> pipeline =
+        DistributedService.super.buildRollbackPipeline(details, runtimeSettings);
 
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.get("stages");
-    assert(stages != null && !stages.isEmpty());
+    assert (stages != null && !stages.isEmpty());
 
     for (Map<String, Object> stage : stages) {
       stage.put("namespaces", Collections.singletonList(getNamespace(settings)));
@@ -188,7 +200,9 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     return pipeline;
   }
 
-  default Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default Map<String, Object> getLoadBalancerDescription(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     int port = settings.getPort();
     String accountName = details.getAccount().getName();
@@ -223,7 +237,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     servicePorts.add(monitoringPort);
     description.setPorts(servicePorts);
 
-    return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() { });
+    return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() {});
   }
 
   default List<ConfigSource> stageProfiles(
@@ -246,13 +260,19 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     Map<String, String> env = new HashMap<>();
     List<ConfigSource> configSources = new ArrayList<>();
 
-    Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
+    Map<String, Profile> serviceProfiles =
+        resolvedConfiguration.getProfilesForService(thisService.getType());
     Set<String> requiredFiles = new HashSet<>();
 
     for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
-      for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
+      for (Profile profile :
+          sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
         if (profile == null) {
-          throw new HalException(Problem.Severity.FATAL, "Service " + sidecarService.getService().getCanonicalName() + " is required but was not supplied for deployment.");
+          throw new HalException(
+              Problem.Severity.FATAL,
+              "Service "
+                  + sidecarService.getService().getCanonicalName()
+                  + " is required but was not supplied for deployment.");
         }
 
         serviceProfiles.put(profile.getName(), profile);
@@ -280,12 +300,16 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
         if (mountPoint == null) {
           mountPoint = nextMountPoint;
         }
-        assert(mountPoint.equals(nextMountPoint));
+        assert (mountPoint.equals(nextMountPoint));
       }
 
-      Set<Pair<File, String>> pairs = requiredFiles.stream().map(f -> {
-        return new ImmutablePair<>(new File(f), new File(f).getName());
-      }).collect(Collectors.toSet());
+      Set<Pair<File, String>> pairs =
+          requiredFiles.stream()
+              .map(
+                  f -> {
+                    return new ImmutablePair<>(new File(f), new File(f).getName());
+                  })
+              .collect(Collectors.toSet());
 
       KubernetesV1ProviderUtils.upsertSecret(details, pairs, secretName, namespace);
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
@@ -296,30 +320,33 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       env.clear();
       String mountPoint = entry.getKey();
       Set<Profile> profiles = entry.getValue();
-      env.putAll(profiles.stream().reduce(new HashMap<>(),
-          (acc, profile) -> {
-            acc.putAll(profile.getEnv());
-            return acc;
-          },
-          (a, b) -> {
-            a.putAll(b);
-            return a;
-          }
-      ));
+      env.putAll(
+          profiles.stream()
+              .reduce(
+                  new HashMap<>(),
+                  (acc, profile) -> {
+                    acc.putAll(profile.getEnv());
+                    return acc;
+                  },
+                  (a, b) -> {
+                    a.putAll(b);
+                    return a;
+                  }));
 
       String secretName = KubernetesV1ProviderUtils.componentSecret(name + ind, version);
       ind += 1;
 
-      Set<Pair<File, String>> pairs = profiles.stream().map(p -> {
-        return new ImmutablePair<>(new File(stagingPath, p.getName()), new File(p.getOutputFile()).getName());
-      }).collect(Collectors.toSet());
+      Set<Pair<File, String>> pairs =
+          profiles.stream()
+              .map(
+                  p -> {
+                    return new ImmutablePair<>(
+                        new File(stagingPath, p.getName()), new File(p.getOutputFile()).getName());
+                  })
+              .collect(Collectors.toSet());
 
       KubernetesV1ProviderUtils.upsertSecret(details, pairs, secretName, namespace);
-      configSources.add(new ConfigSource()
-          .setId(secretName)
-          .setMountPath(mountPoint)
-          .setEnv(env)
-      );
+      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint).setEnv(env));
     }
 
     return configSources;
@@ -329,12 +356,12 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       AccountDeploymentDetails<KubernetesAccount> details,
       SpinnakerRuntimeSettings runtimeSettings,
       List<ConfigSource> configSources) {
-    DeployKubernetesAtomicOperationDescription description = new DeployKubernetesAtomicOperationDescription();
+    DeployKubernetesAtomicOperationDescription description =
+        new DeployKubernetesAtomicOperationDescription();
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
-    DeploymentEnvironment deploymentEnvironment = details
-        .getDeploymentConfiguration()
-        .getDeploymentEnvironment();
+    DeploymentEnvironment deploymentEnvironment =
+        details.getDeploymentConfiguration().getDeploymentEnvironment();
     String accountName = details.getAccount().getName();
     String namespace = getNamespace(settings);
     String name = getServiceName();
@@ -368,22 +395,34 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
     List<KubernetesContainerDescription> containers = new ArrayList<>();
     ServiceSettings serviceSettings = runtimeSettings.getServiceSettings(getService());
-    KubernetesContainerDescription container = buildContainer(name, serviceSettings, configSources, deploymentEnvironment, description);
+    KubernetesContainerDescription container =
+        buildContainer(name, serviceSettings, configSources, deploymentEnvironment, description);
     containers.add(container);
 
     ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
     if (monitoringSettings.getEnabled() && serviceSettings.getMonitored()) {
       serviceSettings = runtimeSettings.getServiceSettings(monitoringService);
-      container = buildContainer(monitoringService.getServiceName(), serviceSettings, configSources, deploymentEnvironment, description);
+      container =
+          buildContainer(
+              monitoringService.getServiceName(),
+              serviceSettings,
+              configSources,
+              deploymentEnvironment,
+              description);
       containers.add(container);
     }
 
     description.setContainers(containers);
 
-    return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() { });
+    return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() {});
   }
 
-  default KubernetesContainerDescription buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment, DeployKubernetesAtomicOperationDescription description) {
+  default KubernetesContainerDescription buildContainer(
+      String name,
+      ServiceSettings settings,
+      List<ConfigSource> configSources,
+      DeploymentEnvironment deploymentEnvironment,
+      DeployKubernetesAtomicOperationDescription description) {
     KubernetesContainerDescription container = new KubernetesContainerDescription();
     KubernetesProbe readinessProbe = new KubernetesProbe();
     KubernetesHandler handler = new KubernetesHandler();
@@ -415,7 +454,8 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
     applyCustomSize(container, deploymentEnvironment, name, description);
 
-    KubernetesImageDescription imageDescription = KubernetesUtil.buildImageDescription(settings.getArtifactId());
+    KubernetesImageDescription imageDescription =
+        KubernetesUtil.buildImageDescription(settings.getArtifactId());
     container.setImageDescription(imageDescription);
     container.setName(name);
 
@@ -436,30 +476,40 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     container.setVolumeMounts(volumeMounts);
 
     List<KubernetesEnvVar> envVars = new ArrayList<>();
-    settings.getEnv().forEach((k, v) -> {
-      KubernetesEnvVar envVar = new KubernetesEnvVar();
-      envVar.setName(k);
-      envVar.setValue(v);
+    settings
+        .getEnv()
+        .forEach(
+            (k, v) -> {
+              KubernetesEnvVar envVar = new KubernetesEnvVar();
+              envVar.setName(k);
+              envVar.setValue(v);
 
-      envVars.add(envVar);
-    });
+              envVars.add(envVar);
+            });
 
-    configSources.forEach(c -> {
-      c.getEnv().entrySet().forEach(envEntry -> {
-        KubernetesEnvVar envVar = new KubernetesEnvVar();
-        envVar.setName(envEntry.getKey());
-        envVar.setValue(envEntry.getValue());
-        envVars.add(envVar);
-      });
-    });
-
+    configSources.forEach(
+        c -> {
+          c.getEnv()
+              .entrySet()
+              .forEach(
+                  envEntry -> {
+                    KubernetesEnvVar envVar = new KubernetesEnvVar();
+                    envVar.setName(envEntry.getKey());
+                    envVar.setValue(envEntry.getValue());
+                    envVars.add(envVar);
+                  });
+        });
 
     container.setEnvVars(envVars);
 
     return container;
   }
 
-  default void applyCustomSize(KubernetesContainerDescription container, DeploymentEnvironment deploymentEnvironment, String componentName, DeployKubernetesAtomicOperationDescription description) {
+  default void applyCustomSize(
+      KubernetesContainerDescription container,
+      DeploymentEnvironment deploymentEnvironment,
+      String componentName,
+      DeployKubernetesAtomicOperationDescription description) {
     Map<String, Map> componentSizing = deploymentEnvironment.getCustomSizing().get(componentName);
 
     if (componentSizing != null) {
@@ -482,16 +532,18 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     */
   }
 
-  default KubernetesResourceDescription retrieveKubernetesResourceDescription(Map<String, Map> componentSizing, String resourceType) {
+  default KubernetesResourceDescription retrieveKubernetesResourceDescription(
+      Map<String, Map> componentSizing, String resourceType) {
     KubernetesResourceDescription requests = new KubernetesResourceDescription();
     requests.setCpu(CustomSizing.stringOrNull(componentSizing.get(resourceType).get("cpu")));
     requests.setMemory(CustomSizing.stringOrNull(componentSizing.get(resourceType).get("memory")));
     return requests;
   }
 
-  default Integer retrieveKubernetesTargetSize(Map componentSizing){
-    return (componentSizing != null && componentSizing.get("replicas") != null) ?
-        (Integer) componentSizing.get("replicas") : 1;
+  default Integer retrieveKubernetesTargetSize(Map componentSizing) {
+    return (componentSizing != null && componentSizing.get("replicas") != null)
+        ? (Integer) componentSizing.get("replicas")
+        : 1;
   }
 
   default void ensureRunning(
@@ -527,17 +579,22 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     serviceLabels.put("stack", getCanonicalName());
 
     ServiceBuilder serviceBuilder = new ServiceBuilder();
-    serviceBuilder = serviceBuilder
-        .withNewMetadata()
-        .withName(serviceName)
-        .withNamespace(namespace)
-        .withLabels(serviceLabels)
-        .endMetadata()
-        .withNewSpec()
-        .withSelector(serviceSelector)
-        .withPorts(new ServicePortBuilder().withPort(port).withName("http").build(),
-                   new ServicePortBuilder().withPort(monitoringSettings.getPort()).withName("monitoring").build())
-        .endSpec();
+    serviceBuilder =
+        serviceBuilder
+            .withNewMetadata()
+            .withName(serviceName)
+            .withNamespace(namespace)
+            .withLabels(serviceLabels)
+            .endMetadata()
+            .withNewSpec()
+            .withSelector(serviceSelector)
+            .withPorts(
+                new ServicePortBuilder().withPort(port).withName("http").build(),
+                new ServicePortBuilder()
+                    .withPort(monitoringSettings.getPort())
+                    .withName("monitoring")
+                    .build())
+            .endSpec();
 
     boolean create = true;
     if (client.services().inNamespace(namespace).withName(serviceName).get() != null) {
@@ -553,59 +610,69 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     }
 
     List<Container> containers = new ArrayList<>();
-    DeploymentEnvironment deploymentEnvironment = details.getDeploymentConfiguration().getDeploymentEnvironment();
-    containers.add(ResourceBuilder.buildContainer(serviceName, settings, configSources, deploymentEnvironment));
+    DeploymentEnvironment deploymentEnvironment =
+        details.getDeploymentConfiguration().getDeploymentEnvironment();
+    containers.add(
+        ResourceBuilder.buildContainer(
+            serviceName, settings, configSources, deploymentEnvironment));
 
     for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       String sidecarName = sidecarService.getService().getServiceName();
-      ServiceSettings sidecarSettings = resolvedConfiguration.getServiceSettings(sidecarService.getService());
-      containers.add(ResourceBuilder.buildContainer(sidecarName, sidecarSettings, configSources, deploymentEnvironment));
+      ServiceSettings sidecarSettings =
+          resolvedConfiguration.getServiceSettings(sidecarService.getService());
+      containers.add(
+          ResourceBuilder.buildContainer(
+              sidecarName, sidecarSettings, configSources, deploymentEnvironment));
     }
 
-    List<Volume> volumes = configSources.stream().map(c -> {
-      return new VolumeBuilder()
-          .withName(c.getId())
-          .withSecret(
-              new SecretVolumeSourceBuilder()
-                  .withSecretName(c.getId())
-                  .build())
-          .build();
-    }).collect(Collectors.toList());
+    List<Volume> volumes =
+        configSources.stream()
+            .map(
+                c -> {
+                  return new VolumeBuilder()
+                      .withName(c.getId())
+                      .withSecret(new SecretVolumeSourceBuilder().withSecretName(c.getId()).build())
+                      .build();
+                })
+            .collect(Collectors.toList());
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
     List<LocalObjectReference> imagePullSecrets = getImagePullSecrets(settings);
     Map componentSizing = deploymentEnvironment.getCustomSizing().get(serviceName);
 
-    replicaSetBuilder = replicaSetBuilder
-        .withNewMetadata()
-        .withName(replicaSetName)
-        .withNamespace(namespace)
-        .endMetadata()
-        .withNewSpec()
-        .withReplicas(retrieveKubernetesTargetSize(componentSizing))
-        .withNewSelector()
-        .withMatchLabels(replicaSetSelector)
-        .endSelector()
-        .withNewTemplate()
-        .withNewMetadata()
-        .withAnnotations(settings.getKubernetes().getPodAnnotations())
-        .withLabels(podLabels)
-        .endMetadata()
-        .withNewSpec()
-        .withContainers(containers)
-        .withTerminationGracePeriodSeconds(5L)
-        .withVolumes(volumes)
-        .withImagePullSecrets(imagePullSecrets)
-        .endSpec()
-        .endTemplate()
-        .endSpec();
+    replicaSetBuilder =
+        replicaSetBuilder
+            .withNewMetadata()
+            .withName(replicaSetName)
+            .withNamespace(namespace)
+            .endMetadata()
+            .withNewSpec()
+            .withReplicas(retrieveKubernetesTargetSize(componentSizing))
+            .withNewSelector()
+            .withMatchLabels(replicaSetSelector)
+            .endSelector()
+            .withNewTemplate()
+            .withNewMetadata()
+            .withAnnotations(settings.getKubernetes().getPodAnnotations())
+            .withLabels(podLabels)
+            .endMetadata()
+            .withNewSpec()
+            .withContainers(containers)
+            .withTerminationGracePeriodSeconds(5L)
+            .withVolumes(volumes)
+            .withImagePullSecrets(imagePullSecrets)
+            .endSpec()
+            .endTemplate()
+            .endSpec();
 
     create = true;
-    if (client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).get() != null) {
+    if (client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).get()
+        != null) {
       if (recreate) {
         client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
 
-        RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+        RunningServiceDetails runningServiceDetails =
+            getRunningServiceDetails(details, runtimeSettings);
         while (runningServiceDetails.getLatestEnabledVersion() != null) {
           DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
           runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
@@ -619,9 +686,12 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
     }
 
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    RunningServiceDetails runningServiceDetails =
+        getRunningServiceDetails(details, runtimeSettings);
     Integer version = runningServiceDetails.getLatestEnabledVersion();
-    while (version == null || runningServiceDetails.getInstances().get(version).stream().anyMatch(i -> !(i.isHealthy() && i.isRunning()))) {
+    while (version == null
+        || runningServiceDetails.getInstances().get(version).stream()
+            .anyMatch(i -> !(i.isHealthy() && i.isRunning()))) {
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
       runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
       version = runningServiceDetails.getLatestEnabledVersion();
@@ -629,7 +699,9 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
   }
 
   @Override
-  default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default RunningServiceDetails getRunningServiceDetails(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails res = new RunningServiceDetails();
 
@@ -641,8 +713,20 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     lb.setExists(client.services().inNamespace(namespace).withName(name).get() != null);
     res.setLoadBalancer(lb);
 
-    List<Pod> pods = client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "true").list().getItems();
-    pods.addAll(client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "false").list().getItems());
+    List<Pod> pods =
+        client
+            .pods()
+            .inNamespace(namespace)
+            .withLabel("load-balancer-" + name, "true")
+            .list()
+            .getItems();
+    pods.addAll(
+        client
+            .pods()
+            .inNamespace(namespace)
+            .withLabel("load-balancer-" + name, "false")
+            .list()
+            .getItems());
 
     Map<Integer, List<Instance>> instances = res.getInstances();
     for (Pod pod : pods) {
@@ -651,7 +735,12 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       Names parsedName = Names.parseName(serverGroupName);
       Integer version = parsedName.getSequence();
       if (version == null) {
-        throw new IllegalStateException("Server group for service " + getServiceName() + " has unknown sequence (" + serverGroupName + ")");
+        throw new IllegalStateException(
+            "Server group for service "
+                + getServiceName()
+                + " has unknown sequence ("
+                + serverGroupName
+                + ")");
       }
 
       String location = pod.getMetadata().getNamespace();
@@ -659,11 +748,15 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
       Instance instance = new Instance().setId(id).setLocation(location);
       List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
-      if (!containerStatuses.isEmpty() && containerStatuses.stream().allMatch(ContainerStatus::getReady)) {
+      if (!containerStatuses.isEmpty()
+          && containerStatuses.stream().allMatch(ContainerStatus::getReady)) {
         instance.setHealthy(true);
       }
 
-      if (!containerStatuses.isEmpty() && containerStatuses.stream().allMatch(s -> s.getState().getRunning() != null && s.getState().getTerminated() == null)) {
+      if (!containerStatuses.isEmpty()
+          && containerStatuses.stream()
+              .allMatch(
+                  s -> s.getState().getRunning() != null && s.getState().getTerminated() == null)) {
         instance.setRunning(true);
       }
 
@@ -672,7 +765,8 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       instances.put(version, knownInstances);
     }
 
-    List<ReplicaSet> replicaSets = client.extensions().replicaSets().inNamespace(settings.getLocation()).list().getItems();
+    List<ReplicaSet> replicaSets =
+        client.extensions().replicaSets().inNamespace(settings.getLocation()).list().getItems();
     for (ReplicaSet rs : replicaSets) {
       String rsName = rs.getMetadata().getName();
       Names parsedRsName = Names.parseName(rsName);
@@ -687,16 +781,18 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
   }
 
   @Override
-  default <S> S connectToInstance(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId) {
+  default <S> S connectToInstance(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      SpinnakerService<S> sidecar,
+      String instanceId) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(sidecar);
     String namespace = getNamespace(settings);
     int localPort = SocketUtils.findAvailableTcpPort();
     int targetPort = settings.getPort();
-    List<String> command = KubernetesV1ProviderUtils.kubectlPortForwardCommand(details,
-        namespace,
-        instanceId,
-        targetPort,
-        localPort);
+    List<String> command =
+        KubernetesV1ProviderUtils.kubectlPortForwardCommand(
+            details, namespace, instanceId, targetPort, localPort);
     JobRequest request = new JobRequest().setTokenizedCommand(command);
     String jobId = getJobExecutor().startJob(request);
 
@@ -707,48 +803,75 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
     // This should be a long-running job.
     if (status.getState() == JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL,
-          "Unable to establish a proxy against " + getServiceName() + ":\n" + status.getStdOut()
-              + "\n" + status.getStdErr());
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Unable to establish a proxy against "
+              + getServiceName()
+              + ":\n"
+              + status.getStdOut()
+              + "\n"
+              + status.getStdErr());
     }
 
-    return getServiceInterfaceFactory().createService(settings.getScheme() + "://localhost:" + localPort, sidecar);
+    return getServiceInterfaceFactory()
+        .createService(settings.getScheme() + "://localhost:" + localPort, sidecar);
   }
 
   @Override
-  default <S> S connectToService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> service) {
+  default <S> S connectToService(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      SpinnakerService<S> service) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(service);
 
-    KubernetesV1ProviderUtils.Proxy proxy = KubernetesV1ProviderUtils.openProxy(getJobExecutor(), details);
-    String endpoint = KubernetesV1ProviderUtils.proxyServiceEndpoint(proxy, getNamespace(settings), getServiceName(), settings.getPort()).toString();
+    KubernetesV1ProviderUtils.Proxy proxy =
+        KubernetesV1ProviderUtils.openProxy(getJobExecutor(), details);
+    String endpoint =
+        KubernetesV1ProviderUtils.proxyServiceEndpoint(
+                proxy, getNamespace(settings), getServiceName(), settings.getPort())
+            .toString();
 
     return getServiceInterfaceFactory().createService(endpoint, service);
   }
 
-  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, int localPort) {
+  default String connectCommand(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      int localPort) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    RunningServiceDetails runningServiceDetails =
+        getRunningServiceDetails(details, runtimeSettings);
     Map<Integer, List<Instance>> instances = runningServiceDetails.getInstances();
     Integer latest = runningServiceDetails.getLatestEnabledVersion();
     String namespace = getNamespace(settings);
 
     List<Instance> latestInstances = instances.get(latest);
     if (latestInstances == null || latestInstances.isEmpty()) {
-      throw new HalException(Problem.Severity.FATAL, "No instances running in latest server group for service " + getServiceName() + " in namespace " + namespace);
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "No instances running in latest server group for service "
+              + getServiceName()
+              + " in namespace "
+              + namespace);
     }
 
-    return Strings.join(KubernetesV1ProviderUtils.kubectlPortForwardCommand(details,
-        namespace,
-        latestInstances.get(0).getId(),
-        settings.getPort(),
-        localPort), " ");
+    return Strings.join(
+        KubernetesV1ProviderUtils.kubectlPortForwardCommand(
+            details, namespace, latestInstances.get(0).getId(), settings.getPort(), localPort),
+        " ");
   }
 
-  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    return connectCommand(details, runtimeSettings, runtimeSettings.getServiceSettings(getService()).getPort());
+  default String connectCommand(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerRuntimeSettings runtimeSettings) {
+    return connectCommand(
+        details, runtimeSettings, runtimeSettings.getServiceSettings(getService()).getPort());
   }
 
-  default void deleteVersion(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, Integer version) {
+  default void deleteVersion(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      ServiceSettings settings,
+      Integer version) {
     String name = getVersionedName(version);
     String namespace = getNamespace(settings);
     KubernetesV1ProviderUtils.deleteReplicaSet(details, namespace, name);

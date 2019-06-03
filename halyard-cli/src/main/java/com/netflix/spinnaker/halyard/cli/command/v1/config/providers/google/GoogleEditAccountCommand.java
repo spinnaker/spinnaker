@@ -31,69 +31,58 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
     return "google";
   }
 
-  @Parameter(
-      names = "--project",
-      description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION
-  )
+  @Parameter(names = "--project", description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--image-projects",
       variableArity = true,
-      description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION
-  )
+      description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION)
   private List<String> imageProjects;
 
   @Parameter(
       names = "--add-image-project",
-      description = "Add this image project to the list of image projects to cache and deploy images from."
-  )
+      description =
+          "Add this image project to the list of image projects to cache and deploy images from.")
   private String addImageProject;
 
   @Parameter(
       names = "--remove-image-project",
-      description = "Remove this image project from the list of image projects to cache and deploy images from."
-  )
+      description =
+          "Remove this image project from the list of image projects to cache and deploy images from.")
   private String removeImageProject;
 
   @Parameter(
       names = "--set-alpha-listed",
       description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION,
-      arity = 1
-  )
+      arity = 1)
   private Boolean alphaListed = null;
 
   @Parameter(
       names = "--user-data",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION)
   private String userDataFile;
 
   @Parameter(
       names = "--regions",
       variableArity = true,
-      description = "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider."
-  )
+      description =
+          "A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.")
   private List<String> regions;
 
-  @Parameter(
-      names = "--add-region",
-      description = GoogleCommandProperties.ADD_REGION_DESCRIPTION
-  )
+  @Parameter(names = "--add-region", description = GoogleCommandProperties.ADD_REGION_DESCRIPTION)
   private String addRegion;
 
   @Parameter(
       names = "--remove-region",
-      description = GoogleCommandProperties.REMOVE_REGION_DESCRIPTION
-  )
+      description = GoogleCommandProperties.REMOVE_REGION_DESCRIPTION)
   private String removeRegion;
 
   @Override
@@ -105,15 +94,15 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
 
     try {
       account.setImageProjects(
-          updateStringList(account.getImageProjects(), imageProjects, addImageProject,
-              removeImageProject));
+          updateStringList(
+              account.getImageProjects(), imageProjects, addImageProject, removeImageProject));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --image-projects or --[add/remove]-image-project");
+      throw new IllegalArgumentException(
+          "Set either --image-projects or --[add/remove]-image-project");
     }
 
     try {
-      account.setRegions(
-          updateStringList(account.getRegions(), regions, addRegion, removeRegion));
+      account.setRegions(updateStringList(account.getRegions(), regions, addRegion, removeRegion));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --regions or --[add/remove]-region");
     }

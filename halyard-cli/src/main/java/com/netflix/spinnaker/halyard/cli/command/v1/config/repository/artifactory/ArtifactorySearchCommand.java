@@ -17,12 +17,9 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifactory;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.AbstractSearchCommand;
 
-/**
- * Interact with the artifactory repository's search
- */
+/** Interact with the artifactory repository's search */
 @Parameters(separators = "=")
 public class ArtifactorySearchCommand extends AbstractSearchCommand {
   protected String getRepositoryName() {

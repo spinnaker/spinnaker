@@ -24,14 +24,13 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb.GoogleCloudBui
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins.JenkinsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.travis.TravisCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker.WerckerCommand;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
  * This is a top-level command for dealing with your halconfig.
  *
- * Usage is `$ hal config ci`
+ * <p>Usage is `$ hal config ci`
  */
 @Parameters(separators = "=")
 public class CiCommand extends NestableCommand {
@@ -39,7 +38,8 @@ public class CiCommand extends NestableCommand {
   private String commandName = "ci";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure, validate, and view the specified Continuous Integration service.";
+  private String shortDescription =
+      "Configure, validate, and view the specified Continuous Integration service.";
 
   public CiCommand() {
     registerSubcommand(new ConcourseCommand());

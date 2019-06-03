@@ -27,32 +27,29 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * deployments.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs deployments.
  */
 @Component
 public class DeploymentService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private HalconfigParser halconfigParser;
+  @Autowired private HalconfigParser halconfigParser;
 
-  @Autowired
-  private PersistentStorageService storageService;
+  @Autowired private PersistentStorageService storageService;
 
-  public void setDeploymentConfiguration(String deploymentName, DeploymentConfiguration deploymentConfiguration) {
+  public void setDeploymentConfiguration(
+      String deploymentName, DeploymentConfiguration deploymentConfiguration) {
     Halconfig halconfig = halconfigParser.getHalconfig();
-    List<DeploymentConfiguration> deploymentConfigurations = halconfig.getDeploymentConfigurations();
+    List<DeploymentConfiguration> deploymentConfigurations =
+        halconfig.getDeploymentConfigurations();
 
     int matchingIndex = -1;
     for (int i = 0; i < deploymentConfigurations.size(); i++) {
@@ -64,7 +61,8 @@ public class DeploymentService {
     }
 
     if (matchingIndex < 0) {
-      throw new HalException(Severity.FATAL, "Could not find a deployment with name " + deploymentName);
+      throw new HalException(
+          Severity.FATAL, "Could not find a deployment with name " + deploymentName);
     } else {
       deploymentConfigurations.set(matchingIndex, deploymentConfiguration);
     }
@@ -73,19 +71,29 @@ public class DeploymentService {
   public DeploymentConfiguration getDeploymentConfiguration(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName);
 
-    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
+    List<DeploymentConfiguration> matching =
+        lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No deployment with name \"" + deploymentName + "\" could be found")
-            .setRemediation("Create a new deployment with name \"" + deploymentName + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "No deployment with name \"" + deploymentName + "\" could be found")
+                .setRemediation("Create a new deployment with name \"" + deploymentName + "\"")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one deployment with name \"" + deploymentName + "\" found")
-            .setRemediation("Manually delete or rename duplicate deployments with name \"" + deploymentName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one deployment with name \"" + deploymentName + "\" found")
+                .setRemediation(
+                    "Manually delete or rename duplicate deployments with name \""
+                        + deploymentName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
@@ -112,11 +120,14 @@ public class DeploymentService {
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
     NodeFilter filter = new NodeFilter().withAnyDeployment();
 
-    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
+    List<DeploymentConfiguration> matching =
+        lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No deployments could be found in your currently loaded halconfig")
+          new ConfigProblemBuilder(
+                  Severity.FATAL,
+                  "No deployments could be found in your currently loaded halconfig")
               .build());
     } else {
       return matching;
@@ -124,24 +135,26 @@ public class DeploymentService {
   }
 
   public ProblemSet validateAllDeployments() {
-    NodeFilter filter = new NodeFilter()
-        .withAnyDeployment()
-        .withAnyProvider()
-        .withAnyAccount()
-        .setFeatures()
-        .setSecurity();
+    NodeFilter filter =
+        new NodeFilter()
+            .withAnyDeployment()
+            .withAnyProvider()
+            .withAnyAccount()
+            .setFeatures()
+            .setSecurity();
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateDeployment(String deploymentName) {
     PersistentStorage storage = storageService.getPersistentStorage(deploymentName);
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyProvider()
-        .withAnyAccount()
-        .setFeatures()
-        .setSecurity();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .withAnyProvider()
+            .withAnyAccount()
+            .setFeatures()
+            .setSecurity();
 
     if (storage.getPersistentStoreType() != null) {
       filter.setPersistentStore(storage.getPersistentStoreType().getId());
@@ -151,8 +164,7 @@ public class DeploymentService {
   }
 
   public ProblemSet validateDeploymentShallow(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName);
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName);
 
     return validateService.validateMatchingFilter(filter);
   }

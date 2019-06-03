@@ -26,32 +26,30 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactAcco
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<S3ArtifactAccount> {
+public class S3EditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<S3ArtifactAccount> {
   @Parameter(
       names = "--api-endpoint",
-      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION
-  )
+      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION)
   private String apiEndpoint;
+
   @Parameter(
       names = "--api-region",
-      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION
-  )
+      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION)
   private String apiRegion;
-  @Parameter(
-      names = "--region",
-      description = S3ArtifactCommandProperties.REGION_DESCRIPTION
-  )
+
+  @Parameter(names = "--region", description = S3ArtifactCommandProperties.REGION_DESCRIPTION)
   private String region;
+
   @Parameter(
       names = "--aws-access-key-id",
-      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
+      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION)
   private String awsAccessKeyId;
+
   @Parameter(
       names = "--aws-secret-access-key",
       description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
-      password = true
-  )
+      password = true)
   private String awsSecretAccessKey;
 
   @Override
@@ -60,7 +58,8 @@ public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCom
     account.setApiRegion(isSet(apiRegion) ? apiRegion : account.getApiRegion());
     account.setRegion(isSet(region) ? region : account.getRegion());
     account.setAwsAccessKeyId(isSet(awsAccessKeyId) ? awsAccessKeyId : account.getAwsAccessKeyId());
-    account.setAwsSecretAccessKey(isSet(awsSecretAccessKey) ? awsSecretAccessKey : account.getAwsSecretAccessKey());
+    account.setAwsSecretAccessKey(
+        isSet(awsSecretAccessKey) ? awsSecretAccessKey : account.getAwsSecretAccessKey());
     return account;
   }
 

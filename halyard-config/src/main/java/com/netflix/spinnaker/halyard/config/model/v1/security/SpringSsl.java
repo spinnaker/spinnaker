@@ -31,8 +31,7 @@ import org.springframework.boot.web.server.Ssl;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class SpringSsl extends Node {
-  @Getter
-  private final String nodeName = "ssl";
+  @Getter private final String nodeName = "ssl";
 
   @Override
   public NodeIterator getChildren() {
@@ -41,17 +40,11 @@ public class SpringSsl extends Node {
 
   boolean enabled = false;
   String keyAlias;
-  @LocalFile
-  @SecretFile
-  String keyStore;
+  @LocalFile @SecretFile String keyStore;
   String keyStoreType;
-  @Secret
-  String keyStorePassword;
-  @LocalFile
-  @SecretFile
-  String trustStore;
+  @Secret String keyStorePassword;
+  @LocalFile @SecretFile String trustStore;
   String trustStoreType;
-  @Secret
-  String trustStorePassword;
+  @Secret String trustStorePassword;
   Ssl.ClientAuth clientAuth;
 }

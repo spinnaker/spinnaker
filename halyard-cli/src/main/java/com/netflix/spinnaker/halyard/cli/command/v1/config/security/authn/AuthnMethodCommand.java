@@ -25,27 +25,29 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
 @Parameters(separators = "=")
-abstract public class AuthnMethodCommand extends AbstractConfigCommand {
+public abstract class AuthnMethodCommand extends AbstractConfigCommand {
   public String getCommandName() {
     return getMethod().id;
   }
 
-  abstract public AuthnMethod.Method getMethod();
+  public abstract AuthnMethod.Method getMethod();
 
   public String getShortDescription() {
     return "Configure the " + getMethod().id + " method for authenticating.";
   }
 
   protected AuthnMethodCommand() {
-    registerSubcommand(new AuthnMethodEnableDisableCommandBuilder()
-        .setEnable(true)
-        .setMethod(getMethod()).build()
-    );
+    registerSubcommand(
+        new AuthnMethodEnableDisableCommandBuilder()
+            .setEnable(true)
+            .setMethod(getMethod())
+            .build());
 
-    registerSubcommand(new AuthnMethodEnableDisableCommandBuilder()
-        .setEnable(false)
-        .setMethod(getMethod()).build()
-    );
+    registerSubcommand(
+        new AuthnMethodEnableDisableCommandBuilder()
+            .setEnable(false)
+            .setMethod(getMethod())
+            .build());
   }
 
   @Override

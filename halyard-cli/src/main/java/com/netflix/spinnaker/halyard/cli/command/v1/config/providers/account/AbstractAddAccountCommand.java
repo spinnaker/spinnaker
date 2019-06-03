@@ -25,13 +25,12 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractAddAccountCommand extends AbstractHasAccountCommand {
@@ -45,35 +44,30 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
   @Parameter(
       variableArity = true,
       names = "--required-group-membership",
-      description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
-  )
+      description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION)
   List<String> requiredGroupMembership = new ArrayList<>();
 
   @Parameter(
       variableArity = true,
       names = "--read-permissions",
-      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION)
   private List<String> readPermissions = new ArrayList<>();
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
-      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION)
   private List<String> writePermissions = new ArrayList<>();
 
   @Parameter(
       names = "--provider-version",
-      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION
-  )
+      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION)
   private Provider.ProviderVersion providerVersion;
 
   @Parameter(
-        names = "--environment",
-        arity = 1,
-        description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION
-  )
+      names = "--environment",
+      arity = 1,
+      description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION)
   private String environment;
 
   protected abstract Account buildAccount(String accountName);
@@ -93,7 +87,8 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
 
     return new OperationHandler<List<String>>()
         .setFailureMesssage("Failed to get options for field " + fieldName)
-        .setOperation(Daemon.getNewAccountOptions(currentDeployment, providerName, fieldName, account))
+        .setOperation(
+            Daemon.getNewAccountOptions(currentDeployment, providerName, fieldName, account))
         .get();
   }
 
@@ -110,8 +105,10 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
 
     String currentDeployment = getCurrentDeployment();
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to add account " + accountName + " for provider " + providerName + ".")
-        .setSuccessMessage("Successfully added account " + accountName + " for provider " + providerName + ".")
+        .setFailureMesssage(
+            "Failed to add account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage(
+            "Successfully added account " + accountName + " for provider " + providerName + ".")
         .setOperation(Daemon.addAccount(currentDeployment, providerName, !noValidate, account))
         .get();
   }

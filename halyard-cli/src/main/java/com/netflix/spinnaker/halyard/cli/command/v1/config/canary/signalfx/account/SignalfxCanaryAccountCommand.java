@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.signalfx.acco
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractCanaryAccountCommand;
 
-/**
- * Interact with the Signalfx service integration
- */
+/** Interact with the Signalfx service integration */
 @Parameters(separators = "=")
 public class SignalfxCanaryAccountCommand extends AbstractCanaryAccountCommand {
 
@@ -35,4 +33,3 @@ public class SignalfxCanaryAccountCommand extends AbstractCanaryAccountCommand {
     registerSubcommand(new SignalfxEditCanaryAccountCommand());
   }
 }
-

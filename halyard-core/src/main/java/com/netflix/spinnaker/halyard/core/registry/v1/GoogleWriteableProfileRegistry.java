@@ -29,23 +29,20 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class GoogleWriteableProfileRegistry {
   private Storage storage;
   private WriteableProfileRegistryProperties properties;
 
-  @Autowired
-  String spinconfigBucket;
+  @Autowired String spinconfigBucket;
 
-  @Autowired
-  GoogleProfileReader googleProfileReader;
+  @Autowired GoogleProfileReader googleProfileReader;
 
   GoogleWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
     HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
@@ -57,18 +54,22 @@ public class GoogleWriteableProfileRegistry {
       throw new RuntimeException("Failed to load json credential", e);
     }
 
-    this.storage = new Storage.Builder(httpTransport, jsonFactory, GoogleCredentials.setHttpTimeout(credential))
-        .setApplicationName("halyard")
-        .build();
+    this.storage =
+        new Storage.Builder(
+                httpTransport, jsonFactory, GoogleCredentials.setHttpTimeout(credential))
+            .setApplicationName("halyard")
+            .build();
     this.properties = properties;
   }
 
-  private GoogleCredential loadCredential(HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
+  private GoogleCredential loadCredential(
+      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
     GoogleCredential credential;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);
-      credential = GoogleCredential.fromStream(stream, transport, factory)
-          .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+      credential =
+          GoogleCredential.fromStream(stream, transport, factory)
+              .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
       log.info("Loaded credentials from " + jsonPath);
     } else {
       log.info("Using default application credentials.");
@@ -82,7 +83,8 @@ public class GoogleWriteableProfileRegistry {
     writeTextObject(name, contents);
   }
 
-  public void writeArtifactConfig(BillOfMaterials bom, String artifactName, String profileName, String contents) {
+  public void writeArtifactConfig(
+      BillOfMaterials bom, String artifactName, String profileName, String contents) {
     String version = bom.getArtifactVersion(artifactName);
     String name = googleProfileReader.profilePath(artifactName, version, profileName);
     writeTextObject(name, contents);
@@ -95,15 +97,15 @@ public class GoogleWriteableProfileRegistry {
   private void writeTextObject(String name, String contents) {
     try {
       byte[] bytes = contents.getBytes();
-      StorageObject object = new StorageObject()
-          .setBucket(spinconfigBucket)
-          .setName(name);
+      StorageObject object = new StorageObject().setBucket(spinconfigBucket).setName(name);
 
       ByteArrayContent content = new ByteArrayContent("application/text", bytes);
       storage.objects().insert(spinconfigBucket, object, content).execute();
     } catch (IOException e) {
       log.error("Failed to write new object " + name, e);
-      throw new HalException(new ProblemBuilder(Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage()).build());
+      throw new HalException(
+          new ProblemBuilder(Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage())
+              .build());
     }
   }
 }

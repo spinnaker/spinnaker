@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Data;
@@ -37,17 +36,15 @@ import org.yaml.snakeyaml.Yaml;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalGitRoscoService extends RoscoService implements LocalGitService<RoscoService.Rosco> {
+public class LocalGitRoscoService extends RoscoService
+    implements LocalGitService<RoscoService.Rosco> {
   String startCommand = "./gradlew";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
   @Override
   protected String getConfigOutputPath() {
@@ -61,7 +58,8 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings()
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(getDefaultHost())
         .setEnabled(true);
   }
@@ -80,7 +78,7 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
     Map parsedContents = (Map) yamlParser.load(profile.getContents());
 
     if (!(parsedContents.get("rosco") instanceof Map)) {
-      parsedContents.put("rosco", new LinkedHashMap<String,Object>());
+      parsedContents.put("rosco", new LinkedHashMap<String, Object>());
     }
 
     String packerDirectory = Paths.get(getRoscoConfigPath(), "packer").toString();

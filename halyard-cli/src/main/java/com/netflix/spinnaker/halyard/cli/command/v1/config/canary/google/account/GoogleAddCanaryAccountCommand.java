@@ -41,52 +41,49 @@ public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountComma
   @Parameter(
       names = "--project",
       required = true,
-      description = CommonCanaryGoogleCommandProperties.PROJECT_DESCRIPTION
-  )
+      description = CommonCanaryGoogleCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
-  @Parameter(
-      names = "--bucket",
-      description = CommonCanaryCommandProperties.BUCKET
-  )
+  @Parameter(names = "--bucket", description = CommonCanaryCommandProperties.BUCKET)
   private String bucket;
 
-  @Parameter(
-      names = "--root-folder",
-      description = CommonCanaryCommandProperties.ROOT_FOLDER
-  )
+  @Parameter(names = "--root-folder", description = CommonCanaryCommandProperties.ROOT_FOLDER)
   private String rootFolder;
 
   @Parameter(
       names = "--bucket-location",
-      description = CommonCanaryGoogleCommandProperties.BUCKET_LOCATION
-  )
+      description = CommonCanaryGoogleCommandProperties.BUCKET_LOCATION)
   private String bucketLocation;
 
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    GoogleCanaryAccount account = (GoogleCanaryAccount)new GoogleCanaryAccount().setName(accountName);
+    GoogleCanaryAccount account =
+        (GoogleCanaryAccount) new GoogleCanaryAccount().setName(accountName);
     account.setProject(project).setJsonPath(jsonPath);
 
     account.setBucket(bucket).setBucketLocation(bucketLocation);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
 
     GoogleCanaryServiceIntegration googleCanaryServiceIntegration =
-        (GoogleCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
+        (GoogleCanaryServiceIntegration)
+            CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
 
     if (googleCanaryServiceIntegration.isStackdriverEnabled()) {
-      account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
+      account
+          .getSupportedTypes()
+          .add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
     }
 
     if (googleCanaryServiceIntegration.isGcsEnabled()) {
-      account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
+      account
+          .getSupportedTypes()
+          .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
       account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE);
     }
 

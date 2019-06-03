@@ -34,21 +34,23 @@ public abstract class AbstractNamedHaServiceCommand extends AbstractHaServiceCom
 
   @Override
   protected String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getServiceName() + " high availability service";
+    return "Manage and view Spinnaker configuration for the "
+        + getServiceName()
+        + " high availability service";
   }
 
   protected AbstractNamedHaServiceCommand() {
-    registerSubcommand(new HaServiceEnableDisableCommandBuilder()
-        .setServiceName(getServiceName())
-        .setEnable(false)
-        .build()
-    );
+    registerSubcommand(
+        new HaServiceEnableDisableCommandBuilder()
+            .setServiceName(getServiceName())
+            .setEnable(false)
+            .build());
 
-    registerSubcommand(new HaServiceEnableDisableCommandBuilder()
-        .setServiceName(getServiceName())
-        .setEnable(true)
-        .build()
-    );
+    registerSubcommand(
+        new HaServiceEnableDisableCommandBuilder()
+            .setServiceName(getServiceName())
+            .setEnable(true)
+            .build());
   }
 
   @Override

@@ -19,11 +19,9 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.subscription.AbstractHasSubscriptionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import lombok.Getter;
 
@@ -33,8 +31,7 @@ abstract class AbstractGetSubscriptionCommand extends AbstractHasSubscriptionCom
     return "Get the specified subscription details for the " + getPubsubName() + " pubsub.";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {
@@ -45,11 +42,13 @@ abstract class AbstractGetSubscriptionCommand extends AbstractHasSubscriptionCom
     String currentDeployment = getCurrentDeployment();
     String pubsubName = getPubsubName();
     return new OperationHandler<Subscription>()
-        .setFailureMesssage("Failed to get subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
+        .setFailureMesssage(
+            "Failed to get subscription " + subscriptionName + " for pubsub " + pubsubName + ".")
         .setSuccessMessage("Subscription " + subscriptionName + ": ")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)
-        .setOperation(Daemon.getSubscription(currentDeployment, pubsubName, subscriptionName, false))
+        .setOperation(
+            Daemon.getSubscription(currentDeployment, pubsubName, subscriptionName, false))
         .get();
   }
 }

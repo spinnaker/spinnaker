@@ -29,23 +29,16 @@ public class WerckerEditMasterCommand extends AbstractEditMasterCommand<WerckerM
     return "wercker";
   }
 
-  @Parameter(
-    names = "--address",
-    description = WerckerCommandProperties.ADDRESS_DESCRIPTION
-  )
+  @Parameter(names = "--address", description = WerckerCommandProperties.ADDRESS_DESCRIPTION)
   private String address;
 
-  @Parameter(
-    names = "--user",
-    description = WerckerCommandProperties.USER_DESCRIPTION
-  )
+  @Parameter(names = "--user", description = WerckerCommandProperties.USER_DESCRIPTION)
   public String user;
 
   @Parameter(
-    names = "--token",
-    password = true,
-    description = WerckerCommandProperties.TOKEN_DESCRIPTION
-  )
+      names = "--token",
+      password = true,
+      description = WerckerCommandProperties.TOKEN_DESCRIPTION)
   public String token;
 
   @Override
@@ -56,5 +49,4 @@ public class WerckerEditMasterCommand extends AbstractEditMasterCommand<WerckerM
 
     return master;
   }
-
 }

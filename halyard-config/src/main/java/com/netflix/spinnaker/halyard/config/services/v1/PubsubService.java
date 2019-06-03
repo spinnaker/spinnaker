@@ -28,25 +28,21 @@ import com.netflix.spinnaker.halyard.config.model.v1.pubsub.google.GooglePubsub;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * pubsubs.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs pubsubs.
  */
 @Component
 public class PubsubService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
   public Pubsub getPubsub(String deploymentName, String pubsubName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName);
@@ -55,15 +51,22 @@ public class PubsubService {
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No pubsub with name \"" + pubsubName + "\" could be found")
-            .setRemediation("Create a new pubsub with name \"" + pubsubName + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No pubsub with name \"" + pubsubName + "\" could be found")
+                .setRemediation("Create a new pubsub with name \"" + pubsubName + "\"")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one pubsub with name \"" + pubsubName + "\" found")
-            .setRemediation("Manually delete or rename duplicate pubsubs with name \"" + pubsubName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "More than one pubsub with name \"" + pubsubName + "\" found")
+                .setRemediation(
+                    "Manually delete or rename duplicate pubsubs with name \""
+                        + pubsubName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
@@ -74,15 +77,15 @@ public class PubsubService {
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No pubsubs could be found")
-              .build());
+          new ConfigProblemBuilder(Severity.FATAL, "No pubsubs could be found").build());
     } else {
       return matching;
     }
   }
 
   public void setPubsub(String deploymentName, Pubsub pubsub) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     Pubsubs pubsubs = deploymentConfiguration.getPubsub();
     switch (pubsub.getPubsubType()) {
       case GOOGLE:
@@ -99,21 +102,20 @@ public class PubsubService {
   }
 
   public ProblemSet validatePubsub(String deploymentName, String pubsubName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setPubsub(pubsubName)
-        .withAnySubscription()
-        .setBakeryDefaults()
-        .withAnyBaseImage();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setPubsub(pubsubName)
+            .withAnySubscription()
+            .setBakeryDefaults()
+            .withAnyBaseImage();
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllPubsubs(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyPubsub()
-        .withAnySubscription();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).withAnyPubsub().withAnySubscription();
 
     return validateService.validateMatchingFilter(filter);
   }

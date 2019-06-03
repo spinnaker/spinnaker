@@ -17,36 +17,33 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import retrofit.RetrofitError;
 
-import java.io.IOException;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-
-abstract public class RegistryBackedProfileFactory extends ProfileFactory {
-  @Autowired
-  ProfileRegistry profileRegistry;
+public abstract class RegistryBackedProfileFactory extends ProfileFactory {
+  @Autowired ProfileRegistry profileRegistry;
 
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {
     try {
-      return new Profile(name,
+      return new Profile(
+          name,
           version,
           outputFile,
-          IOUtils.toString(profileRegistry.readProfile(getArtifact().getName(), version, name))
-      );
+          IOUtils.toString(profileRegistry.readProfile(getArtifact().getName(), version, name)));
     } catch (RetrofitError | IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "Unable to retrieve profile \"" + name + "\": " + e.getMessage())
+          new ConfigProblemBuilder(
+                  FATAL, "Unable to retrieve profile \"" + name + "\": " + e.getMessage())
               .build(),
-          e
-      );
+          e);
     }
   }
 }

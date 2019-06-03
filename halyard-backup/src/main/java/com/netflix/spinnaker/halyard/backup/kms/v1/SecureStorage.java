@@ -20,21 +20,21 @@ package com.netflix.spinnaker.halyard.backup.kms.v1;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import org.apache.commons.io.IOUtils;
 
 public abstract class SecureStorage {
-  abstract protected void storeContents(String name, String contents);
+  protected abstract void storeContents(String name, String contents);
 
   public void backupFile(String name, File file) {
     String contents;
     try {
       contents = IOUtils.toString(new FileInputStream(file));
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Can't load file for secure storage: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Can't load file for secure storage: " + e.getMessage(), e);
     }
 
     storeContents(name, contents);

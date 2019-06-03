@@ -23,13 +23,12 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-abstract public class LocalServiceProvider extends SpinnakerServiceProvider<DeploymentDetails> {
+public abstract class LocalServiceProvider extends SpinnakerServiceProvider<DeploymentDetails> {
   public LocalService getLocalService(SpinnakerService.Type type) {
     return getLocalService(type, Object.class);
   }
@@ -44,22 +43,25 @@ abstract public class LocalServiceProvider extends SpinnakerServiceProvider<Depl
     try {
       return (LocalService<S>) serviceField.get(this);
     } catch (IllegalAccessException e) {
-      throw new HalException(Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
+      throw new HalException(
+          Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
     } finally {
       serviceField.setAccessible(false);
     }
   }
 
   // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands);
+  public abstract String getInstallCommand(
+      DeploymentDetails deploymentDetails,
+      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      Map<String, String> installCommands);
 
   public String getPrepCommand(DeploymentDetails deploymentDetails, List<String> prepCommands) {
     return "";
   }
 
   public List<LocalService> getLocalServices(List<SpinnakerService.Type> serviceTypes) {
-    return getFieldsOfType(LocalService.class)
-        .stream()
+    return getFieldsOfType(LocalService.class).stream()
         .filter(s -> s != null && serviceTypes.contains(s.getService().getType()))
         .collect(Collectors.toList());
   }

@@ -30,8 +30,7 @@ public abstract class AbstractGetPublisherCommand extends AbstractHasPublisherCo
     return "Get the specified publisher details for the " + getPubsubName() + " pubsub.";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {
@@ -42,7 +41,8 @@ public abstract class AbstractGetPublisherCommand extends AbstractHasPublisherCo
     String currentDeployment = getCurrentDeployment();
     String pubsubName = getPubsubName();
     return new OperationHandler<Publisher>()
-        .setFailureMesssage("Failed to get publisher " + publisherName + " for pubsub " + pubsubName + ".")
+        .setFailureMesssage(
+            "Failed to get publisher " + publisherName + " for pubsub " + pubsubName + ".")
         .setSuccessMessage("Publisher " + publisherName + ": ")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)

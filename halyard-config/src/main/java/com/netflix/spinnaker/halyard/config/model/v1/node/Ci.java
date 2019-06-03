@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -31,6 +30,7 @@ public abstract class Ci<T extends CIAccount> extends Node implements Cloneable 
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(listAccounts().stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        listAccounts().stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 }

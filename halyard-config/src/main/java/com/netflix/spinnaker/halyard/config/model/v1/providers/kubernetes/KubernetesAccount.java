@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
@@ -28,21 +28,20 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersi
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -50,19 +49,35 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   String context;
   String cluster;
   String user;
-  @ValidForSpinnakerVersion(lowerBound = "1.5.0", tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.5.0",
+      tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
   Boolean configureImagePullSecrets;
+
   Boolean serviceAccount;
   int cacheThreads = 1;
   List<String> namespaces = new ArrayList<>();
   List<String> omitNamespaces = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", tooLowMessage = "Configuring kind caching behavior is not supported yet.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.7.0",
+      tooLowMessage = "Configuring kind caching behavior is not supported yet.")
   List<String> kinds = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", tooLowMessage = "Configuring kind caching behavior is not supported yet.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.7.0",
+      tooLowMessage = "Configuring kind caching behavior is not supported yet.")
   List<String> omitKinds = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.6.0", tooLowMessage = "Custom kinds and resources are not supported yet.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.6.0",
+      tooLowMessage = "Custom kinds and resources are not supported yet.")
   List<CustomKubernetesResource> customResources = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.8.0", tooLowMessage = "Caching policies are not supported yet.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.8.0",
+      tooLowMessage = "Caching policies are not supported yet.")
   List<KubernetesCachingPolicy> cachingPolicies = new ArrayList<>();
 
   @LocalFile @SecretFile String kubeconfigFile;
@@ -72,16 +87,25 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   Boolean checkPermissionsOnStartup;
   Boolean liveManifestCalls;
 
-  // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`, respectively.
-  @JsonProperty("oAuthServiceAccount") @LocalFile @SecretFile String oAuthServiceAccount;
-  @JsonProperty("oAuthScopes") List<String> oAuthScopes;
+  // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`,
+  // respectively.
+  @JsonProperty("oAuthServiceAccount")
+  @LocalFile
+  @SecretFile
+  String oAuthServiceAccount;
+
+  @JsonProperty("oAuthScopes")
+  List<String> oAuthScopes;
+
   String namingStrategy;
   String skin;
-  @JsonProperty("onlySpinnakerManaged") Boolean onlySpinnakerManaged;
+
+  @JsonProperty("onlySpinnakerManaged")
+  Boolean onlySpinnakerManaged;
+
   Boolean debug;
 
-  @Autowired
-  private SecretSessionManager secretSessionManager;
+  @Autowired private SecretSessionManager secretSessionManager;
 
   public boolean usesServiceAccount() {
     return serviceAccount != null && serviceAccount;
@@ -103,7 +127,9 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     Config kubeconfig;
     try {
       if (EncryptedSecret.isEncryptedSecret(getKubeconfigFile())) {
-        kubeconfig = KubeConfigUtils.parseConfigFromString(secretSessionManager.decrypt(getKubeconfigFile()));
+        kubeconfig =
+            KubeConfigUtils.parseConfigFromString(
+                secretSessionManager.decrypt(getKubeconfigFile()));
       } else {
         File kubeconfigFileOpen = new File(getKubeconfigFile());
         kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
@@ -113,8 +139,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
       return null;
     }
 
-    return kubeconfig.getContexts()
-        .stream()
+    return kubeconfig.getContexts().stream()
         .map(NamedContext::getName)
         .collect(Collectors.toList());
   }
@@ -124,9 +149,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     DockerRegistryProvider dockerRegistryProvider = context.getProviders().getDockerRegistry();
 
     if (dockerRegistryProvider != null) {
-      return dockerRegistryProvider
-          .getAccounts()
-          .stream()
+      return dockerRegistryProvider.getAccounts().stream()
           .map(Account::getName)
           .collect(Collectors.toList());
     } else {
@@ -139,7 +162,10 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     super.makeBootstrappingAccount(artifactSourcesConfig);
 
     DeploymentConfiguration deploymentConfiguration = parentOfType(DeploymentConfiguration.class);
-    String location = StringUtils.isEmpty(deploymentConfiguration.getDeploymentEnvironment().getLocation()) ? "spinnaker" : deploymentConfiguration.getDeploymentEnvironment().getLocation();
+    String location =
+        StringUtils.isEmpty(deploymentConfiguration.getDeploymentEnvironment().getLocation())
+            ? "spinnaker"
+            : deploymentConfiguration.getDeploymentEnvironment().getLocation();
 
     // These changes are only surfaced in the account used by the bootstrapping clouddriver,
     // the user's clouddriver will be unchanged.

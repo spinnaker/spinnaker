@@ -8,5 +8,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class EcsAccount extends Account {
 
-    private String awsAccount;
+  private String awsAccount;
 }

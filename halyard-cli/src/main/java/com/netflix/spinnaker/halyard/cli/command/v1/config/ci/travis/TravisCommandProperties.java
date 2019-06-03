@@ -17,14 +17,17 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.travis;
 
 public class TravisCommandProperties {
-  static final String ADDRESS_DESCRIPTION = "The address of the travis API (https://api.travis-ci.org).";
+  static final String ADDRESS_DESCRIPTION =
+      "The address of the travis API (https://api.travis-ci.org).";
 
-  static final String BASE_URL_DESCRIPTION = "The base URL to the travis UI (https://travis-ci.org).";
+  static final String BASE_URL_DESCRIPTION =
+      "The base URL to the travis UI (https://travis-ci.org).";
 
-  static final String GITHUB_TOKEN_DESCRIPTION = "The github token to authentiacte against travis with.";
+  static final String GITHUB_TOKEN_DESCRIPTION =
+      "The github token to authentiacte against travis with.";
 
-  static final String NUMBER_OF_REPOSITORIES_DESCRIPTION = "How many repositories the travis integration should" +
-    " fetch from the api each time the poller runs. Should be set a bit higher than the expected maximum number of" +
-    " repositories built within the poll interval.";
-
+  static final String NUMBER_OF_REPOSITORIES_DESCRIPTION =
+      "How many repositories the travis integration should"
+          + " fetch from the api each time the poller runs. Should be set a bit higher than the expected maximum number of"
+          + " repositories built within the poll interval.";
 }

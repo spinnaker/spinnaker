@@ -20,25 +20,19 @@ package com.netflix.spinnaker.halyard.config.problem.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.util.List;
 import lombok.Setter;
 
-import java.util.List;
-
 public class ConfigProblemBuilder {
-  @Setter
-  private Severity severity;
+  @Setter private Severity severity;
 
-  @Setter
-  private Node node;
+  @Setter private Node node;
 
-  @Setter
-  private String message;
+  @Setter private String message;
 
-  @Setter
-  private String remediation;
+  @Setter private String remediation;
 
-  @Setter
-  private List<String> options;
+  @Setter private List<String> options;
 
   public ConfigProblemBuilder(Severity severity, String message) {
     this.severity = severity;

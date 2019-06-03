@@ -10,20 +10,19 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * This represents a long-running task managed by the Daemon that can be polled for status information.
- * It is made up of multiple stages, each of which have multiple events.
+ * This represents a long-running task managed by the Daemon that can be polled for status
+ * information. It is made up of multiple stages, each of which have multiple events.
  */
 @Data
 @Slf4j
@@ -49,14 +48,15 @@ public class DaemonTask<C, T> {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
     this.timeout = timeout;
-    this.version = Optional.ofNullable(DaemonTask.class
-        .getPackage()
-        .getImplementationVersion()).orElse("Unknown");
+    this.version =
+        Optional.ofNullable(DaemonTask.class.getPackage().getImplementationVersion())
+            .orElse("Unknown");
   }
 
   @JsonIgnore
   public Operation getLRO() {
-    // TODO(brnelson): This shouldn't do this, it should set name to name and add the UUID as metadata.
+    // TODO(brnelson): This shouldn't do this, it should set name to name and add the UUID as
+    // metadata.
     return Operation.newBuilder().setName(this.uuid).setDone(this.state.isTerminal()).build();
   }
 
@@ -66,14 +66,15 @@ public class DaemonTask<C, T> {
 
   void writeMessage(String message) {
     if (currentStage == null) {
-      throw new IllegalStateException("Illegal attempt to write an event when no stage has started");
+      throw new IllegalStateException(
+          "Illegal attempt to write an event when no stage has started");
     }
 
-    events.add(new DaemonEvent()
-        .setStage(currentStage)
-        .setMessage(message)
-        .setTimestamp(System.currentTimeMillis())
-    );
+    events.add(
+        new DaemonEvent()
+            .setStage(currentStage)
+            .setMessage(message)
+            .setTimestamp(System.currentTimeMillis()));
   }
 
   public void consumeTaskTree(Consumer<DaemonTask> c) {
@@ -89,8 +90,7 @@ public class DaemonTask<C, T> {
     TIMED_OUT(true),
     FAILED(true);
 
-    @Getter
-    boolean terminal;
+    @Getter boolean terminal;
 
     State(boolean terminal) {
       this.terminal = terminal;
@@ -113,7 +113,7 @@ public class DaemonTask<C, T> {
   void cleanupResources() {
     log.info(this + " killing all jobs created by this task " + String.join(", ", runningJobs));
     DaemonTaskHandler.getJobExecutor().cancelJobs(new ArrayList<>(runningJobs));
-      SecretSessionManager.clearSession();
+    SecretSessionManager.clearSession();
     for (DaemonTask child : children) {
       if (child != null) {
         log.info(this + " interrupting child " + child);
@@ -149,7 +149,8 @@ public class DaemonTask<C, T> {
   public void failure(Exception e) {
     inFailedState();
     fatalError = e;
-    Problem problem = new ProblemBuilder(Problem.Severity.FATAL, "Unexpected exception: " + e).build();
+    Problem problem =
+        new ProblemBuilder(Problem.Severity.FATAL, "Unexpected exception: " + e).build();
     response = new DaemonResponse<>(null, new ProblemSet(problem));
   }
 
@@ -159,17 +160,22 @@ public class DaemonTask<C, T> {
     response = new DaemonResponse<>(null, e.getProblems());
   }
 
-  <Q, P> DaemonTask<Q, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name, long timeout) {
+  <Q, P> DaemonTask<Q, P> spawnChild(
+      Supplier<DaemonResponse<P>> childRunner, String name, long timeout) {
     DaemonTask child = TaskRepository.submitTask(childRunner, name, timeout);
     children.add(child);
     return child;
   }
 
   <P> DaemonResponse<P> reapChild(DaemonTask task) throws InterruptedException {
-    DaemonTask childTask = children.stream()
-        .filter(c -> c.getUuid().equals(task.getUuid()))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Child " + task + " does not belong to this task " + this + ""));
+    DaemonTask childTask =
+        children.stream()
+            .filter(c -> c.getUuid().equals(task.getUuid()))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Child " + task + " does not belong to this task " + this + ""));
 
     // Spin due to spurious wakeups
     while (!childTask.getState().isTerminal()) {

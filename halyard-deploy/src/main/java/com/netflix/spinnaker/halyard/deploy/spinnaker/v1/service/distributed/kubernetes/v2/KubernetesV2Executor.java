@@ -25,15 +25,14 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesV2Executor {
@@ -41,7 +40,8 @@ public class KubernetesV2Executor {
   private JobExecutor executor;
   private KubernetesV2Utils kubernetesV2Utils;
 
-  public KubernetesV2Executor(JobExecutor executor, KubernetesAccount account, KubernetesV2Utils kubernetesV2Utils) {
+  public KubernetesV2Executor(
+      JobExecutor executor, KubernetesAccount account, KubernetesV2Utils kubernetesV2Utils) {
     this.executor = executor;
     this.account = account;
     this.kubernetesV2Utils = kubernetesV2Utils;
@@ -54,7 +54,8 @@ public class KubernetesV2Executor {
   public boolean exists(String manifest) {
     Map<String, Object> parsedManifest = kubernetesV2Utils.parseManifest(manifest);
     String kind = (String) parsedManifest.get("kind");
-    Map<String, Object> metadata = (Map<String, Object>) parsedManifest.getOrDefault("metadata", new HashMap<>());
+    Map<String, Object> metadata =
+        (Map<String, Object>) parsedManifest.getOrDefault("metadata", new HashMap<>());
     String name = (String) metadata.get("name");
     String namespace = (String) metadata.get("namespace");
 
@@ -86,10 +87,13 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Unterminated check for " + kind + "/" + name + " in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Unterminated check for " + kind + "/" + name + " in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
 
     if (status.getResult() == JobStatus.Result.SUCCESS) {
@@ -97,10 +101,13 @@ public class KubernetesV2Executor {
     } else if (status.getStdErr().contains("NotFound")) {
       return false;
     } else {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Failed check for " + kind + "/" + name + " in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Failed check for " + kind + "/" + name + " in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
   }
 
@@ -134,10 +141,13 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Unterminated readiness check for " + service + " in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Unterminated readiness check for " + service + " in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
 
     if (status.getResult() == JobStatus.Result.SUCCESS) {
@@ -145,17 +155,21 @@ public class KubernetesV2Executor {
       if (readyStatuses.isEmpty()) {
         return false;
       }
-      readyStatuses = readyStatuses.substring(1, readyStatuses.length() - 1); // Strip leading and trailing single quote
+      readyStatuses =
+          readyStatuses.substring(
+              1, readyStatuses.length() - 1); // Strip leading and trailing single quote
       if (readyStatuses.isEmpty()) {
         return false;
       }
-      return Arrays.stream(readyStatuses.split(" "))
-          .allMatch(s -> s.equals("true"));
+      return Arrays.stream(readyStatuses.split(" ")).allMatch(s -> s.equals("true"));
     } else {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Failed readiness check for " + service + " in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Failed readiness check for " + service + " in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
   }
 
@@ -181,17 +195,23 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Deleting spinnaker never completed in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Deleting spinnaker never completed in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Deleting spinnaker failed in " + namespace,
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Deleting spinnaker failed in " + namespace,
+              status.getStdErr(),
+              status.getStdOut()));
     }
   }
 
@@ -217,17 +237,23 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Deleting service " + service + " never completed",
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Deleting service " + service + " never completed",
+              status.getStdErr(),
+              status.getStdOut()));
     }
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Deleting service " + service + " failed",
-          status.getStdErr(),
-          status.getStdOut()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Deleting service " + service + " failed",
+              status.getStdErr(),
+              status.getStdOut()));
     }
   }
 
@@ -243,11 +269,13 @@ public class KubernetesV2Executor {
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
-    String jobId = executor.startJob(request,
-        System.getenv(),
-        new ByteArrayInputStream(manifest.getBytes()),
-        stdout,
-        stderr);
+    String jobId =
+        executor.startJob(
+            request,
+            System.getenv(),
+            new ByteArrayInputStream(manifest.getBytes()),
+            stdout,
+            stderr);
 
     JobStatus status;
     try {
@@ -257,19 +285,21 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Unterminated deployment of manifest:",
-          manifest,
-          stderr.toString(),
-          stdout.toString()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Unterminated deployment of manifest:",
+              manifest,
+              stderr.toString(),
+              stdout.toString()));
     }
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Failed to deploy manifest:",
-          manifest,
-          stderr.toString(),
-          stdout.toString()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n", "Failed to deploy manifest:", manifest, stderr.toString(), stdout.toString()));
     }
   }
 
@@ -286,11 +316,13 @@ public class KubernetesV2Executor {
     ByteArrayOutputStream stdout = new ByteArrayOutputStream();
     ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
-    String jobId = executor.startJob(request,
-        System.getenv(),
-        new ByteArrayInputStream(manifest.getBytes()),
-        stdout,
-        stderr);
+    String jobId =
+        executor.startJob(
+            request,
+            System.getenv(),
+            new ByteArrayInputStream(manifest.getBytes()),
+            stdout,
+            stderr);
 
     JobStatus status;
     try {
@@ -300,19 +332,21 @@ public class KubernetesV2Executor {
     }
 
     if (status.getState() != JobStatus.State.COMPLETED) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Unterminated deployment of manifest:",
-          manifest,
-          stderr.toString(),
-          stdout.toString()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n",
+              "Unterminated deployment of manifest:",
+              manifest,
+              stderr.toString(),
+              stdout.toString()));
     }
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new HalException(Problem.Severity.FATAL, String.join("\n",
-          "Failed to deploy manifest:",
-          manifest,
-          stderr.toString(),
-          stdout.toString()));
+      throw new HalException(
+          Problem.Severity.FATAL,
+          String.join(
+              "\n", "Failed to deploy manifest:", manifest, stderr.toString(), stdout.toString()));
     }
   }
 }

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.travis;
 
-  import com.beust.jcommander.Parameters;
-  import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
 
 @Parameters(separators = "=")
 public class TravisMasterCommand extends AbstractMasterCommand {

@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractNamedCiCommand;
 
-/**
- * Interact with the jenkins ci
- */
+/** Interact with the jenkins ci */
 @Parameters(separators = "=")
 public class JenkinsCommand extends AbstractNamedCiCommand {
   protected String getCiName() {

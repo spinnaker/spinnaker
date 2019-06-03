@@ -18,10 +18,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.concourse;
 
 public class ConcourseCommandProperties {
 
-  static final String USERNAME_DESCRIPTION = "The username of the concourse user to authenticate as.";
+  static final String USERNAME_DESCRIPTION =
+      "The username of the concourse user to authenticate as.";
 
-  static final String PASSWORD_DESCRIPTION = "The password of the concourse user to authenticate as.";
+  static final String PASSWORD_DESCRIPTION =
+      "The password of the concourse user to authenticate as.";
 
   static final String URL_DESCRIPTION = "The url your concourse search is reachable at.";
-
 }

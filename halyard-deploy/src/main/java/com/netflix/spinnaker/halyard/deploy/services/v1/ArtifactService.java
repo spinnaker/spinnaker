@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
@@ -29,11 +31,6 @@ import com.netflix.spinnaker.halyard.core.registry.v1.GoogleWriteableProfileRegi
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,31 +39,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Component
 public class ArtifactService {
   @Autowired(required = false)
   GoogleWriteableProfileRegistry googleWriteableProfileRegistry;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
-  @Autowired
-  RelaxedObjectMapper relaxedObjectMapper;
+  @Autowired RelaxedObjectMapper relaxedObjectMapper;
 
-  @Autowired
-  DeploymentService deploymentService;
+  @Autowired DeploymentService deploymentService;
 
-  @Autowired
-  VersionsService versionsService;
+  @Autowired VersionsService versionsService;
 
-  @Autowired
-  ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired ArtifactSourcesConfig artifactSourcesConfig;
 
   BillOfMaterials getBillOfMaterials(String deploymentName) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
     return versionsService.getBillOfMaterials(version);
   }
@@ -75,11 +70,12 @@ public class ArtifactService {
    * Should use {@link #getArtifactSources(String, SpinnakerArtifact)} when it supports all types of
    * deployments.
    *
-   * To future devs: In order to remove this method for good, the remaining callers of this method
-   * need to be able to incorporate different repository sources. As of this writing (May 2018) the
-   * {@link com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider}
-   * and the
-   * {@link com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider}
+   * <p>To future devs: In order to remove this method for good, the remaining callers of this
+   * method need to be able to incorporate different repository sources. As of this writing (May
+   * 2018) the {@link
+   * com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider}
+   * and the {@link
+   * com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider}
    * are the two hold outs.
    */
   @Deprecated
@@ -88,14 +84,16 @@ public class ArtifactService {
     return bom.getArtifactSources();
   }
 
-  public BillOfMaterials.ArtifactSources getArtifactSources(String deploymentName, SpinnakerArtifact artifact) {
+  public BillOfMaterials.ArtifactSources getArtifactSources(
+      String deploymentName, SpinnakerArtifact artifact) {
     BillOfMaterials bom = getBillOfMaterials(deploymentName);
     BillOfMaterials.ArtifactSources baseline = bom.getArtifactSources();
     BillOfMaterials.ArtifactSources overrides = bom.getArtifactSources(artifact.getName());
     return mergeArtifactSources(baseline, overrides);
   }
 
-  private BillOfMaterials.ArtifactSources mergeArtifactSources(BillOfMaterials.ArtifactSources baseline, BillOfMaterials.ArtifactSources overrides) {
+  private BillOfMaterials.ArtifactSources mergeArtifactSources(
+      BillOfMaterials.ArtifactSources baseline, BillOfMaterials.ArtifactSources overrides) {
     if (baseline == null) {
       return overrides;
     }
@@ -104,11 +102,12 @@ public class ArtifactService {
       return baseline;
     }
 
-    BillOfMaterials.ArtifactSources merged = new BillOfMaterials.ArtifactSources()
-        .setDebianRepository(baseline.getDebianRepository())
-        .setDockerRegistry(baseline.getDockerRegistry())
-        .setGitPrefix(baseline.getGitPrefix())
-        .setGoogleImageProject(baseline.getGoogleImageProject());
+    BillOfMaterials.ArtifactSources merged =
+        new BillOfMaterials.ArtifactSources()
+            .setDebianRepository(baseline.getDebianRepository())
+            .setDockerRegistry(baseline.getDockerRegistry())
+            .setGitPrefix(baseline.getGitPrefix())
+            .setGoogleImageProject(baseline.getGoogleImageProject());
 
     if (StringUtils.isNotEmpty(overrides.getDebianRepository())) {
       merged.setDebianRepository(overrides.getDebianRepository());
@@ -135,15 +134,18 @@ public class ArtifactService {
   }
 
   private void deleteVersion(Versions versionsCollection, String version) {
-    versionsCollection.setVersions(versionsCollection.getVersions()
-        .stream()
-        .filter(other -> !other.getVersion().equals(version))
-        .collect(Collectors.toList()));
+    versionsCollection.setVersions(
+        versionsCollection.getVersions().stream()
+            .filter(other -> !other.getVersion().equals(version))
+            .collect(Collectors.toList()));
   }
 
-  private static final String BAD_CONFIG_FORMAT = "You need to set '%s: true' in /opt/spinnaker/config/halyard-local.yml to perform this admin feature";
-  private static final String NO_WRITER_ENABLED = String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.writerEnabled");
-  private static final String NO_GCS_ENABLED = String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.gcs.enabled");
+  private static final String BAD_CONFIG_FORMAT =
+      "You need to set '%s: true' in /opt/spinnaker/config/halyard-local.yml to perform this admin feature";
+  private static final String NO_WRITER_ENABLED =
+      String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.writerEnabled");
+  private static final String NO_GCS_ENABLED =
+      String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.gcs.enabled");
 
   public void deprecateVersion(Version version, String illegalReason) {
     if (googleWriteableProfileRegistry == null) {
@@ -163,11 +165,13 @@ public class ArtifactService {
         illegalVersions = new ArrayList<>();
       }
 
-      illegalVersions.add(new Versions.IllegalVersion().setVersion(version.getVersion()).setReason(illegalReason));
+      illegalVersions.add(
+          new Versions.IllegalVersion().setVersion(version.getVersion()).setReason(illegalReason));
       versionsCollection.setIllegalVersions(illegalVersions);
     }
 
-    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(
+        yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishVersion(Version version) {
@@ -182,7 +186,8 @@ public class ArtifactService {
     deleteVersion(versionsCollection, version.getVersion());
     versionsCollection.getVersions().add(version);
 
-    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(
+        yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishLatestSpinnaker(String latestSpinnaker) {
@@ -194,14 +199,19 @@ public class ArtifactService {
     if (versionsCollection == null) {
       throw new HalException(FATAL, NO_GCS_ENABLED);
     }
-    boolean hasLatest = versionsCollection.getVersions().stream().anyMatch(v -> v.getVersion().equals(latestSpinnaker));
+    boolean hasLatest =
+        versionsCollection.getVersions().stream()
+            .anyMatch(v -> v.getVersion().equals(latestSpinnaker));
     if (!hasLatest) {
-      throw new HalException(FATAL, "Version " + latestSpinnaker + " does not exist in the list of published versions");
+      throw new HalException(
+          FATAL,
+          "Version " + latestSpinnaker + " does not exist in the list of published versions");
     }
 
     versionsCollection.setLatestSpinnaker(latestSpinnaker);
 
-    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(
+        yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishLatestHalyard(String latestHalyard) {
@@ -216,7 +226,8 @@ public class ArtifactService {
 
     versionsCollection.setLatestHalyard(latestHalyard);
 
-    googleWriteableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
+    googleWriteableProfileRegistry.writeVersions(
+        yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void writeBom(String bomPath) {
@@ -230,18 +241,17 @@ public class ArtifactService {
 
     try {
       bomContents = IOUtils.toString(new FileInputStream(bomPath));
-      bom = relaxedObjectMapper.convertValue(
-          yamlParser.load(bomContents),
-          BillOfMaterials.class);
+      bom = relaxedObjectMapper.convertValue(yamlParser.load(bomContents), BillOfMaterials.class);
       version = bom.getVersion();
     } catch (IOException e) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "Unable to load Bill of Materials: " + e.getMessage()).build()
-      );
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL, "Unable to load Bill of Materials: " + e.getMessage())
+              .build());
     }
 
     if (version == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL, "No version was supplied in this BOM.").build());
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL, "No version was supplied in this BOM.").build());
     }
 
     googleWriteableProfileRegistry.writeBom(bom.getVersion(), bomContents);
@@ -257,23 +267,24 @@ public class ArtifactService {
     String profileContents;
 
     try {
-      bom = relaxedObjectMapper.convertValue(
-          yamlParser.load(IOUtils.toString(new FileInputStream(bomPath))),
-          BillOfMaterials.class);
+      bom =
+          relaxedObjectMapper.convertValue(
+              yamlParser.load(IOUtils.toString(new FileInputStream(bomPath))),
+              BillOfMaterials.class);
     } catch (IOException e) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "Unable to load Bill of Materials: " + e.getMessage()).build()
-      );
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL, "Unable to load Bill of Materials: " + e.getMessage())
+              .build());
     }
 
     try {
-       profileContents = IOUtils.toString(new FileInputStream(profileFile));
+      profileContents = IOUtils.toString(new FileInputStream(profileFile));
     } catch (IOException e) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "Unable to load profile : " + e.getMessage()).build()
-      );
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL, "Unable to load profile : " + e.getMessage()).build());
     }
 
-    googleWriteableProfileRegistry.writeArtifactConfig(bom, artifactName, profileFile.getName(), profileContents);
+    googleWriteableProfileRegistry.writeArtifactConfig(
+        bom, artifactName, profileFile.getName(), profileContents);
   }
 }

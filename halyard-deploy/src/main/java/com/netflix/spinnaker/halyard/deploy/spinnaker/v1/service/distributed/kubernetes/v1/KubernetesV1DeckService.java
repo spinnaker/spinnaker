@@ -26,27 +26,24 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1DeckService extends DeckService implements KubernetesV1DistributedService<DeckService.Deck> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1DeckService extends DeckService
+    implements KubernetesV1DistributedService<DeckService.Deck> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
-  @Autowired
-  DeckDockerProfileFactory deckDockerProfileFactory;
+  @Autowired DeckDockerProfileFactory deckDockerProfileFactory;
 
   private final String settingsPath = "/opt/spinnaker/config";
 
@@ -57,9 +54,11 @@ public class KubernetesV1DeckService extends DeckService implements KubernetesV1
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
@@ -79,11 +78,13 @@ public class KubernetesV1DeckService extends DeckService implements KubernetesV1
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     String filename = "settings.js";
     String path = Paths.get(settingsPath, filename).toString();
-    result.add(deckDockerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
+    result.add(
+        deckDockerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
     return result;
   }
 

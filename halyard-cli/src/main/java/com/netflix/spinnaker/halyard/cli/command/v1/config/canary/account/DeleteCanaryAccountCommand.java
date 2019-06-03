@@ -17,19 +17,12 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractHasAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific SERVICE_INTEGRATION canary account
- */
+/** Delete a specific SERVICE_INTEGRATION canary account */
 @Parameters(separators = "=")
 public class DeleteCanaryAccountCommand extends AbstractHasCanaryAccountCommand {
 
@@ -57,9 +50,21 @@ public class DeleteCanaryAccountCommand extends AbstractHasCanaryAccountCommand 
     String currentDeployment = getCurrentDeployment();
     String serviceIntegration = getServiceIntegration();
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to delete canary account " + accountName + " for service integration " + serviceIntegration + ".")
-        .setSuccessMessage("Successfully deleted canary account " + accountName + " for service integration " + serviceIntegration + ".")
-        .setOperation(Daemon.deleteCanaryAccount(currentDeployment, serviceIntegration.toLowerCase(), accountName, !noValidate))
+        .setFailureMesssage(
+            "Failed to delete canary account "
+                + accountName
+                + " for service integration "
+                + serviceIntegration
+                + ".")
+        .setSuccessMessage(
+            "Successfully deleted canary account "
+                + accountName
+                + " for service integration "
+                + serviceIntegration
+                + ".")
+        .setOperation(
+            Daemon.deleteCanaryAccount(
+                currentDeployment, serviceIntegration.toLowerCase(), accountName, !noValidate))
         .get();
   }
 }

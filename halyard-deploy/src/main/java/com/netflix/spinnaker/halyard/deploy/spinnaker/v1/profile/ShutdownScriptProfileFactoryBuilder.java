@@ -23,21 +23,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
 @Component
 public class ShutdownScriptProfileFactoryBuilder {
-  @Autowired
-  protected ArtifactService artifactService;
+  @Autowired protected ArtifactService artifactService;
 
-  @Autowired
-  protected Yaml yamlParser;
+  @Autowired protected Yaml yamlParser;
 
-  @Autowired
-  protected ObjectMapper objectMapper;
+  @Autowired protected ObjectMapper objectMapper;
 
   public ProfileFactory build(String shutdownCommands, SpinnakerArtifact artifact) {
     return new ProfileFactory() {
@@ -47,7 +43,10 @@ public class ShutdownScriptProfileFactoryBuilder {
       }
 
       @Override
-      protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      protected void setProfile(
+          Profile profile,
+          DeploymentConfiguration deploymentConfiguration,
+          SpinnakerRuntimeSettings endpoints) {
         profile.appendContents(shutdownCommands);
         profile.setExecutable(true);
       }

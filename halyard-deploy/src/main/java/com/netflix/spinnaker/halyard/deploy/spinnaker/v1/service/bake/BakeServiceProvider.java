@@ -23,13 +23,12 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-abstract public class BakeServiceProvider extends SpinnakerServiceProvider<DeploymentDetails> {
+public abstract class BakeServiceProvider extends SpinnakerServiceProvider<DeploymentDetails> {
   public BakeService getBakeService(SpinnakerService.Type type) {
     return getBakeService(type, Object.class);
   }
@@ -44,23 +43,28 @@ abstract public class BakeServiceProvider extends SpinnakerServiceProvider<Deplo
     try {
       return (BakeService<S>) serviceField.get(this);
     } catch (IllegalAccessException e) {
-      throw new HalException(Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
+      throw new HalException(
+          Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
     } finally {
       serviceField.setAccessible(false);
     }
   }
 
   // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand);
+  public abstract String getInstallCommand(
+      DeploymentDetails deploymentDetails,
+      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      Map<String, String> installCommands,
+      String startupCommand);
 
-  public List<BakeService> getPrioritizedBakeableServices(List<SpinnakerService.Type> serviceTypes) {
-    List<BakeService> result = getFieldsOfType(BakeService.class)
-        .stream()
-        .filter(s -> serviceTypes.contains(s.getService().getType()))
-        .collect(Collectors.toList());
+  public List<BakeService> getPrioritizedBakeableServices(
+      List<SpinnakerService.Type> serviceTypes) {
+    List<BakeService> result =
+        getFieldsOfType(BakeService.class).stream()
+            .filter(s -> serviceTypes.contains(s.getService().getType()))
+            .collect(Collectors.toList());
 
     result.sort((a, b) -> b.getPriority().compareTo(a.getPriority()));
     return result;
   }
 }
-

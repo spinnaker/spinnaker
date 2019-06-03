@@ -22,11 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface ProfileReader {
-  InputStream readProfile(String artifactName, String version, String profileName) throws IOException;
+  InputStream readProfile(String artifactName, String version, String profileName)
+      throws IOException;
 
   BillOfMaterials readBom(String version) throws IOException;
 
   Versions readVersions() throws IOException;
 
-  InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException;
+  InputStream readArchiveProfile(String artifactName, String version, String profileName)
+      throws IOException;
 }

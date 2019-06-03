@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.accoun
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractCanaryAccountCommand;
 
-/**
- * Interact with the Google service integration
- */
+/** Interact with the Google service integration */
 @Parameters(separators = "=")
 public class GoogleCanaryAccountCommand extends AbstractCanaryAccountCommand {
 
@@ -35,4 +33,3 @@ public class GoogleCanaryAccountCommand extends AbstractCanaryAccountCommand {
     registerSubcommand(new GoogleEditCanaryAccountCommand());
   }
 }
-

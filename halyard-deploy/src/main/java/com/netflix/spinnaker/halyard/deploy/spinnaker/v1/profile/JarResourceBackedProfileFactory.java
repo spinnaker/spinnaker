@@ -20,12 +20,11 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-
 import java.util.HashMap;
 import java.util.Map;
 
-abstract public class JarResourceBackedProfileFactory extends ProfileFactory {
-  abstract protected String getResourceName();
+public abstract class JarResourceBackedProfileFactory extends ProfileFactory {
+  protected abstract String getResourceName();
 
   protected Map<String, Object> getBindings() {
     return new HashMap<>();
@@ -33,11 +32,18 @@ abstract public class JarResourceBackedProfileFactory extends ProfileFactory {
 
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {
-    return new Profile(name, version, outputFile, new StringReplaceJarResource(getResourceName()).setBindings(getBindings()).toString());
+    return new Profile(
+        name,
+        version,
+        outputFile,
+        new StringReplaceJarResource(getResourceName()).setBindings(getBindings()).toString());
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     profile.appendContents(profile.getBaseContents());
   }
 }

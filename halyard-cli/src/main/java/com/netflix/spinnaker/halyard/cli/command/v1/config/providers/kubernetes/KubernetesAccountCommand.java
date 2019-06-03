@@ -20,9 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 
-/**
- * Interact with the kubernetes provider's accounts
- */
+/** Interact with the kubernetes provider's accounts */
 @Parameters(separators = "=")
 public class KubernetesAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
@@ -31,13 +29,13 @@ public class KubernetesAccountCommand extends AbstractAccountCommand {
 
   @Override
   protected String getLongDescription() {
-    return String.join("",
+    return String.join(
+        "",
         "An account in the Kubernetes provider refers to a single Kubernetes context. In Kubernetes, a context ",
         "is the combination of a Kubernetes cluster and some credentials. If no context is specified, the default context in ",
         "in your kubeconfig is assumed.\n\nYou must also provide a set of Docker Registries for each account. ",
         "Spinnaker will automatically upload that Registry's credentials to the specified Kubernetes cluster ",
-        "allowing you to deploy those images without further configuration."
-    );
+        "allowing you to deploy those images without further configuration.");
   }
 
   public KubernetesAccountCommand() {

@@ -35,105 +35,102 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--chaos",
-      description = "Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. "
-          + "Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here "
-          + "https://github.com/Netflix/chaosmonkey/wiki.",
-      arity = 1
-  )
+      description =
+          "Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. "
+              + "Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here "
+              + "https://github.com/Netflix/chaosmonkey/wiki.",
+      arity = 1)
   private Boolean chaos = null;
 
   @Parameter(
       names = "--jobs",
-      description = "Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.",
-      arity = 1
-  )
+      description =
+          "Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.",
+      arity = 1)
   private Boolean jobs = null;
 
   @Parameter(
       names = "--pipeline-templates",
-      description = "Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.",
-      arity = 1
-  )
+      description =
+          "Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.",
+      arity = 1)
   private Boolean pipelineTemplates = null;
 
   @Parameter(
       names = "--artifacts",
       description = "Enable artifact support. Read more at spinnaker.io/reference/artifacts",
-      arity = 1
-  )
+      arity = 1)
   private Boolean artifacts = null;
 
   @Parameter(
       names = "--mine-canary",
-      description = "Enable canary support. For this to work, you'll need a canary judge configured. "
-           + "Currently, Halyard does not configure canary judge for you.",
-      arity = 1
-  )
+      description =
+          "Enable canary support. For this to work, you'll need a canary judge configured. "
+              + "Currently, Halyard does not configure canary judge for you.",
+      arity = 1)
   private Boolean mineCanary = null;
 
   @Parameter(
       names = "--infrastructure-stages",
-      description = "Enable infrastructure stages. Allows for creating Load Balancers as part of pipelines.",
-      arity = 1
-  )
+      description =
+          "Enable infrastructure stages. Allows for creating Load Balancers as part of pipelines.",
+      arity = 1)
   private Boolean infrastructureStages = null;
 
   @Parameter(
       names = "--appengine-container-image-url-deployments",
       description = "Enable appengine deployments using a container image URL from gcr.io.",
-      arity = 1
-  )
+      arity = 1)
   private Boolean appengineContainerImageUrlDeployments = null;
 
-  @Parameter(
-      names = "--travis",
-      description = "Enable the Travis CI stage.",
-      arity = 1
-  )
+  @Parameter(names = "--travis", description = "Enable the Travis CI stage.", arity = 1)
   private Boolean travis = null;
 
-  @Parameter(
-      names = "--wercker",
-      description = "Enable the Wercker CI stage.",
-      arity = 1
-  )
+  @Parameter(names = "--wercker", description = "Enable the Wercker CI stage.", arity = 1)
   private Boolean wercker = null;
 
   @Parameter(
-          names = "--managed-pipeline-templates-v2-ui",
-          description = "Enable managed pipeline templates v2 UI support.",
-          arity = 1
-  )
+      names = "--managed-pipeline-templates-v2-ui",
+      description = "Enable managed pipeline templates v2 UI support.",
+      arity = 1)
   private Boolean managedPipelineTemplatesV2UI = null;
 
   @Parameter(
-          names = "--gremlin",
-          description = "Enable Gremlin fault-injection support.",
-          arity = 1
-  )
+      names = "--gremlin",
+      description = "Enable Gremlin fault-injection support.",
+      arity = 1)
   private Boolean gremlin = null;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    Features features = new OperationHandler<Features>()
-        .setOperation(Daemon.getFeatures(currentDeployment, false))
-        .setFailureMesssage("Failed to load features.")
-        .get();
+    Features features =
+        new OperationHandler<Features>()
+            .setOperation(Daemon.getFeatures(currentDeployment, false))
+            .setFailureMesssage("Failed to load features.")
+            .get();
 
     int originalHash = features.hashCode();
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
     features.setJobs(jobs != null ? jobs : features.isJobs());
-    features.setPipelineTemplates(pipelineTemplates != null ? pipelineTemplates : features.getPipelineTemplates());
+    features.setPipelineTemplates(
+        pipelineTemplates != null ? pipelineTemplates : features.getPipelineTemplates());
     features.setArtifacts(artifacts != null ? artifacts : features.getArtifacts());
     features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
-    features.setInfrastructureStages(infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
-    features.setAppengineContainerImageUrlDeployments(appengineContainerImageUrlDeployments != null ? appengineContainerImageUrlDeployments : features.getAppengineContainerImageUrlDeployments());
+    features.setInfrastructureStages(
+        infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
+    features.setAppengineContainerImageUrlDeployments(
+        appengineContainerImageUrlDeployments != null
+            ? appengineContainerImageUrlDeployments
+            : features.getAppengineContainerImageUrlDeployments());
     features.setTravis(travis != null ? travis : features.getTravis());
     features.setWercker(wercker != null ? wercker : features.getWercker());
-    features.setManagedPipelineTemplatesV2UI(managedPipelineTemplatesV2UI != null ? managedPipelineTemplatesV2UI : features.getManagedPipelineTemplatesV2UI());
+    features.setManagedPipelineTemplatesV2UI(
+        managedPipelineTemplatesV2UI != null
+            ? managedPipelineTemplatesV2UI
+            : features.getManagedPipelineTemplatesV2UI());
     features.setGremlin(gremlin != null ? gremlin : features.getGremlin());
 
     if (originalHash == features.hashCode()) {

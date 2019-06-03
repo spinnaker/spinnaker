@@ -20,10 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -31,15 +27,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 
 /**
- * These are the attributes of a service that can conceivably change between deployments to the exact same deployment
- * environment. Username and Password are easy examples, since these should be updated with each deployment. Port and Address
- * can be changed, so we'll keep these here too. On the other hand, properties like Name, ArtifactType, etc... are all
- * fixed, and can't be changed between deployments. Ideally, if someone supplied ServiceSettings to Halyard, Halyard would
- * have everything it needs to run a deployment.
+ * These are the attributes of a service that can conceivably change between deployments to the
+ * exact same deployment environment. Username and Password are easy examples, since these should be
+ * updated with each deployment. Port and Address can be changed, so we'll keep these here too. On
+ * the other hand, properties like Name, ArtifactType, etc... are all fixed, and can't be changed
+ * between deployments. Ideally, if someone supplied ServiceSettings to Halyard, Halyard would have
+ * everything it needs to run a deployment.
  *
- * Warning: Do not define default values for the below fields in this class, since they will override user-supplied values.
+ * <p>Warning: Do not define default values for the below fields in this class, since they will
+ * override user-supplied values.
  */
 @Data
 public class ServiceSettings {
@@ -79,55 +81,54 @@ public class ServiceSettings {
   }
 
   void mergePreferThis(ServiceSettings other) {
-    Arrays.stream(getClass().getDeclaredMethods()).forEach(m -> {
-      m.setAccessible(true);
-      if (!m.getName().startsWith("get")) {
-        return;
-      }
+    Arrays.stream(getClass().getDeclaredMethods())
+        .forEach(
+            m -> {
+              m.setAccessible(true);
+              if (!m.getName().startsWith("get")) {
+                return;
+              }
 
-      String setterName = "s" + m.getName().substring(1);
-      Method s;
-      try {
-        s = getClass().getDeclaredMethod(setterName, m.getReturnType());
-      } catch (NoSuchMethodException e) {
-        return;
-      }
+              String setterName = "s" + m.getName().substring(1);
+              Method s;
+              try {
+                s = getClass().getDeclaredMethod(setterName, m.getReturnType());
+              } catch (NoSuchMethodException e) {
+                return;
+              }
 
-      try {
-        Object oThis = m.invoke(this);
-        Object oOther = m.invoke(other);
+              try {
+                Object oThis = m.invoke(this);
+                Object oOther = m.invoke(other);
 
-        if (oThis == null) {
-          s.invoke(this, oOther);
-        }
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        throw new RuntimeException("Unable to merge service settings: " + e.getMessage(), e);
-      } finally {
-        m.setAccessible(false);
-      }
-    });
+                if (oThis == null) {
+                  s.invoke(this, oOther);
+                }
+              } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(
+                    "Unable to merge service settings: " + e.getMessage(), e);
+              } finally {
+                m.setAccessible(false);
+              }
+            });
     Map<String, String> fullEnvironment = new HashMap<>(other.getEnv());
     fullEnvironment.putAll(this.getEnv());
     this.setEnv(fullEnvironment);
   }
 
   public String getBaseUrl() {
-    return buildBaseUri()
-        .map(b -> b.toString())
-        .orElse(null);
+    return buildBaseUri().map(b -> b.toString()).orElse(null);
   }
 
   @JsonIgnore
   public String getAuthBaseUrl() {
-    return buildBaseUri()
-        .get()
-        .setUserInfo(getUsername(), getPassword())
-        .toString();
+    return buildBaseUri().get().setUserInfo(getUsername(), getPassword()).toString();
   }
 
   @JsonIgnore
   public String getMetricsUrl() {
-    URIBuilder builder = new URIBuilder()
+    URIBuilder builder =
+        new URIBuilder()
             .setScheme(getScheme())
             .setPort(getPort())
             .setHost("localhost")
@@ -140,7 +141,8 @@ public class ServiceSettings {
     try {
       return builder.build().toString();
     } catch (URISyntaxException e) {
-      throw new HalException(Problem.Severity.FATAL, "Could not build metrics endpoint. This is probably a bug.", e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Could not build metrics endpoint. This is probably a bug.", e);
     }
   }
 
@@ -149,7 +151,8 @@ public class ServiceSettings {
       try {
         return Optional.of(new URIBuilder(overrideBaseUrl));
       } catch (URISyntaxException e) {
-        throw new HalException(Problem.Severity.FATAL, "Illegal override baseURL: " + overrideBaseUrl, e);
+        throw new HalException(
+            Problem.Severity.FATAL, "Illegal override baseURL: " + overrideBaseUrl, e);
       }
     }
     if (!StringUtils.isBlank(baseUrl)) {
@@ -160,10 +163,8 @@ public class ServiceSettings {
       }
     }
     if (getScheme() != null && getPort() != null && getAddress() != null) {
-      return Optional.of(new URIBuilder()
-          .setScheme(getScheme())
-          .setPort(getPort())
-          .setHost(getAddress()));
+      return Optional.of(
+          new URIBuilder().setScheme(getScheme()).setPort(getPort()).setHost(getAddress()));
     }
     return Optional.empty();
   }

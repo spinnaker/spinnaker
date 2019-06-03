@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google;
 
 public class CommonCanaryGoogleCommandProperties {
-  public static final String PROJECT_DESCRIPTION = "The Google Cloud Platform project the canary service will use to consume GCS and Stackdriver.";
+  public static final String PROJECT_DESCRIPTION =
+      "The Google Cloud Platform project the canary service will use to consume GCS and Stackdriver.";
 
-  public static final String BUCKET_LOCATION = "This is only required if the bucket you specify doesn't exist yet. In that case, the "
-      + "bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.";
+  public static final String BUCKET_LOCATION =
+      "This is only required if the bucket you specify doesn't exist yet. In that case, the "
+          + "bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.";
 }

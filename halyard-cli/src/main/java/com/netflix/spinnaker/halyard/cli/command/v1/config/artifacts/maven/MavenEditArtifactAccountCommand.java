@@ -23,22 +23,22 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.maven.MavenArtifa
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class MavenEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<MavenArtifactAccount> {
-    @Parameter(
-            names = "--repository-url",
-            description = MavenArtifactCommandProperties.REPOSITORY_URL_DESCRIPTION
-    )
-    private String repositoryUrl;
+public class MavenEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<MavenArtifactAccount> {
+  @Parameter(
+      names = "--repository-url",
+      description = MavenArtifactCommandProperties.REPOSITORY_URL_DESCRIPTION)
+  private String repositoryUrl;
 
-    @Override
-    protected ArtifactAccount editArtifactAccount(MavenArtifactAccount account) {
-        account.setRepositoryUrl(isSet(repositoryUrl) ? repositoryUrl : account.getRepositoryUrl());
+  @Override
+  protected ArtifactAccount editArtifactAccount(MavenArtifactAccount account) {
+    account.setRepositoryUrl(isSet(repositoryUrl) ? repositoryUrl : account.getRepositoryUrl());
 
-        return account;
-    }
+    return account;
+  }
 
-    @Override
-    protected String getArtifactProviderName() {
-        return "maven";
-    }
+  @Override
+  protected String getArtifactProviderName() {
+    return "maven";
+  }
 }

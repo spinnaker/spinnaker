@@ -30,5 +30,7 @@ public class ClouddriverHaService extends HaService {
   boolean disableClouddriverRoDeck;
 
   @Override
-  public HaServiceType haServiceType() { return HaServiceType.CLOUDDRIVER; }
+  public HaServiceType haServiceType() {
+    return HaServiceType.CLOUDDRIVER;
+  }
 }

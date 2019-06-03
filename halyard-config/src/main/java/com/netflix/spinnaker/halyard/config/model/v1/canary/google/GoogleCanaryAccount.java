@@ -18,23 +18,22 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.google;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -46,10 +45,12 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
   private String bucket;
   private String bucketLocation;
   private String rootFolder = "kayenta";
-  private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new TreeSet<>();
+  private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes =
+      new TreeSet<>();
 
   @JsonIgnore
-  public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, SecretSessionManager secretSessionManager, ConfigProblemSetBuilder p) {
+  public GoogleNamedAccountCredentials getNamedAccountCredentials(
+      String version, SecretSessionManager secretSessionManager, ConfigProblemSetBuilder p) {
     String jsonKey = null;
     if (!StringUtils.isEmpty(getJsonPath())) {
       if (EncryptedSecret.isEncryptedSecret(getJsonPath())) {
@@ -79,8 +80,11 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
           .liveLookupsEnabled(false)
           .build();
     } catch (Exception e) {
-      p.addProblem(Problem.Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage() + ".")
-          .setRemediation("Do the provided credentials have access to project " + getProject() + "?");
+      p.addProblem(
+              Problem.Severity.ERROR,
+              "Error instantiating Google credentials: " + e.getMessage() + ".")
+          .setRemediation(
+              "Do the provided credentials have access to project " + getProject() + "?");
       return null;
     }
   }

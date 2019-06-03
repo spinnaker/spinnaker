@@ -35,14 +35,13 @@ public class SignalfxAddCanaryAccountCommand extends AbstractAddCanaryAccountCom
       names = "--access-token",
       required = true,
       password = true,
-      description = "The SignalFx access token."
-  )
+      description = "The SignalFx access token.")
   private String accessToken;
-
 
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    SignalfxCanaryAccount account = (SignalfxCanaryAccount)new SignalfxCanaryAccount().setName(accountName);
+    SignalfxCanaryAccount account =
+        (SignalfxCanaryAccount) new SignalfxCanaryAccount().setName(accountName);
 
     account.setAccessToken(accessToken);
 

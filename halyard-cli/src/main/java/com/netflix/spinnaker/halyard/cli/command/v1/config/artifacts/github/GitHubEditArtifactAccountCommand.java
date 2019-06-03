@@ -26,42 +26,35 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArti
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class GitHubEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<GitHubArtifactAccount> {
-  @Parameter(
-      names = "--username",
-      description = "GitHub username"
-  )
+public class GitHubEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<GitHubArtifactAccount> {
+  @Parameter(names = "--username", description = "GitHub username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "GitHub password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "GitHub password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for GitHub authentication"
-  )
+      description = "File containing \"username:password\" to use for GitHub authentication")
   private String usernamePasswordFile;
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "GitHub token"
-  )
+
+  @Parameter(names = "--token", password = true, description = "GitHub token")
   private String token;
+
   @Parameter(
       names = "--token-file",
       converter = LocalFileConverter.class,
-      description = "File containing a GitHub authentication token"
-  )
+      description = "File containing a GitHub authentication token")
   private String tokenFile;
 
   @Override
   protected ArtifactAccount editArtifactAccount(GitHubArtifactAccount account) {
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
-    account.setUsernamePasswordFile(isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
+    account.setUsernamePasswordFile(
+        isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
     account.setToken(isSet(token) ? token : account.getToken());
     account.setTokenFile(isSet(tokenFile) ? tokenFile : account.getTokenFile());
     return account;

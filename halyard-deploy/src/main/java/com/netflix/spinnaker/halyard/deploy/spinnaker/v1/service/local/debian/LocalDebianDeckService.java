@@ -36,24 +36,20 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalDebianDeckService extends DeckService implements LocalDebianService<DeckService.Deck> {
+public class LocalDebianDeckService extends DeckService
+    implements LocalDebianService<DeckService.Deck> {
   // Deck serves from apache, but apache is started separately from Spinnaker since it could be
   // serving other content.
   final String upstartServiceName = null;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  LocalLogCollectorFactory localLogCollectorFactory;
-
+  @Autowired LocalLogCollectorFactory localLogCollectorFactory;
 
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
-    return localLogCollectorFactory.build(this, new String[] {
-      "/var/log/upstart/apache.log",
-      "/var/log/apache/"
-    });
+    return localLogCollectorFactory.build(
+        this, new String[] {"/var/log/upstart/apache.log", "/var/log/apache/"});
   }
 
   @Override
@@ -68,12 +64,21 @@ public class LocalDebianDeckService extends DeckService implements LocalDebianSe
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     String install = LocalDebianService.super.installArtifactCommand(deploymentDetails);
-    String ssl = deploymentDetails.getDeploymentConfiguration().getSecurity().getUiSecurity().getSsl().isEnabled() ? "a2enmod ssl" : "";
+    String ssl =
+        deploymentDetails
+                .getDeploymentConfiguration()
+                .getSecurity()
+                .getUiSecurity()
+                .getSsl()
+                .isEnabled()
+            ? "a2enmod ssl"
+            : "";
     return Strings.join("\n", install, ssl);
   }
 
   @Override
-  public String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
+  public String stageProfilesCommand(
+      DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
     String stage = LocalDebianService.super.stageProfilesCommand(details, resolvedConfiguration);
     return Strings.join("\n", stage, "a2ensite spinnaker", "a2dissite 000-default");
   }

@@ -19,16 +19,14 @@ package com.netflix.spinnaker.halyard.config.services.v1.ci;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JenkinsService extends CiService<JenkinsMaster, JenkinsCi> {
   public JenkinsService(CiService.Members members) {
     super(members);
   }
-
 
   public String ciName() {
     return "jenkins";

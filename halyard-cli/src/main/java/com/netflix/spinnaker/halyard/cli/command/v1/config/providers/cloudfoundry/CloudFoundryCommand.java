@@ -21,13 +21,13 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNam
 
 @Parameters(separators = "=")
 public class CloudFoundryCommand extends AbstractNamedProviderCommand {
-    @Override
-    protected String getProviderName() {
-        return "cloudfoundry";
-    }
+  @Override
+  protected String getProviderName() {
+    return "cloudfoundry";
+  }
 
-    public CloudFoundryCommand() {
-        super();
-        registerSubcommand(new CloudFoundryAccountCommand());
-    }
+  public CloudFoundryCommand() {
+    super();
+    registerSubcommand(new CloudFoundryAccountCommand());
+  }
 }

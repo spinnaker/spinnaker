@@ -24,7 +24,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 /**
- * An ObjectMapper replacing the now private `objectMapper` bean from RepositoryRestMvcConfiguration.
+ * An ObjectMapper replacing the now private `objectMapper` bean from
+ * RepositoryRestMvcConfiguration.
  */
 @Component
 @Primary

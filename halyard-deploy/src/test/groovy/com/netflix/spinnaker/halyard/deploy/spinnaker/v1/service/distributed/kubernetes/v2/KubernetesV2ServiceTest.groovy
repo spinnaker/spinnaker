@@ -107,7 +107,7 @@ class KubernetesV2ServiceTest extends Specification {
         String customSidecar = testService.buildCustomSidecar(car)
 
         then:
-        customSidecar.contains('"ports": [{ "containerPort": 8080 }]')
+        customSidecar.contains('"ports": [{ "containerPort": 8080 }\n]')
     }
 
     def "Defaults Service.type to ClusterIP?"() {
@@ -200,27 +200,31 @@ class KubernetesV2ServiceTest extends Specification {
   "secret": {
     "secretName": "myid"
   }
-}''')
+}
+''')
         volumes.contains('''{
   "name": "kubid",
   "secret": {
     "secretName": "kubid"
   }
-}''')
+}
+''')
 
         volumes.contains('''{
   "name": "cMap",
   "configMap": {
     "name": "cMap"
   }
-}''')
+}
+''')
 
         volumes.contains('''{
   "name": "sMap",
   "secret": {
     "secretName": "sMap"
   }
-}''')
+}
+''')
     }
 
     def "Can we set initContainers?"() {

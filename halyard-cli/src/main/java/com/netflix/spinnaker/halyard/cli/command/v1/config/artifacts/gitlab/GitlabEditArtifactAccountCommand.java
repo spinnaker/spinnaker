@@ -26,18 +26,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArti
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class GitlabEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<GitlabArtifactAccount> {
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "Gitlab token"
-  )
+public class GitlabEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<GitlabArtifactAccount> {
+  @Parameter(names = "--token", password = true, description = "Gitlab token")
   private String token;
+
   @Parameter(
       names = "--token-file",
       converter = LocalFileConverter.class,
-      description = "File containing a Gitlab authentication token"
-  )
+      description = "File containing a Gitlab authentication token")
   private String tokenFile;
 
   @Override

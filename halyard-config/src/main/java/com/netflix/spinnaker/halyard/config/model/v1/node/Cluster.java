@@ -18,4 +18,3 @@ public abstract class Cluster extends Node implements Cloneable {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 }
-

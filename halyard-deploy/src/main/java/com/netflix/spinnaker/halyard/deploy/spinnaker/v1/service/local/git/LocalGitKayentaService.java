@@ -23,25 +23,23 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.KayentaService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class LocalGitKayentaService extends KayentaService implements LocalGitService<KayentaService.Kayenta> {
+public class LocalGitKayentaService extends KayentaService
+    implements LocalGitService<KayentaService.Kayenta> {
 
   String startCommand = "./gradlew";
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   protected String getConfigOutputPath() {
@@ -49,9 +47,11 @@ public class LocalGitKayentaService extends KayentaService implements LocalGitSe
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory())
+        .ifPresent(p -> profiles.add(p));
     return profiles;
   }
 

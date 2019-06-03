@@ -35,7 +35,8 @@ public class SecurityCommand extends AbstractConfigCommand {
   private String commandName = "security";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.";
+  private String shortDescription =
+      "Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.";
 
   public SecurityCommand() {
     registerSubcommand(new ApiSecurityCommand());

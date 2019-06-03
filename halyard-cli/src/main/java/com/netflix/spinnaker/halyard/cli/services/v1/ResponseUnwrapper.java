@@ -26,12 +26,11 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class ResponseUnwrapper {
@@ -92,7 +91,12 @@ public class ResponseUnwrapper {
   }
 
   private static String formatLoggedDaemonTask(DaemonTask task, DaemonEvent event) {
-    return "Message from task " + task.getName() + ": " + event.getStage() + " - " + event.getMessage();
+    return "Message from task "
+        + task.getName()
+        + ": "
+        + event.getStage()
+        + " - "
+        + event.getMessage();
   }
 
   private static void logTasks(List<DaemonTask> tasks, Set<String> loggedEvents) {
@@ -158,30 +162,35 @@ public class ResponseUnwrapper {
     switch (state) {
       case NOT_STARTED:
       case RUNNING:
-        builder.addSnippet(nextCursor() + " ")
+        builder
+            .addSnippet(nextCursor() + " ")
             .setForegroundColor(AnsiForegroundColor.BLUE)
             .addStyle(AnsiStyle.BOLD);
         break;
       case SUCCEEDED:
-        builder.addSnippet("+ ")
+        builder
+            .addSnippet("+ ")
             .setForegroundColor(AnsiForegroundColor.GREEN)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Success");
         break;
       case FAILED:
-        builder.addSnippet("- ")
+        builder
+            .addSnippet("- ")
             .setForegroundColor(AnsiForegroundColor.RED)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Failure");
         break;
       case INTERRUPTED:
-        builder.addSnippet("! ")
+        builder
+            .addSnippet("! ")
             .setForegroundColor(AnsiForegroundColor.YELLOW)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Interrupted");
         break;
       case TIMED_OUT:
-        builder.addSnippet("/ ")
+        builder
+            .addSnippet("/ ")
             .setForegroundColor(AnsiForegroundColor.YELLOW)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Timed out");
@@ -216,7 +225,7 @@ public class ResponseUnwrapper {
     AnsiPrinter.err.print(snippet.toString());
 
     Map<String, List<Problem>> locationGroup = problemSet.groupByLocation();
-    for (Entry<String, List<Problem>> entry: locationGroup.entrySet()) {
+    for (Entry<String, List<Problem>> entry : locationGroup.entrySet()) {
 
       AnsiUi.problemLocation(entry.getKey());
       for (Problem problem : entry.getValue()) {

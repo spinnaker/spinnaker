@@ -17,23 +17,22 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AwsBaseImage extends BaseImage<AwsBaseImage.AwsImageSettings, List<AwsBaseImage.AwsVirtualizationSettings>> {
+public class AwsBaseImage
+    extends BaseImage<AwsBaseImage.AwsImageSettings, List<AwsBaseImage.AwsVirtualizationSettings>> {
   private AwsImageSettings baseImage;
   private List<AwsVirtualizationSettings> virtualizationSettings;
 
   @EqualsAndHashCode(callSuper = true)
   @Data
   @ToString(callSuper = true)
-  public static class AwsImageSettings extends BaseImage.ImageSettings {
-  }
+  public static class AwsImageSettings extends BaseImage.ImageSettings {}
 
   @Data
   public static class AwsVirtualizationSettings {
@@ -47,7 +46,8 @@ public class AwsBaseImage extends BaseImage<AwsBaseImage.AwsImageSettings, List<
     String spotPriceAutoProduct;
 
     public enum VmType {
-      pv, hvm
+      pv,
+      hvm
     }
   }
 }

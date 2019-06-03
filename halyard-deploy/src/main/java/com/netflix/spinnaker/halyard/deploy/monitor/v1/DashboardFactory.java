@@ -17,5 +17,4 @@
 
 package com.netflix.spinnaker.halyard.deploy.monitor.v1;
 
-public class DashboardFactory {
-}
+public class DashboardFactory {}

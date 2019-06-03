@@ -17,22 +17,20 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class RedisService extends SpinnakerService<Jedis> {
+public abstract class RedisService extends SpinnakerService<Jedis> {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.REDIS;
@@ -49,7 +47,8 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 
@@ -77,7 +76,8 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
   }
 
   public static void flushKeySpace(Jedis jedis, String pattern) {
-    jedis.eval("for i, k in ipairs(redis.call('keys', '" + pattern + "')) do redis.call('del', k); end");
+    jedis.eval(
+        "for i, k in ipairs(redis.call('keys', '" + pattern + "')) do redis.call('del', k); end");
   }
 
   @Override

@@ -24,8 +24,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class DeleteSearchCommandBuilder implements CommandBuilder {
-  @Setter
-  String repositoryName;
+  @Setter String repositoryName;
 
   @Override
   public NestableCommand build() {

@@ -30,22 +30,20 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.Do
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 @Component
 public class ClouddriverProfileFactory extends SpringProfileFactory {
 
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -58,7 +56,10 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
     // We need to make modifications to this deployment configuration, but can't use helpful objects
@@ -67,10 +68,13 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
     Providers originalProviders = deploymentConfiguration.getProviders().cloneNode(Providers.class);
     Providers modifiedProviders = deploymentConfiguration.getProviders();
 
-    DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
-    if (deploymentEnvironment.getBootstrapOnly() != null && deploymentEnvironment.getBootstrapOnly()) {
+    DeploymentEnvironment deploymentEnvironment =
+        deploymentConfiguration.getDeploymentEnvironment();
+    if (deploymentEnvironment.getBootstrapOnly() != null
+        && deploymentEnvironment.getBootstrapOnly()) {
       String bootstrapAccountName = deploymentEnvironment.getAccountName();
-      removeBootstrapOnlyAccount(modifiedProviders, deploymentConfiguration.getName(), bootstrapAccountName);
+      removeBootstrapOnlyAccount(
+          modifiedProviders, deploymentConfiguration.getName(), bootstrapAccountName);
     }
 
     Artifacts artifacts = deploymentConfiguration.getArtifacts();
@@ -82,8 +86,11 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
       processProviders(deploymentConfiguration.getProviders());
     }
 
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, modifiedProviders))
-        .appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)))
+    profile
+        .appendContents(yamlToString(deploymentConfiguration.getName(), profile, modifiedProviders))
+        .appendContents(
+            yamlToString(
+                deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
 
@@ -91,13 +98,14 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
     deploymentConfiguration.parentify();
   }
 
-  protected void processProviders(Providers providers) {
-  }
+  protected void processProviders(Providers providers) {}
 
   @SuppressWarnings("unchecked")
-  private void removeBootstrapOnlyAccount(Providers providers, String deploymentName, String bootstrapAccountName) {
+  private void removeBootstrapOnlyAccount(
+      Providers providers, String deploymentName, String bootstrapAccountName) {
 
-    Account bootstrapAccount = accountService.getAnyProviderAccount(deploymentName, bootstrapAccountName);
+    Account bootstrapAccount =
+        accountService.getAnyProviderAccount(deploymentName, bootstrapAccountName);
     Provider bootstrapProvider = ((Provider) bootstrapAccount.getParent());
 
     bootstrapProvider.getAccounts().remove(bootstrapAccount);
@@ -106,15 +114,22 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
 
       if (bootstrapAccount instanceof ContainerAccount) {
         ContainerAccount containerAccount = (ContainerAccount) bootstrapAccount;
-        DockerRegistryAccountReverseIndex revIndex = new DockerRegistryAccountReverseIndex(providers);
+        DockerRegistryAccountReverseIndex revIndex =
+            new DockerRegistryAccountReverseIndex(providers);
 
-        containerAccount.getDockerRegistries().forEach(reg -> {
-          Set<Account> dependentAccounts = revIndex.get(reg.getAccountName());
-          if (dependentAccounts == null || dependentAccounts.isEmpty()) {
-            DockerRegistryAccount regAcct = (DockerRegistryAccount) accountService.getAnyProviderAccount(deploymentName, reg.getAccountName());
-            ((DockerRegistryProvider) regAcct.getParent()).getAccounts().remove(regAcct);
-          }
-        });
+        containerAccount
+            .getDockerRegistries()
+            .forEach(
+                reg -> {
+                  Set<Account> dependentAccounts = revIndex.get(reg.getAccountName());
+                  if (dependentAccounts == null || dependentAccounts.isEmpty()) {
+                    DockerRegistryAccount regAcct =
+                        (DockerRegistryAccount)
+                            accountService.getAnyProviderAccount(
+                                deploymentName, reg.getAccountName());
+                    ((DockerRegistryProvider) regAcct.getParent()).getAccounts().remove(regAcct);
+                  }
+                });
 
         if (providers.getDockerRegistry().getAccounts().isEmpty()) {
           providers.getDockerRegistry().setEnabled(false);
@@ -138,7 +153,10 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
           if (a instanceof ContainerAccount) {
             ContainerAccount account = (ContainerAccount) a;
             List<DockerRegistryReference> registries = account.getDockerRegistries();
-            registries.forEach(reg -> this.computeIfAbsent(reg.getAccountName(), ignored -> new HashSet<>()).add(account));
+            registries.forEach(
+                reg ->
+                    this.computeIfAbsent(reg.getAccountName(), ignored -> new HashSet<>())
+                        .add(account));
           }
         }
       }

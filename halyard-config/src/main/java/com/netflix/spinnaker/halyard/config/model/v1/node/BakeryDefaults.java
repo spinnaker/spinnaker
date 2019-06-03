@@ -17,33 +17,34 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-abstract public class BakeryDefaults<T extends BaseImage> extends Node {
-  final private String nodeName = "bakeryDefaults";
+public abstract class BakeryDefaults<T extends BaseImage> extends Node {
+  private final String nodeName = "bakeryDefaults";
 
   String templateFile;
   List<T> baseImages = new ArrayList<>();
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(baseImages.stream().map(b -> (Node) b).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(
+        baseImages.stream().map(b -> (Node) b).collect(Collectors.toList()));
   }
 
   public void addDefaultImages(List<T> otherBaseImages) {
-    Set<String> existingIds = baseImages.stream().map(i -> i.getBaseImage().getId()).collect(Collectors.toSet());
-    List<T> dedupedOtherBaseImages = otherBaseImages.stream()
-        .filter(i -> !existingIds.contains(i.getBaseImage().getId()))
-        .collect(Collectors.toList());
+    Set<String> existingIds =
+        baseImages.stream().map(i -> i.getBaseImage().getId()).collect(Collectors.toSet());
+    List<T> dedupedOtherBaseImages =
+        otherBaseImages.stream()
+            .filter(i -> !existingIds.contains(i.getBaseImage().getId()))
+            .collect(Collectors.toList());
 
     baseImages.addAll(dedupedOtherBaseImages);
   }

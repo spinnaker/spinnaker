@@ -35,23 +35,29 @@ import org.springframework.stereotype.Component;
 public class LocalGitDeployer extends LocalDeployer {
 
   @Override
-  public RemoteAction prep(LocalServiceProvider serviceProvider,
-      DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings,
+  public RemoteAction prep(
+      LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
     LocalGitServiceProvider localGitServiceProvider = (LocalGitServiceProvider) serviceProvider;
-    List<LocalGitService> enabledServices = localGitServiceProvider
-        .getLocalGitServices(serviceTypes);
+    List<LocalGitService> enabledServices =
+        localGitServiceProvider.getLocalGitServices(serviceTypes);
 
-    List<String> prepCommands = enabledServices.stream()
-        .filter(i -> {
-          ServiceSettings serviceSettings = runtimeSettings.getServiceSettings(i.getService());
-          return serviceSettings != null && !serviceSettings.getSkipLifeCycleManagement();
-        })
-        .map(s -> {
-          s.commitWrapperScripts();
-          return s.prepArtifactCommand(deploymentDetails);
-        })
-        .collect(Collectors.toList());
+    List<String> prepCommands =
+        enabledServices.stream()
+            .filter(
+                i -> {
+                  ServiceSettings serviceSettings =
+                      runtimeSettings.getServiceSettings(i.getService());
+                  return serviceSettings != null && !serviceSettings.getSkipLifeCycleManagement();
+                })
+            .map(
+                s -> {
+                  s.commitWrapperScripts();
+                  return s.prepArtifactCommand(deploymentDetails);
+                })
+            .collect(Collectors.toList());
 
     String prepCommand = localGitServiceProvider.getPrepCommand(deploymentDetails, prepCommands);
 

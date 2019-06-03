@@ -35,39 +35,43 @@ public class ApiSecurityEditCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure access policies specific to Spinnaker's API server.";
 
-  private String longDescription = String.join(" ",
-      "When Spinnaker is deployed to a remote host, the API server may be configured",
-      "to accept auth requests from alternate sources, do SSL termination, or sit behind",
-      "an externally configured proxy server or load balancer."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "When Spinnaker is deployed to a remote host, the API server may be configured",
+          "to accept auth requests from alternate sources, do SSL termination, or sit behind",
+          "an externally configured proxy server or load balancer.");
 
   @Parameter(
       names = "--override-base-url",
-      description = "If you are accessing the API server remotely, provide the full base URL of whatever proxy or "
-          + "load balancer is fronting the API requests."
-  )
+      description =
+          "If you are accessing the API server remotely, provide the full base URL of whatever proxy or "
+              + "load balancer is fronting the API requests.")
   String overrideBaseUrl;
 
   @Parameter(
       names = "--cors-access-pattern",
-      description = "If you have authentication enabled, are accessing Spinnaker remotely, and are logging in from "
-          + "sources other than the UI, provide a regex matching all URLs authentication redirects may come from."
-  )
+      description =
+          "If you have authentication enabled, are accessing Spinnaker remotely, and are logging in from "
+              + "sources other than the UI, provide a regex matching all URLs authentication redirects may come from.")
   String corsAccessPattern;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    ApiSecurity apiSecurity = new OperationHandler<ApiSecurity>()
-        .setOperation(Daemon.getApiSecurity(currentDeployment, false))
-        .setFailureMesssage("Failed to load API security settings.")
-        .get();
+    ApiSecurity apiSecurity =
+        new OperationHandler<ApiSecurity>()
+            .setOperation(Daemon.getApiSecurity(currentDeployment, false))
+            .setFailureMesssage("Failed to load API security settings.")
+            .get();
 
     int originalHash = apiSecurity.hashCode();
 
-    apiSecurity.setOverrideBaseUrl(isSet(overrideBaseUrl) ? overrideBaseUrl : apiSecurity.getOverrideBaseUrl());
-    apiSecurity.setCorsAccessPattern(isSet(corsAccessPattern) ? corsAccessPattern : apiSecurity.getCorsAccessPattern());
+    apiSecurity.setOverrideBaseUrl(
+        isSet(overrideBaseUrl) ? overrideBaseUrl : apiSecurity.getOverrideBaseUrl());
+    apiSecurity.setCorsAccessPattern(
+        isSet(corsAccessPattern) ? corsAccessPattern : apiSecurity.getCorsAccessPattern());
 
     if (originalHash == apiSecurity.hashCode()) {
       AnsiUi.failure("No changes supplied.");

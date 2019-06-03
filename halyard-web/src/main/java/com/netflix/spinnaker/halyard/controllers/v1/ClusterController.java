@@ -30,14 +30,11 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-/**
- * Controller for adding clusters to a provider
- */
+/** Controller for adding clusters to a provider */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/providers/{providerName:.+}/clusters")
@@ -48,7 +45,8 @@ public class ClusterController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Cluster>> clusters(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Cluster>> clusters(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Cluster>>builder()
@@ -60,7 +58,8 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Cluster> cluster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Cluster> cluster(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String clusterName,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -73,7 +72,8 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteCluster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteCluster(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String clusterName,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -87,37 +87,37 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setCluster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setCluster(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String clusterName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCluster) {
-    Cluster cluster = objectMapper.convertValue(
-        rawCluster,
-        Providers.translateClusterType(providerName)
-    );
+    Cluster cluster =
+        objectMapper.convertValue(rawCluster, Providers.translateClusterType(providerName));
     return GenericUpdateRequest.<Cluster>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(c -> clusterService.setCluster(deploymentName, providerName, clusterName, c))
-        .validator(() -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
+        .validator(
+            () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
         .description("Edit the " + clusterName + " cluster")
         .build()
         .execute(validationSettings, cluster);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addCluster(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addCluster(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCluster) {
-    Cluster cluster = objectMapper.convertValue(
-        rawCluster,
-        Providers.translateClusterType(providerName)
-    );
+    Cluster cluster =
+        objectMapper.convertValue(rawCluster, Providers.translateClusterType(providerName));
     return GenericUpdateRequest.<Cluster>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(c -> clusterService.addCluster(deploymentName, providerName, c))
-        .validator(() -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
+        .validator(
+            () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
         .description("Add the " + cluster.getName() + " cluster")
         .build()
         .execute(validationSettings, cluster);

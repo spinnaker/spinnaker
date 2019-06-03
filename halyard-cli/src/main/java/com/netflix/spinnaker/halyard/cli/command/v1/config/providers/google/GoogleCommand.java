@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-/**
- * Interact with the google provider
- */
+/** Interact with the google provider */
 @Parameters(separators = "=")
 public class GoogleCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
@@ -35,4 +33,3 @@ public class GoogleCommand extends AbstractNamedProviderCommand {
     registerSubcommand(new GoogleBakeryCommand());
   }
 }
-

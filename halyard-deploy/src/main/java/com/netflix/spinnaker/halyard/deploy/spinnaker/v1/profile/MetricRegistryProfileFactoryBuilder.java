@@ -29,14 +29,11 @@ import org.yaml.snakeyaml.Yaml;
 
 @Component
 public class MetricRegistryProfileFactoryBuilder {
-  @Autowired
-  protected ArtifactService artifactService;
+  @Autowired protected ArtifactService artifactService;
 
-  @Autowired
-  protected Yaml yamlParser;
+  @Autowired protected Yaml yamlParser;
 
-  @Autowired
-  protected ObjectMapper objectMapper;
+  @Autowired protected ObjectMapper objectMapper;
 
   public ProfileFactory build(ServiceSettings settings) {
     return new ProfileFactory() {
@@ -46,7 +43,10 @@ public class MetricRegistryProfileFactoryBuilder {
       }
 
       @Override
-      protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      protected void setProfile(
+          Profile profile,
+          DeploymentConfiguration deploymentConfiguration,
+          SpinnakerRuntimeSettings endpoints) {
         profile.appendContents("metrics_url: " + settings.getMetricsUrl());
       }
 

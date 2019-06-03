@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractEnableDisableWebhookTrustCommand extends AbstractConfigCommand {
@@ -59,7 +58,8 @@ public abstract class AbstractEnableDisableWebhookTrustCommand extends AbstractC
     String currentDeployment = getCurrentDeployment();
     boolean enable = isEnable();
 
-    WebhookTrust webhookTrust = new OperationHandler<WebhookTrust>()
+    WebhookTrust webhookTrust =
+        new OperationHandler<WebhookTrust>()
             .setOperation(Daemon.getWebhookTrust(currentDeployment, false))
             .setFailureMesssage("Failed to load webhook trust.")
             .get();

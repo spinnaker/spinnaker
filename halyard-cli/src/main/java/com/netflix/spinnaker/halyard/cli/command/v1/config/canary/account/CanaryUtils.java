@@ -23,30 +23,35 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 
 public class CanaryUtils {
 
-  public static AbstractCanaryServiceIntegration getServiceIntegrationByClass(Canary canary,
-                                                                              Class<? extends AbstractCanaryServiceIntegration> serviceIntegrationClass) {
-    return canary.getServiceIntegrations()
-        .stream()
+  public static AbstractCanaryServiceIntegration getServiceIntegrationByClass(
+      Canary canary, Class<? extends AbstractCanaryServiceIntegration> serviceIntegrationClass) {
+    return canary.getServiceIntegrations().stream()
         .filter(s -> serviceIntegrationClass.isAssignableFrom(s.getClass()))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Canary service integration of type " + serviceIntegrationClass.getSimpleName() + " not found."));
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Canary service integration of type "
+                        + serviceIntegrationClass.getSimpleName()
+                        + " not found."));
   }
 
-  public static AbstractCanaryServiceIntegration getServiceIntegrationByName(Canary canary,
-                                                                             String currentDeployment,
-                                                                             String serviceIntegrationName,
-                                                                             boolean noValidate) {
+  public static AbstractCanaryServiceIntegration getServiceIntegrationByName(
+      Canary canary, String currentDeployment, String serviceIntegrationName, boolean noValidate) {
     if (canary == null) {
-      canary = new OperationHandler<Canary>()
-          .setFailureMesssage("Failed to get canary.")
-          .setOperation(Daemon.getCanary(currentDeployment, !noValidate))
-          .get();
+      canary =
+          new OperationHandler<Canary>()
+              .setFailureMesssage("Failed to get canary.")
+              .setOperation(Daemon.getCanary(currentDeployment, !noValidate))
+              .get();
     }
 
-    return canary.getServiceIntegrations()
-        .stream()
+    return canary.getServiceIntegrations().stream()
         .filter(s -> s.getName().equals(serviceIntegrationName.toLowerCase()))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Canary service integration " + serviceIntegrationName + " not found."));
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Canary service integration " + serviceIntegrationName + " not found."));
   }
 }

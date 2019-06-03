@@ -24,30 +24,35 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBase
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefaults> {
-  final private List<GoogleNamedAccountCredentials> credentialsList;
+  private final List<GoogleNamedAccountCredentials> credentialsList;
 
-  final private String halyardVersion;
+  private final String halyardVersion;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleBakeryDefaults n) {
-    DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleBakeryDefaultsValidator.class.getSimpleName());
+    DaemonTaskHandler.message(
+        "Validating "
+            + n.getNodeName()
+            + " with "
+            + GoogleBakeryDefaultsValidator.class.getSimpleName());
 
     String zone = n.getZone();
     String network = n.getNetwork();
     String networkProjectId = n.getNetworkProjectId();
     List<GoogleBaseImage> baseImages = n.getBaseImages();
 
-    if (StringUtils.isEmpty(zone) && StringUtils.isEmpty(network) && CollectionUtils.isEmpty(baseImages)) {
+    if (StringUtils.isEmpty(zone)
+        && StringUtils.isEmpty(network)
+        && CollectionUtils.isEmpty(baseImages)) {
       return;
     } else if (CollectionUtils.isEmpty(credentialsList)) {
       return;
@@ -72,7 +77,9 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
       }
 
       if (!foundZone) {
-        p.addProblem(Problem.Severity.ERROR, "Zone " + zone + " not found via any configured google account.");
+        p.addProblem(
+            Problem.Severity.ERROR,
+            "Zone " + zone + " not found via any configured google account.");
       }
     }
 
@@ -86,7 +93,8 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
         GoogleNamedAccountCredentials credentials = credentialsList.get(j);
 
         try {
-          String project = !StringUtils.isEmpty(networkProjectId) ? networkProjectId : credentials.getProject();
+          String project =
+              !StringUtils.isEmpty(networkProjectId) ? networkProjectId : credentials.getProject();
           credentials.getCompute().networks().get(project, network).execute();
           foundNetwork = true;
         } catch (Exception e) {
@@ -96,11 +104,14 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
       }
 
       if (!foundNetwork) {
-        p.addProblem(Problem.Severity.ERROR, "Network " + network + " not found via any configured google account.");
+        p.addProblem(
+            Problem.Severity.ERROR,
+            "Network " + network + " not found via any configured google account.");
       }
     }
 
-    GoogleBaseImageValidator googleBaseImageValidator = new GoogleBaseImageValidator(credentialsList, halyardVersion);
+    GoogleBaseImageValidator googleBaseImageValidator =
+        new GoogleBaseImageValidator(credentialsList, halyardVersion);
 
     baseImages.forEach(googleBaseImage -> googleBaseImageValidator.validate(p, googleBaseImage));
   }

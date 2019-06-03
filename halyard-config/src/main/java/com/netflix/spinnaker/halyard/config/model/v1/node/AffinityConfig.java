@@ -16,84 +16,91 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class AffinityConfig {
-    PodAffinity podAntiAffinity;
-    PodAffinity podAffinity;
-    NodeAffinity nodeAffinity;
+  PodAffinity podAntiAffinity;
+  PodAffinity podAffinity;
+  NodeAffinity nodeAffinity;
 
-    @Data
-    public static class PodAffinity {
-        List<PodAffinityTerm> requiredDuringSchedulingIgnoredDuringExecution;
-        List<WeightedPodAffinityTerm> preferredDuringSchedulingIgnoredDuringExecution;
+  @Data
+  public static class PodAffinity {
+    List<PodAffinityTerm> requiredDuringSchedulingIgnoredDuringExecution;
+    List<WeightedPodAffinityTerm> preferredDuringSchedulingIgnoredDuringExecution;
+  }
+
+  @Data
+  public static class NodeAffinity {
+    NodeSelector requiredDuringSchedulingIgnoredDuringExecution;
+    List<PreferredSchedulingTerm> preferredDuringSchedulingIgnoredDuringExecution;
+  }
+
+  @Data
+  public static class NodeSelectorTerm {
+    List<NodeSelectorRequirement> matchExpressions;
+    List<NodeSelectorRequirement> matchFields;
+  }
+
+  @Data
+  public static class NodeSelector {
+    List<NodeSelectorTerm> nodeSelectorTerms;
+  }
+
+  @Data
+  public static class PreferredSchedulingTerm {
+    Integer weight;
+    NodeSelectorTerm preference;
+  }
+
+  @Data
+  public static class NodeSelectorRequirement {
+    String key;
+    Operator operator;
+    String[] values;
+
+    enum Operator {
+      In,
+      NotIn,
+      Exists,
+      DoesNotExist,
+      Gt,
+      Lt
     }
+  }
 
-    @Data
-    public static class NodeAffinity {
-        NodeSelector requiredDuringSchedulingIgnoredDuringExecution;
-        List<PreferredSchedulingTerm> preferredDuringSchedulingIgnoredDuringExecution;
+  @Data
+  public static class PodAffinityTerm {
+    LabelSelector labelSelector;
+    List<String> namespaces;
+    String topologyKey;
+  }
+
+  @Data
+  public static class WeightedPodAffinityTerm {
+    Integer weight;
+    PodAffinityTerm podAffinityTerm;
+  }
+
+  @Data
+  public static class LabelSelector {
+    Map<String, String> matchLabels;
+    List<LabelSelectorRequirement> matchExpressions;
+  }
+
+  @Data
+  public static class LabelSelectorRequirement {
+    String key;
+    Operator operator;
+    String[] values;
+
+    enum Operator {
+      In,
+      NotIn,
+      Exists,
+      DoesNotExist
     }
-
-    @Data
-    public static class NodeSelectorTerm {
-        List<NodeSelectorRequirement> matchExpressions;
-        List<NodeSelectorRequirement> matchFields;
-    }
-
-    @Data
-    public static class NodeSelector {
-        List<NodeSelectorTerm> nodeSelectorTerms;
-    }
-
-    @Data
-    public static class PreferredSchedulingTerm {
-        Integer weight;
-        NodeSelectorTerm preference;
-    }
-
-    @Data
-    public static class NodeSelectorRequirement {
-        String key;
-        Operator operator;
-        String[] values;
-
-        enum Operator {
-            In, NotIn, Exists, DoesNotExist, Gt, Lt
-        }
-    }
-
-    @Data
-    public static class PodAffinityTerm {
-        LabelSelector labelSelector;
-        List<String>  namespaces;
-        String        topologyKey;
-    }
-
-    @Data
-    public static class WeightedPodAffinityTerm {
-        Integer         weight;
-        PodAffinityTerm podAffinityTerm;
-    }
-
-    @Data
-    public static class LabelSelector {
-        Map<String, String>            matchLabels;
-        List<LabelSelectorRequirement> matchExpressions;
-    }
-
-    @Data
-    public static class LabelSelectorRequirement {
-        String   key;
-        Operator operator;
-        String[] values;
-
-        enum Operator {
-            In, NotIn, Exists, DoesNotExist
-        }
-    }
+  }
 }

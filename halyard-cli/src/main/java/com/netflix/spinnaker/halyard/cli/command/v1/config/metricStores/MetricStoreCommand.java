@@ -26,27 +26,29 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 
 @Parameters(separators = "=")
-abstract public class MetricStoreCommand extends AbstractConfigCommand {
+public abstract class MetricStoreCommand extends AbstractConfigCommand {
   public String getCommandName() {
     return getMetricStoreType().getId();
   }
 
-  abstract public MetricStores.MetricStoreType getMetricStoreType();
+  public abstract MetricStores.MetricStoreType getMetricStoreType();
 
   public String getShortDescription() {
     return "Configure your " + getMetricStoreType().getId() + " metric store.";
   }
 
   protected MetricStoreCommand() {
-    registerSubcommand(new MetricStoreEnableDisableCommandBuilder()
-        .setEnable(true)
-        .setMetricStoreType(getMetricStoreType()).build()
-    );
+    registerSubcommand(
+        new MetricStoreEnableDisableCommandBuilder()
+            .setEnable(true)
+            .setMetricStoreType(getMetricStoreType())
+            .build());
 
-    registerSubcommand(new MetricStoreEnableDisableCommandBuilder()
-        .setEnable(false)
-        .setMetricStoreType(getMetricStoreType()).build()
-    );
+    registerSubcommand(
+        new MetricStoreEnableDisableCommandBuilder()
+            .setEnable(false)
+            .setMetricStoreType(getMetricStoreType())
+            .build());
   }
 
   @Override

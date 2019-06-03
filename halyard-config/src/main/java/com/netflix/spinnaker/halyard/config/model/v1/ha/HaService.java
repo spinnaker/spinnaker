@@ -40,14 +40,13 @@ public abstract class HaService extends Node implements Cloneable {
     return haServiceType().getName();
   }
 
-  abstract public HaServiceType haServiceType();
+  public abstract HaServiceType haServiceType();
 
   public enum HaServiceType {
     CLOUDDRIVER("clouddriver"),
     ECHO("echo");
 
-    @Getter
-    final String name;
+    @Getter final String name;
 
     HaServiceType(String name) {
       this.name = name;

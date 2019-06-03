@@ -30,7 +30,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @Parameters(separators = "=")
 @EqualsAndHashCode(callSuper = false)
-abstract public class AbstractEditProviderCommand<A extends Account, P extends Provider<A>> extends AbstractProviderCommand {
+public abstract class AbstractEditProviderCommand<A extends Account, P extends Provider<A>>
+    extends AbstractProviderCommand {
   String commandName = "edit";
 
   @Override
@@ -38,10 +39,11 @@ abstract public class AbstractEditProviderCommand<A extends Account, P extends P
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
 
-    Provider provider = new OperationHandler<Provider>()
-        .setFailureMesssage("Failed to get provider " + providerName + ".")
-        .setOperation(Daemon.getProvider(currentDeployment, providerName, false))
-        .get();
+    Provider provider =
+        new OperationHandler<Provider>()
+            .setFailureMesssage("Failed to get provider " + providerName + ".")
+            .setOperation(Daemon.getProvider(currentDeployment, providerName, false))
+            .get();
 
     int originalHash = provider.hashCode();
 

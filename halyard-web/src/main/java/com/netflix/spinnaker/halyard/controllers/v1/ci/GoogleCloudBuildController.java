@@ -24,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/gcb")
-public class GoogleCloudBuildController extends CiController<GoogleCloudBuildAccount, GoogleCloudBuild> {
-  public GoogleCloudBuildController(Members members, GoogleCloudBuildService googleCloudBuildService) {
+public class GoogleCloudBuildController
+    extends CiController<GoogleCloudBuildAccount, GoogleCloudBuild> {
+  public GoogleCloudBuildController(
+      Members members, GoogleCloudBuildService googleCloudBuildService) {
     super(members, googleCloudBuildService);
   }
 }

@@ -20,13 +20,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An abstract definition for commands that accept ACCOUNT as a main parameter
- */
+/** An abstract definition for commands that accept ACCOUNT as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasBaseImageCommand extends AbstractProviderCommand {
   @Parameter(description = "The name of the base image to operate on.", arity = 1)

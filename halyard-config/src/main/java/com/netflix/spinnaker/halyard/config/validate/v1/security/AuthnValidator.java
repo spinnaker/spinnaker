@@ -33,15 +33,17 @@ public class AuthnValidator extends Validator<Authn> {
   @Override
   public void validate(ConfigProblemSetBuilder p, Authn n) {
     if (!n.isEnabled() && maybeShouldBeEnabled(n)) {
-      p.addProblem(Problem.Severity.WARNING, "An authentication method is fully or " +
-          "partially configured, but not enabled. It must be enabled to take effect.");
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "An authentication method is fully or "
+              + "partially configured, but not enabled. It must be enabled to take effect.");
     }
   }
 
   /**
    * @return True if any core field in an authentication method has a non-empty value. "Core fields"
-   * are generally required fields to make an authentication method work, such as client ID/secret,
-   * or path to a certficate store.
+   *     are generally required fields to make an authentication method work, such as client
+   *     ID/secret, or path to a certficate store.
    */
   private boolean maybeShouldBeEnabled(Authn n) {
     OAuth2 o = n.getOauth2();
@@ -50,13 +52,13 @@ public class AuthnValidator extends Validator<Authn> {
     IAP i = n.getIap();
     // There isn't a good "core fields" for X509
 
-    return StringUtils.isNotEmpty(o.getClient().getClientId()) ||
-        StringUtils.isNotEmpty(o.getClient().getClientSecret()) ||
-        StringUtils.isNotEmpty(s.getIssuerId()) ||
-        StringUtils.isNotEmpty(s.getKeyStore()) ||
-        StringUtils.isNotEmpty(l.getUserDnPattern()) ||
-        StringUtils.isNotEmpty(l.getUserSearchBase()) ||
-        StringUtils.isNotEmpty(l.getUserSearchFilter()) ||
-        StringUtils.isNotEmpty(i.getAudience());
+    return StringUtils.isNotEmpty(o.getClient().getClientId())
+        || StringUtils.isNotEmpty(o.getClient().getClientSecret())
+        || StringUtils.isNotEmpty(s.getIssuerId())
+        || StringUtils.isNotEmpty(s.getKeyStore())
+        || StringUtils.isNotEmpty(l.getUserDnPattern())
+        || StringUtils.isNotEmpty(l.getUserSearchBase())
+        || StringUtils.isNotEmpty(l.getUserSearchFilter())
+        || StringUtils.isNotEmpty(i.getAudience());
   }
 }

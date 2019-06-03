@@ -30,14 +30,14 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/config/deployments/{deploymentName:.+}/artifactProviders/{providerName:.+}/artifactAccounts")
+@RequestMapping(
+    "/v1/config/deployments/{deploymentName:.+}/artifactProviders/{providerName:.+}/artifactAccounts")
 public class ArtifactAccountController {
   private final ArtifactAccountService accountService;
   private final HalconfigParser halconfigParser;
@@ -45,7 +45,8 @@ public class ArtifactAccountController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<ArtifactAccount>> accounts(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<ArtifactAccount>> accounts(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<ArtifactAccount>>builder()
@@ -57,26 +58,33 @@ public class ArtifactAccountController {
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ArtifactAccount> account(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, ArtifactAccount> account(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<ArtifactAccount>builder()
-        .getter(() -> accountService.getArtifactProviderArtifactAccount(deploymentName, providerName, accountName))
-        .validator(() -> accountService.validateArtifactAccount(deploymentName, providerName, accountName))
+        .getter(
+            () ->
+                accountService.getArtifactProviderArtifactAccount(
+                    deploymentName, providerName, accountName))
+        .validator(
+            () -> accountService.validateArtifactAccount(deploymentName, providerName, accountName))
         .description("Get " + accountName + " artifact account")
         .build()
         .execute(validationSettings);
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteArtifactAccount(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteArtifactAccount(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericDeleteRequest.builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
-        .deleter(() -> accountService.deleteArtifactAccount(deploymentName, providerName, accountName))
+        .deleter(
+            () -> accountService.deleteArtifactAccount(deploymentName, providerName, accountName))
         .validator(() -> accountService.validateAllArtifactAccounts(deploymentName, providerName))
         .description("Delete the " + accountName + " artifact account")
         .build()
@@ -84,37 +92,44 @@ public class ArtifactAccountController {
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setArtifactAccount(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setArtifactAccount(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawArtifactAccount) {
-    ArtifactAccount account = objectMapper.convertValue(
-        rawArtifactAccount,
-        Artifacts.translateArtifactAccountType(providerName)
-    );
+    ArtifactAccount account =
+        objectMapper.convertValue(
+            rawArtifactAccount, Artifacts.translateArtifactAccountType(providerName));
     return GenericUpdateRequest.<ArtifactAccount>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
-        .updater(a -> accountService.setArtifactAccount(deploymentName, providerName, accountName, a))
-        .validator(() -> accountService.validateArtifactAccount(deploymentName, providerName, account.getName()))
+        .updater(
+            a -> accountService.setArtifactAccount(deploymentName, providerName, accountName, a))
+        .validator(
+            () ->
+                accountService.validateArtifactAccount(
+                    deploymentName, providerName, account.getName()))
         .description("Edit the " + accountName + " artifact account")
         .build()
         .execute(validationSettings, account);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addArtifactAccount(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addArtifactAccount(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawArtifactAccount) {
-    ArtifactAccount account = objectMapper.convertValue(
-        rawArtifactAccount,
-        Artifacts.translateArtifactAccountType(providerName)
-    );
+    ArtifactAccount account =
+        objectMapper.convertValue(
+            rawArtifactAccount, Artifacts.translateArtifactAccountType(providerName));
     return GenericUpdateRequest.<ArtifactAccount>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(a -> accountService.addArtifactAccount(deploymentName, providerName, a))
-        .validator(() -> accountService.validateArtifactAccount(deploymentName, providerName, account.getName()))
+        .validator(
+            () ->
+                accountService.validateArtifactAccount(
+                    deploymentName, providerName, account.getName()))
         .description("Add the " + account.getName() + " artifact account")
         .build()
         .execute(validationSettings, account);

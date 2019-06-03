@@ -15,35 +15,37 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBase
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class OracleBakeryDefaultsValidator extends Validator<OracleBakeryDefaults> {
 
-    @Override
-    public void validate(ConfigProblemSetBuilder psBuilder, OracleBakeryDefaults n) {
-        DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + OracleBakeryDefaultsValidator.class.getSimpleName());
+  @Override
+  public void validate(ConfigProblemSetBuilder psBuilder, OracleBakeryDefaults n) {
+    DaemonTaskHandler.message(
+        "Validating "
+            + n.getNodeName()
+            + " with "
+            + OracleBakeryDefaultsValidator.class.getSimpleName());
 
-        notNullOrEmpty(n.getAvailabilityDomain(), "availability domain", psBuilder);
-        notNullOrEmpty(n.getSubnetId(), "subnet id", psBuilder);
-        notNullOrEmpty(n.getInstanceShape(), "instance shape", psBuilder);
+    notNullOrEmpty(n.getAvailabilityDomain(), "availability domain", psBuilder);
+    notNullOrEmpty(n.getSubnetId(), "subnet id", psBuilder);
+    notNullOrEmpty(n.getInstanceShape(), "instance shape", psBuilder);
 
-        List<OracleBaseImage> baseImages = n.getBaseImages();
+    List<OracleBaseImage> baseImages = n.getBaseImages();
 
-        OracleBaseImageValidator oracleBaseImageValidator = new OracleBaseImageValidator();
+    OracleBaseImageValidator oracleBaseImageValidator = new OracleBaseImageValidator();
 
-        baseImages.forEach(oracleBaseImage ->  oracleBaseImageValidator.validate(psBuilder, oracleBaseImage));
+    baseImages.forEach(
+        oracleBaseImage -> oracleBaseImageValidator.validate(psBuilder, oracleBaseImage));
+  }
+
+  private void notNullOrEmpty(String param, String paramName, ConfigProblemSetBuilder psBuilder) {
+    if (param == null || param.isEmpty()) {
+      psBuilder.addProblem(Problem.Severity.FATAL, "You must provide a " + paramName);
     }
-
-    private void notNullOrEmpty(String param, String paramName, ConfigProblemSetBuilder psBuilder) {
-        if (param == null || param.isEmpty()) {
-            psBuilder.addProblem(Problem.Severity.FATAL, "You must provide a " + paramName);
-        }
-    }
+  }
 }

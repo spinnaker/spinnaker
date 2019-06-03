@@ -29,8 +29,7 @@ abstract class AbstractGetSearchCommand extends AbstractHasSearchCommand {
     return "Get the specified search details for " + getRepositoryName() + ".";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {

@@ -22,11 +22,10 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class RollbackDeployCommand extends AbstractConfigCommand {
@@ -34,27 +33,27 @@ public class RollbackDeployCommand extends AbstractConfigCommand {
   private String commandName = "rollback";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Rollback Spinnaker to the prior version on a selected environment.";
+  private String shortDescription =
+      "Rollback Spinnaker to the prior version on a selected environment.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join("",
-      "This command attempts to rollback Spinnaker to the prior deployed version, depending on how you've configured your deployment. ",
-      "Local deployments have their prior packages installed and reconfigured, whereas Distributed deployments are rolled back via a headless ",
-      "'bootstrap' deployment of Spinnaker, and don't suffer downtime."
-  );
+  private String longDescription =
+      String.join(
+          "",
+          "This command attempts to rollback Spinnaker to the prior deployed version, depending on how you've configured your deployment. ",
+          "Local deployments have their prior packages installed and reconfigured, whereas Distributed deployments are rolled back via a headless ",
+          "'bootstrap' deployment of Spinnaker, and don't suffer downtime.");
 
   @Parameter(
       names = "--service-names",
       description = "When supplied, only install or update the specified Spinnaker services.",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> serviceNames = new ArrayList<>();
 
   @Parameter(
       names = "--exclude-service-names",
       description = "When supplied, do not install or update the specified Spinnaker services.",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> excludeServiceNames = new ArrayList<>();
 
   @Override
@@ -62,7 +61,9 @@ public class RollbackDeployCommand extends AbstractConfigCommand {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to rollback Spinnaker.")
         .setSuccessMessage("Successfully rolled back Spinnaker.")
-        .setOperation(Daemon.rollbackDeployment(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
+        .setOperation(
+            Daemon.rollbackDeployment(
+                getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
         .get();
   }
 }

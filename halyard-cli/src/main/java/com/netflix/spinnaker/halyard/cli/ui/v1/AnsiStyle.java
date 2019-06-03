@@ -25,8 +25,7 @@ public enum AnsiStyle implements AnsiCode {
   INVERSE("\033[7m"),
   STRIKETHROUGH("\033[9m");
 
-  @Getter
-  final String code;
+  @Getter final String code;
 
   AnsiStyle(String code) {
     this.code = code;

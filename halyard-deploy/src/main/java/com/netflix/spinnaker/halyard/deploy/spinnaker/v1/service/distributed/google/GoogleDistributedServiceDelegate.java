@@ -29,43 +29,27 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleDistributedServiceDelegate {
-  @Autowired
-  @Getter
-  GoogleMonitoringDaemonService monitoringDaemonService;
+  @Autowired @Getter GoogleMonitoringDaemonService monitoringDaemonService;
 
-  @Autowired
-  @Getter
-  ArtifactService artifactService;
+  @Autowired @Getter ArtifactService artifactService;
 
-  @Autowired
-  @Getter
-  ServiceInterfaceFactory serviceInterfaceFactory;
+  @Autowired @Getter ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired ArtifactSourcesConfig artifactSourcesConfig;
 
-  @Autowired
-  @Getter
-  String startupScriptPath;
+  @Autowired @Getter String startupScriptPath;
 
-  @Autowired
-  @Getter
-  GoogleVaultClientService vaultClientService;
+  @Autowired @Getter GoogleVaultClientService vaultClientService;
 
-  @Autowired
-  @Getter
-  GoogleVaultServerService vaultServerService;
+  @Autowired @Getter GoogleVaultServerService vaultServerService;
 
-  @Autowired
-  @Getter
-  GoogleConsulClientService consulClientService;
+  @Autowired @Getter GoogleConsulClientService consulClientService;
 
-  @Autowired
-  @Getter
-  GoogleConsulServerService consulServerService;
+  @Autowired @Getter GoogleConsulServerService consulServerService;
 
   public String getGoogleImageProject(String deploymentName, SpinnakerArtifact artifact) {
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName, artifact);
+    BillOfMaterials.ArtifactSources artifactSources =
+        artifactService.getArtifactSources(deploymentName, artifact);
     return artifactSourcesConfig.mergeWithBomSources(artifactSources).getGoogleImageProject();
   }
 }

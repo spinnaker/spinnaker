@@ -24,25 +24,24 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class MavenAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-    @Parameter(
-            names = "--repository-url",
-            required = true,
-            description = MavenArtifactCommandProperties.REPOSITORY_URL_DESCRIPTION
-    )
-    private String repositoryUrl;
+  @Parameter(
+      names = "--repository-url",
+      required = true,
+      description = MavenArtifactCommandProperties.REPOSITORY_URL_DESCRIPTION)
+  private String repositoryUrl;
 
-    @Override
-    protected ArtifactAccount buildArtifactAccount(String accountName) {
-        return new MavenArtifactAccount().setName(accountName).setRepositoryUrl(repositoryUrl);
-    }
+  @Override
+  protected ArtifactAccount buildArtifactAccount(String accountName) {
+    return new MavenArtifactAccount().setName(accountName).setRepositoryUrl(repositoryUrl);
+  }
 
-    @Override
-    protected ArtifactAccount emptyArtifactAccount() {
-        return new MavenArtifactAccount();
-    }
+  @Override
+  protected ArtifactAccount emptyArtifactAccount() {
+    return new MavenArtifactAccount();
+  }
 
-    @Override
-    protected String getArtifactProviderName() {
-        return "maven";
-    }
+  @Override
+  protected String getArtifactProviderName() {
+    return "maven";
+  }
 }

@@ -23,37 +23,41 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Repository;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * repositories.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs repositories.
  */
 @Component
 public class RepositoryService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public Repository getRepository(String deploymentName, String repositoryName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName);
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setRepository(repositoryName);
 
     List<Repository> matching = lookupService.getMatchingNodesOfType(filter, Repository.class);
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No repository service with name \"" + repositoryName + "\" could be found").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "No repository service with name \"" + repositoryName + "\" could be found")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one repository with name \"" + repositoryName + "\" found").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one repository with name \"" + repositoryName + "\" found")
+                .build());
     }
   }
 
@@ -64,8 +68,7 @@ public class RepositoryService {
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No repositories could be found")
-              .build());
+          new ConfigProblemBuilder(Severity.FATAL, "No repositories could be found").build());
     } else {
       return matching;
     }
@@ -77,19 +80,18 @@ public class RepositoryService {
   }
 
   public ProblemSet validateRepository(String deploymentName, String repositoryName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setRepository(repositoryName)
-        .withAnyAccount();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setRepository(repositoryName)
+            .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllRepositories(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyRepository()
-        .withAnyAccount();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).withAnyRepository().withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
   }

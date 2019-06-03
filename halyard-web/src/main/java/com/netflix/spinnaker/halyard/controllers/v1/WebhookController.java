@@ -38,8 +38,8 @@ public class WebhookController {
   private final HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Webhook> getWebhook(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, Webhook> getWebhook(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Webhook>builder()
         .getter(() -> webhookService.getWebhook(deploymentName))
         .validator(() -> webhookService.validateWebhook(deploymentName))
@@ -49,7 +49,8 @@ public class WebhookController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setWebhook(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setWebhook(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Webhook webhook) {
     return GenericUpdateRequest.<Webhook>builder(halconfigParser)
@@ -62,8 +63,8 @@ public class WebhookController {
   }
 
   @RequestMapping(value = "/trust/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, WebhookTrust> getWebhookTrust(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, WebhookTrust> getWebhookTrust(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<WebhookTrust>builder()
         .getter(() -> webhookService.getWebhookTrust(deploymentName))
         .validator(() -> webhookService.validateWebhookTrust(deploymentName))
@@ -73,7 +74,8 @@ public class WebhookController {
   }
 
   @RequestMapping(value = "/trust/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setWebhookTrust(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setWebhookTrust(
+      @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody WebhookTrust webhookTrust) {
     return GenericUpdateRequest.<WebhookTrust>builder(halconfigParser)

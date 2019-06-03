@@ -27,14 +27,14 @@ import lombok.Getter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Pubsub<S extends Subscription, P extends Publisher> extends Node implements
-    Cloneable {
+public abstract class Pubsub<S extends Subscription, P extends Publisher> extends Node
+    implements Cloneable {
 
   boolean enabled = false;
 
-  abstract public List<S> getSubscriptions();
+  public abstract List<S> getSubscriptions();
 
-  abstract public List<P> getPublishers();
+  public abstract List<P> getPublishers();
 
   @Override
   public NodeIterator getChildren() {
@@ -47,13 +47,12 @@ public abstract class Pubsub<S extends Subscription, P extends Publisher> extend
     return getPubsubType().getName();
   }
 
-  abstract public PubsubType getPubsubType();
+  public abstract PubsubType getPubsubType();
 
   public enum PubsubType {
     GOOGLE("google");
 
-    @Getter
-    final String name;
+    @Getter final String name;
 
     PubsubType(String name) {
       this.name = name;

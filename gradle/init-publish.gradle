@@ -12,4 +12,3 @@ initscript {
 
 // Can't use the plugin ID (spinnaker.project) on init scripts for some reason.
 apply plugin: com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin
-

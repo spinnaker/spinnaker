@@ -25,8 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class GetMasterCommandBuilder implements CommandBuilder {
-  @Setter
-  String ciName;
+  @Setter String ciName;
 
   @Override
   public NestableCommand build() {

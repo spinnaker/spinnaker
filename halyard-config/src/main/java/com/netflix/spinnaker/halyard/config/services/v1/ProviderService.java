@@ -31,25 +31,21 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleProv
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * providers.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfigs providers.
  */
 @Component
 public class ProviderService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
   public HasImageProvider getHasImageProvider(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
@@ -59,8 +55,11 @@ public class ProviderService {
     } else {
       throw new IllegalConfigException(
           new ConfigProblemBuilder(
-              Severity.FATAL, "Provider \"" + providerName + "\" does not support configuring images via Halyard.").build()
-      );
+                  Severity.FATAL,
+                  "Provider \""
+                      + providerName
+                      + "\" does not support configuring images via Halyard.")
+              .build());
     }
   }
 
@@ -71,15 +70,23 @@ public class ProviderService {
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No provider with name \"" + providerName + "\" could be found")
-            .setRemediation("Create a new provider with name \"" + providerName + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No provider with name \"" + providerName + "\" could be found")
+                .setRemediation("Create a new provider with name \"" + providerName + "\"")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one provider with name \"" + providerName + "\" found")
-            .setRemediation("Manually delete or rename duplicate providers with name \"" + providerName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one provider with name \"" + providerName + "\" found")
+                .setRemediation(
+                    "Manually delete or rename duplicate providers with name \""
+                        + providerName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
@@ -90,15 +97,15 @@ public class ProviderService {
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No providers could be found")
-              .build());
+          new ConfigProblemBuilder(Severity.FATAL, "No providers could be found").build());
     } else {
       return matching;
     }
   }
 
   public void setProvider(String deploymentName, Provider provider) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     Providers providers = deploymentConfiguration.getProviders();
     switch (provider.providerType()) {
       case APPENGINE:
@@ -139,21 +146,20 @@ public class ProviderService {
   }
 
   public ProblemSet validateProvider(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setProvider(providerName)
-        .withAnyAccount()
-        .setBakeryDefaults()
-        .withAnyBaseImage();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .withAnyAccount()
+            .setBakeryDefaults()
+            .withAnyBaseImage();
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllProviders(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .withAnyProvider()
-        .withAnyAccount();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).withAnyProvider().withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
   }
@@ -164,8 +170,13 @@ public class ProviderService {
     if (provider instanceof HasClustersProvider) {
       return (HasClustersProvider) provider;
     } else {
-      throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-          "Provider \"" + providerName + "\" does not support configuring clusters via Halyard.").build());
+      throw new IllegalConfigException(
+          new ConfigProblemBuilder(
+                  Severity.FATAL,
+                  "Provider \""
+                      + providerName
+                      + "\" does not support configuring clusters via Halyard.")
+              .build());
     }
   }
 }

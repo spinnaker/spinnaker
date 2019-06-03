@@ -22,24 +22,21 @@ import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Component
 public class ConfigParser {
-  @Autowired
-  private Yaml yamlParser;
+  @Autowired private Yaml yamlParser;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   public String yamlToString(Object yaml) {
     return yamlParser.dump(objectMapper.convertValue(yaml, Map.class));
@@ -55,10 +52,13 @@ public class ConfigParser {
     } catch (IOException ioe) {
       ioe.printStackTrace();
       throw new HalException(
-          new ProblemBuilder(Problem.Severity.FATAL,
-              "Failed to write config for profile " + path.toFile().getName() + ": " + ioe
-                  .getMessage()).build()
-      );
+          new ProblemBuilder(
+                  Problem.Severity.FATAL,
+                  "Failed to write config for profile "
+                      + path.toFile().getName()
+                      + ": "
+                      + ioe.getMessage())
+              .build());
     } finally {
       if (writer != null) {
         writer.close();
@@ -73,12 +73,16 @@ public class ConfigParser {
       return objectMapper.convertValue(obj, tClass);
     } catch (IllegalArgumentException e) {
       throw new HalException(
-          new ProblemBuilder(Problem.Severity.FATAL, "Failed to load " + tClass.getSimpleName() + " config: " + e.getMessage()).build()
-      );
+          new ProblemBuilder(
+                  Problem.Severity.FATAL,
+                  "Failed to load " + tClass.getSimpleName() + " config: " + e.getMessage())
+              .build());
     } catch (FileNotFoundException e) {
       throw new HalException(
-          new ProblemBuilder(Problem.Severity.FATAL, "Failed to find " + tClass.getSimpleName() + " config: " + e.getMessage()).build()
-      );
+          new ProblemBuilder(
+                  Problem.Severity.FATAL,
+                  "Failed to find " + tClass.getSimpleName() + " config: " + e.getMessage())
+              .build());
     }
   }
 }

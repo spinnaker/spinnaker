@@ -19,8 +19,8 @@ package com.netflix.spinnaker.halyard.config.model.v1.repository.artifactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Repository;
 
 public class ArtifactoryRepository extends Repository<ArtifactorySearch> {
-    @Override
-    public String getNodeName() {
-        return "artifactory";
-    }
+  @Override
+  public String getNodeName() {
+    return "artifactory";
+  }
 }

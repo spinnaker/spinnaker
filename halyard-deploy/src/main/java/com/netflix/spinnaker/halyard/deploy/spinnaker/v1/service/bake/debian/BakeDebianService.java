@@ -24,12 +24,12 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import io.fabric8.utils.Strings;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public interface BakeDebianService<T> extends BakeService<T> {
   ArtifactService getArtifactService();
+
   String getUpstartServiceName();
 
   default String getHomeDirectory() {
@@ -57,10 +57,13 @@ public interface BakeDebianService<T> extends BakeService<T> {
     bindings.put("artifact", artifactName);
     bindings.put("version", deploymentDetails.getArtifactVersion(artifactName));
 
-    // pin as well as install at a particular version to ensure `apt-get uprade` doesn't accidentally upgrade to `nightly`
+    // pin as well as install at a particular version to ensure `apt-get uprade` doesn't
+    // accidentally upgrade to `nightly`
     TemplatedResource pinResource = new StringReplaceJarResource("/debian/pin.sh");
-    TemplatedResource installResource = new StringReplaceJarResource("/debian/install-component.sh");
-    String ensureStopped = String.join("\n", "set +e", "service " + getUpstartServiceName() + " stop", "set -e");
+    TemplatedResource installResource =
+        new StringReplaceJarResource("/debian/install-component.sh");
+    String ensureStopped =
+        String.join("\n", "set +e", "service " + getUpstartServiceName() + " stop", "set -e");
 
     pinResource.setBindings(bindings);
     installResource.setBindings(bindings);

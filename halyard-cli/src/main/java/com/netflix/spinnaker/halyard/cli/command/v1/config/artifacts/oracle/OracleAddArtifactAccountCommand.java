@@ -17,50 +17,33 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
-@Parameters(separators =  "=")
+@Parameters(separators = "=")
 public class OracleAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-          names = "--user-id",
-          description = OracleCommandProperties.USER_ID_DESCRIPTION
-  )
+  @Parameter(names = "--user-id", description = OracleCommandProperties.USER_ID_DESCRIPTION)
   private String userId;
 
-  @Parameter(
-          names = "--fingerprint",
-          description = OracleCommandProperties.FINGERPRINT_DESCRIPTION
-  )
+  @Parameter(names = "--fingerprint", description = OracleCommandProperties.FINGERPRINT_DESCRIPTION)
   private String fingerprint;
 
   @Parameter(
-          names = "--ssh-private-key-file-path",
-          converter = LocalFileConverter.class,
-          description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
-  )
+      names = "--ssh-private-key-file-path",
+      converter = LocalFileConverter.class,
+      description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION)
   private String sshPrivateKeyFilePath;
 
   @Parameter(
-          names = "--private-key-passphrase",
-          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
-          password = true
-  )
+      names = "--private-key-passphrase",
+      description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+      password = true)
   private String privateKeyPassphrase;
 
-  @Parameter(
-          names = "--tenancy-id",
-          description = OracleCommandProperties.TENANCY_ID_DESCRIPTION
-  )
+  @Parameter(names = "--tenancy-id", description = OracleCommandProperties.TENANCY_ID_DESCRIPTION)
   private String tenancyId;
 
-  @Parameter(
-          names = "--region",
-          description = OracleCommandProperties.REGION_DESCRIPTION
-  )
+  @Parameter(names = "--region", description = OracleCommandProperties.REGION_DESCRIPTION)
   private String region;
 
-  @Parameter(
-          names = "--namespace",
-          description = OracleCommandProperties.NAMESPACE_DESCRIPTION
-  )
+  @Parameter(names = "--namespace", description = OracleCommandProperties.NAMESPACE_DESCRIPTION)
   private String namespace;
 
   @Override

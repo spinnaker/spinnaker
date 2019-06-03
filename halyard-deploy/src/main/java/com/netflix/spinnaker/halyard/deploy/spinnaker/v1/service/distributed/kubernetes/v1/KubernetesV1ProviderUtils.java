@@ -33,12 +33,6 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import lombok.Data;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.utils.URIBuilder;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -55,6 +49,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Data;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.utils.URIBuilder;
 
 class KubernetesV1ProviderUtils {
   // Map from deployment name -> the port & job managing the connection.
@@ -70,24 +69,35 @@ class KubernetesV1ProviderUtils {
     }
   }
 
-  static URI proxyServiceEndpoint(Proxy proxy, String namespace, String serviceName, int servicePort) {
+  static URI proxyServiceEndpoint(
+      Proxy proxy, String namespace, String serviceName, int servicePort) {
     try {
-      return new URIBuilder().setPort(proxy.getPort())
+      return new URIBuilder()
+          .setPort(proxy.getPort())
           .setHost("localhost")
           .setScheme("http")
-          .setPath("/api/v1/namespaces/" + namespace + "/services/" + serviceName + ":" + servicePort + "/proxy")
+          .setPath(
+              "/api/v1/namespaces/"
+                  + namespace
+                  + "/services/"
+                  + serviceName
+                  + ":"
+                  + servicePort
+                  + "/proxy")
           .build();
     } catch (URISyntaxException e) {
       throw new HalException(Severity.FATAL, "Malformed service details: " + e.getMessage());
     }
   }
 
-  static Proxy openProxy(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details) {
+  static Proxy openProxy(
+      JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
     Proxy proxy = proxyMap.getOrDefault(Proxy.buildKey(details.getDeploymentName()), new Proxy());
     String jobId = proxy.jobId;
     if (StringUtils.isEmpty(jobId) || !jobExecutor.jobExists(jobId)) {
-      DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + account.getName() + "\"");
+      DaemonTaskHandler.newStage(
+          "Connecting to the Kubernetes cluster in account \"" + account.getName() + "\"");
       List<String> command = kubectlAccountCommand(details);
       command.add("proxy");
       command.add("--port=0"); // select a random port
@@ -104,9 +114,14 @@ class KubernetesV1ProviderUtils {
 
       // This should be a long-running job.
       if (status.getState() == JobStatus.State.COMPLETED) {
-        throw new HalException(Severity.FATAL,
-            "Unable to establish a proxy against account " + account.getName()
-                + ":\n" + status.getStdOut() + "\n" + status.getStdErr());
+        throw new HalException(
+            Severity.FATAL,
+            "Unable to establish a proxy against account "
+                + account.getName()
+                + ":\n"
+                + status.getStdOut()
+                + "\n"
+                + status.getStdErr());
       }
 
       String connectionMessage = status.getStdOut();
@@ -115,13 +130,21 @@ class KubernetesV1ProviderUtils {
       if (matcher.find()) {
         proxy.setPort(Integer.valueOf(matcher.group(1)));
         proxyMap.put(Proxy.buildKey(details.getDeploymentName()), proxy);
-        DaemonTaskHandler.message("Connected to kubernetes cluster for account "
-            + account.getName() + " on port " + proxy.getPort());
-        DaemonTaskHandler.message("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
+        DaemonTaskHandler.message(
+            "Connected to kubernetes cluster for account "
+                + account.getName()
+                + " on port "
+                + proxy.getPort());
+        DaemonTaskHandler.message(
+            "View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
       } else {
-        throw new HalException(Severity.FATAL,
+        throw new HalException(
+            Severity.FATAL,
             "Could not parse connection information from:\n"
-                + connectionMessage + "(" + status.getStdErr() + ")");
+                + connectionMessage
+                + "("
+                + status.getStdErr()
+                + ")");
       }
     }
 
@@ -130,22 +153,37 @@ class KubernetesV1ProviderUtils {
 
   static KubernetesClient getClient(AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
-    Config config = KubernetesConfigParser.parse(account.getKubeconfigFile(),
-        account.getContext(),
-        account.getCluster(),
-        account.getUser(),
-        account.getNamespaces(),
-        account.usesServiceAccount());
+    Config config =
+        KubernetesConfigParser.parse(
+            account.getKubeconfigFile(),
+            account.getContext(),
+            account.getCluster(),
+            account.getUser(),
+            account.getNamespaces(),
+            account.usesServiceAccount());
 
     return new DefaultKubernetesClient(config);
   }
 
-  static void resize(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String replicaSetName, int targetSize) {
+  static void resize(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      String replicaSetName,
+      int targetSize) {
     KubernetesClient client = getClient(details);
-    client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).scale(targetSize);
+    client
+        .extensions()
+        .replicaSets()
+        .inNamespace(namespace)
+        .withName(replicaSetName)
+        .scale(targetSize);
   }
 
-  static void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, Set<Pair<File, String>> files, String secretName, String namespace) {
+  static void upsertSecret(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      Set<Pair<File, String>> files,
+      String secretName,
+      String namespace) {
     KubernetesClient client = getClient(details);
 
     if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {
@@ -154,40 +192,47 @@ class KubernetesV1ProviderUtils {
 
     Map<String, String> secretContents = new HashMap<>();
 
-    files.forEach(pair -> {
-      try {
-        File file = pair.getLeft();
-        String name = pair.getRight();
-        String data = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(file))));
+    files.forEach(
+        pair -> {
+          try {
+            File file = pair.getLeft();
+            String name = pair.getRight();
+            String data =
+                new String(
+                    Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(file))));
 
-        secretContents.putIfAbsent(name, data);
-      } catch (IOException e) {
-        throw new HalException(Severity.ERROR, "Unable to read contents of \"" + pair.getLeft() + "\": " + e);
-      }
-    });
+            secretContents.putIfAbsent(name, data);
+          } catch (IOException e) {
+            throw new HalException(
+                Severity.ERROR, "Unable to read contents of \"" + pair.getLeft() + "\": " + e);
+          }
+        });
 
     SecretBuilder secretBuilder = new SecretBuilder();
-    secretBuilder = secretBuilder.withNewMetadata()
-        .withName(secretName)
-        .withNamespace(namespace)
-        .endMetadata()
-        .withData(secretContents);
+    secretBuilder =
+        secretBuilder
+            .withNewMetadata()
+            .withName(secretName)
+            .withNamespace(namespace)
+            .endMetadata()
+            .withData(secretContents);
 
     client.secrets().inNamespace(namespace).create(secretBuilder.build());
   }
 
-  static void createNamespace(AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
+  static void createNamespace(
+      AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
     KubernetesClient client = getClient(details);
     if (client.namespaces().withName(namespace).get() == null) {
-      client.namespaces().create(new NamespaceBuilder()
-          .withNewMetadata()
-          .withName(namespace)
-          .endMetadata()
-          .build());
+      client
+          .namespaces()
+          .create(
+              new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build());
     }
   }
 
-  static void deleteReplicaSet(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String name) {
+  static void deleteReplicaSet(
+      AccountDeploymentDetails<KubernetesAccount> details, String namespace, String name) {
     getClient(details).extensions().replicaSets().inNamespace(namespace).withName(name).delete();
   }
 
@@ -211,8 +256,13 @@ class KubernetesV1ProviderUtils {
     return halSecret(name, version, "dependencies");
   }
 
-  static List<String> kubectlPortForwardCommand(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instance, int targetPort, int localPort) {
-    List<String> command =  kubectlAccountCommand(details);
+  static List<String> kubectlPortForwardCommand(
+      AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      String instance,
+      int targetPort,
+      int localPort) {
+    List<String> command = kubectlAccountCommand(details);
     command.add("--namespace");
     command.add(namespace);
 
@@ -223,7 +273,10 @@ class KubernetesV1ProviderUtils {
     return command;
   }
 
-  static void kubectlDeleteNamespaceCommand(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
+  static void kubectlDeleteNamespaceCommand(
+      JobExecutor jobExecutor,
+      AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace) {
     List<String> command = kubectlAccountCommand(details);
     command.add("delete");
     command.add("namespace");
@@ -237,7 +290,13 @@ class KubernetesV1ProviderUtils {
     }
   }
 
-  static void storeInstanceLogs(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instanceName, String containerName, File outputFile) {
+  static void storeInstanceLogs(
+      JobExecutor jobExecutor,
+      AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      String instanceName,
+      String containerName,
+      File outputFile) {
     List<String> command = kubectlAccountCommand(details);
     command.add("--namespace");
     command.add(namespace);
@@ -255,13 +314,15 @@ class KubernetesV1ProviderUtils {
     }
 
     try {
-      IOUtils.write(status.getStdOut().getBytes(), new FileOutputStream(new File(outputFile, containerName)));
+      IOUtils.write(
+          status.getStdOut().getBytes(), new FileOutputStream(new File(outputFile, containerName)));
     } catch (IOException e) {
       throw new HalException(Severity.FATAL, "Unable to store logs: " + e.getMessage(), e);
     }
   }
 
-  private static List<String> kubectlAccountCommand(AccountDeploymentDetails<KubernetesAccount> details) {
+  private static List<String> kubectlAccountCommand(
+      AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
     List<String> command = new ArrayList<>();
     command.add("kubectl");

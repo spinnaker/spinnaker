@@ -17,19 +17,18 @@
 
 package com.netflix.spinnaker.halyard.core.job.v1;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.exec.*;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.schedulers.Schedulers;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.exec.*;
+import rx.Scheduler;
+import rx.functions.Action0;
+import rx.schedulers.Schedulers;
 
 @Slf4j
 public class JobExecutorLocal extends JobExecutor {
@@ -40,15 +39,21 @@ public class JobExecutorLocal extends JobExecutor {
   private Set<String> pendingJobSet = new ConcurrentSkipListSet<>();
 
   @Override
-  public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn, ByteArrayOutputStream stdOut, ByteArrayOutputStream stdErr) {
+  public String startJob(
+      JobRequest jobRequest,
+      Map<String, String> env,
+      InputStream stdIn,
+      ByteArrayOutputStream stdOut,
+      ByteArrayOutputStream stdErr) {
     List<String> tokenizedCommand = jobRequest.getTokenizedCommand();
     if (tokenizedCommand == null || tokenizedCommand.isEmpty()) {
       throw new IllegalArgumentException("JobRequest must include a tokenized command to run");
     }
 
-    final long timeoutMillis = jobRequest.getTimeoutMillis() == null ?
-        ExecuteWatchdog.INFINITE_TIMEOUT :
-        jobRequest.getTimeoutMillis();
+    final long timeoutMillis =
+        jobRequest.getTimeoutMillis() == null
+            ? ExecuteWatchdog.INFINITE_TIMEOUT
+            : jobRequest.getTimeoutMillis();
 
     String jobId = UUID.randomUUID().toString();
 
@@ -56,69 +61,78 @@ public class JobExecutorLocal extends JobExecutor {
 
     log.info("Scheduling job " + jobRequest.getTokenizedCommand() + " with id " + jobId);
 
-    scheduler.createWorker().schedule(
-        new Action0() {
-          @Override
-          public void call() {
-            PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, stdIn);
-            CommandLine commandLine;
-
-            log.info("Executing " + jobId + "with tokenized command: " + tokenizedCommand);
-
-            // Grab the first element as the command.
-            commandLine = new CommandLine(jobRequest.getTokenizedCommand().get(0));
-
-            // Treat the rest as arguments.
-            String[] arguments = Arrays.copyOfRange(tokenizedCommand.toArray(new String[0]), 1, tokenizedCommand.size());
-
-            commandLine.addArguments(arguments, false);
-
-            DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-            ExecuteWatchdog watchdog = new ExecuteWatchdog(timeoutMillis) {
+    scheduler
+        .createWorker()
+        .schedule(
+            new Action0() {
               @Override
-              public void timeoutOccured(Watchdog w) {
-                // If a watchdog is passed in, this was an actual time-out. Otherwise, it is likely
-                // the result of calling watchdog.destroyProcess().
-                if (w != null) {
-                  log.warn("Job " + jobId + " timed-out after " + timeoutMillis + "ms.");
+              public void call() {
+                PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, stdIn);
+                CommandLine commandLine;
 
-                  cancelJob(jobId);
+                log.info("Executing " + jobId + "with tokenized command: " + tokenizedCommand);
+
+                // Grab the first element as the command.
+                commandLine = new CommandLine(jobRequest.getTokenizedCommand().get(0));
+
+                // Treat the rest as arguments.
+                String[] arguments =
+                    Arrays.copyOfRange(
+                        tokenizedCommand.toArray(new String[0]), 1, tokenizedCommand.size());
+
+                commandLine.addArguments(arguments, false);
+
+                DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+                ExecuteWatchdog watchdog =
+                    new ExecuteWatchdog(timeoutMillis) {
+                      @Override
+                      public void timeoutOccured(Watchdog w) {
+                        // If a watchdog is passed in, this was an actual time-out. Otherwise, it is
+                        // likely
+                        // the result of calling watchdog.destroyProcess().
+                        if (w != null) {
+                          log.warn("Job " + jobId + " timed-out after " + timeoutMillis + "ms.");
+
+                          cancelJob(jobId);
+                        }
+
+                        super.timeoutOccured(w);
+                      }
+                    };
+
+                Executor executor = new DefaultExecutor();
+                executor.setStreamHandler(pumpStreamHandler);
+                executor.setWatchdog(watchdog);
+                try {
+                  executor.execute(commandLine, env, resultHandler);
+                } catch (IOException e) {
+                  throw new RuntimeException("Execution of " + jobId + " failed ", e);
                 }
 
-                super.timeoutOccured(w);
+                // Give the job some time to spin up.
+                try {
+                  Thread.sleep(500);
+                } catch (InterruptedException ignored) {
+                }
+
+                jobIdToHandlerMap.put(
+                    jobId,
+                    new ExecutionHandler()
+                        .setResultHandler(resultHandler)
+                        .setWatchdog(watchdog)
+                        .setStdOut(stdOut)
+                        .setStdErr(stdErr));
+
+                if (pendingJobSet.contains(jobId)) {
+                  pendingJobSet.remove(jobId);
+                } else {
+                  // If the job was removed from the set of pending jobs by someone else, its
+                  // deletion was requested
+                  jobIdToHandlerMap.remove(jobId);
+                  watchdog.destroyProcess();
+                }
               }
-            };
-
-            Executor executor = new DefaultExecutor();
-            executor.setStreamHandler(pumpStreamHandler);
-            executor.setWatchdog(watchdog);
-            try {
-              executor.execute(commandLine, env, resultHandler);
-            } catch (IOException e) {
-              throw new RuntimeException("Execution of " + jobId + " failed ", e);
-            }
-
-            // Give the job some time to spin up.
-            try {
-              Thread.sleep(500);
-            } catch (InterruptedException ignored) {
-            }
-
-            jobIdToHandlerMap.put(jobId, new ExecutionHandler()
-                .setResultHandler(resultHandler)
-                .setWatchdog(watchdog)
-                .setStdOut(stdOut)
-                .setStdErr(stdErr));
-
-            if (pendingJobSet.contains(jobId)) {
-              pendingJobSet.remove(jobId);
-            } else {
-              // If the job was removed from the set of pending jobs by someone else, its deletion was requested
-              jobIdToHandlerMap.remove(jobId);
-              watchdog.destroyProcess();
-            }
-          }
-        });
+            });
 
     return jobId;
   }

@@ -19,13 +19,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.templates;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An abstract definition for commands that accept TEMPLATE as a main parameter
- */
+/** An abstract definition for commands that accept TEMPLATE as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasArtifactTemplateCommand extends AbstractConfigCommand {
   @Parameter(description = "The name of the artifact template to operate on.", arity = 1)

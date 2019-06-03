@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V2;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
@@ -44,85 +47,72 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V2;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-
 @Component
 @Slf4j
 public class DeployService {
-  @Autowired
-  DeploymentService deploymentService;
+  @Autowired DeploymentService deploymentService;
 
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
-  @Autowired
-  DistributedDeployer distributedDeployer;
+  @Autowired DistributedDeployer distributedDeployer;
 
-  @Autowired
-  KubectlDeployer kubectlDeployer;
+  @Autowired KubectlDeployer kubectlDeployer;
 
-  @Autowired
-  LocalDeployer localDeployer;
+  @Autowired LocalDeployer localDeployer;
 
-  @Autowired
-  LocalGitDeployer localGitDeployer;
+  @Autowired LocalGitDeployer localGitDeployer;
 
-  @Autowired
-  BakeDeployer bakeDeployer;
+  @Autowired BakeDeployer bakeDeployer;
 
-  @Autowired
-  GenerateService generateService;
+  @Autowired GenerateService generateService;
 
-  @Autowired
-  HalconfigParser halconfigParser;
+  @Autowired HalconfigParser halconfigParser;
 
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired
-  ServiceProviderFactory serviceProviderFactory;
+  @Autowired ServiceProviderFactory serviceProviderFactory;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  ConfigParser configParser;
+  @Autowired ConfigParser configParser;
 
-  public void collectLogs(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
-    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+  public void collectLogs(
+      String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings =
+        serviceProvider.buildRuntimeSettings(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        serviceNames.stream()
+            .map(SpinnakerService.Type::fromCanonicalName)
+            .collect(Collectors.toList());
 
     if (serviceTypes.isEmpty()) {
-      serviceTypes = serviceProvider
-          .getServices()
-          .stream()
-          .map(SpinnakerService::getType)
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceProvider.getServices().stream()
+              .map(SpinnakerService::getType)
+              .collect(Collectors.toList());
     }
 
     if (!excludeServiceNames.isEmpty()) {
-      serviceTypes = serviceTypes
-          .stream()
-          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceTypes.stream()
+              .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
+              .collect(Collectors.toList());
     }
 
     deployer.collectLogs(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
@@ -130,9 +120,11 @@ public class DeployService {
 
   public NodeDiff configDiff(String deploymentName) {
     try {
-      DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+      DeploymentConfiguration deploymentConfiguration =
+          deploymentService.getDeploymentConfiguration(deploymentName);
       halconfigParser.switchToBackupConfig();
-      DeploymentConfiguration oldDeploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+      DeploymentConfiguration oldDeploymentConfiguration =
+          deploymentService.getDeploymentConfiguration(deploymentName);
 
       return deploymentConfiguration.diff(oldDeploymentConfiguration);
     } finally {
@@ -141,94 +133,112 @@ public class DeployService {
   }
 
   public RemoteAction connectCommand(String deploymentName, List<String> serviceNames) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
-    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings =
+        serviceProvider.buildRuntimeSettings(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        serviceNames.stream()
+            .map(SpinnakerService.Type::fromCanonicalName)
+            .collect(Collectors.toList());
 
     if (serviceTypes.isEmpty()) {
       serviceTypes.add(SpinnakerService.Type.DECK);
       serviceTypes.add(SpinnakerService.Type.GATE);
     }
 
-    RemoteAction result = deployer.connectCommand(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
+    RemoteAction result =
+        deployer.connectCommand(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
     result.setAutoRun(true);
     result.commitScript(halconfigDirectoryStructure.getConnectScriptPath(deploymentName));
     return result;
   }
 
   public void clean(String deploymentName) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
 
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    RemoteAction action = serviceProvider.clean(deploymentDetails, serviceProvider.buildRuntimeSettings(deploymentConfiguration));
+    RemoteAction action =
+        serviceProvider.clean(
+            deploymentDetails, serviceProvider.buildRuntimeSettings(deploymentConfiguration));
     action.commitScript(halconfigDirectoryStructure.getUnInstallScriptPath(deploymentName));
   }
 
-  public void rollback(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+  public void rollback(
+      String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
 
-    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        serviceNames.stream()
+            .map(SpinnakerService.Type::fromCanonicalName)
+            .collect(Collectors.toList());
 
     if (serviceTypes.isEmpty()) {
-      serviceTypes = serviceProvider
-          .getServices()
-          .stream()
-          .map(SpinnakerService::getType)
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceProvider.getServices().stream()
+              .map(SpinnakerService::getType)
+              .collect(Collectors.toList());
     }
 
     if (!excludeServiceNames.isEmpty()) {
-      serviceTypes = serviceTypes
-          .stream()
-          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceTypes.stream()
+              .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
+              .collect(Collectors.toList());
     }
 
-    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings =
+        serviceProvider.buildRuntimeSettings(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
     deployer.rollback(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
   }
 
-  public RemoteAction prep(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+  public RemoteAction prep(
+      String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
-    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings =
+        serviceProvider.buildRuntimeSettings(deploymentConfiguration);
 
-    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        serviceNames.stream()
+            .map(SpinnakerService.Type::fromCanonicalName)
+            .collect(Collectors.toList());
 
     if (serviceTypes.isEmpty()) {
-      serviceTypes = serviceProvider
-          .getServices()
-          .stream()
-          .map(SpinnakerService::getType)
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceProvider.getServices().stream()
+              .map(SpinnakerService::getType)
+              .collect(Collectors.toList());
     }
 
     if (!excludeServiceNames.isEmpty()) {
-      serviceTypes = serviceTypes
-          .stream()
-          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceTypes.stream()
+              .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
+              .collect(Collectors.toList());
     }
 
-    RemoteAction action = deployer.prep(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
+    RemoteAction action =
+        deployer.prep(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
 
     if (!action.getScript().isEmpty()) {
       action.commitScript(halconfigDirectoryStructure.getPrepScriptPath(deploymentName));
@@ -237,40 +247,49 @@ public class DeployService {
     return action;
   }
 
-  public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String>
-      serviceNames, List<String> excludeServiceNames) {
+  public RemoteAction deploy(
+      String deploymentName,
+      List<DeployOption> deployOptions,
+      List<String> serviceNames,
+      List<String> excludeServiceNames) {
     if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES) && !serviceNames.isEmpty()) {
-      throw new IllegalArgumentException("Cannot delete orphaned services when services to include are explicitly supplied.");
+      throw new IllegalArgumentException(
+          "Cannot delete orphaned services when services to include are explicitly supplied.");
     }
-    if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES) && !excludeServiceNames.isEmpty()) {
-      throw new IllegalArgumentException("Cannot delete orphaned services when services to exclude are explicitly supplied.");
+    if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES)
+        && !excludeServiceNames.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Cannot delete orphaned services when services to exclude are explicitly supplied.");
     }
 
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider =
+        serviceProviderFactory.create(deploymentConfiguration);
 
-    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        serviceNames.stream()
+            .map(SpinnakerService.Type::fromCanonicalName)
+            .collect(Collectors.toList());
 
     if (serviceTypes.isEmpty()) {
-      serviceTypes = serviceProvider
-          .getServices()
-          .stream()
-          .map(SpinnakerService::getType)
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceProvider.getServices().stream()
+              .map(SpinnakerService::getType)
+              .collect(Collectors.toList());
     }
 
     if (!excludeServiceNames.isEmpty()) {
-      serviceTypes = serviceTypes
-          .stream()
-          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
-          .collect(Collectors.toList());
+      serviceTypes =
+          serviceTypes.stream()
+              .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
+              .collect(Collectors.toList());
     }
 
     ResolvedConfiguration resolvedConfiguration;
     if (deployOptions.contains(DeployOption.OMIT_CONFIG)) {
-      resolvedConfiguration = generateService.generateConfig(deploymentName, Collections.emptyList());
+      resolvedConfiguration =
+          generateService.generateConfig(deploymentName, Collections.emptyList());
     } else {
       resolvedConfiguration = generateService.generateConfig(deploymentName, serviceTypes);
     }
@@ -285,14 +304,22 @@ public class DeployService {
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
     boolean waitForCompletion = deployOptions.contains(DeployOption.WAIT_FOR_COMPLETION);
-    RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes, waitForCompletion);
+    RemoteAction action =
+        deployer.deploy(
+            serviceProvider,
+            deploymentDetails,
+            resolvedConfiguration,
+            serviceTypes,
+            waitForCompletion);
     halconfigParser.backupConfig();
 
     if (deployOptions.contains(DeployOption.FLUSH_INFRASTRUCTURE_CACHES)) {
-      deployer.flushInfrastructureCaches(serviceProvider, deploymentDetails, resolvedConfiguration.getRuntimeSettings());
+      deployer.flushInfrastructureCaches(
+          serviceProvider, deploymentDetails, resolvedConfiguration.getRuntimeSettings());
     }
     if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES)) {
-      deployer.deleteDisabledServices(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
+      deployer.deleteDisabledServices(
+          serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
     }
 
     if (!action.getScript().isEmpty()) {
@@ -303,7 +330,8 @@ public class DeployService {
   }
 
   private Deployer getDeployer(DeploymentConfiguration deploymentConfiguration) {
-    DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
+    DeploymentEnvironment deploymentEnvironment =
+        deploymentConfiguration.getDeploymentEnvironment();
     DeploymentEnvironment.DeploymentType type = deploymentEnvironment.getType();
     String accountName = deploymentEnvironment.getAccountName();
 
@@ -316,14 +344,18 @@ public class DeployService {
         return localDeployer;
       case Distributed:
         if (StringUtils.isEmpty(accountName)) {
-          throw new HalException(Problem.Severity.FATAL, "An account name must be "
-              + "specified as the desired place to run your distributed deployment.");
+          throw new HalException(
+              Problem.Severity.FATAL,
+              "An account name must be "
+                  + "specified as the desired place to run your distributed deployment.");
         }
 
-        Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
+        Account account =
+            accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
         Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
 
-        if (providerType == Provider.ProviderType.KUBERNETES && account.getProviderVersion() == V2) {
+        if (providerType == Provider.ProviderType.KUBERNETES
+            && account.getProviderVersion() == V2) {
           return kubectlDeployer;
         } else {
           return distributedDeployer;
@@ -336,7 +368,8 @@ public class DeployService {
   private DeploymentDetails getDeploymentDetails(DeploymentConfiguration deploymentConfiguration) {
     String deploymentName = deploymentConfiguration.getName();
     BillOfMaterials billOfMaterials = artifactService.getBillOfMaterials(deploymentName);
-    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
+    DeploymentEnvironment.DeploymentType type =
+        deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
       case BakeDebian:
       case LocalDebian:
@@ -346,14 +379,18 @@ public class DeployService {
             .setDeploymentName(deploymentName)
             .setBillOfMaterials(billOfMaterials);
       case Distributed:
-        DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
+        DeploymentEnvironment deploymentEnvironment =
+            deploymentConfiguration.getDeploymentEnvironment();
         String accountName = deploymentEnvironment.getAccountName();
 
         if (accountName == null || accountName.isEmpty()) {
-          throw new HalException(FATAL, "An account name must be "
-              + "specified as the desired place to deploy your simple clustered deployment.");
+          throw new HalException(
+              FATAL,
+              "An account name must be "
+                  + "specified as the desired place to deploy your simple clustered deployment.");
         }
-        Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
+        Account account =
+            accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
         return new AccountDeploymentDetails()
             .setAccount(account)
             .setDeploymentConfiguration(deploymentConfiguration)

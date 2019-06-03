@@ -22,6 +22,5 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.notifications.pubsub.
 import lombok.Getter;
 
 public class GoogleListPublishersCommand extends AbstractListPublishersCommand {
-  @Getter
-  private String pubsubName = "google";
+  @Getter private String pubsubName = "google";
 }

@@ -29,24 +29,19 @@ public abstract class AbstractBaseImageCommand extends AbstractProviderCommand {
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's base image.";
+    return "Manage and view Spinnaker configuration for the "
+        + getProviderName()
+        + " provider's base image.";
   }
 
   protected AbstractBaseImageCommand() {
-    registerSubcommand(new DeleteBaseImageCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new DeleteBaseImageCommandBuilder().setProviderName(getProviderName()).build());
 
-    registerSubcommand(new GetBaseImageCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(new GetBaseImageCommandBuilder().setProviderName(getProviderName()).build());
 
-    registerSubcommand(new ListBaseImagesCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new ListBaseImagesCommandBuilder().setProviderName(getProviderName()).build());
   }
 
   @Override

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.EnableDisableCanaryServiceIntegrationCommandBuilder;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.EditCanaryPrometheusCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.account.PrometheusCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -36,12 +35,21 @@ public class CanaryPrometheusCommand extends AbstractConfigCommand {
 
   String commandName = PrometheusCanaryServiceIntegration.NAME;
 
-  String shortDescription = "Configure your canary analysis Prometheus service integration settings for Spinnaker.";
+  String shortDescription =
+      "Configure your canary analysis Prometheus service integration settings for Spinnaker.";
 
   public CanaryPrometheusCommand() {
     registerSubcommand(new EditCanaryPrometheusCommand());
-    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Prometheus").setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Prometheus").setEnable(false).build());
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("Prometheus")
+            .setEnable(true)
+            .build());
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("Prometheus")
+            .setEnable(false)
+            .build());
     registerSubcommand(new PrometheusCanaryAccountCommand());
   }
 

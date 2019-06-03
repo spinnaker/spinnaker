@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * A CustomSizing is a map of maps where you can hack in provider-specific settings related to instance/container/pod sizes.
+ * A CustomSizing is a map of maps where you can hack in provider-specific settings related to
+ * instance/container/pod sizes.
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

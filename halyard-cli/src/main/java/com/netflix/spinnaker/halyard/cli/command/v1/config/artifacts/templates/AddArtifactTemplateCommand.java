@@ -28,21 +28,22 @@ import lombok.Getter;
 public class AddArtifactTemplateCommand extends AbstractHasArtifactTemplateCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "add";
+
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Add an artifact template";
 
   @Parameter(
       names = "--template-path",
       description = "The path to the Jinja template to use for artifact extraction",
-      required = true
-  )
+      required = true)
   private String templatePath;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     String templateName = getArtifactTemplate();
-    ArtifactTemplate template = new ArtifactTemplate().setName(templateName).setTemplatePath(templatePath);
+    ArtifactTemplate template =
+        new ArtifactTemplate().setName(templateName).setTemplatePath(templatePath);
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to add artifact template " + templateName + ".")

@@ -36,51 +36,59 @@ public class ApacheSslEditCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Edit SSL settings for your UI server.";
 
-  private String longDescription = "Configure SSL termination to handled by the UI server's Apache server.";
+  private String longDescription =
+      "Configure SSL termination to handled by the UI server's Apache server.";
 
   @Parameter(
       names = "--ssl-certificate-file",
       converter = LocalFileConverter.class,
-      description = "Path to your .crt file."
-  )
+      description = "Path to your .crt file.")
   String sslCertificateFile;
 
   @Parameter(
       names = "--ssl-certificate-key-file",
       converter = LocalFileConverter.class,
-      description = "Path to your .key file."
-  )
+      description = "Path to your .key file.")
   String sslCertificateKeyFile;
 
   @Parameter(
       names = "--ssl-certificate-passphrase",
       password = true,
-      description = "The passphrase needed to unlock your SSL certificate. This will be provided to Apache on startup."
-  )
+      description =
+          "The passphrase needed to unlock your SSL certificate. This will be provided to Apache on startup.")
   String sslCertificatePassphrase;
 
   @Parameter(
       names = "--ssl-certificate-ca-file",
-      description = "Path to the .crt file for the CA that issued your SSL certificate. This is only needed for localgit"
-          + "deployments that serve the UI using webpack dev server."
-  )
+      description =
+          "Path to the .crt file for the CA that issued your SSL certificate. This is only needed for localgit"
+              + "deployments that serve the UI using webpack dev server.")
   String sslCACertificateFile;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    ApacheSsl apacheSsl = new OperationHandler<ApacheSsl>()
-        .setOperation(Daemon.getApacheSsl(currentDeployment, false))
-        .setFailureMesssage("Failed to load SSL settings.")
-        .get();
+    ApacheSsl apacheSsl =
+        new OperationHandler<ApacheSsl>()
+            .setOperation(Daemon.getApacheSsl(currentDeployment, false))
+            .setFailureMesssage("Failed to load SSL settings.")
+            .get();
 
     int originalHash = apacheSsl.hashCode();
 
-    apacheSsl.setSslCertificateFile(isSet(sslCertificateFile) ? sslCertificateFile : apacheSsl.getSslCertificateFile());
-    apacheSsl.setSslCertificateKeyFile(isSet(sslCertificateKeyFile) ? sslCertificateKeyFile : apacheSsl.getSslCertificateKeyFile());
-    apacheSsl.setSslCertificatePassphrase(isSet(sslCertificatePassphrase) ? sslCertificatePassphrase : apacheSsl.getSslCertificatePassphrase());
-    apacheSsl.setSslCACertificateFile(isSet(sslCACertificateFile) ? sslCACertificateFile : apacheSsl.getSslCACertificateFile());
+    apacheSsl.setSslCertificateFile(
+        isSet(sslCertificateFile) ? sslCertificateFile : apacheSsl.getSslCertificateFile());
+    apacheSsl.setSslCertificateKeyFile(
+        isSet(sslCertificateKeyFile)
+            ? sslCertificateKeyFile
+            : apacheSsl.getSslCertificateKeyFile());
+    apacheSsl.setSslCertificatePassphrase(
+        isSet(sslCertificatePassphrase)
+            ? sslCertificatePassphrase
+            : apacheSsl.getSslCertificatePassphrase());
+    apacheSsl.setSslCACertificateFile(
+        isSet(sslCACertificateFile) ? sslCACertificateFile : apacheSsl.getSslCACertificateFile());
 
     if (originalHash == apacheSsl.hashCode()) {
       AnsiUi.failure("No changes supplied.");

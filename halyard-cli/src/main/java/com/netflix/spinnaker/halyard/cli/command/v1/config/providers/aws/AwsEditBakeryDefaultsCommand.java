@@ -23,75 +23,80 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.Bake
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsBakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsBaseImage;
 
-/**
- * Interact with the aws provider's bakery
- */
+/** Interact with the aws provider's bakery */
 @Parameters(separators = "=")
-public class AwsEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsCommand<AwsBakeryDefaults> {
+public class AwsEditBakeryDefaultsCommand
+    extends AbstractEditBakeryDefaultsCommand<AwsBakeryDefaults> {
   protected String getProviderName() {
     return "aws";
   }
 
   @Parameter(
       names = "--aws-access-key",
-      description = "The default access key used to communicate with AWS."
-  )
+      description = "The default access key used to communicate with AWS.")
   private String awsAccessKey;
 
   @Parameter(
       names = "--aws-secret-key",
       description = "The secret key used to communicate with AWS.",
-      password = true
-  )
+      password = true)
   private String awsSecretKey;
 
   @Parameter(
       names = "--aws-subnet-id",
-      description = "If using VPC, the default ID of the subnet, such as subnet-12345def, where Packer will launch " +
-                    "the EC2 instance. This field is required if you are using a non-default VPC."
-  )
+      description =
+          "If using VPC, the default ID of the subnet, such as subnet-12345def, where Packer will launch "
+              + "the EC2 instance. This field is required if you are using a non-default VPC.")
   private String awsSubnetId;
 
   @Parameter(
       names = "--aws-vpc-id",
-      description = "If launching into a VPC subnet, Packer needs the VPC ID in order to create a temporary security " +
-                    "group within the VPC. Requires subnet_id to be set. If this default value is left blank, Packer " +
-                    "will try to get the VPC ID from the subnet_id."
-  )
+      description =
+          "If launching into a VPC subnet, Packer needs the VPC ID in order to create a temporary security "
+              + "group within the VPC. Requires subnet_id to be set. If this default value is left blank, Packer "
+              + "will try to get the VPC ID from the subnet_id.")
   private String awsVpcId;
 
   @Parameter(
       names = "--aws-associate-public-ip-address",
-      description = "If using a non-default VPC, public IP addresses are not provided by default. If this is enabled, " +
-                    "your new instance will get a Public IP.",
-      arity = 1
-  )
+      description =
+          "If using a non-default VPC, public IP addresses are not provided by default. If this is enabled, "
+              + "your new instance will get a Public IP.",
+      arity = 1)
   private Boolean awsAssociatePublicIpAddress;
 
   @Parameter(
       names = "--default-virtualization-type",
-      description = "The default type of virtualization for the AMI you are building. This option must match the " +
-                    "supported virtualization type of source_ami. Can be pv or hvm."
-  )
+      description =
+          "The default type of virtualization for the AMI you are building. This option must match the "
+              + "supported virtualization type of source_ami. Can be pv or hvm.")
   private AwsBaseImage.AwsVirtualizationSettings.VmType defaultVirtualizationType;
 
   @Parameter(
       names = "--template-file",
-      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION
-  )
+      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION)
   private String templateFile;
 
   @Override
   protected AwsBakeryDefaults editBakeryDefaults(AwsBakeryDefaults bakeryDefaults) {
-    bakeryDefaults.setAwsAccessKey(isSet(awsAccessKey) ? awsAccessKey : bakeryDefaults.getAwsAccessKey());
-    bakeryDefaults.setAwsSecretKey(isSet(awsSecretKey) ? awsSecretKey : bakeryDefaults.getAwsSecretKey());
-    bakeryDefaults.setAwsSubnetId(isSet(awsSubnetId) ? awsSubnetId : bakeryDefaults.getAwsSubnetId());
+    bakeryDefaults.setAwsAccessKey(
+        isSet(awsAccessKey) ? awsAccessKey : bakeryDefaults.getAwsAccessKey());
+    bakeryDefaults.setAwsSecretKey(
+        isSet(awsSecretKey) ? awsSecretKey : bakeryDefaults.getAwsSecretKey());
+    bakeryDefaults.setAwsSubnetId(
+        isSet(awsSubnetId) ? awsSubnetId : bakeryDefaults.getAwsSubnetId());
     bakeryDefaults.setAwsVpcId(isSet(awsVpcId) ? awsVpcId : bakeryDefaults.getAwsVpcId());
-    bakeryDefaults.setAwsAssociatePublicIpAddress(isSet(awsAssociatePublicIpAddress) ? awsAssociatePublicIpAddress : bakeryDefaults.getAwsAssociatePublicIpAddress());
-    bakeryDefaults.setDefaultVirtualizationType(isSet(defaultVirtualizationType) ? defaultVirtualizationType : bakeryDefaults.getDefaultVirtualizationType());
-    bakeryDefaults.setTemplateFile(isSet(templateFile) ? templateFile : bakeryDefaults.getTemplateFile());
+    bakeryDefaults.setAwsAssociatePublicIpAddress(
+        isSet(awsAssociatePublicIpAddress)
+            ? awsAssociatePublicIpAddress
+            : bakeryDefaults.getAwsAssociatePublicIpAddress());
+    bakeryDefaults.setDefaultVirtualizationType(
+        isSet(defaultVirtualizationType)
+            ? defaultVirtualizationType
+            : bakeryDefaults.getDefaultVirtualizationType());
+    bakeryDefaults.setTemplateFile(
+        isSet(templateFile) ? templateFile : bakeryDefaults.getTemplateFile());
 
     return bakeryDefaults;
   }
 }
-

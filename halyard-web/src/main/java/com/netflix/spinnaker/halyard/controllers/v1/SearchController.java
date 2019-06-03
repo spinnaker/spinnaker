@@ -28,14 +28,14 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/config/deployments/{deploymentName:.+}/repository/{repositoryName:.+}/searches")
+@RequestMapping(
+    "/v1/config/deployments/{deploymentName:.+}/repository/{repositoryName:.+}/searches")
 public class SearchController {
   private final SearchService searchService;
   private final HalconfigParser halconfigParser;
@@ -43,7 +43,8 @@ public class SearchController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Search>> searches(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Search>> searches(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Search>>builder()
@@ -55,7 +56,8 @@ public class SearchController {
   }
 
   @RequestMapping(value = "/{searchName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Search> search(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Search> search(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @PathVariable String searchName,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -68,7 +70,8 @@ public class SearchController {
   }
 
   @RequestMapping(value = "/{searchName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteSearch(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteSearch(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @PathVariable String searchName,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -82,37 +85,37 @@ public class SearchController {
   }
 
   @RequestMapping(value = "/{searchName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setSearch(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setSearch(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @PathVariable String searchName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawSearch) {
-    Search search = objectMapper.convertValue(
-        rawSearch,
-        Repositories.translateSearchType(repositoryName)
-    );
+    Search search =
+        objectMapper.convertValue(rawSearch, Repositories.translateSearchType(repositoryName));
     return GenericUpdateRequest.<Search>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(s -> searchService.setSearch(deploymentName, repositoryName, searchName, s))
-        .validator(() -> searchService.validateSearch(deploymentName, repositoryName, search.getName()))
+        .validator(
+            () -> searchService.validateSearch(deploymentName, repositoryName, search.getName()))
         .description("Edit the " + searchName + " search")
         .build()
         .execute(validationSettings, search);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addSearch(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addSearch(
+      @PathVariable String deploymentName,
       @PathVariable String repositoryName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawSearch) {
-    Search search = objectMapper.convertValue(
-        rawSearch,
-        Repositories.translateSearchType(repositoryName)
-    );
+    Search search =
+        objectMapper.convertValue(rawSearch, Repositories.translateSearchType(repositoryName));
     return GenericUpdateRequest.<Search>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(s -> searchService.addSearch(deploymentName, repositoryName, s))
-        .validator(() -> searchService.validateSearch(deploymentName, repositoryName, search.getName()))
+        .validator(
+            () -> searchService.validateSearch(deploymentName, repositoryName, search.getName()))
         .description("Add the " + search.getName() + " search")
         .build()
         .execute(validationSettings, search);

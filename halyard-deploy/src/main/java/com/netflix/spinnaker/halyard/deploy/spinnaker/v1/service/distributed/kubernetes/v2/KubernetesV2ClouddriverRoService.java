@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverService{
+public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverService {
   @Override
   public Type getType() {
     return Type.CLOUDDRIVER_RO;
@@ -41,16 +40,23 @@ public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverSer
 
   @Override
   public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
-    return deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isEnabled();
+    return deploymentConfiguration
+        .getDeploymentEnvironment()
+        .getHaServices()
+        .getClouddriver()
+        .isEnabled();
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
     String filename = "clouddriver-ro.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    profiles.add(getClouddriverProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
+    profiles.add(
+        getClouddriverProfileFactory()
+            .getProfile(filename, path, deploymentConfiguration, endpoints));
 
     return profiles;
   }
@@ -62,10 +68,19 @@ public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverSer
   }
 
   @Override
-  protected SpinnakerRuntimeSettings getServiceOverrides(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    SpinnakerRuntimeSettings serviceOverrides = super.getServiceOverrides(deploymentConfiguration, endpoints);
+  protected SpinnakerRuntimeSettings getServiceOverrides(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    SpinnakerRuntimeSettings serviceOverrides =
+        super.getServiceOverrides(deploymentConfiguration, endpoints);
 
-    serviceOverrides.setServiceSettings(Type.REDIS, new ServiceSettings(deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().getRedisSlaveEndpoint()));
+    serviceOverrides.setServiceSettings(
+        Type.REDIS,
+        new ServiceSettings(
+            deploymentConfiguration
+                .getDeploymentEnvironment()
+                .getHaServices()
+                .getClouddriver()
+                .getRedisSlaveEndpoint()));
 
     return serviceOverrides;
   }

@@ -30,6 +30,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,33 +42,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
 public class LocalGitDeckService extends DeckService implements LocalGitService<DeckService.Deck> {
 
-  @Autowired
-  private HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   String deckSettingsPath = "settings.js";
   String deckSettingsLocalPath = "settings-local.js";
   String homeDotSpinnakerPath = "~/.spinnaker/";
   String deckPath = Paths.get(homeDotSpinnakerPath, deckSettingsPath).toString();
 
-  String startCommand = String
-      .join("\n", "export SETTINGS_PATH=" + deckPath, "yarn > /dev/null", "yarn start");
+  String startCommand =
+      String.join("\n", "export SETTINGS_PATH=" + deckPath, "yarn > /dev/null", "yarn start");
 
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
@@ -107,17 +103,21 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
-    Profile deckProfile = deckProfileFactory.getProfile(deckSettingsPath, deckPath, deploymentConfiguration, endpoints);
+    Profile deckProfile =
+        deckProfileFactory.getProfile(
+            deckSettingsPath, deckPath, deploymentConfiguration, endpoints);
 
     String deploymentName = deploymentConfiguration.getName();
     Path userProfilePath = halconfigDirectoryStructure.getUserProfilePath(deploymentName);
-    Optional<Profile> settingsLocalProfile = this.customProfile(
-        deploymentConfiguration,
-        endpoints,
-        Paths.get(userProfilePath.toString(), deckSettingsLocalPath),
-        deckSettingsLocalPath);
+    Optional<Profile> settingsLocalProfile =
+        this.customProfile(
+            deploymentConfiguration,
+            endpoints,
+            Paths.get(userProfilePath.toString(), deckSettingsLocalPath),
+            deckSettingsLocalPath);
     settingsLocalProfile.ifPresent(p -> deckProfile.appendContents(p.getContents()));
 
     result.add(deckProfile);

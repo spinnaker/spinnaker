@@ -35,8 +35,7 @@ public class InstallSpinCommand extends AbstractRemoteActionCommand {
   private String shortDescription = "Installs the spin CLI.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ",
-      "This command installs the spin CLI.");
+  private String longDescription = String.join(" ", "This command installs the spin CLI.");
 
   @Override
   protected OperationHandler<RemoteAction> getRemoteAction() {

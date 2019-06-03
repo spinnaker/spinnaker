@@ -28,10 +28,9 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.io.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 
 @Component
 public class KubernetesV1DistributedLogCollectorFactory {
@@ -39,10 +38,10 @@ public class KubernetesV1DistributedLogCollectorFactory {
     return new KubernetesDistributedLogCollector<>(service);
   }
 
-  @Autowired
-  HalconfigDirectoryStructure directoryStructure;
+  @Autowired HalconfigDirectoryStructure directoryStructure;
 
-  private class KubernetesDistributedLogCollector<T> extends DistributedLogCollector<T, KubernetesAccount> {
+  private class KubernetesDistributedLogCollector<T>
+      extends DistributedLogCollector<T, KubernetesAccount> {
     KubernetesDistributedLogCollector(HasServiceSettings<T> service) {
       super(service);
     }
@@ -67,8 +66,7 @@ public class KubernetesV1DistributedLogCollectorFactory {
           settings.getLocation(),
           instanceId,
           getServiceName(),
-          instanceOutputDir
-      );
+          instanceOutputDir);
 
       DistributedService service = (DistributedService<T, KubernetesAccount>) getService();
 
@@ -82,8 +80,7 @@ public class KubernetesV1DistributedLogCollectorFactory {
             settings.getLocation(),
             instanceId,
             sidecarName,
-            instanceOutputDir
-        );
+            instanceOutputDir);
       }
     }
   }

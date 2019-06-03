@@ -17,6 +17,6 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.maven;
 
 public class MavenArtifactCommandProperties {
-    public static final String REPOSITORY_URL_DESCRIPTION = "Full URI for the "
-            + "Maven repository ie. `http://some.host.com/repository/path`";
+  public static final String REPOSITORY_URL_DESCRIPTION =
+      "Full URI for the " + "Maven repository ie. `http://some.host.com/repository/path`";
 }

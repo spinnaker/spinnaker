@@ -27,36 +27,38 @@ import lombok.Getter;
 public class EditX509Command extends AbstractEditAuthnMethodCommand<X509> {
 
   @Getter
-  private String shortDescription = "Configure authentication and role information for a x509 authentication scheme";
+  private String shortDescription =
+      "Configure authentication and role information for a x509 authentication scheme";
+
+  @Getter private AuthnMethod.Method method = AuthnMethod.Method.X509;
 
   @Getter
-  private AuthnMethod.Method method = AuthnMethod.Method.X509;
-
-  @Getter
-  private String longDescription = String.join(" ",
-      "x509 authenticates users via client certificate and a corresponding private key",
-      "These certificates optionally provide authorization information via custom Oids with",
-      "corresponding group information for the user. This can be configured via --roleOid"
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "x509 authenticates users via client certificate and a corresponding private key",
+          "These certificates optionally provide authorization information via custom Oids with",
+          "corresponding group information for the user. This can be configured via --roleOid");
 
   @Parameter(
       names = "--role-oid",
-      description = "The OID that encodes roles that the user specified in the x509 certificate" +
-          " belongs to"
-  )
+      description =
+          "The OID that encodes roles that the user specified in the x509 certificate"
+              + " belongs to")
   private String roleOid;
 
   @Parameter(
       names = "--subject-principal-regex",
-      description = "The regex used to parse the subject principal name embedded in the x509" +
-          " certificate if necessary"
-  )
+      description =
+          "The regex used to parse the subject principal name embedded in the x509"
+              + " certificate if necessary")
   private String subjectPrincipalRegex;
 
   @Override
   protected AuthnMethod editAuthnMethod(X509 x) {
     x.setRoleOid(isSet(roleOid) ? roleOid : x.getRoleOid());
-    x.setSubjectPrincipalRegex(isSet(subjectPrincipalRegex) ? subjectPrincipalRegex : x.getSubjectPrincipalRegex());
+    x.setSubjectPrincipalRegex(
+        isSet(subjectPrincipalRegex) ? subjectPrincipalRegex : x.getSubjectPrincipalRegex());
 
     return x;
   }

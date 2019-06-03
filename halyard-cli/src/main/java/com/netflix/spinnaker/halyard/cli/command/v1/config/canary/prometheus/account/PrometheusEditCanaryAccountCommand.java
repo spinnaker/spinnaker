@@ -24,45 +24,39 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 
 @Parameters(separators = "=")
-public class PrometheusEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<PrometheusCanaryAccount> {
+public class PrometheusEditCanaryAccountCommand
+    extends AbstractEditCanaryAccountCommand<PrometheusCanaryAccount> {
 
   @Override
   protected String getServiceIntegration() {
     return "Prometheus";
   }
 
-  @Parameter(
-      names = "--base-url",
-      description = "The base URL to the Prometheus server."
-  )
+  @Parameter(names = "--base-url", description = "The base URL to the Prometheus server.")
   private String baseUrl;
 
-  @Parameter(
-      names = "--username",
-      description = "A basic auth username."
-  )
+  @Parameter(names = "--username", description = "A basic auth username.")
   private String username;
 
-  @Parameter(
-      names = "--password",
-      description = "A basic auth password.",
-      password = true
-  )
+  @Parameter(names = "--password", description = "A basic auth password.", password = true)
   private String password;
 
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "The path to a file containing \"username:password\"."
-  )
+      description = "The path to a file containing \"username:password\".")
   private String usernamePasswordFile;
 
   @Override
   protected AbstractCanaryAccount editAccount(PrometheusCanaryAccount account) {
-    account.setEndpoint(isSet(baseUrl) ? new PrometheusCanaryAccount.Endpoint().setBaseUrl(baseUrl) : account.getEndpoint());
+    account.setEndpoint(
+        isSet(baseUrl)
+            ? new PrometheusCanaryAccount.Endpoint().setBaseUrl(baseUrl)
+            : account.getEndpoint());
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
-    account.setUsernamePasswordFile(isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
+    account.setUsernamePasswordFile(
+        isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
 
     return account;
   }

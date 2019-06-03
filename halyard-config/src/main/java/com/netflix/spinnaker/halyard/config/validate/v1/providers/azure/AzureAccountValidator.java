@@ -20,16 +20,15 @@ import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.resources.GenericResources;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -51,7 +50,8 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
     String packerResourceGroup = n.getPackerResourceGroup();
     String packerStorageAccount = n.getPackerStorageAccount();
 
-    AzureCredentials credentials = new AzureCredentials(
+    AzureCredentials credentials =
+        new AzureCredentials(
             tenantId,
             clientId,
             appKey,
@@ -73,21 +73,32 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
       rmClient.healthCheck();
       credentialsList.add(credentials);
     } catch (Exception e) {
-      // the healthCheck() call always wraps exceptions with a generic "Unable to ping azure." exception, so use the cause instead
+      // the healthCheck() call always wraps exceptions with a generic "Unable to ping azure."
+      // exception, so use the cause instead
       Throwable cause = e.getCause();
-      String errorMessage = cause instanceof CloudException ? CloudException.class.cast(cause).body().message() : cause.getMessage();
+      String errorMessage =
+          cause instanceof CloudException
+              ? CloudException.class.cast(cause).body().message()
+              : cause.getMessage();
       if (errorMessage.contains("AADSTS90002")) {
         p.addProblem(Severity.ERROR, "Tenant Id '" + tenantId + "' is invalid.", "tenantId")
-          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to retrieve the tenantId for your subscription.");
+            .setRemediation(
+                "Follow instructions here https://aka.ms/azspinconfig to retrieve the tenantId for your subscription.");
       } else if (errorMessage.contains("AADSTS70001")) {
-        p.addProblem(Severity.ERROR, "Client Id '" + clientId + "' is invalid for tenant '" + tenantId + "'.", "clientId")
-          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to create a service principal and retrieve the clientId.");
+        p.addProblem(
+                Severity.ERROR,
+                "Client Id '" + clientId + "' is invalid for tenant '" + tenantId + "'.",
+                "clientId")
+            .setRemediation(
+                "Follow instructions here https://aka.ms/azspinconfig to create a service principal and retrieve the clientId.");
       } else if (errorMessage.contains("AADSTS70002")) {
         p.addProblem(Severity.ERROR, "AppKey is invalid.", "appKey.")
-          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to specify an appKey when creating a service principal.");
+            .setRemediation(
+                "Follow instructions here https://aka.ms/azspinconfig to specify an appKey when creating a service principal.");
       } else {
         p.addProblem(Severity.ERROR, "Error instantiating Azure credentials: " + errorMessage)
-          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to setup azure credentials.");
+            .setRemediation(
+                "Follow instructions here https://aka.ms/azspinconfig to setup azure credentials.");
       }
       return;
     }

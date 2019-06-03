@@ -27,14 +27,13 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 @Component
 @Slf4j
@@ -46,31 +45,44 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
       boolean waitForCompletion) {
-    List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceTypes)
-        .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()) != null)
-        .filter(i -> {
-          ServiceSettings serviceSettings = resolvedConfiguration.getServiceSettings(i.getService());
-          return serviceSettings != null && serviceSettings.getEnabled();
-        })
-        .collect(Collectors.toList());
+    List<LocalService> enabledServices =
+        serviceProvider.getLocalServices(serviceTypes).stream()
+            .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()) != null)
+            .filter(
+                i -> {
+                  ServiceSettings serviceSettings =
+                      resolvedConfiguration.getServiceSettings(i.getService());
+                  return serviceSettings != null && serviceSettings.getEnabled();
+                })
+            .collect(Collectors.toList());
 
-    Map<String, String> installCommands = enabledServices.stream()
-        .filter(i -> !resolvedConfiguration.getServiceSettings(i.getService())
-            .getSkipLifeCycleManagement())
-        .reduce(new HashMap<>(), (commands, installable) -> {
-          String command = String.join("\n",
-              installable.installArtifactCommand(deploymentDetails),
-              installable.stageProfilesCommand(deploymentDetails, resolvedConfiguration));
-          commands.put(installable.getService().getCanonicalName(), command);
-          return commands;
-        }, (m1, m2) -> {
-          m1.putAll(m2);
-          return m1;
-        });
+    Map<String, String> installCommands =
+        enabledServices.stream()
+            .filter(
+                i ->
+                    !resolvedConfiguration
+                        .getServiceSettings(i.getService())
+                        .getSkipLifeCycleManagement())
+            .reduce(
+                new HashMap<>(),
+                (commands, installable) -> {
+                  String command =
+                      String.join(
+                          "\n",
+                          installable.installArtifactCommand(deploymentDetails),
+                          installable.stageProfilesCommand(
+                              deploymentDetails, resolvedConfiguration));
+                  commands.put(installable.getService().getCanonicalName(), command);
+                  return commands;
+                },
+                (m1, m2) -> {
+                  m1.putAll(m2);
+                  return m1;
+                });
 
-    String installCommand = serviceProvider
-        .getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands);
+    String installCommand =
+        serviceProvider.getInstallCommand(
+            deploymentDetails, resolvedConfiguration, installCommands);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);
@@ -83,12 +95,16 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       DeploymentDetails deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
-    throw new HalException(Problem.Severity.FATAL, "No support for rolling back local deployments yet.");
+    throw new HalException(
+        Problem.Severity.FATAL, "No support for rolling back local deployments yet.");
   }
 
   @Override
-  public void collectLogs(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails,
-      SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+  public void collectLogs(
+      LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
     for (LocalService localService : serviceProvider.getLocalServices(serviceTypes)) {
       localService.collectLogs(deploymentDetails, runtimeSettings);
     }
@@ -101,23 +117,33 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
     RemoteAction result = new RemoteAction();
-    result.setScript(String.join("\n",
-        "#!/usr/bin/env bash",
-        "",
-        "echo \"Spinnaker is installed locally on this machine - no work to do.\""));
+    result.setScript(
+        String.join(
+            "\n",
+            "#!/usr/bin/env bash",
+            "",
+            "echo \"Spinnaker is installed locally on this machine - no work to do.\""));
     return result;
   }
 
   @Override
-  public void flushInfrastructureCaches(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
+  public void flushInfrastructureCaches(
+      LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings) {
     try {
-      Jedis jedis = new Jedis(runtimeSettings
-          .getServiceSettings((SpinnakerService) serviceProvider.getLocalService(SpinnakerService.Type.REDIS))
-          .getBaseUrl());
+      Jedis jedis =
+          new Jedis(
+              runtimeSettings
+                  .getServiceSettings(
+                      (SpinnakerService)
+                          serviceProvider.getLocalService(SpinnakerService.Type.REDIS))
+                  .getBaseUrl());
 
       RedisService.flushKeySpace(jedis, ClouddriverService.REDIS_KEY_SPACE);
     } catch (Exception e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to flush key space: " + e.getMessage(), e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Unable to flush key space: " + e.getMessage(), e);
     }
   }
 }

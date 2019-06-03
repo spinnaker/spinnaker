@@ -37,86 +37,89 @@ public class EditCanaryCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--redux-logger-enabled",
       arity = 1,
-      description = "Whether or not to enable redux logging in the canary module in deck (*Default*: `true`)."
-  )
+      description =
+          "Whether or not to enable redux logging in the canary module in deck (*Default*: `true`).")
   private Boolean reduxLoggerEnabled;
 
   @Parameter(
       names = "--default-metrics-account",
       arity = 1,
-      description = "Name of metrics account to use by default."
-  )
+      description = "Name of metrics account to use by default.")
   private String defaultMetricsAccount;
 
   @Parameter(
       names = "--default-storage-account",
       arity = 1,
-      description = "Name of storage account to use by default."
-  )
+      description = "Name of storage account to use by default.")
   private String defaultStorageAccount;
 
   @Parameter(
       names = "--default-judge",
       arity = 1,
-      description = "Name of canary judge to use by default (*Default*: `NetflixACAJudge-v1.0`)."
-  )
+      description = "Name of canary judge to use by default (*Default*: `NetflixACAJudge-v1.0`).")
   private String defaultJudge;
 
   @Parameter(
       names = "--default-metrics-store",
       arity = 1,
-      description = "Name of metrics store to use by default (e.g. atlas, datadog, prometheus, stackdriver)."
-  )
+      description =
+          "Name of metrics store to use by default (e.g. atlas, datadog, prometheus, stackdriver).")
   private String defaultMetricsStore;
 
   @Parameter(
       names = "--stages-enabled",
       arity = 1,
-      description = "Whether or not to enable canary stages in deck (*Default*: `true`)."
-  )
+      description = "Whether or not to enable canary stages in deck (*Default*: `true`).")
   private Boolean stagesEnabled;
 
   @Parameter(
       names = "--atlasWebComponentsUrl",
       arity = 1,
-      description = "Location of web components to use for Atlas metric configuration."
-  )
+      description = "Location of web components to use for Atlas metric configuration.")
   private String atlasWebComponentsUrl;
 
   @Parameter(
       names = "--templates-enabled",
       arity = 1,
-      description = "Whether or not to enable custom filter templates for canary configs in deck (*Default*: `true`)."
-  )
+      description =
+          "Whether or not to enable custom filter templates for canary configs in deck (*Default*: `true`).")
   private Boolean templatesEnabled;
 
   @Parameter(
       names = "--show-all-configs-enabled",
       arity = 1,
-      description = "Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `true`)."
-  )
+      description =
+          "Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `true`).")
   private Boolean showAllConfigsEnabled;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, false))
-        .get();
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
 
     int originalHash = canary.hashCode();
 
-    canary.setReduxLoggerEnabled(isSet(reduxLoggerEnabled) ? reduxLoggerEnabled : canary.isReduxLoggerEnabled());
-    canary.setDefaultMetricsAccount(isSet(defaultMetricsAccount) ? defaultMetricsAccount : canary.getDefaultMetricsAccount());
-    canary.setDefaultStorageAccount(isSet(defaultStorageAccount) ? defaultStorageAccount : canary.getDefaultStorageAccount());
+    canary.setReduxLoggerEnabled(
+        isSet(reduxLoggerEnabled) ? reduxLoggerEnabled : canary.isReduxLoggerEnabled());
+    canary.setDefaultMetricsAccount(
+        isSet(defaultMetricsAccount) ? defaultMetricsAccount : canary.getDefaultMetricsAccount());
+    canary.setDefaultStorageAccount(
+        isSet(defaultStorageAccount) ? defaultStorageAccount : canary.getDefaultStorageAccount());
     canary.setDefaultJudge(isSet(defaultJudge) ? defaultJudge : canary.getDefaultJudge());
-    canary.setDefaultMetricsStore(isSet(defaultMetricsStore) ? defaultMetricsStore: canary.getDefaultMetricsStore());
+    canary.setDefaultMetricsStore(
+        isSet(defaultMetricsStore) ? defaultMetricsStore : canary.getDefaultMetricsStore());
     canary.setStagesEnabled(isSet(stagesEnabled) ? stagesEnabled : canary.isStagesEnabled());
-    canary.setAtlasWebComponentsUrl(isSet(atlasWebComponentsUrl) ? atlasWebComponentsUrl : canary.getAtlasWebComponentsUrl());
-    canary.setTemplatesEnabled(isSet(templatesEnabled) ? templatesEnabled : canary.isTemplatesEnabled());
-    canary.setShowAllConfigsEnabled(isSet(showAllConfigsEnabled) ? showAllConfigsEnabled : canary.isShowAllConfigsEnabled());
+    canary.setAtlasWebComponentsUrl(
+        isSet(atlasWebComponentsUrl) ? atlasWebComponentsUrl : canary.getAtlasWebComponentsUrl());
+    canary.setTemplatesEnabled(
+        isSet(templatesEnabled) ? templatesEnabled : canary.isTemplatesEnabled());
+    canary.setShowAllConfigsEnabled(
+        isSet(showAllConfigsEnabled) ? showAllConfigsEnabled : canary.isShowAllConfigsEnabled());
 
     if (originalHash == canary.hashCode()) {
       AnsiUi.failure("No changes supplied.");

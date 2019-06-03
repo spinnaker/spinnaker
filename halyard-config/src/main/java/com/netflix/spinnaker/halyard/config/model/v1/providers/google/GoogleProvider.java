@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class GoogleProvider extends HasImageProvider<GoogleAccount, GoogleBakeryDefaults> implements Cloneable {
+public class GoogleProvider extends HasImageProvider<GoogleAccount, GoogleBakeryDefaults>
+    implements Cloneable {
   private List<String> defaultRegions;
 
   @Override

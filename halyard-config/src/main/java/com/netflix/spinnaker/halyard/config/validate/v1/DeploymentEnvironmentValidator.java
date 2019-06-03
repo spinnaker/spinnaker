@@ -37,17 +37,14 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class DeploymentEnvironmentValidator extends Validator<DeploymentEnvironment> {
-  @Autowired
-  AccountService accountService;
+  @Autowired AccountService accountService;
 
-  @Autowired
-  KubernetesAccountValidator kubernetesAccountValidator;
+  @Autowired KubernetesAccountValidator kubernetesAccountValidator;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
 
     log.info("[VALIDATE-COSTI] DeploymentEnvironmentValidator");
-
 
     DeploymentType type = n.getType();
     switch (type) {
@@ -67,38 +64,52 @@ public class DeploymentEnvironmentValidator extends Validator<DeploymentEnvironm
 
   private void validateGitDeployment(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
     if (StringUtils.isEmpty(n.getGitConfig().getOriginUser())) {
-      p.addProblem(Problem.Severity.FATAL, "A git origin user must be supplied when deploying from git.")
-        .setRemediation("Your github username is recommended.");
+      p.addProblem(
+              Problem.Severity.FATAL, "A git origin user must be supplied when deploying from git.")
+          .setRemediation("Your github username is recommended.");
     }
 
     if (StringUtils.isEmpty(n.getGitConfig().getUpstreamUser())) {
-      p.addProblem(Problem.Severity.FATAL, "A git upstream user must be supplied when deploying from git.")
-        .setRemediation("The user 'spinnaker' is recommended (unless you have a fork maintained by the org you develop under).");
+      p.addProblem(
+              Problem.Severity.FATAL,
+              "A git upstream user must be supplied when deploying from git.")
+          .setRemediation(
+              "The user 'spinnaker' is recommended (unless you have a fork maintained by the org you develop under).");
     }
   }
 
   private void validateDistributedDeployment(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
     String accountName = n.getAccountName();
     if (StringUtils.isEmpty(accountName)) {
-      p.addProblem(Problem.Severity.FATAL, "An account name must be specified when using a Distributed deployment.");
+      p.addProblem(
+          Problem.Severity.FATAL,
+          "An account name must be specified when using a Distributed deployment.");
       return;
     }
 
     DeploymentConfiguration deploymentConfiguration = n.parentOfType(DeploymentConfiguration.class);
     Account account;
     try {
-      account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), n.getAccountName());
+      account =
+          accountService.getAnyProviderAccount(
+              deploymentConfiguration.getName(), n.getAccountName());
     } catch (ConfigNotFoundException e) {
       p.addProblem(Problem.Severity.FATAL, "Account " + accountName + " not defined.");
       return;
     }
 
     if (account instanceof GoogleAccount) {
-      p.addProblem(Problem.Severity.WARNING, "Support for distributed deployments on GCE aren't fully supported yet.");
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "Support for distributed deployments on GCE aren't fully supported yet.");
     } else if (account instanceof KubernetesAccount) {
       kubernetesAccountValidator.ensureKubectlExists(p);
     } else {
-      p.addProblem(Problem.Severity.FATAL, "Account " + accountName + " is not in a provider that supports distributed installation of Spinnaker yet");
+      p.addProblem(
+          Problem.Severity.FATAL,
+          "Account "
+              + accountName
+              + " is not in a provider that supports distributed installation of Spinnaker yet");
     }
   }
 }

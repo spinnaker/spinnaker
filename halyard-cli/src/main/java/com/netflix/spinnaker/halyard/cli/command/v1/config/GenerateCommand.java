@@ -29,18 +29,20 @@ public class GenerateCommand extends AbstractConfigCommand {
   private String commandName = "generate";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Generate the full Spinnaker config for your current deployment. "
-    + "This does _not_ apply that configuration to your running Spinnaker installation. "
-    + "That either needs to be done manually, or with `hal deploy apply`.";
+  private String shortDescription =
+      "Generate the full Spinnaker config for your current deployment. "
+          + "This does _not_ apply that configuration to your running Spinnaker installation. "
+          + "That either needs to be done manually, or with `hal deploy apply`.";
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    String result = new OperationHandler<String>()
-        .setOperation(Daemon.generateDeployment(currentDeployment, !noValidate))
-        .setFailureMesssage("Failed to generate config.")
-        .setSuccessMessage("Successfully generated config.")
-        .get();
+    String result =
+        new OperationHandler<String>()
+            .setOperation(Daemon.generateDeployment(currentDeployment, !noValidate))
+            .setFailureMesssage("Failed to generate config.")
+            .setSuccessMessage("Successfully generated config.")
+            .get();
 
     AnsiPrinter.out.println("Wrote configuration to " + result);
   }

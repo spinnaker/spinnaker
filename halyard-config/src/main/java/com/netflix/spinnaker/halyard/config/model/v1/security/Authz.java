@@ -25,8 +25,7 @@ import lombok.Getter;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Authz extends Node {
-  @Getter
-  private String nodeName = "authz";
+  @Getter private String nodeName = "authz";
 
   private GroupMembership groupMembership = new GroupMembership();
   private boolean enabled;

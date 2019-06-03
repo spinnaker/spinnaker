@@ -25,7 +25,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-abstract public class PublicService<T extends Node> extends Node {
+public abstract class PublicService<T extends Node> extends Node {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeSingletonIterator(ssl);

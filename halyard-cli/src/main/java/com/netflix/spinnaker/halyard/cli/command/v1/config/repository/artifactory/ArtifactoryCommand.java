@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifacto
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.AbstractNamedRepositoryCommand;
 
-/**
- * Interact with the artifactory repository
- */
+/** Interact with the artifactory repository */
 @Parameters(separators = "=")
 public class ArtifactoryCommand extends AbstractNamedRepositoryCommand {
   protected String getRepositoryName() {

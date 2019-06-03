@@ -20,13 +20,12 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -48,15 +47,17 @@ public class MetricStores extends Node {
   }
 
   public static Class<? extends MetricStore> translateMetricStoreType(String metricStoreType) {
-    Optional<? extends Class<?>> res = Arrays.stream(MetricStores.class.getDeclaredFields())
-        .filter(f -> f.getName().equals(metricStoreType))
-        .map(Field::getType)
-        .findFirst();
+    Optional<? extends Class<?>> res =
+        Arrays.stream(MetricStores.class.getDeclaredFields())
+            .filter(f -> f.getName().equals(metricStoreType))
+            .map(Field::getType)
+            .findFirst();
 
     if (res.isPresent()) {
       return (Class<? extends MetricStore>) res.get();
     } else {
-      throw new IllegalArgumentException("No metric store with type \"" + metricStoreType + "\" handled by halyard");
+      throw new IllegalArgumentException(
+          "No metric store with type \"" + metricStoreType + "\" handled by halyard");
     }
   }
 
@@ -65,8 +66,7 @@ public class MetricStores extends Node {
     PROMETHEUS("prometheus"),
     STACKDRIVER("stackdriver");
 
-    @Getter
-    private final String id;
+    @Getter private final String id;
 
     MetricStoreType(String id) {
       this.id = id;

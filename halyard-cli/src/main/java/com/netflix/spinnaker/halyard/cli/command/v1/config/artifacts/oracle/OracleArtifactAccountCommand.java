@@ -12,7 +12,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.oracle;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractArtifactAccountCommand;
 
-@Parameters(separators =  "=")
+@Parameters(separators = "=")
 public class OracleArtifactAccountCommand extends AbstractArtifactAccountCommand {
   @Override
   protected String getArtifactProviderName() {

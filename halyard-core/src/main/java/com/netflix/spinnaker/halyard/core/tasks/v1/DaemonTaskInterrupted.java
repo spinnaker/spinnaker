@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
+import java.util.Date;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -47,6 +46,12 @@ public class DaemonTaskInterrupted extends RuntimeException {
   public DaemonTaskInterrupted(String message, Exception e) {
     super(e);
     this.interruptedTime = System.currentTimeMillis();
-    this.message = "Task interrupted at " + new Date(interruptedTime) + " with message: " + message + " by exception: " + e.getMessage();
+    this.message =
+        "Task interrupted at "
+            + new Date(interruptedTime)
+            + " with message: "
+            + message
+            + " by exception: "
+            + e.getMessage();
   }
 }

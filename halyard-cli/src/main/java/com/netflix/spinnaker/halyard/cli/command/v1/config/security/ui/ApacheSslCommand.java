@@ -34,10 +34,11 @@ public class ApacheSslCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure and view SSL settings for Spinnaker's UI gateway.";
 
-  private String longDescription = String.join(" ",
-      "If you want the UI server to do SSL termination, it must be enabled and configured here.",
-      "If you are doing your own SSL termination, leave this disabled."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "If you want the UI server to do SSL termination, it must be enabled and configured here.",
+          "If you are doing your own SSL termination, leave this disabled.");
 
   public ApacheSslCommand() {
     registerSubcommand(new EnableDisableSslCommandBuilder().setEnable(true).build());

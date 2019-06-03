@@ -39,26 +39,33 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2OrcaService extends OrcaService implements KubernetesV2Service<OrcaService.Orca> {
+public class KubernetesV2OrcaService extends OrcaService
+    implements KubernetesV2Service<OrcaService.Orca> {
   final DeployPriority deployPriority = new DeployPriority(1);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
-  @Autowired
-  ShutdownScriptProfileFactoryBuilder shutdownScriptProfileFactoryBuilder;
+  @Autowired ShutdownScriptProfileFactoryBuilder shutdownScriptProfileFactoryBuilder;
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     ServiceSettings settings = endpoints.getServiceSettings(getService());
-    profiles.add(shutdownScriptProfileFactoryBuilder.build(
-        "wget --header=\"content-type: application/json\"  --post-data='{\"enabled\": \"false\"}' "
-            + settings.getScheme() + "://localhost:" + settings.getPort() + "/admin/instance/enabled\n\n"
-            + "sleep " + terminationGracePeriodSeconds() / 2 + "\n",
-        getArtifact()
-    ).getProfile("orca/shutdown.sh", shutdownScriptFile(), deploymentConfiguration, endpoints));
+    profiles.add(
+        shutdownScriptProfileFactoryBuilder
+            .build(
+                "wget --header=\"content-type: application/json\"  --post-data='{\"enabled\": \"false\"}' "
+                    + settings.getScheme()
+                    + "://localhost:"
+                    + settings.getPort()
+                    + "/admin/instance/enabled\n\n"
+                    + "sleep "
+                    + terminationGracePeriodSeconds() / 2
+                    + "\n",
+                getArtifact())
+            .getProfile(
+                "orca/shutdown.sh", shutdownScriptFile(), deploymentConfiguration, endpoints));
     return profiles;
   }
 
@@ -80,19 +87,22 @@ public class KubernetesV2OrcaService extends OrcaService implements KubernetesV2
 
   @Override
   protected List<Type> overrideServiceEndpoints() {
-    return Arrays.asList(
-        Type.CLOUDDRIVER_RW,
-        Type.ECHO_WORKER
-    );
+    return Arrays.asList(Type.CLOUDDRIVER_RW, Type.ECHO_WORKER);
   }
 
   @Override
-  protected void appendReadonlyClouddriver(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void appendReadonlyClouddriver(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     if (hasServiceOverrides(deploymentConfiguration)) {
-      Map<String, Map<String, Map<String, String>>> clouddriver = Collections.singletonMap(
-          "clouddriver", Collections.singletonMap(
-              "readonly", Collections.singletonMap(
-                  "baseUrl", endpoints.getServiceSettings(Type.CLOUDDRIVER_RO).getBaseUrl())));
+      Map<String, Map<String, Map<String, String>>> clouddriver =
+          Collections.singletonMap(
+              "clouddriver",
+              Collections.singletonMap(
+                  "readonly",
+                  Collections.singletonMap(
+                      "baseUrl", endpoints.getServiceSettings(Type.CLOUDDRIVER_RO).getBaseUrl())));
       profile.appendContents("\n" + getYamlParser().dump(clouddriver));
     }
   }

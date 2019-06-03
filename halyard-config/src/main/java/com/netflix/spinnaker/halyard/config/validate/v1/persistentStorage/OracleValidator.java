@@ -13,9 +13,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OraclePersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.stereotype.Component;
-
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OracleValidator extends Validator<OraclePersistentStore> {
@@ -24,24 +23,29 @@ public class OracleValidator extends Validator<OraclePersistentStore> {
   private static final String BUCKET_REGEX = "[a-zA-Z0-9\\-_\\.]{1,63}+";
 
   @Override
-  public void validate(ConfigProblemSetBuilder psBuilder, OraclePersistentStore oraclePersistentStore) {
+  public void validate(
+      ConfigProblemSetBuilder psBuilder, OraclePersistentStore oraclePersistentStore) {
     notNullOrEmpty(oraclePersistentStore.getCompartmentId(), "compartment id", psBuilder);
     notNullOrEmpty(oraclePersistentStore.getUserId(), "user id", psBuilder);
     notNullOrEmpty(oraclePersistentStore.getFingerprint(), "fingerprint", psBuilder);
-    notNullOrEmpty(oraclePersistentStore.getSshPrivateKeyFilePath(), "ssh private key file path", psBuilder);
+    notNullOrEmpty(
+        oraclePersistentStore.getSshPrivateKeyFilePath(), "ssh private key file path", psBuilder);
     notNullOrEmpty(oraclePersistentStore.getTenancyId(), "tenancy id", psBuilder);
     notNullOrEmpty(oraclePersistentStore.getNamespace(), "namespace", psBuilder);
 
     // region and bucketName *can* be null/empty - they then get defaulted in front50 code
 
-    if (oraclePersistentStore.getBucketName() != null && !oraclePersistentStore.getBucketName().isEmpty()) {
-      boolean bucketNameValid = Pattern.matches(BUCKET_REGEX, oraclePersistentStore.getBucketName());
+    if (oraclePersistentStore.getBucketName() != null
+        && !oraclePersistentStore.getBucketName().isEmpty()) {
+      boolean bucketNameValid =
+          Pattern.matches(BUCKET_REGEX, oraclePersistentStore.getBucketName());
       if (!bucketNameValid) {
         psBuilder.addProblem(Severity.ERROR, "bucket name is invalid");
       }
     }
 
-    // TODO (simonlord): Once BMCS SDK is in maven we can access via spinnaker.dependency("clouddriverOracleBmcs") and test ensureBucket (a la GCS)
+    // TODO (simonlord): Once BMCS SDK is in maven we can access via
+    // spinnaker.dependency("clouddriverOracleBmcs") and test ensureBucket (a la GCS)
   }
 
   private void notNullOrEmpty(String param, String paramName, ConfigProblemSetBuilder psBuilder) {

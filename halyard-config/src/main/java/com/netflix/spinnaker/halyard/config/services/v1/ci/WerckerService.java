@@ -19,9 +19,8 @@ package com.netflix.spinnaker.halyard.config.services.v1.ci;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WerckerService extends CiService<WerckerMaster, WerckerCi> {

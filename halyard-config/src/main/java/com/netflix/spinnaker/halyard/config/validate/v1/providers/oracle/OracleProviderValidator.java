@@ -22,21 +22,17 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class OracleProviderValidator extends Validator<OracleProvider> {
-    @Autowired
-    private String halyardVersion;
+  @Autowired private String halyardVersion;
 
-    @Override
-    public void validate(ConfigProblemSetBuilder p, OracleProvider n) {
-        OracleAccountValidator oracleAccountValidator = new OracleAccountValidator();
+  @Override
+  public void validate(ConfigProblemSetBuilder p, OracleProvider n) {
+    OracleAccountValidator oracleAccountValidator = new OracleAccountValidator();
 
-        n.getAccounts().forEach(oracleAccount -> oracleAccountValidator.validate(p, oracleAccount));
+    n.getAccounts().forEach(oracleAccount -> oracleAccountValidator.validate(p, oracleAccount));
 
-        // TODO validate bakery
-        //new OracleBakeryDefaultsValidator().validate(p, n.getBakeryDefaults());
-    }
+    // TODO validate bakery
+    // new OracleBakeryDefaultsValidator().validate(p, n.getBakeryDefaults());
+  }
 }

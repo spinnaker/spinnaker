@@ -19,11 +19,10 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.stereotype.Component;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ProvidersValidator extends Validator<Providers> {
@@ -38,8 +37,9 @@ public class ProvidersValidator extends Validator<Providers> {
       Provider provider = (Provider) child;
       for (Account account : (List<Account>) provider.getAccounts()) {
         if (accounts.contains(account.getName())) {
-          p.addProblem(Severity.FATAL, "Account \"" + account.getName() + "\" appears more than once")
-            .setRemediation("Change the name of the account in " + provider.getNodeName());
+          p.addProblem(
+                  Severity.FATAL, "Account \"" + account.getName() + "\" appears more than once")
+              .setRemediation("Change the name of the account in " + provider.getNodeName());
         } else {
           accounts.add(account.getName());
         }

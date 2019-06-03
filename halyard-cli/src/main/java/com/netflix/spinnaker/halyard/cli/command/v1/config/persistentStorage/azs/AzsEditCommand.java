@@ -30,27 +30,31 @@ public class AzsEditCommand extends AbstractPersistentStoreEditCommand<AzsPersis
 
   @Parameter(
       names = "--storage-account-name",
-      description = "The name of an Azure Storage Account used for Spinnaker's persistent data."
-  )
+      description = "The name of an Azure Storage Account used for Spinnaker's persistent data.")
   private String storageAccountName;
 
   @Parameter(
       names = "--storage-account-key",
-      description = "The key to access the Azure Storage Account used for Spinnaker's persistent data."
-  )
+      description =
+          "The key to access the Azure Storage Account used for Spinnaker's persistent data.")
   private String storageAccountKey;
 
   @Parameter(
       names = "--storage-container-name",
-      description = "The container name in the chosen storage account to place all of Spinnaker's persistent data."
-  )
+      description =
+          "The container name in the chosen storage account to place all of Spinnaker's persistent data.")
   private String storageContainerName = "spinnaker";
 
   @Override
   protected AzsPersistentStore editPersistentStore(AzsPersistentStore persistentStore) {
-    persistentStore.setStorageAccountName(isSet(storageAccountName) ? storageAccountName : persistentStore.getStorageAccountName());
-    persistentStore.setStorageAccountKey(isSet(storageAccountKey) ? storageAccountKey : persistentStore.getStorageAccountKey());
-    persistentStore.setStorageContainerName(isSet(storageContainerName) ? storageContainerName : persistentStore.getStorageContainerName());
+    persistentStore.setStorageAccountName(
+        isSet(storageAccountName) ? storageAccountName : persistentStore.getStorageAccountName());
+    persistentStore.setStorageAccountKey(
+        isSet(storageAccountKey) ? storageAccountKey : persistentStore.getStorageAccountKey());
+    persistentStore.setStorageContainerName(
+        isSet(storageContainerName)
+            ? storageContainerName
+            : persistentStore.getStorageContainerName());
 
     return persistentStore;
   }

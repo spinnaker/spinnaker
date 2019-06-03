@@ -30,10 +30,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,7 +44,8 @@ public class PubsubController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Pubsub> get(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Pubsub> get(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Pubsub>builder()
@@ -57,14 +57,12 @@ public class PubsubController {
   }
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPubsub(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setPubsub(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawPubsub) {
-    Pubsub pubsub = objectMapper.convertValue(
-        rawPubsub,
-        Pubsubs.translatePubsubType(pubsubName)
-    );
+    Pubsub pubsub = objectMapper.convertValue(rawPubsub, Pubsubs.translatePubsubType(pubsubName));
     return GenericUpdateRequest.<Pubsub>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(p -> pubsubService.setPubsub(deploymentName, p))
@@ -75,7 +73,8 @@ public class PubsubController {
   }
 
   @RequestMapping(value = "/{pubsubName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -88,8 +87,8 @@ public class PubsubController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Pubsub>> pubsubs(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<Pubsub>> pubsubs(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Pubsub>>builder()
         .getter(() -> pubsubService.getAllPubsubs(deploymentName))
         .validator(() -> pubsubService.validateAllPubsubs(deploymentName))

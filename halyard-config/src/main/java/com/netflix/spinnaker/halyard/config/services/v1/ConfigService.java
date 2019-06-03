@@ -26,12 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is meant to be autowired into any controller or service that needs to read the current halconfig.
+ * This class is meant to be autowired into any controller or service that needs to read the current
+ * halconfig.
  */
 @Component
 public class ConfigService {
-  @Autowired
-  private HalconfigParser halconfigParser;
+  @Autowired private HalconfigParser halconfigParser;
 
   public Halconfig getConfig() {
     return halconfigParser.getHalconfig();
@@ -41,8 +41,7 @@ public class ConfigService {
     String result = getConfig().getCurrentDeployment();
     if (result == null || result.isEmpty()) {
       throw new IllegalConfigException(
-          new ConfigProblemBuilder(Severity.FATAL, "No deployment has been set").build()
-      );
+          new ConfigProblemBuilder(Severity.FATAL, "No deployment has been set").build());
     }
 
     return result;
@@ -50,11 +49,14 @@ public class ConfigService {
 
   public void setCurrentDeployment(String deploymentName) {
     Halconfig config = getConfig();
-    boolean found = config.getDeploymentConfigurations().stream()
-        .anyMatch(c -> c.getName().equals(deploymentName));
+    boolean found =
+        config.getDeploymentConfigurations().stream()
+            .anyMatch(c -> c.getName().equals(deploymentName));
 
     if (!found) {
-      config.getDeploymentConfigurations().add(new DeploymentConfiguration().setName(deploymentName));
+      config
+          .getDeploymentConfigurations()
+          .add(new DeploymentConfiguration().setName(deploymentName));
     }
 
     config.setCurrentDeployment(deploymentName);

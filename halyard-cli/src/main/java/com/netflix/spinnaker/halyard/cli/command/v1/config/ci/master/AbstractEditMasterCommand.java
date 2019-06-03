@@ -24,15 +24,15 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditMasterCommand<T extends CIAccount> extends AbstractHasMasterCommand {
+public abstract class AbstractEditMasterCommand<T extends CIAccount>
+    extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -41,40 +41,34 @@ public abstract class AbstractEditMasterCommand<T extends CIAccount> extends Abs
 
   @Parameter(
       names = "--add-read-permission",
-      description = "Add this permission to the list of read permissions."
-  )
+      description = "Add this permission to the list of read permissions.")
   private String addReadPermission;
 
   @Parameter(
       names = "--remove-read-permission",
-      description = "Remove this permission from the list of read permissions."
-  )
+      description = "Remove this permission from the list of read permissions.")
   private String removeReadPermission;
 
   @Parameter(
       variableArity = true,
       names = "--read-permissions",
-      description = MasterCommandProperties.READ_PERMISSION_DESCRIPTION
-  )
+      description = MasterCommandProperties.READ_PERMISSION_DESCRIPTION)
   private List<String> readPermissions;
 
   @Parameter(
       names = "--add-write-permission",
-      description = "Add this permission to the list of write permissions."
-  )
+      description = "Add this permission to the list of write permissions.")
   private String addWritePermission;
 
   @Parameter(
       names = "--remove-write-permission",
-      description = "Remove this permission from the list of write permissions."
-  )
+      description = "Remove this permission from the list of write permissions.")
   private String removeWritePermission;
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
-      description = MasterCommandProperties.WRITE_PERMISSION_DESCRIPTION
-  )
+      description = MasterCommandProperties.WRITE_PERMISSION_DESCRIPTION)
   private List<String> writePermissions;
 
   protected abstract CIAccount editMaster(T master);
@@ -89,17 +83,24 @@ public abstract class AbstractEditMasterCommand<T extends CIAccount> extends Abs
     String ciName = getCiName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    CIAccount account = new OperationHandler<CIAccount>()
-        .setOperation(Daemon.getMaster(currentDeployment, ciName, masterName, !noValidate))
-        .setFailureMesssage("Failed to get " + masterName + " under " + ciName + ".")
-        .get();
+    CIAccount account =
+        new OperationHandler<CIAccount>()
+            .setOperation(Daemon.getMaster(currentDeployment, ciName, masterName, !noValidate))
+            .setFailureMesssage("Failed to get " + masterName + " under " + ciName + ".")
+            .get();
 
     int originalHash = account.hashCode();
 
     account = editMaster((T) account);
 
-    updatePermissions(account.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
-        writePermissions, addWritePermission, removeWritePermission);
+    updatePermissions(
+        account.getPermissions(),
+        readPermissions,
+        addReadPermission,
+        removeReadPermission,
+        writePermissions,
+        addWritePermission,
+        removeWritePermission);
 
     if (originalHash == account.hashCode()) {
       AnsiUi.failure("No changes supplied.");

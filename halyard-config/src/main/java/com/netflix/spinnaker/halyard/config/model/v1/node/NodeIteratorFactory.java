@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @see Node
@@ -36,33 +35,38 @@ public class NodeIteratorFactory {
    * @return the resulting interator.
    */
   public static NodeIterator makeReflectiveIterator(Node node) {
-    List<Node> nodes = new ArrayList<>(Arrays.asList(node.getClass().getDeclaredFields()))
-        .stream()
-        .filter(f -> {
-          try {
-            f.setAccessible(true);
-            return f.get(node) instanceof Node;
-          } catch (IllegalAccessException e) {
-            log.warn("Could not retrieve field value for " + f.getName(), e);
-            return false;
-          } finally {
-            f.setAccessible(false);
-          }
-        })
-        .map(n -> {
-          try {
-            n.setAccessible(true);
-            return (Node) n.get(node);
-          } catch (IllegalAccessException | SecurityException e) {
-            log.warn("Could not retrieve node value for " + n.getName(), e);
-            return null;
-          } finally {
-            n.setAccessible(false);
-          }
-        })
-        .filter(n -> n != null).collect(Collectors.toList());
+    List<Node> nodes =
+        new ArrayList<>(Arrays.asList(node.getClass().getDeclaredFields()))
+            .stream()
+                .filter(
+                    f -> {
+                      try {
+                        f.setAccessible(true);
+                        return f.get(node) instanceof Node;
+                      } catch (IllegalAccessException e) {
+                        log.warn("Could not retrieve field value for " + f.getName(), e);
+                        return false;
+                      } finally {
+                        f.setAccessible(false);
+                      }
+                    })
+                .map(
+                    n -> {
+                      try {
+                        n.setAccessible(true);
+                        return (Node) n.get(node);
+                      } catch (IllegalAccessException | SecurityException e) {
+                        log.warn("Could not retrieve node value for " + n.getName(), e);
+                        return null;
+                      } finally {
+                        n.setAccessible(false);
+                      }
+                    })
+                .filter(n -> n != null)
+                .collect(Collectors.toList());
 
-    log.trace("Node " + node.getNodeName() + " reflectively collected " + nodes.size() + " children");
+    log.trace(
+        "Node " + node.getNodeName() + " reflectively collected " + nodes.size() + " children");
 
     return new NodeListIterator(nodes);
   }

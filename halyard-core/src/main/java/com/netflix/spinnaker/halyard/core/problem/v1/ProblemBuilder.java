@@ -18,25 +18,19 @@
 package com.netflix.spinnaker.halyard.core.problem.v1;
 
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.util.List;
 import lombok.Setter;
 
-import java.util.List;
-
 public class ProblemBuilder {
-  @Setter
-  private Severity severity;
+  @Setter private Severity severity;
 
-  @Setter
-  private String location;
+  @Setter private String location;
 
-  @Setter
-  private String message;
+  @Setter private String message;
 
-  @Setter
-  private String remediation;
+  @Setter private String remediation;
 
-  @Setter
-  private List<String> options;
+  @Setter private List<String> options;
 
   public ProblemBuilder(Severity severity, String message) {
     this.severity = severity;

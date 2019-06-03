@@ -17,29 +17,26 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.IgorProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class IgorService extends SpringService<IgorService.Igor> {
-  @Autowired
-  IgorProfileFactory igorProfileFactory;
+public abstract class IgorService extends SpringService<IgorService.Igor> {
+  @Autowired IgorProfileFactory igorProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -57,12 +54,14 @@ abstract public class IgorService extends SpringService<IgorService.Igor> {
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "igor.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    Profile profile = igorProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile =
+        igorProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;

@@ -34,31 +34,32 @@ public class DatadogAddCanaryAccountCommand extends AbstractAddCanaryAccountComm
   @Parameter(
       names = "--base-url",
       required = true,
-      description = "The base URL to the Datadog server."
-  )
+      description = "The base URL to the Datadog server.")
   private String baseUrl;
 
   @Parameter(
       names = "--api-key",
       required = true,
       password = true,
-      description = "Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api."
-  )
+      description =
+          "Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api.")
   private String apiKey;
 
   @Parameter(
       names = "--application-key",
       required = true,
       password = true,
-      description = "Your Datadog application key. See https://app.datadoghq.com/account/settings#api."
-  )
+      description =
+          "Your Datadog application key. See https://app.datadoghq.com/account/settings#api.")
   private String applicationKey;
 
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    DatadogCanaryAccount account = (DatadogCanaryAccount)new DatadogCanaryAccount().setName(accountName);
+    DatadogCanaryAccount account =
+        (DatadogCanaryAccount) new DatadogCanaryAccount().setName(accountName);
 
-    account.setEndpoint(new DatadogCanaryAccount.Endpoint().setBaseUrl(baseUrl))
+    account
+        .setEndpoint(new DatadogCanaryAccount.Endpoint().setBaseUrl(baseUrl))
         .setApiKey(apiKey)
         .setApplicationKey(applicationKey);
 

@@ -14,11 +14,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -51,8 +50,7 @@ public class OraclePersistentStore extends PersistentStore {
   @Size(min = 1)
   private String sshPrivateKeyFilePath;
 
-  @Secret
-  private String privateKeyPassphrase;
+  @Secret private String privateKeyPassphrase;
 
   @NotNull
   @Size(min = 1)
@@ -63,15 +61,17 @@ public class OraclePersistentStore extends PersistentStore {
     return PersistentStoreType.ORACLE;
   }
 
-  public static OraclePersistentStore mergeOracleBMCSPersistentStore(OraclePersistentStore oracle, OracleBMCSPersistentStore bmcs) {
+  public static OraclePersistentStore mergeOracleBMCSPersistentStore(
+      OraclePersistentStore oracle, OracleBMCSPersistentStore bmcs) {
     if (oracle.getTenancyId() == null && bmcs.getTenancyId() != null) {
       return convertFromOracleBMCSPersistentStore(bmcs);
     } else {
       return oracle;
     }
   }
-  
-  private static OraclePersistentStore convertFromOracleBMCSPersistentStore(OracleBMCSPersistentStore bmcs) {
+
+  private static OraclePersistentStore convertFromOracleBMCSPersistentStore(
+      OracleBMCSPersistentStore bmcs) {
     OraclePersistentStore store = new OraclePersistentStore();
     store.setBucketName(bmcs.getBucketName());
     store.setNamespace(bmcs.getNamespace());

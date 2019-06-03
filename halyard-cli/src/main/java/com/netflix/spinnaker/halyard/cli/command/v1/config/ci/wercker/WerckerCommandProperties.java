@@ -20,7 +20,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.wercker;
 public class WerckerCommandProperties {
   static final String USER_DESCRIPTION = "The username of the Wercker user to authenticate as.";
 
-  static final String TOKEN_DESCRIPTION = "The personal token of the Wercker user to authenticate as.";
+  static final String TOKEN_DESCRIPTION =
+      "The personal token of the Wercker user to authenticate as.";
 
   static final String ADDRESS_DESCRIPTION = "The address your Wercker master is reachable at.";
 }

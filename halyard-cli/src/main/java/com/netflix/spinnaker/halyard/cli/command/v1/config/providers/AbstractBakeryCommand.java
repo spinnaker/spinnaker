@@ -28,7 +28,9 @@ public abstract class AbstractBakeryCommand extends AbstractProviderCommand {
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's image bakery configuration.";
+    return "Manage and view Spinnaker configuration for the "
+        + getProviderName()
+        + " provider's image bakery configuration.";
   }
 
   @Override

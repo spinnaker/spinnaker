@@ -22,17 +22,15 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific PROVIDER account
- */
+/** Delete a specific PROVIDER account */
 @Parameters(separators = "=")
-public abstract class AbstractDeleteArtifactAccountCommand extends AbstractHasArtifactAccountCommand {
+public abstract class AbstractDeleteArtifactAccountCommand
+    extends AbstractHasArtifactAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -52,9 +50,20 @@ public abstract class AbstractDeleteArtifactAccountCommand extends AbstractHasAr
     String currentDeployment = getCurrentDeployment();
     String providerName = getArtifactProviderName();
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to delete artifact account " + accountName + " for artifact provider " + providerName + ".")
-        .setSuccessMessage("Successfully deleted artifact account " + accountName + " for artifact provider " + providerName + ".")
-        .setOperation(Daemon.deleteArtifactAccount(currentDeployment, providerName, accountName, !noValidate))
+        .setFailureMesssage(
+            "Failed to delete artifact account "
+                + accountName
+                + " for artifact provider "
+                + providerName
+                + ".")
+        .setSuccessMessage(
+            "Successfully deleted artifact account "
+                + accountName
+                + " for artifact provider "
+                + providerName
+                + ".")
+        .setOperation(
+            Daemon.deleteArtifactAccount(currentDeployment, providerName, accountName, !noValidate))
         .get();
   }
 }

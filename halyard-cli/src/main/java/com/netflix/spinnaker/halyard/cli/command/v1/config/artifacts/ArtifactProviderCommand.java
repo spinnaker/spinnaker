@@ -36,7 +36,7 @@ import lombok.Getter;
 /**
  * This is a top-level command for dealing with your halconfig.
  *
- * Usage is `$ hal config artifact`
+ * <p>Usage is `$ hal config artifact`
  */
 @Parameters(separators = "=")
 public class ArtifactProviderCommand extends NestableCommand {
@@ -44,7 +44,8 @@ public class ArtifactProviderCommand extends NestableCommand {
   private String commandName = "artifact";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure, validate, and view the specified artifact provider.";
+  private String shortDescription =
+      "Configure, validate, and view the specified artifact provider.";
 
   public ArtifactProviderCommand() {
     registerSubcommand(new BitbucketArtifactProviderCommand());

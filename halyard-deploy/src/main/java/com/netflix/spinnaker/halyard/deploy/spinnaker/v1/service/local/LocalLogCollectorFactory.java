@@ -26,11 +26,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DefaultLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,18 +34,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class LocalLogCollectorFactory {
-  @Autowired
-  HalconfigDirectoryStructure directoryStructure;
+  @Autowired HalconfigDirectoryStructure directoryStructure;
 
   public <T> LogCollector<T, DeploymentDetails> build(HasServiceSettings<T> service) {
     return new LocalLogCollector<>(service);
   }
 
-  public <T> LogCollector<T, DeploymentDetails> build(HasServiceSettings<T> service, String[] logPaths) {
+  public <T> LogCollector<T, DeploymentDetails> build(
+      HasServiceSettings<T> service, String[] logPaths) {
     return new LocalLogCollector<>(service, logPaths);
   }
 
@@ -71,10 +70,11 @@ public class LocalLogCollectorFactory {
 
     @Override
     public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-      File outputDir = directoryStructure.getServiceLogsPath(
-          details.getDeploymentName(),
-          "localhost",
-          getService().getCanonicalName()).toFile();
+      File outputDir =
+          directoryStructure
+              .getServiceLogsPath(
+                  details.getDeploymentName(), "localhost", getService().getCanonicalName())
+              .toFile();
 
       for (Path path : logPaths) {
         File logFile = path.toFile();
@@ -89,7 +89,8 @@ public class LocalLogCollectorFactory {
             log.warn("Unknown file type " + logFile);
           }
         } catch (IOException e) {
-          throw new HalException(Problem.Severity.FATAL, "Unable to copy logs: " + e.getMessage(), e);
+          throw new HalException(
+              Problem.Severity.FATAL, "Unable to copy logs: " + e.getMessage(), e);
         }
       }
     }

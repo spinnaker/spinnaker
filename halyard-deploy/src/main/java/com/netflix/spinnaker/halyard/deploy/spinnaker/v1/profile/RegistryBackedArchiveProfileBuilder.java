@@ -26,7 +26,12 @@ import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -35,28 +40,28 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class RegistryBackedArchiveProfileBuilder {
-  @Autowired
-  ProfileRegistry profileRegistry;
+  @Autowired ProfileRegistry profileRegistry;
 
-  @Autowired
-  private ArtifactService artifactService;
+  @Autowired private ArtifactService artifactService;
 
-  public List<Profile> build(DeploymentConfiguration deploymentConfiguration, String baseOutputPath, SpinnakerArtifact artifact, String archiveName) {
-    String version = artifactService.getArtifactVersion(deploymentConfiguration.getName(), artifact);
+  public List<Profile> build(
+      DeploymentConfiguration deploymentConfiguration,
+      String baseOutputPath,
+      SpinnakerArtifact artifact,
+      String archiveName) {
+    String version =
+        artifactService.getArtifactVersion(deploymentConfiguration.getName(), artifact);
 
     InputStream is;
     try {
       is = profileRegistry.readArchiveProfile(artifact.getName(), version, archiveName);
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Error retrieving contents of archive " + archiveName + ".tar.gz", e);
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Error retrieving contents of archive " + archiveName + ".tar.gz",
+          e);
     }
 
     TarArchiveInputStream tis;
@@ -80,40 +85,47 @@ public class RegistryBackedArchiveProfileBuilder {
         String profileName = String.join("/", artifact.getName(), archiveName, entryName);
         String outputPath = Paths.get(baseOutputPath, archiveName, entryName).toString();
         String contents = IOUtils.toString(tis);
-        boolean executable = FileModeUtils.getPosixPermissions(profileEntry.getMode()).contains(PosixFilePermission.OWNER_EXECUTE);
+        boolean executable =
+            FileModeUtils.getPosixPermissions(profileEntry.getMode())
+                .contains(PosixFilePermission.OWNER_EXECUTE);
 
-        result.add((new ProfileFactory() {
-          @Override
-          protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-            profile.setContents(profile.getBaseContents());
-            profile.setExecutable(executable);
-          }
+        result.add(
+            (new ProfileFactory() {
+                  @Override
+                  protected void setProfile(
+                      Profile profile,
+                      DeploymentConfiguration deploymentConfiguration,
+                      SpinnakerRuntimeSettings endpoints) {
+                    profile.setContents(profile.getBaseContents());
+                    profile.setExecutable(executable);
+                  }
 
-          @Override
-          protected Profile getBaseProfile(String name, String version, String outputFile) {
-            return new Profile(name, version, outputFile, contents);
-          }
+                  @Override
+                  protected Profile getBaseProfile(String name, String version, String outputFile) {
+                    return new Profile(name, version, outputFile, contents);
+                  }
 
-          @Override
-          protected boolean showEditWarning() {
-            return false;
-          }
+                  @Override
+                  protected boolean showEditWarning() {
+                    return false;
+                  }
 
-          @Override
-          protected ArtifactService getArtifactService() {
-            return artifactService;
-          }
+                  @Override
+                  protected ArtifactService getArtifactService() {
+                    return artifactService;
+                  }
 
-          @Override
-          public SpinnakerArtifact getArtifact() {
-            return artifact;
-          }
+                  @Override
+                  public SpinnakerArtifact getArtifact() {
+                    return artifact;
+                  }
 
-          @Override
-          protected String commentPrefix() {
-            return null;
-          }
-        }).getProfile(profileName, outputPath, deploymentConfiguration, null));
+                  @Override
+                  protected String commentPrefix() {
+                    return null;
+                  }
+                })
+                .getProfile(profileName, outputPath, deploymentConfiguration, null));
 
         profileEntry = tis.getNextTarEntry();
       }
@@ -122,6 +134,5 @@ public class RegistryBackedArchiveProfileBuilder {
     } catch (IOException e) {
       throw new HalException(Problem.Severity.FATAL, "Failed to read profile entry", e);
     }
-
   }
 }

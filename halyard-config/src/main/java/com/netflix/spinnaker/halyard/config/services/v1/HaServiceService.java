@@ -29,10 +29,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * This service is meant to be autowired into any service or controller that needs to inspect the
@@ -40,31 +39,44 @@ import java.util.List;
  */
 @Component
 public class HaServiceService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
   public HaService getHaService(String deploymentName, String serviceName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setDeploymentEnvironment().setHaService(serviceName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setDeploymentEnvironment()
+            .setHaService(serviceName);
 
     List<HaService> matching = lookupService.getMatchingNodesOfType(filter, HaService.class);
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No high availability service with name \"" + serviceName + "\" could be found")
-            .setRemediation("Create a new high availability service with name \"" + serviceName + "\"").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "No high availability service with name \"" + serviceName + "\" could be found")
+                .setRemediation(
+                    "Create a new high availability service with name \"" + serviceName + "\"")
+                .build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one high availability service with name \"" + serviceName + "\" found")
-            .setRemediation("Manually delete or rename duplicate high availability services with name \"" + serviceName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one high availability service with name \""
+                        + serviceName
+                        + "\" found")
+                .setRemediation(
+                    "Manually delete or rename duplicate high availability services with name \""
+                        + serviceName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
@@ -83,7 +95,8 @@ public class HaServiceService {
   }
 
   public void setHaService(String deploymentName, HaService haService) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     HaServices haServices = deploymentConfiguration.getDeploymentEnvironment().getHaServices();
     switch (haService.haServiceType()) {
       case CLOUDDRIVER:
@@ -93,7 +106,8 @@ public class HaServiceService {
         haServices.setEcho((EchoHaService) haService);
         break;
       default:
-        throw new IllegalArgumentException("Unknown high availability service type " + haService.haServiceType());
+        throw new IllegalArgumentException(
+            "Unknown high availability service type " + haService.haServiceType());
     }
   }
 
@@ -103,19 +117,21 @@ public class HaServiceService {
   }
 
   public ProblemSet validateHaService(String deploymentName, String serviceName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setDeploymentEnvironment()
-        .setHaService(serviceName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setDeploymentEnvironment()
+            .setHaService(serviceName);
 
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllHaServices(String deploymentName) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deploymentName)
-        .setDeploymentEnvironment()
-        .withAnyHaService();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setDeploymentEnvironment()
+            .withAnyHaService();
 
     return validateService.validateMatchingFilter(filter);
   }

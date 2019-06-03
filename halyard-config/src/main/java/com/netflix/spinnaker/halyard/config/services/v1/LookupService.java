@@ -21,24 +21,24 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class LookupService {
-  @Autowired
-  HalconfigParser parser;
+  @Autowired HalconfigParser parser;
 
   /**
-   * Given a node filter and a node type, find all nodes that match both the filter and the type of the Node.
+   * Given a node filter and a node type, find all nodes that match both the filter and the type of
+   * the Node.
+   *
    * @param filter is the filter to lookup by.
    * @param clazz is the class of the node type we want to find.
    * @return the nodes matching the filter and clazz.
@@ -46,8 +46,7 @@ public class LookupService {
   public <T extends Node> List<T> getMatchingNodesOfType(NodeFilter filter, Class<T> clazz) {
     Halconfig halconfig = parser.getHalconfig();
 
-    return getMatchingNodes(halconfig, filter)
-        .stream()
+    return getMatchingNodes(halconfig, filter).stream()
         .filter(clazz::isInstance)
         .map(n -> (T) n)
         .collect(Collectors.toList());
@@ -77,7 +76,8 @@ public class LookupService {
     return result;
   }
 
-  public <T extends Node> T getSingularNodeOrDefault(NodeFilter filter, Class<T> clazz, Supplier<T> defaultNode, Consumer<T> setDefault) {
+  public <T extends Node> T getSingularNodeOrDefault(
+      NodeFilter filter, Class<T> clazz, Supplier<T> defaultNode, Consumer<T> setDefault) {
     List<T> matching = getMatchingNodesOfType(filter, clazz);
 
     switch (matching.size()) {
@@ -88,7 +88,10 @@ public class LookupService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple " + clazz.getCanonicalName() + " nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple "
+                + clazz.getCanonicalName()
+                + " nodes. This is a bug.");
     }
   }
 }

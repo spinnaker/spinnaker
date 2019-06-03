@@ -24,22 +24,20 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverServ
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesV1ClouddriverBootstrapService extends ClouddriverBootstrapService implements KubernetesV1DistributedService<ClouddriverService.Clouddriver> {
-  @Delegate
-  @Autowired
-  KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
+public class KubernetesV1ClouddriverBootstrapService extends ClouddriverBootstrapService
+    implements KubernetesV1DistributedService<ClouddriverService.Clouddriver> {
+  @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
   public DistributedLogCollector getLogCollector() {
@@ -51,10 +49,12 @@ public class KubernetesV1ClouddriverBootstrapService extends ClouddriverBootstra
     List<String> profiles = new ArrayList<>();
     profiles.add("bootstrap");
     profiles.add("bootstrap-local");
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(profiles);
     String location = kubernetesSharedServiceSettings.getDeployLocation();
-    settings.setAddress(buildAddress(location))
+    settings
+        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
         .setMonitored(false)

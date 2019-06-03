@@ -26,11 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class AuthnMethodEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  AuthnMethod.Method method;
+  @Setter AuthnMethod.Method method;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -38,7 +36,8 @@ public class AuthnMethodEnableDisableCommandBuilder implements CommandBuilder {
   }
 
   @Parameters(separators = "=")
-  protected static class AuthnMethodEnableDisableCommand extends AbstractAuthnMethodEnableDisableCommand {
+  protected static class AuthnMethodEnableDisableCommand
+      extends AbstractAuthnMethodEnableDisableCommand {
     private AuthnMethodEnableDisableCommand(AuthnMethod.Method method, boolean enable) {
       this.method = method;
       this.enable = enable;
@@ -47,7 +46,6 @@ public class AuthnMethodEnableDisableCommandBuilder implements CommandBuilder {
     @Getter(AccessLevel.PROTECTED)
     boolean enable;
 
-    @Getter
-    private AuthnMethod.Method method;
+    @Getter private AuthnMethod.Method method;
   }
 }

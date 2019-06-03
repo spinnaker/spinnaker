@@ -31,4 +31,3 @@ public abstract class Search extends Node implements Cloneable {
     return name;
   }
 }
-

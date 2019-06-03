@@ -21,12 +21,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractNam
 
 @Parameters(separators = "=")
 public class MavenArtifactProviderCommand extends AbstractNamedArtifactProviderCommand {
-    @Override
-    protected String getArtifactProviderName() {
-        return "maven";
-    }
+  @Override
+  protected String getArtifactProviderName() {
+    return "maven";
+  }
 
-    public MavenArtifactProviderCommand() {
-        registerSubcommand(new MavenArtifactAccountCommand());
-    }
+  public MavenArtifactProviderCommand() {
+    registerSubcommand(new MavenArtifactAccountCommand());
+  }
 }

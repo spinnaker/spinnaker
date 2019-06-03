@@ -27,47 +27,38 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
 public class GitHubAddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
-  @Parameter(
-      names = "--username",
-      description = "GitHub username"
-  )
+  @Parameter(names = "--username", description = "GitHub username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "GitHub password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "GitHub password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for GitHub authentication"
-  )
+      description = "File containing \"username:password\" to use for GitHub authentication")
   private String usernamePasswordFile;
-  @Parameter(
-      names = "--token",
-      password = true,
-      description = "GitHub token"
-  )
+
+  @Parameter(names = "--token", password = true, description = "GitHub token")
   private String token;
+
   @Parameter(
       names = "--token-file",
       converter = LocalFileConverter.class,
-      description = "File containing a GitHub authentication token"
-  )
+      description = "File containing a GitHub authentication token")
   private String tokenFile;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     GitHubArtifactAccount artifactAccount = new GitHubArtifactAccount().setName(accountName);
-    artifactAccount.setUsername(username)
+    artifactAccount
+        .setUsername(username)
         .setPassword(password)
         .setUsernamePasswordFile(usernamePasswordFile)
         .setToken(token)
         .setTokenFile(tokenFile);
     return artifactAccount;
   }
-
 
   @Override
   protected ArtifactAccount emptyArtifactAccount() {

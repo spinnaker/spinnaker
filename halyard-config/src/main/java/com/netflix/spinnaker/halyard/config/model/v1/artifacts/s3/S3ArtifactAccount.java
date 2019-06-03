@@ -24,10 +24,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class S3ArtifactAccount extends ArtifactAccount {
-    public String name;
-    public String apiEndpoint;
-    public String apiRegion;
-    public String region;
-    public String awsAccessKeyId;
-    @Secret public String awsSecretAccessKey;
+  public String name;
+  public String apiEndpoint;
+  public String apiRegion;
+  public String region;
+  public String awsAccessKeyId;
+  @Secret public String awsSecretAccessKey;
 }

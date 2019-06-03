@@ -23,26 +23,21 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Setter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegration> {
 
-  @Setter
-  private SecretSessionManager secretSessionManager;
+  @Setter private SecretSessionManager secretSessionManager;
 
-  @Setter
-  private String halyardVersion;
+  @Setter private String halyardVersion;
 
-  @Setter
-  private Registry registry;
+  @Setter private Registry registry;
 
-  @Setter
-  TaskScheduler taskScheduler;
+  @Setter TaskScheduler taskScheduler;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleCanaryServiceIntegration n) {
@@ -55,13 +50,12 @@ public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegrat
 
     if (n.isGcsEnabled()) {
       List<GoogleCanaryAccount> accountsWithBucket =
-          n.getAccounts()
-              .stream()
-              .filter(a -> a.getBucket() != null)
-              .collect(Collectors.toList());
+          n.getAccounts().stream().filter(a -> a.getBucket() != null).collect(Collectors.toList());
 
       if (CollectionUtils.isEmpty(accountsWithBucket)) {
-        p.addProblem(Problem.Severity.ERROR, "At least one Google account must specify a bucket if GCS is enabled.");
+        p.addProblem(
+            Problem.Severity.ERROR,
+            "At least one Google account must specify a bucket if GCS is enabled.");
       } else {
         accountsWithBucket.forEach(a -> googleCanaryAccountValidator.validate(p, a));
       }

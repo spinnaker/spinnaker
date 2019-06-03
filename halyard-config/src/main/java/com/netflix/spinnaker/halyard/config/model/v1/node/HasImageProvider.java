@@ -22,12 +22,14 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class HasImageProvider<A extends Account, B extends BakeryDefaults> extends Provider<A> implements Cloneable {
+public abstract class HasImageProvider<A extends Account, B extends BakeryDefaults>
+    extends Provider<A> implements Cloneable {
   private B bakeryDefaults = emptyBakeryDefaults();
 
-  // When a user config deletes the bakery defaults, we want to be able to repopulate this. Due to type erasure
+  // When a user config deletes the bakery defaults, we want to be able to repopulate this. Due to
+  // type erasure
   // the call to B's constructor must be done in the subclass of HasImageProvider.
-  abstract public B emptyBakeryDefaults();
+  public abstract B emptyBakeryDefaults();
 
   @Override
   public NodeIterator getChildren() {

@@ -22,11 +22,15 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditCanaryServiceIntegrationCommand extends AbstractCanaryServiceIntegrationCommand {
+public abstract class AbstractEditCanaryServiceIntegrationCommand
+    extends AbstractCanaryServiceIntegrationCommand {
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Edit Spinnaker's canary analysis " + getServiceIntegration() + " service integration settings.";
+  private String shortDescription =
+      "Edit Spinnaker's canary analysis "
+          + getServiceIntegration()
+          + " service integration settings.";
 }

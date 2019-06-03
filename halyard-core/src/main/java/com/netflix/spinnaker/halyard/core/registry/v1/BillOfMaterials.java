@@ -18,11 +18,10 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Data;
 
 @Data
 public class BillOfMaterials {
@@ -74,10 +73,13 @@ public class BillOfMaterials {
     Artifact kayenta;
     Artifact orca;
     Artifact rosco;
+
     @JsonProperty("monitoring-third-party")
     Artifact monitoringThirdParty;
+
     @JsonProperty("monitoring-daemon")
     Artifact monitoringDaemon;
+
     Artifact spinnaker;
 
     Artifact defaultArtifact = new Artifact();
@@ -102,23 +104,24 @@ public class BillOfMaterials {
     ArtifactSources artifactSources;
   }
 
-  static private <T> Artifact getFieldArtifact(Class<T> clazz, T obj, String artifactName) {
-    Optional<Field> field = Arrays.stream(clazz.getDeclaredFields())
-        .filter(f -> {
-          boolean nameMatches = f.getName().equals(artifactName);
-          boolean propertyMatches = false;
-          JsonProperty property = f.getDeclaredAnnotation(JsonProperty.class);
-          if (property != null) {
-            propertyMatches = property.value().equals(artifactName);
-          }
-          return nameMatches || propertyMatches;
-        })
-        .findFirst();
+  private static <T> Artifact getFieldArtifact(Class<T> clazz, T obj, String artifactName) {
+    Optional<Field> field =
+        Arrays.stream(clazz.getDeclaredFields())
+            .filter(
+                f -> {
+                  boolean nameMatches = f.getName().equals(artifactName);
+                  boolean propertyMatches = false;
+                  JsonProperty property = f.getDeclaredAnnotation(JsonProperty.class);
+                  if (property != null) {
+                    propertyMatches = property.value().equals(artifactName);
+                  }
+                  return nameMatches || propertyMatches;
+                })
+            .findFirst();
 
     try {
-      Artifact result = (Artifact) field
-          .orElseThrow(() -> new NoKnownArtifact(artifactName))
-          .get(obj);
+      Artifact result =
+          (Artifact) field.orElseThrow(() -> new NoKnownArtifact(artifactName)).get(obj);
 
       if (result == null && !artifactName.equals("defaultArtifact")) {
         result = getFieldArtifact(clazz, obj, "defaultArtifact");
@@ -132,7 +135,8 @@ public class BillOfMaterials {
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     } catch (NullPointerException e) {
-      throw new RuntimeException("Versioned artifact " + artifactName + " is not listed in the BOM");
+      throw new RuntimeException(
+          "Versioned artifact " + artifactName + " is not listed in the BOM");
     }
   }
 
@@ -153,7 +157,8 @@ public class BillOfMaterials {
     } catch (NoKnownArtifact ignored) {
     }
 
-    throw new IllegalArgumentException("No artifact with name " + artifactName + " could be found in the BOM");
+    throw new IllegalArgumentException(
+        "No artifact with name " + artifactName + " could be found in the BOM");
   }
 
   public String getArtifactCommit(String artifactName) {
@@ -167,7 +172,8 @@ public class BillOfMaterials {
     } catch (NoKnownArtifact ignored) {
     }
 
-    throw new IllegalArgumentException("No artifact with name " + artifactName + " could be found in the BOM");
+    throw new IllegalArgumentException(
+        "No artifact with name " + artifactName + " could be found in the BOM");
   }
 
   public ArtifactSources getArtifactSources(String artifactName) {

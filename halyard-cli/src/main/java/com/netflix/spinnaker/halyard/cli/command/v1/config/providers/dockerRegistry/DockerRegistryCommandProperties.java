@@ -32,7 +32,8 @@ class DockerRegistryCommandProperties {
 
   static final String PASSWORD_DESCRIPTION = "Your docker registry password";
 
-  static final String PASSWORD_COMMAND_DESCRIPTION = "Command to retrieve docker token/password, commands must be available in environment";
+  static final String PASSWORD_COMMAND_DESCRIPTION =
+      "Command to retrieve docker token/password, commands must be available in environment";
 
   static final String PASSWORD_FILE_DESCRIPTION =
       "The path to a file containing your docker password in plaintext "
@@ -54,14 +55,13 @@ class DockerRegistryCommandProperties {
   static final String CACHE_THREADS_DESCRIPTION =
       "How many threads to cache all provided repos on. Really only useful if you have a ton of repos.";
 
-  static final String INSECURE_REGISTRY_DESCRIPTION = 
+  static final String INSECURE_REGISTRY_DESCRIPTION =
       "Treat the docker registry as insecure (don't validate the ssl cert).";
 
   static final String PAGINATE_SIZE_DESCRIPTION =
       "Paginate size for the docker repository _catalog endpoint.";
 
-  static final String SORT_TAGS_BY_DATE_DESCRIPTION =
-      "Sort tags by creation date.";
+  static final String SORT_TAGS_BY_DATE_DESCRIPTION = "Sort tags by creation date.";
 
   static final String TRACK_DIGESTS_DESCRIPTION =
       "Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.";

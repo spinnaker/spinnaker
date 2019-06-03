@@ -23,14 +23,14 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEditMetricStoreCommand<T extends MetricStore> extends AbstractMetricStoreCommand {
+public abstract class AbstractEditMetricStoreCommand<T extends MetricStore>
+    extends AbstractMetricStoreCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -48,10 +48,11 @@ public abstract class AbstractEditMetricStoreCommand<T extends MetricStore> exte
     String currentDeployment = getCurrentDeployment();
     String metricStoreType = getMetricStoreType().getId();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    MetricStore metricStore = new OperationHandler<MetricStore>()
-        .setOperation(Daemon.getMetricStore(currentDeployment, metricStoreType, false))
-        .setFailureMesssage("Failed to get " + metricStoreType + " method.")
-        .get();
+    MetricStore metricStore =
+        new OperationHandler<MetricStore>()
+            .setOperation(Daemon.getMetricStore(currentDeployment, metricStoreType, false))
+            .setFailureMesssage("Failed to get " + metricStoreType + " method.")
+            .get();
 
     int originalHash = metricStore.hashCode();
 
@@ -63,7 +64,8 @@ public abstract class AbstractEditMetricStoreCommand<T extends MetricStore> exte
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setMetricStore(currentDeployment, metricStoreType, !noValidate, metricStore))
+        .setOperation(
+            Daemon.setMetricStore(currentDeployment, metricStoreType, !noValidate, metricStore))
         .setFailureMesssage("Failed to edit " + metricStoreType + " method.")
         .setSuccessMessage("Successfully edited " + metricStoreType + " method.")
         .get();

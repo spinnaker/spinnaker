@@ -25,11 +25,10 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuildAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountCommand {
@@ -49,20 +48,17 @@ public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountComman
 
   @Parameter(
       names = "--project",
-      description = "The name of the GCP project in which to trigger and monitor builds"
-  )
+      description = "The name of the GCP project in which to trigger and monitor builds")
   private String project;
 
   @Parameter(
       names = "--subscription-name",
-      description = "The name of the PubSub subscription on which to listen for build changes"
-  )
+      description = "The name of the PubSub subscription on which to listen for build changes")
   public String subscriptionName;
 
   @Parameter(
       names = "--json-key",
-      description = "The path to a JSON service account that Spinnaker will use as credentials"
-  )
+      description = "The path to a JSON service account that Spinnaker will use as credentials")
   public String jsonKey;
 
   protected GoogleCloudBuildAccount editAccount(GoogleCloudBuildAccount account) {
@@ -87,10 +83,13 @@ public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountComman
     String ciName = getCiName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    GoogleCloudBuildAccount account = (GoogleCloudBuildAccount) new OperationHandler<CIAccount>()
-        .setOperation(Daemon.getMaster(currentDeployment, ciName, accountName, false))
-        .setFailureMesssage(String.format("Failed to get Google Cloud Build Account %s.", accountName))
-        .get();
+    GoogleCloudBuildAccount account =
+        (GoogleCloudBuildAccount)
+            new OperationHandler<CIAccount>()
+                .setOperation(Daemon.getMaster(currentDeployment, ciName, accountName, false))
+                .setFailureMesssage(
+                    String.format("Failed to get Google Cloud Build Account %s.", accountName))
+                .get();
 
     int originalHash = account.hashCode();
 
@@ -102,9 +101,11 @@ public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountComman
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setMaster(currentDeployment, ciName, accountName, !noValidate, account))
+        .setOperation(
+            Daemon.setMaster(currentDeployment, ciName, accountName, !noValidate, account))
         .setSuccessMessage(String.format("Edited Google Cloud Build account %s.", accountName))
-        .setFailureMesssage(String.format("Failed to edit Google Cloud Build account %s.", accountName))
+        .setFailureMesssage(
+            String.format("Failed to edit Google Cloud Build account %s.", accountName))
         .get();
   }
 }

@@ -31,39 +31,31 @@ public class GoogleAddSubscriptionCommand extends AbstractAddSubscriptionCommand
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--template-path",
       converter = LocalFileConverter.class,
-      description = GooglePubsubCommandProperties.TEMPLATE_PATH_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.TEMPLATE_PATH_DESCRIPTION)
   private String templatePath;
 
-  @Parameter(
-      names = "--project",
-      description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION
-  )
+  @Parameter(names = "--project", description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--subscription-name",
-      description = GooglePubsubCommandProperties.SUBSCRIPTION_NAME_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.SUBSCRIPTION_NAME_DESCRIPTION)
   private String subscriptionName;
 
   @Parameter(
       names = "--ack-deadline-seconds",
-      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION)
   private Integer ackDeadlineSeconds = 10;
 
   @Parameter(
       names = "--message-format",
-      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION)
   private GoogleSubscription.MessageFormat messageFormat = GoogleSubscription.MessageFormat.CUSTOM;
 
   @Override

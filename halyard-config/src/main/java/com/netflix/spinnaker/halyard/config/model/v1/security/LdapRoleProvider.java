@@ -17,16 +17,16 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
-import java.net.URI;
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import java.net.URI;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class LdapRoleProvider extends RoleProvider {
-  private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.LDAP;
+  private final GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.LDAP;
 
   private final String nodeName = "ldap";
 

@@ -18,13 +18,9 @@ package com.netflix.spinnaker.halyard.config.services.v1.ci;
 
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
-import com.netflix.spinnaker.halyard.config.services.v1.ValidateService;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ConcourseService extends CiService<ConcourseMaster, ConcourseCi> {

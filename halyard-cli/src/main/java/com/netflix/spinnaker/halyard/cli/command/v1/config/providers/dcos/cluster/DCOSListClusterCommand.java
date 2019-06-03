@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dcos.cluster;
 
-import lombok.Getter;
-
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -9,20 +7,17 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
-
 import java.util.List;
+import lombok.Getter;
 
-/**
- *
- */
+/** */
 @Parameters(separators = "=")
 public class DCOSListClusterCommand extends AbstractClusterCommand {
   public String getShortDescription() {
     return "List the cluster names for the " + getProviderName() + " provider.";
   }
 
-  @Getter
-  private String commandName = "list";
+  @Getter private String commandName = "list";
 
   private Provider getProvider() {
     String currentDeployment = getCurrentDeployment();

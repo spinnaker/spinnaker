@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.admin.PublishCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.task.InterruptTaskCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.task.ListTaskCommand;
 import lombok.AccessLevel;
@@ -30,11 +29,15 @@ public class TaskCommand extends NestableCommand {
   private String commandName = "task";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "This set of commands exposes utilities of dealing with Halyard's task engine.";
+  private String shortDescription =
+      "This set of commands exposes utilities of dealing with Halyard's task engine.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ", "Every unit of work Halyard carries out is bundled in a Task. This set ",
-      "of commands exposes some information about these tasks. The commands here are mainly for troubleshooting.");
+  private String longDescription =
+      String.join(
+          " ",
+          "Every unit of work Halyard carries out is bundled in a Task. This set ",
+          "of commands exposes some information about these tasks. The commands here are mainly for troubleshooting.");
 
   public TaskCommand() {
     registerSubcommand(new InterruptTaskCommand());

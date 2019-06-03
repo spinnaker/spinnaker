@@ -23,15 +23,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ArtifactorySearch extends Search {
-    @Override
-    public NodeIterator getChildren() {
-        return NodeIteratorFactory.makeEmptyIterator();
-    }
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
+  }
 
-    private String baseUrl;
-    private String repo;
-    private String groupId;
-    private String username;
-    @Secret
-    private String password;
+  private String baseUrl;
+  private String repo;
+  private String groupId;
+  private String username;
+  @Secret private String password;
 }

@@ -23,12 +23,11 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Search;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractEditSearchCommand<T extends Search> extends AbstractHasSearchCommand {
@@ -40,40 +39,34 @@ public abstract class AbstractEditSearchCommand<T extends Search> extends Abstra
 
   @Parameter(
       names = "--add-read-permission",
-      description = "Add this permission to the list of read permissions."
-  )
+      description = "Add this permission to the list of read permissions.")
   private String addReadPermission;
 
   @Parameter(
       names = "--remove-read-permission",
-      description = "Remove this permission from the list of read permissions."
-  )
+      description = "Remove this permission from the list of read permissions.")
   private String removeReadPermission;
 
   @Parameter(
       variableArity = true,
       names = "--read-permissions",
-      description = SearchCommandProperties.READ_PERMISSION_DESCRIPTION
-  )
+      description = SearchCommandProperties.READ_PERMISSION_DESCRIPTION)
   private List<String> readPermissions;
 
   @Parameter(
       names = "--add-write-permission",
-      description = "Add this permission to the list of write permissions."
-  )
+      description = "Add this permission to the list of write permissions.")
   private String addWritePermission;
 
   @Parameter(
       names = "--remove-write-permission",
-      description = "Remove this permission from the list of write permissions."
-  )
+      description = "Remove this permission from the list of write permissions.")
   private String removeWritePermission;
 
   @Parameter(
       variableArity = true,
       names = "--write-permissions",
-      description = SearchCommandProperties.WRITE_PERMISSION_DESCRIPTION
-  )
+      description = SearchCommandProperties.WRITE_PERMISSION_DESCRIPTION)
   private List<String> writePermissions;
 
   protected abstract Search editSearch(T search);
@@ -88,17 +81,25 @@ public abstract class AbstractEditSearchCommand<T extends Search> extends Abstra
     String repositoryName = getRepositoryName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Search search = new OperationHandler<Search>()
-        .setOperation(Daemon.getSearch(currentDeployment, repositoryName, searchName, !noValidate))
-        .setFailureMesssage("Failed to get " + searchName + " under " + repositoryName + ".")
-        .get();
+    Search search =
+        new OperationHandler<Search>()
+            .setOperation(
+                Daemon.getSearch(currentDeployment, repositoryName, searchName, !noValidate))
+            .setFailureMesssage("Failed to get " + searchName + " under " + repositoryName + ".")
+            .get();
 
     int originalHash = search.hashCode();
 
     search = editSearch((T) search);
 
-    updatePermissions(search.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
-        writePermissions, addWritePermission, removeWritePermission);
+    updatePermissions(
+        search.getPermissions(),
+        readPermissions,
+        addReadPermission,
+        removeReadPermission,
+        writePermissions,
+        addWritePermission,
+        removeWritePermission);
 
     if (originalHash == search.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -106,7 +107,8 @@ public abstract class AbstractEditSearchCommand<T extends Search> extends Abstra
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setSearch(currentDeployment, repositoryName, searchName, !noValidate, search))
+        .setOperation(
+            Daemon.setSearch(currentDeployment, repositoryName, searchName, !noValidate, search))
         .setSuccessMessage("Edited " + searchName + " for " + repositoryName + ".")
         .setFailureMesssage("Failed to edit " + searchName + " for " + repositoryName + ".")
         .get();

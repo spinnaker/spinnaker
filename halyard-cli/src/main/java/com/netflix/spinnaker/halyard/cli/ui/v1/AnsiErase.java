@@ -24,8 +24,7 @@ public enum AnsiErase implements AnsiCode {
   ERASE_START_LINE("\033[1K\r"),
   ERASE_LINE("\033[2K");
 
-  @Getter
-  private final String code;
+  @Getter private final String code;
 
   AnsiErase(String code) {
     this.code = code;

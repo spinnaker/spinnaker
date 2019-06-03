@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.account;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractCanaryAccountCommand;
 
-/**
- * Interact with the AWS service integration
- */
+/** Interact with the AWS service integration */
 @Parameters(separators = "=")
 public class AwsCanaryAccountCommand extends AbstractCanaryAccountCommand {
 
@@ -35,4 +33,3 @@ public class AwsCanaryAccountCommand extends AbstractCanaryAccountCommand {
     registerSubcommand(new AwsEditCanaryAccountCommand());
   }
 }
-

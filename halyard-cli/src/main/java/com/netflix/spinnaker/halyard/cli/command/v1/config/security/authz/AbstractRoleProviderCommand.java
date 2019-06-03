@@ -26,8 +26,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 
 @Parameters(separators = "=")
-abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand {
-  abstract public GroupMembership.RoleProviderType getRoleProviderType();
+public abstract class AbstractRoleProviderCommand extends AbstractConfigCommand {
+  public abstract GroupMembership.RoleProviderType getRoleProviderType();
 
   @Override
   public String getShortDescription() {
@@ -43,9 +43,7 @@ abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand 
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     new OperationHandler<RoleProvider>()
-        .setOperation(Daemon.getRoleProvider(currentDeployment,
-                                             getRoleProviderType() + "",
-                                             true))
+        .setOperation(Daemon.getRoleProvider(currentDeployment, getRoleProviderType() + "", true))
         .setFailureMesssage("Failed to get " + getRoleProviderType() + " configuration.")
         .setSuccessMessage("Configured " + getRoleProviderType() + " role provider:")
         .setFormat(AnsiFormatUtils.Format.STRING)

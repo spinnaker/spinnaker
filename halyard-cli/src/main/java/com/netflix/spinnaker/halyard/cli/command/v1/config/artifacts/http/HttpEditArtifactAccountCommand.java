@@ -26,30 +26,26 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifact
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 
 @Parameters(separators = "=")
-public class HttpEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<HttpArtifactAccount> {
-  @Parameter(
-      names = "--username",
-      description = "Http username"
-  )
+public class HttpEditArtifactAccountCommand
+    extends AbstractArtifactEditAccountCommand<HttpArtifactAccount> {
+  @Parameter(names = "--username", description = "Http username")
   private String username;
-  @Parameter(
-      names = "--password",
-      password = true,
-      description = "Http password"
-  )
+
+  @Parameter(names = "--password", password = true, description = "Http password")
   private String password;
+
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,
-      description = "File containing \"username:password\" to use for Http authentication"
-  )
+      description = "File containing \"username:password\" to use for Http authentication")
   private String usernamePasswordFile;
 
   @Override
   protected ArtifactAccount editArtifactAccount(HttpArtifactAccount account) {
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
-    account.setUsernamePasswordFile(isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
+    account.setUsernamePasswordFile(
+        isSet(usernamePasswordFile) ? usernamePasswordFile : account.getUsernamePasswordFile());
     return account;
   }
 

@@ -19,20 +19,19 @@ package com.netflix.spinnaker.halyard.core.secrets.v1;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretManager;
 import com.netflix.spinnaker.kork.secrets.SecretSession;
+import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-
 /**
- *  SecretSessionManager handles the decryption and encryption of secrets and secret files in the current session
+ * SecretSessionManager handles the decryption and encryption of secrets and secret files in the
+ * current session
  */
 @Component
 public class SecretSessionManager {
   private static ThreadLocal<SecretSession> secretSessions = new ThreadLocal<>();
 
-  @Autowired
-  private SecretManager secretManager;
+  @Autowired private SecretManager secretManager;
 
   public static void clearSession() {
     SecretSession session = secretSessions.get();
@@ -52,19 +51,19 @@ public class SecretSessionManager {
   }
 
   /**
-   *  Takes an encrypted string or path to an encrypted file and returns the decrypted value.
+   * Takes an encrypted string or path to an encrypted file and returns the decrypted value.
    *
-   *  Format for Encrypted Secrets:
+   * <p>Format for Encrypted Secrets:
    *
-   *  encrypted:&lt;engine-identifier&gt;!&lt;param-name_1&gt;:&lt;param-value_1&gt;!..!&lt;param-name_n&gt;:&lt;param-value_n&gt;
+   * <p>encrypted:&lt;engine-identifier&gt;!&lt;param-name_1&gt;:&lt;param-value_1&gt;!..!&lt;param-name_n&gt;:&lt;param-value_n&gt;
    *
-   *  Note: Valid param-names match the regex: `[a-zA-Z0-9]+`
-   *  Note: secret-params may contain ':'
-   *  Note: `encrypted` cannot be a param-name
-   *  Note: There must be at least one &lt;param-name&gt;:&lt;param-value&gt; pair
-   *  Named parameters are used to allow for adding additional options in the future.
+   * <p>Note: Valid param-names match the regex: `[a-zA-Z0-9]+` Note: secret-params may contain ':'
+   * Note: `encrypted` cannot be a param-name Note: There must be at least one
+   * &lt;param-name&gt;:&lt;param-value&gt; pair Named parameters are used to allow for adding
+   * additional options in the future.
    *
-   * @param filePathOrEncryptedString the encrypted string in the format above defined by EncryptedSecret
+   * @param filePathOrEncryptedString the encrypted string in the format above defined by
+   *     EncryptedSecret
    * @return decrypted value of the secret field or file
    */
   public String decrypt(String filePathOrEncryptedString) {
@@ -73,18 +72,17 @@ public class SecretSessionManager {
   }
 
   /**
-   *  Takes an encrypted string or path to an encrypted file, calls SecretManager to decrypt the contents
-   *  and return the path to the decrypted temporary file.
+   * Takes an encrypted string or path to an encrypted file, calls SecretManager to decrypt the
+   * contents and return the path to the decrypted temporary file.
    *
-   *  Format for Encrypted Secrets:
+   * <p>Format for Encrypted Secrets:
    *
-   *  encrypted:&lt;engine-identifier&gt;!&lt;param-name_1&gt;:&lt;param-value_1&gt;!..!&lt;param-name_n&gt;:&lt;param-value_n&gt;
+   * <p>encrypted:&lt;engine-identifier&gt;!&lt;param-name_1&gt;:&lt;param-value_1&gt;!..!&lt;param-name_n&gt;:&lt;param-value_n&gt;
    *
-   *  Note: Valid param-names match the regex: `[a-zA-Z0-9]+`
-   *  Note: secret-params may contain ':'
-   *  Note: `encrypted` cannot be a param-name
-   *  Note: There must be at least one &lt;param-name&gt;:&lt;param-value&gt; pair
-   *  Named parameters are used to allow for adding additional options in the future.
+   * <p>Note: Valid param-names match the regex: `[a-zA-Z0-9]+` Note: secret-params may contain ':'
+   * Note: `encrypted` cannot be a param-name Note: There must be at least one
+   * &lt;param-name&gt;:&lt;param-value&gt; pair Named parameters are used to allow for adding
+   * additional options in the future.
    *
    * @param filePath the encrypted string in the format above defined by EncryptedSecret
    * @return path to the decrypted temporary file

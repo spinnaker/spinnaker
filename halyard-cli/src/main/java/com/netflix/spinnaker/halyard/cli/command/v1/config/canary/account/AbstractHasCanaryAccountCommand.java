@@ -18,15 +18,13 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An abstract definition for canary commands that accept ACCOUNT as a main parameter
- */
+/** An abstract definition for canary commands that accept ACCOUNT as a main parameter */
 @Parameters(separators = "=")
-public abstract class AbstractHasCanaryAccountCommand extends AbstractCanaryServiceIntegrationCommand {
+public abstract class AbstractHasCanaryAccountCommand
+    extends AbstractCanaryServiceIntegrationCommand {
 
   @Parameter(description = "The name of the canary account to operate on.", arity = 1)
   List<String> accounts = new ArrayList<>();

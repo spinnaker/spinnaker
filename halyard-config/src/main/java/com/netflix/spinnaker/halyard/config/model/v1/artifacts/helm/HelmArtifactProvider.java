@@ -27,6 +27,6 @@ import lombok.EqualsAndHashCode;
 public class HelmArtifactProvider extends ArtifactProvider<HelmArtifactAccount> {
   @Override
   public ProviderType providerType() {
-      return ProviderType.HELM;
-    }
+    return ProviderType.HELM;
+  }
 }

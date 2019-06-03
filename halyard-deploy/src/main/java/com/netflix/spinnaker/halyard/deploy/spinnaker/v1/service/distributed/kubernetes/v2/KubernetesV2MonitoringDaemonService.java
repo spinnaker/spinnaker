@@ -31,12 +31,11 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2MonitoringDaemonService extends SpinnakerMonitoringDaemonService implements KubernetesV2Service<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+public class KubernetesV2MonitoringDaemonService extends SpinnakerMonitoringDaemonService
+    implements KubernetesV2Service<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final DeployPriority deployPriority = new DeployPriority(0);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
   public boolean runsOnJvm() {

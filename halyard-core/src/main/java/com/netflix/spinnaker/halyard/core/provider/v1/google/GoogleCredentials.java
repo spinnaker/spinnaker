@@ -23,7 +23,6 @@ import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.util.ExponentialBackOff;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
@@ -42,16 +41,19 @@ public class GoogleCredentials {
     return request -> {
       request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
       request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
-      request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+      request.setUnsuccessfulResponseHandler(
+          new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
     };
   }
 
-  public static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer) {
+  public static HttpRequestInitializer setHttpTimeout(
+      final HttpRequestInitializer requestInitializer) {
     return request -> {
       requestInitializer.initialize(request);
       request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
       request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
-      request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+      request.setUnsuccessfulResponseHandler(
+          new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
     };
   }
 }

@@ -22,9 +22,8 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
-import lombok.Builder;
-
 import java.util.function.Supplier;
+import lombok.Builder;
 
 @Builder
 public class GenericGetRequest<T> {
@@ -33,7 +32,8 @@ public class GenericGetRequest<T> {
   private String description;
 
   public DaemonTask<Halconfig, T> execute(ValidationSettings validationSettings) {
-    DaemonResponse.StaticRequestBuilder<T> builder = new DaemonResponse.StaticRequestBuilder<>(getter);
+    DaemonResponse.StaticRequestBuilder<T> builder =
+        new DaemonResponse.StaticRequestBuilder<>(getter);
     builder.setSeverity(validationSettings.getSeverity());
     if (validationSettings.isValidate()) {
       builder.setValidateResponse(validator);

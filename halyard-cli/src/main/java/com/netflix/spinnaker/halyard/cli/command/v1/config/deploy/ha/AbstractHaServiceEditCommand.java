@@ -30,7 +30,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractHaServiceEditCommand<T extends HaService> extends AbstractHaServiceCommand {
+public abstract class AbstractHaServiceEditCommand<T extends HaService>
+    extends AbstractHaServiceCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -48,10 +49,11 @@ public abstract class AbstractHaServiceEditCommand<T extends HaService> extends 
     String currentDeployment = getCurrentDeployment();
     String serviceName = getServiceName();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    HaService haService = new OperationHandler<HaService>()
-        .setFailureMesssage("Failed to get high availability service " + serviceName + ".")
-        .setOperation(Daemon.getHaService(currentDeployment, serviceName, false))
-        .get();
+    HaService haService =
+        new OperationHandler<HaService>()
+            .setFailureMesssage("Failed to get high availability service " + serviceName + ".")
+            .setOperation(Daemon.getHaService(currentDeployment, serviceName, false))
+            .get();
 
     int originalHash = haService.hashCode();
 

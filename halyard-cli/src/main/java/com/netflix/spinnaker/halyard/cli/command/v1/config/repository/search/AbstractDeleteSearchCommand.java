@@ -21,15 +21,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Delete a specific PROVIDER search
- */
+/** Delete a specific PROVIDER search */
 @Parameters(separators = "=")
 public abstract class AbstractDeleteSearchCommand extends AbstractHasSearchCommand {
   @Getter(AccessLevel.PROTECTED)
@@ -52,7 +49,8 @@ public abstract class AbstractDeleteSearchCommand extends AbstractHasSearchComma
     String currentDeployment = getCurrentDeployment();
     String repositoryName = getRepositoryName();
     new OperationHandler<Void>()
-        .setOperation(Daemon.deleteSearch(currentDeployment, repositoryName, searchName, !noValidate))
+        .setOperation(
+            Daemon.deleteSearch(currentDeployment, repositoryName, searchName, !noValidate))
         .setSuccessMessage("Deleted " + searchName + " for " + repositoryName + ".")
         .setFailureMesssage("Failed to delete " + searchName + " for " + repositoryName + ".")
         .get();

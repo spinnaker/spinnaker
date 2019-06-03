@@ -27,10 +27,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,7 +41,8 @@ public class BakeryController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/defaults/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, BakeryDefaults> getBakeryDefaults(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, BakeryDefaults> getBakeryDefaults(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<BakeryDefaults>builder()
@@ -54,14 +54,14 @@ public class BakeryController {
   }
 
   @RequestMapping(value = "/defaults/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setBakeryDefaults(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setBakeryDefaults(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawBakeryDefaults) {
-    BakeryDefaults bakeryDefaults = objectMapper.convertValue(
-        rawBakeryDefaults,
-        Providers.translateBakeryDefaultsType(providerName)
-    );
+    BakeryDefaults bakeryDefaults =
+        objectMapper.convertValue(
+            rawBakeryDefaults, Providers.translateBakeryDefaultsType(providerName));
     return GenericUpdateRequest.<BakeryDefaults>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(b -> bakeryService.setBakeryDefaults(deploymentName, providerName, b))
@@ -72,7 +72,8 @@ public class BakeryController {
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<BaseImage>> images(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<BaseImage>> images(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<BaseImage>>builder()
@@ -84,7 +85,8 @@ public class BakeryController {
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, BaseImage> baseImage(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, BaseImage> baseImage(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -97,7 +99,8 @@ public class BakeryController {
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteBaseImage(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteBaseImage(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -111,38 +114,43 @@ public class BakeryController {
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setBaseImage(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setBaseImage(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawBaseImage) {
-    BaseImage baseImage = objectMapper.convertValue(
-        rawBaseImage,
-        Providers.translateBaseImageType(providerName)
-    );
+    BaseImage baseImage =
+        objectMapper.convertValue(rawBaseImage, Providers.translateBaseImageType(providerName));
     return GenericUpdateRequest.<BaseImage>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(b -> bakeryService.setBaseImage(deploymentName, providerName, baseImageId, b))
-        .validator(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId()))
+        .validator(
+            () ->
+                bakeryService.validateBaseImage(
+                    deploymentName, providerName, baseImage.getBaseImage().getId()))
         .description("Edit " + baseImageId + " base image")
         .build()
         .execute(validationSettings, baseImage);
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addBaseImage(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addBaseImage(
+      @PathVariable String deploymentName,
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawBaseImage) {
-    BaseImage baseImage = objectMapper.convertValue(
-        rawBaseImage,
-        Providers.translateBaseImageType(providerName)
-    );
-    // TODO(lwander): Would be good to indicate when an added base image id conflicts with an existing base image id.
+    BaseImage baseImage =
+        objectMapper.convertValue(rawBaseImage, Providers.translateBaseImageType(providerName));
+    // TODO(lwander): Would be good to indicate when an added base image id conflicts with an
+    // existing base image id.
     return GenericUpdateRequest.<BaseImage>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(b -> bakeryService.addBaseImage(deploymentName, providerName, b))
-        .validator(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId()))
+        .validator(
+            () ->
+                bakeryService.validateBaseImage(
+                    deploymentName, providerName, baseImage.getBaseImage().getId()))
         .description("Add " + baseImage.getNodeName() + " base image")
         .build()
         .execute(validationSettings, baseImage);

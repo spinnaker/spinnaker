@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Publisher;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.config.services.v1.PublisherService;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
@@ -49,7 +49,8 @@ public class PublisherController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Publisher>> publishers(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Publisher>> publishers(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<Publisher>>builder()
@@ -61,20 +62,24 @@ public class PublisherController {
   }
 
   @RequestMapping(value = "/publisher/{publisherName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Publisher> publisher(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Publisher> publisher(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @PathVariable String publisherName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<Publisher>builder()
-        .getter(() -> publisherService.getPubsubPublisher(deploymentName, pubsubName, publisherName))
-        .validator(() -> publisherService.validatePublisher(deploymentName, pubsubName, publisherName))
+        .getter(
+            () -> publisherService.getPubsubPublisher(deploymentName, pubsubName, publisherName))
+        .validator(
+            () -> publisherService.validatePublisher(deploymentName, pubsubName, publisherName))
         .description("Get " + publisherName + " publisher")
         .build()
         .execute(validationSettings);
   }
 
   @RequestMapping(value = "/publisher/{publisherName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deletePublisher(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deletePublisher(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @PathVariable String publisherName,
       @ModelAttribute ValidationSettings validationSettings) {
@@ -88,37 +93,39 @@ public class PublisherController {
   }
 
   @RequestMapping(value = "/publisher/{publisherName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPublisher(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setPublisher(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @PathVariable String publisherName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawPublisher) {
-    Publisher publisher = objectMapper.convertValue(
-        rawPublisher,
-        Pubsubs.translatePublisherType(pubsubName)
-    );
+    Publisher publisher =
+        objectMapper.convertValue(rawPublisher, Pubsubs.translatePublisherType(pubsubName));
     return GenericUpdateRequest.<Publisher>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(s -> publisherService.setPublisher(deploymentName, pubsubName, publisherName, s))
-        .validator(() -> publisherService.validatePublisher(deploymentName, pubsubName, publisher.getName()))
+        .validator(
+            () ->
+                publisherService.validatePublisher(deploymentName, pubsubName, publisher.getName()))
         .description("Edit the " + publisherName + " publisher")
         .build()
         .execute(validationSettings, publisher);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addPublisher(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addPublisher(
+      @PathVariable String deploymentName,
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawPublisher) {
-    Publisher publisher = objectMapper.convertValue(
-        rawPublisher,
-        Pubsubs.translatePublisherType(pubsubName)
-    );
+    Publisher publisher =
+        objectMapper.convertValue(rawPublisher, Pubsubs.translatePublisherType(pubsubName));
     return GenericUpdateRequest.<Publisher>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(s -> publisherService.addPublisher(deploymentName, pubsubName, s))
-        .validator(() -> publisherService.validatePublisher(deploymentName, pubsubName, publisher.getName()))
+        .validator(
+            () ->
+                publisherService.validatePublisher(deploymentName, pubsubName, publisher.getName()))
         .description("Add the " + publisher.getName() + " publisher")
         .build()
         .execute(validationSettings, publisher);

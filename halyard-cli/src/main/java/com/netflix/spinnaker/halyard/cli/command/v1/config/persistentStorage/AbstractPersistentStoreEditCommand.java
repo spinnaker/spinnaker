@@ -25,12 +25,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractPersistentStoreEditCommand<T extends PersistentStore> extends AbstractPersistentStoreCommand {
+public abstract class AbstractPersistentStoreEditCommand<T extends PersistentStore>
+    extends AbstractPersistentStoreCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Edit configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
+  private String shortDescription =
+      "Edit configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
 
   protected abstract PersistentStore editPersistentStore(T persistentStore);
 
@@ -39,10 +41,11 @@ public abstract class AbstractPersistentStoreEditCommand<T extends PersistentSto
     String persistentStoreType = getPersistentStoreType();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    PersistentStore persistentStore = new OperationHandler<PersistentStore>()
-        .setFailureMesssage("Failed to get persistent store \"" + persistentStoreType + "\".")
-        .setOperation(Daemon.getPersistentStore(currentDeployment, persistentStoreType, false))
-        .get();
+    PersistentStore persistentStore =
+        new OperationHandler<PersistentStore>()
+            .setFailureMesssage("Failed to get persistent store \"" + persistentStoreType + "\".")
+            .setOperation(Daemon.getPersistentStore(currentDeployment, persistentStoreType, false))
+            .get();
 
     int originalHash = persistentStore.hashCode();
 
@@ -56,7 +59,9 @@ public abstract class AbstractPersistentStoreEditCommand<T extends PersistentSto
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to edit persistent store \"" + persistentStoreType + "\".")
         .setSuccessMessage("Successfully edited persistent store \"" + persistentStoreType + "\".")
-        .setOperation(Daemon.setPersistentStore(currentDeployment, persistentStoreType, !noValidate, persistentStore))
+        .setOperation(
+            Daemon.setPersistentStore(
+                currentDeployment, persistentStoreType, !noValidate, persistentStore))
         .get();
   }
 }

@@ -28,9 +28,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class HelmArtifactAccount extends ArtifactAccount {
-    String name;
-    String repository;
-    String username;
-    @Secret String password;
-    @LocalFile @SecretFile String usernamePasswordFile;
+  String name;
+  String repository;
+  String username;
+  @Secret String password;
+  @LocalFile @SecretFile String usernamePasswordFile;
 }

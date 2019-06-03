@@ -31,7 +31,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSetti
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,46 +38,81 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This interface represents the cloud-environments specific information/operations required to install a service.
- * @param <T> is the type of the service interface being deployed, e.g ClouddriverService.Clouddriver.
+ * This interface represents the cloud-environments specific information/operations required to
+ * install a service.
+ *
+ * @param <T> is the type of the service interface being deployed, e.g
+ *     ClouddriverService.Clouddriver.
  * @param <A> is the type of an account in this cloud provider.
  */
 public interface DistributedService<T, A extends Account> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath(String deploymentName);
 
-  Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<A> details,
-      SpinnakerRuntimeSettings runtimeSettings);
-  Map<String, Object> getServerGroupDescription(AccountDeploymentDetails<A> details,
+  Map<String, Object> getLoadBalancerDescription(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
+
+  Map<String, Object> getServerGroupDescription(
+      AccountDeploymentDetails<A> details,
       SpinnakerRuntimeSettings runtimeSettings,
       List<ConfigSource> configSources);
-  List<ConfigSource> stageProfiles(AccountDeploymentDetails<A> details,
+
+  List<ConfigSource> stageProfiles(
+      AccountDeploymentDetails<A> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration);
-  void ensureRunning(AccountDeploymentDetails<A> details,
+
+  void ensureRunning(
+      AccountDeploymentDetails<A> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<ConfigSource> configSources,
       boolean recreate);
 
   List<String> getHealthProviders();
+
   Map<String, List<String>> getAvailabilityZones(ServiceSettings settings);
+
   Provider.ProviderType getProviderType();
-  RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
+
+  RunningServiceDetails getRunningServiceDetails(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
+
   String getServiceName();
+
   String getCanonicalName();
+
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
-  <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
-  <S> S connectToInstance(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId);
-  String connectCommand(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
-  void deleteVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, Integer version);
-  void resizeVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, int version, int targetSize);
+
+  <S> S connectToService(
+      AccountDeploymentDetails<A> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      SpinnakerService<S> sidecar);
+
+  <S> S connectToInstance(
+      AccountDeploymentDetails<A> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      SpinnakerService<S> sidecar,
+      String instanceId);
+
+  String connectCommand(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
+
+  void deleteVersion(
+      AccountDeploymentDetails<A> details, ServiceSettings settings, Integer version);
+
+  void resizeVersion(
+      AccountDeploymentDetails<A> details, ServiceSettings settings, int version, int targetSize);
+
   boolean isRequiredToBootstrap();
+
   DeployPriority getDeployPriority();
+
   SpinnakerService<T> getService();
 
   default boolean isStateful() {
     return false;
   }
 
-  default T connectToPrimaryService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default T connectToPrimaryService(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     return connectToService(details, runtimeSettings, getService());
   }
 
@@ -103,11 +137,16 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return settings.getLocation();
   }
 
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default Map<String, Object> buildRollbackPipeline(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     RunningServiceDetails serviceDetails = getRunningServiceDetails(details, runtimeSettings);
     Integer version = serviceDetails.getLatestEnabledVersion();
     if (version == null) {
-      throw new HalException(Problem.Severity.FATAL, "There are no enabled server groups for service " + getServiceName() + " nothing to rollback to.");
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "There are no enabled server groups for service "
+              + getServiceName()
+              + " nothing to rollback to.");
     }
 
     int targetSize = serviceDetails.getInstances().get(version).size();
@@ -151,9 +190,12 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     // 2. Something is wrong, so you rollback.
     // 3. Fixing the bad server group requires redeploying.
     //
-    // Since you can't fix the newest destroyed server group in place, and you won't (at least I can't imagine why)
-    // want to reenable that server group, there is no point it keeping it around. There's an argument
-    // to be made for keeping it around to debug, but that's far from what the average halyard user will want
+    // Since you can't fix the newest destroyed server group in place, and you won't (at least I
+    // can't imagine why)
+    // want to reenable that server group, there is no point it keeping it around. There's an
+    // argument
+    // to be made for keeping it around to debug, but that's far from what the average halyard user
+    // will want
     // to do.
     Map<String, Object> destroyDescription = new HashMap<>();
     String destroyId = "destroy";
@@ -178,23 +220,28 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return pipeline;
   }
 
-  default Map<String, Object> buildDeployServerGroupPipeline(AccountDeploymentDetails<A> details,
+  default Map<String, Object> buildDeployServerGroupPipeline(
+      AccountDeploymentDetails<A> details,
       SpinnakerRuntimeSettings runtimeSettings,
       List<ConfigSource> configSources,
       Integer maxRemaining,
       boolean scaleDown) {
     String accountName = details.getAccount().getName();
     String region = runtimeSettings.getServiceSettings(getService()).getLocation();
-    Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
+    Map<String, Object> deployDescription =
+        getServerGroupDescription(details, runtimeSettings, configSources);
     deployDescription.put("name", "deploy");
     Map<String, String> source = new HashMap<>();
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    RunningServiceDetails runningServiceDetails =
+        getRunningServiceDetails(details, runtimeSettings);
     if (runningServiceDetails.getLatestEnabledVersion() == null) {
-      throw new HalException(Problem.Severity.FATAL, "No prior server group to clone for " + getServiceName());
+      throw new HalException(
+          Problem.Severity.FATAL, "No prior server group to clone for " + getServiceName());
     }
     source.put("account", accountName);
     source.put("credentials", accountName);
-    source.put("serverGroupName", getVersionedName(runningServiceDetails.getLatestEnabledVersion()));
+    source.put(
+        "serverGroupName", getVersionedName(runningServiceDetails.getLatestEnabledVersion()));
     source.put("region", region);
     source.put("namespace", region);
     deployDescription.put("source", source);
@@ -224,14 +271,17 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return pipeline;
   }
 
-  default Map<String, Object> buildUpsertLoadBalancerTask(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default Map<String, Object> buildUpsertLoadBalancerTask(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     Map<String, Object> upsertDescription = getLoadBalancerDescription(details, runtimeSettings);
     upsertDescription.put("name", "upsert");
     upsertDescription.put("type", AtomicOperations.UPSERT_LOAD_BALANCER);
     upsertDescription.put("cloudProvider", getProviderType().getId());
     upsertDescription.put("refId", "upsertlb");
     upsertDescription.put("application", "spin");
-    upsertDescription.put("availabilityZones", getAvailabilityZones(runtimeSettings.getServiceSettings(getService())));
+    upsertDescription.put(
+        "availabilityZones",
+        getAvailabilityZones(runtimeSettings.getServiceSettings(getService())));
 
     List<Map<String, Object>> job = new ArrayList<>();
     job.add(upsertDescription);
@@ -244,7 +294,8 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return task;
   }
 
-  // Used to ensure dependencies are deployed first. The higher the priority, the sooner the service is deployed.
+  // Used to ensure dependencies are deployed first. The higher the priority, the sooner the service
+  // is deployed.
   class DeployPriority {
     final Integer priority;
 

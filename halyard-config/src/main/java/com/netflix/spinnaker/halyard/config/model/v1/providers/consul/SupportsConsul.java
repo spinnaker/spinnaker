@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.consul;
 
-/**
- * Created by lwander on 4/24/17.
- */
+/** Created by lwander on 4/24/17. */
 public interface SupportsConsul {
   ConsulConfig getConsul();
+
   SupportsConsul setConsul(ConsulConfig consul);
 }

@@ -27,23 +27,20 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import lombok.Data;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @Component
 @Data
 public class ConsulServiceProfileFactoryBuilder {
-  @Autowired
-  protected ArtifactService artifactService;
+  @Autowired protected ArtifactService artifactService;
 
-  @Autowired
-  protected ObjectMapper objectMapper;
+  @Autowired protected ObjectMapper objectMapper;
 
   public ProfileFactory build(SpinnakerService.Type type, ServiceSettings settings) {
     return new ProfileFactory() {
@@ -53,27 +50,29 @@ public class ConsulServiceProfileFactoryBuilder {
       }
 
       @Override
-      protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-        ConsulCheck check = new ConsulCheck()
-            .setId("default-hal-check")
-            .setInterval("30s");
+      protected void setProfile(
+          Profile profile,
+          DeploymentConfiguration deploymentConfiguration,
+          SpinnakerRuntimeSettings endpoints) {
+        ConsulCheck check = new ConsulCheck().setId("default-hal-check").setInterval("30s");
 
         if (settings.getHealthEndpoint() != null) {
-          check.setHttp(new URIBuilder()
-              .setScheme(settings.getScheme())
-              .setHost("localhost")
-              .setPort(settings.getPort())
-              .setPath(settings.getHealthEndpoint())
-              .toString()
-          );
+          check.setHttp(
+              new URIBuilder()
+                  .setScheme(settings.getScheme())
+                  .setHost("localhost")
+                  .setPort(settings.getPort())
+                  .setPath(settings.getHealthEndpoint())
+                  .toString());
         } else {
           check.setTcp("localhost:" + settings.getPort());
         }
 
-        ConsulService consulService = new ConsulService()
-            .setName(type.getCanonicalName())
-            .setPort(settings.getPort())
-            .setChecks(Collections.singletonList(check));
+        ConsulService consulService =
+            new ConsulService()
+                .setName(type.getCanonicalName())
+                .setPort(settings.getPort())
+                .setChecks(Collections.singletonList(check));
 
         ServiceWrapper serviceWrapper = new ServiceWrapper().setService(consulService);
 

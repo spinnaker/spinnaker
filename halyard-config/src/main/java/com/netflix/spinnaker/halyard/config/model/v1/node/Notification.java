@@ -25,7 +25,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class Notification extends Node implements Cloneable {
-  @ValidForSpinnakerVersion(lowerBound = "1.4.0", tooLowMessage = "Spinnaker's base configuration is missing components required to enable notifications with Halyard.")
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.4.0",
+      tooLowMessage =
+          "Spinnaker's base configuration is missing components required to enable notifications with Halyard.")
   boolean enabled;
 
   @JsonIgnore

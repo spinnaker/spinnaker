@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.OrcaProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,17 +33,11 @@ import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 import retrofit.http.*;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class OrcaService extends SpringService<OrcaService.Orca> {
-  @Autowired
-  OrcaProfileFactory orcaProfileFactory;
+public abstract class OrcaService extends SpringService<OrcaService.Orca> {
+  @Autowired OrcaProfileFactory orcaProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -57,16 +54,20 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
     return Orca.class;
   }
 
-  protected void appendReadonlyClouddriver(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-  }
+  protected void appendReadonlyClouddriver(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {}
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     String filename = "orca.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    Profile profile = orcaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile =
+        orcaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     appendReadonlyClouddriver(profile, deploymentConfiguration, endpoints);
 

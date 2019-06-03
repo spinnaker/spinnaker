@@ -22,11 +22,10 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractNotificationEnableDisableCommand extends AbstractNotificationCommand {
@@ -61,7 +60,8 @@ public abstract class AbstractNotificationEnableDisableCommand extends AbstractN
     new OperationHandler<Void>()
         .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + notificationName)
         .setFailureMesssage("Failed to " + getCommandName() + " " + notificationName)
-        .setOperation(Daemon.setNotificationEnabled(currentDeployment, notificationName, !noValidate, enable))
+        .setOperation(
+            Daemon.setNotificationEnabled(currentDeployment, notificationName, !noValidate, enable))
         .get();
   }
 }

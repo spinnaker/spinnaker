@@ -29,6 +29,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
 import com.squareup.okhttp.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.io.IOUtils;
@@ -37,16 +42,10 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.http.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class VaultServerService extends SpinnakerService<VaultServerService.Vault> {
+public abstract class VaultServerService extends SpinnakerService<VaultServerService.Vault> {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.VAULT;
@@ -63,12 +62,12 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
+  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   public static String getSpinnakerSecretName(String secretName) {
     return String.join("/", "spinnaker", secretName);
@@ -88,10 +87,11 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     SealStatus unseal(@Body UnsealRequest unsealRequest);
 
     @PUT("/v1/secret/{secretName}")
-    @Headers({
-        "Content-type: application/json"
-    })
-    Response putSecret(@Header("X-Vault-Token") String token, @Path(value = "secretName", encode = false) String secretName, @Body Object contents);
+    @Headers({"Content-type: application/json"})
+    Response putSecret(
+        @Header("X-Vault-Token") String token,
+        @Path(value = "secretName", encode = false) String secretName,
+        @Body Object contents);
   }
 
   @Data
@@ -138,13 +138,15 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     List<String> errors = new ArrayList<>();
   }
 
-  public String writeVaultConfig(String deploymentName, Vault vault, String secretName, VaultConfigMount configMount) {
+  public String writeVaultConfig(
+      String deploymentName, Vault vault, String secretName, VaultConfigMount configMount) {
     secretName = getSpinnakerSecretName(secretName);
     writeSecret(deploymentName, vault, secretName, configMount);
     return secretName;
   }
 
-  public String writeVaultConfigMountSet(String deploymentName, Vault vault, String secretName, VaultConfigMountSet configMountSet) {
+  public String writeVaultConfigMountSet(
+      String deploymentName, Vault vault, String secretName, VaultConfigMountSet configMountSet) {
     secretName = getSpinnakerSecretName(secretName);
     writeSecret(deploymentName, vault, secretName, configMountSet);
     return secretName;
@@ -186,7 +188,8 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     }
 
     if (sealStatus.isSealed()) {
-      throw new HalException(Problem.Severity.FATAL, "Your vault is in a sealed state, no config can be written.");
+      throw new HalException(
+          Problem.Severity.FATAL, "Your vault is in a sealed state, no config can be written.");
     }
 
     File vaultTokenFile = halconfigDirectoryStructure.getVaultTokenPath(deploymentName).toFile();
@@ -195,16 +198,19 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
         result = IOUtils.toString(new FileInputStream(vaultTokenFile));
       } catch (IOException e) {
         throw new HalException(
-            new ProblemBuilder(Problem.Severity.FATAL, "Unable to read vault token: " + e.getMessage())
-                .setRemediation("This file is needed for storing credentials to your vault server. "
-                  + "If you have deployed vault by hand, make sure Halyard can authenticate using the token in that file.").build()
-        );
+            new ProblemBuilder(
+                    Problem.Severity.FATAL, "Unable to read vault token: " + e.getMessage())
+                .setRemediation(
+                    "This file is needed for storing credentials to your vault server. "
+                        + "If you have deployed vault by hand, make sure Halyard can authenticate using the token in that file.")
+                .build());
       }
     } else {
       try {
         IOUtils.write(result.getBytes(), new FileOutputStream(vaultTokenFile));
       } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Unable to write vault token: " + e.getMessage());
+        throw new HalException(
+            Problem.Severity.FATAL, "Unable to write vault token: " + e.getMessage());
       }
     }
 
@@ -216,7 +222,8 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
       VaultError ve = (VaultError) e.getBodyAs(VaultError.class);
       return new HalException(Problem.Severity.FATAL, "Vault is in an invalid state: " + ve, e);
     } else {
-      return new HalException(Problem.Severity.FATAL, "Error reaching vault during operation \"" + operation + "\"", e);
+      return new HalException(
+          Problem.Severity.FATAL, "Error reaching vault during operation \"" + operation + "\"", e);
     }
   }
 
@@ -233,7 +240,7 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
-    public Settings() { }
+    public Settings() {}
   }
 
   @Override

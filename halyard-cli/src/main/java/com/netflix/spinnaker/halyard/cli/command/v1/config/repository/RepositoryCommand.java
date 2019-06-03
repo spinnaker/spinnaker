@@ -25,7 +25,7 @@ import lombok.Getter;
 /**
  * This is a top-level command for dealing with your halconfig.
  *
- * Usage is `$ hal config repository`
+ * <p>Usage is `$ hal config repository`
  */
 @Parameters(separators = "=")
 public class RepositoryCommand extends NestableCommand {

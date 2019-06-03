@@ -7,10 +7,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class EcsProvider extends Provider<EcsAccount> {
-    private String awsAccount;
+  private String awsAccount;
 
-    @Override
-    public ProviderType providerType() {
-        return ProviderType.ECS;
-    }
+  @Override
+  public ProviderType providerType() {
+    return ProviderType.ECS;
+  }
 }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.AbstractEditCanaryServiceIntegrationCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -26,8 +25,6 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
-import lombok.AccessLevel;
-import lombok.Getter;
 
 @Parameters(separators = "=")
 public class EditCanaryPrometheusCommand extends AbstractEditCanaryServiceIntegrationCommand {
@@ -39,25 +36,31 @@ public class EditCanaryPrometheusCommand extends AbstractEditCanaryServiceIntegr
 
   @Parameter(
       names = "--metadata-caching-interval-ms",
-      description = "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`)."
-  )
+      description =
+          "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`).")
   private Long metadataCachingIntervalMS;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, false))
-        .get();
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
 
     int originalHash = canary.hashCode();
 
     PrometheusCanaryServiceIntegration prometheusCanaryServiceIntegration =
-        (PrometheusCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, PrometheusCanaryServiceIntegration.class);
+        (PrometheusCanaryServiceIntegration)
+            CanaryUtils.getServiceIntegrationByClass(
+                canary, PrometheusCanaryServiceIntegration.class);
 
-    prometheusCanaryServiceIntegration.setMetadataCachingIntervalMS(isSet(metadataCachingIntervalMS) ? metadataCachingIntervalMS : prometheusCanaryServiceIntegration.getMetadataCachingIntervalMS());
+    prometheusCanaryServiceIntegration.setMetadataCachingIntervalMS(
+        isSet(metadataCachingIntervalMS)
+            ? metadataCachingIntervalMS
+            : prometheusCanaryServiceIntegration.getMetadataCachingIntervalMS());
 
     if (originalHash == canary.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -66,8 +69,10 @@ public class EditCanaryPrometheusCommand extends AbstractEditCanaryServiceIntegr
 
     new OperationHandler<Void>()
         .setOperation(Daemon.setCanary(currentDeployment, !noValidate, canary))
-        .setFailureMesssage("Failed to edit canary analysis Prometheus service integration settings.")
-        .setSuccessMessage("Successfully edited canary analysis Prometheus service integration settings.")
+        .setFailureMesssage(
+            "Failed to edit canary analysis Prometheus service integration settings.")
+        .setSuccessMessage(
+            "Successfully edited canary analysis Prometheus service integration settings.")
         .get();
   }
 }

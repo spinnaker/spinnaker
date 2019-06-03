@@ -26,6 +26,11 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,30 +38,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-
 @Component
 @Slf4j
 @ConditionalOnProperty("spinnaker.config.input.gcs.enabled")
 public class GoogleProfileReader implements ProfileReader {
-  @Autowired
-  String spinconfigBucket;
+  @Autowired String spinconfigBucket;
 
-  @Autowired
-  Storage applicationDefaultGoogleStorage;
+  @Autowired Storage applicationDefaultGoogleStorage;
 
-  @Autowired
-  Storage unauthenticatedGoogleStorage;
+  @Autowired Storage unauthenticatedGoogleStorage;
 
-  @Autowired
-  ObjectMapper relaxedObjectMapper;
+  @Autowired ObjectMapper relaxedObjectMapper;
 
-  @Autowired
-  Yaml yamlParser;
+  @Autowired Yaml yamlParser;
 
   @Bean
   public Storage applicationDefaultGoogleStorage() {
@@ -68,7 +62,8 @@ public class GoogleProfileReader implements ProfileReader {
     return createGoogleStorage(false);
   }
 
-  public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readProfile(String artifactName, String version, String profileName)
+      throws IOException {
     String path = profilePath(artifactName, version, profileName);
     return getContents(path);
   }
@@ -77,19 +72,16 @@ public class GoogleProfileReader implements ProfileReader {
     String bomName = bomPath(version);
 
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents(bomName)),
-        BillOfMaterials.class
-    );
+        yamlParser.load(getContents(bomName)), BillOfMaterials.class);
   }
 
   public Versions readVersions() throws IOException {
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents("versions.yml")),
-        Versions.class
-    );
+        yamlParser.load(getContents("versions.yml")), Versions.class);
   }
 
-  public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readArchiveProfile(String artifactName, String version, String profileName)
+      throws IOException {
     return readProfile(artifactName, version, profileName + ".tar.gz");
   }
 
@@ -106,11 +98,18 @@ public class GoogleProfileReader implements ProfileReader {
     log.info("Getting object contents of " + objectName);
 
     try {
-      applicationDefaultGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+      applicationDefaultGoogleStorage
+          .objects()
+          .get(spinconfigBucket, objectName)
+          .executeMediaAndDownloadTo(output);
     } catch (IOException e) {
-      log.debug("Getting object contents of {} failed. Retrying with no authentication.", objectName, e);
+      log.debug(
+          "Getting object contents of {} failed. Retrying with no authentication.", objectName, e);
       output = new ByteArrayOutputStream();
-      unauthenticatedGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+      unauthenticatedGoogleStorage
+          .objects()
+          .get(spinconfigBucket, objectName)
+          .executeMediaAndDownloadTo(output);
     }
 
     return new ByteArrayInputStream(output.toByteArray());
@@ -122,21 +121,27 @@ public class GoogleProfileReader implements ProfileReader {
     HttpRequestInitializer requestInitializer;
 
     try {
-      GoogleCredential credential = useApplicationDefaultCreds ? GoogleCredential.getApplicationDefault() : new GoogleCredential();
+      GoogleCredential credential =
+          useApplicationDefaultCreds
+              ? GoogleCredential.getApplicationDefault()
+              : new GoogleCredential();
       if (credential.createScopedRequired()) {
-        credential = credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+        credential =
+            credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
       }
       requestInitializer = GoogleCredentials.setHttpTimeout(credential);
 
       log.info("Loaded application default credential for reading BOMs & profiles.");
     } catch (Exception e) {
       requestInitializer = GoogleCredentials.retryRequestInitializer();
-      log.debug("No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}", e.getMessage());
+      log.debug(
+          "No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}",
+          e.getMessage());
     }
 
-    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, requestInitializer)
+    return new Storage.Builder(
+            GoogleCredentials.buildHttpTransport(), jsonFactory, requestInitializer)
         .setApplicationName(applicationName)
         .build();
   }
-
 }

@@ -20,10 +20,11 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-
 import java.util.List;
 
 public interface SidecarService {
   SpinnakerService getService();
-  List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service);
+
+  List<Profile> getSidecarProfiles(
+      GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service);
 }

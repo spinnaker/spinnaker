@@ -19,7 +19,8 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 /**
- * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
+ * Anything implementing this interface is validatable, meaning after we validate it, we get a
+ * non-null list of HalconfigProblems
  */
 public interface Validatable {
   void accept(ConfigProblemSetBuilder psBuilder, Validator v);

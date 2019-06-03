@@ -40,13 +40,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class GitProfileReader implements ProfileReader {
-  @Autowired
-  String gitRoot;
+  @Autowired String gitRoot;
 
-  private final static String HALCONFIG_DIR = "halconfig";
+  private static final String HALCONFIG_DIR = "halconfig";
 
   @Override
-  public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readProfile(String artifactName, String version, String profileName)
+      throws IOException {
     return getContents(profilePath(artifactName, version, profileName));
   }
 
@@ -81,7 +81,8 @@ public class GitProfileReader implements ProfileReader {
   }
 
   @Override
-  public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
+  public InputStream readArchiveProfile(String artifactName, String version, String profileName)
+      throws IOException {
     Path profilePath = Paths.get(profilePath(artifactName, version, profileName));
 
     ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -89,11 +90,12 @@ public class GitProfileReader implements ProfileReader {
 
     ArrayList<Path> filePathsToAdd =
         java.nio.file.Files.walk(profilePath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS)
-        .filter(path -> path.toFile().isFile())
-        .collect(Collectors.toCollection(ArrayList::new));
+            .filter(path -> path.toFile().isFile())
+            .collect(Collectors.toCollection(ArrayList::new));
 
     for (Path path : filePathsToAdd) {
-      TarArchiveEntry tarEntry = new TarArchiveEntry(path.toFile(), profilePath.relativize(path).toString());
+      TarArchiveEntry tarEntry =
+          new TarArchiveEntry(path.toFile(), profilePath.relativize(path).toString());
       int permissions = FileModeUtils.getFileMode(Files.getPosixFilePermissions(path));
       permissions = FileModeUtils.setFileBit(permissions);
       tarEntry.setMode(permissions);

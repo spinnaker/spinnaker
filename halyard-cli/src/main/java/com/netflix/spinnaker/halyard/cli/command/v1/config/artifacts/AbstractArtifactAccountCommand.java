@@ -33,24 +33,26 @@ public abstract class AbstractArtifactAccountCommand extends AbstractHasArtifact
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getArtifactProviderName() + " artifact provider's account";
+    return "Manage and view Spinnaker configuration for the "
+        + getArtifactProviderName()
+        + " artifact provider's account";
   }
 
   protected AbstractArtifactAccountCommand() {
-    registerSubcommand(new DeleteArtifactAccountCommandBuilder()
-        .setArtifactProviderName(getArtifactProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new DeleteArtifactAccountCommandBuilder()
+            .setArtifactProviderName(getArtifactProviderName())
+            .build());
 
-    registerSubcommand(new GetArtifactAccountCommandBuilder()
-        .setArtifactProviderName(getArtifactProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new GetArtifactAccountCommandBuilder()
+            .setArtifactProviderName(getArtifactProviderName())
+            .build());
 
-    registerSubcommand(new ListArtifactAccountsCommandBuilder()
-        .setArtifactProviderName(getArtifactProviderName())
-        .build()
-    );
+    registerSubcommand(
+        new ListArtifactAccountsCommandBuilder()
+            .setArtifactProviderName(getArtifactProviderName())
+            .build());
   }
 
   @Override

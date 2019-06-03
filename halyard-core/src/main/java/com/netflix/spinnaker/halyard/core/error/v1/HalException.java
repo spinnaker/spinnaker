@@ -20,23 +20,17 @@ package com.netflix.spinnaker.halyard.core.error.v1;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import lombok.Getter;
 
-/**
- * This is the exception class that needs to be thrown by all validators.
- */
+/** This is the exception class that needs to be thrown by all validators. */
 public class HalException extends RuntimeException {
-  @Getter
-  protected ProblemSet problems = new ProblemSet();
+  @Getter protected ProblemSet problems = new ProblemSet();
 
-  @Getter
-  private int responseCode = HttpServletResponse.SC_CONFLICT;
+  @Getter private int responseCode = HttpServletResponse.SC_CONFLICT;
 
   @Override
   public String getMessage() {

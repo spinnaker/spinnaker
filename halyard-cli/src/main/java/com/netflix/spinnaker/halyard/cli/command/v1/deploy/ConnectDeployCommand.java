@@ -24,11 +24,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.AbstractRemoteActionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class ConnectDeployCommand extends AbstractRemoteActionCommand {
@@ -39,23 +38,25 @@ public class ConnectDeployCommand extends AbstractRemoteActionCommand {
   private String shortDescription = "Connect to your Spinnaker deployment.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = String.join(" ",
-      "This command connects to your Spinnaker deployment, assuming it was already deployed. In the case of the `Local*` deployment",
-      "type, this is a NoOp."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "This command connects to your Spinnaker deployment, assuming it was already deployed. In the case of the `Local*` deployment",
+          "type, this is a NoOp.");
 
   @Parameter(
       names = "--service-names",
-      description = "When supplied, connections to the specified Spinnaker services are opened. "
-          + "When omitted, connections to the UI & API servers are opened to allow you to interact with Spinnaker in your browser.",
-      variableArity = true
-  )
+      description =
+          "When supplied, connections to the specified Spinnaker services are opened. "
+              + "When omitted, connections to the UI & API servers are opened to allow you to interact with Spinnaker in your browser.",
+      variableArity = true)
   List<String> serviceNames = new ArrayList<>();
 
   @Override
   protected OperationHandler<RemoteAction> getRemoteAction() {
     return new OperationHandler<RemoteAction>()
         .setFailureMesssage("Failed to generate connection script.")
-        .setOperation(Daemon.connectToDeployment(getCurrentDeployment(), !noValidate, serviceNames));
+        .setOperation(
+            Daemon.connectToDeployment(getCurrentDeployment(), !noValidate, serviceNames));
   }
 }

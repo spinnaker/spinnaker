@@ -19,16 +19,20 @@
 package com.netflix.spinnaker.halyard.core.job.v1;
 
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DaemonLocalJobExecutor extends JobExecutorLocal {
   @Override
-  public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn, ByteArrayOutputStream stdOut, ByteArrayOutputStream stdErr) {
+  public String startJob(
+      JobRequest jobRequest,
+      Map<String, String> env,
+      InputStream stdIn,
+      ByteArrayOutputStream stdOut,
+      ByteArrayOutputStream stdErr) {
     String jobId = super.startJob(jobRequest, env, stdIn, stdOut, stdErr);
     log.info("Starting daemon job " + jobId);
     DaemonTaskHandler.getTask().getRunningJobs().add(jobId);

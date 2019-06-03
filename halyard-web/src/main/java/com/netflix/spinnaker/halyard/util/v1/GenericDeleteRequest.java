@@ -24,10 +24,9 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
-import lombok.Builder;
-
 import java.nio.file.Path;
 import java.util.function.Supplier;
+import lombok.Builder;
 
 @Builder(builderMethodName = "privateBuilder")
 public class GenericDeleteRequest {
@@ -39,7 +38,8 @@ public class GenericDeleteRequest {
   private final String description;
 
   public DaemonTask<Halconfig, Void> execute(ValidationSettings validationSettings) {
-    DaemonResponse.UpdateRequestBuilder builder = RequestUtils.getUpdateRequestBuilder(halconfigParser);
+    DaemonResponse.UpdateRequestBuilder builder =
+        RequestUtils.getUpdateRequestBuilder(halconfigParser);
     RequestUtils.addValidation(builder, validationSettings, validator);
     builder.setUpdate(deleter);
     RequestUtils.addCleanStep(builder, halconfigParser, stagePath);
@@ -50,7 +50,8 @@ public class GenericDeleteRequest {
     return new GenericDeleteRequestBuilder();
   }
 
-  public static <T extends Node> GenericDeleteRequestBuilder builder(HalconfigParser halconfigParser) {
+  public static <T extends Node> GenericDeleteRequestBuilder builder(
+      HalconfigParser halconfigParser) {
     return GenericDeleteRequest.<T>privateBuilder().halconfigParser(halconfigParser);
   }
 }

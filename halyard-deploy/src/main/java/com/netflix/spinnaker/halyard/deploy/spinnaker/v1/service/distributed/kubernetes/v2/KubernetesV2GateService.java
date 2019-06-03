@@ -39,24 +39,26 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2GateService extends GateService implements KubernetesV2Service<GateService.Gate> {
+public class KubernetesV2GateService extends GateService
+    implements KubernetesV2Service<GateService.Gate> {
   final DeployPriority deployPriority = new DeployPriority(0);
 
-  @Delegate
-  @Autowired
-  KubernetesV2ServiceDelegate serviceDelegate;
+  @Delegate @Autowired KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
   public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings(deploymentConfiguration.getSecurity().getApiSecurity(), getActiveSpringProfiles(deploymentConfiguration));
+    return new Settings(
+        deploymentConfiguration.getSecurity().getApiSecurity(),
+        getActiveSpringProfiles(deploymentConfiguration));
   }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(
-        deploymentConfiguration);
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
+        new KubernetesSharedServiceSettings(deploymentConfiguration);
     ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
-    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    settings
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
@@ -70,22 +72,34 @@ public class KubernetesV2GateService extends GateService implements KubernetesV2
 
   @Override
   protected List<Type> overrideServiceEndpoints() {
-    return Arrays.asList(
-        Type.CLOUDDRIVER_RO,
-        Type.ECHO_WORKER
-    );
+    return Arrays.asList(Type.CLOUDDRIVER_RO, Type.ECHO_WORKER);
   }
 
   @Override
-  protected void appendReadonlyClouddriverForDeck(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void appendReadonlyClouddriverForDeck(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     if (hasServiceOverrides(deploymentConfiguration)
-        && !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isDisableClouddriverRoDeck()) {
-      Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>> services = Collections.singletonMap(
-          "services", Collections.singletonMap(
-              "clouddriver", Collections.singletonMap(
-                  "config", Collections.singletonMap(
-                      "dynamicEndpoints", Collections.singletonMap(
-                          "deck", endpoints.getServiceSettings(Type.CLOUDDRIVER_RO_DECK).getBaseUrl())))));
+        && !deploymentConfiguration
+            .getDeploymentEnvironment()
+            .getHaServices()
+            .getClouddriver()
+            .isDisableClouddriverRoDeck()) {
+      Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>> services =
+          Collections.singletonMap(
+              "services",
+              Collections.singletonMap(
+                  "clouddriver",
+                  Collections.singletonMap(
+                      "config",
+                      Collections.singletonMap(
+                          "dynamicEndpoints",
+                          Collections.singletonMap(
+                              "deck",
+                              endpoints
+                                  .getServiceSettings(Type.CLOUDDRIVER_RO_DECK)
+                                  .getBaseUrl())))));
       profile.appendContents(getYamlParser().dump(services));
     }
   }

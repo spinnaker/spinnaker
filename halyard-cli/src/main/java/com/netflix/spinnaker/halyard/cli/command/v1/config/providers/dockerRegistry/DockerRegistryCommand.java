@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegi
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-/**
- * Describe a specific docker-registry account
- */
+/** Describe a specific docker-registry account */
 @Parameters(separators = "=")
 public class DockerRegistryCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {

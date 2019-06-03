@@ -26,22 +26,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class CanaryService {
 
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private DeploymentService deploymentService;
+  @Autowired private DeploymentService deploymentService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public Canary getCanary(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCanary();
 
-    return lookupService.getSingularNodeOrDefault(filter,
-        Canary.class,
-        Canary::new,
-        n -> setCanary(deploymentName, n));
+    return lookupService.getSingularNodeOrDefault(
+        filter, Canary.class, Canary::new, n -> setCanary(deploymentName, n));
   }
 
   public void setCanaryEnabled(String deploymentName, boolean enabled) {
@@ -50,7 +45,8 @@ public class CanaryService {
   }
 
   public void setCanary(String deploymentName, Canary newCanary) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setCanary(newCanary);
   }
 

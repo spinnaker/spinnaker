@@ -29,14 +29,18 @@ public class SpringProfileFactory extends RegistryBackedProfileFactory {
   }
 
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     SpectatorConfig spectatorConfig = new SpectatorConfig();
     spectatorConfig
         .getSpectator()
         .getWebEndpoint()
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
 
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spectatorConfig));
+    profile.appendContents(
+        yamlToString(deploymentConfiguration.getName(), profile, spectatorConfig));
   }
 
   @Override

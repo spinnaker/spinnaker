@@ -28,29 +28,21 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
     return "travis";
   }
 
-  @Parameter(
-    names = "--address",
-    description = TravisCommandProperties.ADDRESS_DESCRIPTION
-  )
+  @Parameter(names = "--address", description = TravisCommandProperties.ADDRESS_DESCRIPTION)
   private String address;
 
-  @Parameter(
-    names = "--base-url",
-    description = TravisCommandProperties.BASE_URL_DESCRIPTION
-  )
+  @Parameter(names = "--base-url", description = TravisCommandProperties.BASE_URL_DESCRIPTION)
   public String baseUrl;
 
   @Parameter(
-    names = "--github-token",
-    password = true,
-    description = TravisCommandProperties.GITHUB_TOKEN_DESCRIPTION
-  )
+      names = "--github-token",
+      password = true,
+      description = TravisCommandProperties.GITHUB_TOKEN_DESCRIPTION)
   public String githubToken;
 
   @Parameter(
-    names = "--number-of-repositories",
-    description = TravisCommandProperties.NUMBER_OF_REPOSITORIES_DESCRIPTION
-  )
+      names = "--number-of-repositories",
+      description = TravisCommandProperties.NUMBER_OF_REPOSITORIES_DESCRIPTION)
   public Integer numberOfRepositories;
 
   @Override
@@ -58,9 +50,9 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
     master.setAddress(isSet(address) ? address : master.getAddress());
     master.setGithubToken(isSet(githubToken) ? githubToken : master.getGithubToken());
     master.setBaseUrl(isSet(baseUrl) ? baseUrl : master.getBaseUrl());
-    master.setNumberOfRepositories(isSet(numberOfRepositories) ? numberOfRepositories : master.getNumberOfRepositories());
+    master.setNumberOfRepositories(
+        isSet(numberOfRepositories) ? numberOfRepositories : master.getNumberOfRepositories());
 
     return master;
   }
-
 }

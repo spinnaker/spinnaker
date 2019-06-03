@@ -22,11 +22,11 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractArtifactAccountCommand;
 
 @Parameters(separators = "=")
-public class HelmArtifactAccountCommand extends AbstractArtifactAccountCommand{
+public class HelmArtifactAccountCommand extends AbstractArtifactAccountCommand {
   @Override
   protected String getArtifactProviderName() {
-        return "helm";
-    }
+    return "helm";
+  }
 
   public HelmArtifactAccountCommand() {
     registerSubcommand(new HelmAddArtifactAccountCommand());

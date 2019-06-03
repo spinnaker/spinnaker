@@ -23,50 +23,42 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
 
 @Parameters(separators = "=")
-public class CloudFoundryEditAccountCommand extends AbstractEditAccountCommand<CloudFoundryAccount> {
-    @Override
-    protected String getProviderName() {
-        return "cloudfoundry";
-    }
+public class CloudFoundryEditAccountCommand
+    extends AbstractEditAccountCommand<CloudFoundryAccount> {
+  @Override
+  protected String getProviderName() {
+    return "cloudfoundry";
+  }
 
-    @Parameter(
-            names = {"--api-host", "--api"},
-            description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION
-    )
-    private String apiHost;
+  @Parameter(
+      names = {"--api-host", "--api"},
+      description = CloudFoundryCommandProperties.API_HOST_DESCRIPTION)
+  private String apiHost;
 
-    @Parameter(
-            names = {"--apps-manager-uri", "--appsManagerUri"},
-            description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION
-    )
-    private String appsManagerUri;
+  @Parameter(
+      names = {"--apps-manager-uri", "--appsManagerUri"},
+      description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION)
+  private String appsManagerUri;
 
-    @Parameter(
-            names = {"--metrics-uri", "--metricsUri"},
-            description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION
-    )
-    private String metricsUri;
+  @Parameter(
+      names = {"--metrics-uri", "--metricsUri"},
+      description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION)
+  private String metricsUri;
 
-    @Parameter(
-            names = "--password",
-            description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION
-    )
-    private String password;
+  @Parameter(names = "--password", description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION)
+  private String password;
 
-    @Parameter(
-            names = "--user",
-            description = CloudFoundryCommandProperties.USER_DESCRIPTION
-    )
-    private String user;
+  @Parameter(names = "--user", description = CloudFoundryCommandProperties.USER_DESCRIPTION)
+  private String user;
 
-    @Override
-    protected Account editAccount(CloudFoundryAccount account) {
-        account.setApiHost(isSet(apiHost) ? apiHost : account.getApiHost());
-        account.setAppsManagerUri(isSet(appsManagerUri) ? appsManagerUri : account.getAppsManagerUri());
-        account.setMetricsUri(isSet(metricsUri) ? metricsUri : account.getMetricsUri());
-        account.setPassword(isSet(password) ? password : account.getPassword());
-        account.setUser(isSet(user) ? user : account.getUser());
+  @Override
+  protected Account editAccount(CloudFoundryAccount account) {
+    account.setApiHost(isSet(apiHost) ? apiHost : account.getApiHost());
+    account.setAppsManagerUri(isSet(appsManagerUri) ? appsManagerUri : account.getAppsManagerUri());
+    account.setMetricsUri(isSet(metricsUri) ? metricsUri : account.getMetricsUri());
+    account.setPassword(isSet(password) ? password : account.getPassword());
+    account.setUser(isSet(user) ? user : account.getUser());
 
-        return account;
-    }
+    return account;
+  }
 }

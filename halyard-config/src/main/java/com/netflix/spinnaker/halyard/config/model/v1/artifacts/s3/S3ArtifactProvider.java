@@ -23,8 +23,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class S3ArtifactProvider extends ArtifactProvider<S3ArtifactAccount> {
-    @Override
-    public ArtifactProvider.ProviderType providerType() {
-        return ArtifactProvider.ProviderType.S3;
-    }
+  @Override
+  public ArtifactProvider.ProviderType providerType() {
+    return ArtifactProvider.ProviderType.S3;
+  }
 }

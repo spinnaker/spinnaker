@@ -31,9 +31,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
 import io.fabric8.utils.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,92 +38,84 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BakeDebianServiceProvider extends BakeServiceProvider {
-  @Autowired
-  private ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired private ArtifactSourcesConfig artifactSourcesConfig;
 
-  @Autowired
-  ArtifactService artifactService;
+  @Autowired ArtifactService artifactService;
 
-  @Autowired
-  BakeDebianClouddriverService clouddriverService;
+  @Autowired BakeDebianClouddriverService clouddriverService;
 
-  @Autowired
-  BakeDebianConsulClientService consulClientService;
+  @Autowired BakeDebianConsulClientService consulClientService;
 
-  @Autowired
-  BakeDebianConsulServerService consulServerService;
+  @Autowired BakeDebianConsulServerService consulServerService;
 
-  @Autowired
-  BakeDebianDeckService deckService;
+  @Autowired BakeDebianDeckService deckService;
 
-  @Autowired
-  BakeDebianEchoService echoService;
+  @Autowired BakeDebianEchoService echoService;
 
-  @Autowired
-  BakeDebianFiatService fiatService;
+  @Autowired BakeDebianFiatService fiatService;
 
-  @Autowired
-  BakeDebianFront50Service front50Service;
+  @Autowired BakeDebianFront50Service front50Service;
 
-  @Autowired
-  BakeDebianGateService gateService;
+  @Autowired BakeDebianGateService gateService;
 
-  @Autowired
-  BakeDebianIgorService igorService;
+  @Autowired BakeDebianIgorService igorService;
 
-  @Autowired
-  BakeDebianKayentaService kayentaService;
+  @Autowired BakeDebianKayentaService kayentaService;
 
-  @Autowired
-  BakeDebianMonitoringDaemonService monitoringDaemonService;
+  @Autowired BakeDebianMonitoringDaemonService monitoringDaemonService;
 
-  @Autowired
-  BakeDebianOrcaService orcaService;
+  @Autowired BakeDebianOrcaService orcaService;
 
-  @Autowired
-  BakeDebianRedisService redisService;
+  @Autowired BakeDebianRedisService redisService;
 
-  @Autowired
-  BakeDebianRoscoService roscoService;
+  @Autowired BakeDebianRoscoService roscoService;
 
-  @Autowired
-  BakeDebianVaultClientService vaultClientService;
+  @Autowired BakeDebianVaultClientService vaultClientService;
 
-  @Autowired
-  BakeDebianVaultServerService vaultServerService;
+  @Autowired BakeDebianVaultServerService vaultServerService;
 
-  @Autowired
-  String startupScriptPath;
+  @Autowired String startupScriptPath;
 
   @Override
-  public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
+  public String getInstallCommand(
+      DeploymentDetails deploymentDetails,
+      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      Map<String, String> installCommands,
+      String startupCommand) {
     Map<String, Object> bindings = new HashMap<>();
-    List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
-    List<String> upstartNames = getPrioritizedBakeableServices(serviceTypes)
-        .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
-        .map(i -> ((BakeDebianService) i).getUpstartServiceName())
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-    List<String> systemdServiceConfigs = upstartNames.stream()
-        .map(n -> n + ".service")
-        .collect(Collectors.toList());
-    List<String> serviceInstalls = serviceTypes.stream()
-        .map(t -> installCommands.get(t.getCanonicalName()))
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        new ArrayList<>(installCommands.keySet())
+            .stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
+    List<String> upstartNames =
+        getPrioritizedBakeableServices(serviceTypes).stream()
+            .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
+            .map(i -> ((BakeDebianService) i).getUpstartServiceName())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    List<String> systemdServiceConfigs =
+        upstartNames.stream().map(n -> n + ".service").collect(Collectors.toList());
+    List<String> serviceInstalls =
+        serviceTypes.stream()
+            .map(t -> installCommands.get(t.getCanonicalName()))
+            .collect(Collectors.toList());
 
     TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
     String upstartInit = resource.setBindings(bindings).toString();
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
+    BillOfMaterials.ArtifactSources artifactSources =
+        artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
     resource = new StringReplaceJarResource("/debian/pre-bake.sh");
     bindings = new HashMap<>();
-    bindings.put("debian-repository", artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
+    bindings.put(
+        "debian-repository",
+        artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("upstart-init", upstartInit);
     bindings.put("startup-file", Paths.get(startupScriptPath, "startup.sh").toString());
@@ -137,6 +126,7 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
 
   @Override
   public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new HalException(Problem.Severity.FATAL, "Bakeable services do not support being uninstalled.");
+    throw new HalException(
+        Problem.Severity.FATAL, "Bakeable services do not support being uninstalled.");
   }
 }

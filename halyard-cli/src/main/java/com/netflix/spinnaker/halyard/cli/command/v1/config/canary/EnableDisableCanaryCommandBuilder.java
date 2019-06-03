@@ -19,15 +19,13 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AbstractEnableDisableAuthzCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 public class EnableDisableCanaryCommandBuilder implements CommandBuilder {
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {

@@ -29,86 +29,77 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import io.fabric8.utils.Strings;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Component
 public class LocalDebianServiceProvider extends LocalServiceProvider {
-  @Autowired
-  private ArtifactSourcesConfig artifactSourcesConfig;
+  @Autowired private ArtifactSourcesConfig artifactSourcesConfig;
 
-  @Autowired
-  private ArtifactService artifactService;
+  @Autowired private ArtifactService artifactService;
 
-  @Autowired
-  LocalDebianClouddriverService clouddriverService;
+  @Autowired LocalDebianClouddriverService clouddriverService;
 
-  @Autowired
-  LocalDebianDeckService deckService;
+  @Autowired LocalDebianDeckService deckService;
 
-  @Autowired
-  LocalDebianEchoService echoService;
+  @Autowired LocalDebianEchoService echoService;
 
-  @Autowired
-  LocalDebianFiatService fiatService;
+  @Autowired LocalDebianFiatService fiatService;
 
-  @Autowired
-  LocalDebianFront50Service front50Service;
+  @Autowired LocalDebianFront50Service front50Service;
 
-  @Autowired
-  LocalDebianGateService gateService;
+  @Autowired LocalDebianGateService gateService;
 
-  @Autowired
-  LocalDebianIgorService igorService;
+  @Autowired LocalDebianIgorService igorService;
 
-  @Autowired
-  LocalDebianKayentaService kayentaService;
+  @Autowired LocalDebianKayentaService kayentaService;
 
-  @Autowired
-  LocalDebianMonitoringDaemonService monitoringDaemonService;
+  @Autowired LocalDebianMonitoringDaemonService monitoringDaemonService;
 
-  @Autowired
-  LocalDebianOrcaService orcaService;
+  @Autowired LocalDebianOrcaService orcaService;
 
-  @Autowired
-  LocalDebianRedisService redisService;
+  @Autowired LocalDebianRedisService redisService;
 
-  @Autowired
-  LocalDebianRoscoService roscoService;
+  @Autowired LocalDebianRoscoService roscoService;
 
   @Override
-  public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
+  public String getInstallCommand(
+      DeploymentDetails deploymentDetails,
+      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      Map<String, String> installCommands) {
     Map<String, Object> bindings = new HashMap<>();
-    List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream()
-        .map(SpinnakerService.Type::fromCanonicalName)
-        .collect(Collectors.toList());
-    List<String> upstartNames = getLocalServices(serviceTypes)
-        .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
-        .map(i -> ((LocalDebianService) i).getUpstartServiceName())
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-    List<String> systemdServiceConfigs = upstartNames.stream()
-        .map(n -> n + ".service")
-        .collect(Collectors.toList());
-    List<String> serviceInstalls = serviceTypes.stream()
-        .map(t -> installCommands.get(t.getCanonicalName()))
-        .collect(Collectors.toList());
+    List<SpinnakerService.Type> serviceTypes =
+        new ArrayList<>(installCommands.keySet())
+            .stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
+    List<String> upstartNames =
+        getLocalServices(serviceTypes).stream()
+            .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
+            .map(i -> ((LocalDebianService) i).getUpstartServiceName())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    List<String> systemdServiceConfigs =
+        upstartNames.stream().map(n -> n + ".service").collect(Collectors.toList());
+    List<String> serviceInstalls =
+        serviceTypes.stream()
+            .map(t -> installCommands.get(t.getCanonicalName()))
+            .collect(Collectors.toList());
 
     TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
     String upstartInit = resource.setBindings(bindings).toString();
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
+    BillOfMaterials.ArtifactSources artifactSources =
+        artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
     resource = new StringReplaceJarResource("/debian/install.sh");
     bindings = new HashMap<>();
     bindings.put("prepare-environment", "true");
     bindings.put("install-redis", "true");
-    bindings.put("debian-repository", artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
+    bindings.put(
+        "debian-repository",
+        artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("service-action", "restart");
     bindings.put("upstart-init", upstartInit);
@@ -118,18 +109,22 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
 
   @Override
   public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    String uninstallArtifacts = String.join("\n", getServices()
-        .stream()
-        .filter(s -> s != null && runtimeSettings.getServiceSettings(s).getEnabled())
-        .map(s -> ((LocalDebianService) s).uninstallArtifactCommand())
-        .collect(Collectors.toList()));
+    String uninstallArtifacts =
+        String.join(
+            "\n",
+            getServices().stream()
+                .filter(s -> s != null && runtimeSettings.getServiceSettings(s).getEnabled())
+                .map(s -> ((LocalDebianService) s).uninstallArtifactCommand())
+                .collect(Collectors.toList()));
 
     Map<String, Object> bindings = new HashMap<>();
     TemplatedResource resource = new StringReplaceJarResource("/debian/uninstall.sh");
     bindings.put("uninstall-artifacts", uninstallArtifacts);
 
-    return new RemoteAction().setScript(resource.setBindings(bindings).toString())
+    return new RemoteAction()
+        .setScript(resource.setBindings(bindings).toString())
         .setAutoRun(true)
-        .setScriptDescription("This script apt-get purges all spinnaker components & deletes their config");
+        .setScriptDescription(
+            "This script apt-get purges all spinnaker components & deletes their config");
   }
 }

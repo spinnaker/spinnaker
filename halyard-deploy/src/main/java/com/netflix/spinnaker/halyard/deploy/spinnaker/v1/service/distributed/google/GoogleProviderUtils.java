@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AccessConfig;
@@ -35,14 +37,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
-import org.springframework.util.SocketUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -58,16 +52,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.springframework.util.SocketUtils;
 
 @Slf4j
 class GoogleProviderUtils {
   // Map from service -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
+
   static String getNetworkName() {
     return "spinnaker-hal";
   }
+
   private static String getSshKeyFile() {
     return Paths.get(System.getProperty("user.home"), ".ssh/google_compute_halyard").toString();
   }
@@ -91,7 +92,7 @@ class GoogleProviderUtils {
     }
   }
 
-  static private void ensureSshKeysExist() {
+  private static void ensureSshKeysExist() {
     File sshKeyFile = new File(getSshKeyFile());
     if (!sshKeyFile.exists()) {
       if (!sshKeyFile.getParentFile().exists()) {
@@ -124,7 +125,6 @@ class GoogleProviderUtils {
         throw new HalException(FATAL, "ssh-keygen failed: " + status.getStdErr());
       }
 
-
       try {
         File sshPublicKeyFile = new File(getSshPublicKeyFile());
         String sshKeyContents = IOUtils.toString(new FileInputStream(sshPublicKeyFile));
@@ -134,7 +134,10 @@ class GoogleProviderUtils {
           FileUtils.writeByteArrayToFile(sshPublicKeyFile, sshKeyContents.getBytes());
         }
       } catch (IOException e) {
-        throw new HalException(FATAL, "Cannot reformat ssh key to match google key format expectation: " + e.getMessage(), e);
+        throw new HalException(
+            FATAL,
+            "Cannot reformat ssh key to match google key format expectation: " + e.getMessage(),
+            e);
       }
 
       command = new ArrayList<>();
@@ -155,7 +158,7 @@ class GoogleProviderUtils {
     }
   }
 
-  static public String getSshPublicKey() {
+  public static String getSshPublicKey() {
     ensureSshKeysExist();
 
     try {
@@ -165,7 +168,8 @@ class GoogleProviderUtils {
     }
   }
 
-  static private Proxy openSshTunnel(String ip, int port, String keyFile) throws InterruptedException {
+  private static Proxy openSshTunnel(String ip, int port, String keyFile)
+      throws InterruptedException {
     JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
     List<String> command = new ArrayList<>();
 
@@ -210,12 +214,12 @@ class GoogleProviderUtils {
     return new Proxy().setJobId(jobId).setPort(localPort);
   }
 
-  static private void closeSshTunnel(Proxy proxy) {
+  private static void closeSshTunnel(Proxy proxy) {
     JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
     jobExecutor.cancelJob(proxy.getJobId());
   }
 
-  static private boolean checkIfProxyIsOpen(Proxy proxy) {
+  private static boolean checkIfProxyIsOpen(Proxy proxy) {
     boolean connected = false;
     int tries = 0;
     int port = proxy.getPort();
@@ -238,7 +242,9 @@ class GoogleProviderUtils {
     return connected;
   }
 
-  static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) throws InterruptedException {
+  static URI openSshTunnel(
+      AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service)
+      throws InterruptedException {
     int port = service.getPort();
     String key = Proxy.buildKey(details.getDeploymentName(), instanceName, port);
 
@@ -263,7 +269,12 @@ class GoogleProviderUtils {
             log.warn("SSH tunnel closed prematurely");
           }
 
-          log.info("SSH tunnel never opened, retrying in case the instance hasn't started yet... (" + tries + "/" + openSshRetries + ")");
+          log.info(
+              "SSH tunnel never opened, retrying in case the instance hasn't started yet... ("
+                  + tries
+                  + "/"
+                  + openSshRetries
+                  + ")");
           closeSshTunnel(proxy);
           DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(10));
         }
@@ -271,7 +282,8 @@ class GoogleProviderUtils {
 
       if (!connected) {
         JobStatus status = jobExecutor.updateJob(proxy.getJobId());
-        throw new HalException(FATAL, "Unable to connect to instance " + instanceName + ": " + status.getStdErr());
+        throw new HalException(
+            FATAL, "Unable to connect to instance " + instanceName + ": " + status.getStdErr());
       }
 
       proxyMap.put(key, proxy);
@@ -288,34 +300,41 @@ class GoogleProviderUtils {
     }
   }
 
-  static void waitOnZoneOperation(Compute compute, String project, String zone, Operation operation) throws IOException {
-    waitOnOperation(() -> {
-      try {
-        return compute.zoneOperations().get(project, zone, operation.getName()).execute();
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Operation failed: " + e);
-      }
-    });
+  static void waitOnZoneOperation(Compute compute, String project, String zone, Operation operation)
+      throws IOException {
+    waitOnOperation(
+        () -> {
+          try {
+            return compute.zoneOperations().get(project, zone, operation.getName()).execute();
+          } catch (IOException e) {
+            throw new HalException(FATAL, "Operation failed: " + e);
+          }
+        });
   }
 
-  static void waitOnGlobalOperation(Compute compute, String project, Operation operation) throws IOException {
-    waitOnOperation(() -> {
-      try {
-        return compute.globalOperations().get(project, operation.getName()).execute();
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Operation failed: " + e);
-      }
-    });
+  static void waitOnGlobalOperation(Compute compute, String project, Operation operation)
+      throws IOException {
+    waitOnOperation(
+        () -> {
+          try {
+            return compute.globalOperations().get(project, operation.getName()).execute();
+          } catch (IOException e) {
+            throw new HalException(FATAL, "Operation failed: " + e);
+          }
+        });
   }
 
   private static void waitOnOperation(Supplier<Operation> operationSupplier) {
     Operation operation = operationSupplier.get();
     while (!operation.getStatus().equals("DONE")) {
       if (operation.getError() != null) {
-        throw new HalException(FATAL, String.join("\n", operation.getError()
-            .getErrors()
-            .stream()
-            .map(e -> e.getCode() + ": " + e.getMessage()).collect(Collectors.toList())));
+        throw new HalException(
+            FATAL,
+            String.join(
+                "\n",
+                operation.getError().getErrors().stream()
+                    .map(e -> e.getCode() + ": " + e.getMessage())
+                    .collect(Collectors.toList())));
       }
       operation = operationSupplier.get();
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
@@ -334,18 +353,21 @@ class GoogleProviderUtils {
       if (e.getStatusCode() == 404) {
         exists = false;
       } else {
-        throw new HalException(FATAL, "Google error encountered retrieving network: " + e.getMessage(), e);
+        throw new HalException(
+            FATAL, "Google error encountered retrieving network: " + e.getMessage(), e);
       }
     } catch (IOException e) {
-      throw new HalException(FATAL, "Failed to check if spinnaker network exists: " + e.getMessage(), e);
+      throw new HalException(
+          FATAL, "Failed to check if spinnaker network exists: " + e.getMessage(), e);
     }
 
     if (!exists) {
       String networkUrl;
-      Network network = new Network()
-          .setAutoCreateSubnetworks(true)
-          .setName(networkName)
-          .setDescription("Spinnaker network auto-created by Halyard");
+      Network network =
+          new Network()
+              .setAutoCreateSubnetworks(true)
+              .setName(networkName)
+              .setDescription("Spinnaker network auto-created by Halyard");
 
       try {
         DaemonTaskHandler.message("Creating a spinnaker network...");
@@ -356,62 +378,78 @@ class GoogleProviderUtils {
         throw new HalException(FATAL, "Failed to create Spinnaker network: " + e.getMessage(), e);
       }
 
-      Firewall.Allowed allowSsh = new Firewall.Allowed()
-          .setPorts(Collections.singletonList("22"))
-          .setIPProtocol("tcp");
+      Firewall.Allowed allowSsh =
+          new Firewall.Allowed().setPorts(Collections.singletonList("22")).setIPProtocol("tcp");
 
-      Firewall firewallSsh = new Firewall()
-          .setNetwork(networkUrl)
-          .setAllowed(Collections.singletonList(allowSsh))
-          .setName(networkName + "-allow-ssh")
-          .setSourceRanges(Collections.singletonList("0.0.0.0/0"));
+      Firewall firewallSsh =
+          new Firewall()
+              .setNetwork(networkUrl)
+              .setAllowed(Collections.singletonList(allowSsh))
+              .setName(networkName + "-allow-ssh")
+              .setSourceRanges(Collections.singletonList("0.0.0.0/0"));
 
-      Firewall.Allowed allowInternalTcp = new Firewall.Allowed()
-          .setPorts(Collections.singletonList("1-65535"))
-          .setIPProtocol("tcp");
+      Firewall.Allowed allowInternalTcp =
+          new Firewall.Allowed()
+              .setPorts(Collections.singletonList("1-65535"))
+              .setIPProtocol("tcp");
 
-      Firewall.Allowed allowInternalUdp = new Firewall.Allowed()
-          .setPorts(Collections.singletonList("1-65535"))
-          .setIPProtocol("udp");
+      Firewall.Allowed allowInternalUdp =
+          new Firewall.Allowed()
+              .setPorts(Collections.singletonList("1-65535"))
+              .setIPProtocol("udp");
 
-      Firewall.Allowed allowInternalIcmp = new Firewall.Allowed()
-          .setIPProtocol("icmp");
+      Firewall.Allowed allowInternalIcmp = new Firewall.Allowed().setIPProtocol("icmp");
 
       List<Firewall.Allowed> allowInteral = new ArrayList<>();
       allowInteral.add(allowInternalTcp);
       allowInteral.add(allowInternalUdp);
       allowInteral.add(allowInternalIcmp);
 
-      Firewall firewallInternal = new Firewall()
-          .setNetwork(networkUrl)
-          .setAllowed(allowInteral)
-          .setName(networkName + "-allow-internal")
-          .setSourceRanges(Collections.singletonList("10.0.0.0/8"));
+      Firewall firewallInternal =
+          new Firewall()
+              .setNetwork(networkUrl)
+              .setAllowed(allowInteral)
+              .setName(networkName + "-allow-internal")
+              .setSourceRanges(Collections.singletonList("10.0.0.0/8"));
 
       try {
         DaemonTaskHandler.message("Adding firewall rules...");
         compute.firewalls().insert(project, firewallSsh).execute();
         compute.firewalls().insert(project, firewallInternal).execute();
       } catch (IOException e) {
-        throw new HalException(FATAL, "Failed to create Firewall rule network: " + e.getMessage(), e);
+        throw new HalException(
+            FATAL, "Failed to create Firewall rule network: " + e.getMessage(), e);
       }
     }
 
     return String.format("projects/%s/global/networks/%s", project, networkName);
   }
 
-  static public void resize(AccountDeploymentDetails<GoogleAccount> details, String zone, String managedInstaceGroupName, int targetSize) {
+  public static void resize(
+      AccountDeploymentDetails<GoogleAccount> details,
+      String zone,
+      String managedInstaceGroupName,
+      int targetSize) {
     Compute compute = getCompute(details);
     try {
-      compute.instanceGroupManagers().resize(details.getAccount().getProject(), zone, managedInstaceGroupName, targetSize);
+      compute
+          .instanceGroupManagers()
+          .resize(details.getAccount().getProject(), zone, managedInstaceGroupName, targetSize);
     } catch (IOException e) {
-      throw new HalException(FATAL, "Unable to resize instance group manager " + managedInstaceGroupName + ": " + e.getMessage(), e);
+      throw new HalException(
+          FATAL,
+          "Unable to resize instance group manager "
+              + managedInstaceGroupName
+              + ": "
+              + e.getMessage(),
+          e);
     }
   }
 
   static Compute getCompute(AccountDeploymentDetails<GoogleAccount> details) {
     ConfigProblemSetBuilder problemSetBuilder = new ConfigProblemSetBuilder(null);
-    GoogleNamedAccountCredentials credentials = details.getAccount().getNamedAccountCredentials("", null, problemSetBuilder);
+    GoogleNamedAccountCredentials credentials =
+        details.getAccount().getNamedAccountCredentials("", null, problemSetBuilder);
 
     if (credentials == null) {
       throw new HalException(problemSetBuilder.build().getProblems());
@@ -420,22 +458,28 @@ class GoogleProviderUtils {
     return credentials.getCompute();
   }
 
-  static String getInstanceIp(AccountDeploymentDetails<GoogleAccount> details, String instanceName) {
+  static String getInstanceIp(
+      AccountDeploymentDetails<GoogleAccount> details, String instanceName) {
     Compute compute = getCompute(details);
     Instance instance = null;
     try {
-      instance = compute.instances().get(details.getAccount().getProject(), "us-central1-f", instanceName).execute();
+      instance =
+          compute
+              .instances()
+              .get(details.getAccount().getProject(), "us-central1-f", instanceName)
+              .execute();
     } catch (IOException e) {
       throw new HalException(FATAL, "Unable to get instance " + instanceName);
     }
 
-    return instance.getNetworkInterfaces()
-        .stream()
-        .map(i -> i.getAccessConfigs().stream()
-            .map(AccessConfig::getNatIP)
-            .filter(ip -> !StringUtils.isEmpty(ip))
-            .findFirst()
-        ).filter(Optional::isPresent)
+    return instance.getNetworkInterfaces().stream()
+        .map(
+            i ->
+                i.getAccessConfigs().stream()
+                    .map(AccessConfig::getNatIP)
+                    .filter(ip -> !StringUtils.isEmpty(ip))
+                    .findFirst())
+        .filter(Optional::isPresent)
         .map(Optional::get)
         .findFirst()
         .orElseThrow(() -> new HalException(FATAL, "No public IP associated with" + instanceName));
@@ -447,7 +491,8 @@ class GoogleProviderUtils {
     Integer port;
 
     static String buildKey(String deployment, String instance, int port) {
-      return String.format("%d:%s:%s:%d", Thread.currentThread().getId(), deployment, instance, port);
+      return String.format(
+          "%d:%s:%s:%d", Thread.currentThread().getId(), deployment, instance, port);
     }
   }
 }

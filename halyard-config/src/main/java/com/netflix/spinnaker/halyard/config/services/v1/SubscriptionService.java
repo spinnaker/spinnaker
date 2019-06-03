@@ -27,33 +27,30 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
- * deployments.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig's deployments.
  */
 @Component
 public class SubscriptionService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private PubsubService pubsubService;
+  @Autowired private PubsubService pubsubService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
-  @Autowired
-  private OptionsService optionsService;
+  @Autowired private OptionsService optionsService;
 
   public List<Subscription> getAllSubscriptions(String deploymentName, String pubsubName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnySubscription();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnySubscription();
 
-    List<Subscription> matchingSubscriptions = lookupService.getMatchingNodesOfType(filter, Subscription.class);
+    List<Subscription> matchingSubscriptions =
+        lookupService.getMatchingNodesOfType(filter, Subscription.class);
 
     if (matchingSubscriptions.size() == 0) {
       throw new ConfigNotFoundException(
@@ -64,33 +61,57 @@ public class SubscriptionService {
   }
 
   private Subscription getSubscription(NodeFilter filter, String subscriptionName) {
-    List<Subscription> matchingSubscriptions = lookupService.getMatchingNodesOfType(filter, Subscription.class);
+    List<Subscription> matchingSubscriptions =
+        lookupService.getMatchingNodesOfType(filter, Subscription.class);
 
     switch (matchingSubscriptions.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No subscription with name \"" + subscriptionName + "\" was found")
-            .setRemediation("Check if this subscription was defined in another pubsub, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "No subscription with name \"" + subscriptionName + "\" was found")
+                .setRemediation(
+                    "Check if this subscription was defined in another pubsub, or create a new one")
+                .build());
       case 1:
         return matchingSubscriptions.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one subscription named \"" + subscriptionName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate subscriptions with name \"" + subscriptionName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one subscription named \"" + subscriptionName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate subscriptions with name \""
+                        + subscriptionName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
-  public Subscription getPubsubSubscription(String deploymentName, String pubsubName, String subscriptionName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).setSubscription(subscriptionName);
+  public Subscription getPubsubSubscription(
+      String deploymentName, String pubsubName, String subscriptionName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setPubsub(pubsubName)
+            .setSubscription(subscriptionName);
     return getSubscription(filter, subscriptionName);
   }
 
   public Subscription getAnyPubsubSubscription(String deploymentName, String subscriptionName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyPubsub().setSubscription(subscriptionName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .withAnyPubsub()
+            .setSubscription(subscriptionName);
     return getSubscription(filter, subscriptionName);
   }
 
-  public void setSubscription(String deploymentName, String pubsubName, String subscriptionName, Subscription newSubscription) {
+  public void setSubscription(
+      String deploymentName,
+      String pubsubName,
+      String subscriptionName,
+      Subscription newSubscription) {
     Pubsub pubsub = pubsubService.getPubsub(deploymentName, pubsubName);
 
     for (int i = 0; i < pubsub.getSubscriptions().size(); i++) {
@@ -101,32 +122,48 @@ public class SubscriptionService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Subscription \"" + subscriptionName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(
+                Severity.FATAL, "Subscription \"" + subscriptionName + "\" wasn't found")
+            .build());
   }
 
-  public void deleteSubscription(String deploymentName, String pubsubName, String subscriptionName) {
+  public void deleteSubscription(
+      String deploymentName, String pubsubName, String subscriptionName) {
     Pubsub pubsub = pubsubService.getPubsub(deploymentName, pubsubName);
-    boolean removed = pubsub.getSubscriptions().removeIf(subscription -> ((Subscription) subscription).getName().equals(subscriptionName));
+    boolean removed =
+        pubsub
+            .getSubscriptions()
+            .removeIf(
+                subscription -> ((Subscription) subscription).getName().equals(subscriptionName));
 
     if (!removed) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Subscription \"" + subscriptionName + "\" wasn't found")
+          new ConfigProblemBuilder(
+                  Severity.FATAL, "Subscription \"" + subscriptionName + "\" wasn't found")
               .build());
     }
   }
 
-  public void addSubscription(String deploymentName, String pubsubName, Subscription newSubscription) {
+  public void addSubscription(
+      String deploymentName, String pubsubName, Subscription newSubscription) {
     Pubsub pubsub = pubsubService.getPubsub(deploymentName, pubsubName);
     pubsub.getSubscriptions().add(newSubscription);
   }
 
-  public ProblemSet validateSubscription(String deploymentName, String pubsubName, String subscriptionName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).setSubscription(subscriptionName);
+  public ProblemSet validateSubscription(
+      String deploymentName, String pubsubName, String subscriptionName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setPubsub(pubsubName)
+            .setSubscription(subscriptionName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllSubscriptions(String deploymentName, String pubsubName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnySubscription();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setPubsub(pubsubName).withAnySubscription();
     return validateService.validateMatchingFilter(filter);
   }
 }

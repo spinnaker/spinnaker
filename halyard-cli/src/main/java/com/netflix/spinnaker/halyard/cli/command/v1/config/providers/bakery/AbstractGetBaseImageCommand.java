@@ -30,8 +30,7 @@ abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
     return "Get the specified base image details for the " + getProviderName() + " provider.";
   }
 
-  @Getter
-  private String commandName = "get";
+  @Getter private String commandName = "get";
 
   @Override
   protected void executeThis() {
@@ -39,7 +38,8 @@ abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
     String providerName = getProviderName();
     String baseImageId = getBaseImageId();
     new OperationHandler<BaseImage>()
-        .setFailureMesssage("Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setFailureMesssage(
+            "Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
         .setSuccessMessage("Settings for " + baseImageId + " in" + providerName + "'s bakery:")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)

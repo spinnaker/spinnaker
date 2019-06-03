@@ -28,24 +28,27 @@ import lombok.Getter;
 public class EditArtifactTemplateCommand extends AbstractHasArtifactTemplateCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
+
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Edit an artifact template";
+
   @Parameter(
       names = "--template-path",
-      description = "The path to the Jinja template to use for artifact extraction"
-  )
+      description = "The path to the Jinja template to use for artifact extraction")
   private String templatePath;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     String templateName = getArtifactTemplate();
-    ArtifactTemplate template = new ArtifactTemplate().setName(templateName).setTemplatePath(templatePath);
+    ArtifactTemplate template =
+        new ArtifactTemplate().setName(templateName).setTemplatePath(templatePath);
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to edit artifact template " + templateName + ".")
         .setSuccessMessage("Successfully edited artifact template " + templateName + ".")
-        .setOperation(Daemon.setArtifactTemplate(currentDeployment, templateName, !noValidate, template))
+        .setOperation(
+            Daemon.setArtifactTemplate(currentDeployment, templateName, !noValidate, template))
         .get();
   }
 }

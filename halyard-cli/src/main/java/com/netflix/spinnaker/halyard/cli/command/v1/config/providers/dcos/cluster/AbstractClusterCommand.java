@@ -3,7 +3,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dcos.clust
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +18,9 @@ public abstract class AbstractClusterCommand extends AbstractProviderCommand {
 
   @Override
   public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's cluster";
+    return "Manage and view Spinnaker configuration for the "
+        + getProviderName()
+        + " provider's cluster";
   }
 
   @Override
@@ -42,13 +43,12 @@ public abstract class AbstractClusterCommand extends AbstractProviderCommand {
 
   public String getClusterName() {
     switch (clusters.size()) {
-    case 0:
-      throw new IllegalArgumentException("No cluster name supplied");
-    case 1:
-      return clusters.get(0);
-    default:
-      throw new IllegalArgumentException("More than one cluster supplied");
+      case 0:
+        throw new IllegalArgumentException("No cluster name supplied");
+      case 1:
+        return clusters.get(0);
+      default:
+        throw new IllegalArgumentException("More than one cluster supplied");
     }
   }
 }
-

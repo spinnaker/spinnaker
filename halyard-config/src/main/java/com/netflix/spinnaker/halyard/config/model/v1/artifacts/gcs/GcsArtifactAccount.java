@@ -29,7 +29,5 @@ import lombok.EqualsAndHashCode;
 public class GcsArtifactAccount extends ArtifactAccount {
   String name;
 
-  @LocalFile
-  @SecretFile
-  String jsonPath;
+  @LocalFile @SecretFile String jsonPath;
 }

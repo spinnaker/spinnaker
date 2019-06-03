@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.halyard.config.model.v1.ci.concourse;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

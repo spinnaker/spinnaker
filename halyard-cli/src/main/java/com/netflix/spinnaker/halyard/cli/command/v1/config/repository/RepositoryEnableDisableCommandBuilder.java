@@ -24,11 +24,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class RepositoryEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String repositoryName;
+  @Setter String repositoryName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
@@ -36,7 +34,8 @@ public class RepositoryEnableDisableCommandBuilder implements CommandBuilder {
   }
 
   @Parameters(separators = "=")
-  private static class RepositoryEnableDisableCommand extends AbstractRepositoryEnableDisableCommand {
+  private static class RepositoryEnableDisableCommand
+      extends AbstractRepositoryEnableDisableCommand {
     private RepositoryEnableDisableCommand(String repositoryName, boolean enable) {
       this.repositoryName = repositoryName;
       this.enable = enable;

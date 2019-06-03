@@ -22,5 +22,4 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class AzureBakeryDefaults extends BakeryDefaults<AzureBaseImage> {
-}
+public class AzureBakeryDefaults extends BakeryDefaults<AzureBaseImage> {}

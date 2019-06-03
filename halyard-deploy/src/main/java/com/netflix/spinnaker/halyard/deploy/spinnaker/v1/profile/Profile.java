@@ -20,11 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,27 +27,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
 public class Profile {
-  @JsonIgnore
-  @Getter
-  @Setter
-  private String contents = "";
+  @JsonIgnore @Getter @Setter private String contents = "";
   private List<String> requiredFiles = new ArrayList<>();
   // Secret file content decrypted in memory keyed by generated filename
   private Map<String, byte[]> decryptedFiles = new HashMap<>();
   private Map<String, String> env = new HashMap<>();
 
   // Name of the profile itself (not the service or artifact)
-  final private String name;
-  final private String version;
+  private final String name;
+  private final String version;
   // This is any data needed by the profile to generate the rest of its contents
-  @JsonIgnore
-  final private String baseContents;
+  @JsonIgnore private final String baseContents;
   // Where does Spinnaker expect to find this profile
-  final private String outputFile;
+  private final String outputFile;
   boolean executable = false;
   private String user = "spinnaker";
   private String group = "spinnaker";
@@ -64,16 +59,24 @@ public class Profile {
   public void writeStagedFile(String stagingPath) {
     AtomicFileWriter writer = null;
     Path path = Paths.get(stagingPath, name);
-    log.info("Writing profile to " + path.toString() + " with " + requiredFiles.size() + " required files");
+    log.info(
+        "Writing profile to "
+            + path.toString()
+            + " with "
+            + requiredFiles.size()
+            + " required files");
     try {
       writer = new AtomicFileWriter(path);
       writer.write(contents);
       writer.commit();
     } catch (IOException ioe) {
       ioe.printStackTrace();
-      throw new HalException(Problem.Severity.FATAL,
-              "Failed to write config for profile " + path.toFile().getName() + ": " + ioe.getMessage()
-      );
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Failed to write config for profile "
+              + path.toFile().getName()
+              + ": "
+              + ioe.getMessage());
     } finally {
       if (writer != null) {
         writer.close();

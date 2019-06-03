@@ -25,8 +25,7 @@ import lombok.Getter;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class Security extends Node {
-  @Getter
-  private String nodeName = "security";
+  @Getter private String nodeName = "security";
 
   private ApiSecurity apiSecurity = new ApiSecurity();
   private UiSecurity uiSecurity = new UiSecurity();

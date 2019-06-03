@@ -30,8 +30,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditPublisherCommand<T extends Publisher> extends
-    AbstractHasPublisherCommand {
+public abstract class AbstractEditPublisherCommand<T extends Publisher>
+    extends AbstractHasPublisherCommand {
 
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
@@ -51,11 +51,12 @@ public abstract class AbstractEditPublisherCommand<T extends Publisher> extends
     String pubsubName = getPubsubName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Publisher publisher = new OperationHandler<Publisher>()
-        .setFailureMesssage(
-            "Failed to get publisher " + publisherName + " for pubsub " + pubsubName + ".")
-        .setOperation(Daemon.getPublisher(currentDeployment, pubsubName, publisherName, false))
-        .get();
+    Publisher publisher =
+        new OperationHandler<Publisher>()
+            .setFailureMesssage(
+                "Failed to get publisher " + publisherName + " for pubsub " + pubsubName + ".")
+            .setOperation(Daemon.getPublisher(currentDeployment, pubsubName, publisherName, false))
+            .get();
 
     int originalHash = publisher.hashCode();
 
@@ -71,8 +72,9 @@ public abstract class AbstractEditPublisherCommand<T extends Publisher> extends
             "Failed to edit publisher " + publisherName + " for pubsub " + pubsubName + ".")
         .setSuccessMessage(
             "Successfully edited publisher " + publisherName + " for pubsub " + pubsubName + ".")
-        .setOperation(Daemon
-            .setPublisher(currentDeployment, pubsubName, publisherName, !noValidate, publisher))
+        .setOperation(
+            Daemon.setPublisher(
+                currentDeployment, pubsubName, publisherName, !noValidate, publisher))
         .get();
   }
 }

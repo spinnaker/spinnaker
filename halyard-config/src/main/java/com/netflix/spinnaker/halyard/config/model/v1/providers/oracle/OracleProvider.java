@@ -24,14 +24,15 @@ public class OracleProvider extends HasImageProvider<OracleAccount, OracleBakery
     return result;
   }
 
-  public static OracleProvider mergeOracleBMCSProvider(OracleProvider oracle, OracleBMCSProvider bmcs) {
+  public static OracleProvider mergeOracleBMCSProvider(
+      OracleProvider oracle, OracleBMCSProvider bmcs) {
     if (oracle.getPrimaryAccount() == null && bmcs.getPrimaryAccount() != null) {
       return convertFromOracleBMCSProvider(bmcs);
     } else {
       return oracle;
     }
   }
-  
+
   private static OracleProvider convertFromOracleBMCSProvider(OracleBMCSProvider bmcs) {
     OracleProvider provider = new OracleProvider();
     provider.setEnabled(bmcs.isEnabled());

@@ -25,8 +25,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class ArtifactTemplate extends Node {
   private String name;
-  @LocalFile
-  private String templatePath;
+  @LocalFile private String templatePath;
 
   @Override
   public String getNodeName() {

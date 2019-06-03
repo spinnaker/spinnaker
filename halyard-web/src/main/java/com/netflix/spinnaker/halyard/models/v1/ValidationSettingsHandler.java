@@ -25,9 +25,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ValidationSettingsHandler {
   @ModelAttribute
   public ValidationSettings controllerValues(
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity
-  ) {
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate)
+          boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity)
+          Problem.Severity severity) {
     ValidationSettings values = new ValidationSettings();
     values.setValidate(validate);
     values.setSeverity(severity);
@@ -35,7 +36,7 @@ public class ValidationSettingsHandler {
   }
 
   private static class DefaultValidationSettings {
-    final static String validate = "false";
-    final static String severity = "WARNING";
+    static final String validate = "false";
+    static final String severity = "WARNING";
   }
 }

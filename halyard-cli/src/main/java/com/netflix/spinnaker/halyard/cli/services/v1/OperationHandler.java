@@ -17,16 +17,15 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.NONE;
+
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import lombok.Data;
-
 import java.util.function.Supplier;
-
-import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.NONE;
+import lombok.Data;
 
 @Data
 public class OperationHandler<T> implements Supplier<T> {

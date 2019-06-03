@@ -23,11 +23,10 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public class CollectLogsDeployCommand extends AbstractConfigCommand {
@@ -38,21 +37,20 @@ public class CollectLogsDeployCommand extends AbstractConfigCommand {
   private String shortDescription = "Collect logs from the specified Spinnaker services.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = "This command collects logs from all Spinnaker services, and depending on how it was deployed, it will "
-      + "collect logs from sidecars and startup scripts as well.";
+  private String longDescription =
+      "This command collects logs from all Spinnaker services, and depending on how it was deployed, it will "
+          + "collect logs from sidecars and startup scripts as well.";
 
   @Parameter(
       names = "--service-names",
       description = "When supplied, logs from only the specified services will be collected.",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> serviceNames = new ArrayList<>();
 
   @Parameter(
       names = "--exclude-service-names",
       description = "When supplied, logs from the specified services will be not collected",
-      variableArity = true
-  )
+      variableArity = true)
   List<String> excludeServiceNames = new ArrayList<>();
 
   @Override
@@ -60,7 +58,9 @@ public class CollectLogsDeployCommand extends AbstractConfigCommand {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to collect logs from Spinnaker.")
         .setSuccessMessage("Successfully collected service logs.")
-        .setOperation(Daemon.collectLogs(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
+        .setOperation(
+            Daemon.collectLogs(
+                getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
         .get();
   }
 }

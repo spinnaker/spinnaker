@@ -30,10 +30,9 @@ import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,7 +44,8 @@ public class HaServiceController {
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{serviceName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, HaService> get(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, HaService> get(
+      @PathVariable String deploymentName,
       @PathVariable String serviceName,
       @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<HaService>builder()
@@ -57,14 +57,13 @@ public class HaServiceController {
   }
 
   @RequestMapping(value = "/{serviceName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setHaService(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setHaService(
+      @PathVariable String deploymentName,
       @PathVariable String serviceName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawHaService) {
-    HaService haService = objectMapper.convertValue(
-        rawHaService,
-        HaServices.translateHaServiceType(serviceName)
-    );
+    HaService haService =
+        objectMapper.convertValue(rawHaService, HaServices.translateHaServiceType(serviceName));
     return GenericUpdateRequest.<HaService>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(h -> haServiceService.setHaService(deploymentName, h))
@@ -75,7 +74,8 @@ public class HaServiceController {
   }
 
   @RequestMapping(value = "/{serviceName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(
+      @PathVariable String deploymentName,
       @PathVariable String serviceName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
@@ -88,10 +88,10 @@ public class HaServiceController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<HaService>> haServices(@PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings) {
+  DaemonTask<Halconfig, List<HaService>> haServices(
+      @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
     return GenericGetRequest.<List<HaService>>builder()
-        .getter( () -> haServiceService.getAllHaServices(deploymentName))
+        .getter(() -> haServiceService.getAllHaServices(deploymentName))
         .validator(() -> haServiceService.validateAllHaServices(deploymentName))
         .description("Get all high availability service configurations")
         .build()

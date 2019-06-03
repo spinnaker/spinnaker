@@ -22,7 +22,9 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class AzureBaseImage extends BaseImage<AzureBaseImage.AzureOperatingSystemSettings, AzureBaseImage.AzureVirtualizationSettings> {
+public class AzureBaseImage
+    extends BaseImage<
+        AzureBaseImage.AzureOperatingSystemSettings, AzureBaseImage.AzureVirtualizationSettings> {
 
   private AzureOperatingSystemSettings baseImage;
   private AzureVirtualizationSettings virtualizationSettings;

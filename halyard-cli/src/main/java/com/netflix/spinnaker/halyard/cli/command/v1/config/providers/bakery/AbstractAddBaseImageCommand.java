@@ -23,11 +23,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 @Parameters(separators = "=")
 public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCommand {
@@ -41,26 +40,22 @@ public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCo
 
   @Parameter(
       names = "--short-description",
-      description = BakeryCommandProperties.SHORT_DESCRIPTION_DESCRIPTION
-  )
+      description = BakeryCommandProperties.SHORT_DESCRIPTION_DESCRIPTION)
   private String shortDescription;
 
   @Parameter(
       names = "--detailed-description",
-      description = BakeryCommandProperties.DETAILED_DESCRIPTION_DESCRIPTION
-  )
+      description = BakeryCommandProperties.DETAILED_DESCRIPTION_DESCRIPTION)
   private String detailedDescription;
 
   @Parameter(
       names = "--package-type",
-      description = BakeryCommandProperties.PACKAGE_TYPE_DESCRIPTION
-  )
+      description = BakeryCommandProperties.PACKAGE_TYPE_DESCRIPTION)
   private String packageType;
 
   @Parameter(
       names = "--template-file",
-      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION
-  )
+      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION)
   private String templateFile;
 
   public String getShortDescription() {
@@ -74,7 +69,10 @@ public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCo
 
     BaseImage.ImageSettings imageSettings = baseImage.getBaseImage();
     if (imageSettings == null) {
-      throw new RuntimeException("Provider " + getProviderName() + " must provide image settings when building a base image. This is a bug with this provider's implementation of halyard.");
+      throw new RuntimeException(
+          "Provider "
+              + getProviderName()
+              + " must provide image settings when building a base image. This is a bug with this provider's implementation of halyard.");
     }
 
     imageSettings.setId(getBaseImageId());
@@ -87,8 +85,10 @@ public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCo
     String currentDeployment = getCurrentDeployment();
 
     new OperationHandler<Void>()
-        .setSuccessMessage("Successfully added base image " + baseImageId + " to " + providerName + "'s bakery.")
-        .setFailureMesssage("Failed to add base image " + baseImageId + " to " + providerName + "'s bakery.")
+        .setSuccessMessage(
+            "Successfully added base image " + baseImageId + " to " + providerName + "'s bakery.")
+        .setFailureMesssage(
+            "Failed to add base image " + baseImageId + " to " + providerName + "'s bakery.")
         .setOperation(Daemon.addBaseImage(currentDeployment, providerName, !noValidate, baseImage))
         .get();
   }

@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Slf4j
-public class SignalfxCanaryServiceIntegration extends AbstractCanaryServiceIntegration<SignalfxCanaryAccount> implements Cloneable {
+public class SignalfxCanaryServiceIntegration
+    extends AbstractCanaryServiceIntegration<SignalfxCanaryAccount> implements Cloneable {
   public static final String NAME = "signalfx";
 
   String name = NAME;

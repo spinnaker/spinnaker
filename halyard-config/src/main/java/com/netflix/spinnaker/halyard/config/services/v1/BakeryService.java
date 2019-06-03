@@ -27,30 +27,32 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
- * deployments.
+ * This service is meant to be autowired into any service or controller that needs to inspect the
+ * current halconfig's deployments.
  */
 @Component
 public class BakeryService {
-  @Autowired
-  private LookupService lookupService;
+  @Autowired private LookupService lookupService;
 
-  @Autowired
-  private ProviderService providerService;
+  @Autowired private ProviderService providerService;
 
-  @Autowired
-  private ValidateService validateService;
+  @Autowired private ValidateService validateService;
 
   public List<BaseImage> getAllBaseImages(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setBakeryDefaults().withAnyBaseImage();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setBakeryDefaults()
+            .withAnyBaseImage();
 
-    List<BaseImage> matchingBaseImages = lookupService.getMatchingNodesOfType(filter, BaseImage.class);
+    List<BaseImage> matchingBaseImages =
+        lookupService.getMatchingNodesOfType(filter, BaseImage.class);
 
     if (matchingBaseImages.size() == 0) {
       throw new ConfigNotFoundException(
@@ -61,56 +63,84 @@ public class BakeryService {
   }
 
   private BaseImage getBaseImage(NodeFilter filter, String baseImageName) {
-    List<BaseImage> matchingBaseImages = lookupService.getMatchingNodesOfType(filter, BaseImage.class);
+    List<BaseImage> matchingBaseImages =
+        lookupService.getMatchingNodesOfType(filter, BaseImage.class);
 
     switch (matchingBaseImages.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No base image with name \"" + baseImageName + "\" was found")
-            .setRemediation("Check if this base image was defined in another provider, or create a new one").build());
+        throw new ConfigNotFoundException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL, "No base image with name \"" + baseImageName + "\" was found")
+                .setRemediation(
+                    "Check if this base image was defined in another provider, or create a new one")
+                .build());
       case 1:
         return matchingBaseImages.get(0);
       default:
-        throw new IllegalConfigException(new ConfigProblemBuilder(
-            Severity.FATAL, "More than one base image named \"" + baseImageName + "\" was found")
-            .setRemediation("Manually delete/rename duplicate base images with name \"" + baseImageName + "\" in your halconfig file").build());
+        throw new IllegalConfigException(
+            new ConfigProblemBuilder(
+                    Severity.FATAL,
+                    "More than one base image named \"" + baseImageName + "\" was found")
+                .setRemediation(
+                    "Manually delete/rename duplicate base images with name \""
+                        + baseImageName
+                        + "\" in your halconfig file")
+                .build());
     }
   }
 
   public BakeryDefaults getBakeryDefaults(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setBakeryDefaults();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setBakeryDefaults();
 
-    List<BakeryDefaults> matching = lookupService.getMatchingNodesOfType(filter, BakeryDefaults.class);
+    List<BakeryDefaults> matching =
+        lookupService.getMatchingNodesOfType(filter, BakeryDefaults.class);
 
     switch (matching.size()) {
       case 0:
-        HasImageProvider provider = providerService.getHasImageProvider(deploymentName, providerName);
+        HasImageProvider provider =
+            providerService.getHasImageProvider(deploymentName, providerName);
         BakeryDefaults bakeryDefaults = provider.emptyBakeryDefaults();
         setBakeryDefaults(deploymentName, providerName, bakeryDefaults);
         return bakeryDefaults;
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple bakeryDefaults nodes. This is a bug.");
+        throw new RuntimeException(
+            "It shouldn't be possible to have multiple bakeryDefaults nodes. This is a bug.");
     }
   }
 
-  public void setBakeryDefaults(String deploymentName, String providerName, BakeryDefaults newBakeryDefaults) {
+  public void setBakeryDefaults(
+      String deploymentName, String providerName, BakeryDefaults newBakeryDefaults) {
     HasImageProvider provider = providerService.getHasImageProvider(deploymentName, providerName);
     provider.setBakeryDefaults(newBakeryDefaults);
   }
 
-  public BaseImage getProviderBaseImage(String deploymentName, String providerName, String baseImageName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setBaseImage(baseImageName);
+  public BaseImage getProviderBaseImage(
+      String deploymentName, String providerName, String baseImageName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setBaseImage(baseImageName);
     return getBaseImage(filter, baseImageName);
   }
 
   public BaseImage getAnyProviderBaseImage(String deploymentName, String baseImageName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider().setBaseImage(baseImageName);
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .withAnyProvider()
+            .setBaseImage(baseImageName);
     return getBaseImage(filter, baseImageName);
   }
 
-  public void setBaseImage(String deploymentName, String providerName, String baseImageName, BaseImage newBaseImage) {
+  public void setBaseImage(
+      String deploymentName, String providerName, String baseImageName, BaseImage newBaseImage) {
     BakeryDefaults bakeryDefaults = getBakeryDefaults(deploymentName, providerName);
 
     for (int i = 0; i < bakeryDefaults.getBaseImages().size(); i++) {
@@ -121,12 +151,19 @@ public class BakeryService {
       }
     }
 
-    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "BaseImage \"" + baseImageName + "\" wasn't found").build());
+    throw new HalException(
+        new ConfigProblemBuilder(Severity.FATAL, "BaseImage \"" + baseImageName + "\" wasn't found")
+            .build());
   }
 
-  public void deleteBaseImage(String deploymentName, String bakeryDefaultsName, String baseImageId) {
+  public void deleteBaseImage(
+      String deploymentName, String bakeryDefaultsName, String baseImageId) {
     BakeryDefaults bakeryDefaults = getBakeryDefaults(deploymentName, bakeryDefaultsName);
-    boolean removed = bakeryDefaults.getBaseImages().removeIf(baseImage -> ((BaseImage) baseImage).getBaseImage().getId().equals(baseImageId));
+    boolean removed =
+        bakeryDefaults
+            .getBaseImages()
+            .removeIf(
+                baseImage -> ((BaseImage) baseImage).getBaseImage().getId().equals(baseImageId));
 
     if (!removed) {
       throw new HalException(
@@ -135,23 +172,34 @@ public class BakeryService {
     }
   }
 
-  public void addBaseImage(String deploymentName, String bakeryDefaultsName, BaseImage newBaseImage) {
+  public void addBaseImage(
+      String deploymentName, String bakeryDefaultsName, BaseImage newBaseImage) {
     BakeryDefaults bakeryDefaults = getBakeryDefaults(deploymentName, bakeryDefaultsName);
     bakeryDefaults.getBaseImages().add(newBaseImage);
   }
 
   public ProblemSet validateBakeryDefaults(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setBakeryDefaults();
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setBakeryDefaults();
     return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateBaseImage(String deploymentName, String providerName, String baseImageName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setBaseImage(baseImageName);
+  public ProblemSet validateBaseImage(
+      String deploymentName, String providerName, String baseImageName) {
+    NodeFilter filter =
+        new NodeFilter()
+            .setDeployment(deploymentName)
+            .setProvider(providerName)
+            .setBaseImage(baseImageName);
     return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateAllBaseImages(String deploymentName, String providerName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyBaseImage();
+    NodeFilter filter =
+        new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyBaseImage();
     return validateService.validateMatchingFilter(filter);
   }
 }

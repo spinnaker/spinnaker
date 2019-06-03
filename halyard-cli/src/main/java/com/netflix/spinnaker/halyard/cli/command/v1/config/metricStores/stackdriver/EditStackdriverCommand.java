@@ -34,25 +34,24 @@ public class EditStackdriverCommand extends AbstractEditMetricStoreCommand<Stack
   @Parameter(
       names = "--credentials-path",
       converter = LocalFileConverter.class,
-      description = "A path to a Google JSON service account that has permission to publish metrics."
-  )
+      description =
+          "A path to a Google JSON service account that has permission to publish metrics.")
   private String credentialsPath;
 
   @Parameter(
       names = "--project",
-      description = "The project Spinnaker's metrics should be published to."
-  )
+      description = "The project Spinnaker's metrics should be published to.")
   private String project;
 
   @Parameter(
       names = "--zone",
-      description = "The zone Spinnaker's metrics should be associated with."
-  )
+      description = "The zone Spinnaker's metrics should be associated with.")
   private String zone;
 
   @Override
   protected MetricStore editMetricStore(StackdriverStore stackdriverStore) {
-    stackdriverStore.setCredentialsPath(isSet(credentialsPath) ? credentialsPath : stackdriverStore.getCredentialsPath());
+    stackdriverStore.setCredentialsPath(
+        isSet(credentialsPath) ? credentialsPath : stackdriverStore.getCredentialsPath());
     stackdriverStore.setProject(isSet(project) ? project : stackdriverStore.getProject());
     stackdriverStore.setZone(isSet(zone) ? zone : stackdriverStore.getZone());
 

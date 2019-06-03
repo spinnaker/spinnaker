@@ -25,7 +25,9 @@ import lombok.ToString;
 @Data
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettings, GoogleBaseImage.GoogleVirtualizationSettings> {
+public class GoogleBaseImage
+    extends BaseImage<
+        GoogleBaseImage.GoogleImageSettings, GoogleBaseImage.GoogleVirtualizationSettings> {
   private GoogleImageSettings baseImage;
   private GoogleVirtualizationSettings virtualizationSettings;
 
@@ -33,7 +35,8 @@ public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettin
   @Data
   @ToString(callSuper = true)
   public static class GoogleImageSettings extends BaseImage.ImageSettings {
-    // TODO(lwander): Needs to serialize in rosco.yml as isImageFamily, not imageFamily. Also always seems to be false.
+    // TODO(lwander): Needs to serialize in rosco.yml as isImageFamily, not imageFamily. Also always
+    // seems to be false.
     boolean isImageFamily;
   }
 

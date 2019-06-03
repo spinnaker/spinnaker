@@ -24,8 +24,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpinnakerProfileFactory extends StringBackedProfileFactory {
   @Override
-  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, endpoints.slim()));
+  protected void setProfile(
+      Profile profile,
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
+    profile.appendContents(
+        yamlToString(deploymentConfiguration.getName(), profile, endpoints.slim()));
     profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
   }
 

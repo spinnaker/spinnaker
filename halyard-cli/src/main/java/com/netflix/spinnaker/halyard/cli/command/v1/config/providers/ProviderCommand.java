@@ -27,14 +27,13 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegis
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ecs.EcsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.GoogleCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes.KubernetesCommand;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
  * This is a top-level command for dealing with your halconfig.
  *
- * Usage is `$ hal config provider`
+ * <p>Usage is `$ hal config provider`
  */
 @Parameters(separators = "=")
 public class ProviderCommand extends NestableCommand {
@@ -54,7 +53,8 @@ public class ProviderCommand extends NestableCommand {
     registerSubcommand(new EcsCommand());
     registerSubcommand(new GoogleCommand());
     registerSubcommand(new KubernetesCommand());
-    registerSubcommand(new com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommand());
+    registerSubcommand(
+        new com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommand());
   }
 
   @Override

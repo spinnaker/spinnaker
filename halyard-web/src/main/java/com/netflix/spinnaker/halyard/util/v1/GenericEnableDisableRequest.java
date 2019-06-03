@@ -24,10 +24,9 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
-import lombok.Builder;
-
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lombok.Builder;
 
 @Builder(builderMethodName = "privateBuilder")
 public class GenericEnableDisableRequest {
@@ -37,8 +36,10 @@ public class GenericEnableDisableRequest {
   private final Supplier<ProblemSet> validator;
   private final String description;
 
-  public DaemonTask<Halconfig, Void> execute(ValidationSettings validationSettings, boolean updatedValue) {
-    DaemonResponse.UpdateRequestBuilder builder = RequestUtils.getUpdateRequestBuilder(halconfigParser);
+  public DaemonTask<Halconfig, Void> execute(
+      ValidationSettings validationSettings, boolean updatedValue) {
+    DaemonResponse.UpdateRequestBuilder builder =
+        RequestUtils.getUpdateRequestBuilder(halconfigParser);
     RequestUtils.addValidation(builder, validationSettings, validator);
     builder.setUpdate(() -> updater.accept(updatedValue));
     return DaemonTaskHandler.submitTask(builder::build, description);
@@ -48,7 +49,8 @@ public class GenericEnableDisableRequest {
     return new GenericEnableDisableRequestBuilder();
   }
 
-  public static <T extends Node> GenericEnableDisableRequestBuilder builder(HalconfigParser halconfigParser) {
+  public static <T extends Node> GenericEnableDisableRequestBuilder builder(
+      HalconfigParser halconfigParser) {
     return GenericEnableDisableRequest.<T>privateBuilder().halconfigParser(halconfigParser);
   }
 }

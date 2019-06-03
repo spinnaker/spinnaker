@@ -26,11 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class PubsubEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String pubsubName;
+  @Setter String pubsubName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {

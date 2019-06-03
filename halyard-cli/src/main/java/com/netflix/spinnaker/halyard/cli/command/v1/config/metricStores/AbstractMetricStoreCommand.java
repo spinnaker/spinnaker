@@ -26,6 +26,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Parameters(separators = "=")
-abstract public class AbstractMetricStoreCommand extends AbstractConfigCommand {
-  abstract public MetricStores.MetricStoreType getMetricStoreType();
+public abstract class AbstractMetricStoreCommand extends AbstractConfigCommand {
+  public abstract MetricStores.MetricStoreType getMetricStoreType();
 }

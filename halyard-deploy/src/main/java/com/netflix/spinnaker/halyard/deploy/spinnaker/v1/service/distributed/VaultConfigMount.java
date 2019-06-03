@@ -19,13 +19,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.Data;
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Base64;
+import lombok.Data;
+import org.apache.commons.io.IOUtils;
 
 @Data
 public class VaultConfigMount {
@@ -38,7 +37,8 @@ public class VaultConfigMount {
       String unencodedContents = IOUtils.toString(new FileInputStream(localFile));
       contents = Base64.getEncoder().encodeToString(unencodedContents.getBytes());
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to read local config file: " + localFile, e);
+      throw new HalException(
+          Problem.Severity.FATAL, "Failed to read local config file: " + localFile, e);
     }
 
     return new VaultConfigMount().setContents(contents).setFile(desiredPath);

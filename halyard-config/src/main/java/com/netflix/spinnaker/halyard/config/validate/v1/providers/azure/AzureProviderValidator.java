@@ -20,22 +20,21 @@ import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class AzureProviderValidator extends Validator<AzureProvider> {
-  @Autowired
-  private String halyardVersion;
+  @Autowired private String halyardVersion;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AzureProvider n) {
     List<AzureCredentials> credentialsList = new ArrayList<>();
 
-    AzureAccountValidator azureAccountValidator = new AzureAccountValidator(credentialsList, halyardVersion);
+    AzureAccountValidator azureAccountValidator =
+        new AzureAccountValidator(credentialsList, halyardVersion);
 
     n.getAccounts().forEach(account -> azureAccountValidator.validate(p, account));
 

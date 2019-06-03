@@ -51,11 +51,17 @@ public abstract class AbstractAddPublisherCommand extends AbstractHasPublisherCo
     String currentDeployment = getCurrentDeployment();
     new OperationHandler<Void>()
         .setFailureMesssage(
-            "Failed to add notification publisher " + publisherName + " for pubsub system "
-                + pubsubName + ".")
+            "Failed to add notification publisher "
+                + publisherName
+                + " for pubsub system "
+                + pubsubName
+                + ".")
         .setSuccessMessage(
-            "Successfully added notification publisher " + publisherName + " for pubsub system "
-                + pubsubName + ".")
+            "Successfully added notification publisher "
+                + publisherName
+                + " for pubsub system "
+                + pubsubName
+                + ".")
         .setOperation(Daemon.addPublisher(currentDeployment, pubsubName, !noValidate, publisher))
         .get();
   }

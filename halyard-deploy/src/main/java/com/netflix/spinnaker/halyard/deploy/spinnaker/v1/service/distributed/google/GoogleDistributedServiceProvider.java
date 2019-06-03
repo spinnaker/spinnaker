@@ -29,65 +29,48 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleDistributedServiceProvider extends DistributedServiceProvider<GoogleAccount> {
-  @Autowired
-  GoogleClouddriverBootstrapService clouddriverBootstrapService;
+  @Autowired GoogleClouddriverBootstrapService clouddriverBootstrapService;
 
-  @Autowired
-  GoogleClouddriverService clouddriverService;
+  @Autowired GoogleClouddriverService clouddriverService;
 
-  @Autowired
-  GoogleConsulClientService consulClientService;
+  @Autowired GoogleConsulClientService consulClientService;
 
-  @Autowired
-  GoogleConsulServerService consulServerService;
+  @Autowired GoogleConsulServerService consulServerService;
 
-  @Autowired
-  GoogleDeckService deckService;
+  @Autowired GoogleDeckService deckService;
 
-  @Autowired
-  GoogleEchoService echoService;
+  @Autowired GoogleEchoService echoService;
 
-  @Autowired
-  GoogleFiatService fiatService;
+  @Autowired GoogleFiatService fiatService;
 
-  @Autowired
-  GoogleFront50Service front50Service;
+  @Autowired GoogleFront50Service front50Service;
 
-  @Autowired
-  GoogleGateService gateService;
+  @Autowired GoogleGateService gateService;
 
-  @Autowired
-  GoogleIgorService igorService;
+  @Autowired GoogleIgorService igorService;
 
-  @Autowired
-  GoogleKayentaService kayentaService;
+  @Autowired GoogleKayentaService kayentaService;
 
-  @Autowired
-  GoogleOrcaBootstrapService orcaBootstrapService;
+  @Autowired GoogleOrcaBootstrapService orcaBootstrapService;
 
-  @Autowired
-  GoogleOrcaService orcaService;
+  @Autowired GoogleOrcaService orcaService;
 
-  @Autowired
-  GoogleMonitoringDaemonService monitoringDaemonService;
+  @Autowired GoogleMonitoringDaemonService monitoringDaemonService;
 
-  @Autowired
-  GoogleRoscoService roscoService;
+  @Autowired GoogleRoscoService roscoService;
 
-  @Autowired
-  GoogleRedisBootstrapService redisBootstrapService;
+  @Autowired GoogleRedisBootstrapService redisBootstrapService;
 
-  @Autowired
-  GoogleRedisService redisService;
+  @Autowired GoogleRedisService redisService;
 
-  @Autowired
-  GoogleVaultServerService vaultServerService;
+  @Autowired GoogleVaultServerService vaultServerService;
 
   // For serialization
   public GoogleDistributedServiceProvider() {}
 
   @Override
-  public RemoteAction clean(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  public RemoteAction clean(
+      AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     throw new HalException(Problem.Severity.FATAL, "not yet implemented.");
   }
 }

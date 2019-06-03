@@ -26,7 +26,10 @@ public class LogLevelConverter implements IStringConverter<Level> {
     Level res = Level.toLevel(value, Level.OFF);
 
     if (!res.levelStr.equalsIgnoreCase(value)) {
-      throw new IllegalArgumentException("Log level " + value + " is not valid. The options are: OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.");
+      throw new IllegalArgumentException(
+          "Log level "
+              + value
+              + " is not valid. The options are: OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.");
     }
 
     return res;

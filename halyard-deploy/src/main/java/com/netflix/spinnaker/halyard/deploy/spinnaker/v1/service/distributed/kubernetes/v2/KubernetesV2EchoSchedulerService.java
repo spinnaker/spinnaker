@@ -42,12 +42,14 @@ public class KubernetesV2EchoSchedulerService extends KubernetesV2EchoService {
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
     String filename = "echo-scheduler.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    profiles.add(getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
+    profiles.add(
+        getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
 
     return profiles;
   }

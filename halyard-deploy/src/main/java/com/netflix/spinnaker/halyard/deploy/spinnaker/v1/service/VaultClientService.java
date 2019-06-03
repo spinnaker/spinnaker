@@ -23,16 +23,16 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class VaultClientService extends SpinnakerService<VaultClientService.Vault> implements SidecarService {
+public abstract class VaultClientService extends SpinnakerService<VaultClientService.Vault>
+    implements SidecarService {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.VAULT;
@@ -49,11 +49,12 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 
-  public interface Vault { }
+  public interface Vault {}
 
   @EqualsAndHashCode(callSuper = true)
   @Data
@@ -66,10 +67,11 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
     Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
-    public Settings() { }
+    public Settings() {}
   }
 
-  public List<Profile> getSidecarProfiles(ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+  public List<Profile> getSidecarProfiles(
+      ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
     return Collections.emptyList();
   }
 

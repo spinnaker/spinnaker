@@ -26,15 +26,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class HaServiceEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  String serviceName;
+  @Setter String serviceName;
 
-  @Setter
-  boolean enable;
+  @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
-    return new HaServiceEnableDisableCommandBuilder.HaServiceEnableDisableCommand(serviceName, enable);
+    return new HaServiceEnableDisableCommandBuilder.HaServiceEnableDisableCommand(
+        serviceName, enable);
   }
 
   @Parameters(separators = "=")

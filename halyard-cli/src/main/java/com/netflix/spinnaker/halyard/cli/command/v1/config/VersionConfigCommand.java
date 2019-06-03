@@ -30,7 +30,8 @@ public class VersionConfigCommand extends AbstractConfigCommand {
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Configure & view the current deployment of Spinnaker's version.";
+  private String shortDescription =
+      "Configure & view the current deployment of Spinnaker's version.";
 
   public VersionConfigCommand() {
     registerSubcommand(new EditVersionCommand());

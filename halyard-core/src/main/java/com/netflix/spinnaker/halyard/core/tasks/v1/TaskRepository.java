@@ -3,9 +3,6 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,55 +10,59 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * All stored running/recently completed tasks.
- */
+/** All stored running/recently completed tasks. */
 @Slf4j
 public class TaskRepository {
   static final Map<String, DaemonTask> tasks = new ConcurrentHashMap<>();
 
   public static ShallowTaskList getTasks() {
-    return new ShallowTaskList().setTasks(tasks.keySet()
-        .stream()
-        .map(t -> new ShallowTaskInfo(tasks.get(t)))
-        .collect(Collectors.toList()));
+    return new ShallowTaskList()
+        .setTasks(
+            tasks.keySet().stream()
+                .map(t -> new ShallowTaskInfo(tasks.get(t)))
+                .collect(Collectors.toList()));
   }
 
   // The amount of time before a task is collected after its timeout is invoked.
   private static long DELETE_TASK_INFO_WINDOW = TimeUnit.MINUTES.toMillis(2);
   public static long DEFAULT_TIMEOUT = TimeUnit.MINUTES.toMillis(1);
 
-  static private void deleteTaskInfo(String uuid) {
+  private static void deleteTaskInfo(String uuid) {
     tasks.remove(uuid);
   }
 
-  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner, String name, long timeout) {
+  public static <C, T> DaemonTask<C, T> submitTask(
+      Supplier<DaemonResponse<T>> runner, String name, long timeout) {
     DaemonTask<C, T> task = new DaemonTask<>(name, timeout);
     String uuid = task.getUuid();
     log.info("Scheduling task " + task);
-    Runnable r = () -> {
-      log.info("Starting task " + task);
-      DaemonTaskHandler.setTask(task);
-      task.setState(State.RUNNING);
-      try {
-        task.success(runner.get());
-      } catch (HalException e) {
-        log.info("Task " + task + " failed with HalException: ", e);
-        task.failure(e);
-      } catch (Exception e) {
-        log.warn("Task " + task + " failed with unexpected reason: ", e);
-        task.failure(e);
-      } finally {
-        task.cleanupResources();
+    Runnable r =
+        () -> {
+          log.info("Starting task " + task);
+          DaemonTaskHandler.setTask(task);
+          task.setState(State.RUNNING);
+          try {
+            task.success(runner.get());
+          } catch (HalException e) {
+            log.info("Task " + task + " failed with HalException: ", e);
+            task.failure(e);
+          } catch (Exception e) {
+            log.warn("Task " + task + " failed with unexpected reason: ", e);
+            task.failure(e);
+          } finally {
+            task.cleanupResources();
 
-        log.info("Task " + task + " completed");
-        // Notify after changing state to avoid data-race where threads are notified before thread appears terminal
-        synchronized (task) {
-          task.notifyAll();
-        }
-      }
-    };
+            log.info("Task " + task + " completed");
+            // Notify after changing state to avoid data-race where threads are notified before
+            // thread appears terminal
+            synchronized (task) {
+              task.notifyAll();
+            }
+          }
+        };
 
     Thread t = new Thread(r);
     tasks.put(uuid, task.setRunner(t));
@@ -73,7 +74,7 @@ public class TaskRepository {
     return task;
   }
 
-  static private class Interrupter implements Runnable {
+  private static class Interrupter implements Runnable {
     final long startTime;
     final long endTime;
     final DaemonTask target;
@@ -99,7 +100,12 @@ public class TaskRepository {
       switch (target.getState()) {
         case NOT_STARTED:
         case RUNNING:
-          log.warn("Interrupting task " + target + " that timed out after " + (endTime - startTime) + " millis.");
+          log.warn(
+              "Interrupting task "
+                  + target
+                  + " that timed out after "
+                  + (endTime - startTime)
+                  + " millis.");
           target.timeout();
           break;
         case TIMED_OUT:
@@ -120,7 +126,7 @@ public class TaskRepository {
   }
 
   @Data
-  static public class ShallowTaskInfo {
+  public static class ShallowTaskInfo {
     String uuid;
     String name;
     State state;
@@ -129,7 +135,7 @@ public class TaskRepository {
     List<String> jobs = new ArrayList<>();
     List<String> children = new ArrayList<>();
 
-    public ShallowTaskInfo() { }
+    public ShallowTaskInfo() {}
 
     ShallowTaskInfo(DaemonTask task) {
       this.uuid = task.getUuid();
@@ -142,14 +148,13 @@ public class TaskRepository {
         this.lastEvent = task.getEvents().get(task.getEvents().size() - 1).toString();
       }
 
-      this.children = (List<String>) task.getChildren()
-          .stream()
-          .map(c -> c.toString())
-          .collect(Collectors.toList());
+      this.children =
+          (List<String>)
+              task.getChildren().stream().map(c -> c.toString()).collect(Collectors.toList());
     }
   }
 
-  static public <C, T> DaemonTask<C, T> getTask(String uuid) {
+  public static <C, T> DaemonTask<C, T> getTask(String uuid) {
     return tasks.get(uuid);
   }
 }

@@ -25,10 +25,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CloudFoundryAccount extends Account {
-    @JsonProperty("api") String apiHost;
-    String appsManagerUri;
-    String metricsUri;
-    @Secret
-    String password;
-    String user;
+  @JsonProperty("api")
+  String apiHost;
+
+  String appsManagerUri;
+  String metricsUri;
+  @Secret String password;
+  String user;
 }

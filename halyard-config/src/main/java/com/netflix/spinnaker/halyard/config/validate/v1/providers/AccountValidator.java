@@ -21,13 +21,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.stereotype.Component;
-
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AccountValidator extends Validator<Account> {
-  private final static String namePattern = "^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$";
+  private static final String namePattern = "^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$";
 
   @Override
   public void validate(ConfigProblemSetBuilder p, Account n) {
@@ -35,12 +34,15 @@ public class AccountValidator extends Validator<Account> {
       p.addProblem(Severity.FATAL, "Account name must be specified");
     } else if (!Pattern.matches(namePattern, n.getName())) {
       p.addProblem(Severity.ERROR, "Account name must match pattern " + namePattern)
-        .setRemediation("It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, or dashes");
+          .setRemediation(
+              "It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, or dashes");
     }
     if (n.getRequiredGroupMembership() != null && !n.getRequiredGroupMembership().isEmpty()) {
-      p.addProblem(Problem.Severity.WARNING, "requiredGroupMembership has been "
-          + "deprecated. Please consider moving to using permissions with the flags --read-permissions "
-          + "and --write-permissions instead. Read more at https://www.spinnaker.io/setup/security/authorization." );
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "requiredGroupMembership has been "
+              + "deprecated. Please consider moving to using permissions with the flags --read-permissions "
+              + "and --write-permissions instead. Read more at https://www.spinnaker.io/setup/security/authorization.");
     }
   }
 }

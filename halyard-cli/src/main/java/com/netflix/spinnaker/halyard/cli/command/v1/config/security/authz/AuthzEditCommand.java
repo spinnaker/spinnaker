@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,27 +33,25 @@ public class AuthzEditCommand extends AbstractConfigCommand {
   private String commandName = "edit";
   private String shortDescription = "Edit your roles provider settings.";
 
-  @Parameter(
-      names = "--type",
-      description = "Set a roles provider type"
-  )
+  @Parameter(names = "--type", description = "Set a roles provider type")
   GroupMembership.RoleProviderType type;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    GroupMembership membership = new OperationHandler<GroupMembership>()
-        .setOperation(Daemon.getGroupMembership(currentDeployment, false))
-        .setFailureMesssage("Failed to get configured roles.")
-        .get();
+    GroupMembership membership =
+        new OperationHandler<GroupMembership>()
+            .setOperation(Daemon.getGroupMembership(currentDeployment, false))
+            .setFailureMesssage("Failed to get configured roles.")
+            .get();
 
     membership.setService(type != null ? type : membership.getService());
 
     new OperationHandler<Void>()
-      .setOperation(Daemon.setGroupMembership(currentDeployment, !noValidate, membership))
-      .setFailureMesssage("Failed to set configured roles.")
-      .setSuccessMessage("Successfully updated roles.")
-      .get();
+        .setOperation(Daemon.setGroupMembership(currentDeployment, !noValidate, membership))
+        .setFailureMesssage("Failed to set configured roles.")
+        .setSuccessMessage("Successfully updated roles.")
+        .get();
   }
 }

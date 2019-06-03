@@ -53,7 +53,8 @@ public class Main {
       }
 
       AnsiUi.error(e.getMessage());
-      AnsiUi.remediation("That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/halyard/issues");
+      AnsiUi.remediation(
+          "That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/halyard/issues");
       System.exit(1);
     }
   }

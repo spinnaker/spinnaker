@@ -27,9 +27,7 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- * Delete a specific PROVIDER publisher
- */
+/** Delete a specific PROVIDER publisher */
 @Parameters(separators = "=")
 public abstract class AbstractDeletePublisherCommand extends AbstractHasPublisherCommand {
 

@@ -33,25 +33,27 @@ import lombok.EqualsAndHashCode;
 public class AwsEditProviderCommand extends AbstractEditProviderCommand<AwsAccount, AwsProvider> {
   String shortDescription = "Set provider-wide properties for the AWS provider";
 
-  String longDescription = "The AWS provider requires a central \"Managing Account\" to authenticate on behalf of other "
-      + "AWS accounts, or act as your sole, credential-based account. Since this configuration, as well as some defaults, span "
-      + "all AWS accounts, it is generally required to edit the AWS provider using this command.";
+  String longDescription =
+      "The AWS provider requires a central \"Managing Account\" to authenticate on behalf of other "
+          + "AWS accounts, or act as your sole, credential-based account. Since this configuration, as well as some defaults, span "
+          + "all AWS accounts, it is generally required to edit the AWS provider using this command.";
 
   @Parameter(
       names = "--access-key-id",
-      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION + ". Note that if you are baking AMI's via Rosco, you may "
-          + "also need to set the access key on the AWS bakery default options."
-  )
+      description =
+          AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+              + ". Note that if you are baking AMI's via Rosco, you may "
+              + "also need to set the access key on the AWS bakery default options.")
   private String accessKeyId;
 
   @Parameter(
       names = "--secret-access-key",
-      description = AwsCommandProperties.SECRET_KEY_DESCRIPTION + ". Note that if you are baking AMI's via Rosco, you may "
-          + "also need to set the secret key on the AWS bakery default options.",
-      password = true
-  )
+      description =
+          AwsCommandProperties.SECRET_KEY_DESCRIPTION
+              + ". Note that if you are baking AMI's via Rosco, you may "
+              + "also need to set the secret key on the AWS bakery default options.",
+      password = true)
   private String secretAccessKey;
-
 
   protected String getProviderName() {
     return Provider.ProviderType.AWS.getName();
@@ -60,7 +62,8 @@ public class AwsEditProviderCommand extends AbstractEditProviderCommand<AwsAccou
   @Override
   protected Provider editProvider(AwsProvider provider) {
     provider.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : provider.getAccessKeyId());
-    provider.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : provider.getSecretAccessKey());
+    provider.setSecretAccessKey(
+        isSet(secretAccessKey) ? secretAccessKey : provider.getSecretAccessKey());
     return provider;
   }
 }

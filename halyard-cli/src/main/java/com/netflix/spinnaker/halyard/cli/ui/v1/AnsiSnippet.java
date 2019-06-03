@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class AnsiSnippet {

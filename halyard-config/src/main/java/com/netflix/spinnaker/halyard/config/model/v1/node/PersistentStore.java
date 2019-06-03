@@ -18,11 +18,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.net.URI;
 import java.util.Arrays;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -37,9 +36,9 @@ public abstract class PersistentStore extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  abstract public PersistentStoreType persistentStoreType();
+  public abstract PersistentStoreType persistentStoreType();
 
-  public void setConnectionInfo(URI uri) { }
+  public void setConnectionInfo(URI uri) {}
 
   public enum PersistentStoreType {
     AZS("azs"),
@@ -65,7 +64,13 @@ public abstract class PersistentStore extends Node {
       return Arrays.stream(values())
           .filter(v -> v.getId().equalsIgnoreCase(value))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException("Type " + value + " is not a valid persistent storage option. Choose from " + Arrays.toString(values())));
+          .orElseThrow(
+              () ->
+                  new IllegalArgumentException(
+                      "Type "
+                          + value
+                          + " is not a valid persistent storage option. Choose from "
+                          + Arrays.toString(values())));
     }
   }
 }

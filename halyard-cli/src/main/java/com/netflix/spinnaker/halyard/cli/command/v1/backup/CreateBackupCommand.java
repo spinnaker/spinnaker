@@ -35,10 +35,11 @@ public class CreateBackupCommand extends NestableCommand {
   private String shortDescription = "Create a backup of Halyard's state.";
 
   @Getter(AccessLevel.PUBLIC)
-  private String longDescription = "This will create a tarball of your halconfig directory, being careful to rewrite "
-      + "file paths, so when the tarball is expanded by Halyard on another machine it will still be able to reference "
-      + "any files you have explicitly linked with your halconfig - e.g. --kubeconfig-file for Kubernetes, or --json-path "
-      + "for GCE.";
+  private String longDescription =
+      "This will create a tarball of your halconfig directory, being careful to rewrite "
+          + "file paths, so when the tarball is expanded by Halyard on another machine it will still be able to reference "
+          + "any files you have explicitly linked with your halconfig - e.g. --kubeconfig-file for Kubernetes, or --json-path "
+          + "for GCE.";
 
   @Override
   protected void executeThis() {

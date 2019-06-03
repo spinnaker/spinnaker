@@ -30,8 +30,7 @@ public class TwilioNotification extends Notification {
   String account;
   String baseUrl = "https://api.twilio.com/";
   String from;
-  @Secret
-  String token;
+  @Secret String token;
 
   @Override
   @JsonIgnore

@@ -18,13 +18,18 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 public class AccountCommandProperties {
-  public static final String REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION = "A user must be a member of at least one specified group in order to make changes to this account's cloud resources.";
+  public static final String REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION =
+      "A user must be a member of at least one specified group in order to make changes to this account's cloud resources.";
 
-  public static final String PROVIDER_VERSION_DESCRIPTION = "Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.";
+  public static final String PROVIDER_VERSION_DESCRIPTION =
+      "Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.";
 
-  public static final String READ_PERMISSION_DESCRIPTION = "A user must have at least one of these roles in order to view this account's cloud resources.";
+  public static final String READ_PERMISSION_DESCRIPTION =
+      "A user must have at least one of these roles in order to view this account's cloud resources.";
 
-  public static final String WRITE_PERMISSION_DESCRIPTION = "A user must have at least one of these roles in order to make changes to this account's cloud resources.";
+  public static final String WRITE_PERMISSION_DESCRIPTION =
+      "A user must have at least one of these roles in order to make changes to this account's cloud resources.";
 
-  public static final String ENVIRONMENT_DESCRIPTION = "The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)";
+  public static final String ENVIRONMENT_DESCRIPTION =
+      "The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)";
 }

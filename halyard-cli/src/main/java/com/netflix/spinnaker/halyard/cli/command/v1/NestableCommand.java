@@ -34,11 +34,6 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import retrofit.RetrofitError;
-
 import java.io.Console;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -49,6 +44,10 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import retrofit.RetrofitError;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -56,28 +55,45 @@ public abstract class NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private JCommander commander;
 
-  @Parameter(names = { "-h", "--help" }, help = true, description = "Display help text about this command.")
+  @Parameter(
+      names = {"-h", "--help"},
+      help = true,
+      description = "Display help text about this command.")
   private boolean help;
 
-  @Parameter(names = { "-o", "--output" }, converter = FormatConverter.class, help = true, description = "Format the CLIs output.")
+  @Parameter(
+      names = {"-o", "--output"},
+      converter = FormatConverter.class,
+      help = true,
+      description = "Format the CLIs output.")
   public void setOutput(AnsiFormatUtils.Format output) {
     GlobalOptions.getGlobalOptions().setOutput(output);
   }
 
-  @Parameter(names = { "--options" }, help = true, description = "Get options for the specified field name.")
+  @Parameter(
+      names = {"--options"},
+      help = true,
+      description = "Get options for the specified field name.")
   private String options;
 
-  @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon.")
+  @Parameter(
+      names = {"-d", "--debug"},
+      description = "Show detailed network traffic with halyard daemon.")
   public void setDebug(boolean debug) {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
-  @Parameter(names = {"-a", "--alpha"}, description = "Enable alpha halyard features.")
+  @Parameter(
+      names = {"-a", "--alpha"},
+      description = "Enable alpha halyard features.")
   public void setAlpha(boolean alpha) {
     GlobalOptions.getGlobalOptions().setAlpha(alpha);
   }
 
-    @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
+  @Parameter(
+      names = {"-q", "--quiet"},
+      description =
+          "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
   public void setQuiet(boolean quiet) {
     GlobalOptions.getGlobalOptions().setQuiet(quiet);
     GlobalOptions.getGlobalOptions().setColor(!quiet);
@@ -86,18 +102,22 @@ public abstract class NestableCommand {
   @Parameter(
       names = {"-l", "--log"},
       converter = LogLevelConverter.class,
-      description = "Set the log level of the CLI."
-  )
+      description = "Set the log level of the CLI.")
   public void setLog(Level log) {
     GlobalOptions.getGlobalOptions().setLog(log);
   }
 
-  @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output.", arity = 1)
+  @Parameter(
+      names = {"-c", "--color"},
+      description = "Enable terminal color output.",
+      arity = 1)
   public void setColor(boolean color) {
     GlobalOptions.getGlobalOptions().setColor(color);
   }
 
-  @Parameter(names = { "--daemon-endpoint"}, description = "If supplied, connect to the daemon at this address.")
+  @Parameter(
+      names = {"--daemon-endpoint"},
+      description = "If supplied, connect to the daemon at this address.")
   public void setDaemonEndpoint(String address) {
     GlobalOptions.getGlobalOptions().setDaemonEndpoint(address);
   }
@@ -122,7 +142,8 @@ public abstract class NestableCommand {
   }
 
   /**
-   * This recursively walks the chain of subcommands, until it finds the last in the chain, and runs executeThis.
+   * This recursively walks the chain of subcommands, until it finds the last in the chain, and runs
+   * executeThis.
    *
    * @see NestableCommand#executeThis()
    */
@@ -189,9 +210,7 @@ public abstract class NestableCommand {
     return String.join("", delimited);
   }
 
-  /**
-   * Used to consistently format exceptions thrown by connecting to the halyard daemon.
-   */
+  /** Used to consistently format exceptions thrown by connecting to the halyard daemon. */
   private void safeExecuteThis() {
     try {
       if (options != null) {
@@ -251,7 +270,6 @@ public abstract class NestableCommand {
     if (!subcommands.isEmpty()) {
       usage += " [subcommands]";
     }
-
 
     paragraph = story.addParagraph();
     paragraph.addSnippet("USAGE").addStyle(AnsiStyle.BOLD);
@@ -336,15 +354,11 @@ public abstract class NestableCommand {
   }
 
   private void parameterDoc(StringBuilder result, ParameterDescription parameterDescription) {
-    result.append(" * `")
-        .append(parameterDescription.getNames())
-        .append("`: ");
+    result.append(" * `").append(parameterDescription.getNames()).append("`: ");
 
     Object def = parameterDescription.getDefault();
     if (def != null) {
-      result.append("(*Default*: `")
-          .append(def.toString())
-          .append("`) ");
+      result.append("(*Default*: `").append(def.toString()).append("`) ");
     }
 
     if (parameterDescription.getParameter().required()) {
@@ -355,8 +369,7 @@ public abstract class NestableCommand {
       result.append("(*Sensitive data* - user will be prompted on standard input) ");
     }
 
-    result.append(parameterDescription.getDescription())
-        .append("\n");
+    result.append(parameterDescription.getDescription()).append("\n");
   }
 
   public String generateDocs() {
@@ -378,7 +391,8 @@ public abstract class NestableCommand {
   }
 
   private void commandLink(StringBuilder result) {
-    result.append(" * ")
+    result
+        .append(" * ")
         .append("[**")
         .append(fullCommandName)
         .append("**]")
@@ -389,8 +403,8 @@ public abstract class NestableCommand {
   }
 
   private void commandDocs(StringBuilder result) {
-    List<ParameterDescription> parameters = commander.getParameters()
-            .stream()
+    List<ParameterDescription> parameters =
+        commander.getParameters().stream()
             .filter(p -> !p.getParameter().hidden())
             .collect(Collectors.toList());
     parameters.sort(Comparator.comparing(ParameterDescription::getNames));
@@ -402,7 +416,8 @@ public abstract class NestableCommand {
       }
     }
 
-    result.append("## ")
+    result
+        .append("## ")
         .append(fullCommandName)
         .append("\n\n")
         .append(getLongDescription())
@@ -413,9 +428,7 @@ public abstract class NestableCommand {
 
     ParameterDescription mainParameter = commander.getMainParameter();
     if (mainParameter != null) {
-      result.append(" ")
-          .append(getMainParameter().toUpperCase());
-
+      result.append(" ").append(getMainParameter().toUpperCase());
     }
 
     if (parameters.size() > parameterCount) {
@@ -449,7 +462,8 @@ public abstract class NestableCommand {
       result.append("#### Parameters\n");
 
       if (mainParameter != null) {
-        result.append('`')
+        result
+            .append('`')
             .append(getMainParameter().toUpperCase())
             .append('`')
             .append(": ")
@@ -479,7 +493,8 @@ public abstract class NestableCommand {
           modifiers += " _(Deprecated)_ ";
         }
 
-        result.append(" * ")
+        result
+            .append(" * ")
             .append("`")
             .append(key)
             .append("`")
@@ -493,7 +508,8 @@ public abstract class NestableCommand {
     result.append("\n---\n");
   }
 
-  private static void formatParameter(AnsiStoryBuilder story, ParameterDescription parameter, int indentWidth) {
+  private static void formatParameter(
+      AnsiStoryBuilder story, ParameterDescription parameter, int indentWidth) {
     AnsiParagraphBuilder paragraph = story.addParagraph().setIndentWidth(indentWidth);
     paragraph.addSnippet(parameter.getNames()).addStyle(AnsiStyle.BOLD);
 
@@ -528,15 +544,13 @@ public abstract class NestableCommand {
   private String commandCompletorCase(int depth) {
     StringReplaceJarResource completorCase = new StringReplaceJarResource("/hal-completor-case");
     Map<String, Object> bindings = new HashMap<>();
-    String flagNames = commander.getParameters()
-        .stream()
-        .map(ParameterDescription::getLongestName)
-        .reduce("", (a, b) -> a + " " + b);
+    String flagNames =
+        commander.getParameters().stream()
+            .map(ParameterDescription::getLongestName)
+            .reduce("", (a, b) -> a + " " + b);
 
-    String subcommandNames = subcommands.entrySet()
-        .stream()
-        .map(Map.Entry::getKey)
-        .reduce("", (a, b) -> a + " " + b);
+    String subcommandNames =
+        subcommands.entrySet().stream().map(Map.Entry::getKey).reduce("", (a, b) -> a + " " + b);
 
     bindings.put("subcommands", subcommandNames);
     bindings.put("flags", flagNames);
@@ -544,20 +558,22 @@ public abstract class NestableCommand {
     bindings.put("depth", depth + "");
     bindings.put("next", (depth + 1) + "");
 
-    String subCases = subcommands.entrySet()
-        .stream()
-        .map(c -> c.getValue().commandCompletorCase(depth + 1))
-        .reduce("", (a, b) -> a + b);
+    String subCases =
+        subcommands.entrySet().stream()
+            .map(c -> c.getValue().commandCompletorCase(depth + 1))
+            .reduce("", (a, b) -> a + b);
 
     bindings.put("recurse", subCases.isEmpty() ? ":" : subCases);
 
     return completorCase.setBindings(bindings).toString();
   }
 
-  abstract public String getCommandName();
-  abstract protected void executeThis();
+  public abstract String getCommandName();
+
+  protected abstract void executeThis();
 
   protected abstract String getShortDescription();
+
   protected String getLongDescription() {
     return getShortDescription();
   }
@@ -568,26 +584,31 @@ public abstract class NestableCommand {
   protected void registerSubcommand(NestableCommand subcommand) {
     String subcommandName = subcommand.getCommandName();
     if (subcommands.containsKey(subcommandName)) {
-      throw new RuntimeException("Unable to register duplicate subcommand " + subcommandName + " for command " + getCommandName());
+      throw new RuntimeException(
+          "Unable to register duplicate subcommand "
+              + subcommandName
+              + " for command "
+              + getCommandName());
     }
     subcommands.put(subcommandName, subcommand);
   }
 
   /**
-   * Register all subcommands with this class's commander, and then recursively set the subcommands, configuring their
-   * command names along the way.
+   * Register all subcommands with this class's commander, and then recursively set the subcommands,
+   * configuring their command names along the way.
    */
   public void configureSubcommands() {
     if (fullCommandName.isEmpty()) {
       fullCommandName = getCommandName();
     }
 
-    for (NestableCommand subCommand: subcommands.values()) {
+    for (NestableCommand subCommand : subcommands.values()) {
       subCommand.fullCommandName = fullCommandName + " " + subCommand.getCommandName();
 
       commander.addCommand(subCommand.getCommandName(), subCommand);
 
-      // We need to provide the subcommand with its own commander before recursively populating its subcommands, since
+      // We need to provide the subcommand with its own commander before recursively populating its
+      // subcommands, since
       // they need to be registered with this subcommander we retrieve here.
       JCommander subCommander = commander.getCommands().get(subCommand.getCommandName());
       subCommand.setCommander(subCommander);

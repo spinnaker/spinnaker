@@ -24,4 +24,3 @@ public class KubernetesSecurityContext {
   Integer runAsUser;
   Integer fsGroup;
 }
-

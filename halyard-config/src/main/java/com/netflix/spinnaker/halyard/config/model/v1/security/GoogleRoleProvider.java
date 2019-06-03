@@ -25,7 +25,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class GoogleRoleProvider extends RoleProvider {
-  private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GOOGLE;
+  private final GroupMembership.RoleProviderType roleProviderType =
+      GroupMembership.RoleProviderType.GOOGLE;
+
   @Override
   public String getNodeName() {
     return "google";

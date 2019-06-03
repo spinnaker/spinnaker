@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 
 public class TaskKilledException extends RuntimeException {
   static TaskKilledException extendMessage(String message, TaskKilledException e) {
-    return new TaskKilledException(String.join(" " , message, e.getMessage()), e.getCause());
+    return new TaskKilledException(String.join(" ", message, e.getMessage()), e.getCause());
   }
 
   static TaskKilledException timeout() {

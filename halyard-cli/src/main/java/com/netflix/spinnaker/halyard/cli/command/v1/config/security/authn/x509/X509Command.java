@@ -22,7 +22,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
 @Parameters(separators = "=")
 public class X509Command extends AuthnMethodCommand {
-  public AuthnMethod.Method getMethod() { return AuthnMethod.Method.X509; }
+  public AuthnMethod.Method getMethod() {
+    return AuthnMethod.Method.X509;
+  }
 
   public X509Command() {
     super();

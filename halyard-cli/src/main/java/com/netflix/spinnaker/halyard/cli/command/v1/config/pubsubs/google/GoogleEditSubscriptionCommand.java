@@ -27,53 +27,50 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import com.netflix.spinnaker.halyard.config.model.v1.pubsub.google.GoogleSubscription;
 
 @Parameters(separators = "=")
-public class GoogleEditSubscriptionCommand extends AbstractEditSubscriptionCommand<GoogleSubscription> {
+public class GoogleEditSubscriptionCommand
+    extends AbstractEditSubscriptionCommand<GoogleSubscription> {
   @Parameter(
       names = "--json-path",
       converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION)
   private String jsonPath;
 
   @Parameter(
       names = "--template-path",
       converter = LocalFileConverter.class,
-      description = GooglePubsubCommandProperties.TEMPLATE_PATH_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.TEMPLATE_PATH_DESCRIPTION)
   private String templatePath;
 
-  @Parameter(
-      names = "--project",
-      description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION
-  )
+  @Parameter(names = "--project", description = GooglePubsubCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--subscription-name",
-      description = GooglePubsubCommandProperties.SUBSCRIPTION_NAME_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.SUBSCRIPTION_NAME_DESCRIPTION)
   private String subscriptionName;
 
   @Parameter(
       names = "--ack-deadline-seconds",
-      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.ACK_DEADLINE_SECONDS_DESCRIPTION)
   private Integer ackDeadlineSeconds;
 
   @Parameter(
       names = "--message-format",
-      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION
-  )
+      description = GooglePubsubCommandProperties.MESSAGE_FORMAT_DESCRIPTION)
   private GoogleSubscription.MessageFormat messageFormat;
 
   @Override
   protected Subscription editSubscription(GoogleSubscription subscription) {
     subscription.setJsonPath(isSet(jsonPath) ? jsonPath : subscription.getJsonPath());
-    subscription.setTemplatePath(isSet(templatePath) ? templatePath : subscription.getTemplatePath());
+    subscription.setTemplatePath(
+        isSet(templatePath) ? templatePath : subscription.getTemplatePath());
     subscription.setProject(isSet(project) ? project : subscription.getProject());
-    subscription.setSubscriptionName(isSet(subscriptionName) ? subscriptionName : subscription.getSubscriptionName());
-    subscription.setAckDeadlineSeconds(isSet(ackDeadlineSeconds) ? ackDeadlineSeconds : subscription.getAckDeadlineSeconds());
-    subscription.setMessageFormat(isSet(messageFormat) ? messageFormat : subscription.getMessageFormat());
+    subscription.setSubscriptionName(
+        isSet(subscriptionName) ? subscriptionName : subscription.getSubscriptionName());
+    subscription.setAckDeadlineSeconds(
+        isSet(ackDeadlineSeconds) ? ackDeadlineSeconds : subscription.getAckDeadlineSeconds());
+    subscription.setMessageFormat(
+        isSet(messageFormat) ? messageFormat : subscription.getMessageFormat());
 
     return subscription;
   }

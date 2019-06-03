@@ -39,11 +39,15 @@ public class OAuth2Validator extends Validator<OAuth2> {
       p.addProblem(Problem.Severity.ERROR, "No OAuth2 client secret was supplied");
     }
 
-    if (n.getProvider() == OAuth2.Provider.GOOGLE &&
-        (n.getUserInfoRequirements() == null || !n.getUserInfoRequirements().containsKey("hd"))) {
-      p.addProblem(Problem.Severity.WARNING, "Missing 'hd' field within " +
-          "userInfoRequirements of Google OAuth provider. This could expose your Spinnaker " +
-          "instance to anyone with a Gmail account.", "userInfoRequirements");
+    if (n.getProvider() == OAuth2.Provider.GOOGLE
+        && (n.getUserInfoRequirements() == null
+            || !n.getUserInfoRequirements().containsKey("hd"))) {
+      p.addProblem(
+          Problem.Severity.WARNING,
+          "Missing 'hd' field within "
+              + "userInfoRequirements of Google OAuth provider. This could expose your Spinnaker "
+              + "instance to anyone with a Gmail account.",
+          "userInfoRequirements");
     }
   }
 }

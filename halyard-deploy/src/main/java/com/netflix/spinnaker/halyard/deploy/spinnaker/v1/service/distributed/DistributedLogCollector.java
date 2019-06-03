@@ -25,31 +25,45 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DefaultLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
-
 import java.io.File;
 
-abstract public class DistributedLogCollector<T, A extends Account> extends DefaultLogCollector<T, AccountDeploymentDetails<A>> {
+public abstract class DistributedLogCollector<T, A extends Account>
+    extends DefaultLogCollector<T, AccountDeploymentDetails<A>> {
   public DistributedLogCollector(HasServiceSettings<T> service) {
     super(service);
   }
 
-  abstract protected HalconfigDirectoryStructure getDirectoryStructure();
+  protected abstract HalconfigDirectoryStructure getDirectoryStructure();
 
   @Override
-  public void collectLogs(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+  public void collectLogs(
+      AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     DistributedService<T, A> distributedService = (DistributedService<T, A>) getService();
-    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details, runtimeSettings);
-    runningServiceDetails.getInstances().values().forEach(is -> is.stream()
-        .filter(RunningServiceDetails.Instance::isRunning)
-        .forEach(i -> {
-          File outputDir = getDirectoryStructure().getServiceLogsPath(
-              details.getDeploymentName(),
-              i.getId(),
-              getService().getCanonicalName()).toFile();
-          collectInstanceLogs(details, runtimeSettings, outputDir, i.getId());
-        })
-    );
+    RunningServiceDetails runningServiceDetails =
+        distributedService.getRunningServiceDetails(details, runtimeSettings);
+    runningServiceDetails
+        .getInstances()
+        .values()
+        .forEach(
+            is ->
+                is.stream()
+                    .filter(RunningServiceDetails.Instance::isRunning)
+                    .forEach(
+                        i -> {
+                          File outputDir =
+                              getDirectoryStructure()
+                                  .getServiceLogsPath(
+                                      details.getDeploymentName(),
+                                      i.getId(),
+                                      getService().getCanonicalName())
+                                  .toFile();
+                          collectInstanceLogs(details, runtimeSettings, outputDir, i.getId());
+                        }));
   }
 
-  abstract protected void collectInstanceLogs(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, File instanceOutputDir, String instanceId);
+  protected abstract void collectInstanceLogs(
+      AccountDeploymentDetails<A> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      File instanceOutputDir,
+      String instanceId);
 }

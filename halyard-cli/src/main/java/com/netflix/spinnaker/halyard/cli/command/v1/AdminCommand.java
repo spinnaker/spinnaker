@@ -23,15 +23,15 @@ import com.netflix.spinnaker.halyard.cli.command.v1.admin.PublishCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- */
+/** */
 @Parameters(separators = "=")
 public class AdminCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "admin";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "This is meant for users building and publishing their own Spinnaker images and config.";
+  private String shortDescription =
+      "This is meant for users building and publishing their own Spinnaker images and config.";
 
   public AdminCommand() {
     registerSubcommand(new DeprecateCommand());

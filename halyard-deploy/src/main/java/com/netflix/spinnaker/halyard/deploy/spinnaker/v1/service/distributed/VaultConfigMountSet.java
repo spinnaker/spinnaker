@@ -18,19 +18,16 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
-import lombok.Data;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Data;
 
 @Data
 public class VaultConfigMountSet {
   List<String> configs;
 
   public static VaultConfigMountSet fromConfigSources(List<ConfigSource> configSources) {
-    return new VaultConfigMountSet().setConfigs(configSources
-        .stream()
-        .map(c -> c.getId())
-        .collect(Collectors.toList()));
+    return new VaultConfigMountSet()
+        .setConfigs(configSources.stream().map(c -> c.getId()).collect(Collectors.toList()));
   }
 }

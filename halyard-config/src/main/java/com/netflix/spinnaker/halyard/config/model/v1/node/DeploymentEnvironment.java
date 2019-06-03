@@ -17,18 +17,15 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-/**
- * A DeploymentEnvironment is a location where Spinnaker is installed.
- */
+/** A DeploymentEnvironment is a location where Spinnaker is installed. */
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class DeploymentEnvironment extends Node {
@@ -39,18 +36,21 @@ public class DeploymentEnvironment extends Node {
   }
 
   public enum DeploymentType {
-    Distributed("Deploy Spinnaker with one server group and load balancer "
-        + "per microservice, and a single instance of Redis acting as "
-        + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
-    LocalDebian("Deploy Spinnaker locally (on the machine running the daemon) "
-        + "using `apt-get` to fetch all the service's debian packages."),
-    LocalGit("Deploy Spinnaker locally (on the machine running the daemon) "
-        + "using `git` to fetch all the service's code to be built & run."),
-    BakeDebian("Deploy Spinnaker locally but only with the necessary config "
-        + "to be baked into a VM image later.");
+    Distributed(
+        "Deploy Spinnaker with one server group and load balancer "
+            + "per microservice, and a single instance of Redis acting as "
+            + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
+    LocalDebian(
+        "Deploy Spinnaker locally (on the machine running the daemon) "
+            + "using `apt-get` to fetch all the service's debian packages."),
+    LocalGit(
+        "Deploy Spinnaker locally (on the machine running the daemon) "
+            + "using `git` to fetch all the service's code to be built & run."),
+    BakeDebian(
+        "Deploy Spinnaker locally but only with the necessary config "
+            + "to be baked into a VM image later.");
 
-    @Getter
-    final String description;
+    @Getter final String description;
 
     DeploymentType(String description) {
       this.description = description;
@@ -63,8 +63,11 @@ public class DeploymentEnvironment extends Node {
         }
       }
 
-      throw new IllegalArgumentException("DeploymentType \"" + name + "\" is not a valid choice. The options are: "
-          + Arrays.toString(DeploymentType.values()));
+      throw new IllegalArgumentException(
+          "DeploymentType \""
+              + name
+              + "\" is not a valid choice. The options are: "
+              + Arrays.toString(DeploymentType.values()));
     }
   }
 
@@ -80,8 +83,11 @@ public class DeploymentEnvironment extends Node {
         }
       }
 
-      throw new IllegalArgumentException("Size \"" + name + "\" is not a valid choice. The options are: "
-          + Arrays.toString(Size.values()));
+      throw new IllegalArgumentException(
+          "Size \""
+              + name
+              + "\" is not a valid choice. The options are: "
+              + Arrays.toString(Size.values()));
     }
   }
 
@@ -100,7 +106,10 @@ public class DeploymentEnvironment extends Node {
   private Map<String, AffinityConfig> affinity = new HashMap<>();
   private Map<String, String> nodeSelectors = new HashMap<>();
   private GitConfig gitConfig = new GitConfig();
-  @ValidForSpinnakerVersion(lowerBound = "1.10.0", tooLowMessage = "High availability services are not available prior to this release.")
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.10.0",
+      tooLowMessage = "High availability services are not available prior to this release.")
   private HaServices haServices = new HaServices();
 
   public Boolean getUpdateVersions() {

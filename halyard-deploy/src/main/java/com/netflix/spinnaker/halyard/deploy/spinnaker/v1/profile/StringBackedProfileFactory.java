@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-abstract public class StringBackedProfileFactory extends ProfileFactory {
-  abstract protected String getRawBaseProfile();
+public abstract class StringBackedProfileFactory extends ProfileFactory {
+  protected abstract String getRawBaseProfile();
 
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {

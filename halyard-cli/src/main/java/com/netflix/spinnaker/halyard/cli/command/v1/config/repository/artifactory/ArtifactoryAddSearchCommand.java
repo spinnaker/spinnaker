@@ -28,47 +28,42 @@ public class ArtifactoryAddSearchCommand extends AbstractAddSearchCommand {
     return "artifactory";
   }
 
-
   @Parameter(
       names = "--username",
       required = true,
-      description = ArtifactoryCommandProperties.USERNAME_DESCRIPTION
-  )
+      description = ArtifactoryCommandProperties.USERNAME_DESCRIPTION)
   public String username;
 
   @Parameter(
       names = "--password",
       password = true,
       required = true,
-      description = ArtifactoryCommandProperties.PASSWORD_DESCRIPTION
-  )
+      description = ArtifactoryCommandProperties.PASSWORD_DESCRIPTION)
   public String password;
 
   @Parameter(
       names = "--base-url",
       required = true,
-      description = ArtifactoryCommandProperties.BASE_URL_DESCRIPTION
-  )
+      description = ArtifactoryCommandProperties.BASE_URL_DESCRIPTION)
   private String baseUrl;
 
   @Parameter(
       names = "--repo",
       required = true,
-      description = ArtifactoryCommandProperties.REPO_DESCRIPTION
-  )
+      description = ArtifactoryCommandProperties.REPO_DESCRIPTION)
   public String repo;
 
   @Parameter(
       names = "--groupId",
       required = true,
-      description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION
-  )
+      description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION)
   public String groupId;
 
   @Override
   protected Search buildSearch(String searchName) {
     ArtifactorySearch search = (ArtifactorySearch) new ArtifactorySearch().setName(searchName);
-    search.setBaseUrl(baseUrl)
+    search
+        .setBaseUrl(baseUrl)
         .setRepo(repo)
         .setGroupId(groupId)
         .setPassword(password)

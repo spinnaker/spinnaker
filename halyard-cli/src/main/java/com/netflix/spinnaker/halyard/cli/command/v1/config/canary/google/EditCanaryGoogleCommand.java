@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.AbstractEditCanaryServiceIntegrationCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -27,8 +26,6 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
-import lombok.AccessLevel;
-import lombok.Getter;
 
 @Parameters(separators = "=")
 public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegrationCommand {
@@ -41,53 +38,91 @@ public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegratio
   @Parameter(
       names = "--gcs-enabled",
       arity = 1,
-      description = "Whether or not to enable GCS as a persistent store (*Default*: `false`)."
-  )
+      description = "Whether or not to enable GCS as a persistent store (*Default*: `false`).")
   private Boolean gcsEnabled;
 
   @Parameter(
       names = "--stackdriver-enabled",
       arity = 1,
-      description = "Whether or not to enable Stackdriver as a metrics service (*Default*: `false`)."
-  )
+      description =
+          "Whether or not to enable Stackdriver as a metrics service (*Default*: `false`).")
   private Boolean stackdriverEnabled;
 
   @Parameter(
       names = "--metadata-caching-interval-ms",
-      description = "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`)."
-  )
+      description =
+          "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`).")
   private Long metadataCachingIntervalMS;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, false))
-        .get();
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
 
     int originalHash = canary.hashCode();
 
     GoogleCanaryServiceIntegration googleCanaryServiceIntegration =
-        (GoogleCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
+        (GoogleCanaryServiceIntegration)
+            CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
 
-    googleCanaryServiceIntegration.setGcsEnabled(isSet(gcsEnabled) ? gcsEnabled : googleCanaryServiceIntegration.isGcsEnabled());
-    googleCanaryServiceIntegration.setStackdriverEnabled(isSet(stackdriverEnabled) ? stackdriverEnabled : googleCanaryServiceIntegration.isStackdriverEnabled());
-    googleCanaryServiceIntegration.setMetadataCachingIntervalMS(isSet(metadataCachingIntervalMS) ? metadataCachingIntervalMS : googleCanaryServiceIntegration.getMetadataCachingIntervalMS());
+    googleCanaryServiceIntegration.setGcsEnabled(
+        isSet(gcsEnabled) ? gcsEnabled : googleCanaryServiceIntegration.isGcsEnabled());
+    googleCanaryServiceIntegration.setStackdriverEnabled(
+        isSet(stackdriverEnabled)
+            ? stackdriverEnabled
+            : googleCanaryServiceIntegration.isStackdriverEnabled());
+    googleCanaryServiceIntegration.setMetadataCachingIntervalMS(
+        isSet(metadataCachingIntervalMS)
+            ? metadataCachingIntervalMS
+            : googleCanaryServiceIntegration.getMetadataCachingIntervalMS());
 
     if (googleCanaryServiceIntegration.isStackdriverEnabled()) {
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE));
     } else {
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().remove(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE));
     }
 
     if (googleCanaryServiceIntegration.isGcsEnabled()) {
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
     } else {
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().remove(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      googleCanaryServiceIntegration.getAccounts().forEach(a -> a.getSupportedTypes().remove(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
+      googleCanaryServiceIntegration
+          .getAccounts()
+          .forEach(
+              a ->
+                  a.getSupportedTypes()
+                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
     }
 
     if (originalHash == canary.hashCode()) {
@@ -98,7 +133,8 @@ public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegratio
     new OperationHandler<Void>()
         .setOperation(Daemon.setCanary(currentDeployment, !noValidate, canary))
         .setFailureMesssage("Failed to edit canary analysis Google service integration settings.")
-        .setSuccessMessage("Successfully edited canary analysis Google service integration settings.")
+        .setSuccessMessage(
+            "Successfully edited canary analysis Google service integration settings.")
         .get();
   }
 }

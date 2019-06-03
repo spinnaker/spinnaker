@@ -18,26 +18,28 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class OracleBaseImageValidator extends Validator<OracleBaseImage> {
 
-    @Override
-    public void validate(ConfigProblemSetBuilder p, OracleBaseImage n) {
-        DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + OracleBaseImageValidator.class.getSimpleName());
+  @Override
+  public void validate(ConfigProblemSetBuilder p, OracleBaseImage n) {
+    DaemonTaskHandler.message(
+        "Validating "
+            + n.getNodeName()
+            + " with "
+            + OracleBaseImageValidator.class.getSimpleName());
 
-        OracleBaseImage.OracleVirtualizationSettings vs = n.getVirtualizationSettings();
-        String baesImageId = vs.getBaseImageId();
-        String sshUserName = vs.getSshUserName();
+    OracleBaseImage.OracleVirtualizationSettings vs = n.getVirtualizationSettings();
+    String baesImageId = vs.getBaseImageId();
+    String sshUserName = vs.getSshUserName();
 
-        if (StringUtils.isEmpty(baesImageId)) {
-            p.addProblem(Problem.Severity.ERROR, "No base image id supplied for oracle base image.");
-        }
-
-        if (StringUtils.isEmpty(sshUserName)) {
-            p.addProblem(Problem.Severity.ERROR, "No ssh username supplied for oracle base image.");
-        }
+    if (StringUtils.isEmpty(baesImageId)) {
+      p.addProblem(Problem.Severity.ERROR, "No base image id supplied for oracle base image.");
     }
+
+    if (StringUtils.isEmpty(sshUserName)) {
+      p.addProblem(Problem.Severity.ERROR, "No ssh username supplied for oracle base image.");
+    }
+  }
 }

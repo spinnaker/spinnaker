@@ -19,13 +19,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.search;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.AbstractRepositoryCommand;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An abstract definition for commands that accept SEARCH as a main parameter
- */
+/** An abstract definition for commands that accept SEARCH as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasSearchCommand extends AbstractRepositoryCommand {
   @Parameter(description = "The name of the search to operate on.", arity = 1)

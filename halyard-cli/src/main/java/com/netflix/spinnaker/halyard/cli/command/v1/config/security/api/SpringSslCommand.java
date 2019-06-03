@@ -34,10 +34,11 @@ public class SpringSslCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure and view SSL settings for Spinnaker's API gateway.";
 
-  private String longDescription = String.join(" ",
-      "If you want the API server to do SSL termination, it must be enabled and configured here.",
-      "If you are doing your own SSL termination, leave this disabled."
-  );
+  private String longDescription =
+      String.join(
+          " ",
+          "If you want the API server to do SSL termination, it must be enabled and configured here.",
+          "If you are doing your own SSL termination, leave this disabled.");
 
   public SpringSslCommand() {
     registerSubcommand(new EnableDisableSslCommandBuilder().setEnable(true).build());

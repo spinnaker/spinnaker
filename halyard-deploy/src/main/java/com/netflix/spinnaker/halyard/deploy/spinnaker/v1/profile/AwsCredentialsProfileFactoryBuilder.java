@@ -18,40 +18,33 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-
 @Component
 public class AwsCredentialsProfileFactoryBuilder {
-  @Autowired
-  protected ArtifactService artifactService;
+  @Autowired protected ArtifactService artifactService;
 
-  @Autowired
-  SecretSessionManager secretSessionManager;
+  @Autowired SecretSessionManager secretSessionManager;
 
-  @Setter
-  private String profileName = "default";
+  @Setter private String profileName = "default";
 
-  @Setter
-  private String accessKeyId;
+  @Setter private String accessKeyId;
 
-  @Setter
-  private String secretAccessKey;
+  @Setter private String secretAccessKey;
 
-  @Setter
-  private SpinnakerArtifact artifact;
+  @Setter private SpinnakerArtifact artifact;
 
   public AwsCredentialsProfileFactory build() {
     return new AwsCredentialsProfileFactory(artifact, accessKeyId, secretAccessKey);
@@ -64,33 +57,38 @@ public class AwsCredentialsProfileFactoryBuilder {
   @EqualsAndHashCode(callSuper = false)
   @Data
   public class AwsCredentialsProfileFactory extends TemplateBackedProfileFactory {
-    public AwsCredentialsProfileFactory(SpinnakerArtifact artifact, String accessKeyId, String secretAccessKey) {
+    public AwsCredentialsProfileFactory(
+        SpinnakerArtifact artifact, String accessKeyId, String secretAccessKey) {
       super();
       this.accessKeyId = accessKeyId;
       this.secretAccessKey = secretAccessKey;
       this.artifact = artifact;
     }
 
-    final private String accessKeyId;
+    private final String accessKeyId;
 
-    final private String secretAccessKey;
+    private final String secretAccessKey;
 
     @Override
     protected ArtifactService getArtifactService() {
       return artifactService;
     }
 
-    private String template = String.join("\n",
-        "[" + profileName + "]",
-        "aws_access_key_id = {%accessKeyId%}",
-        "aws_secret_access_key = {%secretAccessKey%}"
-    );
+    private String template =
+        String.join(
+            "\n",
+            "[" + profileName + "]",
+            "aws_access_key_id = {%accessKeyId%}",
+            "aws_secret_access_key = {%secretAccessKey%}");
 
     @Override
-    protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    protected Map<String, Object> getBindings(
+        DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
       Map<String, Object> result = new HashMap<>();
       result.put("accessKeyId", accessKeyId);
-      result.put("secretAccessKey", AwsCredentialsProfileFactoryBuilder.this.secretSessionManager.decrypt(secretAccessKey));
+      result.put(
+          "secretAccessKey",
+          AwsCredentialsProfileFactoryBuilder.this.secretSessionManager.decrypt(secretAccessKey));
       return result;
     }
 

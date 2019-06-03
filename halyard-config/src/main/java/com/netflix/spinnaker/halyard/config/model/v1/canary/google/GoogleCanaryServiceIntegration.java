@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Slf4j
-public class GoogleCanaryServiceIntegration extends AbstractCanaryServiceIntegration<GoogleCanaryAccount> implements Cloneable {
+public class GoogleCanaryServiceIntegration
+    extends AbstractCanaryServiceIntegration<GoogleCanaryAccount> implements Cloneable {
   public static final String NAME = "google";
 
   String name = NAME;

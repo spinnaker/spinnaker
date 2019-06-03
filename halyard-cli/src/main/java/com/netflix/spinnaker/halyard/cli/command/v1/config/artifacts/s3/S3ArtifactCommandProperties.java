@@ -19,9 +19,11 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3;
 
 class S3ArtifactCommandProperties {
-    static final String API_REGION_DESCRIPTION = "S3 api region; only required when using an S3 clone such as Minio";
+  static final String API_REGION_DESCRIPTION =
+      "S3 api region; only required when using an S3 clone such as Minio";
 
-    static final String API_ENDPOINT_DESCRIPTION = "S3 api endpoint; only required when using an S3 clone such as Minio";
+  static final String API_ENDPOINT_DESCRIPTION =
+      "S3 api endpoint; only required when using an S3 clone such as Minio";
 
-    static final String REGION_DESCRIPTION = "S3 region";
+  static final String REGION_DESCRIPTION = "S3 region";
 }

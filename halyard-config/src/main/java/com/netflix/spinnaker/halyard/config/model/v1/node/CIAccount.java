@@ -31,4 +31,3 @@ public abstract class CIAccount extends Node implements Cloneable {
     return name;
   }
 }
-

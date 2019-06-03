@@ -23,8 +23,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class MavenArtifactProvider extends ArtifactProvider<MavenArtifactAccount> {
-    @Override
-    public ProviderType providerType() {
-        return ProviderType.MAVEN;
-    }
+  @Override
+  public ProviderType providerType() {
+    return ProviderType.MAVEN;
+  }
 }

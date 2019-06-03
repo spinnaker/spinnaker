@@ -21,7 +21,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.spin.v1.InstallSpinCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters(separators =  "=")
+@Parameters(separators = "=")
 public class SpinCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "spin";

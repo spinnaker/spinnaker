@@ -22,16 +22,15 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.ConsulApi;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class ConsulServerService extends SpinnakerService<ConsulApi> {
+public abstract class ConsulServerService extends SpinnakerService<ConsulApi> {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.CONSUL;
@@ -42,18 +41,18 @@ abstract public class ConsulServerService extends SpinnakerService<ConsulApi> {
     return Type.CONSUL_SERVER;
   }
 
-
   @Override
   public Class<ConsulApi> getEndpointClass() {
     return ConsulApi.class;
   }
 
   @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public List<Profile> getProfiles(
+      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
 
-  public interface Consul { }
+  public interface Consul {}
 
   @EqualsAndHashCode(callSuper = true)
   @Data
@@ -73,7 +72,7 @@ abstract public class ConsulServerService extends SpinnakerService<ConsulApi> {
     Boolean skipLifeCycleManagement = false;
     Map<String, String> env = new HashMap<>();
 
-    public Settings() { }
+    public Settings() {}
   }
 
   @Override

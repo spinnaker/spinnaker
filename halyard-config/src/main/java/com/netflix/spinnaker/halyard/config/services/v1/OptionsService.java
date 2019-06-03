@@ -22,32 +22,36 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class OptionsService {
-  @Autowired
-  LookupService lookupService;
+  @Autowired LookupService lookupService;
 
-  @Autowired
-  ApplicationContext applicationContext;
+  @Autowired ApplicationContext applicationContext;
 
-  public <T extends Node> FieldOptions options(NodeFilter filter, Class<T> nodeClass, String field) {
+  public <T extends Node> FieldOptions options(
+      NodeFilter filter, Class<T> nodeClass, String field) {
     ConfigProblemSetBuilder problemSetBuilder = new ConfigProblemSetBuilder(applicationContext);
     List<T> nodes = lookupService.getMatchingNodesOfType(filter, nodeClass);
-    List<String> options = nodes.stream().map(n -> {
-      problemSetBuilder.setNode(n);
-      return n.fieldOptions(problemSetBuilder, field);
-    }).reduce(new ArrayList<>(), (a, b) -> {
-      a.addAll(b);
-      return a;
-    });
+    List<String> options =
+        nodes.stream()
+            .map(
+                n -> {
+                  problemSetBuilder.setNode(n);
+                  return n.fieldOptions(problemSetBuilder, field);
+                })
+            .reduce(
+                new ArrayList<>(),
+                (a, b) -> {
+                  a.addAll(b);
+                  return a;
+                });
 
     return new FieldOptions().setOptions(options).setProblemSet(problemSetBuilder.build());
   }
