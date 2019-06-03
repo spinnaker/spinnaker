@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -178,7 +179,7 @@ public class ConcourseBuildMonitor
       GenericBuildEvent event = new GenericBuildEvent();
       event.setContent(content);
 
-      echoService.get().postEvent(event);
+      AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());

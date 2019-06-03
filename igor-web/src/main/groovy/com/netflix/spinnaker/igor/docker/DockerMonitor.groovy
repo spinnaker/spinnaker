@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.polling.DeltaItem
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -181,13 +182,15 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         GenericArtifact dockerArtifact = new GenericArtifact("docker", image.repository, image.tag, "${image.registry}/${image.repository}:${image.tag}")
         dockerArtifact.metadata = [registry: image.registry]
 
-        echoService.get().postEvent(new DockerEvent(content: new DockerEvent.Content(
+        AuthenticatedRequest.allowAnonymous {
+          echoService.get().postEvent(new DockerEvent(content: new DockerEvent.Content(
             registry: image.registry,
             repository: image.repository,
             tag: image.tag,
             digest: image.digest,
             account: image.account,
-        ), artifact: dockerArtifact))
+          ), artifact: dockerArtifact))
+        }
     }
 
     @Override

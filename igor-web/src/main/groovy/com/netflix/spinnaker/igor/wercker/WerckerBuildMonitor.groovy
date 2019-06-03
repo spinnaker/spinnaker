@@ -8,6 +8,8 @@
  */
 package com.netflix.spinnaker.igor.wercker
 
+import com.netflix.spinnaker.security.AuthenticatedRequest
+
 import static com.netflix.spinnaker.igor.wercker.model.Run.finishedAtComparator
 import static com.netflix.spinnaker.igor.wercker.model.Run.startedAtComparator
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -261,10 +263,12 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
         if (!echoService.isPresent()) {
             log.warn("Cannot send build notification: Echo is not configured")
             registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
-            return false;
+            return false
         }
-        echoService.get().postEvent(new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: "wercker")))
-        return true;
+        AuthenticatedRequest.allowAnonymous {
+            echoService.get().postEvent(new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: "wercker")))
+        }
+        return true
     }
 
     private static class PipelinePollingDelta implements PollingDelta<PipelineDelta> {

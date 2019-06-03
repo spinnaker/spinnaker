@@ -38,6 +38,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job;
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -279,7 +280,7 @@ public class TravisBuildMonitor
         GenericBuildEvent event = new GenericBuildEvent();
         event.setContent(content);
 
-        echoService.get().postEvent(event);
+        AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
       } else {
         log.warn("Cannot send build event notification: Echo is not configured");
         log.info(

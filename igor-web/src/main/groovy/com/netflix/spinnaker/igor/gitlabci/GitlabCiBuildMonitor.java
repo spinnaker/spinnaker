@@ -34,6 +34,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -232,7 +233,7 @@ public class GitlabCiBuildMonitor
 
     GenericBuildEvent event = new GenericBuildEvent();
     event.setContent(content);
-    echoService.get().postEvent(event);
+    AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
   }
 
   @Override

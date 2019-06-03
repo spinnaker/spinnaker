@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.history.model.ArtifactoryEvent;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -195,9 +196,11 @@ public class ArtifactoryBuildMonitor
           .increment();
     } else {
       if (artifact != null) {
-        echoService
-            .get()
-            .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, artifact)));
+        AuthenticatedRequest.allowAnonymous(
+            () ->
+                echoService
+                    .get()
+                    .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, artifact))));
       }
     }
   }

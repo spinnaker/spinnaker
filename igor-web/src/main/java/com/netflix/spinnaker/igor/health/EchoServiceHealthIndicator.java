@@ -22,6 +22,7 @@ import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.history.model.*;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,7 +77,7 @@ public class EchoServiceHealthIndicator implements HealthIndicator {
     echoService.ifPresent(
         s -> {
           try {
-            s.postEvent(event);
+            AuthenticatedRequest.allowAnonymous(() -> s.postEvent(event));
             upOnce.set(true);
             errors.set(0);
             lastException.set(null);

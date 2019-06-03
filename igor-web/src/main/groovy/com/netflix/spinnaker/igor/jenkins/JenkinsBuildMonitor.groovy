@@ -34,6 +34,7 @@ import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -227,7 +228,9 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
             return
         }
-        echoService.get().postEvent(new BuildEvent(content: new BuildContent(project: project, master: master)))
+        AuthenticatedRequest.allowAnonymous {
+            echoService.get().postEvent(new BuildEvent(content: new BuildContent(project: project, master: master)))
+        }
     }
 
     private static class JobPollingDelta implements PollingDelta<JobDelta> {
