@@ -74,8 +74,8 @@ module.exports = angular
         vnet: command.vnet,
         vnetResourceGroup: command.selectedVnet.resourceGroup,
         subnet: command.subnet,
+        useSourceCapacity: false,
         capacity: {
-          useSourceCapacity: false,
           min: command.sku.capacity,
           max: command.sku.capacity,
         },
