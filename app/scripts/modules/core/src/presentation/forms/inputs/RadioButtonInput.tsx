@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Option } from 'react-select';
 
-import { Markdown, OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentation';
+import { Markdown, OmitControlledInputPropsFrom } from 'core/presentation';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
@@ -9,32 +9,44 @@ import { IFormInputProps } from '../interface';
 interface IRadioButtonInputProps
   extends IFormInputProps,
     OmitControlledInputPropsFrom<React.TextareaHTMLAttributes<any>> {
-  options: Array<string | Option<string | number>>;
+  stringOptions?: string[];
+  options?: Option[];
   inputClassName?: string;
+  inline?: boolean;
 }
 
 export const RadioButtonInput = (props: IRadioButtonInputProps) => {
-  const { value, validation, inputClassName, options, ...otherProps } = props;
-  const className = `RadioButtonInput radio ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
+  const { inline, value: selectedValue, validation, inputClassName, options, stringOptions, ...otherProps } = props;
+  const radioOptions = isStringArray(stringOptions) ? stringOptions.map(value => ({ value, label: value })) : options;
 
-  const RadioButtonsElement = ({ opts }: { opts: Array<Option<string>> }) => (
+  const userClassName = orEmptyString(inputClassName);
+  const validClassName = validationClassName(validation);
+  const elementClassName = `RadioButtonInput radio ${userClassName} ${validClassName}`;
+
+  const RadioButton = ({ option }: { option: Option }) => (
+    <label key={option.label} className={inline ? 'radio-inline clickable' : 'inline clickable'}>
+      <input type="radio" {...otherProps} value={option.value as any} checked={option.value === selectedValue} />
+      <Markdown message={option.label} />
+    </label>
+  );
+
+  const VerticalRadioButtons = ({ opts }: { opts: Option[] }) => (
     <div className="vertical left">
+      <div className={elementClassName}>
+        {opts.map(option => (
+          <RadioButton key={option.label} option={option} />
+        ))}
+      </div>
+    </div>
+  );
+
+  const InlineRadioButtons = ({ opts }: { opts: Option[] }) => (
+    <div className={elementClassName}>
       {opts.map(option => (
-        <div key={option.label} className={className}>
-          <label>
-            <input type="radio" {...otherProps} value={option.value} checked={option.value === value} />
-            <span className="marked">
-              <Markdown message={option.label} />
-            </span>
-          </label>
-        </div>
+        <RadioButton key={option.label} option={option} />
       ))}
     </div>
   );
 
-  if (isStringArray(options)) {
-    return <StringsAsOptions strings={options}>{opts => <RadioButtonsElement opts={opts} />}</StringsAsOptions>;
-  } else {
-    return <RadioButtonsElement opts={options as Array<Option<string>>} />;
-  }
+  return inline ? <InlineRadioButtons opts={radioOptions} /> : <VerticalRadioButtons opts={radioOptions} />;
 };

@@ -190,7 +190,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                       const option = ownerOptions.find(opt => opt.label === evt.target.value);
                       setFieldValue('ownerOption', option);
                     }}
-                    input={props => <RadioButtonInput {...props} options={ownerOptions.map(opt => opt.label)} />}
+                    input={props => <RadioButtonInput {...props} stringOptions={ownerOptions.map(opt => opt.label)} />}
                   />
                 )}
               </Modal.Body>
