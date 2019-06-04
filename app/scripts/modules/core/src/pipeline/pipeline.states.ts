@@ -5,7 +5,9 @@ import { INestedState, StateConfigProvider } from 'core/navigation/state.provide
 import { filterModelConfig } from './filter/ExecutionFilterModel';
 
 import { Executions } from 'core/pipeline/executions/Executions';
+import { ExecutionNotFound } from 'core/pipeline/executions/ExecutionNotFound';
 import { SingleExecutionDetails } from 'core/pipeline/details/SingleExecutionDetails';
+import { ExecutionService } from './service/execution.service';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';
 module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
@@ -92,5 +94,39 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
     };
 
     applicationStateProvider.addChildState(pipelines);
+
+    const executionsLookup: INestedState = {
+      name: 'executionLookup',
+      url: '/executions/:executionId',
+      params: {
+        executionId: { dynamic: true },
+      },
+      redirectTo: transition => {
+        const { executionId } = transition.params();
+        const executionService: ExecutionService = transition.injector().get('executionService');
+
+        if (!executionId) {
+          return undefined;
+        }
+
+        return Promise.resolve()
+          .then(() => executionService.getExecution(executionId))
+          .then(execution =>
+            transition.router.stateService.target(
+              'home.applications.application.pipelines.executionDetails.execution',
+              {
+                application: execution.application,
+                executionId: execution.id,
+              },
+            ),
+          )
+          .catch(() => {});
+      },
+      views: {
+        'main@': { component: ExecutionNotFound, $type: 'react' },
+      },
+    };
+
+    stateConfigProvider.addToRootState(executionsLookup);
   },
 ]);
