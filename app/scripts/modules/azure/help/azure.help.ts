@@ -35,6 +35,18 @@ const helpContents: { [key: string]: string } = {
   } tags at most.`,
   'azure.serverGroup.enableInboundNAT':
     'An Azure load balancer of the basic sku will be created with adding inbound NAT port-forwarding rules to facilitate loggin on VM instances. There is no charge for creating an Azure load balancer of the basic sku. This option is disabled if Availability Zones are set which require Standard Azure Load Balancer and an extra Network Security Group with correct inbound and outbound rules configured.',
+  'azure.loadBalancer.dnsName':
+    'If there is no custom DNS label specified, a default DNS name will be created. The default value will be "GeneratedText.cloudapp.net" for Azure Application Gateway or "GeneratedText.[region].cloudapp.azure.com" for Azure Load Balancer.',
+  'azure.loadBalancer.probes.probeInterval':
+    'Probe interval in seconds. This value is the time interval between two consecutive probes.',
+  'azure.loadBalancer.probes.timeout':
+    'Probe time-out in seconds. If a valid response is not received within this time-out period, the probe is marked as failed. Note that the time-out value should not be more than the Interval value.',
+  'azure.loadBalancer.probes.unhealthyThreshold':
+    'Probe retry count. The back-end server is marked down after the consecutive probe failure count reaches the unhealthy threshold.',
+  'azure.loadBalancer.loadBalancingRules.idleTimeout':
+    'Keep a TCP or HTTP connection open without relying on clients to send keep-alive messages.',
+  'azure.loadBalancer.loadBalancingRules.sessionPersistence':
+    'Session persistence specifies that traffic from a client should be handled by the same virtual machine in the backend pool for the duration of a session. "None" specifies that successive requests from the same client may be handled by any virtual machine. "Client IP" specifies that successive requests from the same client IP address will be handled by the same virtual machine. "Client IP and protocol" specifies that successive requests from the same client IP address and protocol combination will be handled by the same virtual machine.',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

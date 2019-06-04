@@ -62,6 +62,9 @@ module.exports = angular
           }
 
           toEdit.probes = elb.probes;
+          if (elb.dnsName && elb.dnsName !== 'dns-not-found') {
+            toEdit.dnsName = elb.dnsName.split('.')[0];
+          }
         }
         return toEdit;
       }

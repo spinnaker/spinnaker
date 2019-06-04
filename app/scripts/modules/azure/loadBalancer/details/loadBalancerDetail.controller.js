@@ -127,6 +127,7 @@ module.exports = angular
         $uibModal.open({
           templateUrl: require('../configure/editLoadBalancer.html'),
           controller: 'azureCreateLoadBalancerCtrl as ctrl',
+          size: 'lg',
           resolve: {
             application: function() {
               return app;

@@ -37,6 +37,7 @@ module.exports = angular
         location: require('./createLoadBalancerProperties.html'),
         listeners: require('./listeners.html'),
         healthCheck: require('./healthCheck.html'),
+        advancedSettings: require('./advancedSettings.html'),
       };
 
       $scope.isNew = isNew;
