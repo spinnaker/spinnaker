@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isString, isUndefined } from 'lodash';
+import { isNil, isString, isUndefined } from 'lodash';
 import { Field, FastField, FieldProps, getIn, connect, FormikContext } from 'formik';
 
 import {
@@ -42,6 +42,7 @@ export type IFormikFormFieldProps<T> = IFormikFieldProps<T> & ICommonFormFieldPr
 type IFormikFormFieldImplProps<T> = IFormikFormFieldProps<T> & { formik: FormikContext<T> };
 
 const ifString = (val: any): string => (isString(val) ? val : undefined);
+const firstDefinedNode = (...values: React.ReactNode[]): React.ReactNode => values.find(val => !isNil(val));
 
 export class FormikFormFieldImpl<T = any>
   extends React.Component<IFormikFormFieldImplProps<T>, IFormikFormFieldImplState>
@@ -79,7 +80,7 @@ export class FormikFormFieldImpl<T = any>
 
   public validationMessage = () => {
     const { name, formik, validationMessage } = this.props;
-    return ifString(validationMessage) || getIn(formik.errors, name);
+    return firstDefinedNode(validationMessage, getIn(formik.errors, name));
   };
 
   public validationStatus = () => {

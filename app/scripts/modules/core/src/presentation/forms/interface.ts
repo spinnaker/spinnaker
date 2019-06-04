@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FieldProps } from 'formik';
 
 import { IValidator } from './validation';
-export type IFieldValidationStatus = 'error' | 'warning' | 'message';
+export type IFieldValidationStatus = 'success' | 'none' | 'error' | 'warning' | 'message';
 
 /** These props are used by FormField and FormikFormField components */
 export interface IFieldLayoutPropsWithoutInput extends IValidationProps {
@@ -57,6 +57,6 @@ export interface IFormFieldApi {
   label(): string;
   value(): any;
   touched(): boolean;
-  validationMessage(): string;
+  validationMessage(): React.ReactNode;
   validationStatus(): IFieldValidationStatus;
 }

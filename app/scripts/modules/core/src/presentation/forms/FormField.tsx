@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Subject } from 'rxjs';
-import { isString } from 'lodash';
+import { isNil, isString } from 'lodash';
 
 import { noop } from 'core/utils';
 
@@ -37,6 +37,7 @@ interface IFormFieldState {
 }
 
 const ifString = (val: any): string => (isString(val) ? val : undefined);
+const firstDefinedNode = (...values: React.ReactNode[]): React.ReactNode => values.find(val => !isNil(val));
 
 export class FormField extends React.Component<IFormFieldProps, IFormFieldState> implements IFormFieldApi {
   public static defaultProps: Partial<IFormFieldProps> = {
@@ -63,7 +64,7 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
 
   public touched = () => this.props.touched;
 
-  public validationMessage = () => ifString(this.props.validationMessage) || ifString(this.state.validationMessage);
+  public validationMessage = () => firstDefinedNode(this.props.validationMessage, this.state.validationMessage);
 
   public validationStatus = () => this.props.validationStatus || this.state.validationStatus;
 
