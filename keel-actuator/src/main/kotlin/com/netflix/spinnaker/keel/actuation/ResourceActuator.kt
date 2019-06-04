@@ -38,7 +38,7 @@ class ResourceActuator(
 
   private val differ = ObjectDifferBuilder.buildDefault()
 
-  fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
+  suspend fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
     try {
       val plugin = handlers.supporting(apiVersion, kind)
 
@@ -107,20 +107,20 @@ class ResourceActuator(
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.resolve(
+  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.resolve(
     resource: Resource<*>
   ): ResolvedResource<R> =
     resolve(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(
+  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
   ): List<TaskRef> =
     create(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.update(
+  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.update(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
   ): List<TaskRef> =

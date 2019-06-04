@@ -44,9 +44,6 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import de.danielbechler.diff.node.DiffNode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -80,29 +77,25 @@ class ClusterHandler(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.name}"
   )
 
-  override fun resolve(resource: Resource<ClusterSpec>): ResolvedResource<Cluster> {
+  override suspend fun resolve(resource: Resource<ClusterSpec>): ResolvedResource<Cluster> {
     val imageId = resolveImageId(resource.spec.launchConfiguration.imageProvider, resource.spec.location.region)
-    return runBlocking {
-      ResolvedResource(
-        desired = desired(resource.spec, imageId),
-        current = current(resource)
-      )
-    }
+    return ResolvedResource(
+      desired = desired(resource.spec, imageId),
+      current = current(resource)
+    )
   }
 
-  private fun resolveImageId(imageProvider: ImageProvider, region: String): String {
+  private suspend fun resolveImageId(imageProvider: ImageProvider, region: String): String {
     when (imageProvider) {
       is IdImageProvider -> {
         return imageProvider.imageId
       }
       is LatestFromPackageImageProvider -> {
         val artifactName = imageProvider.deliveryArtifact.name
-        val namedImage = runBlocking {
-          imageService.getLatestNamedImage(
-            artifactName,
-            dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test")
-          )
-        } ?: throw NoImageFound(artifactName)
+        val namedImage = imageService.getLatestNamedImage(
+          artifactName,
+          dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test")
+        ) ?: throw NoImageFound(artifactName)
 
         log.info("Image found for {}: {}", artifactName, namedImage)
 
@@ -110,18 +103,17 @@ class ClusterHandler(
         return amis.first() // todo eb: when are there multiple?
       }
       is JenkinsJobImageProvider -> {
-        val namedImage = runBlocking {
-          imageService.getNamedImageFromJenkinsInfo(
-            imageProvider.packageName,
-            dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test"),
-            imageProvider.buildHost,
-            imageProvider.buildName,
-            imageProvider.buildNumber
-          )
-        } ?: throw NoImageFound(imageProvider.packageName)
+        val namedImage = imageService.getNamedImageFromJenkinsInfo(
+          imageProvider.packageName,
+          dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test"),
+          imageProvider.buildHost,
+          imageProvider.buildName,
+          imageProvider.buildNumber
+        ) ?: throw NoImageFound(imageProvider.packageName)
 
         log.info("Image found for {}: {}", imageProvider.packageName, namedImage)
-        val amis = namedImage.amis[region] ?: throw NoImageFoundForRegion(imageProvider.packageName, region)
+        val amis = namedImage.amis[region]
+          ?: throw NoImageFoundForRegion(imageProvider.packageName, region)
         return amis.first() // todo eb: when are there multiple?
       }
       else -> {
@@ -143,43 +135,40 @@ class ClusterHandler(
     )
   }
 
-  private fun current(resource: Resource<ClusterSpec>): Cluster? {
-    return runBlocking {
-      cloudDriverService.getCluster(resource.spec)
-    }
-  }
+  private suspend fun current(resource: Resource<ClusterSpec>): Cluster? =
+    cloudDriverService.getCluster(resource.spec)
 
-  override fun upsert(
+  override suspend fun upsert(
     resource: Resource<ClusterSpec>,
     resourceDiff: ResourceDiff<Cluster>
-  ): List<TaskRef> =
-    runBlocking {
-      val spec = resourceDiff.desired
-      val job = when {
-        resourceDiff.isCapacityOnly() -> spec.resizeServerGroupJob()
-        else -> spec.createServerGroupJob()
-      }
-
-      log.info("Upserting cluster using task: {}", job)
-
-      orcaService
-        .orchestrate(OrchestrationRequest(
-          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
-          spec.moniker.app,
-          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
-          listOf(Job(job["type"].toString(), job)),
-          OrchestrationTrigger(resource.metadata.name.toString())
-        ))
-        .await()
+  ): List<TaskRef> {
+    val spec = resourceDiff.desired
+    val job = when {
+      resourceDiff.isCapacityOnly() -> spec.resizeServerGroupJob()
+      else -> spec.createServerGroupJob()
     }
-    .also { log.info("Started task {} to upsert cluster", it.ref) }
+
+    log.info("Upserting cluster using task: {}", job)
+
+    return orcaService
+      .orchestrate(OrchestrationRequest(
+        "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
+        spec.moniker.app,
+        "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
+        listOf(Job(job["type"].toString(), job)),
+        OrchestrationTrigger(resource.metadata.name.toString())
+      ))
+      .await()
+      .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee
       .let { listOf(TaskRef(it.ref)) }
+  }
 
-  override fun actuationInProgress(name: ResourceName) =
-    runBlocking {
-      orcaService.getCorrelatedExecutions(name.value).await()
-    }.isNotEmpty()
+  override suspend fun actuationInProgress(name: ResourceName) =
+    orcaService
+      .getCorrelatedExecutions(name.value)
+      .await()
+      .isNotEmpty()
 
   /**
    * @return `true` if the only changes in the diff are to capacity.
@@ -290,7 +279,7 @@ class ClusterHandler(
       }
       ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.name} in ${location.accountName} / ${location.region}")
 
-  override fun delete(resource: Resource<ClusterSpec>) {
+  override suspend fun delete(resource: Resource<ClusterSpec>) {
     TODO("not implemented")
   }
 
@@ -314,55 +303,53 @@ class ClusterHandler(
 
   private suspend fun CloudDriverService.getCluster(spec: ClusterSpec): Cluster? {
     try {
-      return withContext(Dispatchers.Default) {
-        activeServerGroup(
-          spec.moniker.app,
-          spec.location.accountName,
-          spec.moniker.name,
-          spec.location.region,
-          CLOUD_PROVIDER
-        )
-          .await()
-          .run {
-            Cluster(
-              moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
-              location = Location(
-                accountName,
-                region,
-                subnet,
-                zones
-              ),
-              launchConfiguration = launchConfig.run {
-                LaunchConfiguration(
-                  imageId,
-                  instanceType,
-                  ebsOptimized,
-                  iamInstanceProfile,
-                  keyName,
-                  instanceMonitoring.enabled,
-                  ramdiskId.orNull()
-                )
-              },
-              capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-              dependencies = Dependencies(
-                loadBalancerNames = loadBalancers,
-                securityGroupNames = securityGroupNames,
-                targetGroups = targetGroups
-              ),
-              health = Health(
-                enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
-                cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
-                warmup = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
-                healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
-                terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
-              ),
-              scaling = Scaling(
-                suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
-              ),
-              tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
-            )
-          }
-      }
+      return activeServerGroup(
+        spec.moniker.app,
+        spec.location.accountName,
+        spec.moniker.name,
+        spec.location.region,
+        CLOUD_PROVIDER
+      )
+        .await()
+        .run {
+          Cluster(
+            moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
+            location = Location(
+              accountName,
+              region,
+              subnet,
+              zones
+            ),
+            launchConfiguration = launchConfig.run {
+              LaunchConfiguration(
+                imageId,
+                instanceType,
+                ebsOptimized,
+                iamInstanceProfile,
+                keyName,
+                instanceMonitoring.enabled,
+                ramdiskId.orNull()
+              )
+            },
+            capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
+            dependencies = Dependencies(
+              loadBalancerNames = loadBalancers,
+              securityGroupNames = securityGroupNames,
+              targetGroups = targetGroups
+            ),
+            health = Health(
+              enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
+              cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
+              warmup = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
+              healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
+              terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
+            ),
+            scaling = Scaling(
+              suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
+            ),
+            tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
+          )
+        }
     } catch (e: HttpException) {
       if (e.isNotFound) {
         return null

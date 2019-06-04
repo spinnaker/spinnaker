@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectFactory
@@ -50,36 +49,32 @@ class DeliveryConfigHandler(
         env.targets.all { it.resourceMetadata != null }
     }
 
-  override fun current(resource: Resource<DeliveryConfig>): DeliveryConfig? =
+  override suspend fun current(resource: Resource<DeliveryConfig>): DeliveryConfig? =
     if (resource.spec.isResolved) {
-      runBlocking {
-        val cfg = resource.spec.copy(
-          deliveryEnvironments = resource.spec.deliveryEnvironments.map { it.refreshFromRepository() })
-        cfg
-      }
+      val cfg = resource.spec.copy(
+        deliveryEnvironments = resource.spec.deliveryEnvironments.map { it.refreshFromRepository() })
+      cfg
     } else {
       null
     }
 
-  override fun delete(resource: Resource<DeliveryConfig>) {
+  override suspend fun delete(resource: Resource<DeliveryConfig>) {
     TODO("Not implemented")
   }
 
-  override fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>): List<TaskRef> {
-    runBlocking {
-      resourceRepository.store(resource.copy(spec = resource.spec.copy(
-        deliveryEnvironments = resource.spec.deliveryEnvironments.map { env ->
-          env.packageRef.getOrCreateResource().let { pkg ->
-            env.copy(
-              packageRef = pkg,
-              targets = env.targets/*.map { t ->
+  override suspend fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>): List<TaskRef> {
+    resourceRepository.store(resource.copy(spec = resource.spec.copy(
+      deliveryEnvironments = resource.spec.deliveryEnvironments.map { env ->
+        env.packageRef.getOrCreateResource().let { pkg ->
+          env.copy(
+            packageRef = pkg,
+            targets = env.targets/*.map { t ->
                 t.getOrCreateResource().updateMetadata(mapOf("packageResource" to pkg))
               }*/
-            )
-          }
+          )
         }
-      )))
-    }
+      }
+    )))
     return emptyList()
   }
 

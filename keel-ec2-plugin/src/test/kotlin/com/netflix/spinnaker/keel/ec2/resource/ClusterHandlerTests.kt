@@ -48,6 +48,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
@@ -188,12 +189,16 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       test("the current model is null") {
-        val (desired, current) = resolve(resource)
+        val (_, current) = runBlocking {
+          resolve(resource)
+        }
         expectThat(current).isNull()
       }
 
       test("annealing a diff creates a new server group") {
-        upsert(resource, ResourceDiff(null, cluster))
+        runBlocking {
+          upsert(resource, ResourceDiff(null, cluster))
+        }
 
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
@@ -211,7 +216,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       derivedContext<Cluster?>("fetching the current cluster state") {
         deriveFixture {
-          val (desired, current) = resolve(resource)
+          val (_, current) = runBlocking {
+            resolve(resource)
+          }
           current
         }
 
@@ -230,7 +237,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         val diff = ResourceDiff(cluster, modified, differ.compare(modified, resource.spec))
 
         test("annealing resizes the current server group") {
-          upsert(resource, diff)
+          runBlocking {
+            upsert(resource, diff)
+          }
 
           val slot = slot<OrchestrationRequest>()
           verify { orcaService.orchestrate(capture(slot)) }
@@ -255,7 +264,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         val diff = ResourceDiff(cluster, modified, differ.compare(modified, cluster))
 
         test("annealing clones the current server group") {
-          upsert(resource, diff)
+          runBlocking {
+            upsert(resource, diff)
+          }
 
           val slot = slot<OrchestrationRequest>()
           verify { orcaService.orchestrate(capture(slot)) }

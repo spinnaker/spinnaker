@@ -41,7 +41,6 @@ import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -66,138 +65,131 @@ class SecurityGroupHandler(
     "ec2:securityGroup:${spec.accountName}:${spec.region}:${spec.moniker.name}"
   )
 
-  override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
+  override suspend fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)
 
-  override fun create(
+  override suspend fun create(
     resource: Resource<SecurityGroup>,
     resourceDiff: ResourceDiff<SecurityGroup>
   ): List<TaskRef> {
-    val taskRef = runBlocking {
-      resource.spec.let { spec ->
-        orcaService
-          .orchestrate(OrchestrationRequest(
-            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            spec.moniker.app,
-            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            listOf(spec.toCreateJob()),
-            OrchestrationTrigger(resource.metadata.name.toString())
-          ))
-          .await()
-      }
+    val taskRef = resource.spec.let { spec ->
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          spec.moniker.app,
+          "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          listOf(spec.toCreateJob()),
+          OrchestrationTrigger(resource.metadata.name.toString())
+        ))
+        .await()
     }
     log.info("Started task {} to create security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
   }
 
-  override fun update(
+  override suspend fun update(
     resource: Resource<SecurityGroup>,
     resourceDiff: ResourceDiff<SecurityGroup>
   ): List<TaskRef> {
-    val taskRef = runBlocking {
-      resource.spec.let { spec ->
-        orcaService
-          .orchestrate(OrchestrationRequest(
-            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            spec.moniker.app,
-            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            listOf(spec.toUpdateJob()),
-            OrchestrationTrigger(resource.metadata.name.toString())
-          ))
-          .await()
-      }
+    val taskRef = resource.spec.let { spec ->
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          spec.moniker.app,
+          "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          listOf(spec.toUpdateJob()),
+          OrchestrationTrigger(resource.metadata.name.toString())
+        ))
+        .await()
     }
     log.info("Started task {} to update security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
   }
 
-  override fun delete(resource: Resource<SecurityGroup>) {
-    val taskRef = runBlocking {
-      resource.spec.let { spec ->
-        orcaService
-          .orchestrate(OrchestrationRequest(
-            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            spec.moniker.app,
-            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            listOf(spec.toDeleteJob()),
-            OrchestrationTrigger(resource.metadata.name.toString())
-          ))
-          .await()
-      }
+  override suspend fun delete(resource: Resource<SecurityGroup>) {
+    val taskRef = resource.spec.let { spec ->
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          spec.moniker.app,
+          "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+          listOf(spec.toDeleteJob()),
+          OrchestrationTrigger(resource.metadata.name.toString())
+        ))
+        .await()
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  override fun actuationInProgress(name: ResourceName) =
-    runBlocking {
-      orcaService.getCorrelatedExecutions(name.value).await()
-    }.isNotEmpty()
+  override suspend fun actuationInProgress(name: ResourceName) =
+    orcaService
+      .getCorrelatedExecutions(name.value)
+      .await()
+      .isNotEmpty()
 
-  private fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
-    runBlocking {
-      try {
-        getSecurityGroup(
-          spec.accountName,
-          CLOUD_PROVIDER,
-          spec.moniker.name,
-          spec.region,
-          spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
-        )
-          .await()
-          .let { response ->
-            SecurityGroup(
-              Moniker(app = response.moniker.app, stack = response.moniker.stack, detail = response.moniker.detail),
-              response.accountName,
-              response.region,
-              response.vpcId?.let { cloudDriverCache.networkBy(it).name },
-              response.description,
-              response.inboundRules.flatMap { rule ->
-                val ingressGroup = rule.securityGroup
-                val ingressRange = rule.range
-                val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
-                when {
-                  ingressGroup != null -> rule.portRanges
-                    ?.map { PortRange(it.startPort!!, it.endPort!!) }
-                    ?.map { portRange ->
-                      when {
-                        ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
-                          protocol,
-                          ingressGroup.name,
-                          ingressGroup.accountName!!,
-                          cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
-                          portRange
-                        )
-                        ingressGroup.name != response.name -> ReferenceRule(
-                          protocol,
-                          ingressGroup.name,
-                          portRange
-                        )
-                        else -> SelfReferenceRule(
-                          protocol,
-                          portRange
-                        )
-                      }
-                    } ?: emptyList()
-                  ingressRange != null -> rule.portRanges
-                    ?.map { PortRange(it.startPort!!, it.endPort!!) }
-                    ?.map { portRange ->
-                      CidrRule(
+  private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
+    try {
+      getSecurityGroup(
+        spec.accountName,
+        CLOUD_PROVIDER,
+        spec.moniker.name,
+        spec.region,
+        spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
+      )
+        .await()
+        .let { response ->
+          SecurityGroup(
+            Moniker(app = response.moniker.app, stack = response.moniker.stack, detail = response.moniker.detail),
+            response.accountName,
+            response.region,
+            response.vpcId?.let { cloudDriverCache.networkBy(it).name },
+            response.description,
+            response.inboundRules.flatMap { rule ->
+              val ingressGroup = rule.securityGroup
+              val ingressRange = rule.range
+              val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
+              when {
+                ingressGroup != null -> rule.portRanges
+                  ?.map { PortRange(it.startPort!!, it.endPort!!) }
+                  ?.map { portRange ->
+                    when {
+                      ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
                         protocol,
-                        portRange,
-                        ingressRange.ip + ingressRange.cidr
+                        ingressGroup.name,
+                        ingressGroup.accountName!!,
+                        cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
+                        portRange
                       )
-                    } ?: emptyList()
-                  else -> emptyList()
-                }
-              }.toSet()
-            )
-          }
-      } catch (e: HttpException) {
-        if (e.isNotFound) {
-          null
-        } else {
-          throw e
+                      ingressGroup.name != response.name -> ReferenceRule(
+                        protocol,
+                        ingressGroup.name,
+                        portRange
+                      )
+                      else -> SelfReferenceRule(
+                        protocol,
+                        portRange
+                      )
+                    }
+                  } ?: emptyList()
+                ingressRange != null -> rule.portRanges
+                  ?.map { PortRange(it.startPort!!, it.endPort!!) }
+                  ?.map { portRange ->
+                    CidrRule(
+                      protocol,
+                      portRange,
+                      ingressRange.ip + ingressRange.cidr
+                    )
+                  } ?: emptyList()
+                else -> emptyList()
+              }
+            }.toSet()
+          )
         }
+    } catch (e: HttpException) {
+      if (e.isNotFound) {
+        null
+      } else {
+        throw e
       }
     }
 

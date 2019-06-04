@@ -161,11 +161,11 @@ internal class StringResourceHandler : ResourceHandler<String> {
   override fun generateName(spec: String): ResourceName =
     ResourceName("test:whatever:$spec")
 
-  override fun current(resource: Resource<String>): String? {
+  override suspend fun current(resource: Resource<String>): String? {
     TODO("not implemented")
   }
 
-  override fun delete(resource: Resource<String>) {
+  override suspend fun delete(resource: Resource<String>) {
     TODO("not implemented")
   }
 

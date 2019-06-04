@@ -102,7 +102,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    *
    * Implementations of this method should not actuate any changes.
    */
-  fun resolve(resource: Resource<S>): ResolvedResource<R>
+  suspend fun resolve(resource: Resource<S>): ResolvedResource<R>
 
   /**
    * Create a resource so that it matches the desired state represented by [resource].
@@ -114,7 +114,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  fun create(
+  suspend fun create(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<TaskRef> =
@@ -130,7 +130,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  fun update(
+  suspend fun update(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<TaskRef> =
@@ -144,7 +144,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  fun upsert(
+  suspend fun upsert(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<TaskRef> {
@@ -154,10 +154,10 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   /**
    * Delete a resource as the desired state is that it should no longer exist.
    */
-  fun delete(resource: Resource<S>)
+  suspend fun delete(resource: Resource<S>)
 
   /**
    * @return `true` if this plugin is still busy running a previous actuation, `false` otherwise.
    */
-  fun actuationInProgress(name: ResourceName): Boolean = false
+  suspend fun actuationInProgress(name: ResourceName): Boolean = false
 }

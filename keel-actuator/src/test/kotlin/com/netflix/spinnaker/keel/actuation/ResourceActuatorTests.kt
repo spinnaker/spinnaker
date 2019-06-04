@@ -22,9 +22,12 @@ import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -85,21 +88,23 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the plugin is already actuating this resource") {
         before {
-          every { plugin1.actuationInProgress(resource.metadata.name) } returns true
+          coEvery { plugin1.actuationInProgress(resource.metadata.name) } returns true
 
           with(resource) {
-            subject.checkResource(metadata.name, apiVersion, kind)
+            runBlocking {
+              subject.checkResource(metadata.name, apiVersion, kind)
+            }
           }
         }
 
         test("the resource is not resolved") {
-          verify(exactly = 0) { plugin1.resolve(any()) }
+          coVerify(exactly = 0) { plugin1.resolve(any()) }
         }
 
         test("the resource is not updated") {
-          verify(exactly = 0) { plugin1.create(any(), any()) }
-          verify(exactly = 0) { plugin1.update(any(), any()) }
-          verify(exactly = 0) { plugin1.delete(any()) }
+          coVerify(exactly = 0) { plugin1.create(any(), any()) }
+          coVerify(exactly = 0) { plugin1.update(any(), any()) }
+          coVerify(exactly = 0) { plugin1.delete(any()) }
         }
 
         test("nothing is added to the resource history") {
@@ -114,12 +119,12 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the plugin is not already actuating this resource") {
         before {
-          every { plugin1.actuationInProgress(resource.metadata.name) } returns false
+          coEvery { plugin1.actuationInProgress(resource.metadata.name) } returns false
         }
 
         context("the current state matches the desired state") {
           before {
-            every {
+            coEvery {
               plugin1.resolve(resource)
             } returns ResolvedResource(
               desired = DummyResource(resource.spec.state),
@@ -127,18 +132,20 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             )
 
             with(resource) {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              runBlocking {
+                subject.checkResource(metadata.name, apiVersion, kind)
+              }
             }
           }
 
           test("the resource is not updated") {
-            verify(exactly = 0) { plugin1.create(any(), any()) }
-            verify(exactly = 0) { plugin1.update(any(), any()) }
-            verify(exactly = 0) { plugin1.delete(any()) }
+            coVerify(exactly = 0) { plugin1.create(any(), any()) }
+            coVerify(exactly = 0) { plugin1.update(any(), any()) }
+            coVerify(exactly = 0) { plugin1.delete(any()) }
           }
 
           test("only the relevant plugin is queried") {
-            verify(exactly = 0) { plugin2.resolve(any()) }
+            coVerify(exactly = 0) { plugin2.resolve(any()) }
           }
 
           test("nothing is added to the resource history") {
@@ -154,21 +161,23 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the current state is missing") {
           before {
-            every {
+            coEvery {
               plugin1.resolve(resource)
             } returns ResolvedResource(
               desired = DummyResource(resource.spec.state),
               current = null
             )
-            every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+            coEvery { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
             with(resource) {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              runBlocking {
+                subject.checkResource(metadata.name, apiVersion, kind)
+              }
             }
           }
 
           test("the resource is created via the relevant handler") {
-            verify { plugin1.create(resource, any()) }
+            coVerify { plugin1.create(resource, any()) }
           }
 
           test("the resource state is recorded") {
@@ -186,21 +195,23 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the current state is wrong") {
           before {
-            every {
+            coEvery {
               plugin1.resolve(resource)
             } returns ResolvedResource(
               DummyResource(resource.spec.state),
               DummyResource("some other state that does not match")
             )
-            every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+            coEvery { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
             with(resource) {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              runBlocking {
+                subject.checkResource(metadata.name, apiVersion, kind)
+              }
             }
           }
 
           test("the resource is updated") {
-            verify { plugin1.update(eq(resource), any()) }
+            coVerify { plugin1.update(eq(resource), any()) }
           }
 
           test("the resource state is recorded") {
@@ -218,17 +229,19 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("plugin throws an exception on resource resolution") {
           before {
-            every {
+            coEvery {
               plugin1.resolve(resource)
             } throws RuntimeException("o noes")
 
             with(resource) {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              runBlocking {
+                subject.checkResource(metadata.name, apiVersion, kind)
+              }
             }
           }
 
           test("the resource is not updated") {
-            verify(exactly = 0) { plugin1.update(any(), any()) }
+            coVerify(exactly = 0) { plugin1.update(any(), any()) }
           }
 
           // TODO: do we want to track the error in the resource history?
@@ -246,16 +259,18 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("plugin throws an exception on resource update") {
           before {
-            every {
+            coEvery {
               plugin1.resolve(resource)
             } returns ResolvedResource(
               DummyResource(resource.spec.state),
               DummyResource("some other state that does not match")
             )
-            every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
+            coEvery { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
             with(resource) {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              runBlocking {
+                subject.checkResource(metadata.name, apiVersion, kind)
+              }
             }
           }
 

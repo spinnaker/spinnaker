@@ -24,7 +24,7 @@ interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
    * Don't override this method, just implement [current]. If you need to do any resolution of the
    * desired value you should implement [ResolvableResourceHandler] instead of this interface.
    */
-  override fun resolve(resource: Resource<T>): ResolvedResource<T> =
+  override suspend fun resolve(resource: Resource<T>): ResolvedResource<T> =
     ResolvedResource(resource.spec, current(resource))
 
   /**
@@ -34,7 +34,7 @@ interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
    *
    * Implementations of this method should not actuate any changes.
    */
-  fun current(resource: Resource<T>): T?
+  suspend fun current(resource: Resource<T>): T?
 }
 
 /**

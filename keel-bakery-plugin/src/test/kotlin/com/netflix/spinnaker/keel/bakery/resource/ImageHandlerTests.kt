@@ -26,11 +26,12 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
-import io.mockk.coEvery
+import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.hasSize
@@ -180,7 +181,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("desired state composes application and base image versions") {
-          val (desired, current) = handler.resolve(resource)
+          val (desired, current) = runBlocking {
+            handler.resolve(resource)
+          }
           expectThat(desired).isEqualTo(image)
           expectThat(current).isEqualTo(image)
         }
@@ -263,7 +266,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
         val request = slot<OrchestrationRequest>()
         every { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
 
-        handler.upsert(resource, ResourceDiff(null, image))
+        runBlocking {
+          handler.upsert(resource, ResourceDiff(null, image))
+        }
 
         expectThat(request.captured.trigger.artifacts)
           .hasSize(1)

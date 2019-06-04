@@ -52,6 +52,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -154,7 +155,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       before { cloudDriverSecurityGroupNotFound() }
 
       test("current returns null") {
-        val response = handler.current(resource)
+        val response = runBlocking {
+          handler.current(resource)
+        }
 
         expectThat(response).isNull()
       }
@@ -164,7 +167,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       before { cloudDriverSecurityGroupReturns() }
 
       test("current returns the security group") {
-        val response = handler.current(resource)
+        val response = runBlocking {
+          handler.current(resource)
+        }
         expectThat(response)
           .isNotNull()
           .isEqualTo(securityGroup)
@@ -197,7 +202,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       test("rules are attached to the current security group") {
-        val response = handler.current(resource)
+        val response = runBlocking {
+          handler.current(resource)
+        }
         expectThat(response)
           .isNotNull()
           .get { inboundRules }
@@ -224,7 +231,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            runBlocking {
+              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            }
           }
 
           after {
@@ -272,7 +281,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            runBlocking {
+              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            }
           }
 
           after {
@@ -320,7 +331,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            runBlocking {
+              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+            }
           }
 
           after {
@@ -368,7 +381,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.create(resource, ResourceDiff(null, resource.spec))
+        runBlocking {
+          handler.create(resource, ResourceDiff(null, resource.spec))
+        }
       }
 
       after {
@@ -406,7 +421,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.update(resource, ResourceDiff(null, resource.spec))
+        runBlocking {
+          handler.update(resource, ResourceDiff(null, resource.spec))
+        }
       }
 
       after {
@@ -435,7 +452,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.delete(resource)
+        runBlocking {
+          handler.delete(resource)
+        }
       }
 
       after {

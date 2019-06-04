@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectFactory
@@ -39,30 +38,26 @@ class NamedImageHandler(
     "ec2:image:${spec.account}:${spec.name}"
   )
 
-  override fun current(resource: Resource<NamedImage>): NamedImage? =
+  override suspend fun current(resource: Resource<NamedImage>): NamedImage? =
     resource.spec.copy(
       currentImage = resource.spec.currentState()
     )
 
-  private fun NamedImage.currentState(): ImageResult? =
-    runBlocking {
-      cloudDriverService.namedImages(name, account).await().sortedByDescending {
-        it.attributes["creationDate"]?.toString() ?: "0000-00-00T00:00:00.000Z"
-      }.firstOrNull()?.let {
-        objectMapper.convertValue<ImageResult>(it)
-      }
+  private suspend fun NamedImage.currentState(): ImageResult? =
+    cloudDriverService.namedImages(name, account).await().sortedByDescending {
+      it.attributes["creationDate"]?.toString() ?: "0000-00-00T00:00:00.000Z"
+    }.firstOrNull()?.let {
+      objectMapper.convertValue<ImageResult>(it)
     }
 
-  override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>): List<TaskRef> {
-    runBlocking {
-      resourceDiff.current?.also {
-        resourceRepository.store(resource.copy(spec = it))
-      }
+  override suspend fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>): List<TaskRef> {
+    resourceDiff.current?.also {
+      resourceRepository.store(resource.copy(spec = it))
     }
     return emptyList()
   }
 
-  override fun delete(resource: Resource<NamedImage>) {
+  override suspend fun delete(resource: Resource<NamedImage>) {
     TODO("not implemented")
   }
 }
