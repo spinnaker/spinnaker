@@ -59,11 +59,21 @@ class AzureAppGatewayResourceTemplate {
     AppGatewayTemplate(AzureAppGatewayDescription description) {
       parameters = new AppGatewayTemplateParameters()
       variables = new AppGatewayTemplateVariables(description)
-      if (!description.publicIpName) {
-        // this is not an edit operation of an existing application gateway; we must create a PublicIp resource in this case
-        resources.add(new PublicIpResource())
+      ApplicationGatewayResource appGateway = new ApplicationGatewayResource(description)
+
+      if(description.dnsName){
+        def publicIp = new PublicIpResource(properties: new PublicIPPropertiesWithDns())
+        resources.add(publicIp)
+        appGateway.addDependency(publicIp)
+      } else {
+        if (!description.publicIpName) {
+          def publicIp = new PublicIpResource()
+          resources.add(publicIp)
+          appGateway.addDependency(publicIp)
+        }
       }
-      resources.add(new ApplicationGatewayResource(description))
+
+      resources.add(appGateway)
     }
   }
 
@@ -98,7 +108,7 @@ class AzureAppGatewayResourceTemplate {
       } else {
         publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name.toLowerCase()
       }
-      dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.name)
+      dnsNameForLBIP = description.dnsName ?: DnsSettings.getUniqueDNSName(description.name)
       appGwSubnetID = description.subnetResourceId
       if (description.trafficEnabledSG) {
         // This is an edit operation; preserve the current backend address pool as the active rule
@@ -130,9 +140,6 @@ class AzureAppGatewayResourceTemplate {
       if (description.vnet) tags.vnet = description.vnet
       if (description.subnet) tags.subnet = description.subnet
       if (description.vnet) tags.vnetResourceGroup = description.vnetResourceGroup
-      if (!description.publicIpName) {
-        this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]")
-      }
       properties = new ApplicationGatewayResourceProperties(description)
     }
   }

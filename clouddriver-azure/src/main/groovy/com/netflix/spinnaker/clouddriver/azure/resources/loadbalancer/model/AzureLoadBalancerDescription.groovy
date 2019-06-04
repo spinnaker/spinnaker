@@ -32,6 +32,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String subnet
   String securityGroup
   String dnsName
+  String publicIpName
   String cluster
   List<String> serverGroups
   String trafficEnabledSG
@@ -95,6 +96,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.tags.putAll(azureLoadBalancer.tags)
     description.region = azureLoadBalancer.location()
     description.internal = azureLoadBalancer.tags?.internal != null
+    description.publicIpName = AzureUtilities.getNameFromResourceId(azureLoadBalancer?.frontendIPConfigurations().first().publicIPAddress().id())
 
     // Each load balancer backend address pool corresponds to a server group (except the "default_LB_BAP")
     description.serverGroups = []

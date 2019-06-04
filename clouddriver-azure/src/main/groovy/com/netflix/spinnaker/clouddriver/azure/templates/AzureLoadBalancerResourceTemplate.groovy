@@ -44,14 +44,22 @@ class AzureLoadBalancerResourceTemplate {
     LoadBalancerTemplate(AzureLoadBalancerDescription description){
       parameters = new LoadBalancerParameters()
       variables = new LoadBalancerTemplateVariables(description)
+      LoadBalancer lb = new LoadBalancer(description)
 
       def publicIp = new PublicIpResource(properties: new PublicIPPropertiesWithDns())
       publicIp.sku = new Sku("Standard")
       publicIp.properties.publicIPAllocationMethod = "Static"
-      resources.add(publicIp)
 
-      LoadBalancer lb = new LoadBalancer(description)
-      lb.addDependency(resources[0])
+      if(description.dnsName){
+        resources.add(publicIp)
+        lb.addDependency(publicIp)
+      } else {
+        if (!description.publicIpName) {
+          resources.add(publicIp)
+          lb.addDependency(publicIp)
+        }
+      }
+
       resources.add(lb)
     }
   }
@@ -76,10 +84,15 @@ class AzureLoadBalancerResourceTemplate {
 
       loadBalancerName = description.loadBalancerName.toLowerCase()
       virtualNetworkName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName.toLowerCase()
-      publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      if (description.publicIpName) {
+        // reuse the existing public IP (this is an edit operation)
+        publicIPAddressName = description.publicIpName
+      } else {
+        publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      }
       loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       loadBalancerBackEnd = description.trafficEnabledSG ? description.trafficEnabledSG : DEFAULT_BACKEND_POOL
-      dnsNameForLBIP = DnsSettings.getUniqueDNSName(description.loadBalancerName.toLowerCase())
+      dnsNameForLBIP = description.dnsName ?: DnsSettings.getUniqueDNSName(description.loadBalancerName.toLowerCase())
       ipConfigName = AzureUtilities.IPCONFIG_NAME_PREFIX + description.loadBalancerName.toLowerCase()
     }
   }
@@ -259,6 +272,7 @@ class AzureLoadBalancerResourceTemplate {
     String protocol
     Integer frontendPort
     Integer backendPort
+    Integer idleTimeoutInMinutes
     IdRef probe
     LoadDistribution loadDistribution
 
@@ -268,6 +282,7 @@ class AzureLoadBalancerResourceTemplate {
       protocol = rule.protocol.toString().toLowerCase()
       frontendPort = rule.externalPort
       backendPort = rule.backendPort
+      idleTimeoutInMinutes = rule.idleTimeout
       probe = new IdRef("[concat(variables('loadBalancerID'),'/probes/" + rule.probeName + "')]")
       switch(rule.persistence) {
         case "None":

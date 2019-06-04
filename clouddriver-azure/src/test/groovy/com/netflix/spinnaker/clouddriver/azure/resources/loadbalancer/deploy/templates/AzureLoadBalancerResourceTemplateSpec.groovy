@@ -28,7 +28,6 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
 
   def 'should generate correct LoadBalancer create template'(){
     String template = AzureLoadBalancerResourceTemplate.getTemplate(description)
-
     expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplate
   }
 
@@ -158,6 +157,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
           "protocol" : "tcp",
           "frontendPort" : 80,
           "backendPort" : 80,
+          "idleTimeoutInMinutes" : 4,
           "probe" : {
             "id" : "[concat(variables('loadBalancerID'),'/probes/healthcheck1')]"
           },

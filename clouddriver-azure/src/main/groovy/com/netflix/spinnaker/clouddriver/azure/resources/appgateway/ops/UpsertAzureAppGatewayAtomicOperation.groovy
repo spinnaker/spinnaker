@@ -68,6 +68,18 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
     try {
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
 
+      // Check dns name conflict
+      if(description.dnsName){
+        if(description.dnsName.isBlank()){
+          throw new RuntimeException("Specified dns name $description.dnsName cannot be blank")
+        }
+
+        def isDnsNameAvailable = description.credentials.networkClient.checkDnsNameAvailability(description.dnsName)
+        if(!isDnsNameAvailable){
+          throw new RuntimeException("Specified dns name $description.dnsName has conflict")
+        }
+      }
+
       description.name = description.loadBalancerName
       resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
       virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)

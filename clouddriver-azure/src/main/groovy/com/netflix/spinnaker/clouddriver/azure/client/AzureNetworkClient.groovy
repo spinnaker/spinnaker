@@ -1135,6 +1135,11 @@ class AzureNetworkClient extends AzureBaseClient {
     dnsName
   }
 
+  Boolean checkDnsNameAvailability(String dnsName) {
+    def isAvailable = azure.trafficManagerProfiles().checkDnsNameAvailability(dnsName)
+    isAvailable
+  }
+
   /***
    * The namespace for the Azure Resource Provider
    * @return namespace of the resource provider
