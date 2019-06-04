@@ -37,5 +37,5 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "com.netflix.spinnaker.kork:kork-web"
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws"
+  runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-aws"
 }
