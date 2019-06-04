@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
-import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Gauge;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import org.slf4j.Logger;
@@ -32,9 +32,9 @@ public interface DriftMetric {
 
   String getAgentType();
 
-  default Id getDriftMetricId() {
+  default Gauge getDriftMetricGauge() {
     return getRegistry()
-        .createId(
+        .gauge(
             "cache.drift",
             "agent",
             getClass().getSimpleName(),
@@ -48,7 +48,7 @@ public interface DriftMetric {
     if (start != null && start != 0L) {
       Long drift = getRegistry().clock().wallTime() - start;
       getLog().info("{}/drift - {} milliseconds", getAgentType(), drift);
-      getRegistry().gauge(getDriftMetricId(), drift);
+      getDriftMetricGauge().set(drift);
     }
   }
 }
