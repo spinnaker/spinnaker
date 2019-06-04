@@ -37,7 +37,6 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
@@ -77,14 +76,6 @@ class ClusterHandler(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.name}"
   )
 
-  override suspend fun resolve(resource: Resource<ClusterSpec>): ResolvedResource<Cluster> {
-    val imageId = resolveImageId(resource.spec.launchConfiguration.imageProvider, resource.spec.location.region)
-    return ResolvedResource(
-      desired = desired(resource.spec, imageId),
-      current = current(resource)
-    )
-  }
-
   private suspend fun resolveImageId(imageProvider: ImageProvider, region: String): String {
     when (imageProvider) {
       is IdImageProvider -> {
@@ -122,20 +113,22 @@ class ClusterHandler(
     }
   }
 
-  private fun desired(spec: ClusterSpec, imageId: String): Cluster {
-    return Cluster(
-      moniker = spec.moniker,
-      location = spec.location,
-      launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration(imageId),
-      capacity = spec.capacity,
-      dependencies = spec.dependencies,
-      health = spec.health,
-      scaling = spec.scaling,
-      tags = spec.tags
-    )
-  }
+  override suspend fun desired(resource: Resource<ClusterSpec>): Cluster =
+    with(resource.spec) {
+      val imageId = resolveImageId(launchConfiguration.imageProvider, location.region)
+      Cluster(
+        moniker = moniker,
+        location = location,
+        launchConfiguration = launchConfiguration.generateLaunchConfiguration(imageId),
+        capacity = capacity,
+        dependencies = dependencies,
+        health = health,
+        scaling = scaling,
+        tags = tags
+      )
+    }
 
-  private suspend fun current(resource: Resource<ClusterSpec>): Cluster? =
+  override suspend fun current(resource: Resource<ClusterSpec>): Cluster? =
     cloudDriverService.getCluster(resource.spec)
 
   override suspend fun upsert(

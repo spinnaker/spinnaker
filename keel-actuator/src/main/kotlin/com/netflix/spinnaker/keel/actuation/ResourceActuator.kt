@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
@@ -23,6 +22,8 @@ import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -101,16 +102,29 @@ class ResourceActuator(
     }
   }
 
+  private suspend fun ResolvableResourceHandler<*, *>.resolve(resource: Resource<out Any>): Pair<Any, Any?> =
+    coroutineScope {
+      val desired = async { desired(resource) }
+      val current = async { current(resource) }
+      desired.await() to current.await()
+    }
+
   private val DiffNode.depth: Int
     get() = if (isRootNode) 0 else parentNode.depth + 1
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.resolve(
+  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.desired(
     resource: Resource<*>
-  ): ResolvedResource<R> =
-    resolve(resource as Resource<S>)
+  ): R =
+    desired(resource as Resource<S>)
+
+  @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.current(
+    resource: Resource<*>
+  ): R? =
+    current(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(

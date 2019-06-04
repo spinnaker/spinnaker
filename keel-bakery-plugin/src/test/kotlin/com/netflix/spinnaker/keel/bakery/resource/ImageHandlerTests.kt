@@ -181,11 +181,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("desired state composes application and base image versions") {
-          val (desired, current) = runBlocking {
-            handler.resolve(resource)
+          val desired = runBlocking {
+            handler.desired(resource)
           }
           expectThat(desired).isEqualTo(image)
-          expectThat(current).isEqualTo(image)
         }
       }
 
@@ -196,7 +195,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("an exception is thrown") {
-          expectThrows<NoKnownArtifactVersions> { handler.resolve(resource) }
+          expectThrows<NoKnownArtifactVersions> { handler.desired(resource) }
         }
       }
 
@@ -212,7 +211,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("the exception is propagated") {
-          expectThrows<UnknownBaseImage> { handler.resolve(resource) }
+          expectThrows<UnknownBaseImage> { handler.desired(resource) }
         }
       }
 
@@ -232,7 +231,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         test("an exception is thrown") {
-          expectThrows<BaseAmiNotFound> { handler.resolve(resource) }
+          expectThrows<BaseAmiNotFound> { handler.desired(resource) }
         }
       }
     }

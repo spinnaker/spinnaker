@@ -94,15 +94,27 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   }
 
   /**
-   * Resolve the resource spec into the desired and current states. This may involve looking up
-   * referenced resources, etc.
+   * Resolve the resource spec into the desired state. This may involve looking up referenced
+   * resources, etc.
    *
-   * The value returned by this method is used as the basis of the diff in order to decide whether
-   * to call [create]/[update]/[upsert].
+   * The value returned by this method is used as the basis of the diff (with the result of
+   * [current] in order to decide whether to call [create]/[update]/[upsert].
    *
    * Implementations of this method should not actuate any changes.
    */
-  suspend fun resolve(resource: Resource<S>): ResolvedResource<R>
+  suspend fun desired(resource: Resource<S>): R
+
+  /**
+   * Return the current _actual_ representation of what [resource] looks like in the cloud.
+   * The entire desired state is passed so that implementations can use whatever identifying
+   * information they need to look up the resource.
+   *
+   * The value returned by this method is used as the basis of the diff (with the result of
+   * [desired] in order to decide whether to call [create]/[update]/[upsert].
+   *
+   * Implementations of this method should not actuate any changes.
+   */
+  suspend fun current(resource: Resource<S>): R?
 
   /**
    * Create a resource so that it matches the desired state represented by [resource].
@@ -161,3 +173,19 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    */
   suspend fun actuationInProgress(name: ResourceName): Boolean = false
 }
+
+/**
+ * Searches a list of `ResourceHandler`s and returns the first that supports [apiVersion] and
+ * [kind].
+ *
+ * @throws UnsupportedKind if no appropriate handlers are found in the list.
+ */
+fun List<ResolvableResourceHandler<*, *>>.supporting(
+  apiVersion: ApiVersion,
+  kind: String
+): ResolvableResourceHandler<*, *> =
+  find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
+    ?: throw UnsupportedKind(apiVersion, kind)
+
+internal class UnsupportedKind(apiVersion: ApiVersion, kind: String) :
+  IllegalStateException("No resource handler supporting \"$kind\" in \"$apiVersion\" is available")

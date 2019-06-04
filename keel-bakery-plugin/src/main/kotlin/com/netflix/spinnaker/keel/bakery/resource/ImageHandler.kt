@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.slf4j.Logger
@@ -48,30 +47,30 @@ class ImageHandler(
   override fun generateName(spec: ImageSpec): ResourceName =
     ResourceName("bakery:image:${spec.artifactName}")
 
-  override suspend fun resolve(resource: Resource<ImageSpec>): ResolvedResource<Image> =
+  override suspend fun desired(resource: Resource<ImageSpec>): Image =
     with(resource) {
       val artifact = DeliveryArtifact(spec.artifactName, DEB)
-      val latestVersion = artifactRepository
-        .versions(artifact)
-        .firstOrNull() ?: throw NoKnownArtifactVersions(artifact)
-      ResolvedResource(
-        desired = desired(resource.spec, latestVersion),
-        current = current(resource.spec, latestVersion)
+      val latestVersion = artifact.findLatestVersion()
+      val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
+      val baseAmi = findBaseAmi(baseImage)
+      Image(
+        baseAmiVersion = baseAmi,
+        appVersion = latestVersion,
+        regions = spec.regions
       )
     }
 
-  private suspend fun desired(spec: ImageSpec, version: String): Image {
-    val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
-    val baseAmi = findBaseAmi(baseImage)
-    return Image(
-      baseAmiVersion = baseAmi,
-      appVersion = version,
-      regions = spec.regions
-    )
-  }
+  override suspend fun current(resource: Resource<ImageSpec>): Image? =
+    with(resource) {
+      val artifact = DeliveryArtifact(spec.artifactName, DEB)
+      val latestVersion = artifact.findLatestVersion()
+      imageService.getLatestImage(spec.artifactName, latestVersion, "test")
+    }
 
-  private suspend fun current(spec: ImageSpec, version: String): Image? =
-    imageService.getLatestImage(spec.artifactName, version, "test")
+  private fun DeliveryArtifact.findLatestVersion(): String =
+    artifactRepository
+      .versions(this)
+      .firstOrNull() ?: throw NoKnownArtifactVersions(this)
 
   override suspend fun upsert(
     resource: Resource<ImageSpec>,

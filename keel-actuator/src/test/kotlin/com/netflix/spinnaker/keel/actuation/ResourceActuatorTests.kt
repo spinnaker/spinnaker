@@ -13,7 +13,6 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
@@ -98,7 +97,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource is not resolved") {
-          coVerify(exactly = 0) { plugin1.resolve(any()) }
+          coVerify(exactly = 0) { plugin1.desired(any()) }
+          coVerify(exactly = 0) { plugin1.current(any()) }
         }
 
         test("the resource is not updated") {
@@ -125,11 +125,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         context("the current state matches the desired state") {
           before {
             coEvery {
-              plugin1.resolve(resource)
-            } returns ResolvedResource(
-              desired = DummyResource(resource.spec.state),
-              current = DummyResource(resource.spec.state)
-            )
+              plugin1.desired(resource)
+            } returns DummyResource(resource.spec.state)
+            coEvery {
+              plugin1.current(resource)
+            } returns DummyResource(resource.spec.state)
 
             with(resource) {
               runBlocking {
@@ -145,7 +145,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("only the relevant plugin is queried") {
-            coVerify(exactly = 0) { plugin2.resolve(any()) }
+            coVerify(exactly = 0) { plugin2.desired(any()) }
+            coVerify(exactly = 0) { plugin2.current(any()) }
           }
 
           test("nothing is added to the resource history") {
@@ -161,12 +162,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the current state is missing") {
           before {
-            coEvery {
-              plugin1.resolve(resource)
-            } returns ResolvedResource(
-              desired = DummyResource(resource.spec.state),
-              current = null
-            )
+            coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
+            coEvery { plugin1.current(resource) } returns null
             coEvery { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
             with(resource) {
@@ -195,12 +192,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the current state is wrong") {
           before {
-            coEvery {
-              plugin1.resolve(resource)
-            } returns ResolvedResource(
-              DummyResource(resource.spec.state),
-              DummyResource("some other state that does not match")
-            )
+            coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
+            coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
             coEvery { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
             with(resource) {
@@ -229,9 +222,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("plugin throws an exception on resource resolution") {
           before {
-            coEvery {
-              plugin1.resolve(resource)
-            } throws RuntimeException("o noes")
+            coEvery { plugin1.desired(resource) } throws RuntimeException("o noes")
+            coEvery { plugin1.current(resource) } returns null
 
             with(resource) {
               runBlocking {
@@ -259,12 +251,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("plugin throws an exception on resource update") {
           before {
-            coEvery {
-              plugin1.resolve(resource)
-            } returns ResolvedResource(
-              DummyResource(resource.spec.state),
-              DummyResource("some other state that does not match")
-            )
+            coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
+            coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
             coEvery { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
             with(resource) {

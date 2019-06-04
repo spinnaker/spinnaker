@@ -189,8 +189,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       test("the current model is null") {
-        val (_, current) = runBlocking {
-          resolve(resource)
+        val current = runBlocking {
+          current(resource)
         }
         expectThat(current).isNull()
       }
@@ -216,8 +216,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       derivedContext<Cluster?>("fetching the current cluster state") {
         deriveFixture {
-          val (_, current) = runBlocking {
-            resolve(resource)
+          val current = runBlocking {
+            current(resource)
           }
           current
         }
