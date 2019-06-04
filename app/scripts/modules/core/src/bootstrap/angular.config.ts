@@ -35,5 +35,6 @@ bootstrapModule.config([
   '$locationProvider',
   ($locationProvider: ILocationProvider) => {
     $locationProvider.hashPrefix('');
+    $locationProvider.html5Mode({ enabled: false, rewriteLinks: false });
   },
 ]);
