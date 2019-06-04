@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.api.ec2.securityGroup
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
+import com.netflix.spinnaker.keel.model.Moniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 

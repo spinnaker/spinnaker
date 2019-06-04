@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 import kotlinx.coroutines.Deferred
 

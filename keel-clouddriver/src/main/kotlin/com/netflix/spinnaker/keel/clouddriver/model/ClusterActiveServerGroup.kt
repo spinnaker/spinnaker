@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.netflix.spinnaker.keel.model.Moniker
+
 data class ClusterActiveServerGroup(
   val name: String,
   val region: String,

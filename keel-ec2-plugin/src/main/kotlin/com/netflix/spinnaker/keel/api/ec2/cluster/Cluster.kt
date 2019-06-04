@@ -20,7 +20,7 @@ package com.netflix.spinnaker.keel.api.ec2.cluster
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
+import com.netflix.spinnaker.keel.model.Moniker
 
 @JsonInclude(NON_NULL)
 data class Cluster(
