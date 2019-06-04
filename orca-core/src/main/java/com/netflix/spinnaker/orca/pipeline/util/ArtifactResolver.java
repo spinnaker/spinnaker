@@ -252,8 +252,7 @@ public class ArtifactResolver {
       return;
     }
 
-    List<Artifact> priorArtifacts =
-        getArtifactsForPipelineId((String) pipeline.get("id"), new ExecutionCriteria());
+    List<Artifact> priorArtifacts = getPriorArtifacts(pipeline);
     LinkedHashSet<Artifact> resolvedArtifacts =
         resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts, priorArtifacts, true);
     LinkedHashSet<Artifact> allArtifacts = new LinkedHashSet<>(receivedArtifacts);
@@ -275,6 +274,16 @@ public class ArtifactResolver {
       throw new ArtifactResolutionException(
           "Failed to store artifacts in trigger: " + e.getMessage(), e);
     }
+  }
+
+  private List<Artifact> getPriorArtifacts(final Map<String, Object> pipeline) {
+    // set pageSize to a single record to avoid hydrating all of the stored Executions for
+    // the pipeline, since getArtifactsForPipelineId only uses the most recent Execution from the
+    // returned Observable<Execution>
+    ExecutionCriteria criteria = new ExecutionCriteria();
+    criteria.setPageSize(1);
+    criteria.setSortType(ExecutionRepository.ExecutionComparator.START_TIME_OR_ID);
+    return getArtifactsForPipelineId((String) pipeline.get("id"), criteria);
   }
 
   public Artifact resolveSingleArtifact(
