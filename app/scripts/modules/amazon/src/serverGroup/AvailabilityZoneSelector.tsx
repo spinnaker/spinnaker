@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { AccountService, Checklist } from '@spinnaker/core';
+import { AccountService, ChecklistInput } from '@spinnaker/core';
 
 export interface IAvailabilityZoneSelectorProps {
   region: string;
@@ -93,10 +93,10 @@ export class AvailabilityZoneSelector extends React.Component<
             {!usePreferredZones && (
               <div>
                 Restrict server group instances to:
-                <Checklist
-                  items={new Set(allZones)}
-                  checked={new Set(selectedZones)}
-                  onChange={this.handleSelectedZonesChanged}
+                <ChecklistInput
+                  stringOptions={allZones}
+                  value={selectedZones}
+                  onChange={(e: React.ChangeEvent<any>) => this.handleSelectedZonesChanged(e.target.value)}
                 />
               </div>
             )}

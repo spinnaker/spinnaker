@@ -6,8 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { Application, ApplicationReader } from 'core/application';
 import { BaseTrigger, PipelineConfigService } from 'core/pipeline';
 import { IPipeline, IPipelineTrigger } from 'core/domain';
-import { Omit } from 'core/presentation';
-import { Checklist } from 'core/forms';
+import { ChecklistInput, Omit } from 'core/presentation';
 
 type IPipelineTriggerConfig = Omit<IPipelineTrigger, 'parentExecution' | 'parentPipelineId' | 'user' | 'rebake'>;
 
@@ -121,11 +120,11 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
           <div className="form-group">
             <label className="col-md-3 sm-label-right">Pipeline Status</label>
             <div className="col-md-6">
-              <Checklist
+              <ChecklistInput
                 inline={true}
-                items={new Set(this.statusOptions)}
-                checked={new Set(status)}
-                onChange={(s: Set<string>) => this.onUpdateTrigger({ status: Array.from(s) })}
+                value={status}
+                stringOptions={this.statusOptions}
+                onChange={(e: React.ChangeEvent<any>) => this.onUpdateTrigger({ status: e.target.value })}
               />
             </div>
           </div>
