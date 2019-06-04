@@ -125,6 +125,8 @@ dependencies {
     api("org.codehaus.groovy:groovy-all:${versions.groovy}")
     api("org.funktionale:funktionale-partials:1.2")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:${versions.coroutines}")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}")
     api("org.jetbrains.spek:spek-api:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
