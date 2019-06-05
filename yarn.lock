@@ -37,10 +37,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/kayenta@0.0.79":
-  version "0.0.79"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.79.tgz#e7bda8b2fdeaaae6d707dcdbf78300d0b1c6bf19"
-  integrity sha512-A34ZfBhLBR1yOsyEI3sXVpUnGGxz1NEtD1ZoXVPAA0AcAmhy2nW7VxVR+dJwJFUXIFQ+mIBcqRhDqAmjuIu1lg==
+"@spinnaker/kayenta@0.0.81":
+  version "0.0.81"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.81.tgz#873225cbc8005c6666f2bc4df2df60df8e3e6f28"
+  integrity sha512-XaUMSslxOYoTTROWwoFNi4hc21T8Ts8027Yb3mFO3ICkZBxzpcvFsS4sngNn32wgBSAsbTPYwuQQPNF3LdIbWw==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
@@ -65,7 +65,7 @@
     react-bootstrap "^0.32.1"
     react-bootstrap-typeahead "^3.2.4"
     react-container-dimensions "^1.4.1"
-    react-dom "16.3.2"
+    react-dom "16.3.3"
     react-ga "^2.4.1"
     react-redux "^5.0.7"
     react-select "^1.2.1"
@@ -3624,20 +3624,10 @@ cyclist@~0.2.2:
   resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-0.2.2.tgz#1b33792e11e914a2fd6d6ed6447464444e5fa640"
   integrity sha1-GzN5LhHpFKL9bW7WRHRkRE5fpkA=
 
-d3-array@1:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.0.tgz#147d269720e174c4057a7f42be8b0f3f2ba53108"
-  integrity sha1-FH0mlyDhdMQFen9CvosPPyulMQg=
-
-d3-array@^1.1.1, d3-array@^1.2.1:
+d3-array@1, d3-array@^1.1.1, d3-array@^1.2.0, d3-array@^1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.4.tgz#635ce4d5eea759f6f605863dbcfc30edc737f71f"
   integrity sha512-KHW6M86R+FUPYGb3R5XiYjXPq7VzwxZ22buHhAEVG5ztoEcZZMLov530mmccaqA1GghZArjQV46fuc8kUqhhHw==
-
-d3-array@^1.2.0:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.1.tgz#d1ca33de2f6ac31efadb8e050a021d7e2396d5dc"
-  integrity sha512-CyINJQ0SOUHojDdFDH4JEM0552vCR1utGyLHegJHyYH0JyCpSeTPxi4OBqHMA2jJZq4NH782LtaJWBImqI/HBw==
 
 d3-array@^2.0.3:
   version "2.0.3"
@@ -3720,12 +3710,7 @@ d3-force@^1.0.2:
     d3-quadtree "1"
     d3-timer "1"
 
-d3-format@1:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/d3-format/-/d3-format-1.2.0.tgz#6b480baa886885d4651dc248a8f4ac9da16db07a"
-  integrity sha1-a0gLqohohdRlHcJIqPSsnaFtsHo=
-
-d3-format@^1.3.2:
+d3-format@1, d3-format@^1.3.2:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/d3-format/-/d3-format-1.3.2.tgz#6a96b5e31bcb98122a30863f7d92365c00603562"
   integrity sha512-Z18Dprj96ExragQ0DeGi+SYPQ7pPfRMtUXtsg/ChVIKNBCzjO8XYJvRTC1usblx52lqge56V5ect+frYTQc8WQ==
@@ -10004,10 +9989,10 @@ react-container-dimensions@^1.4.1:
     invariant "^2.2.2"
     prop-types "^15.5.8"
 
-react-dom@16.3.2:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.3.2.tgz#cb90f107e09536d683d84ed5d4888e9640e0e4df"
-  integrity sha512-MMPko3zYncNrz/7gG17wJWUREZDvskZHXOwbttzl0F0L3wDmToyuETuo/r8Y5yvDejwYcRyWI1lvVBjLJWFwKA==
+react-dom@16.3.3:
+  version "16.3.3"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.3.3.tgz#af4c2aef9f6a66251a46da50253c860a67ae66d9"
+  integrity sha512-ALCp7ZbSGkqRDtQoZozKVNgwXMxbxf/IGOUMC2A0yF6JHeZrS8e2cOotPT87Vf4b7PKCuUVKU4/RDEXxToA/yA==
   dependencies:
     fbjs "^0.8.16"
     loose-envify "^1.1.0"
