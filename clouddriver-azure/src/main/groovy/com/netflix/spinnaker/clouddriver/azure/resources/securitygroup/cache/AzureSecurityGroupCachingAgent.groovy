@@ -134,6 +134,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
         return buildCacheResult(providerCache, null, 0, updatedSecurityGroup, null)
       } else {
         evictedSecurityGroup = new AzureSecurityGroupDescription(
+          id: securityGroupName,
           name: securityGroupName,
           region: region,
           appName: AzureUtilities.getAppNameFromAzureResourceName(securityGroupName),
