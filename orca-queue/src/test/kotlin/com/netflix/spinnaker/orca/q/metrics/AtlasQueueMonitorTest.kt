@@ -99,7 +99,6 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       registry,
       repository,
       clock,
-      listOf(activator),
       conch,
       true,
       Optional.of(Schedulers.immediate()),

@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.ExecutionLevel
-import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.LockFailed
 import com.netflix.spinnaker.q.metrics.MessageAcknowledged
 import com.netflix.spinnaker.q.metrics.MessageDead
@@ -78,7 +77,6 @@ class AtlasQueueMonitor
   private val registry: Registry,
   private val repository: ExecutionRepository,
   private val clock: Clock,
-  private val activators: List<Activator>,
   private val conch: NotificationClusterLock,
   @Value("\${queue.zombie-check.enabled:false}")private val zombieCheckEnabled: Boolean,
   @Qualifier("scheduler") private val zombieCheckScheduler: Optional<Scheduler>,
@@ -113,7 +111,12 @@ class AtlasQueueMonitor
 
   @Scheduled(fixedDelayString = "\${queue.zombie-check.interval-ms:3600000}")
   fun checkForZombies() {
-    if (!zombieCheckEnabled || activators.none { it.enabled } || !conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))) return
+    val lockAcquired = conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))
+
+    if (!zombieCheckEnabled || !lockAcquired) {
+      log.info("Not running zombie check: checkEnabled: $zombieCheckEnabled, lockAcquired: $lockAcquired")
+      return
+    }
 
     try {
       MDC.put(AGENT_MDC_KEY, this.javaClass.simpleName)
