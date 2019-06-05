@@ -39,6 +39,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -79,8 +80,8 @@ public class SignalFxConfiguration {
       List<AccountCredentials.Type> supportedTypes = signalFxManagedAccount.getSupportedTypes();
       SignalFxCredentials signalFxCredentials = new SignalFxCredentials(signalFxManagedAccount.getAccessToken());
 
-      final RemoteService signalFxSignalFlowEndpoint = new RemoteService()
-          .setBaseUrl(SIGNAL_FX_SIGNAL_FLOW_ENDPOINT_URI);
+      final RemoteService signalFxSignalFlowEndpoint = Optional.ofNullable(signalFxManagedAccount.getEndpoint())
+          .orElse(new RemoteService().setBaseUrl(SIGNAL_FX_SIGNAL_FLOW_ENDPOINT_URI));
 
       SignalFxNamedAccountCredentials.SignalFxNamedAccountCredentialsBuilder accountCredentialsBuilder =
           SignalFxNamedAccountCredentials

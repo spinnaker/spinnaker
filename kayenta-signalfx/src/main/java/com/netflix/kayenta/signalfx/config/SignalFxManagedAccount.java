@@ -17,6 +17,7 @@
 
 package com.netflix.kayenta.signalfx.config;
 
+import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Data;
 
@@ -33,6 +34,9 @@ public class SignalFxManagedAccount {
   private String accessToken;
 
   private List<AccountCredentials.Type> supportedTypes;
+
+  @Nullable
+  private RemoteService endpoint;
 
   @Nullable
   private String defaultScopeKey;

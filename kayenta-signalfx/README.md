@@ -9,7 +9,10 @@ This module adds support to Kayenta to use SignalFx as a metric source.
     enabled: true
     accounts:
     - name: sfx-integration-test-account
-      accessToken: ${kayenta.signalfx.apiKey}
+      accessToken: ${kayenta.signalfx.apiKey} # The sfx api token
+      endpoint.baseUrl: https://stream.signalfx.com # Optional defaults to https://stream.signalfx.com
+      defaultScopeKey: server_scope # Optional, if omitted every request must supply the _scope_key param in extended scope params
+      defaultLocationKey: server_region # Optional, if omitted requests must supply the _location_key if it is needed.
       supportedTypes:
       - METRICS_STORE
 ```

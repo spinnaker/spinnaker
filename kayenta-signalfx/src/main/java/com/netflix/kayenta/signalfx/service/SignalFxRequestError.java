@@ -17,6 +17,8 @@
 
 package com.netflix.kayenta.signalfx.service;
 
+import java.util.Optional;
+
 public class SignalFxRequestError extends RuntimeException {
 
   private static final String MSG_TEMPLATE =
@@ -26,6 +28,7 @@ public class SignalFxRequestError extends RuntimeException {
   public SignalFxRequestError(ErrorResponse errorResponse, String program, long start, long end,
                               long resolution, String accountName) {
 
-    super(String.format(MSG_TEMPLATE, program, start, end, resolution, accountName, errorResponse.toString()));
+    super(String.format(MSG_TEMPLATE, program, start, end, resolution, accountName,
+        errorResponse != null ? errorResponse.toString() : "no response received from Signal Fx"));
   }
 }

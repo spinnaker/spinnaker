@@ -1,33 +1,7 @@
 redis:
   connection: redis://localhost:${redis.port}
 
-#retrofit:
-#  logLevel: FULL
-
 kayenta:
-  atlas:
-    enabled: false
-
-  google:
-    enabled: false
-
-  aws:
-    enabled: false
-
-  datadog:
-    enabled: false
-
-  prometheus:
-    enabled: false
-
-  influxdb:
-    enabled: false
-
-  gcs:
-    enabled: false
-
-  s3:
-    enabled: false
 
   signalfx:
     enabled: true
@@ -38,9 +12,6 @@ kayenta:
       - METRICS_STORE
       defaultScopeKey: canary-scope
       defaultLocationKey: location
-
-  stackdriver:
-    enabled: false
 
   memory:
     enabled: true
@@ -54,8 +25,6 @@ kayenta:
 
   standaloneCanaryAnalysis.enabled: true
 
-management.security.enabled: false
-
 keiko:
   queue:
     redis:
@@ -66,23 +35,3 @@ spectator:
   applicationName: ${spring.application.name}
   webEndpoint:
     enabled: true
-
-swagger:
-  enabled: true
-  title: Kayenta API
-  description:
-  contact:
-  patterns:
-  - /admin.*
-  - /canary.*
-  - /canaryConfig.*
-  - /canaryJudgeResult.*
-  - /credentials.*
-  - /fetch.*
-  - /health
-  - /judges.*
-  - /metadata.*
-  - /metricSetList.*
-  - /metricSetPairList.*
-  - /pipeline.*
-  - /standalone.*
