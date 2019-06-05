@@ -76,7 +76,7 @@ export class CreateUserProvidedInput extends React.Component<ICreateServiceInsta
         <StageConfigField label="Syslog Drain URL">
           <TextInput onChange={this.syslogDrainUrlUpdated} value={service.syslogDrainUrl} />
         </StageConfigField>
-        <StageConfigField label="Resource Service URL">
+        <StageConfigField label="Route Service URL">
           <TextInput onChange={this.routeServiceUrlUpdated} value={service.routeServiceUrl} />
         </StageConfigField>
         <StageConfigField label="Credentials">
