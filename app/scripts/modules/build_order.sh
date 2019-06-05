@@ -2,29 +2,57 @@
 cd `dirname $0`
 MODULES=$*;
 
-TUPLES=""
-for MODULE in $MODULES ; do
-  # hard coding known deps for now because the package.json files don't yet contain the package's dependencies
-  case "$MODULE" in
-      amazon) DEPS="core" ;;
-      appengine) DEPS="core" ;;
-      cloudfoundry) DEPS="core" ;;
-      core) DEPS="core" ;;
-      docker) DEPS="core" ;;
-      ecs) DEPS="amazon core" ;;
-      google) DEPS="core" ;;
-      kubernetes) DEPS="core" ;;
-      oracle) DEPS="core" ;;
-      titus) DEPS="amazon docker core" ;;
+# Given a module, prints that module's dependencies
+# hard coding known deps for now because the package.json 
+# files don't yet contain the package's dependencies
+ModuleDeps () {
+  case "$1" in
+      amazon) echo "core" ;;
+      appengine) echo "core" ;;
+      cloudfoundry) echo "core" ;;
+      core) ;;
+      docker) echo "core" ;;
+      ecs) echo "amazon core" ;;
+      google) echo "core" ;;
+      kubernetes) echo "core" ;;
+      oracle) echo "core" ;;
+      titus) echo "amazon docker core" ;;
       *)
         echo "Unknown module: ${MODULE}"
         exit -1;
         ;;
   esac
+}
 
-  for DEP in $DEPS ; do
-    TUPLES="${TUPLES} ${DEP} ${MODULE}"
+
+# Given a list of modules, prints each module and its dependencies
+AllDeps () {
+  for MODULE in $* ; do
+    echo $MODULE
+    ModuleDeps $MODULE
   done
-done
+}
 
-echo $TUPLES | tsort
+# Given a list of modules, prints a sorted list of those modules and all their dependencies
+UniqueDeps () {
+  AllDeps $* | tr ' ' $'\n' | sort | uniq;
+}
+
+# For a single module, print tuples of (one dep / the module) ... for each of its dependencies
+ModuleTuples () {
+  MODULE=$1
+  shift
+  for DEP in $* ; do 
+    echo $DEP $MODULE
+  done
+}
+
+# For a list of modules, print all the dependency tuples
+AllTuples () {
+  for MODULE in $* ; do
+    ModuleTuples $MODULE $(ModuleDeps $MODULE)
+  done
+}
+
+# Pipe all the dependency tuples through tsort, which orders the dependecy
+AllTuples $(UniqueDeps $MODULES) | tsort
