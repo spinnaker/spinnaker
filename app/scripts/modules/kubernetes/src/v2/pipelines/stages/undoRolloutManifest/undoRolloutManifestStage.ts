@@ -17,7 +17,7 @@ module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [])
         templateUrl: require('./undoRolloutManifestConfig.html'),
         controller: 'KubernetesV2UndoRolloutManifestConfigCtrl',
         controllerAs: 'ctrl',
-        accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+        accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
         configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },

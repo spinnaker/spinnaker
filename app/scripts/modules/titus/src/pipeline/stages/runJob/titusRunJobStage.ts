@@ -1,4 +1,4 @@
-import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
+import { ExecutionDetailsTasks, Registry, IStage } from '@spinnaker/core';
 
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 import { TitusRunJobStageConfig } from './TitusRunJobStageConfig';
@@ -12,6 +12,8 @@ Registry.pipeline.registerStage({
   providesFor: ['aws', 'titus'],
   component: TitusRunJobStageConfig,
   executionDetailsSections: [RunJobExecutionDetails, ExecutionDetailsTasks],
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
+  configAccountExtractor: (stage: IStage) => [stage.credentials],
   defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
   validators: [
     { type: 'requiredField', fieldName: 'cluster.iamProfile' },

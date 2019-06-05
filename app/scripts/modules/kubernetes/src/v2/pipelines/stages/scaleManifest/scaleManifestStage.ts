@@ -21,7 +21,7 @@ module(KUBERNETES_SCALE_MANIFEST_STAGE, [KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM
         controller: 'KubernetesV2ScaleManifestConfigCtrl',
         controllerAs: 'ctrl',
         executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
-        accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+        accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
         configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },

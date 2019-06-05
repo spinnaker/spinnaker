@@ -27,7 +27,7 @@ const memoryValidator: IInstanceFieldSizeValidationConfig = {
 };
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryResizeAsgStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],

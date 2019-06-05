@@ -6,14 +6,14 @@ import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & { title: string };
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
-  accountExtractor?: (stage: IStage) => string;
+  accountExtractor?: (stage: IStage) => string[];
   addAliasToConfig?: boolean;
   alias?: string;
   artifactExtractor?: (stageContext: IExecutionContext) => string[];
   artifactRemover?: (stage: IStage, artifactId: string) => void;
   cloudProvider?: string;
   cloudProviders?: string[];
-  configAccountExtractor?: any;
+  configAccountExtractor?: (stage: IStage) => string[];
   configuration?: any;
   defaults?: any;
   defaultTimeoutMs?: number;

@@ -17,7 +17,7 @@ module(KUBERNETES_DISABLE_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB]).config(() =>
     component: ManifestTrafficStageConfig,
     executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
     defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
-    accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+    accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     configAccountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     validators: manifestSelectorValidators(STAGE_NAME),
   });

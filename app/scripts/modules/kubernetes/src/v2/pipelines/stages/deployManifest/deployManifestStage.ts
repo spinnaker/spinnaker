@@ -24,7 +24,7 @@ if (SETTINGS.feature.versionedProviders) {
     producesArtifacts: true,
     defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
     validators: deployManifestValidators(),
-    accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+    accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
     artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
     artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['manifestArtifactId', 'requiredArtifactIds']),

@@ -1,4 +1,4 @@
-import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
+import { chain, compact, find, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 import { $log } from 'ngimport';
@@ -206,7 +206,7 @@ export class ExecutionFilterService {
         configAccounts.push(...stageConfig.configAccountExtractor(stage));
       }
     });
-    return uniq(compact(flattenDeep(configAccounts))).filter(a => !a.includes('${')); // exclude parameterized accounts
+    return uniq(compact(configAccounts)).filter(a => !a.includes('${')); // exclude parameterized accounts
   }
 
   private static fixName(execution: IExecution, application: Application): void {

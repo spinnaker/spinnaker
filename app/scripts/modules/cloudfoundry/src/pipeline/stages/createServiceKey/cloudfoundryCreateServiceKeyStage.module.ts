@@ -3,7 +3,7 @@ import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryCreateServiceKeyStageConfig,
   description: 'Create a service key',

@@ -26,7 +26,7 @@ module(DEPLOY_CLOUDFORMATION_STACK_STAGE, [])
       producesArtifacts: true,
       defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
       validators: [],
-      accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+      accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
       configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
       artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['stackArtifactId', 'requiredArtifactIds']),
       artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['stackArtifactId', 'requiredArtifactIds']),

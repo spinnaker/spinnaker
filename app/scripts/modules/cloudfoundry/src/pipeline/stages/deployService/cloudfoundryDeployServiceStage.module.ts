@@ -97,7 +97,7 @@ PipelineConfigValidator.registerValidator(
 );
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryDeployServiceStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],

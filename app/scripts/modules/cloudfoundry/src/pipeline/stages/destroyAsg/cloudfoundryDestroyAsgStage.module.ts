@@ -2,7 +2,7 @@ import { CloudfoundryAsgStageConfig } from 'cloudfoundry/presentation';
 import { IStage, Registry } from '@spinnaker/core';
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryAsgStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],

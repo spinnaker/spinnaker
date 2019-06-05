@@ -13,7 +13,7 @@ module.exports = angular
       cloudProvider: 'aws',
       templateUrl: require('./cloneServerGroupStage.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
-      accountExtractor: stage => stage.context.credentials,
+      accountExtractor: stage => [stage.context.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },

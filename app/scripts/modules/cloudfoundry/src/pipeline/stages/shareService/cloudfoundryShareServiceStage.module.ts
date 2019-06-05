@@ -3,7 +3,7 @@ import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryShareServiceExecutionDetails } from './CloudfoundryShareServiceExecutionDetails';
 
 Registry.pipeline.registerStage({
-  accountExtractor: (stage: IStage) => stage.context.credentials,
+  accountExtractor: (stage: IStage) => [stage.context.credentials],
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   provides: 'shareService',
   key: 'shareService',
