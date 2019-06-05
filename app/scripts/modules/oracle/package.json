@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/oracle",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
