@@ -113,7 +113,12 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   @Override
   public void run() {
     log.info("Starting " + getWorkerName());
-    initializeQueue();
+    try {
+      initializeQueue();
+    } catch (Exception e) {
+      log.error("Error initializing queue {}", queueARN, e);
+      throw e;
+    }
 
     while (true) {
       try {
