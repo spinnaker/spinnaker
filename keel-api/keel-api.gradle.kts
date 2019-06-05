@@ -24,6 +24,8 @@ dependencies {
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-retrofit"))
+  testImplementation(project(":keel-clouddriver"))
+  testImplementation("com.netflix.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
 }
 

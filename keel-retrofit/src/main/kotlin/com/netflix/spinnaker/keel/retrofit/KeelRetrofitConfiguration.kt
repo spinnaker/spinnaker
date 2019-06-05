@@ -17,7 +17,6 @@ package com.netflix.spinnaker.keel.retrofit
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.ConnectionPool
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -30,7 +29,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
-import java.io.IOException
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
 @Configuration
@@ -47,16 +45,18 @@ class KeelRetrofitConfiguration {
     okHttpClientProperties: OkHttpClientConfigurationProperties,
     retrofitProperties: KeelRetrofitProperties,
     interceptors: Set<Interceptor>?
-  ): OkHttpClient {
-    val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion
-      ?: "1.0"}"
-    val cfg = okHttpClientConfig.create().apply {
-      networkInterceptors().add(Interceptor { chain ->
-        chain.proceed(chain.request().newBuilder()
-          .header("User-Agent", userAgent)
-          .header("X-SPINNAKER-USER", retrofitProperties.spinnakerUser)
-          .build())
-      })
+  ): OkHttpClient = okHttpClientConfig
+    .create()
+    .apply {
+      networkInterceptors()
+        .add(Interceptor { chain ->
+          chain.proceed(
+            chain.request().newBuilder()
+              .header("User-Agent", retrofitProperties.userAgent)
+              .header("X-SPINNAKER-USER", retrofitProperties.spinnakerUser)
+              .build()
+          )
+        })
       interceptors?.forEach {
         log.info("Adding OkHttp Interceptor: ${it.javaClass.simpleName}")
         addNetworkInterceptor(it)
@@ -69,36 +69,11 @@ class KeelRetrofitConfiguration {
       ))
       retryOnConnectionFailure(okHttpClientProperties.isRetryOnConnectionFailure)
     }
-    return cfg.build()
-  }
+    .build()
 
   @Bean
   fun retrofitLoggingInterceptor(@Value("\${retrofit2.log-level:BASIC}") retrofitLogLevel: String) =
     HttpLoggingInterceptor().apply {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
-    }
-
-  // TODO: this should only be applied to spinnaker-to-spinnaker requests
-  @Bean
-  fun spinnakerRequestInterceptor(
-    okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties
-  ) =
-    // Inline version of SpinnakerRequestInterceptor from kork-web
-    Interceptor { chain ->
-      val requestBuilder = chain.request().newBuilder()
-      if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
-        AuthenticatedRequest
-          .getAuthenticationHeaders()
-          .forEach { (k, v) ->
-            v.ifPresent {
-              requestBuilder.addHeader(k, it)
-            }
-          }
-      }
-      try {
-        AuthenticatedRequest.allowAnonymous { chain.proceed(requestBuilder.build()) }
-      } catch (ex: RuntimeException) {
-        throw IOException(ex)
-      }
     }
 }
