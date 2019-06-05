@@ -65,7 +65,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Clock clock;
   private final KubectlJobExecutor jobExecutor;
 
-  @Getter private final String accountName;
+  private final String accountName;
   @Getter private final List<String> namespaces;
   @Getter private final List<String> omitNamespaces;
   private final List<KubernetesKind> kinds;

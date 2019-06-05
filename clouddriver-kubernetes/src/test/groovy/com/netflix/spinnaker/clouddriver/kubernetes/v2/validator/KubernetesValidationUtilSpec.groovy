@@ -27,14 +27,13 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesValidationUtilSpec extends Specification {
-  def namespaces = ["test-namespace"]
-
   @Unroll
   void "wiring of kind/namespace validation"() {
     given:
     Errors errors = Mock(Errors)
     String kubernetesAccount = "testAccount"
     def namespaces = ["test-namespace"]
+    def omitNamespaces = ["omit-namespace"]
     def kind = KubernetesKind.DEPLOYMENT
     AccountCredentials accountCredentials = Mock(AccountCredentials)
     KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
@@ -48,7 +47,8 @@ class KubernetesValidationUtilSpec extends Specification {
     then:
     accountCredentialsProvider.getCredentials(kubernetesAccount) >> accountCredentials
     accountCredentials.getCredentials() >> credentials
-    credentials.getDeclaredNamespaces() >> namespaces
+    credentials.getOmitNamespaces() >> omitNamespaces
+    credentials.namespaces >> namespaces
     manifest.getNamespace() >> testNamespace
     manifest.getKind() >> kind
     credentials.isValidKind(kind) >> true
@@ -74,15 +74,23 @@ class KubernetesValidationUtilSpec extends Specification {
     def judgement = kubernetesValidationUtil.validateNamespace(testNamespace, credentials)
 
     then:
-    credentials.getDeclaredNamespaces() >> namespaces
+    credentials.getOmitNamespaces() >> omitNamespaces
+    credentials.namespaces >> namespaces
     judgement == allowedNamespace
 
     where:
     namespaces         | omitNamespaces     | testNamespace       || allowedNamespace
     ["test-namespace"] | ["omit-namespace"] | "test-namespace"    || true
+    null               | ["omit-namespace"] | "test-namespace"    || true
     ["test-namespace"] | null               | "test-namespace"    || true
     ["test-namespace"] | ["omit-namespace"] | "omit-namespace"    || false
+    null               | ["omit-namespace"] | "omit-namespace"    || false
     ["test-namespace"] | ["omit-namespace"] | "unknown-namespace" || false
-    []                 | []                 | "unknown-namespace" || false
+    null               | null               | "unknown-namespace" || true
+    // When namespaces is not specified (and we rely on dynamic discovery) we need to treat an unknown namespace as
+    // allowed. This is because we might be adding the namespace as part of the same deploy operation, so can't rely
+    // on looking in the namespace cache for the unknown namespace.
+    []                 | []                 | "unknown-namespace" || true
+    []                 | ["omit-namespace"] | "unknown-namespace" || true
   }
 }
