@@ -17,7 +17,7 @@
 buildscript {
   ext {
     korkVersion = "5.3.7"
-    clouddriverVersion = "5.6.4"
+    clouddriverVersion = "5.8.0"
     front50Version = "2.1.0"
     fiatVersion = "1.0.5"
   }

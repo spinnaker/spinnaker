@@ -32,4 +32,5 @@ public class CloudFoundryAccount extends Account {
   String metricsUri;
   @Secret String password;
   String user;
+  boolean skipSslValidation = false;
 }

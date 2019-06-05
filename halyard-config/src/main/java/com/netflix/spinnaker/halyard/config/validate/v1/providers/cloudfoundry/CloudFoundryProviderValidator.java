@@ -16,25 +16,16 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.cloudfoundry;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFoundryProviderValidator extends Validator<CloudFoundryProvider> {
-  @Autowired private String halyardVersion;
-
   @Override
   public void validate(ConfigProblemSetBuilder problemSetBuilder, CloudFoundryProvider provider) {
-    List<CloudFoundryCredentials> credentialsList = new ArrayList<>();
-
-    CloudFoundryAccountValidator cloudFoundryAccountValidator =
-        new CloudFoundryAccountValidator(credentialsList, halyardVersion);
+    CloudFoundryAccountValidator cloudFoundryAccountValidator = new CloudFoundryAccountValidator();
     provider
         .getAccounts()
         .forEach(

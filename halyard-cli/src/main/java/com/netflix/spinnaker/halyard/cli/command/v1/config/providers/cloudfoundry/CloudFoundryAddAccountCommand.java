@@ -52,6 +52,12 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
       description = CloudFoundryCommandProperties.USER_DESCRIPTION)
   private String user;
 
+  @Parameter(
+      names = "--skip-ssl-validation",
+      arity = 1,
+      description = CloudFoundryCommandProperties.SKIP_SSL_VALIDATION_DESCRIPTION)
+  private Boolean skipSslValidation = false;
+
   @Override
   protected Account buildAccount(String accountName) {
     CloudFoundryAccount cloudFoundryAccount =
@@ -61,7 +67,8 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
         .setAppsManagerUri(appsManagerUri)
         .setMetricsUri(metricsUri)
         .setPassword(password)
-        .setUser(user);
+        .setUser(user)
+        .setSkipSslValidation(skipSslValidation);
   }
 
   @Override

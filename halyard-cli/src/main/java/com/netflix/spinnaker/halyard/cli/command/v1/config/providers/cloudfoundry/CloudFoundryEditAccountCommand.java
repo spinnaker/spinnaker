@@ -51,6 +51,12 @@ public class CloudFoundryEditAccountCommand
   @Parameter(names = "--user", description = CloudFoundryCommandProperties.USER_DESCRIPTION)
   private String user;
 
+  @Parameter(
+      names = "--skip-ssl-validation",
+      arity = 1,
+      description = CloudFoundryCommandProperties.SKIP_SSL_VALIDATION_DESCRIPTION)
+  private Boolean skipSslValidation = false;
+
   @Override
   protected Account editAccount(CloudFoundryAccount account) {
     account.setApiHost(isSet(apiHost) ? apiHost : account.getApiHost());
@@ -58,6 +64,8 @@ public class CloudFoundryEditAccountCommand
     account.setMetricsUri(isSet(metricsUri) ? metricsUri : account.getMetricsUri());
     account.setPassword(isSet(password) ? password : account.getPassword());
     account.setUser(isSet(user) ? user : account.getUser());
+    account.setSkipSslValidation(
+        isSet(skipSslValidation) ? skipSslValidation : account.isSkipSslValidation());
 
     return account;
   }

@@ -29,4 +29,6 @@ public class CloudFoundryCommandProperties {
       "User name for the account to use on for this CloudFoundry Foundation";
   public static final String PASSWORD_DESCRIPTION =
       "Password for the account to use on for this CloudFoundry Foundation";
+  public static final String SKIP_SSL_VALIDATION_DESCRIPTION =
+      "Skip SSL server certificate validation of the API endpoint";
 }
