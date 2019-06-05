@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/ecs",
-  "version": "0.0.248",
+  "version": "0.0.249",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
