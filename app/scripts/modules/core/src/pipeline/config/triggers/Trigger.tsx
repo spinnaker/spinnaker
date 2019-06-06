@@ -30,30 +30,22 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
 
   constructor(props: ITriggerProps) {
     super(props);
-    this.state = {
-      type: props.trigger.type || '',
-    };
+    const type = props.trigger.type || '';
+    const triggerConfig = this.triggerTypes.find(triggerType => triggerType.key === type);
+    this.state = { type, triggerConfig };
   }
 
   private handleTriggerEnabled = () => {
-    this.triggerUpdated({
-      enabled: !this.props.trigger.enabled,
-    });
+    const enabled = !this.props.trigger.enabled;
+    this.triggerUpdated({ enabled });
   };
 
   private handleTypeChange = (option: Option<string>) => {
     const type = option.value;
-    const triggerConfigs = this.triggerTypes.filter(function(config) {
-      return config.key === type;
-    });
-    this.setState({
-      type,
-      triggerConfig: triggerConfigs.length ? triggerConfigs[0] : undefined,
-    });
+    const triggerConfig = this.triggerTypes.find(config => config.key === type);
+    this.setState({ type, triggerConfig });
     if (this.disableAutoTriggering.includes(type)) {
-      this.triggerUpdated({
-        enabled: false,
-      });
+      this.triggerUpdated({ enabled: false });
     }
   };
 
