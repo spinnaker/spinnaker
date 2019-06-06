@@ -82,7 +82,7 @@ public final class KubernetesKind {
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM =
       new KubernetesKind("persistentVolumeClaim", KubernetesApiGroup.CORE, "pvc", true, false);
   public static KubernetesKind POD =
-      new KubernetesKind("pod", KubernetesApiGroup.CORE, "po", true, true);
+      new KubernetesKind("pod", KubernetesApiGroup.CORE, "po", true, false);
   public static KubernetesKind POD_PRESET =
       new KubernetesKind("podPreset", KubernetesApiGroup.SETTINGS_K8S_IO, null, true, false);
   public static KubernetesKind POD_SECURITY_POLICY =
