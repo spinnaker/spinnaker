@@ -73,12 +73,12 @@ public class TelemetryHelper {
   }
 
   static long payloadSize(Map<String, String> payload) {
-    StringBuilder b = new StringBuilder();
+    long size = 0;
     for (Map.Entry<String, String> e : payload.entrySet()) {
-      b.append(e.getKey());
-      b.append(e.getValue());
+      size += payloadSize(e.getKey());
+      size += payloadSize(e.getValue());
     }
-    return payloadSize(b.toString());
+    return size;
   }
 
   static long payloadSize(byte[] payload) {
