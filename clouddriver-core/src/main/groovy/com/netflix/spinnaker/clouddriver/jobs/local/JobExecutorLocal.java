@@ -87,8 +87,13 @@ public class JobExecutorLocal implements JobExecutor {
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment(), resultHandler);
 
-    T result =
-        consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
+    T result;
+    try {
+      result =
+          consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
+    } catch (IOException e) {
+      return JobResult.<T>builder().result(JobResult.Result.FAILURE).error(e.toString()).build();
+    }
 
     try {
       resultHandler.waitFor();
