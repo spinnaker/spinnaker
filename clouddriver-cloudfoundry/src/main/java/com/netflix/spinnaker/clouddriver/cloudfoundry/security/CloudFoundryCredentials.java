@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
@@ -78,6 +83,17 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   public CloudFoundryClient getClient() {
     return getCredentials();
+  }
+
+  public Collection<Map<String, String>> getRegions() {
+    try {
+      return getCredentials().getSpaces().all().stream()
+          .map(space -> singletonMap("name", space.getRegion()))
+          .collect(toList());
+    } catch (CloudFoundryApiException e) {
+      log.warn("Unable to determine regions for Cloud Foundry account " + name, e);
+      return emptyList();
+    }
   }
 
   @Override
