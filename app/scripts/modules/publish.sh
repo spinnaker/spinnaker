@@ -130,7 +130,7 @@ if [ "$REPLY" == "y" ] ; then
       echo "";
       echo "*****************************************************";
       echo "* Pull request message copied to your clipboard!    *";
-      echo "* Paste it in and use the 'Squash and merge' button *";
+      echo "* Paste it in and use the 'Rebase and merge' button *";
       echo "*****************************************************";
       echo "";
       echo "";
