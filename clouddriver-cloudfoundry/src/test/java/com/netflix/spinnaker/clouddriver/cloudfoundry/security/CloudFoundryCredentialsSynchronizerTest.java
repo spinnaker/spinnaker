@@ -67,12 +67,45 @@ class CloudFoundryCredentialsSynchronizerTest {
             provider, configurationProperties, repository, catsModule, registry);
   }
 
+  private class StaticOtherProviderCredentials implements AccountCredentials<Void> {
+    @Override
+    public String getName() {
+      return "unchanged-other-provider";
+    }
+
+    @Override
+    public String getEnvironment() {
+      return null;
+    }
+
+    @Override
+    public String getAccountType() {
+      return null;
+    }
+
+    @Override
+    public Void getCredentials() {
+      return null;
+    }
+
+    @Override
+    public String getCloudProvider() {
+      return "other";
+    }
+
+    @Override
+    public List<String> getRequiredGroupMembership() {
+      return null;
+    }
+  }
+
   @Test
   void synchronize() {
     repository.save("to-be-changed", createCredentials("to-be-changed"));
     repository.save("unchanged2", createCredentials("unchanged2"));
     repository.save("unchanged3", createCredentials("unchanged3"));
     repository.save("to-be-deleted", createCredentials("to-be-deleted"));
+    repository.save("unchanged-other-provider", new StaticOtherProviderCredentials());
 
     loadProviderFromRepository();
 
@@ -91,7 +124,8 @@ class CloudFoundryCredentialsSynchronizerTest {
 
     assertThat(repository.getAll())
         .extracting(AccountCredentials::getName)
-        .containsExactlyInAnyOrder("unchanged2", "unchanged3", "added", "to-be-changed");
+        .containsExactlyInAnyOrder(
+            "unchanged2", "unchanged3", "added", "to-be-changed", "unchanged-other-provider");
 
     assertThat(ProviderUtils.getScheduledAccounts(provider))
         .containsExactlyInAnyOrder("unchanged2", "unchanged3", "added", "to-be-changed");

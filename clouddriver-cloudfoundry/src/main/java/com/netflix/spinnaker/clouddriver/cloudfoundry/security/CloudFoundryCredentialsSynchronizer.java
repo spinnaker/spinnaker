@@ -119,6 +119,7 @@ public class CloudFoundryCredentialsSynchronizer implements CredentialsInitializ
       CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties) {
     List<String> existingNames =
         accountCredentialsRepository.getAll().stream()
+            .filter(c -> CloudFoundryProvider.PROVIDER_ID.equals(c.getCloudProvider()))
             .map(AccountCredentials::getName)
             .collect(Collectors.toList());
 
