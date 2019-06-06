@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -28,11 +29,8 @@ import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -42,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Response;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 /**
  * This Redis-backed permission repository is structured in a way to optimized reading types of
@@ -216,40 +216,32 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return new HashMap<>();
     }
 
-    return redisClientDelegate.withMultiKeyPipeline(
-        p -> {
-          List<Response<Set<String>>> responses =
-              anyRoles.stream().map(role -> p.smembers(roleKey(role))).collect(Collectors.toList());
-          p.sync();
+    final Set<String> dedupedUsernames = new HashSet<>();
+    for (String role : new HashSet<>(anyRoles)) {
+      dedupedUsernames.addAll(scanSet(roleKey(role)));
+    }
+    dedupedUsernames.add(UNRESTRICTED);
 
-          Set<String> dedupedUsernames =
-              responses.stream()
-                  .flatMap(response -> response.get().stream())
-                  .collect(Collectors.toSet());
-          dedupedUsernames.add(UNRESTRICTED);
+    Table<String, ResourceType, Response<Map<String, String>>> responseTable =
+        getAllFromRedis(dedupedUsernames);
+    if (responseTable == null) {
+      return new HashMap<>(0);
+    }
 
-          Table<String, ResourceType, Response<Map<String, String>>> responseTable =
-              getAllFromRedis(dedupedUsernames);
-          if (responseTable == null) {
-            return new HashMap<>(0);
-          }
+    RawUserPermission rawUnrestricted = new RawUserPermission(responseTable.row(UNRESTRICTED));
+    UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
+    Set<String> adminSet = getAllAdmins();
 
-          RawUserPermission rawUnrestricted =
-              new RawUserPermission(responseTable.row(UNRESTRICTED));
-          UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, rawUnrestricted);
-          Set<String> adminSet = getAllAdmins();
-
-          return dedupedUsernames.stream()
-              .map(
-                  userId -> {
-                    RawUserPermission rawUser = new RawUserPermission(responseTable.row(userId));
-                    rawUser.isAdmin = adminSet.contains(userId);
-                    return getUserPermission(userId, rawUser);
-                  })
-              .collect(
-                  Collectors.toMap(
-                      UserPermission::getId, permission -> permission.merge(unrestrictedUser)));
-        });
+    return dedupedUsernames.stream()
+        .map(
+            userId -> {
+              RawUserPermission rawUser = new RawUserPermission(responseTable.row(userId));
+              rawUser.isAdmin = adminSet.contains(userId);
+              return getUserPermission(userId, rawUser);
+            })
+        .collect(
+            Collectors.toMap(
+                UserPermission::getId, permission -> permission.merge(unrestrictedUser)));
   }
 
   private UserPermission getUserPermission(String userId, RawUserPermission raw) {
@@ -269,10 +261,8 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis() {
     try {
-      return redisClientDelegate.withCommandsClient(
-          jedis -> {
-            return getAllFromRedis(jedis.smembers(allUsersKey()));
-          });
+      Set<String> allUsers = scanSet(allUsersKey());
+      return getAllFromRedis(allUsers);
     } catch (Exception e) {
       log.error("Storage exception reading all entries.", e);
       return null;
@@ -286,19 +276,20 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     }
 
     try {
-      return redisClientDelegate.withMultiKeyPipeline(
-          p -> {
-            Table<String, ResourceType, Response<Map<String, String>>> responseTable =
-                ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
-
-            for (String userId : userIds) {
-              for (ResourceType r : ResourceType.values()) {
-                responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
+      final Table<String, ResourceType, Response<Map<String, String>>> responseTable =
+          ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
+      for (List<String> userIdSubset : Lists.partition(new ArrayList<>(userIds), 10)) {
+        redisClientDelegate.withMultiKeyPipeline(
+            p -> {
+              for (String userId : userIdSubset) {
+                for (ResourceType r : ResourceType.values()) {
+                  responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
+                }
               }
-            }
-            p.sync();
-            return responseTable;
-          });
+              p.sync();
+            });
+      }
+      return responseTable;
     } catch (Exception e) {
       log.error("Storage exception reading all entries.", e);
     }
@@ -308,34 +299,47 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public void remove(@NonNull String id) {
     try {
-      redisClientDelegate.withCommandsClient(
-          jedis -> {
-            Map<String, String> userRolesById = jedis.hgetAll(userKey(id, ResourceType.ROLE));
+      Map<String, String> userRolesById =
+          redisClientDelegate.withCommandsClient(
+              jedis -> {
+                return jedis.hgetAll(userKey(id, ResourceType.ROLE));
+              });
 
-            redisClientDelegate.withMultiKeyPipeline(
-                p -> {
-                  p.srem(allUsersKey(), id);
-                  for (String roleName : userRolesById.keySet()) {
-                    p.srem(roleKey(roleName), id);
-                  }
+      redisClientDelegate.withMultiKeyPipeline(
+          p -> {
+            p.srem(allUsersKey(), id);
+            for (String roleName : userRolesById.keySet()) {
+              p.srem(roleKey(roleName), id);
+            }
 
-                  for (ResourceType r : ResourceType.values()) {
-                    p.del(userKey(id, r));
-                  }
-                  p.srem(adminKey(), id);
-                  p.sync();
-                });
+            for (ResourceType r : ResourceType.values()) {
+              p.del(userKey(id, r));
+            }
+            p.srem(adminKey(), id);
+            p.sync();
           });
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
   }
 
+  private Set<String> scanSet(String key) {
+    final Set<String> results = new HashSet<>();
+    final AtomicReference<String> cursor = new AtomicReference<>(ScanParams.SCAN_POINTER_START);
+    do {
+      final ScanResult<String> result =
+          redisClientDelegate.withCommandsClient(
+              jedis -> {
+                return jedis.sscan(key, cursor.get());
+              });
+      results.addAll(result.getResult());
+      cursor.set(result.getStringCursor());
+    } while (!"0".equals(cursor.get()));
+    return results;
+  }
+
   private Set<String> getAllAdmins() {
-    return redisClientDelegate.withCommandsClient(
-        jedis -> {
-          return jedis.smembers(adminKey());
-        });
+    return scanSet(adminKey());
   }
 
   private String allUsersKey() {
