@@ -129,7 +129,35 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     iamClient.getRole(_) >> new GetRoleResult().withRole(role)
     iamPolicyReader.getTrustedEntities(_) >> trustRelationships
     loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
-    ecs.createService(_) >> new CreateServiceResult().withService(service)
+    ecs.createService({ CreateServiceRequest request ->
+      request.cluster == 'test-cluster'
+      request.serviceName == 'myapp-kcats-liated-v008'
+      request.taskDefinition == 'task-def-arn'
+      request.loadBalancers.size() == 1
+      request.loadBalancers.get(0).targetGroupArn == 'target-group-arn'
+      request.loadBalancers.get(0).containerName == 'v008'
+      request.loadBalancers.get(0).containerPort == 1337
+      request.serviceRegistries == []
+      request.desiredCount == 3
+      request.role == 'arn:aws:iam::test:test-role'
+      request.placementConstraints.size() == 1
+      request.placementConstraints.get(0).type == 'memberOf'
+      request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'
+      request.placementStrategy.size() == 1
+      request.placementStrategy.get(0).type == 'spread'
+      request.placementStrategy.get(0).field == 'attribute:ecs.availability-zone'
+      request.networkConfiguration == null
+      request.healthCheckGracePeriodSeconds == null
+      request.enableECSManagedTags == true
+      request.propagateTags == 'SERVICE'
+      request.tags.size() == 2
+      request.tags.get(0).key == 'label1'
+      request.tags.get(0).value == 'value1'
+      request.tags.get(1).key == 'fruit'
+      request.tags.get(1).value == 'tomato'
+      request.launchType == null
+      request.platformVersion == null
+    }) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1
     result.getServerGroupNameByRegion().size() == 1
@@ -233,21 +261,32 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
 
     ecs.createService({ CreateServiceRequest request ->
-      request.networkConfiguration.awsvpcConfiguration.subnets == ['subnet-12345']
-      request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
-      request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
-      request.role == null
-      request.launchType == 'FARGATE'
-      request.platformVersion == '1.0.0'
-      request.placementStrategy == []
-      request.placementConstraints == []
-      request.desiredCount == 1
+      request.cluster == 'test-cluster'
+      request.serviceName == 'myapp-kcats-liated-v008'
+      request.taskDefinition == 'task-def-arn'
+      request.loadBalancers.size() == 1
+      request.loadBalancers.get(0).targetGroupArn == 'target-group-arn'
+      request.loadBalancers.get(0).containerName == 'v008'
+      request.loadBalancers.get(0).containerPort == 1337
       request.serviceRegistries.size() == 1
       request.serviceRegistries.get(0) == new ServiceRegistry(
         registryArn: 'srv-registry-arn',
         containerPort: 9090,
         containerName: 'v008'
       )
+      request.desiredCount == 1
+      request.role == null
+      request.placementStrategy == []
+      request.placementConstraints == []
+      request.networkConfiguration.awsvpcConfiguration.subnets == ['subnet-12345']
+      request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
+      request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
+      request.healthCheckGracePeriodSeconds == null
+      request.enableECSManagedTags == null
+      request.propagateTags == null
+      request.tags == []
+      request.launchType == 'FARGATE'
+      request.platformVersion == '1.0.0'
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1
@@ -255,6 +294,28 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
     result.getServerGroupNameByRegion().containsKey('us-west-1')
     result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
+  }
+
+  def 'should create services without load balancers'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTargetGroup() >> null
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest('task-def-arn',
+      'arn:aws:iam::test:test-role',
+      'mygreatapp-stack1-details2-v0011',
+      1)
+
+    then:
+    request.getLoadBalancers() == []
+    request.getRole() == null
   }
 
   def 'should create default Docker labels'() {

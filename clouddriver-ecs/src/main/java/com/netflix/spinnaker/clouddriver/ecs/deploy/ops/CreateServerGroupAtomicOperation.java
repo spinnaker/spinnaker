@@ -267,8 +267,8 @@ public class CreateServerGroupAtomicOperation
       String ecsServiceRole,
       String newServerGroupName,
       Service sourceService) {
-    Collection<LoadBalancer> loadBalancers =
-        retrieveLoadBalancers(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
+
+    String taskDefinitionArn = taskDefinition.getTaskDefinitionArn();
 
     Integer desiredCount = description.getCapacity().getDesired();
     if (sourceService != null
@@ -277,6 +277,38 @@ public class CreateServerGroupAtomicOperation
         && description.getSource().getUseSourceCapacity()) {
       desiredCount = sourceService.getDesiredCount();
     }
+
+    CreateServiceRequest request =
+        makeServiceRequest(taskDefinitionArn, ecsServiceRole, newServerGroupName, desiredCount);
+
+    updateTaskStatus(
+        String.format(
+            "Creating %s of %s with %s for %s.",
+            desiredCount,
+            newServerGroupName,
+            taskDefinitionArn,
+            description.getCredentialAccount()));
+
+    Service service = ecs.createService(request).getService();
+
+    updateTaskStatus(
+        String.format(
+            "Done creating %s of %s with %s for %s.",
+            desiredCount,
+            newServerGroupName,
+            taskDefinitionArn,
+            description.getCredentialAccount()));
+
+    return service;
+  }
+
+  protected CreateServiceRequest makeServiceRequest(
+      String taskDefinitionArn,
+      String ecsServiceRole,
+      String newServerGroupName,
+      Integer desiredCount) {
+    Collection<LoadBalancer> loadBalancers =
+        retrieveLoadBalancers(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
 
     Collection<ServiceRegistry> serviceRegistries = new LinkedList<>();
     if (description.getServiceDiscoveryAssociations() != null) {
@@ -299,8 +331,6 @@ public class CreateServerGroupAtomicOperation
         serviceRegistries.add(registryEntry);
       }
     }
-
-    String taskDefinitionArn = taskDefinition.getTaskDefinitionArn();
 
     DeploymentConfiguration deploymentConfiguration =
         new DeploymentConfiguration().withMinimumHealthyPercent(100).withMaximumPercent(200);
@@ -325,7 +355,11 @@ public class CreateServerGroupAtomicOperation
       request.withTags(taskDefTags).withEnableECSManagedTags(true).withPropagateTags("SERVICE");
     }
 
-    if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
+    // Load balancer management role:
+    // N/A for non-load-balanced services
+    // Services using awsvpc mode must not specify a role in order to use the
+    // ECS service-linked role
+    if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode()) && !loadBalancers.isEmpty()) {
       request.withRole(ecsServiceRole);
     }
 
@@ -367,25 +401,7 @@ public class CreateServerGroupAtomicOperation
       request.withHealthCheckGracePeriodSeconds(description.getHealthCheckGracePeriodSeconds());
     }
 
-    updateTaskStatus(
-        String.format(
-            "Creating %s of %s with %s for %s.",
-            desiredCount,
-            newServerGroupName,
-            taskDefinitionArn,
-            description.getCredentialAccount()));
-
-    Service service = ecs.createService(request).getService();
-
-    updateTaskStatus(
-        String.format(
-            "Done creating %s of %s with %s for %s.",
-            desiredCount,
-            newServerGroupName,
-            taskDefinitionArn,
-            description.getCredentialAccount()));
-
-    return service;
+    return request;
   }
 
   private String registerAutoScalingGroup(
