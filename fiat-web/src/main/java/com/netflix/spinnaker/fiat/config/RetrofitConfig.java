@@ -84,12 +84,14 @@ public class RetrofitConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient(Registry registry) {
+  OkClient okClient(
+      Registry registry,
+      @Value("${ok-http-client.interceptor.skip-header-check:false}") boolean skipHeaderChecks) {
     val client = okHttpClientConfig.create();
     client.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
     client.setRetryOnConnectionFailure(retryOnConnectionFailure);
     client.interceptors().add(new RetryingInterceptor(maxElapsedBackoffMs));
-    client.interceptors().add(new OkHttpMetricsInterceptor(registry));
+    client.interceptors().add(new OkHttpMetricsInterceptor(registry, skipHeaderChecks));
 
     return new OkClient(client);
   }
