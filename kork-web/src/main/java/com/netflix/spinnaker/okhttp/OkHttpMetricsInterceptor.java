@@ -23,8 +23,8 @@ import java.io.IOException;
 
 public class OkHttpMetricsInterceptor extends MetricsInterceptor
     implements com.squareup.okhttp.Interceptor {
-  public OkHttpMetricsInterceptor(Registry registry) {
-    super(registry);
+  public OkHttpMetricsInterceptor(Registry registry, boolean skipHeaderCheck) {
+    super(registry, skipHeaderCheck);
   }
 
   @Override

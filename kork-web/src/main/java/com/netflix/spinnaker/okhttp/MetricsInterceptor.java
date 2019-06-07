@@ -26,10 +26,12 @@ import org.springframework.util.StringUtils;
  */
 class MetricsInterceptor {
   private final Registry registry;
+  private final boolean skipHeaderCheck;
   private final Logger log;
 
-  MetricsInterceptor(Registry registry) {
+  MetricsInterceptor(Registry registry, boolean skipHeaderCheck) {
     this.registry = registry;
+    this.skipHeaderCheck = skipHeaderCheck;
     this.log = LoggerFactory.getLogger(getClass());
   }
 
@@ -55,7 +57,7 @@ class MetricsInterceptor {
     try {
       String xSpinAnonymous = MDC.get(AuthenticatedRequest.Header.XSpinnakerAnonymous);
 
-      if (xSpinAnonymous == null) {
+      if (xSpinAnonymous == null && !skipHeaderCheck) {
         for (AuthenticatedRequest.Header header : AuthenticatedRequest.Header.values()) {
           String headerValue =
               (request != null)

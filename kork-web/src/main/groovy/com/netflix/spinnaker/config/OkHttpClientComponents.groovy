@@ -21,6 +21,7 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -34,12 +35,18 @@ class OkHttpClientComponents {
   }
 
   @Bean
-  OkHttpMetricsInterceptor okHttpMetricsInterceptor(Registry registry) {
-    return new OkHttpMetricsInterceptor(registry)
+  OkHttpMetricsInterceptor okHttpMetricsInterceptor(
+    Registry registry,
+    @Value('${ok-http-client.interceptor.skip-header-check:false}') boolean skipHeaderCheck) {
+
+    return new OkHttpMetricsInterceptor(registry, skipHeaderCheck)
   }
 
   @Bean
-  OkHttp3MetricsInterceptor okHttp3MetricsInterceptor(Registry registry) {
-    return new OkHttp3MetricsInterceptor(registry)
+  OkHttp3MetricsInterceptor okHttp3MetricsInterceptor(
+    Registry registry,
+    @Value('${ok-http-client.interceptor.skip-header-check:false}') boolean skipHeaderCheck) {
+
+    return new OkHttp3MetricsInterceptor(registry, skipHeaderCheck)
   }
 }
