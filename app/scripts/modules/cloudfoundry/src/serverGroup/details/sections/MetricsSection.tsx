@@ -16,7 +16,7 @@ export class MetricsSection extends React.Component<ICloudFoundryServerGroupDeta
         {metricsUri && (
           <CollapsibleSection heading="Metrics" defaultExpanded={true}>
             <div>
-              <a href={metricsUri.startsWith('https://') ? metricsUri : 'https://' + metricsUri} target="_blank">
+              <a href={metricsUri} target="_blank">
                 Metrics
               </a>
             </div>
