@@ -8,6 +8,7 @@ import {
   IWizardPageComponent,
   IPipeline,
   IStage,
+  RadioButtonInput,
   StageArtifactSelector,
   ArtifactTypePatterns,
 } from '@spinnaker/core';
@@ -17,7 +18,6 @@ import {
   ICloudFoundryManifest,
 } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 import {
   Buildpacks,
@@ -145,10 +145,11 @@ export class CloudFoundryServerGroupConfigurationSettings
       <>
         <div className="form-group">
           <div className="col-md-11">
-            <div className="StandardFieldLayout flex-container-h margin-between-lg">
+            <div className="StandardFieldLayout flex-container-h baseline margin-between-lg">
               <div className="sm-label-right">Source Type</div>
               <div className="flex-grow">
-                <CloudFoundryRadioButtonInput
+                <RadioButtonInput
+                  inline={true}
                   value={direct ? 'direct' : 'artifact'}
                   options={[{ label: 'Artifact', value: 'artifact' }, { label: 'Form', value: 'direct' }]}
                   onChange={(e: any) => this.manifestSourceUpdated(e.target.value)}

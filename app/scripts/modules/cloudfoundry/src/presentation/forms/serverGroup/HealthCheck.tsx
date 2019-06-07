@@ -1,8 +1,6 @@
 import * as React from 'react';
 
-import { FormikFormField, TextInput } from '@spinnaker/core';
-
-import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
+import { FormikFormField, RadioButtonInput, TextInput } from '@spinnaker/core';
 
 export interface IHealthCheckProps {
   healthCheckHttpEndpointFieldName: string;
@@ -35,7 +33,7 @@ export class HealthCheck extends React.Component<IHealthCheckProps> {
             name={healthCheckTypeFieldName}
             label="Health Check Type"
             fastField={false}
-            input={props => <CloudFoundryRadioButtonInput {...props} options={this.HEALTH_CHECK_TYPE_OPTIONS} />}
+            input={props => <RadioButtonInput {...props} inline={true} options={this.HEALTH_CHECK_TYPE_OPTIONS} />}
             onChange={value => {
               onHealthCheckTypeChange && onHealthCheckTypeChange(value);
             }}
