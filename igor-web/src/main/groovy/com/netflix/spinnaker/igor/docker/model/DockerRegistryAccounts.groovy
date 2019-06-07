@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.docker.model
 
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
@@ -34,8 +35,10 @@ class DockerRegistryAccounts {
 
     void updateAccounts() {
         try {
-            this.accounts = service.allAccounts.findAll{ it.cloudProvider == 'dockerRegistry' }*.name.collect{
-                service.getAccountDetails(it)
+            AuthenticatedRequest.allowAnonymous {
+                this.accounts = service.allAccounts.findAll { it.cloudProvider == 'dockerRegistry' }*.name.collect {
+                    service.getAccountDetails(it)
+                }
             }
         } catch (RetrofitError e) {
             log.error "Failed to get list of docker accounts", e

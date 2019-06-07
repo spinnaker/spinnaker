@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.config
 
-
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -51,7 +50,6 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import javax.validation.Valid
-import java.lang.reflect.Proxy
 import java.security.KeyStore
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
@@ -91,21 +89,16 @@ class JenkinsConfig {
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(
                 host.name,
-                (JenkinsClient) Proxy.newProxyInstance(
-                    JenkinsClient.getClassLoader(),
-                    [JenkinsClient] as Class[],
-                    new InstrumentedProxy(
-                        registry,
-                        jenkinsClient(
-                            host,
-                            jenkinsOkHttpClientProvider.provide(host),
-                            jenkinsRetrofitRequestInterceptorProvider.provide(host),
-                            igorConfigurationProperties.client.timeout
-                        ),
-                        "jenkinsClient",
-                        [master: host.name]
-                    )
-                ),
+                (JenkinsClient) InstrumentedProxy.proxy(
+                    registry,
+                    jenkinsClient(
+                        host,
+                        jenkinsOkHttpClientProvider.provide(host),
+                        jenkinsRetrofitRequestInterceptorProvider.provide(host),
+                        igorConfigurationProperties.client.timeout
+                    ),
+                    "jenkinsClient",
+                    [master: host.name]),
                 host.csrf,
                 host.permissions.build()
             )]
