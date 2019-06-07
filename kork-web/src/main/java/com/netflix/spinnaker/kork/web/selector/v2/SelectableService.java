@@ -108,7 +108,7 @@ public class SelectableService<T> {
    * @return new {@link SelectedService} containing the selecting parameter.
    */
   public SelectedService<T> byParameters(List<Parameter> inputParameters) {
-    final SelectedService<T> fallback = new SelectedService<>(defaultService, defaultConfig, null);
+    final SelectedService<T> fallback = getDefaultService();
     if (inputParameters == null || inputParameters.isEmpty()) {
       return fallback;
     }
@@ -206,7 +206,7 @@ public class SelectableService<T> {
     /** Parameters used in this selection */
     private final List<Parameter> selectingParameters;
 
-    private SelectedService(
+    public SelectedService(
         T service, Map<String, Object> config, List<Parameter> selectingParameters) {
       this.service = service;
       this.config = config;
