@@ -26,11 +26,7 @@ class InstrumentedProxySpec extends Specification {
   @Shared
   Registry registry = new DefaultRegistry()
 
-  MyContract subject = java.lang.reflect.Proxy.newProxyInstance(
-     getClass().classLoader,
-     [MyContract] as Class[],
-     new InstrumentedProxy(registry, new MyContractImpl(), "myns")
-  )
+  MyContract subject = InstrumentedProxy.proxy(registry, new MyContractImpl(), "myns")
 
   def "should generate method metrics on init"() {
     when:

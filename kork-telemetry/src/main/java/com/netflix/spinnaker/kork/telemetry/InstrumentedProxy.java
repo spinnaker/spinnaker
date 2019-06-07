@@ -26,10 +26,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileTimer;
 import com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +49,26 @@ import java.util.concurrent.TimeUnit;
  * metrics.
  */
 public class InstrumentedProxy implements InvocationHandler {
+
+  public static <T> T proxy(Registry registry, Object target, String metricNamespace) {
+    return proxy(registry, target, metricNamespace, new HashMap<>());
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T proxy(
+      Registry registry, Object target, String metricNamespace, Map<String, String> tags) {
+    final Set<Class<?>> interfaces = new LinkedHashSet<>();
+    addHierarchy(interfaces, target.getClass());
+
+    final Class[] proxyInterfaces =
+        interfaces.stream().filter(Class::isInterface).toArray(Class[]::new);
+
+    return (T)
+        Proxy.newProxyInstance(
+            target.getClass().getClassLoader(),
+            proxyInterfaces,
+            new InstrumentedProxy(registry, target, metricNamespace, tags));
+  }
 
   private static final String INVOCATIONS = "invocations";
   private static final String TIMING = "timing";
@@ -210,6 +227,22 @@ public class InstrumentedProxy implements InvocationHandler {
         // Ignore any methods from the root Object class
         Arrays.stream(Object.class.getDeclaredMethods())
             .noneMatch(m -> m.getName().equals(method.getName()));
+  }
+
+  private static void addHierarchy(Set<Class<?>> classes, Class<?> cl) {
+    if (cl == null) {
+      return;
+    }
+
+    if (classes.add(cl)) {
+      for (Class<?> iface : cl.getInterfaces()) {
+        addHierarchy(classes, iface);
+      }
+      Class<?> superclass = cl.getSuperclass();
+      if (superclass != null) {
+        addHierarchy(classes, superclass);
+      }
+    }
   }
 
   private static class MethodMetrics {
