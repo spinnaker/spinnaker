@@ -17,7 +17,7 @@
               <span>{{$select.selected}}</span>
             </ui-select-match>
             <ui-select-choices repeat="choice in ctrl.choices">
-              <span>{{choice}}</span>
+              <span>{{choice}}<help-field key="gce.loadBalancerType.{{choice}}"></help-field></span>
             </ui-select-choices>
           </ui-select>
         </div>

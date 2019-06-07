@@ -195,6 +195,17 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) The name of a Google account configured within Rosco. If left blank, the first configured account will be used.</p>',
   'pipeline.config.gce.bake.baseImage':
     '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
+  'gce.loadBalancerType.Network': `
+    <p>Use Network Load Balancing to balance the load on your systems based on incoming IP protocol data, such as address, port, and protocol type.</p>
+    <p>Network Load Balancing is a regional, non-proxied load balancer. You can use it to load balance UDP traffic, and TCP and SSL traffic on ports that are not supported by the SSL proxy and TCP proxy load balancers.</p>`,
+  'gce.loadBalancerType.HTTP(S)':
+    '<p>Google Cloud Platform (GCP) HTTP(S) Load Balancing provides global load balancing for HTTP(S) requests destined for your instances.</p>',
+  'gce.loadBalancerType.Internal':
+    '<p>Internal TCP/UDP Load Balancing is a regional load balancer that enables you to run and scale your services behind a private load balancing IP address that is accessible only to your internal virtual machine instances.</p>',
+  'gce.loadBalancerType.SSL':
+    '<p>Google Cloud SSL Proxy Load Balancing terminates user SSL (TLS) connections at the load balancing layer, then balances the connections across your instances using the SSL or TCP protocols. This supports both IPv4 and IPv6 addresses for client traffic.</p>',
+  'gce.loadBalancerType.TCP':
+    '<p>Google Cloud Platform (GCP) TCP Proxy Load Balancing allows you to use a single IP address for all users around the world. GCP TCP proxy load balancing automatically routes traffic to the instances that are closest to the user.</p>',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
