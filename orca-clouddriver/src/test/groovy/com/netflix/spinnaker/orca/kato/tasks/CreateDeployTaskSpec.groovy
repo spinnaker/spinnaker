@@ -356,4 +356,69 @@ class CreateDeployTaskSpec extends Specification {
     amiName = "ami-name-from-bake"
   }
 
+  def "find the image from stage matching the cloud provider"() {
+    given:
+    stage.context.amiName = null
+    stage.context.imageId = null
+    def operations = []
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
+        operations.addAll(it[1].flatten())
+        Observable.from(taskId)
+      }
+    }
+
+    and:
+    def findImage1 = new Stage(stage.execution, "findImage")
+    findImage1.id = UUID.randomUUID()
+    findImage1.refId = "1a"
+    stage.execution.stages << findImage1
+
+    def findImageSynthetic1 = new Stage(stage.execution, "findImage", [
+      ami: "ami-name-from-findimage",
+      region: deployRegion,
+      cloudProvider: "titus",
+      selectionStrategy:"LARGEST",
+      imageId:"docker"
+    ])
+    findImageSynthetic1.id = UUID.randomUUID()
+    findImageSynthetic1.parentStageId = findImage1.id
+    stage.execution.stages << findImageSynthetic1
+
+    def findImage2 = new Stage(stage.execution, "findImage")
+    findImage2.id = UUID.randomUUID()
+    findImage2.refId = "2a"
+    stage.execution.stages << findImage2
+
+
+    def findImageSynthetic2 = new Stage(stage.execution, "findImage", [
+      ami: "different-image",
+      region: deployRegion,
+      cloudProvider: "aws",
+      selectionStrategy:"LARGEST",
+      imageId:"ami-name-from-findimage"
+    ])
+    findImageSynthetic2.id = UUID.randomUUID()
+    findImageSynthetic2.parentStageId = findImage2.id
+    stage.execution.stages << findImageSynthetic2
+    stage.context.cloudProvider = cloudProvider
+
+    and:
+    findImage2.requisiteStageRefIds = [findImage1.refId]
+    stage.requisiteStageRefIds = [findImage2.refId]
+
+    when:
+    task.execute(stage)
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.imageId == imageId
+
+    where:
+    cloudProvider | imageId
+    "titus"       | "docker"
+    "aws"         | "ami-name-from-findimage"
+  }
+
 }
