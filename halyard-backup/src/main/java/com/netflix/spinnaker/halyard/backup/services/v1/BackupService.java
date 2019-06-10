@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
@@ -72,8 +73,10 @@ public class BackupService {
     halconfig.makeLocalFilesRelative(halconfigDir);
     halconfigParser.saveConfig();
 
-    String tarOutputName =
-        String.format("halbackup-%s.tar", new Date()).replace(" ", "_").replace(":", "-");
+    SimpleDateFormat dateFormatter =
+        new SimpleDateFormat("'halyard'-yyyy-MM-dd_HH-mm-ss-SSSXXX'.tar'");
+    String tarOutputName = dateFormatter.format(new Date());
+
     String halconfigTar = Paths.get(System.getProperty("user.home"), tarOutputName).toString();
     try {
       tarHalconfig(halconfigDir, halconfigTar);
