@@ -13,7 +13,7 @@ class ReleaseBranchPullRequestHandler(Handler):
         self.omit_repos = self.config.get('omit_repos', [])
         self.allowed_types = self.config.get(
             'allowed_types',
-            ['fix', 'chore', 'docs', 'test']
+            ['fix', 'chore', 'docs', 'perf', 'test']
         )
 
     def handles(self, event):
