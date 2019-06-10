@@ -59,7 +59,6 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       const config: INestedState = {
         name: 'canaryConfig',
         url: '/config',
-        abstract: true,
         views: {
           canary: {
             component: CanaryConfigEdit,
@@ -67,6 +66,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
           },
         },
         children: [configDefault, configDetail],
+        redirectTo: transition => transition.to().name + '.configDefault',
       };
 
       const reportDetail: INestedState = {
@@ -101,7 +101,6 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       const report: INestedState = {
         name: 'report',
         url: '/report',
-        abstract: true,
         views: {
           canary: {
             component: Report,
@@ -109,6 +108,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
           },
         },
         children: [reportDetail, reportDefault],
+        redirectTo: transition => transition.to().name + '.reportDefault',
       };
 
       const canaryRoot: INestedState = {
