@@ -484,7 +484,8 @@ public abstract class Node implements Validatable {
                             File parent = newName.toFile().getParentFile();
                             if (!parent.exists()) {
                               parent.mkdirs();
-                            } else if (fFile.getParent().equals(parent.toString())) {
+                            } else if (fFile.getParent() != null
+                                && fFile.getParent().equals(parent.toString())) {
                               // Don't move paths that are already in the right folder
                               return fPath;
                             }
