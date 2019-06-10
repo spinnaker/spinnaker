@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.PinServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -39,7 +39,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   ApplySourceServerGroupCapacityStage applySourceServerGroupSnapshotStage
 
   @Autowired
-  ResizeServerGroupStage resizeServerGroupStage
+  PinServerGroupStage pinServerGroupStage
 
   @Autowired
   TargetServerGroupResolver targetServerGroupResolver
@@ -101,7 +101,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
       stageDefinitions << new StageDefinition(
         name: "Pin ${resizeContext.serverGroupName}",
-        stageDefinitionBuilder: resizeServerGroupStage,
+        stageDefinitionBuilder: pinServerGroupStage,
         context: resizeContext
       )
     }
@@ -213,7 +213,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
     return new StageDefinition(
       name: "Unpin ${resizeContext.serverGroupName} (deployFailed=${deployFailed})".toString(),
-      stageDefinitionBuilder: resizeServerGroupStage,
+      stageDefinitionBuilder: pinServerGroupStage,
       context: resizeContext
     )
   }
