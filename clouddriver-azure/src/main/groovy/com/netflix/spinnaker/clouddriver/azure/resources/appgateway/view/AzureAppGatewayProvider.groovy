@@ -24,8 +24,10 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.cluster.view.AzureClusterProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -43,6 +45,9 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  AzureClusterProvider clusterProvider
 
   @Autowired
   AzureAppGatewayProvider(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
@@ -91,10 +96,11 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
       loadBalancerType: AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY
     )
     description.serverGroups?.each { serverGroup ->
-      // TODO: add proper check for enable/disable server groups
+      AzureServerGroupDescription asg = clusterProvider.getServerGroup(loadBalancer.account, loadBalancer.region, serverGroup)
+
       loadBalancer.serverGroups.add(new LoadBalancerServerGroup (
         name: serverGroup,
-        isDisabled: false,
+        isDisabled: asg.isDisabled(),
         detachedInstances: [],
         instances: [],
         cloudProvider: AzureCloudProvider.ID
