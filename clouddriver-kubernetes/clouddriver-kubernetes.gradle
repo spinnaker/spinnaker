@@ -22,6 +22,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
+  implementation "com.github.ben-manes.caffeine:guava"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
