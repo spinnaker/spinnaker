@@ -245,7 +245,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       }
     } catch (Exception e) {
       log.debug(
-          "Error encountered looking up default namespace, defaulting to {}", DEFAULT_NAMESPACE, e);
+          "Error encountered looking up default namespace in account '{}', defaulting to {}",
+          accountName,
+          DEFAULT_NAMESPACE,
+          e);
       return DEFAULT_NAMESPACE;
     }
   }
@@ -318,14 +321,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     if (metrics) {
       try {
-        log.info("Checking if pod metrics are readable...");
+        log.info("Checking if pod metrics are readable for account {}...", accountName);
         topPod(checkNamespace, null);
       } catch (Exception e) {
         log.warn(
             "Could not read pod metrics in account '{}' for reason: {}",
             accountName,
             e.getMessage());
-        log.debug("Reading logs failed with exception: ", e);
+        log.debug("Reading logs for account '{}' failed with exception: ", accountName, e);
         metrics = false;
       }
     }
@@ -333,7 +336,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
     try {
-      log.info("Checking if {} is readable...", kind);
+      log.info("Checking if {} is readable in account '{}'...", kind, accountName);
       if (kind.isNamespaced()) {
         list(kind, checkNamespace);
       } else {
@@ -346,7 +349,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           kind,
           accountName,
           e.getMessage());
-      log.debug("Reading kind '{}' failed with exception: ", kind, e);
+      log.debug("Reading kind '{}' in account '{}' failed with exception: ", kind, accountName, e);
       return false;
     }
   }
