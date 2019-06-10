@@ -74,6 +74,10 @@ public class ContextParameterProcessor {
       boolean allowUnknownKeys,
       ExpressionEvaluationSummary summary) {
 
+    if (source == null) {
+      return null;
+    }
+
     if (source.isEmpty()) {
       return new HashMap<>();
     }
