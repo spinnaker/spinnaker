@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.igor.tasks.StartGoogleCloudBuildTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class GoogleCloudBuildStage implements StageDefinitionBuilder {
     builder
         .withTask("startGoogleCloudBuildTask", StartGoogleCloudBuildTask.class)
         .withTask("monitorGoogleCloudBuildTask", MonitorGoogleCloudBuildTask.class)
-        .withTask("getGoogleCloudBuildArtifactsTask", GetGoogleCloudBuildArtifactsTask.class);
+        .withTask("getGoogleCloudBuildArtifactsTask", GetGoogleCloudBuildArtifactsTask.class)
+        .withTask("bindProducedArtifacts", BindProducedArtifactsTask.class);
   }
 }
