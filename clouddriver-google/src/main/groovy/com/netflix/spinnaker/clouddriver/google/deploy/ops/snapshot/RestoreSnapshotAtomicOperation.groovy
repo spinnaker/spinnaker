@@ -148,7 +148,7 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     ArrayList<String> command = ["terraform", "apply", "-state=" + directory + "/terraform.tfstate", directory]
     JobResult<String> jobStatus = jobExecutor.runJob(new JobRequest(command))
     cleanUpDirectory()
-    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getStdOut()) {
+    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getOutput()) {
       String stdOut = jobStatus.getOutput()
       String stdErr = jobStatus.getError()
       throw new IllegalArgumentException("$stdOut + $stdErr")

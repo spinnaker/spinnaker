@@ -33,7 +33,7 @@ class AppengineJobExecutor {
 
   void runCommand(List<String> command) {
     JobResult<String> jobStatus = jobExecutor.runJob(new JobRequest(command))
-    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getStdOut()) {
+    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getOutput()) {
       String stdOut = jobStatus.getOutput()
       String stdErr = jobStatus.getError()
       throw new IllegalArgumentException("$stdOut + $stdErr")
