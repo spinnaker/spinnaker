@@ -17,7 +17,6 @@
 import citest.azure_testing as az
 from spinnaker_testing.base_scenario_support import BaseScenarioPlatformSupport
 
-
 class AzureScenarioSupport(BaseScenarioPlatformSupport):
   """Provides SpinnakerScenarioSupport for Azure."""
 
@@ -34,20 +33,53 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
     #
     # Operation Parameters
     #
-
-    # pylint: disable=line-too-long
     builder.add_argument(
         '--test_azure_rg_location', 
         default = defaults.get('TEST_AZURE_RG_LOCATION', 'westus'),
         help='The location of the azure resource group where test resources should be created.')
     builder.add_argument(
+        '--test_azure_resource_group', 
+        default = defaults.get('TEST_AZURE_RESOURCE_GROUP', None),
+        help='The name of azure resource group where test resources should be created.')
+    builder.add_argument(
+        '--test_azure_subscription_id', 
+        default = defaults.get('TEST_AZURE_SUBSCRIPTION_ID', None),
+        help='The subscription id of your azure account')
+    builder.add_argument(
+        '--test_azure_vnet', 
+        help='The name of the virtual network that contains the subnets')
+    builder.add_argument(
+        '--test_azure_subnet1', 
+        help='The name of subnet 1')
+    builder.add_argument(
+        '--test_azure_subnet1_address', 
+        help='The address of subnet 1')
+    builder.add_argument(
+        '--test_azure_subnet2', 
+        help='The name of subnet 2')
+    builder.add_argument(
+        '--test_azure_subnet2_address', 
+        help='The address of subnet 2')
+    builder.add_argument(
+        '--test_azure_vm_sku', 
+        default = defaults.get('TEST_AZURE_VM_SKU', 'Standard_B1ms'),
+        help='The name of VMSS')
+    builder.add_argument(
+        '--test_azure_baseOS', 
+        default = defaults.get('TEST_AZURE_BASEOS', 'ubuntu-1604'),
+        help='The OS version of the cluster used for deploying')
+    builder.add_argument(
+        '--test_azure_OSType', 
+        default = defaults.get('TEST_AZURE_OSTYPE', 'linux'),
+        help='The OS type of the cluster used for deploying')
+    builder.add_argument(
         '--azure_storage_account_name', 
         dest='azure_storage_account_name',
-        help='The name of the Azure storage account used by Front50 in Spinnaker.')
+        help='The name of the Azure storage account used by front50 in Spinnaker.')
     builder.add_argument(
         '--azure_storage_account_key', 
         dest='spinnaker_azure_storage_account_key',
-        help='The key used to access storage account used by front50.')
+        help='The key of the Azure storage account used by front50 in Spinnaker.')
 
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
