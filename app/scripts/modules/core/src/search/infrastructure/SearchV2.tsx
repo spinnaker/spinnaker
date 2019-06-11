@@ -66,6 +66,9 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   }
 
   public componentDidMount() {
+    // auto-navigation only happens via shortcut links, and we only do it if there is exactly one result, e.g
+    // when searching for an instance ID
+    const autoNavigate = window.location.href.endsWith('route=true');
     this.$uiRouter.globals.params$
       .map(stateParams => this.getApiFilterParams(stateParams))
       .do((params: IQueryParams) => this.setState({ params }))
@@ -95,9 +98,6 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .takeUntil(this.destroy$)
       .subscribe(
         resultSets => {
-          // auto-navigation only happens via shortcut links, and we only do it if there is exactly one result, e.g
-          // when searching for an instance ID
-          const autoNavigate = window.location.href.endsWith('route=true');
           const finishedSearching = resultSets.map(r => r.status).every(s => s === SearchStatus.FINISHED);
           if (finishedSearching && autoNavigate) {
             const allResults = resultSets.reduce((acc, rs) => acc.concat(rs.results), []);
