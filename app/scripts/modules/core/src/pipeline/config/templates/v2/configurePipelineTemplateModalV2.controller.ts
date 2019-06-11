@@ -30,7 +30,6 @@ export interface IState {
   inheritTemplateParameters: boolean;
   inheritTemplateTriggers: boolean;
   inheritTemplateNotifications: boolean;
-  inheritTemplateExpectedArtifacts: boolean;
 }
 // Logic lifted from ConfigurePipelineTemplateModalController and slightly refactored to support MPTV2.
 // TODO: Once MPTV1 is fully migrated, delete ConfigurePipelineTemplateModalController.
@@ -47,7 +46,6 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     inheritTemplateParameters: true,
     inheritTemplateTriggers: true,
     inheritTemplateNotifications: true,
-    inheritTemplateExpectedArtifacts: true,
   };
   private template: IPipelineTemplate;
   private source: string;
@@ -82,7 +80,6 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     this.state.inheritTemplateNotifications = !excluded.includes('notifications');
     this.state.inheritTemplateParameters = !excluded.includes('parameters');
     this.state.inheritTemplateTriggers = !excluded.includes('triggers');
-    this.state.inheritTemplateExpectedArtifacts = !excluded.includes('expectedArtifacts');
 
     this.pipelineName = name;
     this.source = template.reference;
@@ -115,19 +112,14 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     return PipelineTemplateReader.getPipelinePlan(config)
       .then(plan => {
         const { parameterConfig, notifications, triggers, expectedArtifacts } = plan;
-        const {
-          inheritTemplateParameters,
-          inheritTemplateNotifications,
-          inheritTemplateTriggers,
-          inheritTemplateExpectedArtifacts,
-        } = this.state;
+        const { inheritTemplateParameters, inheritTemplateNotifications, inheritTemplateTriggers } = this.state;
 
         const configWithInheritedValues = {
           ...config,
           ...(inheritTemplateParameters && parameterConfig ? { parameterConfig } : {}),
           ...(inheritTemplateNotifications && notifications ? { notifications } : {}),
           ...(inheritTemplateTriggers && triggers ? { triggers } : {}),
-          ...(inheritTemplateExpectedArtifacts && expectedArtifacts ? { expectedArtifacts } : {}),
+          ...(expectedArtifacts ? { expectedArtifacts } : {}),
         };
 
         this.$uibModalInstance.close({ plan, config: configWithInheritedValues });
@@ -144,12 +136,7 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
   public buildConfig(): IPipelineTemplateConfigV2 {
     const {
       application: { name: appName },
-      state: {
-        inheritTemplateNotifications,
-        inheritTemplateParameters,
-        inheritTemplateTriggers,
-        inheritTemplateExpectedArtifacts,
-      },
+      state: { inheritTemplateNotifications, inheritTemplateParameters, inheritTemplateTriggers },
       pipelineName,
       pipelineTemplateConfig,
       source,
@@ -159,11 +146,10 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
       ...(inheritTemplateParameters ? [] : ['parameters']),
       ...(inheritTemplateNotifications ? [] : ['notifications']),
       ...(inheritTemplateTriggers ? [] : ['triggers']),
-      ...(inheritTemplateExpectedArtifacts ? [] : ['expectedArtifacts']),
     ];
 
     return {
-      ...(pipelineTemplateConfig || {}),
+      ...PipelineTemplateV2Service.filterInheritedConfig(pipelineTemplateConfig),
       type: 'templatedPipeline',
       name: pipelineName,
       application: appName,

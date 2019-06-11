@@ -55,9 +55,14 @@ module.exports = angular
             this.pipelineConfig.isNew = true;
           }
 
-          if (!this.pipelineConfig.isNew) {
+          if (!this.pipelineConfig.isNew || isV2PipelineConfig) {
             return PipelineTemplateReader.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
-              .then(plan => (this.pipelinePlan = plan))
+              .then(plan => {
+                if (isV2PipelineConfig) {
+                  PipelineTemplateV2Service.inheritedKeys.forEach(key => (this.pipelineConfig[key] = plan[key] || []));
+                }
+                this.pipelinePlan = plan;
+              })
               .catch(error => {
                 this.templateError = error;
                 this.pipelineConfig.isNew = true;

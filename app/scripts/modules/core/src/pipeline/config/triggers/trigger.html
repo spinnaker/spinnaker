@@ -1,102 +1,111 @@
 <div class="row">
   <div class="col-md-12">
-    <div class="form-horizontal panel-pipeline-phase">
-      <div class="form-group row">
-        <div class="col-md-10">
-          <div class="row">
-            <label class="col-md-3 sm-label-right">Type</label>
-            <div class="col-md-9">
-              <select
-                class="input-sm"
-                ng-change="triggerCtrl.loadTrigger()"
-                ng-options="option.key as option.label for option in options"
-                ng-model="trigger.type"
-              >
-                <option value="">Select...</option>
-              </select>
-              {{description}}
+    <fieldset ng-disabled="trigger.inherited" ng-class="{'templated-pipeline-item': trigger.inherited}">
+      <div class="form-horizontal panel-pipeline-phase">
+        <div class="form-group row">
+          <div class="col-md-10">
+            <div class="row">
+              <label class="col-md-3 sm-label-right">Type</label>
+              <div class="col-md-9">
+                <select
+                  class="input-sm"
+                  ng-change="triggerCtrl.loadTrigger()"
+                  ng-options="option.key as option.label for option in options"
+                  ng-model="trigger.type"
+                >
+                  <option value="">Select...</option>
+                </select>
+                {{ description }}
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-2 text-right">
-          <button class="btn btn-sm btn-default" ng-click="triggerCtrl.removeTrigger(trigger)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove trigger"></span>
-            <span class="visible-xl-inline">Remove trigger</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-10">
-          <div class="trigger-body"></div>
-        </div>
-      </div>
-      <div
-        class="form-group"
-        ng-if="!triggerCtrl.checkFeatureFlag('artifactsRewrite') && triggerCtrl.checkFeatureFlag('artifacts') && pipeline.expectedArtifacts.length > 0"
-      >
-        <div class="col-md-10">
-          <div class="form-group">
-            <label class="col-md-3 sm-label-right"
-              >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
-            ></label>
-            <div class="col-md-9">
-              <ui-select
-                ng-if="pipeline.expectedArtifacts.length"
-                multiple
-                ng-model="trigger.expectedArtifactIds"
-                class="form-control input-sm"
-              >
-                <ui-select-match>{{ $item.displayName }}</ui-select-match>
-                <ui-select-choices repeat="expected.id as expected in pipeline.expectedArtifacts">
-                  <span>{{ expected.displayName }}</span>
-                </ui-select-choices>
-              </ui-select>
-            </div>
+          <div class="col-md-2 text-right" ng-if="!trigger.inherited">
+            <button class="btn btn-sm btn-default" ng-click="triggerCtrl.removeTrigger(trigger)">
+              <span class="glyphicon glyphicon-trash" uib-tooltip="Remove trigger"></span>
+              <span class="visible-xl-inline">Remove trigger</span>
+            </button>
+          </div>
+          <div class="col-md-2 text-right" ng-if="trigger.inherited">
+            <span class="templated-pipeline-item__status btn btn-sm btn-default">
+              <i class="from-template fa fa-table" title="From template" uib-tooltip="From Template"></i>
+              <span class="visible-xl-inline">From Template</span>
+            </span>
           </div>
         </div>
-      </div>
-      <render-if-feature feature="artifactsRewrite">
         <div class="form-group">
+          <div class="col-md-10">
+            <div class="trigger-body"></div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+          ng-if="!triggerCtrl.checkFeatureFlag('artifactsRewrite') && triggerCtrl.checkFeatureFlag('artifacts') && pipeline.expectedArtifacts.length > 0"
+        >
           <div class="col-md-10">
             <div class="form-group">
               <label class="col-md-3 sm-label-right"
                 >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
               ></label>
-              <div class="col-md-9 row">
-                <trigger-artifact-constraint-selector-react
-                  pipeline="pipeline"
-                  trigger="trigger"
-                  selected="trigger.expectedArtifactIds"
-                  on-define-expected-artifact="triggerCtrl.defineExpectedArtifact"
-                  on-change-selected="triggerCtrl.changeExpectedArtifacts"
-                ></trigger-artifact-constraint-selector-react>
+              <div class="col-md-9">
+                <ui-select
+                  ng-if="pipeline.expectedArtifacts.length"
+                  multiple
+                  ng-model="trigger.expectedArtifactIds"
+                  class="form-control input-sm"
+                  ng-disabled="trigger.inherited"
+                >
+                  <ui-select-match>{{ $item.displayName }}</ui-select-match>
+                  <ui-select-choices repeat="expected.id as expected in pipeline.expectedArtifacts">
+                    <span>{{ expected.displayName }}</span>
+                  </ui-select-choices>
+                </ui-select>
               </div>
             </div>
           </div>
         </div>
-      </render-if-feature>
-      <div class="form-group" ng-if="trigger.type && !triggerCtrl.disableAutoTriggering.includes(trigger.type)">
-        <div class="col-md-10">
-          <div class="row">
-            <div class="col-md-9 col-md-offset-3 checkbox">
-              <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true" /> Trigger Enabled</label>
+        <render-if-feature feature="artifactsRewrite">
+          <div class="form-group">
+            <div class="col-md-10">
+              <div class="form-group">
+                <label class="col-md-3 sm-label-right"
+                  >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
+                ></label>
+                <div class="col-md-9 row">
+                  <trigger-artifact-constraint-selector-react
+                    pipeline="pipeline"
+                    trigger="trigger"
+                    selected="trigger.expectedArtifactIds"
+                    on-define-expected-artifact="(triggerCtrl.defineExpectedArtifact)"
+                    on-change-selected="(triggerCtrl.changeExpectedArtifacts)"
+                  ></trigger-artifact-constraint-selector-react>
+                </div>
+              </div>
+            </div>
+          </div>
+        </render-if-feature>
+        <div class="form-group" ng-if="trigger.type && !triggerCtrl.disableAutoTriggering.includes(trigger.type)">
+          <div class="col-md-10">
+            <div class="row">
+              <div class="col-md-9 col-md-offset-3 checkbox">
+                <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true" /> Trigger Enabled</label>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="form-group" ng-if="trigger.type && triggerCtrl.disableAutoTriggering.includes(trigger.type)">
-        <div class="col-md-10 col-md-offset-1">
-          <div class="row">
-            <div class="col-md-8 col-md-offset-3">
-              <div class="alert alert-warning">
-                Automatic triggering is disabled for this trigger type. You can still use this as a trigger to supply
-                data to downstream stages, but will need to manually execute this pipeline.
+        <div class="form-group" ng-if="trigger.type && triggerCtrl.disableAutoTriggering.includes(trigger.type)">
+          <div class="col-md-10 col-md-offset-1">
+            <div class="row">
+              <div class="col-md-8 col-md-offset-3">
+                <div class="alert alert-warning">
+                  Automatic triggering is disabled for this trigger type. You can still use this as a trigger to supply
+                  data to downstream stages, but will need to manually execute this pipeline.
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </fieldset>
     <div class="stage-details">
       <div class="row">
         <div class="stage-body"></div>

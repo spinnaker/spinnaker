@@ -1,6 +1,6 @@
-import { IExecution } from 'core/domain';
+import { IExecution, ITemplateInheritable } from 'core/domain';
 
-export interface ITrigger {
+export interface ITrigger extends ITemplateInheritable {
   enabled: boolean;
   rebake?: boolean;
   user?: string;

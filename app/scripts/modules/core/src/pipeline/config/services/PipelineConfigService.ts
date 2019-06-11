@@ -4,9 +4,11 @@ import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { AuthenticationService } from 'core/authentication/AuthenticationService';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 import { ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
+import { SETTINGS } from 'core/config';
 
 export interface ITriggerPipelineResponse {
   eventId: string;
@@ -56,7 +58,7 @@ export class PipelineConfigService {
   }
 
   public static savePipeline(toSave: IPipeline): IPromise<void> {
-    const pipeline = cloneDeep(toSave);
+    let pipeline = cloneDeep(toSave);
     delete pipeline.isNew;
     pipeline.name = pipeline.name.trim();
     if (Array.isArray(pipeline.stages)) {
@@ -67,6 +69,10 @@ export class PipelineConfigService {
         }
       });
     }
+    if (SETTINGS.feature.managedPipelineTemplatesV2UI && PipelineTemplateV2Service.isV2PipelineConfig(pipeline)) {
+      pipeline = PipelineTemplateV2Service.filterInheritedConfig(pipeline) as IPipeline;
+    }
+
     return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .data(pipeline)
       .post();

@@ -37,9 +37,11 @@ export class Parameters extends React.Component<IParametersProps, IParametersSta
   private togglePins = (): void => {
     const parameters = this.props.parameters.slice(0);
     const { allParametersPinned } = this.state;
-    parameters.forEach(param => {
-      param.pinned = !allParametersPinned;
-    });
+    parameters
+      .filter(param => !param.inherited)
+      .forEach(param => {
+        param.pinned = !allParametersPinned;
+      });
     this.props.updateAllParameters(parameters);
     this.setPinAllParametersState();
   };

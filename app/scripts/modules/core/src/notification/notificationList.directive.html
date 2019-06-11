@@ -25,24 +25,32 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="notification in notifications">
+        <tr ng-repeat="notification in notifications" ng-class="{'templated-pipeline-item': notification.inherited}">
           <td>
-            {{notification.type|notificationType}}
+            {{ notification.type | notificationType }}
           </td>
           <td>
-            {{notification|notificationDetails}}
+            {{ notification | notificationDetails }}
           </td>
           <td>
-            <div ng-repeat="when in notification.when">{{when|notificationWhen:level:parent.type}}</div>
+            <div ng-repeat="when in notification.when">{{ when | notificationWhen: level:parent.type }}</div>
           </td>
           <td>
-            <a class="btn btn-xs btn-link" href ng-click="notificationListCtrl.editNotification(notification)">Edit</a>
+            <a
+              class="btn btn-xs btn-link"
+              href
+              ng-click="notificationListCtrl.editNotification(notification)"
+              ng-if="!notification.inherited"
+              >Edit</a
+            >
             <a
               class="btn btn-xs btn-link pad-left"
               href
               ng-click="notificationListCtrl.removeNotification(notification)"
+              ng-if="!notification.inherited"
               >Remove</a
             >
+            <span class="btn btn-xs pad-left" ng-if="notification.inherited">Inherited from template</span>
           </td>
         </tr>
       </tbody>
