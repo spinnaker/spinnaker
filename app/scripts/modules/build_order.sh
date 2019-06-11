@@ -10,7 +10,7 @@ ModuleDeps () {
       amazon) echo "core" ;;
       appengine) echo "core" ;;
       cloudfoundry) echo "core" ;;
-      core) ;;
+      core) echo "core";;
       docker) echo "core" ;;
       ecs) echo "amazon core" ;;
       google) echo "core" ;;
