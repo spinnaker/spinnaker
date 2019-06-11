@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Provides utility support for SPEL integration Supports registering SPEL functions, ACLs to
@@ -60,6 +61,7 @@ public class ExpressionsSupport {
     registeredHelperFunctions.put("alphanumerical", Collections.singletonList(String.class));
     registeredHelperFunctions.put("toJson", Collections.singletonList(Object.class));
     registeredHelperFunctions.put("readJson", Collections.singletonList(String.class));
+    registeredHelperFunctions.put("readYaml", Collections.singletonList(String.class));
     registeredHelperFunctions.put("toInt", Collections.singletonList(String.class));
     registeredHelperFunctions.put("toFloat", Collections.singletonList(String.class));
     registeredHelperFunctions.put("toBoolean", Collections.singletonList(String.class));
@@ -99,6 +101,7 @@ public class ExpressionsSupport {
         // lazily function registering
         registerFunction(evaluationContext, "fromUrl", String.class);
         registerFunction(evaluationContext, "jsonFromUrl", String.class);
+        registerFunction(evaluationContext, "yamlFromUrl", String.class);
         registerFunction(evaluationContext, "propertiesFromUrl", String.class);
         registerFunction(evaluationContext, "stage", Object.class, String.class);
         registerFunction(evaluationContext, "stageExists", Object.class, String.class);
@@ -255,6 +258,20 @@ public class ExpressionsSupport {
   }
 
   /**
+   * Attempts to read yaml from a text String. Will throw a parsing exception on bad yaml
+   *
+   * @param text text to read as yaml
+   * @return the object representation of the yaml text
+   */
+  static Object readYaml(String text) {
+    try {
+      return new Yaml().load(text);
+    } catch (Exception e) {
+      throw new SpelHelperFunctionException(format("#readYaml(%s) failed", text), e);
+    }
+  }
+
+  /**
    * Reads a json text
    *
    * @param url url to get the json text
@@ -262,6 +279,16 @@ public class ExpressionsSupport {
    */
   static Object jsonFromUrl(String url) {
     return readJson(fromUrl(url));
+  }
+
+  /**
+   * Reads a yaml text
+   *
+   * @param url url to get the json text
+   * @return an object representing the yaml object
+   */
+  static Object yamlFromUrl(String url) {
+    return readYaml(fromUrl(url));
   }
 
   /**
