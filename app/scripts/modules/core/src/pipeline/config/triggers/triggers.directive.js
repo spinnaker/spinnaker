@@ -108,5 +108,10 @@ module.exports = angular
         $scope.pipeline.parameterConfig = parameters;
         $scope.$digest();
       };
+
+      $scope.updateRoles = function(roles) {
+        $scope.pipeline.roles = roles;
+        $scope.$digest();
+      };
     },
   ]);

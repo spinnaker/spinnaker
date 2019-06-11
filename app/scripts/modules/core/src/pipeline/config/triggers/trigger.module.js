@@ -13,12 +13,12 @@ import './travis/travis.trigger';
 import './webhook/webhook.trigger';
 import './wercker/wercker.trigger';
 import { ARTIFACT_MODULE } from './artifacts/artifact.module';
-import { PIPELINE_ROLES_COMPONENT } from './pipelineRoles.component';
+import { PIPELINE_ROLES } from './pipelineRoles.module';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
   ARTIFACT_MODULE,
   require('../stages/stage.module').name,
   require('./trigger.directive').name,
   require('./triggers.directive').name,
-  PIPELINE_ROLES_COMPONENT,
+  PIPELINE_ROLES,
 ]);

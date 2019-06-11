@@ -59,7 +59,7 @@
         <div class="col-md-12">
           <div class="trigger-config">
             <render-if-feature feature="managedServiceAccounts">
-              <pipeline-roles pipeline="pipeline"></pipeline-roles>
+              <pipeline-roles roles="pipeline.roles" update-roles="updateRoles"></pipeline-roles>
             </render-if-feature>
             <render-if-feature feature="quietPeriod">
               <div class="row">
