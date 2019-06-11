@@ -535,6 +535,7 @@ module.exports = angular
               asyncData.instanceProfile === 'buildCustom'
                 ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType)
                 : null,
+            templatingEnabled: true,
           };
 
           const viewOverrides = {
