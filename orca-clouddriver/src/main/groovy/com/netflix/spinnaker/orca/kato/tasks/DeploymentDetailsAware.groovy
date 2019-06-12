@@ -42,7 +42,7 @@ trait DeploymentDetailsAware {
     Closure callback) {
     Stage previousStage = getPreviousStageWithImage(stage, targetRegion, targetCloudProvider)
     def result = [:]
-    if (previousStage) {
+    if (previousStage && isCloudProviderEqual(stage, previousStage)) {
       if (previousStage.context.containsKey("amiDetails")) {
         def amiDetail = previousStage.context.amiDetails.find {
           !targetRegion || it.region == targetRegion
@@ -81,9 +81,9 @@ trait DeploymentDetailsAware {
     }
   }
 
-  boolean isCloudProviderEqual(Stage stage, Stage execution){
-    if(execution.context.cloudProvider!=null) {
-      return execution.context.cloudProvider == stage.context.cloudProvider
+  boolean isCloudProviderEqual(Stage stage, Stage previousStage){
+    if(previousStage.context.cloudProvider!=null && stage.context.cloudProvider!=null) {
+      return previousStage.context.cloudProvider == stage.context.cloudProvider
     }
     return true
   }
@@ -91,10 +91,7 @@ trait DeploymentDetailsAware {
   List<Stage> getAncestors(Stage stage, Execution execution) {
     if (stage?.requisiteStageRefIds) {
       def previousStages = execution.stages.findAll {
-        // Include cloudProvider check to avoid confusion with multi-provider,
-        // in some cases ancestors can be one of any multi-provider
-        // Eg parent->aws and child->titus
-        it.refId in stage.requisiteStageRefIds && isCloudProviderEqual(stage,it)
+        it.refId in stage.requisiteStageRefIds
 
       }
       def syntheticStages = execution.stages.findAll {
