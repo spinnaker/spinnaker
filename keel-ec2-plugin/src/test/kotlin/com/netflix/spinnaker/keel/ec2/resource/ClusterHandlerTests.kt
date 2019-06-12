@@ -65,7 +65,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val subnet2 = Subnet("subnet-2", vpc.id, vpc.account, vpc.region, "${vpc.region}b", "internal (vpc0)")
   val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = ClusterSpec(
-    moniker = Moniker("keel", "test"),
+    moniker = Moniker(app = "keel", stack = "test"),
     location = Location(
       accountName = vpc.account,
       region = vpc.region,

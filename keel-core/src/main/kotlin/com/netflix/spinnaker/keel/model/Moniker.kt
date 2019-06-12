@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class Moniker(
   val app: String,
-  val detail: String? = null,
   val stack: String? = null,
+  val detail: String? = null,
   val sequence: String? = null,
   val cluster: String? = null
 ) {

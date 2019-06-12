@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.NamedImageHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
@@ -68,6 +69,22 @@ class EC2Config {
     normalizers: List<ResourceNormalizer<*>>
   ): SecurityGroupHandler =
     SecurityGroupHandler(
+      cloudDriverService,
+      cloudDriverCache,
+      orcaService,
+      objectMapper,
+      normalizers
+    )
+
+  @Bean
+  fun classingLoadBalancerHandler(
+    cloudDriverService: CloudDriverService,
+    cloudDriverCache: CloudDriverCache,
+    orcaService: OrcaService,
+    objectMapper: ObjectMapper,
+    normalizers: List<ResourceNormalizer<*>>
+  ): ClassicLoadBalancerHandler =
+    ClassicLoadBalancerHandler(
       cloudDriverService,
       cloudDriverCache,
       orcaService,
