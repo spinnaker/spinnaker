@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.UndeclaredThrowableException
 
 class TargetGroupLookupHelper {
 
@@ -55,8 +59,32 @@ class TargetGroupLookupHelper {
         // ignore
       } catch (TargetGroupNotFoundException ignore) {
         // ignore
+      } catch (UndeclaredThrowableException e) {
+        // There are edda calls hidden behind an .invoke from Aws SDK. Exceptions from
+        // those methods show up wrapped in UndeclaredThrowable and/or InvocationTarget
+        // If it is a legitimate failure, makes sense to throw the actual error
+        boolean rethrow = true
+        Throwable toRethrow = e.undeclaredThrowable
+
+        if (e.undeclaredThrowable instanceof InvocationTargetException) {
+          InvocationTargetException ite = (InvocationTargetException)e.undeclaredThrowable
+
+          toRethrow = ite.targetException
+          if (ite.targetException instanceof AmazonServiceException) {
+            AmazonServiceException ase = (AmazonServiceException)ite.targetException
+
+            if (ase.statusCode == 404) {
+              rethrow = false
+            }
+          }
+        }
+
+        if (rethrow) {
+          throw toRethrow
+        }
       }
     }
+
     allTargetGroups.removeAll(targetGroups)
 
     result.unknownTargetGroups.addAll(allTargetGroups)

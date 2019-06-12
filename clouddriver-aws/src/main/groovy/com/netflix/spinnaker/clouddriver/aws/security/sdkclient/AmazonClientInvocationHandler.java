@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -54,6 +53,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.HttpClientErrorException;
 
 public class AmazonClientInvocationHandler implements InvocationHandler {
 
@@ -393,9 +393,12 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
 
       registry.counter(registry.createId("edda.failures", metricTags)).increment();
       final AmazonServiceException ex =
-          new AmazonServiceException(
-              "400 Bad Request -- Edda could not find one of the managed objects requested.", e);
-      ex.setStatusCode(400);
+          new AmazonServiceException("Edda failed locating the managed objects requested.", e);
+      if (e.getCause() instanceof HttpClientErrorException) {
+        ex.setStatusCode(((HttpClientErrorException) e.getCause()).getRawStatusCode());
+      } else {
+        ex.setStatusCode(400);
+      }
       ex.setServiceName(serviceName);
       ex.setErrorType(AmazonServiceException.ErrorType.Unknown);
       throw ex;
@@ -418,7 +421,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
   }
 
   private HttpEntity getHttpEntity(Map<String, String> metricTags, String objectName, String key)
-      throws IOException {
+      throws EddaException {
     final String url =
         edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key) + ";_meta";
     final HttpGet get = new HttpGet(url);
@@ -431,10 +434,10 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
 
     long retryDelay = eddaTimeoutConfig.getRetryBase();
     int retryAttempts = 0;
-    String lastException = "";
+    String lastExceptionMessage = "";
     String lastUrl = "";
     Random r = new Random();
-    Exception ex;
+    Exception ex = null;
 
     final Id httpExecuteTime = registry.createId("edda.httpExecute", metricTags);
     final Id httpErrors = registry.createId("edda.errors", metricTags).withTag("errorType", "http");
@@ -443,7 +446,6 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     final Id retryDelayMillis = registry.createId("edda.retryDelayMillis", metricTags);
     final Id retries = registry.createId("edda.retries", metricTags);
     while (retryAttempts < eddaTimeoutConfig.getMaxAttempts()) {
-      ex = null;
       HttpEntity entity = null;
 
       try {
@@ -452,20 +454,24 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
         final int statusCode = response.getStatusLine().getStatusCode();
         entity = response.getEntity();
         if (statusCode != HttpStatus.SC_OK) {
-          lastException =
+          lastExceptionMessage =
               response.getProtocolVersion().toString()
                   + " "
                   + response.getStatusLine().getStatusCode()
                   + " "
                   + response.getStatusLine().getReasonPhrase();
+
           registry
               .counter(httpErrors.withTag("statusCode", Integer.toString(statusCode)))
               .increment();
+
+          throw new HttpClientErrorException(
+              org.springframework.http.HttpStatus.valueOf(statusCode), lastExceptionMessage);
         } else {
           return entity;
         }
       } catch (Exception e) {
-        lastException = e.getClass().getSimpleName() + ": " + e.getMessage();
+        lastExceptionMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
         ex = e;
         registry
             .counter(networkErrors.withTag("exceptionType", e.getClass().getSimpleName()))
@@ -478,11 +484,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       EntityUtils.consumeQuietly(entity);
 
       final String exceptionFormat = "Edda request {} failed with {}";
-      if (ex == null) {
-        log.warn(exceptionFormat, url, lastException);
-      } else {
-        log.warn(exceptionFormat, url, lastException, ex);
-      }
+      log.warn(exceptionFormat, url, lastExceptionMessage, ex);
+
       try {
         registry.counter(retryDelayMillis).increment(retryDelay);
         Thread.sleep(retryDelay);
@@ -493,7 +496,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       retryAttempts++;
       retryDelay += r.nextInt(eddaTimeoutConfig.getBackoffMillis());
     }
-    throw new IOException("Edda request " + lastUrl + " failed with " + lastException);
+    throw new EddaException("Edda request " + lastUrl + " failed with " + lastExceptionMessage, ex);
   }
 
   private static class Metadata<T> {
