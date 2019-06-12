@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.NOT_FOUND;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Matchers.any;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import java.util.List;
@@ -35,12 +37,18 @@ class DestroyCloudFoundryServiceAtomicOperationTest
     extends AbstractCloudFoundryAtomicOperationTest {
   private DestroyCloudFoundryServiceDescription desc = new DestroyCloudFoundryServiceDescription();
 
+  {
+    desc.setServiceInstanceName("service-instance-name");
+    desc.setSpace(
+        CloudFoundrySpace.builder()
+            .name("space-name")
+            .organization(CloudFoundryOrganization.builder().name("org-name").build())
+            .build());
+    desc.setClient(client);
+  }
+
   @Test
   void destroyCloudFoundryService() {
-    desc.setServiceInstanceName("service-instance-name");
-    desc.setSpace(CloudFoundrySpace.builder().name("space-name").build());
-    desc.setClient(client);
-
     ServiceInstanceResponse serviceInstanceResponse =
         new ServiceInstanceResponse()
             .setServiceInstanceName("service-instance-name")
@@ -68,16 +76,36 @@ class DestroyCloudFoundryServiceAtomicOperationTest
   }
 
   @Test
+  void destroyCloudFoundryServiceFailsWhenInstanceNotFound() {
+    ServiceInstanceResponse serviceInstanceResponse =
+        new ServiceInstanceResponse()
+            .setServiceInstanceName("service-instance-name")
+            .setType(DELETE)
+            .setState(NOT_FOUND);
+
+    when(client.getServiceInstances().destroyServiceInstance(any(), any()))
+        .thenReturn(serviceInstanceResponse);
+
+    DestroyCloudFoundryServiceAtomicOperation op =
+        new DestroyCloudFoundryServiceAtomicOperation(desc);
+
+    assertThrows(
+        () -> runOperation(op),
+        RuntimeException.class,
+        "Service instance "
+            + desc.getServiceInstanceName()
+            + " not found, in "
+            + desc.getSpace().getRegion());
+  }
+
+  @Test
   void destroyUserProvidedService() {
     desc.setServiceInstanceName("up-service-instance-name");
-    desc.setSpace(CloudFoundrySpace.builder().name("space-name").build());
-    desc.setClient(client);
-
     ServiceInstanceResponse serviceInstanceResponse =
         new ServiceInstanceResponse()
             .setServiceInstanceName("up-service-instance-name")
             .setType(DELETE)
-            .setState(NOT_FOUND);
+            .setState(IN_PROGRESS);
 
     when(client.getServiceInstances().destroyServiceInstance(any(), any()))
         .thenReturn(serviceInstanceResponse);
@@ -96,7 +124,6 @@ class DestroyCloudFoundryServiceAtomicOperationTest
         .has(
             status(
                 "Started removing service instance 'up-service-instance-name' from space space-name"),
-            atIndex(1))
-        .has(status("Finished removing service instance 'up-service-instance-name'"), atIndex(2));
+            atIndex(1));
   }
 }

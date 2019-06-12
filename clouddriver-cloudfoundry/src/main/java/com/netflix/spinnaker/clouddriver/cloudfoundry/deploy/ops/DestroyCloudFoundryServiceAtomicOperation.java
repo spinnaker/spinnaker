@@ -53,9 +53,11 @@ public class DestroyCloudFoundryServiceAtomicOperation
             + description.getSpace().getName());
     LastOperation.State state = response.getState();
     if (state == NOT_FOUND) {
-      task.updateStatus(
-          PHASE,
-          "Finished removing service instance '" + description.getServiceInstanceName() + "'");
+      throw new RuntimeException(
+          "Service instance "
+              + description.getServiceInstanceName()
+              + " not found, in "
+              + description.getSpace().getRegion());
     }
     return response;
   }
