@@ -169,57 +169,51 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
               </h2>
             </div>
           </div>
-          <div className="infrastructure-section">
+          <div className="infrastructure-section container">
             {fetchError && (
-              <div className="container">
-                <PipelineTemplatesV2Error message={`There was an error fetching pipeline templates: ${fetchError}`} />
-              </div>
+              <PipelineTemplatesV2Error message={`There was an error fetching pipeline templates: ${fetchError}`} />
             )}
             {searchPerformed && !resultsAvailable && (
-              <div className="container">
-                <h4>No matches found for '{searchValue}'</h4>
-              </div>
+              <h4 className="infrastructure-section__message">No matches found for '{searchValue}'</h4>
             )}
             {resultsAvailable && (
-              <div className="container">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Updated</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredResults.map(template => {
-                      const { metadata } = template;
-                      const id = idForTemplate(template);
-                      return (
-                        <tr key={id}>
-                          <td>{metadata.name || '-'}</td>
-                          <td>{metadata.owner || '-'}</td>
-                          <td>{this.getUpdateTimeForTemplate(template) || '-'}</td>
-                          <td className="pipeline-template-actions">
-                            <UISref to={`.pipeline-templates-detail`} params={{ templateId: id }}>
-                              <button className="link">View</button>
-                            </UISref>
-                            <button className="link" onClick={() => this.setState({ deleteTemplateId: id })}>
-                              Delete
-                            </button>
-                            <button
-                              className="link link--create"
-                              onClick={() => this.handleCreatePipelineClick(template)}
-                            >
-                              Create Pipeline
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Owner</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredResults.map(template => {
+                    const { metadata } = template;
+                    const id = idForTemplate(template);
+                    return (
+                      <tr key={id}>
+                        <td>{metadata.name || '-'}</td>
+                        <td>{metadata.owner || '-'}</td>
+                        <td>{this.getUpdateTimeForTemplate(template) || '-'}</td>
+                        <td className="pipeline-template-actions">
+                          <UISref to={`.pipeline-templates-detail`} params={{ templateId: id }}>
+                            <button className="link">View</button>
+                          </UISref>
+                          <button className="link" onClick={() => this.setState({ deleteTemplateId: id })}>
+                            Delete
+                          </button>
+                          <button
+                            className="link link--create"
+                            onClick={() => this.handleCreatePipelineClick(template)}
+                          >
+                            Create Pipeline
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
         </div>
