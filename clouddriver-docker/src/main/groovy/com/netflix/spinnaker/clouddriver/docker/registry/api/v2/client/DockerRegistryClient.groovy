@@ -322,7 +322,7 @@ class DockerRegistryClient {
         String userDefinedCatalog = new File(catalogFile).getText()
         return (DockerRegistryCatalog) new Gson().fromJson(userDefinedCatalog, DockerRegistryCatalog.class)
       } catch (Exception e) {
-        throw new DockerRegistryOperationException("Unable to read catalog file $catalogFile:" + e.getMessage())
+        throw new DockerRegistryOperationException("Unable to read catalog file $catalogFile: " + e.getMessage(), e)
       }
     }
 
@@ -336,7 +336,7 @@ class DockerRegistryClient {
           registryService.getCatalog(paginateSize, token, userAgent)
       }, "_catalog")
     } catch (Exception e) {
-      log.warn("Error encountered during catalog of $path" + e.getMessage())
+      log.warn("Error encountered during catalog of $path", e)
       return new DockerRegistryCatalog(repositories: [])
     }
 
