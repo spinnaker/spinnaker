@@ -75,6 +75,13 @@ public class HttpClientUtils {
                     boolean shouldRetry =
                         (statusCode == 429 || RETRYABLE_500_HTTP_STATUS_CODES.contains(statusCode))
                             && executionCount <= MAX_RETRIES;
+
+                    if ((statusCode >= 300) && (statusCode <= 399)) {
+                      throw new RetryRequestException(
+                          String.format(
+                              "Attempted redirect from %s to %s which is not supported",
+                              currentReq.getURI(), response.getFirstHeader("LOCATION").getValue()));
+                    }
                     if (!shouldRetry) {
                       throw new RetryRequestException(
                           String.format(
