@@ -263,8 +263,12 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       final Map<String, Object> trigger = description.getTrigger();
       if (trigger != null) {
         final String triggerType = (String) trigger.get("type");
-        if (triggerType.equals("jenkins")) {
-          buildInfo = (Map<String, Object>) trigger.get("buildInfo");
+        if (triggerType.equals("jenkins") || triggerType.equals("manual")) {
+          final Map<String, Object> triggerBuildInfo =
+              (Map<String, Object>) trigger.get("buildInfo");
+          if (triggerBuildInfo != null) {
+            buildInfo = triggerBuildInfo;
+          }
         }
       }
     }
