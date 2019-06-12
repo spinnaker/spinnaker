@@ -10,9 +10,13 @@ interface IRadioButtonInputProps
   extends IFormInputProps,
     OmitControlledInputPropsFrom<React.TextareaHTMLAttributes<any>> {
   stringOptions?: string[];
-  options?: Option[];
+  options?: IRadioButtonOptions[];
   inputClassName?: string;
   inline?: boolean;
+}
+
+interface IRadioButtonOptions extends Option {
+  help?: React.ReactNode;
 }
 
 export const RadioButtonInput = (props: IRadioButtonInputProps) => {
@@ -23,14 +27,15 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
   const validClassName = validationClassName(validation);
   const elementClassName = `RadioButtonInput radio ${userClassName} ${validClassName}`;
 
-  const RadioButton = ({ option }: { option: Option }) => (
+  const RadioButton = ({ option }: { option: IRadioButtonOptions }) => (
     <label key={option.label} className={inline ? 'radio-inline clickable' : 'inline clickable'}>
       <input type="radio" {...otherProps} value={option.value as any} checked={option.value === selectedValue} />
-      <Markdown message={option.label} />
+      <Markdown message={option.label} style={option.help && { display: 'inline-block' }} />
+      {option.help && <> {option.help}</>}
     </label>
   );
 
-  const VerticalRadioButtons = ({ opts }: { opts: Option[] }) => (
+  const VerticalRadioButtons = ({ opts }: { opts: IRadioButtonOptions[] }) => (
     <div className="vertical left">
       <div className={elementClassName}>
         {opts.map(option => (
@@ -40,7 +45,7 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
     </div>
   );
 
-  const InlineRadioButtons = ({ opts }: { opts: Option[] }) => (
+  const InlineRadioButtons = ({ opts }: { opts: IRadioButtonOptions[] }) => (
     <div className={elementClassName}>
       {opts.map(option => (
         <RadioButton key={option.label} option={option} />

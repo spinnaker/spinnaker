@@ -17,6 +17,7 @@ import { StageConfigWrapper } from './StageConfigWrapper';
 import { EditStageJsonModal } from './common/EditStageJsonModal';
 import { ReactModal } from 'core/presentation';
 import { PRODUCES_ARTIFACTS_REACT } from './producesArtifacts/ProducesArtifacts';
+import { OVERRRIDE_FAILURE } from './overrideFailure/overrideFailure.module';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
@@ -24,7 +25,7 @@ module.exports = angular
     BASE_EXECUTION_DETAILS_CTRL,
     STAGE_NAME,
     require('./overrideTimeout/overrideTimeout.directive').name,
-    require('./overrideFailure/overrideFailure.component').name,
+    OVERRRIDE_FAILURE,
     require('./optionalStage/optionalStage.directive').name,
     require('./failOnFailedExpressions/failOnFailedExpressions.directive').name,
     CONFIRMATION_MODAL_SERVICE,
@@ -148,6 +149,11 @@ module.exports = angular
             delete $scope.stage[k];
           }
         });
+      };
+
+      this.updateStageField = changes => {
+        extend($scope.stage, changes);
+        $scope.stageFieldUpdated();
       };
 
       this.selectStage = function(newVal, oldVal) {
