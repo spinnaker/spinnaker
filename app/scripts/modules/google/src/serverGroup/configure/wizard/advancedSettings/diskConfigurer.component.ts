@@ -159,7 +159,7 @@ const gceDiskConfigurer: IComponentOptions = {
                            class="form-control input-sm"
                            required>
                   <ui-select-match placeholder="Select an image...">{{$select.selected.imageName || 'Select an image...'}}</ui-select-match>
-                  <ui-select-choices repeat="image.imageName as image in $ctrl.command.backingData.allImages | filter: { account: $ctrl.command.credentials } | orderBy: 'imageName'">
+                  <ui-select-choices repeat="image.imageName as image in $ctrl.command.backingData.allImages | filter: { imageName: $select.search }">
                     <span ng-bind-html="image.imageName | highlight: $select.search"></span>
                   </ui-select-choices>
                 </ui-select>

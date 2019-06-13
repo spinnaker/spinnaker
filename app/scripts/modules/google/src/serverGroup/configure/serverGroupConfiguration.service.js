@@ -90,7 +90,7 @@ module.exports = angular
         } else {
           imageLoader = command.viewState.imageId
             ? loadImagesFromImageName(command)
-            : loadImagesFromApplicationName(application, command.selectedProvider);
+            : loadImagesFromApplicationName(application, command.selectedProvider, command.credentials);
         }
 
         return $q
@@ -101,7 +101,7 @@ module.exports = angular
             subnets: SubnetReader.listSubnetsByProvider('gce'),
             loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
             packageImages: imageLoader,
-            allImages: loadAllImages(),
+            allImages: loadAllImages(command.credentials),
             instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
             persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
             authScopes: $q.when(angular.copy(authScopes)),
@@ -153,16 +153,18 @@ module.exports = angular
           });
       }
 
-      function loadImagesFromApplicationName(application, provider) {
+      function loadImagesFromApplicationName(application, provider, account) {
         return gceImageReader.findImages({
+          account: account,
           provider: provider,
           q: application.name.replace(/_/g, '[_\\-]') + '*',
         });
       }
 
       // Used to populate the image selection dropdowns in the persistent disk configurer.
-      function loadAllImages() {
+      function loadAllImages(account) {
         return gceImageReader.findImages({
+          account: account,
           provider: 'gce',
           q: '*',
         });
@@ -181,6 +183,7 @@ module.exports = angular
         }
 
         return gceImageReader.findImages({
+          account: command.credentials,
           provider: command.selectedProvider,
           q: packageBase + '*',
         });

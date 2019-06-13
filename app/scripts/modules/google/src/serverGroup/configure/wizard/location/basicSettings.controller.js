@@ -21,45 +21,28 @@ module.exports = angular
     '$state',
     'imageReader',
     function($scope, $controller, $uibModalStack, $state, imageReader) {
-      function searchImages(q) {
-        $scope.command.backingData.filtered.images = [
-          {
-            message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`,
-          },
-        ];
+      function fetchImagesForAccount() {
         return Observable.fromPromise(
           imageReader.findImages({
+            account: $scope.command.credentials,
             provider: $scope.command.selectedProvider,
-            q: q,
+            q: '*',
           }),
         );
       }
 
       const imageSearchResultsStream = new Subject();
+      imageSearchResultsStream.switchMap(fetchImagesForAccount).subscribe(images => {
+        $scope.command.backingData.allImages = images;
+        $scope.command.backingData.packageImages = images;
+      });
 
-      imageSearchResultsStream
-        .debounceTime(250)
-        .switchMap(searchImages)
-        .subscribe(function(data) {
-          $scope.command.backingData.filtered.images = data.map(function(image) {
-            if (image.message && !image.imageName) {
-              return image;
-            }
-            return {
-              account: image.account,
-              imageName: image.imageName,
-            };
-          });
-          $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
-        });
-
-      this.searchImages = function(q) {
-        imageSearchResultsStream.next(q);
+      this.accountUpdated = () => {
+        imageSearchResultsStream.next();
       };
 
       this.enableAllImageSearch = () => {
         $scope.command.viewState.useAllImageSelection = true;
-        this.searchImages('');
       };
 
       angular.extend(
