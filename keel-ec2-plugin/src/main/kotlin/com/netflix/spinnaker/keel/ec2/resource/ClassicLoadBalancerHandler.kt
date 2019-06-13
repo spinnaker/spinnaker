@@ -48,10 +48,10 @@ class ClassicLoadBalancerHandler(
       spec.moniker.name
   )
 
-  override fun current(resource: Resource<ClassicLoadBalancer>): ClassicLoadBalancer? =
+  override suspend fun current(resource: Resource<ClassicLoadBalancer>): ClassicLoadBalancer? =
     cloudDriverService.getClassicLoadBalancer(resource.spec)
 
-  override fun upsert(
+  override suspend fun upsert(
     resource: Resource<ClassicLoadBalancer>,
     resourceDiff: ResourceDiff<ClassicLoadBalancer>
   ): List<TaskRef> {
@@ -60,7 +60,7 @@ class ClassicLoadBalancerHandler(
       else -> "Upserting"
     }
 
-    val taskRef = runBlocking {
+    val taskRef =
       resource.spec.let { spec ->
         orcaService
           .orchestrate(
@@ -76,15 +76,14 @@ class ClassicLoadBalancerHandler(
           )
           .await()
       }
-    }
 
     log.info("Started task ${taskRef.ref} to create classicLoadBalancer ${resource.spec.moniker.name} in " +
       "${resource.spec.location.accountName}/${resource.spec.location.region}")
     return listOf(TaskRef(taskRef.ref))
   }
 
-  override fun delete(resource: Resource<ClassicLoadBalancer>) {
-    val taskRef = runBlocking {
+  override suspend fun delete(resource: Resource<ClassicLoadBalancer>) {
+    val taskRef =
       resource.spec.let { spec ->
         orcaService
           .orchestrate(
@@ -98,16 +97,13 @@ class ClassicLoadBalancerHandler(
           )
           .await()
       }
-    }
 
     log.info("Started task ${taskRef.ref} to delete classicLoadBalancer ${resource.spec.moniker.name} in " +
       "${resource.spec.location.accountName}/${resource.spec.location.region}")
   }
 
-  override fun actuationInProgress(name: ResourceName) =
-    runBlocking {
-      orcaService.getCorrelatedExecutions(name.value).await()
-    }.isNotEmpty()
+  override suspend fun actuationInProgress(name: ResourceName) =
+    orcaService.getCorrelatedExecutions(name.value).await().isNotEmpty()
 
   private fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancer): ClassicLoadBalancer? =
     runBlocking {

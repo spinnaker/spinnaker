@@ -19,7 +19,6 @@ import com.netflix.spinnaker.keel.ec2.normalizers.ClassicLoadBalancerNormalizer
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResolvedResource
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -33,6 +32,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
@@ -163,13 +163,18 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
       }
 
       test("the current model is null") {
-        val (desired, current) = resolve(normalize(resource as Resource<Any>))
+        val current = runBlocking {
+          current(normalize(resource as Resource<Any>))
+        }
         expectThat(current).isNull()
       }
 
       test("the CLB is created with a default security group as none are specified in spec") {
-        val (desired, current) = resolve(normalize(resource as Resource<Any>))
-        upsert(normalize(resource as Resource<Any>), ResourceDiff(desired = desired, current = current))
+        runBlocking {
+          val current = current(normalize(resource as Resource<Any>))
+          val desired = desired(normalize(resource as Resource<Any>))
+          upsert(normalize(resource as Resource<Any>), ResourceDiff(desired = desired, current = current))
+        }
 
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
@@ -186,8 +191,9 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
         val modSpec = spec.copy(securityGroupNames = setOf("nondefault-elb"))
         val modResource = resource.copy(spec = modSpec)
 
-        val (desired, current) = resolve(normalize(modResource as Resource<Any>))
-        upsert(normalize(modResource as Resource<Any>), ResourceDiff(spec, modSpec, differ.compare(modSpec, spec)))
+        runBlocking {
+          upsert(normalize(modResource as Resource<Any>), ResourceDiff(spec, modSpec, differ.compare(modSpec, spec)))
+        }
 
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
@@ -208,18 +214,23 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
         val newSpec = spec.copy(securityGroupNames = setOf("nondefault-elb"))
         val newResource = resource.copy(spec = newSpec)
 
-        val (desired, current) = ResolvedResource(normalize(newResource as Resource<Any>), fixture.resolve(resource))
-        val diff = ResourceDiff(current!!, desired, differ.compare(newSpec, resource.spec))
+        val diff = runBlocking {
+          val current = fixture.current(resource)
+          val desired = fixture.desired(resource)
+          ResourceDiff(current!!, desired, differ.compare(newSpec, resource.spec))
+        }
 
         expectThat(diff.diff.childCount()).isEqualTo(1)
         expectThat(diff.diff.getChild("securityGroupNames").path.toString()).isEqualTo("/securityGroupNames")
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 
-        upsert(normalize(newResource as Resource<Any>), diff as ResourceDiff<ClassicLoadBalancer>)
+        runBlocking {
+          upsert(normalize(newResource as Resource<Any>), diff as ResourceDiff<ClassicLoadBalancer>)
+        }
 
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
       }
+    }
   }
-}
 }
