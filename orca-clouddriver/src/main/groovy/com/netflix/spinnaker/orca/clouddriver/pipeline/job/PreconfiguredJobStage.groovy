@@ -20,8 +20,10 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageProperties
 import com.netflix.spinnaker.orca.clouddriver.exception.PreconfiguredJobNotFoundException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
+import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -29,7 +31,9 @@ class PreconfiguredJobStage extends RunJobStage {
 
   private JobService jobService
 
-  public PreconfiguredJobStage(Optional<JobService> optionalJobService) {
+  @Autowired
+  public PreconfiguredJobStage(DestroyJobTask destroyJobTask, Optional<JobService> optionalJobService) {
+    super(destroyJobTask)
     this.jobService = optionalJobService.orElse(null)
   }
 

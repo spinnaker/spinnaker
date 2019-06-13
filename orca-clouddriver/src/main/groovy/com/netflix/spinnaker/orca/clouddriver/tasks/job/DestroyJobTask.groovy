@@ -41,7 +41,7 @@ class DestroyJobTask extends AbstractCloudProviderAwareTask implements Task {
     Map outputs = [
         "notification.type"  : "destroyjob",
         "kato.last.task.id"  : taskId,
-        "delete.name"        : stage.context.jobName,
+        "delete.name"        : stage.context.jobName ?: stage.context.jobId,
         "delete.region"      : stage.context.region,
         "delete.account.name": account
     ]
