@@ -32,6 +32,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   private autocompleteService: SpelAutocompleteService;
   private readonly spelInputRef: any;
   private destroy$ = new Subject();
+  private $input: JQLite;
 
   constructor(props: ISpelTextProps) {
     super(props);
@@ -49,12 +50,19 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   }
 
   public componentWillUnmount(): void {
+    this.$input.off('change', this.onChange);
     this.destroy$.next();
   }
 
   public componentDidMount(): void {
+    this.$input = $(this.spelInputRef.current);
     this.renderSuggestions();
+    this.$input.on('change', this.onChange);
   }
+
+  private onChange = (e: any) => {
+    this.props.onChange(e.target.value);
+  };
 
   public componentDidUpdate(_: Readonly<ISpelTextProps>, prevState: Readonly<ISpelTextState>): void {
     if (prevState.textcompleteConfig !== this.state.textcompleteConfig) {
@@ -63,9 +71,8 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   }
 
   private renderSuggestions() {
-    const input = $(this.spelInputRef.current);
-    input.attr('contenteditable', 'true');
-    input.textcomplete(this.state.textcompleteConfig, {
+    this.$input.attr('contenteditable', 'true');
+    this.$input.textcomplete(this.state.textcompleteConfig, {
       maxCount: 1000,
       zIndex: 9000,
       dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown',
@@ -82,7 +89,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
           'no-doc-link': !this.props.docLink,
         })}
         value={this.props.value || ''}
-        onChange={e => this.props.onChange(e.target.value)}
+        onChange={this.onChange}
         ref={this.spelInputRef}
       />
     );
