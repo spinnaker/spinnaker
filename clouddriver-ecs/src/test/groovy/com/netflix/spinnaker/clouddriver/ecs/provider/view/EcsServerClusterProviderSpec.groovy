@@ -71,9 +71,11 @@ class EcsServerClusterProviderSpec extends Specification {
   TaskDefinition cachedTaskDefinition
   Instance ec2Instance
   EcsServerCluster expectedCluster
+  EcsServerCluster expectedCluster2
 
   private static final FAMILY_NAME = 'myapp-kcats-liated'
   private static final CREDS_NAME = 'test'
+  private static final CREDS_NAME_2 = 'test2'
 
   def setup() {
     def taskId = 'task-id'
@@ -87,6 +89,12 @@ class EcsServerClusterProviderSpec extends Specification {
     creds.getCloudProvider() >> 'ecs'
     creds.getName() >> CREDS_NAME
     creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
+                           new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
+
+    def creds2 = Mock(AmazonCredentials)
+    creds2.getCloudProvider() >> 'ecs'
+    creds2.getName() >> CREDS_NAME_2
+    creds2.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
                            new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
 
 
@@ -153,14 +161,21 @@ class EcsServerClusterProviderSpec extends Specification {
     expectedCluster.setServerGroups(new LinkedHashSet([ecsServerGroupEast, ecsServerGroupWest]))
     expectedCluster.setLoadBalancers(Collections.singleton(loadbalancer))
 
+    expectedCluster2 = new EcsServerCluster()
+    expectedCluster2.setAccountName(creds2.getName())
+    expectedCluster2.setName(FAMILY_NAME)
+    expectedCluster2.setServerGroups(new LinkedHashSet([ecsServerGroupEast, ecsServerGroupWest]))
+    expectedCluster2.setLoadBalancers(Collections.singleton(loadbalancer))
 
     def serviceAttributes = ServiceCachingAgent.convertServiceToAttributes(creds.getName(), creds.getRegions()[0].getName(), cachedService)
+    def serviceAttributes2 = ServiceCachingAgent.convertServiceToAttributes(creds2.getName(), creds.getRegions()[0].getName(), cachedService)
     def taskAttributes = TaskCachingAgent.convertTaskToAttributes(task)
 
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
+    def serviceCacheData2 = new DefaultCacheData('', serviceAttributes2, [:])
     def taskCacheData = new DefaultCacheData('', taskAttributes, [:])
 
-    accountCredentialsProvider.getAll() >> [creds]
+    accountCredentialsProvider.getAll() >> [creds, creds2]
     ecsLoadbalancerCacheClient.find(_, _) >> [loadbalancer]
     containerInformationService.getTaskPrivateAddress(_, _, _) >> "${ip}:1337"
     containerInformationService.getHealthStatus(_, _, _, _) >> [healthStatus]
@@ -172,7 +187,7 @@ class EcsServerClusterProviderSpec extends Specification {
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-1234']
 
     cacheView.filterIdentifiers(_, _) >> ['key']
-    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [serviceCacheData]
+    cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [serviceCacheData, serviceCacheData2]
     cacheView.getAll(Keys.Namespace.TASKS.ns, _) >> [taskCacheData]
   }
 
@@ -319,6 +334,14 @@ class EcsServerClusterProviderSpec extends Specification {
     then:
     containerInformationService.getEc2Instance(_, _, _) >> null
     retrievedCluster == expectedCluster
+  }
+
+  def 'should produce ecs clusters'() {
+    when:
+    def retrievedClusters = provider.getClusterDetails("myapp").values().flatten()
+
+    then:
+    retrievedClusters.sort() == [expectedCluster, expectedCluster2].sort()
   }
 
   def makeEcsServerGroup(String serviceName, String region, long startTime, String taskId, Map healthStatus, String ip) {

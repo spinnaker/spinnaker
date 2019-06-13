@@ -175,7 +175,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         boolean found = false;
 
         for (EcsServerCluster cluster : clusterMap.get(applicationName)) {
-          if (cluster.getName().equals(escClusterName)) {
+          if (cluster.getName().equals(escClusterName)
+              && cluster.getAccountName().equals(credentials.getName())) {
             cluster.getServerGroups().add(ecsServerGroup);
             found = true;
             break;
