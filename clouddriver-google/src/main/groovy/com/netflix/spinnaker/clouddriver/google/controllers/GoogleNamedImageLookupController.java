@@ -31,22 +31,18 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.google.cache.Keys;
 import groovy.util.logging.Slf4j;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -73,31 +69,41 @@ public class GoogleNamedImageLookupController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String account,
       HttpServletRequest request) {
-    Map<String, List<Image>> imageMap = listImagesByAccount();
+    Collection<CacheData> imageCacheData = getImageCacheData(account);
+    Predicate<NamedImage> queryFilter = getQueryFilter(q);
+    Predicate<NamedImage> tagFilter = getTagFilter(request);
+    return imageCacheData.stream()
+        .map(this::createNamedImageFromCacheData)
+        .filter(queryFilter)
+        .filter(tagFilter)
+        .sorted(Comparator.comparing(image -> image.imageName))
+        .collect(Collectors.toList());
+  }
 
-    // Set of accounts for which we should return images: either the supplied account, or default
-    // to all accounts
-    Set<String> accounts;
-    if (StringUtils.isNotEmpty(account)) {
-      accounts = new HashSet<>();
-      if (imageMap.containsKey(account)) {
-        accounts.add(account);
-      }
-    } else {
-      accounts = imageMap.keySet();
+  private Collection<CacheData> getImageCacheData(String account) {
+    // If no account supplied, return images from all accounts
+    String pattern =
+        (account == null || account.isEmpty())
+            ? String.format("%s:images:*", GoogleCloudProvider.getID())
+            : String.format("%s:images:%s:*", GoogleCloudProvider.getID(), account);
+    Collection<String> identifiers = cacheView.filterIdentifiers(IMAGES.getNs(), pattern);
+    return cacheView.getAll(IMAGES.getNs(), identifiers, RelationshipCacheFilter.none());
+  }
+
+  private NamedImage createNamedImageFromCacheData(CacheData cacheDatum) throws RuntimeException {
+    try {
+      Object hashImage = cacheDatum.getAttributes().get("image");
+      Image image = jsonMapper.fromString(objectMapper.writeValueAsString(hashImage), Image.class);
+      String imageAccount = Keys.parse(cacheDatum.getId()).get("account");
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("creationDate", image.get("creationTimestamp"));
+      return new NamedImage(imageAccount, image.getName(), attributes, buildTagsMap(image));
+    } catch (IOException e) {
+      throw new RuntimeException("Image deserialization failed");
     }
+  }
 
-    List<NamedImage> results = new ArrayList<>();
-    for (String imageAccount : accounts) {
-      for (Image i : imageMap.get(imageAccount)) {
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("creationDate", i.get("creationTimestamp"));
-        NamedImage newImage =
-            new NamedImage(imageAccount, i.getName(), attributes, buildTagsMap(i));
-        results.add(newImage);
-      }
-    }
-
+  private Predicate<NamedImage> getQueryFilter(String q) {
     Predicate<NamedImage> queryFilter = i -> true;
     if (q != null && q.trim().length() > 0) {
       String glob = q.trim();
@@ -111,38 +117,16 @@ public class GoogleNamedImageLookupController {
       Pattern pattern = new InMemoryCache.Glob(glob).toPattern();
       queryFilter = i -> pattern.matcher(i.imageName).matches();
     }
-
-    return results.stream()
-        .filter(queryFilter)
-        .filter(namedImage -> matchesTagFilters(namedImage, extractTagFilters(request)))
-        .sorted(Comparator.comparing(image -> image.imageName))
-        .collect(Collectors.toList());
+    return queryFilter;
   }
 
-  private Map<String, List<Image>> listImagesByAccount() {
-    Collection<String> identifiers =
-        cacheView.filterIdentifiers(IMAGES.getNs(), GoogleCloudProvider.getID() + ":*");
-    Map<String, List<Image>> result = new HashMap<>();
-
-    Collection<CacheData> allCacheData =
-        cacheView.getAll(IMAGES.getNs(), identifiers, RelationshipCacheFilter.none());
-    allCacheData.forEach(
-        cacheData -> {
-          String account = Keys.parse(cacheData.getId()).get("account");
-          if (!result.containsKey(account)) {
-            result.put(account, new ArrayList<>());
-          }
-          Object hashImage = cacheData.getAttributes().get("image");
-          try {
-            Image myImage =
-                jsonMapper.fromString(objectMapper.writeValueAsString(hashImage), Image.class);
-            result.get(account).add(myImage);
-          } catch (IOException e) {
-            throw new RuntimeException("Image deserialization failed");
-          }
-        });
-
-    return result;
+  private Predicate<NamedImage> getTagFilter(HttpServletRequest request) {
+    Predicate<NamedImage> tagFilter = i -> true;
+    Map<String, String> tagFilters = extractTagFilters(request);
+    if (!tagFilters.isEmpty()) {
+      tagFilter = i -> matchesTagFilters(i, tagFilters);
+    }
+    return tagFilter;
   }
 
   @VisibleForTesting
