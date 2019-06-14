@@ -23,9 +23,11 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 interface CloudDriverService {
 
@@ -89,4 +91,12 @@ interface CloudDriverService {
     @Query("provider") provider: String,
     @Query("q") name: String
   ): List<NamedImage>
+
+  @GET("/tags/{entityId}")
+  suspend fun getTagsForEntity(
+    @Path("entityId") entityId: String
+  ): EntityTags
+
+  @GET("/tags")
+  suspend fun getTagsForParams(@QueryMap allParameters: Map<String, String>): EntityTags
 }

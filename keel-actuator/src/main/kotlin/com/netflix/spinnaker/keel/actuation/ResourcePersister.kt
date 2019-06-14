@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.diff.toDebug
 import com.netflix.spinnaker.keel.diff.toUpdateJson
+import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import de.danielbechler.diff.ObjectDifferBuilder
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 
@@ -20,7 +21,8 @@ import java.time.Clock
 class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
-  private val clock: Clock
+  private val clock: Clock,
+  private val publisher: ApplicationEventPublisher
 ) {
   private val differ = ObjectDifferBuilder.buildDefault()
 
@@ -46,7 +48,8 @@ class ResourcePersister(
         resourceRepository.markCheckDue(it)
       }
 
-    // todo eb: diffing doesn't work when the class changes, even if it's a subtype https://github.com/spinnaker/keel/issues/317
+    // todo eb: diffing doesn't work when the class changes, even if it's a subtype
+    //  https://github.com/spinnaker/keel/issues/317
 //    return if (diff.hasChanges()) {
 //      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
 //      normalized
@@ -63,7 +66,10 @@ class ResourcePersister(
   fun delete(name: ResourceName): Resource<out Any> =
     resourceRepository
       .get<Any>(name)
-      .also { resourceRepository.delete(name) }
+      .also {
+        resourceRepository.delete(name)
+        publisher.publishEvent(DeleteEvent(name))
+      }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

@@ -114,4 +114,6 @@ class InMemoryResourceRepository(
     events.clear()
     lastCheckTimes.clear()
   }
+
+  fun size() = resources.size
 }
