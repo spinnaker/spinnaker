@@ -541,4 +541,21 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     environments.get("ENVIRONMENT_1") == "test1"
     environments.get("ENVIRONMENT_2") == "test2"
   }
+
+  def 'should use same port for host and container in host mode'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getContainerPort() >> 10000
+    description.getNetworkMode() >> 'host'
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
+
+    then:
+    def portMapping = request.getContainerDefinitions().get(0).getPortMappings().get(0)
+    portMapping.getHostPort() == 10000
+    portMapping.getContainerPort() == 10000
+    portMapping.getProtocol() == 'tcp'
+  }
 }

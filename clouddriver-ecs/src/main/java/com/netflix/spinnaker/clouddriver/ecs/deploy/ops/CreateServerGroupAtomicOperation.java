@@ -52,6 +52,7 @@ public class CreateServerGroupAtomicOperation
 
   private static final String NECESSARY_TRUSTED_SERVICE = "ecs-tasks.amazonaws.com";
   protected static final String AWSVPC_NETWORK_MODE = "awsvpc";
+  protected static final String HOST_NETWORK_MODE = "host";
   protected static final String FARGATE_LAUNCH_TYPE = "FARGATE";
   protected static final String NO_IAM_ROLE = "None (No IAM role)";
   protected static final String NO_IMAGE_CREDENTIALS = "None (No registry credentials)";
@@ -166,7 +167,8 @@ public class CreateServerGroupAtomicOperation
               .withProtocol(
                   description.getPortProtocol() != null ? description.getPortProtocol() : "tcp");
 
-      if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
+      if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())
+          || HOST_NETWORK_MODE.equals(description.getNetworkMode())) {
         portMapping
             .withHostPort(description.getContainerPort())
             .withContainerPort(description.getContainerPort());
