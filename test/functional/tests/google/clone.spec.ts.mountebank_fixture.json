@@ -2588,6 +2588,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "centos-6-v20180815*"
             }
@@ -2645,6 +2646,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "*"
             }
@@ -2702,6 +2704,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "centos-6-v20180815*"
             }
@@ -2759,6 +2762,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "*"
             }
@@ -2816,6 +2820,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "ubuntu"
             }
@@ -2873,6 +2878,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
               "q": "ubuntu"
             }
@@ -2930,8 +2936,9 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
-              "q": ""
+              "q": "*"
             }
           },
           "keyCaseSensitive": true
@@ -2985,8 +2992,9 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "compute-engine",
               "provider": "gce",
-              "q": ""
+              "q": "*"
             }
           }
         }

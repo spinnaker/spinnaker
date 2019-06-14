@@ -2490,6 +2490,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
               "q": "compute*"
             }
@@ -2547,6 +2548,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
               "q": "*"
             }
@@ -2604,6 +2606,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
               "q": "compute*"
             }
@@ -2662,6 +2665,7 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
               "q": "*"
             }
@@ -2720,8 +2724,9 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
-              "q": ""
+              "q": "*"
             }
           },
           "keyCaseSensitive": true
@@ -2775,8 +2780,9 @@
           "caseSensitive": true,
           "deepEquals": {
             "query": {
+              "account": "gce",
               "provider": "gce",
-              "q": ""
+              "q": "*"
             }
           }
         }
