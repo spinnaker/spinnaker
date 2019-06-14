@@ -27,9 +27,9 @@ ext {
     hystrix       : "1.4.21",
     jsch          : "0.0.9",
     okhttp        : "2.7.0",
-    okhttp3       : "3.12.2",
+    okhttp3       : "3.14.2",
     retrofit      : "1.9.0",
-    retrofit2     : "2.5.0",
+    retrofit2     : "2.6.0",
     spectator     : "0.75.0",
     spek          : "1.1.5",
     springBoot    : "2.1.4.RELEASE", //check groovy and guava versions after updating this
