@@ -39,17 +39,25 @@ class ResourcePersister(
     val normalized = handler.normalize(resource)
 
     val diff = differ.compare(normalized.spec, existing.spec)
-    return if (diff.hasChanges()) {
-      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
-      normalized
-        .also {
-          resourceRepository.store(it)
-          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
-          resourceRepository.markCheckDue(it)
-        }
-    } else {
-      existing
-    }
+    return normalized
+      .also {
+        resourceRepository.store(it)
+        resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
+        resourceRepository.markCheckDue(it)
+      }
+
+    // todo eb: diffing doesn't work when the class changes, even if it's a subtype https://github.com/spinnaker/keel/issues/317
+//    return if (diff.hasChanges()) {
+//      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
+//      normalized
+//        .also {
+//          resourceRepository.store(it)
+//          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
+//          resourceRepository.markCheckDue(it)
+//        }
+//    } else {
+//      existing
+//    }
   }
 
   fun delete(name: ResourceName): Resource<out Any> =
