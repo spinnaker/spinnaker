@@ -32,7 +32,11 @@ import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
-import com.netflix.spinnaker.igor.polling.*;
+import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
+import com.netflix.spinnaker.igor.polling.DeltaItem;
+import com.netflix.spinnaker.igor.polling.LockService;
+import com.netflix.spinnaker.igor.polling.PollContext;
+import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
@@ -204,7 +208,7 @@ public class GitlabCiBuildMonitor
       String address,
       final String branchedSlug,
       String master) {
-    if (echoService != null) {
+    if (echoService.isPresent()) {
       sendEvent(pipeline.getRef(), project, pipeline, address, master);
       sendEvent(branchedSlug, project, pipeline, address, master);
     }
