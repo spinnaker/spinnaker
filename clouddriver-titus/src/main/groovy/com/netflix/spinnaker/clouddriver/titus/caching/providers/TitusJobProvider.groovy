@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusJobStatus
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -88,15 +89,13 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
       try {
         amazonS3DataProvider.getAdhocData("titus", "${s3.accountName}:${s3.region}:${s3.bucket}", "${s3.key}/${fileName}", outputStream)
       } catch (Exception e) {
-        log.warn("File [${fileName}] does not exist for job [${job.tasks.last().id}].")
-        return null
+        throw new NotFoundException("File [${fileName}] does not exist for job [${job.tasks.last().id}].", e)
       }
       fileContents = new ByteArrayInputStream(outputStream.toByteArray())
     } else {
       Map files = titusClient.logsDownload(job.tasks.last().id)
       if (!files.containsKey(fileName)) {
-        log.warn("File [${fileName}] does not exist for job [${job.tasks.last().id}].")
-        return null
+        throw new NotFoundException("File [${fileName}] does not exist for job [${job.tasks.last().id}].")
       }
       fileContents = client.newCall(new Request.Builder().url(files.get(fileName) as String).build()).execute().body().byteStream()
     }
@@ -113,9 +112,11 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
         propertiesFile.load(fileContents)
         results = results << propertiesFile
       }
+
       return results
     }
-    null
+
+    return Collections.emptyMap()
   }
 
   @Override
