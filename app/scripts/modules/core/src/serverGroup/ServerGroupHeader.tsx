@@ -12,6 +12,7 @@ import { CloudProviderLogo } from 'core/cloudProvider';
 import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { ISortFilter } from 'core/filterModel';
 import { Overridable } from 'core/overrideRegistry';
+import { ArtifactIconService } from 'core/artifact';
 
 export interface IServerGroupHeaderProps {
   application: Application;
@@ -131,15 +132,34 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
             {docker.image}:{docker.tag || docker.digest}
           </a>
         )}
-        {(!!ciBuild || !!appArtifact) && (
-          <span>
-            {!!appArtifact.version && <span> ({appArtifact.version})</span>}
-            {!!ciBuild.jobUrl && (
-              <a className="build-link" href={ciBuild.jobUrl} target="_blank">
-                Build: #{ciBuild.jobNumber}
+
+        {!!appArtifact && !!appArtifact.version ? (
+          <>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <img className="artifact-icon" src={ArtifactIconService.getPath('maven/file')} width="18" height="18" />
+            {!!appArtifact.url ? (
+              <a className="build-link" href={appArtifact.url} target="_blank">
+                {appArtifact.version}
               </a>
+            ) : (
+              <>{appArtifact.version}</>
             )}
-          </span>
+          </>
+        ) : (
+          !!ciBuild &&
+          !!ciBuild.jobNumber && (
+            <>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <img className="artifact-icon" src={ArtifactIconService.getPath('jenkins/file')} width="18" height="18" />
+              {!!ciBuild.jobUrl ? (
+                <a className="build-link" href={ciBuild.jobUrl} target="_blank">
+                  {ciBuild.jobNumber}
+                </a>
+              ) : (
+                <>{ciBuild.jobNumber}</>
+              )}
+            </>
+          )
         )}
         {!!images && <ImageList {...this.props} />}
       </div>
