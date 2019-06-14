@@ -35,6 +35,14 @@ const helpContents: { [key: string]: string } = {
   } tags at most.`,
   'azure.serverGroup.enableInboundNAT':
     'An Azure load balancer of the basic sku will be created with adding inbound NAT port-forwarding rules to facilitate loggin on VM instances. There is no charge for creating an Azure load balancer of the basic sku. This option is disabled if Availability Zones are set which require Standard Azure Load Balancer and an extra Network Security Group with correct inbound and outbound rules configured.',
+  'azure.serverGroup.lun':
+    'Specifies the logical unit number of the data disk. This value is used to identify data disks within the VM and therefore must be unique for each data disk attached to a VM.',
+  'azure.serverGroup.diskSizeGB':
+    'Specifies the size of an empty data disk in gigabytes. This value cannot be larger than 1023 GB',
+  'azure.serverGroup.managedDisk.storageAccountType':
+    'You can choose between Azure managed disks types to support your workload or scenario.',
+  'azure.serverGroup.caching':
+    'Changing the default host caching policy can adversely impact the performance of your application. You should run performance tests to measure its impact. To improve the total IOPS/throughput, we recommend striping across multiple disks and using premium (SSD) disks.',
   'azure.loadBalancer.dnsName':
     'If there is no custom DNS label specified, a default DNS name will be created. The default value will be "GeneratedText.cloudapp.net" for Azure Application Gateway or "GeneratedText.[region].cloudapp.azure.com" for Azure Load Balancer.',
   'azure.loadBalancer.probes.probeInterval':

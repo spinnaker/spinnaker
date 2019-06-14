@@ -33,6 +33,9 @@ module.exports = angular
       loadBalancerReader,
       azureInstanceTypeService,
     ) {
+      var dataDiskTypes = ['Standard_LRS', 'StandardSSD_LRS', 'Premium_LRS'];
+      var dataDiskCachingTypes = ['None', 'ReadOnly', 'ReadWrite'];
+
       var healthCheckTypes = ['EC2', 'ELB'],
         terminationPolicies = [
           'OldestInstance',
@@ -55,6 +58,8 @@ module.exports = angular
             credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('azure'),
             securityGroups: securityGroupReader.loadSecurityGroups(),
             loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
+            dataDiskTypes: $q.when(angular.copy(dataDiskTypes)),
+            dataDiskCachingTypes: $q.when(angular.copy(dataDiskCachingTypes)),
           })
           .then(function(backingData) {
             backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
