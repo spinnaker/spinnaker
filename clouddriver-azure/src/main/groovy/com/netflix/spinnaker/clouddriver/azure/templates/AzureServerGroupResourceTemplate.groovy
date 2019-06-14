@@ -33,6 +33,7 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetDataDisk
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
@@ -681,6 +682,8 @@ class AzureServerGroupResourceTemplate {
 
     OSDisk osDisk
     String imageReference
+    List<VirtualMachineScaleSetDataDisk> dataDisks
+
     /**
      *
      * @param serverGroupDescription
@@ -688,6 +691,7 @@ class AzureServerGroupResourceTemplate {
     ScaleSetStorageProfile(AzureServerGroupDescription description) {
       osDisk = new VirtualMachineOSDisk(description)
       imageReference = "[variables('imageReference')]"
+      dataDisks = description.dataDisks
     }
   }
 
@@ -705,12 +709,14 @@ class AzureServerGroupResourceTemplate {
    */
   static class ScaleSetCustomManagedImageStorageProfile implements StorageProfile {
     ImageReference imageReference
+    List<VirtualMachineScaleSetDataDisk> dataDisks
     /**
      *
      * @param serverGroupDescription
      */
     ScaleSetCustomManagedImageStorageProfile(AzureServerGroupDescription description) {
       imageReference = new ImageReference(description)
+      dataDisks = description.dataDisks
     }
   }
 

@@ -295,7 +295,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -430,7 +431,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
         "storageProfile" : {
           "imageReference" : {
             "id" : "/subscriptions/faab228d-df7a-4086-991e-e81c4659d41a/resourceGroups/zhqqi-sntest/providers/Microsoft.Compute/images/hello-karyon-rxnetty-all-20190125054410-ubuntu-1604"
-          }
+          },
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -598,7 +600,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -781,7 +784,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -964,7 +968,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -1148,7 +1153,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
@@ -1334,7 +1340,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "createOption" : "FromImage",
             "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
-          "imageReference" : "[variables('imageReference')]"
+          "imageReference" : "[variables('imageReference')]",
+          "dataDisks" : null
         },
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",

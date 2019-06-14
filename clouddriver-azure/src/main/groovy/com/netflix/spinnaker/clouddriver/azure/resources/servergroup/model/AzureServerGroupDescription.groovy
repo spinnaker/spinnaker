@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.google.common.collect.Sets
-import com.microsoft.azure.management.compute.VirtualMachineScaleSet
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetDataDisk
 import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
@@ -70,6 +70,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Boolean createNewSubnet = false
   AzureExtensionCustomScriptSettings customScriptsSettings
   Boolean enableInboundNAT = false
+  List<VirtualMachineScaleSetDataDisk> dataDisks
 
   static class AzureScaleSetSku {
     String name
@@ -193,13 +194,16 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy().mode().name())
 
     // Get the image reference data
-    def imgRef = scaleSet.virtualMachineProfile()?.storageProfile()?.imageReference()
+    def storageProfile = scaleSet.virtualMachineProfile()?.storageProfile()
+    def imgRef = storageProfile?.imageReference()
     if (imgRef) {
       azureSG.image.offer = imgRef.offer()
       azureSG.image.publisher = imgRef.publisher()
       azureSG.image.sku = imgRef.sku()
       azureSG.image.version = imgRef.version()
     }
+
+    azureSG.dataDisks = storageProfile?.dataDisks()
 
     // get the OS configuration data
     def osConfig = new AzureOperatingSystemConfig()
