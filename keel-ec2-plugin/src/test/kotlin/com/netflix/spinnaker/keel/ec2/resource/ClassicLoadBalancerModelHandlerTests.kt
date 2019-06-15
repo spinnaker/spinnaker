@@ -222,7 +222,7 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 
         runBlocking {
-          upsert(normalize(newResource as Resource<Any>), diff as ResourceDiff<ClassicLoadBalancer>)
+          upsert(normalize(newResource as Resource<Any>), diff)
         }
 
         val slot = slot<OrchestrationRequest>()

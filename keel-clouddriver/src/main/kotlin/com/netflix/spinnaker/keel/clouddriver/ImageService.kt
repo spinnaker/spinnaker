@@ -40,9 +40,9 @@ class ImageService(
           .tagsByImageId
           .values
           .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-        if (tags == null) {
+        return if (tags == null) {
           log.debug("Image not found for {} version {}", artifactName, version)
-          return null
+          null
         } else {
           val image = Image(
             tags.getValue("base_ami_version")!!,
@@ -50,7 +50,7 @@ class ImageService(
             namedImage.amis.keys
           )
           log.debug("Latest image for {} version {} is {}", artifactName, version, image)
-          return image
+          image
         }
       }
   }
@@ -75,10 +75,10 @@ class ImageService(
 
   private fun getAllTags(image: NamedImage): Map<String, String> {
     val allTags = HashMap<String, String>()
-    image.tagsByImageId.forEach { amiId, tags ->
+    image.tagsByImageId.forEach { (_, tags) ->
       tags?.forEach { k, v ->
         if (v != null) {
-          allTags.put(k, v)
+          allTags[k] = v
         }
       }
     }
@@ -90,7 +90,7 @@ class ImageService(
       return false
     }
 
-    val appversion = tags["appversion"]!!.split("/")
+    val appversion = tags["appversion"]?.split("/") ?: error("appversion tag is missing")
 
     if (appversion.size != 3) {
       return false
