@@ -107,7 +107,7 @@ class ImageHandler(
         ),
         trigger = OrchestrationTrigger(
           correlationId = resource.metadata.name.toString(),
-          artifacts = listOf(artifact.await())
+          artifacts = listOf(artifact)
         )
       )
     )

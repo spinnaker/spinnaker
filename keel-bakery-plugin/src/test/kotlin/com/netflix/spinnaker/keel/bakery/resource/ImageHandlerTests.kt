@@ -30,7 +30,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -236,7 +235,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
     context("baking a new AMI") {
       before {
-        every { igorService.getArtifact("keel", "0.161.0-h63.24d0843") } returns CompletableDeferred(
+        coEvery { igorService.getArtifact("keel", "0.161.0-h63.24d0843") } returns
           Artifact(
             "DEB",
             false,
@@ -253,7 +252,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
             "https://spinnaker.builds.test.netflix.net/job/SPINNAKER-rocket-package-keel/62",
             null
           )
-        )
       }
 
       test("bake configuration is based on resource spec") {

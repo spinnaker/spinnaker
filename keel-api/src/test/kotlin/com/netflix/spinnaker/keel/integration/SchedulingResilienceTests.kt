@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
@@ -40,7 +39,7 @@ internal class SchedulingResilienceTests {
     val latch = CountDownLatch(1)
     GlobalScope.launch {
       try {
-        service.greet().await()
+        service.greet()
       } finally {
         latch.countDown()
       }
@@ -62,7 +61,7 @@ fun Assertion.Builder<CountDownLatch>.countsDownWithin(timeoutSeconds: Long): As
 
 internal interface DummyRetrofitService {
   @GET("/")
-  fun greet(): Deferred<ResponseBody>
+  suspend fun greet(): ResponseBody
 }
 
 private class TestConfiguration {

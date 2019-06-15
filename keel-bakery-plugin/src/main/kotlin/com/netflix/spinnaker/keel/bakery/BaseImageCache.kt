@@ -25,7 +25,6 @@ class BaseImageCache(
   internal suspend fun refresh() {
     maheService
       .getProperties("bakery")
-      .await()
       .propertiesList
       .find { it.key == "bakery.api.base_label_map" }
       ?.let {

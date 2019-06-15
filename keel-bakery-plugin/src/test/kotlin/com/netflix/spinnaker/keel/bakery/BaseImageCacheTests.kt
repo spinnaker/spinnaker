@@ -10,9 +10,8 @@ import com.netflix.spinnaker.keel.mahe.api.PropertyResponse
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -37,7 +36,7 @@ internal class BaseImageCacheTests : JUnit5Minutests {
 
     context("refreshing the cache") {
       before {
-        every { maheService.getProperties("bakery") } returns CompletableDeferred(PropertyResponse(
+        coEvery { maheService.getProperties("bakery") } returns PropertyResponse(
           propertiesList = setOf(
             DynamicProperty(
               propertyId = "bakery.api.base_label_map|bakery|test||||",
@@ -82,7 +81,7 @@ internal class BaseImageCacheTests : JUnit5Minutests {
                 |}""".trimMargin()
             )
           )
-        ))
+        )
 
         runBlocking {
           subject.refresh()
