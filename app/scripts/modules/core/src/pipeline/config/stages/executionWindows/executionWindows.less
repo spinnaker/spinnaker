@@ -1,6 +1,7 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
-execution-windows {
+execution-windows,
+.execution-windows {
   .execution-window-graph {
     @graph_height: 70px;
     width: 100%;
@@ -20,7 +21,7 @@ execution-windows {
       z-index: 3;
       &:after {
         content: '';
-        width: calc(~"100% + 1px");
+        width: calc(~'100% + 1px');
         border: 1px solid var(--color-dovegray);
         border-bottom-width: 0;
         height: @graph_height - @label-height - 1;
@@ -28,7 +29,6 @@ execution-windows {
         top: 0;
         left: -1px;
       }
-
     }
 
     .divider-label-fill {
@@ -43,7 +43,7 @@ execution-windows {
     .dividers {
       .divider {
         position: absolute;
-        width: 100%*(1/24);
+        width: 100% * (1/24);
         top: 0;
         height: @graph_height;
         margin-top: 0;
@@ -70,13 +70,17 @@ execution-windows {
           z-index: 4;
         }
         &:last-child {
-          .divider-filler, .divider-label {
+          .divider-filler,
+          .divider-label {
             border-right-width: 0;
           }
         }
       }
     }
+  }
 
+  .vertical-align-select {
+    vertical-align: bottom;
   }
 
   .start-end-divider {

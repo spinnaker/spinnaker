@@ -90,7 +90,13 @@
         complete-other-branches-then-fail="stage.completeOtherBranchesThenFail"
         update-stage-field="stageConfigCtrl.updateStageField"
       ></override-failure>
-      <execution-windows stage="stage" ng-if="!pipeline.strategy && stage"></execution-windows>
+      <execution-windows
+        ng-if="!pipeline.strategy && stage"
+        restrict-execution-during-time-window="stage.restrictExecutionDuringTimeWindow"
+        restricted-execution-window="stage.restrictedExecutionWindow"
+        skip-window-text="stage.skipWindowText"
+        update-stage-field="stageConfigCtrl.updateStageField"
+      ></execution-windows>
       <override-timeout stage="stage"></override-timeout>
       <fail-on-failed-expressions stage="stage"></fail-on-failed-expressions>
       <optional-stage stage="stage"></optional-stage>

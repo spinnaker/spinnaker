@@ -21,8 +21,8 @@
       </h5>
       <p class="execution-window-days-of-week">
         <execution-window-day-picker
-          window-config="stage.restrictedExecutionWindow"
-          on-change="executionWindowsCtrl.windowsUpdated()"
+          days="stage.restrictedExecutionWindow.days"
+          on-change="executionWindowsCtrl.windowDaysUpdated"
         ></execution-window-day-picker>
       </p>
     </div>
