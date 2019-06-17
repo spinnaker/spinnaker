@@ -28,10 +28,8 @@ Sample Usage:
     --test_azure_rg_location=$TEST_AZURE_RG_LOCATION, \
     --test_azure_resource_group=$TEST_AZURE_RG, \
     --test_azure_vnet=$TEST_AZURE_VNET_NAME, \
-    --test_azure_subnet1=$TEST_AZURE_SUBNET1_NAME, \
-    --test_azure_subnet1_address=$TEST_AZURE_SUBNET1_ADDRESS, \
-    --test_azure_subnet2=$TEST_AZURE_SUBNET2_NAME, \
-    --test_azure_subnet2_address=$TEST_AZURE_SUBNET2_ADDRESS, \
+    --test_azure_subnets=$TEST_AZURE_SUBNET1_NAME,$TEST_AZURE_SUBNET2_NAME \
+    --test_azure_subnets_address=$TEST_AZURE_SUBNET1_ADDRESS,$TEST_AZURE_SUBNET2_ADDRESS \
     --native_hostname=localhost, \
     --native_platform=native, \
 
@@ -112,19 +110,14 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         self.ACCOUNT = bindings['SPINNAKER_AZURE_ACCOUNT']
         self.__rg_name = bindings['TEST_AZURE_RESOURCE_GROUP']
         self.__rg_location = bindings['TEST_AZURE_RG_LOCATION']
-        self.__subnet = [{
-            'NAME': bindings['TEST_AZURE_SUBNET1'],
-            'ADDRESS': bindings['TEST_AZURE_SUBNET1_ADDRESS']
-        }, {
-            'NAME': bindings['TEST_AZURE_SUBNET2'],
-            'ADDRESS': bindings['TEST_AZURE_SUBNET2_ADDRESS']
-        }]
         self.__subscription_id = bindings['TEST_AZURE_SUBSCRIPTION_ID']
         self.__vnet_name = bindings['TEST_AZURE_VNET']
+        self.__subnets = bindings['TEST_AZURE_SUBNETS'].split(',')
+        self.__subnets_address = bindings['TEST_AZURE_SUBNETS_ADDRESS'].split(',')
         self.__os_type = bindings['TEST_AZURE_OSTYPE']
         self.__base_os = bindings['TEST_AZURE_BASEOS']
         self.__stack = bindings['TEST_STACK']
-        self.__detail = 'frontend'
+        self.__detail = 'dt'
         self.__sku = dict(
             name=bindings['TEST_AZURE_VM_SKU'],
             tier='Standard',
@@ -133,6 +126,9 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         self.__full_lb_name = '{app}-{stack}-{detail}'.format(
             app=self.TEST_APP, stack=self.__stack,
             detail=self.__detail)
+
+        assert len(self.__subnets) >= 2
+        assert len(self.__subnets_address) >= 2
 
     def create_app(self):
         """Creates OperationContract that creates a new Spinnaker Application."""
@@ -187,13 +183,13 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         }]
         subnets = [{
             "account": self.ACCOUNT,
-            "addressPrefix": self.__subnet[1]['ADDRESS'],
+            "addressPrefix": self.__subnets_address[1],
             "device": [],
             "id": '/subscriptions/{id}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{name}'.format(
                 id=self.__subscription_id, rg=self.__rg_name,
-                vnet=self.__vnet_name, name=self.__subnet[1]['NAME']
+                vnet=self.__vnet_name, name=self.__subnets[1]
             ),
-            "name": self.__subnet[1]['NAME'],
+            "name": self.__subnets[1],
             "purpose": 'TBD',
             "region": self.__rg_location,
             "type": 'azure',
@@ -216,7 +212,7 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
                 "region": self.__rg_location,
                 "cloudProvider": "azure",
                 "vnet": self.__vnet_name,
-                "subnet": self.__subnet[1]['NAME'],
+                "subnet": self.__subnets[1],
                 "probes": healthyCheck,
                 "securityGroups": [],
                 "loadBalancingRules": rules,
@@ -247,7 +243,7 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
                 'name': jp.STR_EQ(self.__full_lb_name),
                 'tags': jp.DICT_MATCHES({
                     'vnet': jp.STR_EQ(self.__vnet_name),
-                    'subnet': jp.STR_EQ(self.__subnet[1]['NAME'])
+                    'subnet': jp.STR_EQ(self.__subnets[1])
                 })
             }))))
 
@@ -350,7 +346,7 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             "account": self.ACCOUNT,
             "selectedProvider": "azure",
             "vnet": self.__vnet_name,
-            "subnet": self.__subnet[0]['NAME'],
+            "subnet": self.__subnets[0],
             "useSourceCapacity": False,
             "capacity": {
                 "min": 1,
@@ -702,7 +698,7 @@ def main():
 
     defaults = {
         'TEST_STACK': 'st',
-        'TEST_APP': 'azurebakeanddeploy' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
+        'TEST_APP': 'azure_bake_and_deploy' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
     }
 
     return citest.base.TestRunner.main(
