@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
+import org.springframework.security.web.firewall.StrictHttpFirewall
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
@@ -76,6 +77,13 @@ class IgorConfig extends WebMvcConfigurerAdapter {
         def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
         frb.order = Ordered.HIGHEST_PRECEDENCE
         return frb
+    }
+
+    @Bean
+    StrictHttpFirewall httpFirewall() {
+      def firewall = new StrictHttpFirewall()
+      firewall.allowUrlEncodedSlash = true
+      return firewall
     }
 
     @Bean
