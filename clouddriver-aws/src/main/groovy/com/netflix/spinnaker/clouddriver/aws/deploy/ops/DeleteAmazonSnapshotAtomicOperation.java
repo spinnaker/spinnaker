@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 
+import com.amazonaws.services.ec2.model.AmazonEC2Exception;
 import com.amazonaws.services.ec2.model.DeleteSnapshotRequest;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -62,6 +63,13 @@ public class DeleteAmazonSnapshotAtomicOperation implements AtomicOperation<Void
       amazonClientProvider
           .getAmazonEC2(description.getCredentials(), description.getRegion())
           .deleteSnapshot(new DeleteSnapshotRequest().withSnapshotId(description.getSnapshotId()));
+    } catch (AmazonEC2Exception e) {
+      if (e.getStatusCode() == 400
+          && e.getErrorCode().equalsIgnoreCase("InvalidSnapshot.NotFound")) {
+        log.debug("Snapshot does not exist, ignoring.");
+      } else {
+        throw e;
+      }
     } catch (Exception e) {
       registry
           .counter(
