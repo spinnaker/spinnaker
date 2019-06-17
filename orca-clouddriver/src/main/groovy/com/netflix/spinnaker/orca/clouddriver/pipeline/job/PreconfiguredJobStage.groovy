@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
-
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageProperties
 import com.netflix.spinnaker.orca.clouddriver.exception.PreconfiguredJobNotFoundException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
@@ -30,11 +30,13 @@ import org.springframework.stereotype.Component
 class PreconfiguredJobStage extends RunJobStage {
 
   private JobService jobService
+  private ObjectMapper objectMapper
 
   @Autowired
   public PreconfiguredJobStage(DestroyJobTask destroyJobTask, Optional<JobService> optionalJobService) {
     super(destroyJobTask)
     this.jobService = optionalJobService.orElse(null)
+    this.objectMapper = new ObjectMapper()
   }
 
   @Override
@@ -50,9 +52,14 @@ class PreconfiguredJobStage extends RunJobStage {
   }
 
   private Map<String, Object> overrideIfNotSetInContextAndOverrideDefault(Map<String, Object> context, PreconfiguredJobStageProperties preconfiguredJob) {
+    // without converting this object, assignments to `context[it]` will result in
+    // references being assigned instead of values which causes the overrides in context
+    // to override the underlying job. this avoids that problem by giving us a fresh "copy"
+    // to work wit
+    Map<String, Object> preconfiguredMap = objectMapper.convertValue(preconfiguredJob, Map.class)
     preconfiguredJob.getOverridableFields().each {
-      if (context[it] == null || preconfiguredJob[it] != null) {
-        context[it] = preconfiguredJob[it]
+      if (context[it] == null || preconfiguredMap[it] != null) {
+        context[it] = preconfiguredMap[it]
       }
     }
     preconfiguredJob.parameters.each { defaults ->

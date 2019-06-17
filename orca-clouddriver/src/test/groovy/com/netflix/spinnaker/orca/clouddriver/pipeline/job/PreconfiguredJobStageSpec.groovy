@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageParame
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
+import io.kubernetes.client.models.V1Job
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -53,7 +54,48 @@ class PreconfiguredJobStageSpec extends Specification {
     "cloudProvider" | "kubernetes"    | "testJob" | [account: "test-account"]                                                 | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [], cloudProvider: "kubernetes")
     "cloudProvider" | "titus"         | "testJob" | [account: "test-account"]                                                 | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [new PreconfiguredJobStageParameter(mapping: "cloudProvider", defaultValue: "titus")], cloudProvider: "kubernetes")
     "cloudProvider" | "somethingElse" | "testJob" | [account: "test-account", parameters: ["cloudProvider": "somethingElse"]] | new KubernetesPreconfiguredJobProperties(enabled: true, label: "testJob", type: "testJob", parameters: [new PreconfiguredJobStageParameter(mapping: "cloudProvider", defaultValue: "titus", "name": "cloudProvider")], cloudProvider: "kubernetes")
+  }
 
+  def "should use copy of preconfigured job to populate context"() {
 
+    given:
+    def manifestMetadataName = "defaultName"
+    def overriddenName = "fromParameter"
+    def stage = stage {
+      type = "test"
+      context = [account: "test"]
+    }
+    def property = new KubernetesPreconfiguredJobProperties(
+      enabled: true,
+      label: "test",
+      type: "test",
+      parameters: [
+        new PreconfiguredJobStageParameter(
+          mapping: "manifest.metadata.name",
+          defaultValue: "fromParameter",
+          name: "metadataName"
+        )
+      ],
+      manifest: new V1Job(metadata: [name: "defaultName"])
+    )
+
+    def jobService = Mock(JobService) {
+      2 * getPreconfiguredStages() >> {
+        return [
+          property
+        ]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    // verify that underlying job configuration hasn't been modified
+    def preconfiguredJob = (KubernetesPreconfiguredJobProperties) jobService.getPreconfiguredStages().get(0)
+    preconfiguredJob.getManifest().getMetadata().getName() == manifestMetadataName
+    // verify that stage manifest has the correctly overridden name
+    stage.getContext().get("manifest").metadata.name == overriddenName
   }
 }
