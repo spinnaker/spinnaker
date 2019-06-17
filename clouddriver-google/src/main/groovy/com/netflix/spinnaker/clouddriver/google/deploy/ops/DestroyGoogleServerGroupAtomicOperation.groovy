@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
@@ -56,7 +56,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
   SafeRetry safeRetry
 
   @Autowired
-  GoogleServerGroupManagersFactory serverGroupManagersFactory
+  GoogleComputeApiFactory computeApiFactory
 
   DestroyGoogleServerGroupAtomicOperation(DestroyGoogleServerGroupDescription description) {
     this.description = description
@@ -240,12 +240,12 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
   Closure destroyInstanceGroup(GoogleNamedAccountCredentials credentials, GoogleServerGroup.View serverGroup) {
 
     return {
-      def serverGroupManagers = serverGroupManagersFactory.getManagers(credentials, serverGroup)
+      def serverGroupManagers = computeApiFactory.createServerGroupManagers(credentials, serverGroup)
       def deleteOperation = serverGroupManagers.delete()
 
       task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group..."
 
-      deleteOperation.waitForDone(task, BASE_PHASE)
+      deleteOperation.executeAndWait(task, BASE_PHASE)
       null
     }
   }

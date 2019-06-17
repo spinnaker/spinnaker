@@ -1,14 +1,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.compute.WaitableComputeOperation
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeOperationRequest
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupOperationPoller
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -28,20 +26,18 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
 
   Task task
   GoogleClusterProvider clusterProvider
-  GoogleServerGroupManagersFactory serverGroupManagersFactory
+  GoogleComputeApiFactory computeApiFactory
   GoogleServerGroupManagers serverGroupManagers
   GoogleNamedAccountCredentials credentials
-  GoogleServerGroupOperationPoller poller
 
   def setup() {
     task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
 
-    poller = Mock(GoogleServerGroupOperationPoller)
     serverGroupManagers = Mock(GoogleServerGroupManagers)
 
-    serverGroupManagersFactory = Mock(GoogleServerGroupManagersFactory) {
-      _ * getManagers(*_) >> serverGroupManagers
+    computeApiFactory = Mock(GoogleComputeApiFactory) {
+      _ * createServerGroupManagers(*_) >> serverGroupManagers
     }
 
     clusterProvider = Mock(GoogleClusterProvider) {
@@ -56,9 +52,10 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
       region: REGION,
       deviceName: DEVICE_NAME,
       credentials: CREDENTIALS)
-    def operation = new SetStatefulDiskAtomicOperation(clusterProvider, serverGroupManagersFactory, description)
-    def updateOp = Mock(WaitableComputeOperation)
-    _ * serverGroupManagers.get() >> new InstanceGroupManager()
+    def operation = new SetStatefulDiskAtomicOperation(clusterProvider, computeApiFactory, description)
+    def updateOp = Mock(GoogleComputeOperationRequest)
+    def getManagerRequest = { new InstanceGroupManager() }
+    _ * serverGroupManagers.get() >> getManagerRequest
 
     when:
     operation.operate([])
@@ -67,6 +64,6 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
     1 * serverGroupManagers.update({
       it.getStatefulPolicy().getPreservedState().getDisks().containsKey(DEVICE_NAME)
     }) >> updateOp
-    1 * updateOp.waitForDone(task, /* phase= */ _)
+    1 * updateOp.executeAndWait(task, /* phase= */ _)
   }
 }

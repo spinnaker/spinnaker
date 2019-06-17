@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,7 +46,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation extends GoogleAtomicOp
   GoogleClusterProvider googleClusterProvider
 
   @Autowired
-  GoogleServerGroupManagersFactory serverGroupManagersFactory
+  GoogleComputeApiFactory computeApiFactory
 
   AbandonAndDecrementGoogleServerGroupAtomicOperation(AbandonAndDecrementGoogleServerGroupDescription description) {
     this.description = description
@@ -70,8 +70,8 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation extends GoogleAtomicOp
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
 
-    def serverGroupManagers = serverGroupManagersFactory.getManagers(credentials, serverGroup)
-    serverGroupManagers.abandonInstances(instanceUrls)
+    def serverGroupManagers = computeApiFactory.createServerGroupManagers(credentials, serverGroup)
+    serverGroupManagers.abandonInstances(instanceUrls).execute()
 
     task.updateStatus BASE_PHASE, "Done abandoning and decrementing instances " +
       "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."

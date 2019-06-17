@@ -7,9 +7,8 @@ import com.google.api.services.compute.model.StatefulPolicyPreservedStateDiskDev
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers;
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory;
-import com.netflix.spinnaker.clouddriver.google.compute.WaitableComputeOperation;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
@@ -24,15 +23,15 @@ public class SetStatefulDiskAtomicOperation extends GoogleAtomicOperation<Void> 
   private static final String BASE_PHASE = "SET_STATEFUL_DISK";
 
   private final GoogleClusterProvider clusterProvider;
-  private final GoogleServerGroupManagersFactory serverGroupManagersFactory;
+  private final GoogleComputeApiFactory computeApiFactory;
   private final SetStatefulDiskDescription description;
 
   public SetStatefulDiskAtomicOperation(
       GoogleClusterProvider clusterProvider,
-      GoogleServerGroupManagersFactory serverGroupManagersFactory,
+      GoogleComputeApiFactory computeApiFactory,
       SetStatefulDiskDescription description) {
     this.clusterProvider = clusterProvider;
-    this.serverGroupManagersFactory = serverGroupManagersFactory;
+    this.computeApiFactory = computeApiFactory;
     this.description = description;
   }
 
@@ -65,23 +64,19 @@ public class SetStatefulDiskAtomicOperation extends GoogleAtomicOperation<Void> 
 
     try {
       GoogleServerGroupManagers managers =
-          serverGroupManagersFactory.getManagers(description.getCredentials(), serverGroup);
+          computeApiFactory.createServerGroupManagers(description.getCredentials(), serverGroup);
 
       task.updateStatus(BASE_PHASE, "Retrieving current instance group definition");
 
-      InstanceGroupManager instanceGroupManager = managers.get();
-
-      task.updateStatus(BASE_PHASE, "Retrieving associated instance template definition");
+      InstanceGroupManager instanceGroupManager = managers.get().execute();
 
       setStatefulPolicy(instanceGroupManager);
 
       task.updateStatus(BASE_PHASE, "Storing updated instance group definition");
 
-      WaitableComputeOperation operation = managers.update(instanceGroupManager);
-
-      task.updateStatus(BASE_PHASE, "Waiting for update to complete");
-
-      operation.waitForDone(TaskRepository.threadLocalTask.get(), BASE_PHASE);
+      managers
+          .update(instanceGroupManager)
+          .executeAndWait(TaskRepository.threadLocalTask.get(), BASE_PHASE);
 
       return null;
     } catch (IOException e) {

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation;
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SetStatefulDiskAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
@@ -17,20 +17,19 @@ public class SetStatefulDiskAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
 
   private final GoogleClusterProvider clusterProvider;
-  private final GoogleServerGroupManagersFactory serverGroupManagersFactory;
+  private final GoogleComputeApiFactory computeApiFactory;
 
   @Autowired
   public SetStatefulDiskAtomicOperationConverter(
-      GoogleClusterProvider clusterProvider,
-      GoogleServerGroupManagersFactory serverGroupManagersFactory) {
+      GoogleClusterProvider clusterProvider, GoogleComputeApiFactory computeApiFactory) {
     this.clusterProvider = clusterProvider;
-    this.serverGroupManagersFactory = serverGroupManagersFactory;
+    this.computeApiFactory = computeApiFactory;
   }
 
   @Override
   public SetStatefulDiskAtomicOperation convertOperation(Map input) {
     return new SetStatefulDiskAtomicOperation(
-        clusterProvider, serverGroupManagersFactory, convertDescription(input));
+        clusterProvider, computeApiFactory, convertDescription(input));
   }
 
   @Override

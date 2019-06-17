@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.SetStatefulDiskAtomicOperation;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
@@ -33,8 +33,7 @@ public class SetStatefulDiskAtomicOperationConverterTest {
   @Before
   public void setUp() {
     GoogleClusterProvider clusterProvider = mock(GoogleClusterProvider.class);
-    GoogleServerGroupManagersFactory serverGroupManagersFactory =
-        mock(GoogleServerGroupManagersFactory.class);
+    GoogleComputeApiFactory serverGroupManagersFactory = mock(GoogleComputeApiFactory.class);
     converter =
         new SetStatefulDiskAtomicOperationConverter(clusterProvider, serverGroupManagersFactory);
 

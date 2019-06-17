@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
@@ -115,7 +115,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
-      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
+      operation.computeApiFactory = new GoogleComputeApiFactory(operation.googleOperationPoller, registry)
 
     when:
       operation.operate([])
@@ -225,7 +225,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
-      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
+      operation.computeApiFactory = new GoogleComputeApiFactory(operation.googleOperationPoller, registry)
 
     when:
       operation.operate([])
@@ -362,7 +362,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
-      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
+      operation.computeApiFactory = new GoogleComputeApiFactory(operation.googleOperationPoller, registry)
 
     when:
       def closure = operation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock)
