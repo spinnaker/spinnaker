@@ -162,14 +162,14 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
                       + "\" was patched by \""
                       + patchVersion.get().getVersion()
                       + "\". Please upgrade when possible.")
-              .setRemediation("https://spinnaker.io/setup/install/upgrades/");
+              .setRemediation("https://www.spinnaker.io/community/releases/versions/");
         } else {
           p.addProblem(
                   Problem.Severity.WARNING,
                   "Version \""
                       + version
                       + "\" is no longer supported by the Spinnaker team. Please upgrade when possible.")
-              .setRemediation("https://spinnaker.io/setup/install/upgrades/");
+              .setRemediation("https://www.spinnaker.io/community/releases/versions/");
         }
       } else {
         p.addProblem(

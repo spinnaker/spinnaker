@@ -58,7 +58,8 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--artifacts",
-      description = "Enable artifact support. Read more at spinnaker.io/reference/artifacts",
+      description =
+          "Enable artifact support. Read more at https://spinnaker.io/reference/artifacts/",
       arity = 1)
   private Boolean artifacts = null;
 

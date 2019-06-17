@@ -32,7 +32,7 @@ public class KubernetesCommandProperties {
 
   static final String KINDS_DESCRIPTION =
       "(V2 Only) A list of resource kinds this Spinnaker account can deploy to and will cache.\n"
-          + "When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2'.";
+          + "When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2/'.";
 
   static final String OMIT_KINDS_DESCRIPTION =
       "(V2 Only) A list of resource kinds this Spinnaker account cannot deploy to or cache.\n"

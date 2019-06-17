@@ -4,7 +4,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-[Halyard Docs](https://www.spinnaker.io/setup/install/halyard/) are available on [spinnaker.io](https://spinnaker.io)
+[Halyard Docs](https://spinnaker.io/setup/install/halyard/) are available on [spinnaker.io](https://spinnaker.io)
 
 ![](./demo.gif)
 
@@ -13,7 +13,7 @@ A tool for configuring, installing, and updating Spinnaker.
 > __NOTICE:__ This tool is in Beta - some behavior may still change. Please
 > report any bugs/problems/questions on [the issue
 > tracker](https://github.com/spinnaker/spinnaker/issues) or in
-> [slack](http://join.spinnaker.io).
+> [slack](https://join.spinnaker.io).
 
 ```
 $ curl -O https://raw.githubusercontent.com/spinnaker/halyard/master/install/debian/InstallHalyard.sh

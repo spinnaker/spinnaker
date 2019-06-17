@@ -42,7 +42,7 @@ public class AccountValidator extends Validator<Account> {
           Problem.Severity.WARNING,
           "requiredGroupMembership has been "
               + "deprecated. Please consider moving to using permissions with the flags --read-permissions "
-              + "and --write-permissions instead. Read more at https://www.spinnaker.io/setup/security/authorization.");
+              + "and --write-permissions instead. Read more at https://spinnaker.io/setup/security/authorization.");
     }
   }
 }

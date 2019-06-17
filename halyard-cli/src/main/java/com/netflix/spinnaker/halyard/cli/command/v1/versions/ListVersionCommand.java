@@ -41,7 +41,7 @@ public class ListVersionCommand extends AbstractConfigCommand {
           "All Spinnaker releases that have been fully validated are listed here.",
           "You can pick one of these releases to deploy using the `hal config version edit`",
           "command. There are unlisted, non-supported releases as well, but we advise against",
-          "running them. For more information, contact the developers at http://join.spinnaker.io.");
+          "running them. For more information, contact the developers at https://join.spinnaker.io.");
 
   @Override
   protected void executeThis() {

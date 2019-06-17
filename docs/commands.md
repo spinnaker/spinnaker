@@ -557,7 +557,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information.
+If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on https://spinnaker.io/reference/halyard/ for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information.
 
 
 #### Usage
@@ -5644,7 +5644,7 @@ hal config features edit [parameters]
 
 #### Parameters
  * `--appengine-container-image-url-deployments`: Enable appengine deployments using a container image URL from gcr.io.
- * `--artifacts`: Enable artifact support. Read more at spinnaker.io/reference/artifacts
+ * `--artifacts`: Enable artifact support. Read more at https://spinnaker.io/reference/artifacts/
  * `--chaos`: Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here https://github.com/Netflix/chaosmonkey/wiki.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--gremlin`: Enable Gremlin fault-injection support.
@@ -8323,7 +8323,7 @@ When no context is configured for an account the 'current-context' in your kubec
  * `--docker-registries`: (*Default*: `[]`) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--kinds`: (*Default*: `[]`) (V2 Only) A list of resource kinds this Spinnaker account can deploy to and will cache.
-When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2'.
+When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2/'.
  * `--kubeconfig-file`: The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical .kube/config location.
  * `--live-manifest-calls`: When true, clouddriver will query manifest status during pipeline executions using live data rather than the cache.
 This eliminates all time spent in the "force cache refresh" task in pipelines, greatly reducing execution time.
@@ -8392,7 +8392,7 @@ When no context is configured for an account the 'current-context' in your kubec
  * `--docker-registries`: (*Default*: `[]`) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--kinds`: (*Default*: `[]`) (V2 Only) A list of resource kinds this Spinnaker account can deploy to and will cache.
-When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2'.
+When no kinds are configured, this defaults to 'all kinds described here https://spinnaker.io/reference/providers/kubernetes-v2/'.
  * `--kubeconfig-file`: The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical .kube/config location.
  * `--live-manifest-calls`: When true, clouddriver will query manifest status during pipeline executions using live data rather than the cache.
 This eliminates all time spent in the "force cache refresh" task in pipelines, greatly reducing execution time.
@@ -10581,7 +10581,7 @@ hal version latest
 ---
 ## hal version list
 
-All Spinnaker releases that have been fully validated are listed here. You can pick one of these releases to deploy using the `hal config version edit` command. There are unlisted, non-supported releases as well, but we advise against running them. For more information, contact the developers at http://join.spinnaker.io.
+All Spinnaker releases that have been fully validated are listed here. You can pick one of these releases to deploy using the `hal config version edit` command. There are unlisted, non-supported releases as well, but we advise against running them. For more information, contact the developers at https://join.spinnaker.io.
 
 #### Usage
 ```

@@ -69,7 +69,7 @@ public class HalCommand extends NestableCommand {
   public String getShortDescription() {
     return "A tool for configuring, installing, and updating Spinnaker.\n\n"
         + "If this is your first time using Halyard to install Spinnaker we recommend that you skim "
-        + "the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any "
+        + "the documentation on https://spinnaker.io/reference/halyard/ for some familiarity with the product. If at any "
         + "point you get stuck using 'hal', every command can be suffixed with '--help' for usage "
         + "information.\n";
   }
