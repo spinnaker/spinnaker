@@ -38,6 +38,7 @@ import java.io.Console;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.nibor.autolink.*;
 import retrofit.RetrofitError;
 
 @Parameters(separators = "=")
@@ -369,7 +371,27 @@ public abstract class NestableCommand {
       result.append("(*Sensitive data* - user will be prompted on standard input) ");
     }
 
-    result.append(parameterDescription.getDescription()).append("\n");
+    result.append(linkify(parameterDescription.getDescription())).append("\n");
+  }
+
+  private StringBuilder linkify(String parameterDescription) {
+    LinkExtractor linkExtractor =
+        LinkExtractor.builder()
+            .linkTypes(EnumSet.of(LinkType.URL)) // limit to URLs
+            .build();
+    Iterable<Span> spans = linkExtractor.extractSpans(parameterDescription);
+    StringBuilder sb = new StringBuilder();
+    for (Span span : spans) {
+      String text = parameterDescription.substring(span.getBeginIndex(), span.getEndIndex());
+      if (span instanceof LinkSpan) {
+        // span is a URL
+        sb.append("[" + text + "](" + text + ")");
+      } else {
+        // span is plain text before/after link
+        sb.append(text);
+      }
+    }
+    return sb;
   }
 
   public String generateDocs() {
@@ -420,7 +442,7 @@ public abstract class NestableCommand {
         .append("## ")
         .append(fullCommandName)
         .append("\n\n")
-        .append(getLongDescription())
+        .append(linkify(getLongDescription()))
         .append("\n\n")
         .append("#### Usage")
         .append("\n```\n")

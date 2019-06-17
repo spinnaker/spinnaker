@@ -21,6 +21,7 @@ dependencies {
     // com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand :287 and :414
     force = true
   }
+  implementation 'org.nibor.autolink:autolink:0.10.0'
 
   implementation project(':halyard-config')
   implementation project(':halyard-core')
