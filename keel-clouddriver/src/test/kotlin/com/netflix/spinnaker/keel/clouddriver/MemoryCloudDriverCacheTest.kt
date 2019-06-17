@@ -7,12 +7,11 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import strikt.api.catching
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.throws
 
 object MemoryCloudDriverCacheTest {
 
@@ -86,10 +85,9 @@ object MemoryCloudDriverCacheTest {
       cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
     } returns securityGroupSummaries
 
-    expectThat(catching {
+    expectThrows<ResourceNotFound> {
       subject.securityGroupById("prod", "us-east-1", "sg-4")
-    })
-      .throws<ResourceNotFound>()
+    }
   }
 
   @Test
@@ -113,8 +111,9 @@ object MemoryCloudDriverCacheTest {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
-    expectThat(catching { subject.networkBy("vpc-5") })
-      .throws<ResourceNotFound>()
+    expectThrows<ResourceNotFound> {
+      subject.networkBy("vpc-5")
+    }
   }
 
   @Test
@@ -134,10 +133,9 @@ object MemoryCloudDriverCacheTest {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
-    expectThat(catching {
+    expectThrows<ResourceNotFound> {
       subject.networkBy("invalid", "prod", "us-west-2")
-    })
-      .throws<ResourceNotFound>()
+    }
   }
 
   @Test
