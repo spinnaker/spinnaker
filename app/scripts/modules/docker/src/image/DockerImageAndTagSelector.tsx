@@ -239,7 +239,7 @@ export class DockerImageAndTagSelector extends React.Component<
     }
   }
 
-  private updateThings(props: IDockerImageAndTagSelectorProps) {
+  private updateThings(props: IDockerImageAndTagSelectorProps, allowAutoSwitchToManualEntry = false) {
     if (!this.repositoryMap) {
       return;
     }
@@ -276,7 +276,11 @@ export class DockerImageAndTagSelector extends React.Component<
       tagOptions: tags.sort().map(t => ({ label: t, value: t })),
     } as IDockerImageAndTagSelectorState;
 
-    if (imageId && !this.state.imagesLoaded && (!organizationFound || !repositoryFound || !tagFound)) {
+    if (
+      imageId &&
+      (!this.state.imagesLoaded || allowAutoSwitchToManualEntry) &&
+      (!organizationFound || !repositoryFound || !tagFound)
+    ) {
       newState.defineManually = true;
 
       const missingFields: string[] = [];
@@ -327,7 +331,7 @@ export class DockerImageAndTagSelector extends React.Component<
         this.organizationMap = this.getOrganizationMap(this.images);
         this.repositoryMap = this.getRepositoryMap(this.images);
         this.organizations = this.getOrganizationsList(this.accountMap);
-        this.updateThings(props);
+        this.updateThings(props, true);
       })
       .finally(() => {
         this.setState({
