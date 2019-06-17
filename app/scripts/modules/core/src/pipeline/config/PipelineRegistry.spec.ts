@@ -6,6 +6,7 @@ import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { IRegion } from 'core/account/AccountService';
 import { Registry } from 'core/registry';
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
+import { PipelineRegistry } from './PipelineRegistry';
 
 const mockProviderAccount = {
   accountId: 'abc',
@@ -179,6 +180,104 @@ describe('PipelineRegistry: API', function() {
         expect(Registry.pipeline.getStageConfig({ type: 'b' } as IStage)).toBe(null);
       }),
     );
+  });
+
+  describe('getStageConfig all permutations', function() {
+    const unmatchedStage = { key: 'unmatched', description: 'Unmatched stage' };
+    const simpleStage = { key: 'a', description: 'Simple stage with no provides or alias' };
+    const renamedStage = {
+      key: 'b',
+      alias: 'z',
+      description:
+        '(Renamed) Stage used to be called "z" but is now standardized to "b", we still need to be able to match "z" stages to this config',
+    };
+    const redirectedStage = {
+      key: 'zc',
+      alias: 'c',
+      description:
+        '(Redirected) Stage "za" does not actually exist, we want orca to run "a" but match "za" to this config instead of "a"',
+    };
+    const actualStage = {
+      key: 'c',
+      description: 'Actual stage that redirected stage aliases to, this is what orca would actually run for "zc"',
+    };
+    const titusStage = {
+      key: 'd',
+      provides: 'd',
+      cloudProvider: 'titus',
+      description: 'Titus implementation of "c" stage',
+    };
+    const awsStage = {
+      key: 'd',
+      provides: 'd',
+      cloudProvider: 'aws',
+      description: 'Amazon implementation of "c" stage',
+    };
+
+    const slimmaker = [unmatchedStage, simpleStage, renamedStage, redirectedStage, actualStage, titusStage, awsStage];
+
+    it('matches stage.type with stageType.key', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'a' } as IStage)).toEqual(simpleStage);
+    });
+
+    it('matches to "unmatched" stage when no matches are found', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'x' } as IStage)).toEqual(unmatchedStage);
+    });
+
+    it('matches nothing (returns null) when "unmatched" stage was not registered', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.filter(stage => stage !== unmatchedStage).forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'x' } as IStage)).toEqual(null);
+    });
+
+    it('matches renamed stage with both stageType.key or (legacy) stageType.alias', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'b' } as IStage)).toEqual(renamedStage);
+      expect(pipelineRegistry.getStageConfig({ type: 'z' } as IStage)).toEqual(renamedStage);
+    });
+
+    it('matches redirected stage.type with stageType.key even when stageType.alias collides with stageType.key of the actual stage', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'zc' } as IStage)).toEqual(redirectedStage);
+    });
+
+    it('matches redirected stage.alias to the actual stage as a fallback when stage.type cannot be matched to a stageType.key (gracefully degrade to the underlying type)', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.filter(stage => stage !== redirectedStage).forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'zc', alias: 'c' } as IStage)).toEqual(actualStage);
+    });
+
+    it('matches redirect targets to ensure the actual stages do not get broken simply by having other stages alias to them', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig({ type: 'c' } as IStage)).toEqual(actualStage);
+    });
+
+    it('matches provided stages to their cloudProvider specific stages', function() {
+      const pipelineRegistry = new PipelineRegistry();
+      slimmaker.forEach(stage => pipelineRegistry.registerStage(stage));
+
+      expect(pipelineRegistry.getStageConfig(({ type: 'd', cloudProvider: 'titus' } as unknown) as IStage)).toEqual(
+        titusStage,
+      );
+      expect(pipelineRegistry.getStageConfig(({ type: 'd', cloudProvider: 'aws' } as unknown) as IStage)).toEqual(
+        awsStage,
+      );
+      expect(pipelineRegistry.getStageConfig({ type: 'd' } as IStage)).toEqual(awsStage);
+    });
   });
 
   describe('stage type retrieval', function() {

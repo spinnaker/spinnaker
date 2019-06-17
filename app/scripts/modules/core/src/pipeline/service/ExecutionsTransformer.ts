@@ -312,6 +312,10 @@ export class ExecutionsTransformer {
       }
       const context = stage.context || {};
       stage.cloudProvider = context.cloudProvider || context.cloudProviderType;
+
+      if (context.alias) {
+        stage.alias = context.alias;
+      }
     });
 
     OrchestratedItemTransformer.defineProperties(execution);

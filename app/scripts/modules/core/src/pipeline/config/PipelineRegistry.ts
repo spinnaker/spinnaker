@@ -219,16 +219,53 @@ export class PipelineRegistry {
     }
   }
 
+  /**
+   * Checks stage.type against stageType.alias to match stages that may have run as a legacy type.
+   * StageTypes set alias='legacyName' for backwards compatibility
+   * @param stage
+   */
+  private checkAliasedStageTypes(stage: IStage): IStageTypeConfig {
+    const aliasedMatches = this.getStageTypes().filter(stageType => stageType.alias === stage.type);
+    if (aliasedMatches.length === 1) {
+      return aliasedMatches[0];
+    }
+    return null;
+  }
+
+  /**
+   * Checks stage.alias against stageType.key to gracefully degrade redirected stages
+   * For stages that don't actually exist in orca, if we couldn't find a match for them in deck either
+   * (i.e. deprecated/deleted) this allows us to fallback to the stage type that actually ran in orca
+   * @param stage
+   */
+  private checkAliasFallback(stage: IStage): IStageTypeConfig {
+    if (stage.alias) {
+      // Allow fallback to an exact match with stage.alias
+      const aliasMatches = this.getStageTypes().filter(stageType => stageType.key === stage.alias);
+      if (aliasMatches.length === 1) {
+        return aliasMatches[0];
+      }
+    }
+    return null;
+  }
+
   public getStageConfig(stage: IStage): IStageTypeConfig {
     if (!stage || !stage.type) {
       return null;
     }
     const matches = this.getStageTypes().filter(stageType => {
-      return stageType.key === stage.type || stageType.provides === stage.type || stageType.alias === stage.type;
+      return stageType.key === stage.type || stageType.provides === stage.type;
     });
 
     switch (matches.length) {
       case 0:
+        // There are really only 2 usages for 'alias':
+        // - to allow deck to still find a match for legacy stage types
+        // - to have stages that actually run as their 'alias' in orca (addAliasToConfig) because their 'key' doesn't actually exist
+        const aliasMatch = this.checkAliasedStageTypes(stage) || this.checkAliasFallback(stage);
+        if (aliasMatch) {
+          return aliasMatch;
+        }
         return this.getStageTypes().find(s => s.key === 'unmatched') || null;
       case 1:
         return matches[0];
