@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { extend, get } from 'lodash';
+import { extend, get, isEqual } from 'lodash';
 import { Option } from 'react-select';
 import { format } from 'date-fns';
 
@@ -14,7 +14,7 @@ import { IJitter, IRestrictedExecutionWindow, ITimelineWindow, IWindow } from '.
 
 import './executionWindows.less';
 
-const { useEffect, useState } = React;
+const { useState } = React;
 
 export interface IExecutionWindowsConfigProps {
   restrictExecutionDuringTimeWindow: boolean | string;
@@ -48,18 +48,10 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
     left: (hour.value / 24) * 100 + '%',
   }));
 
-  useEffect(() => {
-    if (!props.restrictExecutionDuringTimeWindow) {
-      props.updateStageField({
-        restrictedExecutionWindow: {
-          whitelist: [],
-          days: [],
-          jitter: defaultJitter,
-        },
-      });
-      setTimelineWindows([]);
-    }
-  }, [props.restrictExecutionDuringTimeWindow]);
+  // if the user edits the stage as JSON, we'll get a re-render, but the state will be possibly stale, so reset
+  if (!isEqual(getTimelineWindows(whitelist), timelineWindows)) {
+    setTimelineWindows(getTimelineWindows(whitelist));
+  }
 
   const jitterUpdated = (changes: Partial<IJitter>) => {
     let newJitterValue: IJitter = { ...jitter };
@@ -86,7 +78,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
       endMin: 0,
     };
     const restrictedExecutionWindow = {
-      ...props.restrictedExecutionWindow,
+      ...(props.restrictedExecutionWindow || {}),
       whitelist: [...whitelist, newExecutionWindow],
     };
     props.updateStageField({ restrictedExecutionWindow });
