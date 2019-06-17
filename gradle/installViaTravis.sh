@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the project.
 
-GRADLE="./gradlew -I gradle/init-publish.gradle"
+GRADLE="./gradlew -PenablePublishing=true"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   echo -e "Assemble Pull Request #$TRAVIS_PULL_REQUEST => Branch [$TRAVIS_BRANCH]"

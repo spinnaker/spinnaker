@@ -29,16 +29,18 @@ buildscript {
 }
 
 allprojects {
-    group = "com.netflix.spinnaker.echo"
-    apply plugin: "spinnaker.base-project"
-    if (Boolean.valueOf(enablePublishing)) {
-        apply plugin: "spinnaker.project"
-    }
+  group = "com.netflix.spinnaker.echo"
+  apply plugin: "spinnaker.base-project"
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: "spinnaker.project"
+  }
+
+  group = "com.netflix.spinnaker.echo"
+  if (name != "echo-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
     apply plugin: 'jacoco'
 
-    group = "com.netflix.spinnaker.echo"
 
     test {
       testLogging {
@@ -51,39 +53,41 @@ allprojects {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8189'
       }
     }
-
+  }
 }
 
 subprojects {
+  if (name != "echo-bom") {
     jacoco {
-        toolVersion = '0.8.3'
+      toolVersion = '0.8.3'
     }
 
     dependencies {
-        implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-        annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-        testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-        compileOnly "org.projectlombok:lombok"
-        annotationProcessor "org.projectlombok:lombok"
-        testAnnotationProcessor "org.projectlombok:lombok"
+      implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      compileOnly "org.projectlombok:lombok"
+      annotationProcessor "org.projectlombok:lombok"
+      testAnnotationProcessor "org.projectlombok:lombok"
 
-        implementation "org.codehaus.groovy:groovy-all"
-        implementation "com.github.ben-manes.caffeine:guava"
-        implementation "com.netflix.spectator:spectator-api"
-        implementation "org.slf4j:slf4j-api"
-        implementation "net.logstash.logback:logstash-logback-encoder"
-        implementation "org.springframework.boot:spring-boot-properties-migrator"
+      implementation "org.codehaus.groovy:groovy-all"
+      implementation "com.github.ben-manes.caffeine:guava"
+      implementation "com.netflix.spectator:spectator-api"
+      implementation "org.slf4j:slf4j-api"
+      implementation "net.logstash.logback:logstash-logback-encoder"
+      implementation "org.springframework.boot:spring-boot-properties-migrator"
 
-        testImplementation "org.spockframework:spock-core"
+      testImplementation "org.spockframework:spock-core"
 
-        testImplementation "org.springframework.boot:spring-boot-starter-test"
-        testImplementation "org.spockframework:spock-core"
-        testImplementation "org.spockframework:spock-spring"
-        testImplementation "org.springframework:spring-test"
-        testImplementation "org.hamcrest:hamcrest-core"
-        testRuntimeOnly "cglib:cglib-nodep"
-        testRuntimeOnly "org.objenesis:objenesis"
+      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation "org.spockframework:spock-core"
+      testImplementation "org.spockframework:spock-spring"
+      testImplementation "org.springframework:spring-test"
+      testImplementation "org.hamcrest:hamcrest-core"
+      testRuntimeOnly "cglib:cglib-nodep"
+      testRuntimeOnly "org.objenesis:objenesis"
     }
+  }
 }
 
 defaultTasks ':echo-web:run'
