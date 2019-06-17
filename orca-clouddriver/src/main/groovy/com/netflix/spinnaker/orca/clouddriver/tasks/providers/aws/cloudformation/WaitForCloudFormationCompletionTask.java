@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -47,14 +48,14 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       Map task = ((List<Map>) stage.getContext().get("kato.tasks")).iterator().next();
       Map result = ((List<Map>) task.get("resultObjects")).iterator().next();
       String stackId = (String) result.get("stackId");
-      Map stack = oortService.getCloudFormationStack(stackId);
+      Map<String, ?> stack = (Map<String, Object>) oortService.getCloudFormationStack(stackId);
       log.info(
           "Received cloud formation stackId "
               + stackId
               + " with status "
               + stack.get("stackStatus"));
       if (isComplete(stack.get("stackStatus"))) {
-        return TaskResult.SUCCEEDED;
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(stack).build();
       } else if (isInProgress(stack.get("stackStatus"))) {
         return TaskResult.RUNNING;
       } else if (isFailed(stack.get("stackStatus"))) {
