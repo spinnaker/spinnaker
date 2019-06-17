@@ -62,9 +62,7 @@ class ImageHandler(
 
   override suspend fun current(resource: Resource<ImageSpec>): Image? =
     with(resource) {
-      val artifact = DeliveryArtifact(spec.artifactName, DEB)
-      val latestVersion = artifact.findLatestVersion()
-      imageService.getLatestImage(spec.artifactName, latestVersion, "test")
+      imageService.getLatestImage(spec.artifactName, "test")
     }
 
   private fun DeliveryArtifact.findLatestVersion(): String =

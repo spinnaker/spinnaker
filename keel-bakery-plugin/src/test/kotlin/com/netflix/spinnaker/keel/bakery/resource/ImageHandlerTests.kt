@@ -142,39 +142,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               )
             )
 
-          coEvery { theCloudDriver.namedImages(image.appVersion, "test") } returns
-            listOf(
-              NamedImage(
-                imageName = "keel-0.161.0-h63.24d0843-x86_64-20190422190426-xenial-hvm-sriov-ebs",
-                attributes = mapOf(
-                  "virtualizationType" to "hvm",
-                  "creationDate" to "2019-04-22T19:08:59.000Z"
-                ),
-                tagsByImageId = mapOf(
-                  "ami-0863f573375b40615" to mapOf(
-                    "appversion" to image.appVersion,
-                    "base_ami_version" to image.baseAmiVersion,
-                    "build_host" to "https://spinnaker.builds.test.netflix.net/",
-                    "creation_time" to "2019-04-22 19:08:17 UTC",
-                    "creator" to "delivery-engineering@netflix.com"
-                  ),
-                  "ami-04c1f962313f1890d" to mapOf(
-                    "appversion" to image.appVersion,
-                    "base_ami_version" to image.baseAmiVersion,
-                    "build_host" to "https://spinnaker.builds.test.netflix.net/",
-                    "creation_time" to "2019-04-22 19:09:00 UTC",
-                    "creator" to "delivery-engineering@netflix.com"
-                  )
-                ),
-                accounts = setOf("mgmt", "mgmttest", "test"),
-                amis = mapOf(
-                  "us-west-2" to listOf("ami-0863f573375b40615"),
-                  "us-east-1" to listOf("ami-04c1f962313f1890d")
-                )
-              )
-            )
-
-          coEvery { imageService.getLatestImage("keel", "keel-0.161.0-h63.24d0843", "test") } returns image
+          coEvery { imageService.getLatestImage("keel", "test") } returns image
         }
 
         test("desired state composes application and base image versions") {

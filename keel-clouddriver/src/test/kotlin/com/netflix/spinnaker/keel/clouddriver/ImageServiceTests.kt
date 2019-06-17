@@ -19,6 +19,8 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
+import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -28,7 +30,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 
-object ImageServiceTest {
+internal class ImageServiceTests {
   val cloudDriver = mockk<CloudDriverService>()
   val subject = ImageService(cloudDriver)
 
@@ -95,8 +97,11 @@ object ImageServiceTest {
     )
   )
 
+  val newestImage = listOf(image1, image2, image3)
+    .maxBy { it.creationDate } ?: error("can't find latest image in fixture")
+
   @Test
-  fun `namedImages are in cronological order`() {
+  fun `namedImages are in chronological order`() {
     val sortedImages = listOf(image2, image3, image1).sortedWith(NamedImageComparator)
     expectThat(sortedImages.last()) {
       get { imageName }.isEqualTo("my-package-0.0.1_rc.99-h100")
@@ -106,13 +111,15 @@ object ImageServiceTest {
   @Test
   fun `get latest image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages("my-package-0.0.1_rc.98-h99", "test")
+      cloudDriver.namedImages("my-package", "test")
     } returns listOf(image2, image3, image1)
 
     runBlocking {
-      val image = subject.getLatestImage("my-package", "my-package-0.0.1_rc.98-h99", "test")
-      expectThat(image).isNotNull()
-      expectThat(image?.appVersion).equals("my-package-0.0.1~rc.98-h99.4cb755c/JENKINS-job/99")
+      val image = subject.getLatestImage("my-package", "test")
+      expectThat(image)
+        .isNotNull()
+        .get { appVersion }
+        .isEqualTo(newestImage.appVersion)
     }
   }
 
@@ -124,8 +131,10 @@ object ImageServiceTest {
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
-      expectThat(image).isNotNull()
-      expectThat(image?.imageName).equals("my-package-0.0.1_rc.99-h100")
+      expectThat(image)
+        .isNotNull()
+        .get { imageName }
+        .isEqualTo(newestImage.imageName)
     }
   }
 
@@ -137,7 +146,8 @@ object ImageServiceTest {
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
-      expectThat(image).isNull()
+      expectThat(image)
+        .isNull()
     }
   }
 
@@ -155,8 +165,10 @@ object ImageServiceTest {
         buildName = "JENKINS-job",
         buildNumber = "98"
       )
-      expectThat(image).isNotNull()
-      expectThat(image?.imageName).equals("my-package-0.0.1_rc.97-h98")
+      expectThat(image)
+        .isNotNull()
+        .get { imageName }
+        .isEqualTo("my-package-0.0.1_rc.97-h98")
     }
   }
 }

@@ -28,30 +28,29 @@ class ImageService(
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  /**
-   * version like keel-0.173.0-h79.ff1948a
-   */
-  suspend fun getLatestImage(artifactName: String, version: String, account: String): Image? {
-    return cloudDriverService.namedImages(version, account)
+  suspend fun getLatestImage(artifactName: String, account: String): Image? {
+    return cloudDriverService.namedImages(artifactName, account)
       .sortedWith(NamedImageComparator)
       .lastOrNull()
       ?.let { namedImage ->
-        val tags = namedImage
+        namedImage
           .tagsByImageId
           .values
-          .first { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-        return if (tags == null) {
-          log.debug("Image not found for {} version {}", artifactName, version)
-          null
-        } else {
-          val image = Image(
-            tags.getValue("base_ami_version")!!,
-            tags.getValue("appversion")!!.substringBefore('/'),
-            namedImage.amis.keys
-          )
-          log.debug("Latest image for {} version {} is {}", artifactName, version, image)
-          image
-        }
+          .firstOrNull { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
+          .let { tags ->
+            if (tags == null) {
+              log.debug("No images found for {}", artifactName)
+              null
+            } else {
+              val image = Image(
+                tags.getValue("base_ami_version")!!,
+                tags.getValue("appversion")!!.substringBefore('/'),
+                namedImage.amis.keys
+              )
+              log.debug("Latest image for {} is {}", artifactName, image)
+              image
+            }
+          }
       }
   }
 

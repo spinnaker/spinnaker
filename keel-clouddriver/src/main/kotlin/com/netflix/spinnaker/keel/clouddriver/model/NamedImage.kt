@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.clouddriver.Dates
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.Instant
+import java.time.Period
 
 data class NamedImage(
   val imageName: String,
@@ -12,28 +11,25 @@ data class NamedImage(
   val amis: Map<String, List<String>?>
 )
 
-class NamedImageComparator {
-
-  companion object : Comparator<NamedImage> {
-
-    override fun compare(a: NamedImage, b: NamedImage): Int =
-      (a.creationMs - b.creationMs).toInt()
-  }
+object NamedImageComparator : Comparator<NamedImage> {
+  override fun compare(a: NamedImage, b: NamedImage): Int =
+    a.creationDate.compareTo(b.creationDate)
 }
 
-private val NamedImage.creationMs: Long
-  get() {
-    if (!attributes.containsKey("creationDate") || attributes["creationDate"] !is String) {
+val NamedImage.creationDate: Instant
+  get() =
+    if (attributes["creationDate"] !is String) {
       // if no creation date, we will assume it is very old.
-      return LocalDateTime.now()
-        .minusYears(3) // falling back to 3 years prior if creationDate is nil to support legacy resources
-        .atZone(ZoneId.systemDefault())
-        .toInstant()
-        .toEpochMilli()
+      // falling back to 3 years prior if creationDate is nil to support legacy resources
+      Instant.now().minus(Period.ofYears(3))
+    } else {
+      attributes["creationDate"].toString().let(Instant::parse)
     }
-    val creationDate: String = this.attributes["creationDate"] as String
-    return Dates.toLocalDateTime(creationDate)
-      .atZone(ZoneId.systemDefault())
-      .toInstant()
-      .toEpochMilli()
-  }
+
+val NamedImage.appVersion: String
+  get() = tagsByImageId
+    .values
+    .first()
+    ?.getValue("appversion")
+    .toString()
+    .substringBefore("/")
