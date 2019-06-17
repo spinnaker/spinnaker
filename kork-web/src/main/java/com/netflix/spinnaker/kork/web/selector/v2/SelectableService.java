@@ -114,11 +114,9 @@ public class SelectableService<T> {
     }
 
     for (Map.Entry<BaseUrl, T> urlToService : services.entrySet()) {
-      final List<Parameter> selectingParameters =
-          intersect(urlToService.getKey().parameters, inputParameters);
-      if (!selectingParameters.isEmpty()) {
+      if (inputParameters.containsAll(urlToService.getKey().parameters)) {
         return new SelectedService<>(
-            urlToService.getValue(), urlToService.getKey().getConfig(), selectingParameters);
+            urlToService.getValue(), urlToService.getKey().getConfig(), inputParameters);
       }
     }
 
@@ -147,45 +145,6 @@ public class SelectableService<T> {
                 baseUrl -> getServiceByUrlFx.apply(baseUrl.baseUrl),
                 (a, b) -> b,
                 LinkedHashMap::new));
-  }
-
-  /**
-   * Returns a list criteria input parameters matching {@link BaseUrl#parameters}.
-   *
-   * @param baseParameters {@link BaseUrl#parameters}
-   * @param inputParameters section criteria parameters
-   * @return a list of parameters
-   */
-  private List<Parameter> intersect(
-      List<Parameter> baseParameters, List<Parameter> inputParameters) {
-    final List<Parameter> selectingParameters = new ArrayList<>();
-    for (Parameter baseParameter : baseParameters) {
-      for (Parameter inputParameter : inputParameters) {
-        if (!baseParameter.name.equals(inputParameter.name)) {
-          continue;
-        }
-
-        for (Object baseValue : baseParameter.values) {
-          final List<Object> matchingValues = getMatchingValues(baseValue, inputParameter.values);
-          if (!matchingValues.isEmpty()) {
-            selectingParameters.add(new Parameter(inputParameter.name, matchingValues));
-          }
-        }
-      }
-    }
-
-    return selectingParameters;
-  }
-
-  private List<Object> getMatchingValues(Object baseValue, List<Object> inputValues) {
-    if (baseValue instanceof String && ((String) baseValue).startsWith("regex:")) {
-      final String regex = ((String) baseValue).split(":")[1];
-      return inputValues.stream()
-          .filter(i -> i != null && ((String) i).matches(regex))
-          .collect(toList());
-    }
-
-    return inputValues.stream().filter(i -> i != null && i.equals(baseValue)).collect(toList());
   }
 
   public SelectedService<T> getDefaultService() {
@@ -351,15 +310,27 @@ public class SelectableService<T> {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
+      if (o instanceof Parameter) {
+        Parameter other = (Parameter) o;
+        if (!this.name.equals(other.getName())) {
+          return false;
+        }
+
+        for (Object v : values) {
+          if (v instanceof String && ((String) v).startsWith("regex:")) {
+            final String regex = ((String) v).split(":")[1];
+            if (other.getValues().stream().anyMatch(i -> ((String) i).matches(regex))) {
+              return true;
+            }
+          } else {
+            if (other.getValues().stream().anyMatch(i -> i.equals(v))) {
+              return true;
+            }
+          }
+        }
       }
 
-      Parameter parameter = (Parameter) o;
-      return Objects.equals(name, parameter.name) && Objects.equals(values, parameter.values);
+      return false;
     }
 
     @Override

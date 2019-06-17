@@ -77,12 +77,27 @@ class SelectableServiceSpec extends Specification {
     selectedService.config == config
 
     where:
-    criteria                                                                 || config                               ||  expectedService
-    [new Parameter(name: "OS", values: ["centOS"])]                          || [cores: 10, altApiEbabled: true]     ||  altBakeryService
-    [new Parameter(name: "cloudProvider", values: ["titus"])]                || [cores: 10, altApiEbabled: false]    ||  bakery
-    [new Parameter(name: "authenticatedUser", values: ["test@company.com"])] || [cores: 10, altApiEbabled: true]     ||  altBakeryService
-    [new Parameter(name: "authenticatedUser", values: ["test@netflix.com"])] || [cores: 10, altApiEbabled: false]    ||  bakery
-    [new Parameter(name: "OS", values: ["macOS"])]                           || [cores: 10]                          ||  bakery // falls back on default Service
+    criteria                                                                  || config                             ||  expectedService
+    [new Parameter(name: "OS", values: ["centOS"])]                           || [cores: 10]                        ||  bakery
+
+    [
+      new Parameter(name: "OS", values: ["centOS"]),
+      new Parameter(name: "authenticatedUser", values: ["bob@company.com"])
+    ]                                                                         || [cores: 10, altApiEbabled: true]   ||  altBakeryService
+
+    [new Parameter(name: "cloudProvider", values: ["titus"])]                 || [cores: 10]                        ||  bakery
+
+    [
+      new Parameter(name: "cloudProvider", values: ["titus"]),
+      new Parameter(name: "authenticatedUser", values: ["blah@netflix.com"])
+    ]                                                                         || [cores: 10, altApiEbabled: false]  ||  bakery
+
+    [new Parameter(name: "OS", values: ["macOS"])]                            || [cores: 10]                        ||  bakery
+
+    [
+      new Parameter(name: "OS", values: ["macOS"]),
+      new Parameter(name: "authenticatedUser", values: ["bob@company.com"])
+    ]                                                                         || [cores: 10]                        ||  bakery
   }
 
   @Unroll
