@@ -1,4 +1,4 @@
-# Copyright 2017 Microsoft Inc. All Rights Reserved.
+# Copyright 2019 Microsoft Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -144,22 +144,21 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     def delete_app(self):
         """Creates OperationContract that deletes a new Spinnaker Application."""
-        builder = az.AzContractBuilder(self.az_observer)
-        (builder.new_clause_builder(
-            'Delete Resource Group', retryable_for_secs=30)
-        .collect_resources(
-            az_resource='group',
-            command='delete',
-            args=['--name', 
-            '{app}-{rg}'.format(app=self.TEST_APP, rg=self.__rg_location), 
-            '--yes'])
-        )
-
         return st.OperationContract(
             self.agent.make_delete_app_operation(
                 application=self.TEST_APP,
                 account_name=self.ACCOUNT),
-            contract=builder.build())
+            contract=jc.Contract(),
+            cleanup=self.delete_resource_group)
+
+    def delete_resource_group(self, _unused_execution_context):
+        """Deletes the Azure Resource Group created by this Spinnaker Application."""
+        execution_context = citest.base.ExecutionContext()
+        args = ['--name', 
+                '{app}-{rg}'.format(app=self.TEST_APP, rg=self.__rg_location), 
+                '--yes'] # wait until the Resource Group deleted
+        cmd = self.az_observer.build_az_command_args('group', 'delete', args)
+        self.az_observer.run(execution_context.eval(cmd))
 
     def create_load_balancer(self):
         """Create OperationContract that create a new Load Balancer
@@ -247,8 +246,8 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             jp.DICT_MATCHES({
                 'name': jp.STR_EQ(self.__full_lb_name),
                 'tags': jp.DICT_MATCHES({
-                    'vnet': jp.STR_EQ('demo1-vn-zhijie'),
-                    'subnet': jp.STR_EQ('subnet2')
+                    'vnet': jp.STR_EQ(self.__vnet_name),
+                    'subnet': jp.STR_EQ(self.__subnet[1]['NAME'])
                 })
             }))))
 
@@ -424,7 +423,7 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             "moniker": moniker,
             "name": "Disable Server Group",
             "refId": "DISABLE",
-            "regions": ["westus2"],
+            "regions": [self.__rg_location],
             "requisiteStageRefIds": requisiteStage,
             "target": "current_asg_dynamic",
             "type": "disableServerGroup"
@@ -448,7 +447,7 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             "moniker": moniker,
             "name": "Destroy Server Group",
             "refId": "DESTROY",
-            "regions": ["westus2"],
+            "regions": [self.__rg_location],
             "requisiteStageRefIds": requisiteStage,
             "target": "current_asg_dynamic",
             "type": "destroyServerGroup"
@@ -703,7 +702,7 @@ def main():
 
     defaults = {
         'TEST_STACK': 'st',
-        'TEST_APP': 'azure' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
+        'TEST_APP': 'azurebakeanddeploy' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
     }
 
     return citest.base.TestRunner.main(
