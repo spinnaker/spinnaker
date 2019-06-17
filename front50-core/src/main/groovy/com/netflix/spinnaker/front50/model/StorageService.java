@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.model;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface StorageService {
@@ -34,6 +35,11 @@ public interface StorageService {
 
   <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey)
       throws NotFoundException;
+
+  default <T extends Timestamped> List<T> loadObjects(
+      ObjectType objectType, List<String> objectKeys) {
+    throw new UnsupportedOperationException();
+  }
 
   void deleteObject(ObjectType objectType, String objectKey);
 

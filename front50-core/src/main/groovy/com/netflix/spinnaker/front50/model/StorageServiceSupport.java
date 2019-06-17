@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -354,59 +355,79 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       log.debug("Modified object keys: {}", value("keys", modifiedKeys));
     }
 
-    Observable.from(modifiedKeys)
-        .buffer(10)
-        .flatMap(
-            ids ->
-                Observable.from(ids)
-                    .flatMap(
-                        entry -> {
-                          try {
-                            String key = entry.getKey();
-                            T object = (T) service.loadObject(objectType, key);
+    try {
+      List<String> objectKeys =
+          modifiedKeys.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+      List<T> objects = service.loadObjects(objectType, objectKeys);
 
-                            Long expectedLastModifiedTime = keyUpdateTime.get(key);
-                            Long currentLastModifiedTime = object.getLastModified();
+      Map<String, T> objectsById =
+          objects.stream()
+              .collect(Collectors.toMap(Timestamped::getId, Function.identity(), (o1, o2) -> o1));
 
-                            if (expectedLastModifiedTime != null
-                                && currentLastModifiedTime != null) {
-                              if (currentLastModifiedTime < expectedLastModifiedTime) {
-                                log.warn(
-                                    "Unexpected stale read for {} (current: {}, expected: {})",
-                                    key,
-                                    new Date(currentLastModifiedTime),
-                                    new Date(expectedLastModifiedTime));
+      for (String objectKey : objectKeys) {
+        if (objectsById.containsKey(objectKey)) {
+          resultMap.put(objectKey, objectsById.get(objectKey));
+        } else {
+          // equivalent to the NotFoundException handling in the exceptional case below
+          resultMap.remove(keyToId.get(objectKey));
+          numRemoved.getAndIncrement();
+        }
+      }
+    } catch (UnsupportedOperationException e) {
+      Observable.from(modifiedKeys)
+          .buffer(10)
+          .flatMap(
+              ids ->
+                  Observable.from(ids)
+                      .flatMap(
+                          entry -> {
+                            try {
+                              String key = entry.getKey();
+                              T object = (T) service.loadObject(objectType, key);
+
+                              Long expectedLastModifiedTime = keyUpdateTime.get(key);
+                              Long currentLastModifiedTime = object.getLastModified();
+
+                              if (expectedLastModifiedTime != null
+                                  && currentLastModifiedTime != null) {
+                                if (currentLastModifiedTime < expectedLastModifiedTime) {
+                                  log.warn(
+                                      "Unexpected stale read for {} (current: {}, expected: {})",
+                                      key,
+                                      new Date(currentLastModifiedTime),
+                                      new Date(expectedLastModifiedTime));
+                                }
                               }
-                            }
 
-                            if (!key.equals(buildObjectKey(object))) {
-                              mismatchedIdCounter.increment();
-                              log.warn(
-                                  "{} '{}' has non-matching id '{}'",
-                                  objectType.group,
-                                  key,
-                                  buildObjectKey(object));
-                              // Should return Observable.empty() to skip caching, but will wait
-                              // until the
-                              // logging has been present for a release.
-                            }
+                              if (!key.equals(buildObjectKey(object))) {
+                                mismatchedIdCounter.increment();
+                                log.warn(
+                                    "{} '{}' has non-matching id '{}'",
+                                    objectType.group,
+                                    key,
+                                    buildObjectKey(object));
+                                // Should return Observable.empty() to skip caching, but will wait
+                                // until the
+                                // logging has been present for a release.
+                              }
 
-                            return Observable.just(object);
-                          } catch (NotFoundException e) {
-                            resultMap.remove(keyToId.get(entry.getKey()));
-                            numRemoved.getAndIncrement();
-                            return Observable.empty();
-                          }
-                        })
-                    .subscribeOn(scheduler))
-        .subscribeOn(scheduler)
-        .toList()
-        .toBlocking()
-        .single()
-        .forEach(
-            item -> {
-              resultMap.put(buildObjectKey(item), item);
-            });
+                              return Observable.just(object);
+                            } catch (NotFoundException e2) {
+                              resultMap.remove(keyToId.get(entry.getKey()));
+                              numRemoved.getAndIncrement();
+                              return Observable.empty();
+                            }
+                          })
+                      .subscribeOn(scheduler))
+          .subscribeOn(scheduler)
+          .toList()
+          .toBlocking()
+          .single()
+          .forEach(
+              item -> {
+                resultMap.put(buildObjectKey(item), item);
+              });
+    }
 
     Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
     this.lastRefreshedTime.set(refreshTime);
