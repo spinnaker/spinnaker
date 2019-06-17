@@ -131,10 +131,19 @@ public class RenderTransform implements PipelineTemplateVisitor {
       int index = 0;
       for (Object value : (Collection) loopValue) {
         StageDefinition expandedStage = wrapClone(stage);
-        expandedStage.setId(stage.getId() + index);
 
         expandedStage.getLoopContext().put("value", value);
         expandedStage.setLoopWith(null);
+
+        // If the stage ID is templated, allow access to the templateLoop context for rendering.
+        if (stage.getId().contains("{{") && stage.getId().contains("}}")) {
+          RenderContext loopedContext = context.copy();
+          loopedContext.getVariables().put("templateLoop", expandedStage.getLoopContext());
+          expandedStage.setId(renderer.render(stage.getId(), loopedContext));
+        } else {
+          expandedStage.setId(stage.getId() + index);
+        }
+
         stage.getLoopedStages().add(expandedStage);
 
         index++;

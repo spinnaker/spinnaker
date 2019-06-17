@@ -38,7 +38,7 @@
       "requisiteStageRefIds": ["joinWait"],
       "name": "Wait 5 seconds",
       "id": null,
-      "refId": "stageLoop0",
+      "refId": "stageLoop-5",
       "type": "wait",
       "waitTime": 5
     },
@@ -46,7 +46,7 @@
       "requisiteStageRefIds": ["joinWait"],
       "name": "Wait 10 seconds",
       "id": null,
-      "refId": "stageLoop1",
+      "refId": "stageLoop-10",
       "type": "wait",
       "waitTime": 10
     }

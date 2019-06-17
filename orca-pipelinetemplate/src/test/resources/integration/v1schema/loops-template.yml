@@ -20,7 +20,7 @@ stages:
     waitTime: 3
   dependsOn:
   - loopedPartial
-- id: stageLoop
+- id: "stageLoop-{{ templateLoop.value }}"
   type: wait
   name: "Wait {{ templateLoop.value }} seconds"
   config:
