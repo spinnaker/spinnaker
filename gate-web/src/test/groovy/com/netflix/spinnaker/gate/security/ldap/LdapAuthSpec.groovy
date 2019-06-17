@@ -43,6 +43,7 @@ import javax.servlet.http.Cookie
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 
 @Slf4j
 @GateSystemTest
@@ -57,6 +58,19 @@ class LdapAuthSpec extends Specification {
 
   @Autowired
   MockMvc mockMvc
+
+  def "should allow http-basic authentication"() {
+    when:
+    def result = mockMvc.perform(
+      get("/credentials")
+        .with(httpBasic("batman", "batman")))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andReturn()
+
+    then:
+    result.response.contentAsString.contains("foo")
+  }
 
   def "should do ldap authentication"() {
     setup:
