@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
@@ -33,6 +34,9 @@ public class IgorService implements HealthTrackable, InitializingBean {
   private final IgorApi igorApi;
 
   @Autowired @Getter private ProviderHealthTracker healthTracker;
+
+  @Value("${services.igor.enabled:true}")
+  private Boolean igorEnabled;
 
   private AtomicReference<List<BuildService>> buildServicesCache = new AtomicReference<>();
 
@@ -55,7 +59,9 @@ public class IgorService implements HealthTrackable, InitializingBean {
 
   @Scheduled(fixedDelayString = "${fiat.igorRefreshMs:30000}")
   public void refreshBuildServices() {
-    buildServicesCache.set(igorApi.getBuildMasters());
+    if (igorEnabled) {
+      buildServicesCache.set(igorApi.getBuildMasters());
+    }
     healthTracker.success();
   }
 }
