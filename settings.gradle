@@ -18,6 +18,7 @@ rootProject.name = "gate"
 
 include "gate-core",
   "gate-basic",
+  "gate-bom",
   "gate-iap",
   "gate-ldap",
   "gate-oauth2",
