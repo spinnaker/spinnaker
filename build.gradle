@@ -29,11 +29,13 @@ buildscript {
 }
 
 allprojects {
-    group = "com.netflix.spinnaker.igor"
-    apply plugin: 'spinnaker.base-project'
-    if (Boolean.valueOf(enablePublishing)) {
-      apply plugin: 'spinnaker.project'
-    }
+  group = "com.netflix.spinnaker.igor"
+  apply plugin: 'spinnaker.base-project'
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: 'spinnaker.project'
+  }
+
+  if (name != "igor-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
 
@@ -51,6 +53,7 @@ allprojects {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8188'
       }
     }
+  }
 }
 
 defaultTasks 'run'
