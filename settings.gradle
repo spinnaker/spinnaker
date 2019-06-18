@@ -17,6 +17,7 @@
 rootProject.name="fiat"
 
 include 'fiat-api',
+        'fiat-bom',
         'fiat-core',
         'fiat-file',
         'fiat-github',
