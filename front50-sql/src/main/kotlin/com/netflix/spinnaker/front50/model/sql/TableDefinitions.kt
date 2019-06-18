@@ -24,7 +24,10 @@ import com.netflix.spinnaker.front50.model.delivery.Delivery
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.project.Project
 import org.jooq.Field
+import org.jooq.InsertOnDuplicateSetMoreStep
+import org.jooq.Record
 import org.jooq.impl.DSL
+import org.jooq.util.mysql.MySQLDSL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Clock
 
@@ -76,6 +79,10 @@ open class DefaultTableDefinition(
       objectKey, objectAsString, signature, item.lastModified, clock.millis()
     )
   }
+
+  open fun onDuplicateKeyUpdate(): InsertOnDuplicateSetMoreStep<Record>.() -> Unit {
+    return {}
+  }
 }
 
 class DeliveryTableDefinition : DefaultTableDefinition(ObjectType.DELIVERY, "deliveries", true) {
@@ -102,6 +109,12 @@ class DeliveryTableDefinition : DefaultTableDefinition(ObjectType.DELIVERY, "del
       item.lastModifiedBy,
       false
     )
+  }
+
+  override fun onDuplicateKeyUpdate(): InsertOnDuplicateSetMoreStep<Record>.() -> Unit {
+    return {
+      set(DSL.field("application"), MySQLDSL.values(DSL.field("application")) as Any)
+    }
   }
 }
 
@@ -132,6 +145,13 @@ class PipelineTableDefinition : DefaultTableDefinition(ObjectType.PIPELINE, "pip
       false
     )
   }
+
+  override fun onDuplicateKeyUpdate(): InsertOnDuplicateSetMoreStep<Record>.() -> Unit {
+    return {
+      set(DSL.field("name"), MySQLDSL.values(DSL.field("name")) as Any)
+      set(DSL.field("application"), MySQLDSL.values(DSL.field("application")) as Any)
+    }
+  }
 }
 
 class PipelineStrategyTableDefinition : DefaultTableDefinition(ObjectType.STRATEGY, "pipeline_strategies", true) {
@@ -161,6 +181,13 @@ class PipelineStrategyTableDefinition : DefaultTableDefinition(ObjectType.STRATE
       false
     )
   }
+
+  override fun onDuplicateKeyUpdate(): InsertOnDuplicateSetMoreStep<Record>.() -> Unit {
+    return {
+      set(DSL.field("name"), MySQLDSL.values(DSL.field("name")) as Any)
+      set(DSL.field("application"), MySQLDSL.values(DSL.field("application")) as Any)
+    }
+  }
 }
 
 class ProjectTableDefinition : DefaultTableDefinition(ObjectType.PROJECT, "projects", true) {
@@ -187,5 +214,11 @@ class ProjectTableDefinition : DefaultTableDefinition(ObjectType.PROJECT, "proje
       item.lastModifiedBy,
       false
     )
+  }
+
+  override fun onDuplicateKeyUpdate(): InsertOnDuplicateSetMoreStep<Record>.() -> Unit {
+    return {
+      set(DSL.field("name"), MySQLDSL.values(DSL.field("name")) as Any)
+    }
   }
 }

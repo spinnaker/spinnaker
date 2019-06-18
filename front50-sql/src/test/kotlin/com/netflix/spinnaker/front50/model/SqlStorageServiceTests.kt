@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.AfterAll
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -136,6 +137,16 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
 
         pipeline = sqlStorageService.loadObject(ObjectType.PIPELINE, "id-pipeline001")
         expectThat(pipeline.name).isEqualTo("pipeline001_updated")
+
+        expectThat(
+          jooq
+          .select(DSL.field("id", String::class.java))
+          .from("pipelines")
+          .where(
+            DSL.field("name", String::class.java).eq("pipeline001_updated")
+          )
+          .fetchOne(DSL.field("id", String::class.java))
+        ).isEqualTo("id-pipeline001")
 
         // delete the pipeline
         sqlStorageService.deleteObject(ObjectType.PIPELINE, "id-pipeline001")

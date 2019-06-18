@@ -154,6 +154,7 @@ class SqlStorageService(
             .set(field("last_modified_at"), MySQLDSL.values(field("last_modified_at")) as Any)
             .set(field("last_modified_by"), MySQLDSL.values(field("last_modified_by")) as Any)
             .set(field("is_deleted"), MySQLDSL.values(field("is_deleted")) as Any)
+            .apply(definitionsByType[objectType]!!.onDuplicateKeyUpdate())
         }
 
         insert.execute()
