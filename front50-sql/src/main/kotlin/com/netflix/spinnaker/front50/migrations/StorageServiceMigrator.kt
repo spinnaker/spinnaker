@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.model.ObjectType
 import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.Timestamped
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -33,11 +34,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
 class StorageServiceMigrator(
+  private val dynamicConfigService: DynamicConfigService,
   private val registry: Registry,
   private val target: StorageService,
   private val source: StorageService,
   private val entityTagsDAO: EntityTagsDAO
-
 ) {
 
   companion object {
@@ -177,6 +178,11 @@ class StorageServiceMigrator(
 
   @Scheduled(fixedDelay = 60000)
   fun migrate() {
+    if (!dynamicConfigService.isEnabled("spinnaker.migration", false)) {
+      log.info("Migrator has been disabled")
+      return
+    }
+
     val migrationDurationMs = measureTimeMillis {
       ObjectType.values().forEach {
         if (it != ObjectType.ENTITY_TAGS) {
