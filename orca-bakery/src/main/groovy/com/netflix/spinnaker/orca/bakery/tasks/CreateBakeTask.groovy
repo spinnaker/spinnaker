@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -37,9 +38,10 @@ import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+
+import static com.netflix.spinnaker.kork.web.selector.v2.SelectableService.*
 
 @Component
 @CompileStatic
@@ -52,21 +54,12 @@ class CreateBakeTask implements RetryableTask {
   ArtifactResolver artifactResolver
 
   @Autowired(required = false)
-  BakeryService bakery
+  BakerySelector bakerySelector
 
   @Autowired ObjectMapper mapper
 
   @Autowired(required = false)
   Front50Service front50Service
-
-  @Value('${bakery.extract-build-details:false}')
-  boolean extractBuildDetails
-
-  @Value('${bakery.rosco-apis-enabled:false}')
-  boolean roscoApisEnabled
-
-  @Value('${bakery.allow-missing-package-installation:false}')
-  boolean allowMissingPackageInstallation
 
   RetrySupport retrySupport = new RetrySupport()
 
@@ -74,11 +67,11 @@ class CreateBakeTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    String region = stage.context.region
-    if (!bakery) {
+    if (!bakerySelector) {
       throw new UnsupportedOperationException("You have not enabled baking for this orca instance. Set bakery.enabled: true")
     }
 
+    def bakery = bakerySelector.select(stage)
     // If application exists, we should pass the owner of the application as the user to the bakery
     try {
       if (front50Service != null) {
@@ -99,9 +92,9 @@ class CreateBakeTask implements RetryableTask {
     try {
       // If the user has specified a base OS that is unrecognized by Rosco, this method will
       // throw a Retrofit exception (HTTP 404 Not Found)
-      def bake = bakeFromContext(stage)
+      def bake = bakeFromContext(stage, bakery)
       String rebake = shouldRebake(stage) ? "1" : null
-      def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
+      def bakeStatus = bakery.service.createBake(stage.context.region as String, bake, rebake).toBlocking().single()
 
       def stageOutputs = [
         status         : bakeStatus,
@@ -152,10 +145,10 @@ class CreateBakeTask implements RetryableTask {
   }
 
   @CompileDynamic
-  private BakeRequest bakeFromContext(Stage stage) {
+  private BakeRequest bakeFromContext(Stage stage, SelectedService<BakeryService> bakery) {
     PackageType packageType
-    if (roscoApisEnabled) {
-      def baseImage = bakery.getBaseImage(stage.context.cloudProviderType as String,
+    if (bakery.config.roscoApisEnabled) {
+      def baseImage = bakery.service.getBaseImage(stage.context.cloudProviderType as String,
         stage.context.baseOs as String).toBlocking().single()
       packageType = baseImage.packageType as PackageType
     } else {
@@ -168,11 +161,11 @@ class CreateBakeTask implements RetryableTask {
       artifacts,
       packageType.packageType,
       packageType.versionDelimiter,
-      extractBuildDetails,
+      bakery.config.extractBuildDetails as Boolean,
       false /* extractVersion */,
       mapper)
 
-    Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+    Map requestMap = packageInfo.findTargetPackage(bakery.config.allowMissingPackageInstallation as Boolean)
 
     // if the field "packageArtifactIds" is present in the context, because it was set in the UI,
     // this will resolve those ids into real artifacts and then put them in List<Artifact> packageArtifacts
@@ -191,7 +184,7 @@ class CreateBakeTask implements RetryableTask {
     }
 
     def request = mapper.convertValue(requestMap, BakeRequest)
-    if (!roscoApisEnabled) {
+    if (!bakery.config.roscoApisEnabled) {
       request.other().clear()
     }
     return request

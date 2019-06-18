@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -215,24 +217,52 @@ class CreateBakeTaskSpec extends Specification {
 
   def "creates a bake for the correct region"() {
     given:
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(bakeStage)
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Observable.from(runningStatus)
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Observable.from(runningStatus)
   }
 
   def "should surface error message (if available) on a 404"() {
     given:
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(bakeStage)
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
       throw error404
     }
     IllegalStateException e = thrown()
@@ -242,11 +272,25 @@ class CreateBakeTaskSpec extends Specification {
   def "gets bake configuration from job context"() {
     given:
     def bake
-    task.bakery = Mock(BakeryService) {
+    def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
         Observable.from(runningStatus)
       }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -275,11 +319,25 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bake
-    task.bakery = Mock(BakeryService) {
+    def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
         Observable.from(runningStatus)
       }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -312,7 +370,21 @@ class CreateBakeTaskSpec extends Specification {
         context = bakeConfig
       }
     }
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(pipelineWithTrigger.stages.first())
@@ -347,7 +419,21 @@ class CreateBakeTaskSpec extends Specification {
         context = bakeConfig
       }
     }
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(pipelineWithTrigger.stages.first())
@@ -359,8 +445,22 @@ class CreateBakeTaskSpec extends Specification {
 
   def "outputs the status of the bake"() {
     given:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -375,8 +475,22 @@ class CreateBakeTaskSpec extends Specification {
 
   def "outputs the packageName of the bake"() {
     given:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -401,10 +515,23 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
-    task.extractBuildDetails = true
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: true,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     def result = task.execute(pipelineWithTrigger.stages.first())
@@ -439,10 +566,23 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
-    task.extractBuildDetails = true
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: true,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     def result = task.execute(pipelineWithTrigger.stages.first())
@@ -475,10 +615,23 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
-    task.extractBuildDetails = true
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: true,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     def result = task.execute(pipelineWithTrigger.stages.first())
@@ -511,10 +664,23 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
-    task.extractBuildDetails = true
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: true,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     def result = task.execute(pipelineWithTrigger.stages.first())
@@ -547,10 +713,23 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
-    task.extractBuildDetails = extractBuildDetails
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: extractBuildDetails,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     def result = task.execute(pipelineWithTrigger.stages.first())
@@ -585,14 +764,27 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Mock(BakeryService)
-    task.extractBuildDetails = true
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: true,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(pipelineWithTrigger.stages.first())
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor_1.1_all" &&
@@ -626,13 +818,27 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(pipelineWithTrigger.stages.first())
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor_1.1_all" &&
@@ -666,13 +872,27 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
 
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
 
     when:
     task.execute(pipelineWithTrigger.stages.first())
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor_1.1_all" &&
@@ -700,11 +920,25 @@ class CreateBakeTaskSpec extends Specification {
       }
     }
     def bake
-    task.bakery = Mock(BakeryService) {
+    def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
         Observable.from(runningStatus)
       }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -721,8 +955,22 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "sets previouslyBaked flag to #previouslyBaked when status is #status.state"() {
     given:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(status)
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:
@@ -744,13 +992,25 @@ class CreateBakeTaskSpec extends Specification {
       type = "bake"
       context = bakeConfigWithRebake
     }
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    task.bakerySelector = Mock(BakerySelector)
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
 
     when:
     task.execute(stage)
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * task.bakerySelector.select(_) >> selectedBakeryService
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor" &&
@@ -771,13 +1031,25 @@ class CreateBakeTaskSpec extends Specification {
         context = bakeConfig
       }
     }
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    task.bakerySelector = Mock(BakerySelector)
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
 
     when:
     task.execute(pipeline.stages.first())
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * task.bakerySelector.select(_) >> selectedBakeryService
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor" &&
@@ -794,7 +1066,8 @@ class CreateBakeTaskSpec extends Specification {
     })
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region,
+    1 * task.bakerySelector.select(_) >> selectedBakeryService
+    1 * bakery.createBake(bakeConfig.region,
       {
         it.user == "bran" &&
           it.packageName == "hodor" &&
@@ -818,10 +1091,20 @@ class CreateBakeTaskSpec extends Specification {
       context = bakeConfigWithArtifacts
     }
     task.artifactResolver = Mock(ArtifactResolver)
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
 
     when:
-    def bakeResult = task.bakeFromContext(stage)
+    def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
     2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> new Artifact()
@@ -836,10 +1119,20 @@ class CreateBakeTaskSpec extends Specification {
       context = bakeConfig
     }
     task.artifactResolver = Mock(ArtifactResolver)
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
 
     when:
-    def bakeResult = task.bakeFromContext(stage)
+    def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
     0 * task.artifactResolver.getBoundArtifactForId(*_) >> new Artifact()
@@ -854,10 +1147,20 @@ class CreateBakeTaskSpec extends Specification {
       context = bakeConfigWithoutOs
     }
     task.artifactResolver = Mock(ArtifactResolver)
-    task.bakery = Mock(BakeryService)
+    def bakery = Mock(BakeryService)
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
+    }
 
     when:
-    def bakeResult = task.bakeFromContext(stage)
+    def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
     noExceptionThrown()

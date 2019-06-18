@@ -60,7 +60,7 @@ class BakeryServiceSpec extends Specification {
       retrofitLogLevel: FULL,
       spinnakerRequestInterceptor: Mock(RequestInterceptor)
     )
-      .bakery(newFixedEndpoint(wireMockRule.url("/")))
+      .buildService(wireMockRule.url("/"))
   }
 
   def "can lookup a bake status"() {

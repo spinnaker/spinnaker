@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -47,8 +49,18 @@ class CompletedBakeTaskSpec extends Specification {
 
   def "finds the AMI and artifact created by a bake"() {
     given:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       lookupBake(region, bakeId) >> Observable.from(new Bake(id: bakeId, ami: ami, artifact: artifact))
+    }
+
+    task.bakerySelector = Mock(BakerySelector)
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
     }
 
     and:
@@ -58,6 +70,7 @@ class CompletedBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
+    1 * task.bakerySelector.select(_) >> selectedBakeryService
     result.status == ExecutionStatus.SUCCEEDED
     result.context.ami == ami
     result.context.artifacts[0].reference == ami
@@ -71,8 +84,18 @@ class CompletedBakeTaskSpec extends Specification {
 
   def "fails if the bake is not found"() {
     given:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Stub(BakeryService) {
       lookupBake(*_) >> { throw notFoundError }
+    }
+
+    task.bakerySelector = Mock(BakerySelector)
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: false
+      ]
     }
 
     and:
@@ -82,6 +105,7 @@ class CompletedBakeTaskSpec extends Specification {
     task.execute(stage)
 
     then:
+    1 * task.bakerySelector.select(_) >> selectedBakeryService
     thrown(RetrofitError)
 
     where:

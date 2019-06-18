@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import retrofit.RequestInterceptor
 
 import java.text.SimpleDateFormat
@@ -33,7 +35,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
@@ -50,6 +51,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 ])
 @CompileStatic
 @ConditionalOnExpression('${bakery.enabled:true}')
+@EnableConfigurationProperties(BakeryConfigurationProperties)
 class BakeryConfiguration {
 
   @Autowired Client retrofitClient
@@ -57,22 +59,8 @@ class BakeryConfiguration {
   @Autowired RequestInterceptor spinnakerRequestInterceptor
 
   @Bean
-  Endpoint bakeryEndpoint(@Value('${bakery.base-url}') String bakeryBaseUrl) {
-    newFixedEndpoint(bakeryBaseUrl)
-  }
-
-  @Bean
-  BakeryService bakery(Endpoint bakeryEndpoint) {
-
-    new RestAdapter.Builder()
-      .setEndpoint(bakeryEndpoint)
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setConverter(new JacksonConverter(bakeryConfiguredObjectMapper()))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(BakeryService))
-      .build()
-      .create(BakeryService)
+  BakeryService bakery(@Value('${bakery.base-url}') String bakeryBaseUrl) {
+    return buildService(bakeryBaseUrl)
   }
 
   static ObjectMapper bakeryConfiguredObjectMapper() {
@@ -82,5 +70,27 @@ class BakeryConfiguration {
       .setSerializationInclusion(NON_NULL)
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
+  }
+
+  BakeryService buildService(String url) {
+    return new RestAdapter.Builder()
+      .setEndpoint(newFixedEndpoint(url))
+      .setRequestInterceptor(spinnakerRequestInterceptor)
+      .setConverter(new JacksonConverter(bakeryConfiguredObjectMapper()))
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(BakeryService))
+      .build()
+      .create(BakeryService)
+  }
+
+  @Bean
+  BakerySelector bakerySelector(BakeryService bakery,
+                                BakeryConfigurationProperties bakeryConfigurationProperties) {
+    return new BakerySelector(
+      bakery,
+      bakeryConfigurationProperties,
+      { url -> buildService(url as String) }
+    )
   }
 }

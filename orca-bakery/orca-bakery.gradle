@@ -26,6 +26,8 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
 
+  api("com.netflix.spinnaker.kork:kork-web")
+
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
 

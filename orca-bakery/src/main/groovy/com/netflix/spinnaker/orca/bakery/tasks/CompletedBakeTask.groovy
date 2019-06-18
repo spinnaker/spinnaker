@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
-import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,13 +31,13 @@ import org.springframework.stereotype.Component
 class CompletedBakeTask implements Task {
 
   @Autowired
-  BakeryService bakery
+  BakerySelector bakerySelector
 
   @Override
   TaskResult execute(Stage stage) {
-    def region = stage.context.region as String
+    def bakery = bakerySelector.select(stage)
     def bakeStatus = stage.context.status as BakeStatus
-    def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
+    def bake = bakery.service.lookupBake(stage.context.region as String, bakeStatus.resourceId).toBlocking().first()
     // This treatment of ami allows both the aws and gce bake results to be propagated.
     def results = [
       ami: bake.ami ?: bake.imageName,
