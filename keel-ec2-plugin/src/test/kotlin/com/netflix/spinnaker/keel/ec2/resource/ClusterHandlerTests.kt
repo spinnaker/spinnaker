@@ -183,24 +183,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       confirmVerified(orcaService)
     }
 
-    // todo emjburns: enable this test when diffing is fixed https://github.com/spinnaker/keel/issues/317
-
-//    context("testing diffing") {
-//      test("diff exists when specs have different image providers") {
-//        val lc1 = LaunchConfigurationSpec(
-//          imageProvider = LatestFromPackageImageProvider(DeliveryArtifact("test-art", ArtifactType.DEB)),
-//          instanceType = "r4.8xlarge",
-//          ebsOptimized = false,
-//          iamRole = "keelRole",
-//          keyPair = "keel-key-pair",
-//          instanceMonitoring = false
-//        )
-//        val changedSpec = spec.copy(launchConfiguration = lc1)
-//        val diff = differ.compare(spec, changedSpec)
-//        expectThat(diff.hasChanges()).isEqualTo(true)
-//      }
-//    }
-
     context("the cluster does not exist or has no active server groups") {
       before {
         coEvery { cloudDriverService.activeServerGroup() } throws RETROFIT_NOT_FOUND

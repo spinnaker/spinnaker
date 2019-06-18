@@ -17,28 +17,31 @@
  */
 package com.netflix.spinnaker.keel.tags
 
+/**
+ * The representation of an entity tag.
+ * The value can be any object.
+ */
 data class EntityTag(
   val value: Any,
   val namespace: String,
   val valueType: String,
-  val category: String,
   val name: String
 )
 
-data class KeelEntityTag(
-  val value: TagValue?,
-  val namespace: String = "keel",
-  val valueType: String = "object",
-  val category: String = "notice",
-  val name: String = KEEL_TAG_NAME
-)
-
+/**
+ * The value of a keel entity tag.
+ * Entity tags can be of any value, but for keel tags we want
+ * an object of this form.
+ */
 data class TagValue(
   val message: String,
   val keelResourceId: String,
   val type: String
 )
 
+/**
+ * Represents the id of an entity as used by the entity tags api
+ */
 data class EntityRef(
   val entityType: String,
   val entityId: String,
@@ -52,6 +55,9 @@ data class EntityRef(
   }
 }
 
+/**
+ * A response containing all entity tags for an object
+ */
 data class EntityTags(
   val id: String,
   val idPattern: String,
@@ -60,6 +66,10 @@ data class EntityTags(
   val entityRef: EntityRef
 )
 
+/**
+ * Metadata about entity tags for an object.
+ * Used only in the [EntityTags] response
+ */
 data class TagsMetadata(
   val name: String,
   val lastModified: Long,

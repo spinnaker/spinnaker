@@ -25,12 +25,13 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.tagging.KeelTagHandler
 import com.netflix.spinnaker.keel.tagging.ResourceTagger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.time.Clock
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.keel.tagging")
@@ -43,12 +44,14 @@ class TaggingConfig {
     resourceRepository: ResourceRepository,
     resourcePersister: ResourcePersister,
     cloudDriverService: CloudDriverService,
-    applicationEventPublisher: ApplicationEventPublisher
+    @Value("\${keel.resource-tagger.removed-tag-retention-hours:24}") removedTagRetentionHours: Long,
+    clock: Clock
   ) = ResourceTagger(
     resourceRepository,
     resourcePersister,
     cloudDriverService,
-    applicationEventPublisher
+    removedTagRetentionHours,
+    clock
   )
 
   @Bean

@@ -15,7 +15,10 @@
  * limitations under the License.
  *
  */
+package com.netflix.spinnaker.keel.events
 
-package com.netflix.spinnaker.keel.tagging
+import com.netflix.spinnaker.keel.api.ResourceName
 
-object ScheduledResourceTaggingCheckStarting
+class CreateEvent(
+  val resourceName: ResourceName
+)

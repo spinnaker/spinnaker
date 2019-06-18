@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagValue
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -39,19 +41,15 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.springframework.context.ApplicationEventPublisher
-import strikt.api.expect
-import strikt.assertions.isEqualTo
+import java.time.Duration
 
 internal class ResourceTaggerTests : JUnit5Minutests {
 
   private val resourceRepository: ResourceRepository = InMemoryResourceRepository()
   private val resourcePersister = mockk<ResourcePersister>()
   private val cloudDriverService = mockk<CloudDriverService>()
-  private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+  private val clock = MutableClock()
 
-  private val sgName = ResourceName("ec2:security-group:test:us-west-2:fnord")
-  private val sgTagName = ResourceName("$KEEL_TAG_NAME_PREFIX:ec2:security-group:test:us-west-2:fnord")
   private val clusterName = ResourceName("ec2:cluster:test:ap-south-1:keel")
   private val clusterTagName = ResourceName("$KEEL_TAG_NAME_PREFIX:ec2:cluster:test:ap-south-1:keel")
 
@@ -66,15 +64,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     )
   )
 
-  private val rSG = Resource(
-    apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-    metadata = ResourceMetadata(
-      name = sgName,
-      uid = randomUID()
-    ),
-    kind = "security-group",
-    spec = mapOf("fake" to "data")
-  )
   private val rCluster = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     metadata = ResourceMetadata(
@@ -103,10 +92,23 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         ),
         namespace = KEEL_TAG_NAMESPACE,
         valueType = "object",
-        category = "notice",
         name = KEEL_TAG_NAME
       )
       )
+    )
+  )
+
+  private val rClusterTagNotDesired = Resource(
+    apiVersion = SPINNAKER_API_V1.subApi("tag"),
+    metadata = ResourceMetadata(
+      name = clusterTagName,
+      uid = randomUID()
+    ),
+    kind = "keel-tag",
+    spec = KeelTagSpec(
+      clusterName.toString(),
+      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "aws"),
+      TagNotDesired(clock.millis())
     )
   )
 
@@ -116,7 +118,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         resourceRepository = resourceRepository,
         resourcePersister = resourcePersister,
         cloudDriverService = cloudDriverService,
-        publisher = publisher
+        removedTagRetentionHours = 1,
+        clock = clock
       )
     }
 
@@ -128,68 +131,23 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       resourcePersister.create(any())
     } answers { Resource(arg(0), ResourceMetadata(ResourceName("this:is:a:name"), randomUID())) }
 
-    context("tagger is disabled") {
-      test("nothing happens") {
-        checkResources()
-        expect { that((resourceRepository as InMemoryResourceRepository).size()).isEqualTo(0) }
-      }
-    }
-
-    context("everything tagged") {
-      before {
-        onApplicationUp()
-
-        resourceRepository.store(rCluster)
-        resourceRepository.store(rClusterTag)
-      }
-
-      after {
-        onApplicationDown()
-        (resourceRepository as InMemoryResourceRepository).dropAll()
-      }
-
-      test("nothing happens") {
-        checkResources()
-        verify { resourcePersister wasNot Called }
-      }
-    }
-
-    context("sg not tagged") {
-      before {
-        onApplicationUp()
-
-        resourceRepository.store(rSG)
-        resourceRepository.store(rCluster)
-        resourceRepository.store(rClusterTag)
-      }
-
-      after {
-        onApplicationDown()
-        (resourceRepository as InMemoryResourceRepository).dropAll()
-      }
-
-      test("adds tag to sg ") {
-        checkResources()
-        verify { resourcePersister.create(any()) }
-      }
-    }
-
     context("cluster created") {
       before {
-        onApplicationUp()
         resourceRepository.store(rCluster)
       }
 
       after {
-        onApplicationDown()
         (resourceRepository as InMemoryResourceRepository).dropAll()
+      }
+
+      test("cluster is tagged") {
+        onCreateEvent(CreateEvent(clusterName))
+        verify { resourcePersister.create(any()) }
       }
     }
 
     context("cluster deleted") {
       before {
-        onApplicationUp()
-
         resourceRepository.store(rCluster)
         resourceRepository.store(rClusterTag)
       }
@@ -199,7 +157,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       } answers { Resource(arg(1), ResourceMetadata(clusterTagName, randomUID())) }
 
       after {
-        onApplicationDown()
         (resourceRepository as InMemoryResourceRepository).dropAll()
       }
 
@@ -207,6 +164,33 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         onDeleteEvent(DeleteEvent(clusterName))
 
         verify { resourcePersister.update(clusterTagName, any()) }
+      }
+    }
+
+    context("tags exist") {
+      before {
+        resourceRepository.store(rClusterTagNotDesired)
+      }
+
+      every {
+        resourcePersister.delete(rClusterTagNotDesired.metadata.name)
+      } returns rClusterTagNotDesired
+
+      after {
+        (resourceRepository as InMemoryResourceRepository).dropAll()
+      }
+
+      test("they're not removed if they're new") {
+        removeTags()
+
+        verify { resourcePersister.delete(rClusterTagNotDesired.metadata.name) wasNot Called }
+      }
+
+      test("they're removed if they're old") {
+        clock.incrementBy(Duration.ofMinutes(61))
+        removeTags()
+
+        verify { resourcePersister.delete(rClusterTagNotDesired.metadata.name) }
       }
     }
   }

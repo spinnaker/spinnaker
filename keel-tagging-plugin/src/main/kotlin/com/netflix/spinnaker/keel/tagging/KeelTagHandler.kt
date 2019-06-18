@@ -87,8 +87,7 @@ class KeelTagHandler(
           TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
         }
       }
-      else -> {
-        // TagNotDesired
+      is TagNotDesired -> {
         return if (entityTags.containsKeelTag()) {
           TaggedResource(
             resource.spec.keelId,
@@ -154,25 +153,12 @@ class KeelTagHandler(
     TODO("not implemented")
   }
 
-  private fun EntityTags.containsTag(requestedTag: EntityTag): Boolean {
-    tags
+  private fun EntityTags.containsTag(requestedTag: EntityTag): Boolean = tags
       .filter { it.namespace == KEEL_TAG_NAMESPACE }
-      .forEach { tag ->
-        if (tag.name == requestedTag.name) {
-          return true
-        }
-      }
-    return false
-  }
+      .any { it.name == requestedTag.name }
 
-  private fun EntityTags.containsKeelTag(): Boolean {
-    tags.forEach { tag ->
-      if (tag.namespace == KEEL_TAG_NAMESPACE && tag.name == KEEL_TAG_NAME) {
-        return true
-      }
-    }
-    return false
-  }
+  private fun EntityTags.containsKeelTag(): Boolean =
+    tags.any { it.namespace == KEEL_TAG_NAMESPACE && it.name == KEEL_TAG_NAME }
 
   /**
    * Orca Job for removing Keel tags

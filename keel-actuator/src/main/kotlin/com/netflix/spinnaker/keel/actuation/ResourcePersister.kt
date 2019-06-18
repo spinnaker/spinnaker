@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.toUpdateJson
+import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
@@ -32,6 +33,7 @@ class ResourcePersister(
       .also {
         resourceRepository.store(it)
         resourceRepository.appendHistory(ResourceCreated(it, clock))
+        publisher.publishEvent(CreateEvent(it.metadata.name))
       }
 
   fun update(name: ResourceName, updated: SubmittedResource<Any>): Resource<out Any> {

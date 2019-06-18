@@ -18,14 +18,13 @@
 
 package com.netflix.spinnaker.keel.tagging
 
-import com.netflix.spinnaker.keel.activation.ApplicationDown
-import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -35,28 +34,32 @@ import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagValue
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
+import java.time.Clock
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 
 /**
- * A scheduled job that checks to make sure each resource keel is managing
- * has an entity tag indicating this, as well as linking the entity tag id
- * to the keel id.
+ * We want each resource keel manages to have an entity tag on it linking the resource to the keel id.
  *
+ * It might be very annoying to have all of these "extra" desired states - one for each resource.
+ * A future optimization could be to look at this and do a bulk check for all resources.
+ *
+ * Another future thing could be to make sure that for each tag we have, we also have a resource
+ * that we're managing.
  */
 class ResourceTagger(
   private val resourceRepository: ResourceRepository,
   private val resourcePersister: ResourcePersister,
   private val cloudDriverService: CloudDriverService,
-  private val publisher: ApplicationEventPublisher
+  private var removedTagRetentionHours: Long = 24,
+  private var clock: Clock
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private var enabled = false
   private var accounts: Set<Credential> = emptySet()
   private var accountsUpdateTimeS = 0L
   private var accountsUpdateFrequencyS = TimeUnit.MINUTES.toSeconds(10)
@@ -64,63 +67,29 @@ class ResourceTagger(
     "ec2" to "aws"
   )
 
-  init {
-    syncAccounts()
-  }
-
-  @EventListener(ApplicationUp::class)
-  fun onApplicationUp() {
-    log.info("Application up, enabling scheduled resource tagging")
-    enabled = true
-  }
-
-  @EventListener(ApplicationDown::class)
-  fun onApplicationDown() {
-    log.info("Application down, disabling scheduled resource tagging")
-    enabled = false
-  }
-
-  @Scheduled(fixedDelayString = "\${keel.resource-tagger.frequency:PT10S}")
-  fun checkResources() {
-    if (enabled) {
-      publisher.publishEvent(ScheduledResourceTaggingCheckStarting)
-      log.debug("Starting scheduled resource tagging…")
-      syncAccounts()
-      // todo emjburns: maybe one instance shouldn't do this whole thing
-      resourceRepository
-        .allResources { resourceHeader ->
-          if (resourceHeader.apiVersion != SPINNAKER_API_V1.subApi("tag")) {
-            try {
-              val tagResource = resourceRepository.get(resourceHeader.name.toTagSpecName(), KeelTagSpec::class.java)
-              if (tagResource.spec.tagState is TagNotDesired) {
-                // if it's in the resource repository, we want it to be tagged.
-                persistTagState(resourceHeader.name.generateKeelTagSpec())
-              }
-            } catch (e: NoSuchResourceException) {
-              persistTagState(resourceHeader.name.generateKeelTagSpec())
-            }
-          }
-        }
-      log.debug("Scheduled tagging complete")
-    } else {
-      log.debug("Scheduled tagging disabled")
+  @EventListener(CreateEvent::class)
+  fun onCreateEvent(event: CreateEvent) {
+    if (event.resourceName.isNotTag()) {
+      log.debug("Persisting tag desired for resource {} because it exists now", event.resourceName.toString())
+      val spec = event.resourceName.generateKeelTagSpec()
+      persistTagState(spec)
     }
   }
 
-  // todo emjburns: should there be a catchup job for deletes?
   @EventListener(DeleteEvent::class)
   fun onDeleteEvent(event: DeleteEvent) {
-    log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceName.toString())
-    val spec = KeelTagSpec(
-      keelId = event.resourceName.toString(),
-      entityRef = event.resourceName.toEntityRef(),
-      tagState = TagNotDesired()
-    )
-    persistTagState(spec)
+    if (event.resourceName.isNotTag()) {
+      log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceName.toString())
+      val spec = KeelTagSpec(
+        keelId = event.resourceName.toString(),
+        entityRef = event.resourceName.toEntityRef(),
+        tagState = TagNotDesired(startTime = clock.millis())
+      )
+      persistTagState(spec)
+    }
   }
 
   private fun persistTagState(spec: KeelTagSpec) {
-    log.debug("Persisting tag desired state for resource {}", spec.keelId)
     val submitted = spec.toSubmittedResource()
     val name = ResourceName(spec.generateTagNameFromKeelId())
 
@@ -140,6 +109,34 @@ class ResourceTagger(
     }
   }
 
+  @Scheduled(fixedDelayString = "\${keel.resource-tagger.tag-cleanup-frequency:P1D}")
+  fun removeTags() {
+    log.info("Cleaning up old keel tags")
+    resourceRepository.allResources { resourceHeader ->
+      if (resourceHeader.apiVersion == SPINNAKER_API_V1.subApi("tag")) {
+        val tagResource = resourceRepository.get(resourceHeader.name, KeelTagSpec::class.java)
+        if (tagResource.spec.tagState is TagNotDesired) {
+          val tagState = tagResource.spec.tagState as TagNotDesired
+          if (tagState.startTime < clock.millis() - Duration.ofHours(removedTagRetentionHours).toMillis()) {
+            resourcePersister.delete(resourceHeader.name)
+          }
+        }
+      }
+    }
+  }
+
+  @Scheduled(fixedDelayString = "\${keel.resource-tagger.account-sync-frequency:PT600S}")
+  private fun syncAccounts() {
+    val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+    if (now - accountsUpdateFrequencyS > accountsUpdateTimeS) {
+      log.info("Refreshing clouddriver accounts")
+      runBlocking { accounts = cloudDriverService.listCredentials() }
+      accountsUpdateTimeS = now
+    }
+  }
+
+  private fun ResourceName.isNotTag() = !this.toString().startsWith(KEEL_TAG_NAME_PREFIX, true)
+
   private fun KeelTagSpec.generateTagNameFromKeelId() = "tag:keel-tag:$keelId"
 
   private fun KeelTagSpec.toSubmittedResource() =
@@ -156,7 +153,7 @@ class ResourceTagger(
       generateTagDesired()
     )
 
-  fun ResourceName.generateTagDesired() =
+  private fun ResourceName.generateTagDesired() =
     TagDesired(tag = EntityTag(
       value = TagValue(
         message = KEEL_TAG_MESSAGE,
@@ -165,21 +162,9 @@ class ResourceTagger(
       ),
       namespace = KEEL_TAG_NAMESPACE,
       valueType = "object",
-      category = "notice",
       name = KEEL_TAG_NAME
     )
     )
-
-  private fun syncAccounts() {
-    val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-    if (now - accountsUpdateFrequencyS > accountsUpdateTimeS) {
-      log.info("Refreshing clouddriver accounts")
-      runBlocking { accounts = cloudDriverService.listCredentials() }
-      accountsUpdateTimeS = now
-    }
-  }
-
-  private fun ResourceName.toTagSpecName() = ResourceName("tag:keel-tag:$this")
 
   private fun ResourceName.toEntityRef(): EntityRef {
     val (pluginGroup, resourceType, account, region, resourceId) = toString().split(":")

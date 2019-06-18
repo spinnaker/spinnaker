@@ -51,7 +51,7 @@ data class TagDesired(
  * Desire no keel tags
  */
 data class TagNotDesired(
-  val blah: String = "wtf"
+  val startTime: Long
 ) : TagState()
 
 const val KEEL_TAG_NAMESPACE = "keel"

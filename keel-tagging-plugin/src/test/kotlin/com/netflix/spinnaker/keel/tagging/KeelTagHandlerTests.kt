@@ -35,6 +35,7 @@ import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagsMetadata
+import com.netflix.spinnaker.time.MutableClock
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -63,6 +64,8 @@ val RETROFIT_NOT_FOUND = HttpException(
 
 internal class KeelTagHandlerTests : JUnit5Minutests {
 
+  val clock = MutableClock()
+
   val keelId = "ec2:cluster:test:us-west-1:emburnstest-managed-reference"
   val entityRef = EntityRef(
     entityType = "servergroup",
@@ -81,7 +84,6 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     ),
     namespace = KEEL_TAG_NAMESPACE,
     valueType = "object",
-    category = "notice",
     name = KEEL_TAG_NAME
   )
 
@@ -93,7 +95,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     )
   )
 
-  val specWithoutTag = specWithTag.copy(tagState = TagNotDesired())
+  val specWithoutTag = specWithTag.copy(tagState = TagNotDesired(clock.millis()))
 
   val taggedResourceWithKeelTag = TaggedResource(
     keelId = keelId,
@@ -155,14 +157,6 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     after {
       confirmVerified(orcaService)
     }
-
-    // todo emjburns: enable this test when diffing is fixed https://github.com/spinnaker/keel/issues/317
-//    context("diffing specs works") {
-//      test("diff spec with tag vs spec without tag") {
-//        val diff = differ.compare(specWithTag, specWithoutTag)
-//        expectThat(diff.hasChanges()).isEqualTo(true)
-//      }
-//    }
 
     context("cluster doesn't have tags") {
       before {
