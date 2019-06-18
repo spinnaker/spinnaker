@@ -45,49 +45,51 @@ allprojects {
 }
 
 subprojects {
-  apply plugin: "java-library"
+  if (name != "orca-bom") {
+    apply plugin: "java-library"
 
-  if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
-    logger.info("Enabling mavenLocal")
-    repositories {
-      mavenLocal()
+    if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
+      logger.info("Enabling mavenLocal")
+      repositories {
+        mavenLocal()
+      }
     }
-  }
 
-  dependencies {
-    implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
-    annotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
-    testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
-    implementation("org.slf4j:slf4j-api")
-  }
-
-  configurations.all {
-    exclude group: "javax.servlet", module: "servlet-api"
-  }
-
-  test {
-    testLogging {
-      exceptionFormat = "full"
+    dependencies {
+      implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      annotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      implementation("org.slf4j:slf4j-api")
     }
-  }
 
-  def licenseExtension = project.extensions.findByName('license')
-  if (licenseExtension != null) {
-    licenseExtension.exclude "**/*.json"
-    licenseExtension.exclude "**/*.md"
-    licenseExtension.exclude "**/*.yml"
-    licenseExtension.mapping {
-      java = "SLASHSTAR_STYLE"
-      kt = "SLASHSTAR_STYLE"
+    configurations.all {
+      exclude group: "javax.servlet", module: "servlet-api"
     }
-  }
 
-  project.afterEvaluate {
-    //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-    project.plugins.withType(JavaBasePlugin) {
-      JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-      convention.sourceCompatibility = JavaVersion.VERSION_1_8
-      convention.targetCompatibility = JavaVersion.VERSION_1_8
+    test {
+      testLogging {
+        exceptionFormat = "full"
+      }
+    }
+
+    def licenseExtension = project.extensions.findByName('license')
+    if (licenseExtension != null) {
+      licenseExtension.exclude "**/*.json"
+      licenseExtension.exclude "**/*.md"
+      licenseExtension.exclude "**/*.yml"
+      licenseExtension.mapping {
+        java = "SLASHSTAR_STYLE"
+        kt = "SLASHSTAR_STYLE"
+      }
+    }
+
+    project.afterEvaluate {
+      //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+      project.plugins.withType(JavaBasePlugin) {
+        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+        convention.sourceCompatibility = JavaVersion.VERSION_1_8
+        convention.targetCompatibility = JavaVersion.VERSION_1_8
+      }
     }
   }
 }
