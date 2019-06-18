@@ -44,7 +44,7 @@ class ClassicLoadBalancerHandler(
   ) to ClassicLoadBalancer::class.java
 
   override fun generateName(spec: ClassicLoadBalancer) = ResourceName(
-    "ec2:loadBalancer:${spec.loadBalancerType}:${spec.location.accountName}:${spec.location.region}:" +
+    "ec2:clb:${spec.location.accountName}:${spec.location.region}:" +
       spec.moniker.name
   )
 
