@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -39,6 +40,7 @@ public interface InstantiationTypeRestrictor {
                   UUID.class,
                   Boolean.class,
                   LocalDate.class,
+                  DayOfWeek.class,
                   Instant.class,
                   ChronoUnit.class)));
 
