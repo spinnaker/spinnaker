@@ -47,40 +47,43 @@ allprojects {
   if (Boolean.valueOf(enablePublishing)) {
     apply plugin: 'spinnaker.project'
   }
-  apply plugin: 'java-library'
-  apply plugin: 'groovy'
-  apply plugin: 'nebula.kotlin'
 
-  sourceSets.main.java.srcDirs = []
-  sourceSets.main.groovy.srcDirs += ["src/main/java"]
+  if (name != "clouddriver-bom") {
+    apply plugin: 'java-library'
+    apply plugin: 'groovy'
+    apply plugin: 'nebula.kotlin'
 
-  dependencies {
-    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    sourceSets.main.java.srcDirs = []
+    sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
-    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    testAnnotationProcessor "org.projectlombok:lombok"
-  }
+    dependencies {
+      implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
-  test {
-    testLogging {
-      exceptionFormat = 'full'
-      if (project.hasProperty('slowTest')) {
-        long slow = 250
-        try {
-          slow = Long.parseLong(project.property('slowTest'))
-        } catch (Exception ex) {
-        }
-        afterTest { desc, result ->
-          long duration = result.getEndTime() - result.getStartTime()
-          if (duration > slow) {
-            logger.warn("test exceeded $slow ms: $desc.className :: $desc.name ($duration milliseconds)")
+      annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor "org.projectlombok:lombok"
+      testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor "org.projectlombok:lombok"
+    }
+
+    test {
+      testLogging {
+        exceptionFormat = 'full'
+        if (project.hasProperty('slowTest')) {
+          long slow = 250
+          try {
+            slow = Long.parseLong(project.property('slowTest'))
+          } catch (Exception ex) {
+          }
+          afterTest { desc, result ->
+            long duration = result.getEndTime() - result.getStartTime()
+            if (duration > slow) {
+              logger.warn("test exceeded $slow ms: $desc.className :: $desc.name ($duration milliseconds)")
+            }
           }
         }
+        minHeapSize = "512m"
+        maxHeapSize = "512m"
       }
-      minHeapSize = "512m"
-      maxHeapSize = "512m"
     }
   }
 }

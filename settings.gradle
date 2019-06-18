@@ -47,7 +47,8 @@ include 'cats:cats-core',
   'clouddriver-sql',
   'clouddriver-sql-mysql',
   'clouddriver-web',
-  'clouddriver-scattergather'
+  'clouddriver-scattergather',
+  'clouddriver-bom'
 include(*gradle.ext.includedCloudProviderProjects)
 
 def setBuildFile(project) {
