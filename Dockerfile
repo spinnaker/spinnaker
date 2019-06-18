@@ -6,8 +6,7 @@ COPY . workdir/
 
 WORKDIR workdir
 
-RUN GRADLE_USER_HOME=cache ./gradlew -I gradle/init-publish.gradle buildDeb \
-       -I gradle/init-publish.gradle \
+RUN GRADLE_USER_HOME=cache ./gradlew -PenablePublishing=true buildDeb \
        -x test && \
   dpkg -i ./echo-web/build/distributions/*.deb && \
   cd .. && \
