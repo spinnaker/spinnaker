@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form } from 'formik';
+import { pickBy } from 'lodash';
 
 import {
   TextInput,
@@ -56,15 +57,7 @@ export class ConfigureRedirectConfigModal extends React.Component<IConfigureRedi
   };
 
   private submit = (data: IRedirectActionConfig): void => {
-    const filteredData = Object.keys(data).reduce(
-      (acc, key: keyof IRedirectActionConfig) => {
-        if (data[key] && data[key] !== '') {
-          acc[key] = data[key];
-        }
-        return acc;
-      },
-      {} as IRedirectActionConfig,
-    );
+    const filteredData: IRedirectActionConfig = pickBy(data, (value: string) => value && value !== '');
     this.props.closeModal(filteredData);
   };
 

@@ -6,11 +6,11 @@ export interface IRetryablePromise<T> {
   promise: IPromise<T>;
 }
 
-export const retryablePromise: <T>(
+export const retryablePromise = <T>(
   closure: () => IPromise<T>,
-  interval?: number,
-  maxTries?: number,
-) => IRetryablePromise<T> = <T>(closure: () => IPromise<T>, interval = 1000, maxTries = 0) => {
+  interval = 1000,
+  maxTries = 0,
+): IRetryablePromise<T> => {
   let currentTimeout: IPromise<T>;
   let currentTries = 0;
   const retryPromise: () => IPromise<T> = () => {
