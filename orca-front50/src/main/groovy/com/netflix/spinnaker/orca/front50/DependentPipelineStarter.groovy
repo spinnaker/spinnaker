@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -87,7 +88,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       strategy             : suppliedParameters.strategy == true
     ]
 
-    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
+    if (pipelineConfig.parameterConfig || !suppliedParameters.isEmpty()) {
       def pipelineParameters = suppliedParameters ?: [:]
       pipelineConfig.parameterConfig.each {
         pipelineConfig.trigger.parameters[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
@@ -101,20 +102,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
     //keep the trigger as the preprocessor removes it.
     def expectedArtifacts = pipelineConfig.expectedArtifacts
 
-    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
-      it.supports(pipelineConfig, ExecutionPreprocessor.Type.PIPELINE)
-    }) {
-      pipelineConfig = preprocessor.process(pipelineConfig)
-    }
-
     if (parentPipelineStageId != null) {
       pipelineConfig.receivedArtifacts = artifactResolver?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
     } else {
       pipelineConfig.receivedArtifacts = artifactResolver?.getAllArtifacts(parentPipeline)
     }
-
-    pipelineConfig.trigger = trigger
-    pipelineConfig.expectedArtifacts = expectedArtifacts
 
     def artifactError = null
     try {
@@ -122,6 +114,19 @@ class DependentPipelineStarter implements ApplicationContextAware {
     } catch (Exception e) {
       artifactError = e
     }
+
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
+      it.supports(pipelineConfig, ExecutionPreprocessor.Type.PIPELINE)
+    }) {
+      pipelineConfig = preprocessor.process(pipelineConfig)
+    }
+
+    if (pipelineConfig.errors != null) {
+      throw new ValidationException("Pipeline template is invalid", pipelineConfig.errors as List<Map<String, Object>>)
+    }
+
+    pipelineConfig.trigger = trigger
+    pipelineConfig.expectedArtifacts = expectedArtifacts
 
     // Process the raw trigger to resolve any expressions before converting it to a Trigger object, which will not be
     // processed by the contextParameterProcessor (it only handles Maps, Lists, and Strings)

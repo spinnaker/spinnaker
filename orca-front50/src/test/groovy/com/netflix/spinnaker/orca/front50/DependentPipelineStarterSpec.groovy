@@ -16,21 +16,34 @@
 
 package com.netflix.spinnaker.orca.front50
 
+import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePreprocessor
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
+import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.V1SchemaHandlerGroup
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2.V2SchemaHandlerGroup
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.security.User
 import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.context.support.StaticApplicationContext
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -449,5 +462,126 @@ class DependentPipelineStarterSpec extends Specification {
 
     then:
     result.trigger.parameters.a == "pipeline"
+  }
+
+  def "should trigger v1 templated pipelines with dynamic source using prior artifact"() {
+    given:
+    def triggeredPipelineConfig = [
+      id: "triggered",
+      type: "templatedPipeline",
+      config: [
+        pipeline: [
+          application: "covfefe",
+          name: "Templated pipeline",
+          template: [
+            source: "{% for artifact in trigger.artifacts %}{% if artifact.type == 'spinnaker-pac' && artifact.name == 'wait' %}{{ artifact.reference }}{% endif %}{% endfor %}"
+          ]
+        ],
+        schema: "1"
+      ],
+      expectedArtifacts: [[
+        defaultArtifact: [
+          customKind: true,
+          id: "091b682c-10ac-441a-97f2-659113128960",
+        ],
+        displayName: "friendly-gecko-6",
+        id: "28907e3a-e529-473d-bf2d-b3737c9d6dc6",
+        matchArtifact: [
+          customKind: true,
+          id: "daef2911-ea5c-4098-aa07-ee2535b2788d",
+          name: "wait",
+          type: "spinnaker-pac"
+        ],
+        useDefaultArtifact: false,
+        usePriorArtifact: true
+      ]],
+    ]
+    def triggeredPipelineTemplate = mapper.convertValue([
+      schema: "1",
+      id: "barebones",
+      stages: [[
+        id: "wait1",
+        type: "wait",
+        name: "Wait for 5 seconds",
+        config: [
+          waitTime: 5
+        ]
+      ]]
+    ], PipelineTemplate)
+    def priorExecution = pipeline {
+      id = "01DCKTEZPRCMFV1H35EDFC62RG"
+      trigger = new DefaultTrigger("manual", null, "user@acme.com", [:], [
+        new Artifact([
+          customKind: false,
+          metadata: [
+            fileName: "wait.0.1.yml",
+          ],
+          name: "wait",
+          reference: "https://artifactory.acme.com/spinnaker-pac/wait.0.1.yml",
+          type: "spinnaker-pac",
+          version: "0.1"
+        ])
+      ])
+    }
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new DefaultTrigger("manual", null, "user@schibsted.com", [:], [], [], false, true)
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def templateLoader = Mock(TemplateLoader)
+    def applicationContext = new StaticApplicationContext()
+    def renderer = new JinjaRenderer(mapper, Mock(Front50Service), [])
+    def registry = new NoopRegistry()
+    def parameterProcessor = new ContextParameterProcessor()
+    def pipelineTemplatePreprocessor = new PipelineTemplatePreprocessor(
+      mapper,
+      new SchemaVersionHandler(
+        new V1SchemaHandlerGroup(
+          templateLoader,
+          renderer,
+          mapper,
+          registry),
+        Mock(V2SchemaHandlerGroup)),
+      new PipelineTemplateErrorHandler(),
+      registry)
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      applicationContext,
+      mapper,
+      parameterProcessor,
+      Optional.of([pipelineTemplatePreprocessor] as List<ExecutionPreprocessor>),
+      Optional.of(artifactResolver),
+      registry
+    )
+
+    and:
+    1 * executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        JavaType type = mapper.getTypeFactory().constructCollectionType(List, Stage)
+        trigger = mapper.convertValue(p.trigger, Trigger)
+        stages.addAll(mapper.convertValue(p.stages, type))
+      }
+    }
+    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource) >> [triggeredPipelineTemplate]
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("triggered", _ as ExecutionRepository.ExecutionCriteria) >>
+      Observable.just(priorExecution)
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null /*user*/,
+      parentPipeline,
+      [:],
+      null,
+      buildAuthenticatedUser("user", [])
+    )
+
+    then:
+    result.stages.size() == 1
+    result.stages[0].type == "wait"
+    result.stages[0].refId == "wait1"
+    result.stages[0].name == "Wait for 5 seconds"
   }
 }
