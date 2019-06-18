@@ -39,5 +39,12 @@ class SqlConfiguration : CommonStorageServiceDAOConfig() {
                         registry: Registry,
                         jooq: DSLContext,
                         sqlProperties: SqlProperties): SqlStorageService =
-    SqlStorageService(objectMapper, registry, jooq, Clock.systemDefaultZone(), sqlProperties.retries)
+    SqlStorageService(
+      objectMapper,
+      registry,
+      jooq,
+      Clock.systemDefaultZone(),
+      sqlProperties.retries,
+      1000
+    )
 }

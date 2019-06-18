@@ -37,7 +37,8 @@ class SqlStorageService(
   private val registry: Registry,
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val sqlRetryProperties: SqlRetryProperties
+  private val sqlRetryProperties: SqlRetryProperties,
+  private val chunkSize: Int
 ) : StorageService {
 
   companion object {
@@ -87,7 +88,7 @@ class SqlStorageService(
 
     val timeToLoadObjects = measureTimeMillis {
       objects.addAll(
-        objectKeys.chunked(1000).flatMap { keys ->
+        objectKeys.chunked(chunkSize).flatMap { keys ->
           val bodies = jooq.withRetry(sqlRetryProperties.reads) { ctx ->
             ctx
               .select(field("body", String::class.java))

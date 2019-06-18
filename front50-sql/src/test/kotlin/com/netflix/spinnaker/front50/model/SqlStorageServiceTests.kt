@@ -43,7 +43,8 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
     NoopRegistry(),
     jooq,
     Clock.systemDefaultZone(),
-    SqlRetryProperties()
+    SqlRetryProperties(),
+    1
   )
 
   fun tests() = rootContext {
@@ -142,6 +143,34 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
         expectThrows<NotFoundException> {
           sqlStorageService.loadObject<Pipeline>(ObjectType.PIPELINE, "id-pipeline001")
         }
+      }
+
+      test("bulk load pipelines") {
+        val objectKeys = mutableSetOf<String>()
+        (1..10).forEach {
+          val objectKey = "id-pipeline00$it"
+          objectKeys.add(objectKey)
+
+          sqlStorageService.storeObject(
+            ObjectType.PIPELINE,
+            objectKey,
+            Pipeline().apply {
+              id = objectKey
+              name = "pipeline00$it"
+              lastModified = 100
+
+              put("application", "application001")
+            }
+          )
+        }
+
+        val pipelines = sqlStorageService.loadObjects<Pipeline>(
+          ObjectType.PIPELINE,
+          (objectKeys + "does_not_exist").toList()
+        )
+        expectThat(
+          pipelines.map { it.id }.toSet()
+        ).isEqualTo(objectKeys)
       }
     }
 
