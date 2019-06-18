@@ -29,47 +29,48 @@ buildscript {
 }
 
 allprojects { project ->
+  group = "com.netflix.spinnaker.front50"
   apply plugin: 'spinnaker.base-project'
   if (Boolean.valueOf(enablePublishing)) {
     apply plugin: "spinnaker.project"
   }
-  apply plugin: 'java-library'
-  apply plugin: 'groovy'
 
-  group = "com.netflix.spinnaker.front50"
+  if (name != "front50-bom") {
+    apply plugin: 'java-library'
+    apply plugin: 'groovy'
 
-  test {
-    testLogging {
-      exceptionFormat = 'full'
+    test {
+      testLogging {
+        exceptionFormat = 'full'
+      }
     }
-  }
 
-  tasks.withType(JavaExec) {
-    if (System.getProperty('DEBUG', 'false') == 'true') {
-      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8180'
+    tasks.withType(JavaExec) {
+      if (System.getProperty('DEBUG', 'false') == 'true') {
+        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8180'
+      }
     }
-  }
 
-  dependencies {
-    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    dependencies {
+      implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      annotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+      testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
 
-    implementation "org.codehaus.groovy:groovy-all"
-    implementation "net.logstash.logback:logstash-logback-encoder"
+      implementation("org.codehaus.groovy:groovy-all")
+      implementation("net.logstash.logback:logstash-logback-encoder")
 
-    compileOnly "org.projectlombok:lombok"
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor "org.projectlombok:lombok"
+      compileOnly("org.projectlombok:lombok")
+      annotationProcessor("org.projectlombok:lombok")
+      testAnnotationProcessor("org.projectlombok:lombok")
 
-    testImplementation "org.spockframework:spock-core"
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.spockframework:spock-core"
-    testImplementation "org.spockframework:spock-spring"
-    testImplementation "org.springframework:spring-test"
-    testImplementation "org.hamcrest:hamcrest-core"
-    testRuntimeOnly "cglib:cglib-nodep"
-    testRuntimeOnly "org.objenesis:objenesis"
+      testImplementation("org.spockframework:spock-core")
+      testImplementation("org.springframework.boot:spring-boot-starter-test")
+      testImplementation("org.spockframework:spock-spring")
+      testImplementation("org.springframework:spring-test")
+      testImplementation("org.hamcrest:hamcrest-core")
+      testRuntimeOnly("cglib:cglib-nodep")
+      testRuntimeOnly("org.objenesis:objenesis")
+    }
   }
 }
 

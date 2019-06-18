@@ -23,7 +23,7 @@ import org.springframework.validation.Errors;
 public interface PipelineValidator {
   /**
    * @param pipeline the pipeline being modified
-   * @param errors specific validation errors for {@param pipeline}
+   * @param errors specific validation errors for @param pipeline
    */
   void validate(Pipeline pipeline, Errors errors);
 }

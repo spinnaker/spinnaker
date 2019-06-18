@@ -26,7 +26,7 @@ public interface StorageService {
   /** Check to see if the bucket exists, creating it if it is not there. */
   void ensureBucketExists();
 
-  /** Returns true if the storage service supports versioning. */
+  /** @return true if the storage service supports versioning. */
   boolean supportsVersioning();
 
   default boolean supportsEventing(ObjectType objectType) {

@@ -12,7 +12,9 @@ public interface ItemDAO<T> {
   /**
    * It can be expensive to refresh a bucket containing a large number of objects.
    *
-   * <p>When {@code refresh} is false, the most recently cached set of objects will be returned.
+   * @param refresh true to refresh
+   * @return When {@code refresh} is false, the most recently cached set of objects will be
+   *     returned. *
    */
   Collection<T> all(boolean refresh);
 
