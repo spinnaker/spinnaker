@@ -136,11 +136,8 @@ export class ExecutionFilterService {
     }
     const searchText = [execution.name];
     searchText.push(execution.id);
-    searchText.push(this.getValuesAsString(execution.appConfig));
-    searchText.push(this.getValuesAsString(execution.trigger));
-    execution.stages.forEach(stage =>
-      searchText.push(this.getValuesAsString(stage.context, ['commits', 'jarDiffs', 'kato.tasks'])),
-    );
+    searchText.push(this.getValuesAsString(execution.trigger, ['parentExecution']));
+
     execution.searchField = searchText.join(' ').toLowerCase();
   }
 

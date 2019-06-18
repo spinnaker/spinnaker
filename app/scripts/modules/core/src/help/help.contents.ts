@@ -52,7 +52,6 @@ const helpContents: { [key: string]: string } = {
       <ul>
         <li>Name</li>
         <li>Trigger</li>
-        <li>Context - server groups, bakery results, etc.</li>
       </ul>`,
   'pipeline.config.triggers.respectQuietPeriod': `
       <p>The quiet period is a system operator designated period of time when automated pipelines and deploys should not run.</p>`,
