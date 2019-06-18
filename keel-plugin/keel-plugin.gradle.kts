@@ -5,4 +5,7 @@ plugins {
 
 dependencies {
   api(project(":keel-core"))
+
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
 }
