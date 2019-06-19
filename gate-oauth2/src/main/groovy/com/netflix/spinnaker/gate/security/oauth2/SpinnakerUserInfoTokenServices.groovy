@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.gate.security.oauth2
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -75,6 +78,14 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired
   AllowedAccountsSupport allowedAccountsSupport
 
+  @Autowired
+  FiatClientConfigurationProperties fiatClientConfigurationProperties
+
+  @Autowired
+  Registry registry
+
+  RetrySupport retrySupport = new RetrySupport()
+
   @Override
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
@@ -96,14 +107,39 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
 
     def username = details[userInfoMapping.username] as String
-    def roles = getRoles(details)
+    def roles = getRoles(details) ?: []
 
     // Service accounts are already logged in.
     if (!isServiceAccount) {
-      if (roles.isEmpty()) {
-        permissionService.login(username)
-      } else {
-        permissionService.loginWithRoles(username, roles)
+      def id = registry
+        .createId("fiat.login")
+        .withTag("type", "oauth2")
+
+      try {
+        retrySupport.retry({ ->
+          if (roles.isEmpty()) {
+            permissionService.login(username)
+          } else {
+            permissionService.loginWithRoles(username, roles)
+          }
+        }, 5, 2000, false)
+        log.debug("Successful oauth2 authentication (user: {}, roleCount: {}, roles: {})", username, roles.size(), roles)
+        id = id.withTag("success", true).withTag("fallback", "none")
+      } catch (Exception e) {
+        log.debug(
+          "Unsuccessful oauth2 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+          username,
+          roles.size(),
+          roles,
+          fiatClientConfigurationProperties.legacyFallback
+        )
+        id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
+
+        if (!fiatClientConfigurationProperties.legacyFallback) {
+          throw e
+        }
+      } finally {
+        registry.counter(id).increment()
       }
     }
 

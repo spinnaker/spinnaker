@@ -78,8 +78,6 @@ class SpinnakerUserInfoTokenServicesSpec extends Specification {
     tokenServices.hasAllUserInfoRequirements(roles: ["foo_ADMIN"])
     !tokenServices.hasAllUserInfoRequirements(roles: ["_ADMIN", "foo_USER"])
     !tokenServices.hasAllUserInfoRequirements(roles: ["foo_ADMINISTRATOR", "bar_USER"])
-
-
   }
 
   def "should extract roles from details"() {
