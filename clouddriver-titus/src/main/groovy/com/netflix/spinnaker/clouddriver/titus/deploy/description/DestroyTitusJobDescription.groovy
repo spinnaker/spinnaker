@@ -17,10 +17,18 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 
-class DestroyTitusJobDescription extends AbstractTitusCredentialsDescription {
+class DestroyTitusJobDescription extends AbstractTitusCredentialsDescription implements ApplicationNameable{
   String region
   String jobId
   String user
+
+  Set<String> applications
+  boolean requiresApplicationRestriction = true
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    return requiresApplicationRestriction
+  }
 }

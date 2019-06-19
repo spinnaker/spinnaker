@@ -22,20 +22,28 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
+import com.netflix.spinnaker.clouddriver.titus.caching.providers.TitusJobProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DestroyTitusJobAtomicOperation
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@TitusOperation(AtomicOperations.DESTROY_JOB)
+@Slf4j
 @Component
+@TitusOperation(AtomicOperations.DESTROY_JOB)
 class DestroyTitusJobAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitusClientProvider titusClientProvider
+  private final TitusJobProvider titusJobProvider
 
   @Autowired
-  DestroyTitusJobAtomicOperationConverter(TitusClientProvider titusClientProvider) {
+  DestroyTitusJobAtomicOperationConverter(
+    TitusClientProvider titusClientProvider,
+    TitusJobProvider titusJobProvider
+  ) {
     this.titusClientProvider = titusClientProvider
+    this.titusJobProvider = titusJobProvider
   }
 
   @Override
@@ -47,6 +55,23 @@ class DestroyTitusJobAtomicOperationConverter extends AbstractAtomicOperationsCr
   DestroyTitusJobDescription convertDescription(Map input) {
     def converted = objectMapper.convertValue(input, DestroyTitusJobDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
+
+    try {
+      def job = titusJobProvider.collectJob(converted.credentials.name, converted.region, converted.jobId)
+      converted.applications = [job.application] as Set
+      converted.requiresApplicationRestriction = !converted.applications.isEmpty()
+    } catch (Exception e) {
+      converted.applications = []
+      converted.requiresApplicationRestriction = true
+      log.error(
+        "Unable to determine application for job (jobId: {}, account: {}, region: {})",
+        converted.jobId,
+        converted.credentials.name,
+        converted.region,
+        e
+      )
+    }
+
     return converted
   }
 }
