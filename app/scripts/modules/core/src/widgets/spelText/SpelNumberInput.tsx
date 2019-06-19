@@ -7,6 +7,7 @@ export interface INumberInputProps {
   onChange: (value: number | string) => void;
   min?: number;
   max?: number;
+  required?: boolean;
 }
 
 export interface INumberInputState {
@@ -38,17 +39,14 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
     this.setState({ glowing });
   }
 
-  private valueChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    if (event.target.type === 'number') {
-      this.props.onChange(parseInt(event.target.value, 10));
-    } else {
-      this.props.onChange(event.target.value);
-    }
+  private valueChanged = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>): void => {
+    const num = parseInt(value, 10);
+    this.props.onChange(isNaN(num) ? value : num);
   };
 
   public render() {
     const { expressionActive, glowing } = this.state;
-    const { value, min, max } = this.props;
+    const { value, min, max, required = false } = this.props;
     return (
       <div className="navbar-form" style={{ padding: 0, margin: 0 }}>
         <div className={`button-input ${expressionActive ? 'text' : 'number'}${glowing ? ' focus' : ''}`}>
@@ -88,6 +86,7 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
             onChange={this.valueChanged}
             onFocus={() => this.setGlow(true)}
             onBlur={() => this.setGlow(false)}
+            required={required}
           />
         </div>
       </div>

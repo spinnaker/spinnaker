@@ -55,11 +55,10 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
     this.setState({});
   };
 
-  private capacityFieldChanged = (fieldName: 'min' | 'max' | 'desired', value: string) => {
+  private capacityFieldChanged = (fieldName: 'min' | 'max' | 'desired', value: number | string) => {
     const { command, setFieldValue } = this.props;
-    const num = Number.parseInt(value, 10);
     command.capacity = { ...command.capacity };
-    command.capacity[fieldName] = num;
+    command.capacity[fieldName] = value;
     setFieldValue('capacity', command.capacity);
   };
 
