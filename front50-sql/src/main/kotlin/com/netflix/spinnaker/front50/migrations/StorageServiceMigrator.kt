@@ -195,7 +195,7 @@ class StorageServiceMigrator(
     log.info("Migration complete in {}ms", migrationDurationMs)
   }
 
-  @Scheduled(fixedDelay = 90000)
+  @Scheduled(initialDelay = 1800000, fixedDelay = 90000)
   fun migrateEntityTags() {
     if (!dynamicConfigService.isEnabled("spinnaker.migration.entityTags", false)) {
       log.info("Entity Tags Migrator has been disabled")

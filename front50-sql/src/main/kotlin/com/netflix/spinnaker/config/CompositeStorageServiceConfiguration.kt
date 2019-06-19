@@ -47,6 +47,7 @@ class CompositeStorageServiceConfiguration() {
     )
 
   @Bean
+  @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
   fun storageServiceMigrator(dynamicConfigService: DynamicConfigService,
                              registry: Registry,
                              properties: StorageServiceMigratorConfigurationProperties,
