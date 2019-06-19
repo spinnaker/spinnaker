@@ -28,7 +28,11 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,15 +183,9 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
         .subList(0, (executions.size() - minimumPipelineExecutions))
         .forEach(
             p -> {
-              long startTime = p.startTime == null ? p.buildTime : p.startTime;
-              long days =
-                  ChronoUnit.DAYS.between(
-                      Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(clock.millis()));
-              if (days > thresholdDays) {
-                log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
-                registry.counter(deletedId.withTag("application", p.application)).increment();
-                executionRepository.delete(PIPELINE, p.id);
-              }
+              log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
+              executionRepository.delete(PIPELINE, p.id);
+              registry.counter(deletedId.withTag("application", p.application)).increment();
             });
   }
 

@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 import java.time.Clock
 import java.time.Duration
-import java.util.concurrent.atomic.AtomicInteger
+import java.time.Instant
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -98,12 +98,25 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
 
   void 'tick should cleanup pipeline with executions older than threshold, but no less than minimum execution limit'() {
     given:
-    def startTime = new AtomicInteger(0)
-    def pipelines = buildPipelines(startTime, 7, "P1")
+    def startTimes = [
+            Instant.parse("2019-06-01T00:00:00Z"),
+            Instant.parse("2019-06-01T01:00:00Z"),
+            Instant.parse("2019-06-01T02:00:00Z"),
+            Instant.parse("2019-06-01T03:00:00Z"),
+            Instant.parse("2019-06-01T04:00:00Z"),
+            Instant.parse("2019-06-01T05:00:00Z"),
+            Instant.parse("2019-06-01T06:00:00Z"),
+    ]
+
+    def pipelines = buildPipelines(startTimes, "P1")
+    def thresholdDays = 5
+    def retain = 3
 
     and:
     def clock = Mock(Clock) {
-      millis() >> { Duration.ofDays(10).toMillis() }
+      // `thresholdDays` days and one minute after pipeline4 above, so that the first five pipelines
+      // are past the threshold
+      millis() >> { Instant.parse("2019-06-06T04:01:00Z").toEpochMilli() }
     }
     def executionRepository = Mock(ExecutionRepository) {
       1 * retrieveAllApplicationNames(PIPELINE) >> ["orca"]
@@ -115,27 +128,30 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       clock,
       new NoopRegistry(),
       5000,
-      5,
-      3
+      thresholdDays,
+      retain
     )
 
     when:
     agent.tick()
 
     then:
+    // with pipeline executions at D1, D2, D3, D4, D5, D6, D7, and clock at D10, we
+    // expect D1-5 to be too old, but for the most recent 3 to be retained
     1 * executionRepository.delete(PIPELINE, '1')
     1 * executionRepository.delete(PIPELINE, '2')
   }
 
   private
-  static Collection<Execution> buildPipelines(AtomicInteger stageStartTime, int count, String configId) {
-    (1..count).collect {
-      def time = stageStartTime.incrementAndGet()
+  static Collection<Execution> buildPipelines(List<Instant> startTimes, String configId) {
+    (1..startTimes.size()).collect {
+      def n = it
+      def time = startTimes.get(n - 1).toEpochMilli()
       pipeline {
-        id = time as String
+        id = n
         application = "orca"
         pipelineConfigId = configId
-        startTime = Duration.ofDays(time).toMillis()
+        startTime = time
         buildTime = time
         status = ExecutionStatus.SUCCEEDED
         stage {
