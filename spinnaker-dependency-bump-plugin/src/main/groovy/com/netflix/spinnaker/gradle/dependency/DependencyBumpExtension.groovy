@@ -27,7 +27,6 @@ class DependencyBumpExtension {
       "gate",
       "halyard",
       "igor",
-      "kayenta",
       "keel",
       "orca",
       "rosco",
