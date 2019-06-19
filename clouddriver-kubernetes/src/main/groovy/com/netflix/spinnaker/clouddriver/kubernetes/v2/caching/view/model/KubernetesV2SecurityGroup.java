@@ -124,7 +124,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   }
 
   private static Rule fromPolicyPort(V1NetworkPolicyPort policyPort) {
-    String port = policyPort.getPort();
+    String port = policyPort.getPort().getStrValue();
     return new PortRule()
         .setProtocol(policyPort.getProtocol())
         .setPortRanges(new TreeSet<>(Collections.singletonList(new StringPortRange(port))));

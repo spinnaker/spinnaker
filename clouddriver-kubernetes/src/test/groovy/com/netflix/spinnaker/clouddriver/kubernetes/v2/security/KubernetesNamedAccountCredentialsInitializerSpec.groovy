@@ -115,6 +115,10 @@ contexts:
     cluster: test
     user: test
 current-context: default
+clusters:
+- name: test
+  cluster:
+    server: "https://foo:6443"
 """,
         namespaces: ["default"],
         dockerRegistries: [new LinkedDockerRegistryConfiguration(accountName: "docker-account")]
