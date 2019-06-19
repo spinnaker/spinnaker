@@ -79,7 +79,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
 
-    Map details = oAuth2Authentication.userAuthentication.details as Map
+    Map<String, Object> details = oAuth2Authentication.userAuthentication.details as Map
 
     if (log.isDebugEnabled()) {
       log.debug("UserInfo details: " + entries(details))
@@ -147,16 +147,29 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     return false
   }
 
-  boolean hasAllUserInfoRequirements(Map details) {
+  private static boolean valueMatchesConstraint(Object value, String requiredVal) {
+    if (value == null) {
+      return false
+    }
+
+    if (isRegexExpression(requiredVal)) {
+      return String.valueOf(value).matches(mutateRegexPattern(requiredVal))
+    }
+
+    return value == requiredVal
+  }
+
+  boolean hasAllUserInfoRequirements(Map<String, Object> details) {
     if (!userInfoRequirements) {
       return true
     }
 
     def invalidFields = userInfoRequirements.findAll { String reqKey, String reqVal ->
-      if (details[reqKey] && isRegexExpression(reqVal)) {
-        return !String.valueOf(details[reqKey]).matches(mutateRegexPattern(reqVal))
+      def value = details[reqKey]
+      if (value instanceof Collection) {
+        return !value.any { valueMatchesConstraint(it, reqVal) }
       }
-      return details[reqKey] != reqVal
+      return !valueMatchesConstraint(value, reqVal)
     }
     if (invalidFields && log.debugEnabled) {
       log.debug "Invalid userInfo response: " + invalidFields.collect({k, v -> "got $k=${details[k]}, wanted $v"}).join(", ")
@@ -182,7 +195,18 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     val.substring(1, val.length() - 1)
   }
 
-  protected List<String> getRoles(Map<String, String> details) {
+  protected List<String> getRoles(Map<String, Object> details) {
+    if (!userInfoMapping.roles) {
+      return []
+    }
+    def roles = details[userInfoMapping.roles] ?: []
+    if (roles instanceof Collection) {
+      return roles as List<String>
+    }
+    if (roles instanceof String) {
+      return roles.split(/[, ]+/) as List<String>
+    }
+    log.warn("unsupported roles value in details, type: ${roles.class}, value: ${roles}")
     return []
   }
 }

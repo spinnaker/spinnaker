@@ -21,42 +21,89 @@ import spock.lang.Subject
 
 class SpinnakerUserInfoTokenServicesSpec extends Specification {
 
-  def "should check restricted domain flag if set"() {
+  def "should evaluate userInfoRequirements against authentication details"() {
     setup:
-      def userInfoRequirements = new OAuth2SsoConfig.UserInfoRequirements();
-      @Subject tokenServices = new SpinnakerUserInfoTokenServices(userInfoRequirements: userInfoRequirements)
+    def userInfoRequirements = new OAuth2SsoConfig.UserInfoRequirements()
+    @Subject tokenServices = new SpinnakerUserInfoTokenServices(userInfoRequirements: userInfoRequirements)
 
     expect: "no domain restriction means everything matches"
-      tokenServices.hasAllUserInfoRequirements([:])
-      tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
-      tokenServices.hasAllUserInfoRequirements(["bar": "foo.com"])
-      tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
+    tokenServices.hasAllUserInfoRequirements([:])
+    tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
+    tokenServices.hasAllUserInfoRequirements(["bar": "foo.com"])
+    tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
 
     when: "domain restricted but not found on userAuthorizationUri"
-      userInfoRequirements.hd = "foo.com"
+    userInfoRequirements.hd = "foo.com"
 
     then:
-      !tokenServices.hasAllUserInfoRequirements([:])
-      tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
-      !tokenServices.hasAllUserInfoRequirements(["bar": "foo.com"])
-      !tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
+    !tokenServices.hasAllUserInfoRequirements([:])
+    tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
+    !tokenServices.hasAllUserInfoRequirements(["bar": "foo.com"])
+    !tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
 
     when: 'domain restricted by regex expression'
-      userInfoRequirements.hd = "/foo\\.com|bar\\.com/"
+    userInfoRequirements.hd = "/foo\\.com|bar\\.com/"
 
     then:
-      !tokenServices.hasAllUserInfoRequirements([:])
-      tokenServices.hasAllUserInfoRequirements(['hd': 'foo.com'])
-      tokenServices.hasAllUserInfoRequirements(['hd': 'bar.com'])
-      !tokenServices.hasAllUserInfoRequirements(['hd': 'baz.com'])
-      !tokenServices.hasAllUserInfoRequirements(['bar': 'foo.com'])
+    !tokenServices.hasAllUserInfoRequirements([:])
+    tokenServices.hasAllUserInfoRequirements(['hd': 'foo.com'])
+    tokenServices.hasAllUserInfoRequirements(['hd': 'bar.com'])
+    !tokenServices.hasAllUserInfoRequirements(['hd': 'baz.com'])
+    !tokenServices.hasAllUserInfoRequirements(['bar': 'foo.com'])
 
     when: "multiple restriction values"
-      userInfoRequirements.bar = "bar.com"
+    userInfoRequirements.bar = "bar.com"
 
     then:
-      !tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
-      !tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
-      tokenServices.hasAllUserInfoRequirements(["hd": "foo.com", "bar": "bar.com"])
+    !tokenServices.hasAllUserInfoRequirements(["hd": "foo.com"])
+    !tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
+    tokenServices.hasAllUserInfoRequirements(["hd": "foo.com", "bar": "bar.com"])
+
+    when: "evaluating a list, any match is accepted"
+    userInfoRequirements.clear()
+    userInfoRequirements.roles = "expected-role"
+
+    then:
+    tokenServices.hasAllUserInfoRequirements("roles": "expected-role")
+    tokenServices.hasAllUserInfoRequirements("roles": ["expected-role", "unexpected-role"])
+    !tokenServices.hasAllUserInfoRequirements([:])
+    !tokenServices.hasAllUserInfoRequirements("roles": "unexpected-role")
+    !tokenServices.hasAllUserInfoRequirements("roles": ["unexpected-role"])
+
+    when: "evaluating a regex in a list, any match is accepted"
+    userInfoRequirements.roles = "/^.+_ADMIN\$/"
+
+    then:
+    tokenServices.hasAllUserInfoRequirements(roles: "foo_ADMIN")
+    tokenServices.hasAllUserInfoRequirements(roles: ["foo_ADMIN"])
+    !tokenServices.hasAllUserInfoRequirements(roles: ["_ADMIN", "foo_USER"])
+    !tokenServices.hasAllUserInfoRequirements(roles: ["foo_ADMINISTRATOR", "bar_USER"])
+
+
+  }
+
+  def "should extract roles from details"() {
+    given:
+    def tokenServices = new SpinnakerUserInfoTokenServices(userInfoMapping: new OAuth2SsoConfig.UserInfoMapping(roles: 'roles'))
+    def details = [
+      roles: rolesValue
+    ]
+
+    expect:
+    tokenServices.getRoles(details) == expectedRoles
+
+    where:
+    rolesValue        || expectedRoles
+    null              || []
+    ""                || []
+    ["foo", "bar"]    || ["foo", "bar"]
+    "foo,bar"         || ["foo", "bar"]
+    "foo bar"         || ["foo", "bar"]
+    "foo"             || ["foo"]
+    "foo   bar"       || ["foo", "bar"]
+    "foo,,,bar"       || ["foo", "bar"]
+    "foo, bar"        || ["foo", "bar"]
+    1                 || []
+    [blergh: "blarg"] || []
   }
 }
