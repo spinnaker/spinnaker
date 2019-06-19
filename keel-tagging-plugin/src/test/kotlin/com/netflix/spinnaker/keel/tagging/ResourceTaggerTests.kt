@@ -37,6 +37,7 @@ import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -46,7 +47,10 @@ import java.time.Duration
 internal class ResourceTaggerTests : JUnit5Minutests {
 
   private val resourceRepository: ResourceRepository = InMemoryResourceRepository()
-  private val resourcePersister = mockk<ResourcePersister>()
+
+  // lazy so we don't have to give an unused response for every call
+  private val resourcePersister = mockk<ResourcePersister>(relaxed = true)
+
   private val cloudDriverService = mockk<CloudDriverService>()
   private val clock = MutableClock()
 
@@ -127,10 +131,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       cloudDriverService.listCredentials()
     } returns accounts
 
-    every {
-      resourcePersister.create(any())
-    } answers { Resource(arg(0), ResourceMetadata(ResourceName("this:is:a:name"), randomUID())) }
-
     context("cluster created") {
       before {
         resourceRepository.store(rCluster)
@@ -191,6 +191,36 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         removeTags()
 
         verify { resourcePersister.delete(rClusterTagNotDesired.metadata.name) }
+      }
+    }
+
+    context("we only tag certain resources") {
+      after {
+        clearAllMocks()
+      }
+
+      test("we don't tag named images") {
+        onCreateEvent(CreateEvent(ResourceName("bakery:image:keel")))
+        verify { resourcePersister.create(any()) wasNot Called }
+      }
+      test("we don't tag tags") {
+        onCreateEvent(CreateEvent(ResourceName("tag:keel-tag:ec2:cluster:test:us-west-2:keeldemo-test")))
+        verify { resourcePersister.create(any()) wasNot Called }
+      }
+
+      test("we tag clbs") {
+        onCreateEvent(CreateEvent(ResourceName("ec2:clb:test:us-east-1:keel-managed")))
+        verify { resourcePersister.create(any()) }
+      }
+
+      test("we tag security groups") {
+        onCreateEvent(CreateEvent(ResourceName("ec2:securityGroup:test:us-west-2:keel-managed")))
+        verify { resourcePersister.create(any()) }
+      }
+
+      test("we tag clusters") {
+        onCreateEvent(CreateEvent(ResourceName("ec2:cluster:test:us-west-2:keeldemo-test")))
+        verify { resourcePersister.create(any()) }
       }
     }
   }

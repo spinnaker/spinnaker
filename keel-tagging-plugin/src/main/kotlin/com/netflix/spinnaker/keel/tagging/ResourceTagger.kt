@@ -67,9 +67,11 @@ class ResourceTagger(
     "ec2" to "aws"
   )
 
+  private val taggableResources = listOf("cluster", "securityGroup", "clb")
+
   @EventListener(CreateEvent::class)
   fun onCreateEvent(event: CreateEvent) {
-    if (event.resourceName.isNotTag()) {
+    if (event.resourceName.shouldTag()) {
       log.debug("Persisting tag desired for resource {} because it exists now", event.resourceName.toString())
       val spec = event.resourceName.generateKeelTagSpec()
       persistTagState(spec)
@@ -78,7 +80,7 @@ class ResourceTagger(
 
   @EventListener(DeleteEvent::class)
   fun onDeleteEvent(event: DeleteEvent) {
-    if (event.resourceName.isNotTag()) {
+    if (event.resourceName.shouldTag()) {
       log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceName.toString())
       val spec = KeelTagSpec(
         keelId = event.resourceName.toString(),
@@ -135,8 +137,6 @@ class ResourceTagger(
     }
   }
 
-  private fun ResourceName.isNotTag() = !this.toString().startsWith(KEEL_TAG_NAME_PREFIX, true)
-
   private fun KeelTagSpec.generateTagNameFromKeelId() = "tag:keel-tag:$keelId"
 
   private fun KeelTagSpec.toSubmittedResource() =
@@ -165,6 +165,11 @@ class ResourceTagger(
       name = KEEL_TAG_NAME
     )
     )
+
+  private fun ResourceName.shouldTag(): Boolean {
+    val (_, resourceType, _, _, _) = toString().split(":")
+    return taggableResources.contains(resourceType)
+  }
 
   private fun ResourceName.toEntityRef(): EntityRef {
     val (pluginGroup, resourceType, account, region, resourceId) = toString().split(":")
