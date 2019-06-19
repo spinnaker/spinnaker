@@ -45,7 +45,7 @@ class TitusDeployDescriptionValidator extends AbstractTitusDescriptionValidatorS
 
     def credentials = getAccountCredentials(description?.credentials?.name)
     if (credentials && !((NetflixTitusCredentials) credentials).regions.name.contains(description.region)) {
-      errors.rejectValue "region", "titusDeployDescription.region.not.configured", description.region, "Region not configured"
+      errors.rejectValue "region", "titusDeployDescription.region.not.configured", "Region '${description.region}' not configured"
     }
 
     if (!description.application) {
