@@ -434,7 +434,7 @@ class LoadBalancerV2UpsertHandler {
           new RuleCondition().withField(condition.field).withValues(condition.values)
         }
 
-        rules.add(new Rule().withActions(actions).withConditions(conditions).withPriority(Integer.toString(rule.priority)))
+        rules.add(new Rule().withActions(actions).withConditions(conditions).withPriority(rule.priority))
       }
       listenerToRules.put(listener, rules)
     }

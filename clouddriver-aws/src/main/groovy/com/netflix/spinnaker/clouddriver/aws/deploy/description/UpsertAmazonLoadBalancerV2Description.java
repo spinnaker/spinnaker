@@ -398,15 +398,15 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   }
 
   public static class Rule {
-    private Integer priority;
+    private String priority;
     private List<Action> actions;
     private List<RuleCondition> conditions;
 
-    public Integer getPriority() {
+    public String getPriority() {
       return priority;
     }
 
-    public void setPriority(Integer priority) {
+    public void setPriority(String priority) {
       this.priority = priority;
     }
 
