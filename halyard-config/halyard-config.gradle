@@ -25,7 +25,7 @@ dependencies {
   implementation 'commons-collections:commons-collections:3.2.1'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io:2.6'
-  implementation 'io.fabric8:kubernetes-client'
+  implementation 'io.fabric8:kubernetes-client:4.1.1'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.jcraft:jsch'
 

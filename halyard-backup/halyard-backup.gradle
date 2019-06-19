@@ -10,7 +10,7 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io:2.6'
   implementation 'org.apache.commons:commons-compress:1.14'
-  implementation 'io.fabric8:kubernetes-client'
+  implementation 'io.fabric8:kubernetes-client:4.1.1'
   implementation 'org.codehaus.groovy:groovy'
 
   implementation project(':halyard-config')
