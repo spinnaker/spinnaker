@@ -76,11 +76,6 @@ class CompositeStorageService(
   }
 
   override fun <T : Timestamped?> loadObject(objectType: ObjectType?, objectKey: String?): T {
-    if (objectType == ObjectType.ENTITY_TAGS) {
-      // entity tags are currently unsupported in SQL
-      return previous.loadObject<T>(objectType, objectKey)
-    }
-
     var exception: Exception? = null
 
     if (isPrimaryReadEnabled()) {
@@ -105,11 +100,6 @@ class CompositeStorageService(
   }
 
   override fun <T : Timestamped?> loadObjects(objectType: ObjectType, objectKeys: List<String>): List<T> {
-    if (objectType == ObjectType.ENTITY_TAGS) {
-      // entity tags are currently unsupported in SQL
-      return previous.loadObjects<T>(objectType, objectKeys)
-    }
-
     var exception: Exception? = null
 
     if (isPrimaryReadEnabled()) {
@@ -156,10 +146,7 @@ class CompositeStorageService(
     }
 
     try {
-      if (objectType != ObjectType.ENTITY_TAGS) {
-        // entity tags are currently unsupported in SQL
-        primary.storeObject(objectType, objectKey, item)
-      }
+      primary.storeObject(objectType, objectKey, item)
     } catch (e: Exception) {
       log.error(
         "{}.storeObject({}, {}) failed",
@@ -174,10 +161,6 @@ class CompositeStorageService(
   }
 
   override fun listObjectKeys(objectType: ObjectType?): Map<String, Long> {
-    if (objectType == ObjectType.ENTITY_TAGS) {
-      return previous.listObjectKeys(objectType)
-    }
-
     val objectKeys = mutableMapOf<String, Long>()
 
     if (isPreviousReadEnabled()) {

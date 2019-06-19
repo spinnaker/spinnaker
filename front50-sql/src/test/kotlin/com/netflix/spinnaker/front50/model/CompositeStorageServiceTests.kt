@@ -41,18 +41,22 @@ internal object CompositeStorageServiceTests : JUnit5Minutests {
     }
 
     context("loadObject()") {
-      test("should always load EntityTags from 'previous'") {
+      test("should always load EntityTags from 'primary'") {
         every {
-          previous.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+          primary.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
         } returns EntityTags().apply { id = "id-entitytags001" }
+
+        every {
+          dynamicConfigService.getConfig(Boolean::class.java, any(), any())
+        } returns true
 
         expectThat(
           subject.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001").id
         ).isEqualTo("id-entitytags001")
 
         verifyAll {
-          primary wasNot Called
-          previous.loadObject<Timestamped>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+          primary.loadObject<Timestamped>(ObjectType.ENTITY_TAGS, "id-entitytags001")
+          previous wasNot Called
         }
       }
 
