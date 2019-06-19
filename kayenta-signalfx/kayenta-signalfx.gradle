@@ -126,7 +126,7 @@ dependencies {
   // Apache 2.0 https://github.com/rest-assured/rest-assured/blob/master/LICENSE
   integrationTestCompile 'io.rest-assured:rest-assured:3.1.1'
 
-  integrationTestAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+  integrationTestAnnotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
   integrationTestAnnotationProcessor "org.projectlombok:lombok"
   integrationTestCompileOnly "org.projectlombok:lombok"
 }

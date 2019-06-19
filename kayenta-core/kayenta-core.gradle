@@ -9,8 +9,8 @@ dependencies {
   implementation "io.springfox:springfox-swagger-ui:2.9.2"
   implementation "io.springfox:springfox-swagger2:2.9.2"
 
-  implementation "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
-  implementation "com.netflix.spinnaker.orca:orca-retrofit:$orcaVersion"
+  implementation "com.netflix.spinnaker.orca:orca-core"
+  implementation "com.netflix.spinnaker.orca:orca-retrofit"
   implementation "net.lariverosc:jesque-spring:1.0.1"
   implementation "net.greghaines:jesque:1.3.1"
 

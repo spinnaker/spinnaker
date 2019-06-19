@@ -2,13 +2,13 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   implementation "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
-  implementation "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
-  implementation "com.netflix.spinnaker.orca:orca-queue-redis:$orcaVersion"
-  implementation "com.netflix.spinnaker.orca:orca-redis:$orcaVersion"
+  implementation "com.netflix.spinnaker.orca:orca-queue"
+  implementation "com.netflix.spinnaker.orca:orca-queue-redis"
+  implementation "com.netflix.spinnaker.orca:orca-redis"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
-  testImplementation "com.netflix.spinnaker.orca:orca-test:$orcaVersion"
+  testImplementation "com.netflix.spinnaker.orca:orca-test"
 
   testImplementation "com.natpryce:hamkrest"
 }

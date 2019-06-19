@@ -18,6 +18,7 @@ rootProject.name="kayenta"
 
 include 'kayenta-atlas'
 include 'kayenta-aws'
+include 'kayenta-bom'
 include 'kayenta-core'
 include 'kayenta-datadog'
 include 'kayenta-gcs'

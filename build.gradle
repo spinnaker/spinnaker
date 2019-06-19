@@ -37,37 +37,40 @@ allprojects {
   if (Boolean.valueOf(enablePublishing)) {
     apply plugin: "spinnaker.project"
   }
-  apply plugin: "java-library"
-  apply plugin: "groovy"
-  apply plugin: "kotlin"
 
-  def localVersions = [korkVersion, orcaVersion].find { it.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
+  if (name != "kayenta-bom") {
+    apply plugin: "java-library"
+    apply plugin: "groovy"
+    apply plugin: "kotlin"
+
+    def localVersions = [orcaVersion].find { it.endsWith('-SNAPSHOT') }
+    if (localVersions) {
+      logger.info("Enabling mavenLocal repo for $localVersions")
+      repositories {
+        mavenLocal()
+      }
     }
-  }
 
-  test {
-    testLogging {
-      exceptionFormat = "full"
+    test {
+      testLogging {
+        exceptionFormat = "full"
+      }
+      minHeapSize = "512m"
+      maxHeapSize = "512m"
     }
-    minHeapSize = "512m"
-    maxHeapSize = "512m"
-  }
 
-  tasks.withType(JavaExec) {
-    if (System.getProperty('DEBUG', 'false') == 'true') {
-      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8191'
+    tasks.withType(JavaExec) {
+      if (System.getProperty('DEBUG', 'false') == 'true') {
+        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8191'
+      }
     }
-  }
 
-  configurations.all {
-    exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-    exclude group: 'javax.servlet', module: 'servlet-api'
-    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    exclude group: 'org.slf4j', module: 'slf4j-simple'
+    configurations.all {
+      exclude group: 'org.mortbay.jetty', module: 'servlet-api'
+      exclude group: 'javax.servlet', module: 'servlet-api'
+      exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+      exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
   }
 }
 
@@ -84,36 +87,38 @@ subprojects { project ->
     maven { url "https://dl.bintray.com/spinnaker/spinnaker"}
   }
 
-  dependencies {
-    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    compileOnly "org.projectlombok:lombok"
-    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    testAnnotationProcessor "org.projectlombok:lombok"
-    testCompileOnly "org.projectlombok:lombok"
+  if (name != "kayenta-bom") {
+    dependencies {
+      implementation platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      compileOnly "org.projectlombok:lombok"
+      annotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      annotationProcessor "org.projectlombok:lombok"
+      testAnnotationProcessor platform("com.netflix.spinnaker.orca:orca-bom:$orcaVersion")
+      testAnnotationProcessor "org.projectlombok:lombok"
+      testCompileOnly "org.projectlombok:lombok"
 
 
-    implementation "org.slf4j:slf4j-api"
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "com.netflix.spinnaker.kork:kork-swagger"
-    implementation "org.springframework.boot:spring-boot-properties-migrator"
-    implementation "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+      implementation "org.slf4j:slf4j-api"
+      implementation "org.springframework.boot:spring-boot-starter-web"
+      implementation "com.netflix.spinnaker.kork:kork-swagger"
+      implementation "org.springframework.boot:spring-boot-properties-migrator"
+      implementation "com.netflix.spinnaker.orca:orca-core"
 
-    implementation "com.squareup.retrofit:retrofit"
-    implementation "com.squareup.retrofit:converter-jackson"
-    implementation "com.squareup.okhttp:okhttp"
-    implementation "com.squareup.okhttp:okhttp-urlconnection"
-    implementation "com.squareup.okhttp:okhttp-apache"
+      implementation "com.squareup.retrofit:retrofit"
+      implementation "com.squareup.retrofit:converter-jackson"
+      implementation "com.squareup.okhttp:okhttp"
+      implementation "com.squareup.okhttp:okhttp-urlconnection"
+      implementation "com.squareup.okhttp:okhttp-apache"
 
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.spockframework:spock-core"
-    testImplementation "org.spockframework:spock-spring"
-    testImplementation "org.springframework:spring-test"
-    testImplementation "org.hamcrest:hamcrest-core"
-    testImplementation "org.codehaus.groovy:groovy-all"
-    testRuntimeOnly "cglib:cglib-nodep"
-    testRuntimeOnly "org.objenesis:objenesis"
+      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation "org.spockframework:spock-core"
+      testImplementation "org.spockframework:spock-spring"
+      testImplementation "org.springframework:spring-test"
+      testImplementation "org.hamcrest:hamcrest-core"
+      testImplementation "org.codehaus.groovy:groovy-all"
+      testRuntimeOnly "cglib:cglib-nodep"
+      testRuntimeOnly "org.objenesis:objenesis"
+    }
   }
 }
 
