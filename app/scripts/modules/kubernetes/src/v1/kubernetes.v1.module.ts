@@ -64,7 +64,7 @@ module(KUBERNETES_V1_MODULE, [
       resultFormatter: 'kubernetesSearchResultFormatter',
     },
     logo: {
-      path: require('../logo/kubernetes.logo.png'),
+      path: require('../logo/kubernetes.logo.svg'),
     },
     image: {
       reader: 'kubernetesImageReader',
