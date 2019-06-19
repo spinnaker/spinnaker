@@ -195,12 +195,21 @@ class StorageServiceMigrator(
     log.info("Migration complete in {}ms", migrationDurationMs)
   }
 
-//  @Scheduled(fixedDelay = 90000)
-//  fun migrateEntityTags() {
-//    val migrationDurationMs = measureTimeMillis {
-//      migrate(ObjectType.ENTITY_TAGS)
-//    }
-//
-//    log.info("Entity Tags Migration complete in {}ms", migrationDurationMs)
-//  }
+  @Scheduled(fixedDelay = 90000)
+  fun migrateEntityTags() {
+    if (!dynamicConfigService.isEnabled("spinnaker.migration.entityTags", false)) {
+      log.info("Entity Tags Migrator has been disabled")
+      return
+    }
+
+    val migrationDurationMs = measureTimeMillis {
+      try {
+        migrate(ObjectType.ENTITY_TAGS)
+      } catch (e: Exception) {
+        log.info("Entity Tags Migration failed", e)
+      }
+    }
+
+    log.info("Entity Tags Migration complete in {}ms", migrationDurationMs)
+  }
 }
