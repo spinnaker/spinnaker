@@ -6,18 +6,21 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.danielbechler.diff.NodeQueryService
 import de.danielbechler.diff.ObjectDiffer
 import de.danielbechler.diff.ObjectDifferBuilder
+import de.danielbechler.diff.access.Instances
+import de.danielbechler.diff.comparison.ComparisonService
+import de.danielbechler.diff.differ.BeanDiffer
 import de.danielbechler.diff.differ.Differ
 import de.danielbechler.diff.differ.DifferDispatcher
 import de.danielbechler.diff.differ.DifferFactory
+import de.danielbechler.diff.filtering.ReturnableNodeService
+import de.danielbechler.diff.introspection.IntrospectionService
 import de.danielbechler.diff.node.DiffNode
+import de.danielbechler.diff.node.DiffNode.State.CHANGED
 
 data class ResourceDiff<T : Any>(
   val desired: T,
   val current: T?
 ) {
-  private val desiredAsMap: Map<String, Any?> by lazy { desired.toMap()!! }
-  private val currentAsMap: Map<String, Any?>? by lazy { current.toMap() }
-
   val diff: DiffNode by lazy {
     differ.compare(
       desired,
@@ -61,15 +64,48 @@ data class ResourceDiff<T : Any>(
     val differ: ObjectDiffer = ObjectDifferBuilder
       .startBuilding()
       .apply {
-        //        differs().register(PolymorphismAwareDifferFactory)
+        differs().register(PolymorphismAwareDifferFactory(this))
       }
       .build()
     val mapper: ObjectMapper = configuredObjectMapper()
   }
 }
 
-private object PolymorphismAwareDifferFactory : DifferFactory {
-  override fun createDiffer(differDispatcher: DifferDispatcher, nodeQueryService: NodeQueryService): Differ {
-    TODO("not implemented")
+private class PolymorphismAwareDifferFactory(
+  private val objectDifferBuilder: ObjectDifferBuilder
+) : DifferFactory {
+  override fun createDiffer(
+    differDispatcher: DifferDispatcher,
+    nodeQueryService: NodeQueryService
+  ): Differ = object : Differ {
+    // ugh, wish I could just get the already built one, but there's no hook to access it
+    private val delegate = BeanDiffer(
+      differDispatcher,
+      IntrospectionService(objectDifferBuilder),
+      ReturnableNodeService(objectDifferBuilder),
+      ComparisonService(objectDifferBuilder),
+      IntrospectionService(objectDifferBuilder)
+    )
+
+    override fun accepts(type: Class<*>): Boolean =
+      // we don't want to handle collections as the existing differ works
+      delegate.accepts(type) && !Collection::class.java.isAssignableFrom(type)
+
+    override fun compare(parentNode: DiffNode?, instances: Instances): DiffNode =
+      if (instances.areDifferentSubTypes()) {
+        DiffNode(parentNode, instances.sourceAccessor, instances.type)
+          .apply { state = CHANGED }
+      } else {
+        delegate.compare(parentNode, instances)
+      }
+
+    private fun Instances.areDifferentSubTypes(): Boolean =
+      if (working == null || base == null) {
+        // will get resolved as ADDED or REMOVED by regular differ
+        false
+      } else {
+        // this is the case we want to handle specially
+        working.javaClass != base.javaClass
+      }
   }
 }

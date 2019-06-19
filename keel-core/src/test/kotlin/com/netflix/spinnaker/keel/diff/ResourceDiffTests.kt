@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.keel.diff
 
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -31,8 +29,6 @@ import strikt.assertions.isEqualTo
  * https://github.com/spinnaker/keel/issues/317
  */
 internal class ResourceDiffTests : JUnit5Minutests {
-  class Fixture
-
   private data class Container(val prop: Parent)
 
   private interface Parent {
@@ -49,12 +45,8 @@ internal class ResourceDiffTests : JUnit5Minutests {
     val anotherProp: String
   ) : Parent
 
-  fun tests() = rootContext<Fixture> {
-    fixture {
-      Fixture()
-    }
-
-    SKIP - context("delta is the type of a polymorphic property") {
+  fun tests() = rootContext {
+    context("delta is the type of a polymorphic property") {
       test("the delta is detected") {
         val obj1 = Container(Child1("common", "myprop"))
         val obj2 = Container(Child2("common", "anotherProp"))

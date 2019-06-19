@@ -26,7 +26,7 @@ dependencies {
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
   api("com.netflix.spinnaker.kork:kork-artifacts")
 
-  implementation("de.danielbechler:java-object-diff")
+  api("de.danielbechler:java-object-diff")
 
   testImplementation(project (":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")

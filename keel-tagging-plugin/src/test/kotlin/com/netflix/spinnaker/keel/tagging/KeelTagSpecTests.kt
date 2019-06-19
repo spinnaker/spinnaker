@@ -6,8 +6,6 @@ import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagValue
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -40,7 +38,7 @@ internal class KeelTagSpecTests : JUnit5Minutests {
         )
       }
 
-      SKIP - test("a diff is detected") {
+      test("a diff is detected") {
         expectThat(diff.state).isEqualTo(CHANGED)
       }
     }
