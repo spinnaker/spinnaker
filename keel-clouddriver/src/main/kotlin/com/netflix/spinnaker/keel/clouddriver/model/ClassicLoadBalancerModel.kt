@@ -15,28 +15,32 @@
  */
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ClassicLoadBalancerModel(
-  val moniker: Moniker?,
-  val loadBalancerName: String,
-  val loadBalancerType: String = "classic",
-  val availabilityZones: Set<String>,
-  val vpcid: String,
-  val subnets: Set<String>,
-  val scheme: String?,
-  val listenerDescriptions: List<LoadBalancerListenerDescription>,
-  val healthCheck: LoadBalancerHealthCheck,
-  val idleTimeout: Int,
-  val securityGroups: Set<String>,
+  override val moniker: Moniker?,
+  override val loadBalancerName: String,
+  override val loadBalancerType: String = "classic",
+  override val availabilityZones: Set<String>,
+
+  @JsonAlias("vpcid", "vpcId")
+  override val vpcId: String,
+
+  override val subnets: Set<String>,
+  override val scheme: String?,
+  override val idleTimeout: Int,
+  override val securityGroups: Set<String>,
+  val listenerDescriptions: List<ClassicLoadBalancerListenerDescription>,
+  val healthCheck: ClassicLoadBalancerHealthCheck,
   @get:JsonAnyGetter val properties: Map<String, Any?> = emptyMap()
-) {
-  data class LoadBalancerListenerDescription(
-    val listener: LoadBalancerListener
+) : AmazonLoadBalancer {
+  data class ClassicLoadBalancerListenerDescription(
+    val listener: ClassicLoadBalancerListener
   )
 
-  data class LoadBalancerListener(
+  data class ClassicLoadBalancerListener(
     val protocol: String,
     val loadBalancerPort: Int,
     val instanceProtocol: String,
@@ -44,7 +48,7 @@ data class ClassicLoadBalancerModel(
     val sslcertificateId: String?
   )
 
-  data class LoadBalancerHealthCheck(
+  data class ClassicLoadBalancerHealthCheck(
     val target: String,
     val interval: Int,
     val timeout: Int,

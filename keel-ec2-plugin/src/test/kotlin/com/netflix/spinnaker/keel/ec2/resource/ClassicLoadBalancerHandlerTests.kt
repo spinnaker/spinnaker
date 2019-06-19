@@ -11,6 +11,9 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
+import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.ClassicLoadBalancerHealthCheck
+import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.ClassicLoadBalancerListener
+import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.ClassicLoadBalancerListenerDescription
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -40,7 +43,7 @@ import strikt.assertions.isNull
 import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
-internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
+internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
@@ -97,12 +100,12 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
   private val model = ClassicLoadBalancerModel(
     loadBalancerName = spec.moniker.name,
     availabilityZones = spec.location.availabilityZones,
-    vpcid = vpc.id,
+    vpcId = vpc.id,
     subnets = setOf(sub1.id, sub2.id),
     securityGroups = setOf(sg1.id),
     listenerDescriptions = listOf(
-      ClassicLoadBalancerModel.LoadBalancerListenerDescription(
-        ClassicLoadBalancerModel.LoadBalancerListener(
+      ClassicLoadBalancerListenerDescription(
+        ClassicLoadBalancerListener(
           protocol = listener.externalProtocol,
           loadBalancerPort = listener.externalPort,
           instanceProtocol = listener.internalProtocol,
@@ -111,7 +114,7 @@ internal class ClassicLoadBalancerModelHandlerTests : JUnit5Minutests {
         )
       )
     ),
-    healthCheck = ClassicLoadBalancerModel.LoadBalancerHealthCheck(
+    healthCheck = ClassicLoadBalancerHealthCheck(
       target = spec.healthCheck,
       interval = 10,
       timeout = 5,

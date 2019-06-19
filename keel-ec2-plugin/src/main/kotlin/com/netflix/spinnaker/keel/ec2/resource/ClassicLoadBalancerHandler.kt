@@ -144,7 +144,7 @@ class ClassicLoadBalancerHandler(
               unhealthyThreshold = lb.healthCheck.unhealthyThreshold,
               healthTimeout = lb.healthCheck.timeout,
               idleTimeout = lb.idleTimeout,
-              vpcName = lb.vpcid.let { cloudDriverCache.networkBy(it).name },
+              vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
               subnetType = cloudDriverCache.subnetBy(lb.subnets.first()).purpose,
               listeners = lb.listenerDescriptions.map {
                 ClassicLoadBalancerListener(
