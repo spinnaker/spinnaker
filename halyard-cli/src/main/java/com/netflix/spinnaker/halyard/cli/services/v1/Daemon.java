@@ -53,7 +53,7 @@ public class Daemon {
   }
 
   public static String shutdown() {
-    return getService().shutdown("").getOrDefault("message", "");
+    return getService().shutdown(new StringBodyRequest()).getOrDefault("message", "");
   }
 
   public static ShallowTaskList getTasks() {
