@@ -17,6 +17,8 @@
  */
 package com.netflix.spinnaker.keel.tagging
 
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 
@@ -41,8 +43,10 @@ data class TaggedResource(
   val relevantTag: EntityTag?
 )
 
+@JsonDeserialize(using = TagStateDeserializer::class)
 sealed class TagState
 
+@JsonDeserialize(using = JsonDeserializer.None::class)
 data class TagDesired(
   val tag: EntityTag
 ) : TagState()
@@ -50,6 +54,7 @@ data class TagDesired(
 /**
  * Desire no keel tags
  */
+@JsonDeserialize(using = JsonDeserializer.None::class)
 data class TagNotDesired(
   val startTime: Long
 ) : TagState()
