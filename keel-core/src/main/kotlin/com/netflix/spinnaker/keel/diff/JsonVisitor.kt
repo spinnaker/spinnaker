@@ -4,22 +4,7 @@ import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.Visit
 import de.danielbechler.util.Strings
 
-fun DiffNode.toJson(working: Any?, base: Any?): Map<String, Any?> =
-  JsonVisitor(working, base)
-    .also { visit(it) }
-    .messages
-
-fun DiffNode.toDeltaJson(desired: Any?, current: Any?): Map<String, Any?> =
-  JsonVisitor(desired, current, "desired", "current")
-    .also { visit(it) }
-    .messages
-
-fun DiffNode.toUpdateJson(updated: Any?, previous: Any?): Map<String, Any?> =
-  JsonVisitor(updated, previous, "updated", "previous")
-    .also { visit(it) }
-    .messages
-
-private class JsonVisitor(
+internal class JsonVisitor(
   private val working: Any?,
   private val base: Any?,
   private val workingLabel: String = "working",

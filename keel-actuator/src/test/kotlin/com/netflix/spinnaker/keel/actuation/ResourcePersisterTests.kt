@@ -25,6 +25,7 @@ import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import java.time.Clock
 import java.time.Duration
@@ -34,16 +35,16 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
   data class Fixture(
     val repository: InMemoryResourceRepository = InMemoryResourceRepository(),
-    val handler: ResourceHandler<String> = StringResourceHandler(),
+    val handler: ResourceHandler<DummyResourceSpec> = DummyResourceHandler(),
     val clock: Clock = Clock.systemDefaultZone(),
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
     val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), clock, publisher)
   ) {
-    lateinit var resource: Resource<String>
+    lateinit var resource: Resource<DummyResourceSpec>
 
     @Suppress("UNCHECKED_CAST")
     fun create(submittedResource: SubmittedResource<Any>) {
-      resource = subject.create(submittedResource) as Resource<String>
+      resource = subject.create(submittedResource) as Resource<DummyResourceSpec>
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -52,7 +53,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         apiVersion = resource.apiVersion,
         kind = resource.kind,
         spec = updatedSpec
-      )) as Resource<String>
+      )) as Resource<DummyResourceSpec>
     }
 
     fun resourcesDueForCheck() =
@@ -76,15 +77,15 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           create(SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
-            spec = "o hai"
+            spec = DummyResourceSpec("o hai")
           ))
         }
 
         test("stores the normalized resource") {
-          val persistedResource = repository.get<String>(resource.metadata.name)
+          val persistedResource = repository.get<DummyResourceSpec>(resource.metadata.name)
           expectThat(persistedResource) {
             get { metadata.name.value }.isEqualTo("test:whatever:o hai")
-            get { spec }.isEqualTo("o hai")
+            get { spec.state }.isEqualTo("o hai")
           }
         }
 
@@ -105,12 +106,12 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         context("after an update") {
           before {
             resourcesDueForCheck()
-            update("kthxbye")
+            update(DummyResourceSpec("kthxbye"))
           }
 
           test("stores the updated resource") {
-            expectThat(repository.get<String>(resource.metadata.name))
-              .get { spec }
+            expectThat(repository.get<DummyResourceSpec>(resource.metadata.name))
+              .get { spec.state }
               .isEqualTo("kthxbye")
           }
 
@@ -129,46 +130,45 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           }
         }
 
-        // todo emjburns: enable after https://github.com/spinnaker/keel/issues/317 is fixed
-//        context("after a no-op update") {
-//          before {
-//            resourcesDueForCheck()
-//            update(resource.spec)
-//          }
-//
-//          test("does not record that the resource was updated") {
-//            expectThat(eventHistory())
-//              .hasSize(1)
-//          }
-//
-//          test("does not check the resource again") {
-//            expectThat(resourcesDueForCheck())
-//              .isEmpty()
-//          }
-//        }
+        context("after a no-op update") {
+          before {
+            resourcesDueForCheck()
+            update(resource.spec)
+          }
+
+          test("does not record that the resource was updated") {
+            expectThat(eventHistory())
+              .hasSize(1)
+          }
+
+          test("does not check the resource again") {
+            expectThat(resourcesDueForCheck())
+              .isEmpty()
+          }
+        }
       }
     }
   }
 }
 
-internal class StringResourceHandler : ResourceHandler<String> {
+internal class DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
-  override val supportedKind: Pair<ResourceKind, Class<String>> =
-    ResourceKind("test", "whatever", "whatevers") to String::class.java
+  override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =
+    ResourceKind("test", "whatever", "whatevers") to DummyResourceSpec::class.java
 
   override val objectMapper: ObjectMapper = configuredObjectMapper()
 
   override val normalizers: List<ResourceNormalizer<*>> = emptyList()
 
-  override fun generateName(spec: String): ResourceName =
-    ResourceName("test:whatever:$spec")
+  override fun generateName(spec: DummyResourceSpec): ResourceName =
+    ResourceName("test:whatever:${spec.state}")
 
-  override suspend fun current(resource: Resource<String>): String? {
+  override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")
   }
 
-  override suspend fun delete(resource: Resource<String>) {
+  override suspend fun delete(resource: Resource<DummyResourceSpec>) {
     TODO("not implemented")
   }
 

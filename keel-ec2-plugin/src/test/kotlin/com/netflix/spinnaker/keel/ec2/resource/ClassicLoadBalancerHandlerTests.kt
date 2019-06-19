@@ -17,12 +17,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.Cla
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.normalizers.ClassicLoadBalancerNormalizer
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import de.danielbechler.diff.ObjectDifferBuilder
@@ -193,7 +193,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         val modResource = resource.copy(spec = modSpec)
 
         runBlocking {
-          upsert(normalize(modResource as Resource<Any>), ResourceDiff(spec, modSpec, differ.compare(modSpec, spec)))
+          upsert(normalize(modResource as Resource<Any>), ResourceDiff(spec, modSpec))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -215,12 +215,12 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         val newResource = resource.copy(spec = newSpec)
 
         val diff = runBlocking {
-          val current = fixture.current(resource)
-          val desired = fixture.desired(resource)
-          ResourceDiff(current!!, desired, differ.compare(newSpec, resource.spec))
+          val current = current(resource)
+          val desired = desired(resource)
+          ResourceDiff(desired, current)
         }
 
-        expectThat(diff.diff.childCount()).isEqualTo(1)
+        expectThat(diff.diff.childCount()).isEqualTo(2)
         expectThat(diff.diff.getChild("securityGroupNames").path.toString()).isEqualTo("/securityGroupNames")
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 

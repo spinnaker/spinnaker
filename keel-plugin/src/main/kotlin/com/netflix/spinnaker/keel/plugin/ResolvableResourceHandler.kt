@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import org.slf4j.Logger

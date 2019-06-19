@@ -24,8 +24,9 @@ dependencies {
   api("com.fasterxml.jackson.module:jackson-module-kotlin")
   api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
-  api("de.danielbechler:java-object-diff")
   api("com.netflix.spinnaker.kork:kork-artifacts")
+
+  implementation("de.danielbechler:java-object-diff")
 
   testImplementation(project (":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")

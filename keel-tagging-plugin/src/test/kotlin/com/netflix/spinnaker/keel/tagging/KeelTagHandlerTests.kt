@@ -25,10 +25,10 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
@@ -36,7 +36,6 @@ import com.netflix.spinnaker.keel.tags.EntityTags
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagsMetadata
 import com.netflix.spinnaker.time.MutableClock
-import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -133,8 +132,6 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     entityRef = entityRef
   )
 
-  val differ = ObjectDifferBuilder.buildDefault()
-
   val cloudDriverService = mockk<CloudDriverService>()
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
@@ -167,7 +164,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
         test("current is resolved correctly") {
           val current = runBlocking { current(resourceWithTag) }
           val desired = runBlocking { desired(resourceWithTag) }
-          val diff = differ.compare(desired, current)
+          val diff = ResourceDiff(desired, current)
           expect {
             that(current).isNotNull().isA<TaggedResource>().get { relevantTag }.isNull()
             that(diff).get { hasChanges() }.isEqualTo(true)
@@ -177,7 +174,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
         test("tag gets upserted") {
           val current = runBlocking { current(resourceWithTag) }
           val desired = runBlocking { desired(resourceWithTag) }
-          val diff = ResourceDiff(desired, current, differ.compare(desired, current))
+          val diff = ResourceDiff(desired, current)
           runBlocking { upsert(resourceWithTag, diff) }
 
           val slot = slot<OrchestrationRequest>()
@@ -191,7 +188,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       test("we don't want a tag") {
         val current = runBlocking { current(resourceWithoutTag) }
         val desired = runBlocking { desired(resourceWithoutTag) }
-        val diff = differ.compare(desired, current)
+        val diff = ResourceDiff(desired, current)
         expect {
           that(current).isNotNull().isA<TaggedResource>().get { relevantTag }.isNull()
           that(diff).get { hasChanges() }.isEqualTo(false)
@@ -207,7 +204,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       test("we want a tag") {
         val current = runBlocking { current(resourceWithTag) }
         val desired = runBlocking { desired(resourceWithTag) }
-        val diff = differ.compare(desired, current)
+        val diff = ResourceDiff(desired, current)
         expect {
           that(current).isNotNull().isA<TaggedResource>().get { relevantTag }.isEqualTo(managedByKeelTag)
           that(diff).get { hasChanges() }.isEqualTo(false)
@@ -217,7 +214,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       test("we don't want a tag") {
         val current = runBlocking { current(resourceWithoutTag) }
         val desired = runBlocking { desired(resourceWithoutTag) }
-        val diff = differ.compare(desired, current)
+        val diff = ResourceDiff(desired, current)
         expect {
           that(current).isNotNull().isA<TaggedResource>().get { relevantTag }.isEqualTo(managedByKeelTag)
           that(diff).get { hasChanges() }.isEqualTo(true)
@@ -227,7 +224,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       test("we don't want a tag and the tag gets removed") {
         val current = runBlocking { current(resourceWithoutTag) }
         val desired = runBlocking { desired(resourceWithoutTag) }
-        val diff = ResourceDiff(desired, current, differ.compare(desired, current))
+        val diff = ResourceDiff(desired, current)
         runBlocking { upsert(resourceWithTag, diff) }
 
         val slot = slot<OrchestrationRequest>()

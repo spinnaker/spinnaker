@@ -34,6 +34,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupR
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleCidr
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
@@ -41,7 +42,6 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
@@ -232,7 +232,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
             }
           }
 
@@ -282,7 +282,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
             }
           }
 
@@ -332,7 +332,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
+              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
             }
           }
 
@@ -382,7 +382,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         }
 
         runBlocking {
-          handler.create(resource, ResourceDiff(null, resource.spec))
+          handler.create(resource, ResourceDiff(resource.spec, null))
         }
       }
 
@@ -422,7 +422,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         }
 
         runBlocking {
-          handler.update(resource, ResourceDiff(null, resource.spec))
+          handler.update(resource, ResourceDiff(resource.spec, null))
         }
       }
 

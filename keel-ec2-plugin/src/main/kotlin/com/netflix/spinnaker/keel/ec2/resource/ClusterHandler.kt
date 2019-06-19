@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.model.Job
@@ -38,11 +39,9 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import de.danielbechler.diff.node.DiffNode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -165,17 +164,7 @@ class ClusterHandler(
    * @return `true` if the only changes in the diff are to capacity.
    */
   private fun ResourceDiff<Cluster>.isCapacityOnly(): Boolean =
-    current != null && diff.affectedRootPropertyTypes.all { it == Capacity::class.java }
-
-  private val DiffNode.affectedRootPropertyTypes: List<Class<*>>
-    get() {
-      val types = mutableListOf<Class<*>>()
-      visitChildren { node, visit ->
-        visit.dontGoDeeper()
-        types += node.valueType
-      }
-      return types
-    }
+    current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
   private suspend fun Cluster.createServerGroupJob(): Map<String, Any?> =
     mutableMapOf(

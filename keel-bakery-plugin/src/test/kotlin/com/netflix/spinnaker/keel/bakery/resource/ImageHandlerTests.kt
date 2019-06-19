@@ -17,11 +17,11 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import dev.minutest.junit.JUnit5Minutests
@@ -230,7 +230,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         coEvery { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
 
         runBlocking {
-          handler.upsert(resource, ResourceDiff(null, image))
+          handler.upsert(resource, ResourceDiff(image, null))
         }
 
         expectThat(request.captured.trigger.artifacts)

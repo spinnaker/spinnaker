@@ -11,10 +11,10 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.ChildResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryEnvironment
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.slf4j.Logger

@@ -15,29 +15,36 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.plugin.diff
+package com.netflix.spinnaker.keel.diff
 
+import de.danielbechler.diff.node.DiffNode.State.CHANGED
+import dev.minutest.experimental.SKIP
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 /**
  * Diffing should work between objects of the same parent, but different sub classes.
  *
  * https://github.com/spinnaker/keel/issues/317
  */
-internal class DiffTests : JUnit5Minutests {
+internal class ResourceDiffTests : JUnit5Minutests {
   class Fixture
 
-  interface Parent {
+  private data class Container(val prop: Parent)
+
+  private interface Parent {
     val commonProp: String
   }
 
-  data class Child1(
+  private data class Child1(
     override val commonProp: String,
     val myProp: String
   ) : Parent
 
-  data class Child2(
+  private data class Child2(
     override val commonProp: String,
     val anotherProp: String
   ) : Parent
@@ -47,13 +54,13 @@ internal class DiffTests : JUnit5Minutests {
       Fixture()
     }
 
-    context("same parent two children") {
-//      test("diffing works") {
-//        val obj1: Parent = Child1("common", "myprop")
-//        val obj2: Parent = Child2("common", "anotherProp")
-//        val resourceDiff = ResourceDiff(obj1, obj2)
-//        expectThat(resourceDiff.diff.hasChanges()).isEqualTo(true)
-//      }
+    SKIP - context("delta is the type of a polymorphic property") {
+      test("the delta is detected") {
+        val obj1 = Container(Child1("common", "myprop"))
+        val obj2 = Container(Child2("common", "anotherProp"))
+        val resourceDiff = ResourceDiff(obj1, obj2)
+        expectThat(resourceDiff.diff.state).isEqualTo(CHANGED)
+      }
     }
   }
 }

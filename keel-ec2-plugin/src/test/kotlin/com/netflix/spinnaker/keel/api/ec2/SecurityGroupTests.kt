@@ -6,9 +6,8 @@ import com.netflix.spinnaker.keel.api.ec2.securityGroup.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.Moniker
-import de.danielbechler.diff.ObjectDifferBuilder
-import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -19,8 +18,6 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 internal object SecurityGroupTests : JUnit5Minutests {
-
-  val differ = ObjectDifferBuilder.buildDefault()
 
   fun diffTests() = rootContext<SecurityGroup> {
     fixture {
@@ -40,9 +37,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       )
     }
 
-    derivedContext<DiffNode>("identical security groups") {
+    derivedContext<ResourceDiff<SecurityGroup>>("identical security groups") {
       deriveFixture {
-        differ.compare(this, copy())
+        ResourceDiff(this, copy())
       }
 
       test("diff contains no changes") {
@@ -52,9 +49,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<DiffNode>("security groups that differ in basic fields") {
+    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in basic fields") {
       deriveFixture {
-        differ.compare(this, copy(region = "ap-south-1"))
+        ResourceDiff(this, copy(region = "ap-south-1"))
       }
 
       test("diff contains changes") {
@@ -63,14 +60,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("diff is detected on the changed property") {
         expectThat(this)
-          .get { getChild("region").state }
+          .get { diff.getChild("region").state }
           .isEqualTo(CHANGED)
       }
     }
 
-    derivedContext<DiffNode>("security groups that differ in ignored fields") {
+    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in ignored fields") {
       deriveFixture {
-        differ.compare(this, copy(description = "We can't actually make changes to this so it should be ignored by the diff"))
+        ResourceDiff(this, copy(description = "We can't actually make changes to this so it should be ignored by the diff"))
       }
 
       test("diff does not contain changes") {
@@ -78,9 +75,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<DiffNode>("security groups that differ in ignored and non-ignored fields") {
+    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in ignored and non-ignored fields") {
       deriveFixture {
-        differ.compare(this, copy(
+        ResourceDiff(this, copy(
           region = "ap-south-1",
           description = "We can't actually make changes to this so it should be ignored by the diff"
         ))
@@ -92,20 +89,20 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("diff is detected on the changed property") {
         expectThat(this)
-          .get { getChild("region").state }
+          .get { diff.getChild("region").state }
           .isEqualTo(CHANGED)
       }
 
       test("no diff is detected on the ignored property") {
         expectThat(this)
-          .get { getChild("description") }
+          .get { diff.getChild("description") }
           .isNull()
       }
     }
 
-    derivedContext<DiffNode>("desired state has differing inbound rules") {
+    derivedContext<ResourceDiff<SecurityGroup>>("desired state has differing inbound rules") {
       deriveFixture {
-        differ.compare(
+        ResourceDiff(
           this,
           copy(inboundRules = inboundRules.map {
             when (it) {
@@ -126,14 +123,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getChild("inboundRules").childCount() }
+          .get { diff.getChild("inboundRules").childCount() }
           .isEqualTo(2)
       }
     }
 
-    derivedContext<DiffNode>("desired state has fewer inbound rules") {
+    derivedContext<ResourceDiff<SecurityGroup>>("desired state has fewer inbound rules") {
       deriveFixture {
-        differ.compare(this, copy(inboundRules = inboundRules.take(1).toSet()))
+        ResourceDiff(this, copy(inboundRules = inboundRules.take(1).toSet()))
       }
 
       test("diff contains changes") {
@@ -144,14 +141,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getChild("inboundRules").childCount() }
+          .get { diff.getChild("inboundRules").childCount() }
           .isEqualTo(1)
       }
     }
 
-    derivedContext<DiffNode>("desired state has a new inbound rule") {
+    derivedContext<ResourceDiff<SecurityGroup>>("desired state has a new inbound rule") {
       deriveFixture {
-        differ.compare(
+        ResourceDiff(
           this,
           copy(
             inboundRules = inboundRules
@@ -169,14 +166,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getChild("inboundRules").childCount() }
+          .get { diff.getChild("inboundRules").childCount() }
           .isEqualTo(1)
       }
     }
 
-    derivedContext<DiffNode>("desired state has a new inbound rule with only a different port range") {
+    derivedContext<ResourceDiff<SecurityGroup>>("desired state has a new inbound rule with only a different port range") {
       deriveFixture {
-        differ.compare(
+        ResourceDiff(
           this,
           copy(
             inboundRules = inboundRules
@@ -194,7 +191,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getChild("inboundRules").childCount() }
+          .get { diff.getChild("inboundRules").childCount() }
           .isEqualTo(1)
       }
     }

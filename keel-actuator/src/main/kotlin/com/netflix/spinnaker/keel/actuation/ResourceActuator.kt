@@ -3,8 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.diff.toDebug
-import com.netflix.spinnaker.keel.diff.toDeltaJson
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
@@ -12,7 +11,6 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
@@ -20,8 +18,6 @@ import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
-import de.danielbechler.diff.ObjectDifferBuilder
-import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -36,9 +32,6 @@ class ResourceActuator(
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
-
-  private val differ = ObjectDifferBuilder.buildDefault()
-
   suspend fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
     try {
       val plugin = handlers.supporting(apiVersion, kind)
@@ -55,7 +48,7 @@ class ResourceActuator(
       val resource = resourceRepository.get(name, type)
 
       val (desired, current) = plugin.resolve(resource)
-      val diff = differ.compare(desired, current)
+      val diff = ResourceDiff(desired, current)
 
       when {
         current == null -> {
@@ -66,7 +59,7 @@ class ResourceActuator(
             resourceRepository.appendHistory(ResourceMissing(resource, clock))
           }
 
-          plugin.create(resource, ResourceDiff(desired, current, diff))
+          plugin.create(resource, diff)
             .also { tasks ->
               resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
@@ -74,13 +67,13 @@ class ResourceActuator(
         diff.hasChanges() -> {
           with(resource) {
             log.warn("Resource {} is invalid", metadata.name)
-            log.info("Resource {} delta: {}", metadata.name, diff.toDebug(desired, current))
+            log.info("Resource {} delta: {}", metadata.name, diff.toDebug())
             publisher.publishEvent(ResourceChecked(resource, Diff))
 
-            resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(desired, current), clock))
+            resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
           }
 
-          plugin.update(resource, ResourceDiff(desired, current, diff))
+          plugin.update(resource, diff)
             .also { tasks ->
               resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
@@ -108,9 +101,6 @@ class ResourceActuator(
       val current = async { current(resource) }
       desired.await() to current.await()
     }
-
-  private val DiffNode.depth: Int
-    get() = if (isRootNode) 0 else parentNode.depth + 1
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.

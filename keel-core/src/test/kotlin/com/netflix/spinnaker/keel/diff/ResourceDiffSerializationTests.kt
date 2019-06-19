@@ -1,30 +1,22 @@
-package com.netflix.spinnaker.keel.events
+package com.netflix.spinnaker.keel.diff
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.diff.toJson
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import de.danielbechler.diff.ObjectDifferBuilder
-import de.danielbechler.diff.node.DiffNode
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-internal class DiffNodeSerializationTests : JUnit5Minutests {
+internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
   internal data class Fixture(
-    val working: DummyValue?,
+    val working: DummyValue,
     val base: DummyValue?,
     val mapper: ObjectMapper = configuredObjectMapper()
   ) {
-    private val differ = ObjectDifferBuilder.buildDefault()
-
-    val diff: DiffNode
-      get() = differ.compare(working, base)
-
-    fun DiffNode.toJson(): Map<String, Any?> =
-      toJson(working, base)
+    val diff: ResourceDiff<DummyValue>
+      get() = ResourceDiff(working, base)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -37,7 +29,7 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
       }
 
       test("serialized output is empty") {
-        val json = diff.toJson()
+        val json = diff.toDeltaJson()
 
         expectThat(json).isEqualTo(emptyMap())
       }
@@ -52,13 +44,13 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
       }
 
       test("serialized output contains simple property details") {
-        val json = diff.toJson()
+        val json = diff.toDeltaJson()
         val expected = mapper.readValue<Map<String, Any?>>("""
           |{
           |  "/AString": {
           |    "state": "CHANGED",
-          |    "working": "FNORD",
-          |    "base": "fnord"
+          |    "desired": "FNORD",
+          |    "current": "fnord"
           |  }
           |}""".trimMargin())
 
@@ -75,13 +67,13 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
       }
 
       test("serialized output contains property details") {
-        val json = diff.toJson()
+        val json = diff.toDeltaJson()
         val expected = mapper.readValue<Map<String, Any?>>("""
           |{
           |  "/ANullableString": {
           |    "state": "ADDED",
-          |    "working": "fnord",
-          |    "base": null
+          |    "desired": "fnord",
+          |    "current": null
           |  }
           |}""".trimMargin())
 
@@ -98,7 +90,7 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
       }
 
       test("serialized output contains nested property details") {
-        val json = diff.toJson()
+        val json = diff.toDeltaJson()
         val expected = mapper.readValue<Map<String, Any?>>("""
           |{
           |  "/ANestedValue": {
@@ -106,13 +98,13 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
           |  },
           |  "/ANestedValue/ANullableString": {
           |    "state": "ADDED",
-          |    "working": "fnord",
-          |    "base": null
+          |    "desired": "fnord",
+          |    "current": null
           |  },
           |  "/ANestedValue/AString": {
           |    "state": "CHANGED",
-          |    "working": "FNORD",
-          |    "base": "fnord"
+          |    "desired": "FNORD",
+          |    "current": "fnord"
           |  }
           |}""".trimMargin())
 
@@ -130,7 +122,7 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
         }
 
         test("serialized output contains nested property details") {
-          val json = diff.toJson()
+          val json = diff.toDeltaJson()
           val expected = mapper.readValue<Map<String, Any?>>("""
             |{
             |  "/AList": {
@@ -138,13 +130,13 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
             |  },
             |  "/AList[foo]": {
             |    "state": "ADDED",
-            |    "working": "foo",
-            |    "base": null
+            |    "desired": "foo",
+            |    "current": null
             |  },
             |  "/AList[bar]": {
             |    "state": "ADDED",
-            |    "working": "bar",
-            |    "base": null
+            |    "desired": "bar",
+            |    "current": null
             |  }
             |}""".trimMargin())
 
@@ -161,7 +153,7 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
         }
 
         test("serialized output contains nested property details") {
-          val json = diff.toJson()
+          val json = diff.toDeltaJson()
           val expected = mapper.readValue<Map<String, Any?>>("""
             |{
             |  "/AList": {
@@ -169,13 +161,13 @@ internal class DiffNodeSerializationTests : JUnit5Minutests {
             |  },
             |  "/AList[baz]": {
             |    "state": "ADDED",
-            |    "working": "baz",
-            |    "base": null
+            |    "desired": "baz",
+            |    "current": null
             |  },
             |  "/AList[foo]": {
             |    "state": "REMOVED",
-            |    "working": null,
-            |    "base": "foo"
+            |    "desired": null,
+            |    "current": "foo"
             |  }
             |}""".trimMargin())
 

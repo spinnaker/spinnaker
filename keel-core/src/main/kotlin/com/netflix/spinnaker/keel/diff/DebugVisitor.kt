@@ -11,12 +11,7 @@ import de.danielbechler.diff.node.NodeHierarchyVisitor
 import de.danielbechler.util.Strings.indent
 import de.danielbechler.util.Strings.toSingleLineString
 
-fun DiffNode.toDebug(working: Any?, base: Any?): String =
-  DebugVisitor(working, base)
-    .also { visit(it) }
-    .toString()
-
-private class DebugVisitor(
+internal class DebugVisitor(
   private val working: Any?,
   private val base: Any?
 ) : NodeHierarchyVisitor() {

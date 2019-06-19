@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.diff.toUpdateJson
+import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
-import de.danielbechler.diff.ObjectDifferBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -25,8 +24,6 @@ class ResourcePersister(
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher
 ) {
-  private val differ = ObjectDifferBuilder.buildDefault()
-
   fun create(resource: SubmittedResource<Any>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
@@ -42,27 +39,19 @@ class ResourcePersister(
     val resource = existing.copy(spec = updated.spec)
     val normalized = handler.normalize(resource)
 
-    val diff = differ.compare(normalized.spec, existing.spec)
-    return normalized
-      .also {
-        resourceRepository.store(it)
-        resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
-        resourceRepository.markCheckDue(it)
-      }
+    val diff = ResourceDiff(normalized.spec, existing.spec)
 
-    // todo eb: diffing doesn't work when the class changes, even if it's a subtype
-    //  https://github.com/spinnaker/keel/issues/317
-//    return if (diff.hasChanges()) {
-//      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
-//      normalized
-//        .also {
-//          resourceRepository.store(it)
-//          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(it.spec, existing.spec), clock))
-//          resourceRepository.markCheckDue(it)
-//        }
-//    } else {
-//      existing
-//    }
+    return if (diff.hasChanges()) {
+      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug())
+      normalized
+        .also {
+          resourceRepository.store(it)
+          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(), clock))
+          resourceRepository.markCheckDue(it)
+        }
+    } else {
+      existing
+    }
   }
 
   fun delete(name: ResourceName): Resource<out Any> =
