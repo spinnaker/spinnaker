@@ -66,6 +66,12 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
       handleBitbucketCloudEvent(event, postedEvent);
     } else if (looksLikeBitbucketServer(event)) {
       handleBitbucketServerEvent(event, postedEvent);
+    } else {
+      // Could not determine what type of Bitbucket event this was.
+      log.info(
+          "Could not determine Bitbucket type {}",
+          kv("event_type", event.content.get("event_type")));
+      return;
     }
 
     String fullRepoName = getFullRepoName(event);
@@ -98,7 +104,9 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
               event.content.containsKey("request_id")
                   ? event.content.get("request_id").toString()
                   : ""),
-          kv("branch", event.content.get("branch").toString()));
+          kv(
+              "branch",
+              event.content.containsKey("branch") ? event.content.get("branch").toString() : ""));
     }
   }
 
