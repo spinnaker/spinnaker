@@ -37,15 +37,15 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Manifest getManifest(String account, String name) {
-    return getService().getManifest(account, name);
+  public Manifest getManifest(String account, String name, boolean includeEvents) {
+    return getService().getManifest(account, name, includeEvents);
   }
 
   @Override
-  public Manifest getManifest(String account, String location, String name) {
+  public Manifest getManifest(String account, String location, String name, boolean includeEvents) {
     return StringUtils.isEmpty(location)
-        ? getService().getManifest(account, name)
-        : getService().getManifest(account, location, name);
+        ? getService().getManifest(account, name, includeEvents)
+        : getService().getManifest(account, location, name, includeEvents);
   }
 
   @Override

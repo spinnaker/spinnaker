@@ -49,7 +49,8 @@ public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTas
 
     Manifest manifest =
         retrySupport.retry(
-            () -> oortService.getManifest(account, stageData.location, stageData.manifestName),
+            () ->
+                oortService.getManifest(account, stageData.location, stageData.manifestName, false),
             5,
             1000,
             true);

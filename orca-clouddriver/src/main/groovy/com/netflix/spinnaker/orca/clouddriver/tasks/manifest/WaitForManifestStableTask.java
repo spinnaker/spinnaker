@@ -78,7 +78,7 @@ public class WaitForManifestStableTask
         String identifier = readableIdentifier(account, location, name);
         Manifest manifest;
         try {
-          manifest = oortService.getManifest(account, location, name);
+          manifest = oortService.getManifest(account, location, name, false);
         } catch (RetrofitError e) {
           log.warn("Unable to read manifest {}", identifier, e);
           return TaskResult.builder(ExecutionStatus.RUNNING)

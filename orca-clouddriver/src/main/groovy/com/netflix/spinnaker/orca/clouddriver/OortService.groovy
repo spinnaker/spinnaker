@@ -47,12 +47,14 @@ interface OortService {
 
   @GET("/manifests/{account}/_/{manifest}")
   Manifest getManifest(@Path("account") String account,
-                       @Path("manifest") String manifest)
+                       @Path("manifest") String manifest,
+                       @Query("includeEvents") boolean includeEvents)
 
   @GET("/manifests/{account}/{location}/{manifest}")
   Manifest getManifest(@Path("account") String account,
                        @Path("location") String location,
-                       @Path("manifest") String manifest)
+                       @Path("manifest") String manifest,
+                       @Query("includeEvents") boolean includeEvents)
 
   @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}/dynamic/{criteria}")
   Manifest getDynamicManifest(@Path("account") String account,
