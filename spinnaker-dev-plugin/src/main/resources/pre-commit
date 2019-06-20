@@ -1,21 +1,7 @@
 #!/bin/sh
 echo '[git hook] executing gradle spotlessCheck before commit'
 
-# stash any unstaged changess
-git diff --quiet HEAD
-HASUNSTAGED=$?
-
-if [ "$HASUNSTAGED" -eq "1" ]; then
-  git stash -q --keep-index
-fi
-
 ./gradlew spotlessApply
-
-git add .
-
-# unstash the unstaged changes, if any
-if [ "$HASUNSTAGED" -eq "1" ]; then
-  git stash pop -q
-fi
+git diff --name-only --staged | xargs git add
 
 exit 0
