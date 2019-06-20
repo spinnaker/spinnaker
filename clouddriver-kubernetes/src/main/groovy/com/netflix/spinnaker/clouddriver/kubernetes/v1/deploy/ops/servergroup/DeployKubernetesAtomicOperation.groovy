@@ -211,11 +211,11 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
         }
       } else {
         task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerName}"
-        controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
+        controllerSet = credentials.clientApiAdaptor.createStatefulSet(namespace, controllerSet)
       }
     } else {
       task.updateStatus BASE_PHASE, "Deployed stateful set ${controllerName}"
-      controllerSet = credentials.clientApiAdaptor.createStatfulSet(namespace, controllerSet)
+      controllerSet = credentials.clientApiAdaptor.createStatefulSet(namespace, controllerSet)
     }
 
     if (description.scalingPolicy) {
