@@ -92,6 +92,8 @@ import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerFluentImpl
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.KeyToPath
+import io.fabric8.kubernetes.api.model.MetricSpec
+import io.fabric8.kubernetes.api.model.MetricSpecBuilder
 import io.fabric8.kubernetes.api.model.NFSVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.PodTemplateSpec
@@ -818,7 +820,7 @@ class KubernetesApiConverter {
     description.capacity = new Capacity(min: autoscaler.spec.minReplicas,
                                         max: autoscaler.spec.maxReplicas,
                                         desired: description.targetSize)
-    def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.targetCPUUtilizationPercentage)
+    def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.metrics?.find { metric -> metric.resource.name == "cpu" }?.resource?.targetAverageUtilization)
     description.scalingPolicy = new KubernetesScalingPolicy(cpuUtilization: cpuUtilization)
   }
 
@@ -834,7 +836,13 @@ class KubernetesApiConverter {
       .withNewSpec()
       .withMinReplicas(description.capacity.min)
       .withMaxReplicas(description.capacity.max)
-      .withTargetCPUUtilizationPercentage(description.scalingPolicy.cpuUtilization.target)
+      .addToMetrics(new MetricSpecBuilder()
+        .withType("Resource")
+        .withNewResource()
+        .withName("cpu")
+        .withTargetAverageUtilization(description.scalingPolicy.cpuUtilization.target)
+        .endResource()
+        .build())
       .withNewScaleTargetRef()
       .withKind(resourceKind)
       .withName(resourceName)
