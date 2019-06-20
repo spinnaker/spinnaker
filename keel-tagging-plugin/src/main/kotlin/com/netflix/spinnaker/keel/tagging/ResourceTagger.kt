@@ -172,7 +172,7 @@ class ResourceTagger(
   }
 
   private fun ResourceName.toEntityRef(): EntityRef {
-    val (pluginGroup, resourceType, account, region, resourceId) = toString().split(":")
+    val (pluginGroup, resourceType, account, region, resourceId) = toString().toLowerCase().split(":")
     val accountId = try {
       val fullAccount = accounts.first { a -> a.name == account }
       fullAccount.attributes.getOrDefault("accountId", account).toString()
