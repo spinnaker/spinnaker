@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Component
 public class EnabledPipelineValidator implements PipelineValidator {
@@ -56,15 +57,22 @@ public class EnabledPipelineValidator implements PipelineValidator {
           front50Service.getPipelineHistory(pipeline.getPipelineConfigId(), 1);
 
       if (!pipelineConfigHistory.isEmpty()) {
-        Map<String, Object> pipelineConfig = pipelineConfigHistory.get(0);
-        if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
-          throw new PipelineIsDisabled(
-              pipelineConfig.get("id").toString(),
-              pipelineConfig.get("application").toString(),
-              pipelineConfig.get("name").toString());
-        }
+        try {
+          Map<String, Object> pipelineConfig = pipelineConfigHistory.get(0);
+          if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
+            throw new PipelineIsDisabled(
+                pipelineConfig.get("id").toString(),
+                pipelineConfig.get("application").toString(),
+                pipelineConfig.get("name").toString());
+          }
 
-        return;
+          return;
+        } catch (RetrofitError ignored) {
+          // treat a failure to fetch pipeline config history as non-fatal and fallback to the
+          // previous behavior
+          // (handles the fast property case where the supplied pipeline config id does _not_
+          // actually exist)
+        }
       }
     }
 
