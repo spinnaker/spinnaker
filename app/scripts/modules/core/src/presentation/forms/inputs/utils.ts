@@ -24,4 +24,4 @@ export const createFakeReactSyntheticEvent = (target: { name?: string; value?: a
     target,
   } as React.ChangeEvent<any>);
 
-export const isStringArray = (opts: any[]): opts is string[] => opts && opts.length && opts.every(isString);
+export const isStringArray = (opts: readonly any[]): opts is string[] => opts && opts.length && opts.every(isString);

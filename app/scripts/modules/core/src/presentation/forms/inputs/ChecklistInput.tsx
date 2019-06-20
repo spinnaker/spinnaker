@@ -3,9 +3,11 @@ import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 
+const { useEffect } = React;
+
 interface IChecklistInputProps extends IFormInputProps, OmitControlledInputPropsFrom<React.InputHTMLAttributes<any>> {
   options?: IChecklistInputOption[];
-  stringOptions?: string[];
+  stringOptions?: readonly string[];
   inline?: boolean;
   showSelectAll?: boolean;
 }
@@ -27,6 +29,13 @@ export function ChecklistInput(props: IChecklistInputProps) {
     onChange,
     ...otherProps
   } = props;
+
+  // Naively call the the field's onBlur handler
+  // This is what Formik uses to mark the field as touched
+  function touchField() {
+    props.onBlur && props.onBlur(createFakeReactSyntheticEvent({ name: props.name, value }));
+  }
+  useEffect(touchField, []);
 
   const className = `${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
