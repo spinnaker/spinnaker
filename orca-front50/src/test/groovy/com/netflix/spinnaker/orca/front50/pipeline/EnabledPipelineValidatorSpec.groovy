@@ -26,18 +26,19 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class EnabledPipelineValidatorSpec extends Specification {
 
-  def front50Service = Stub(Front50Service)
+  def front50Service = Mock(Front50Service)
+
   @Subject
   def validator = new EnabledPipelineValidator(Optional.of(front50Service))
 
   def "allows one-off pipeline to run"() {
-    given:
-    front50Service.getPipelines(execution.application, false) >> []
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> []
+    1 * front50Service.getPipelines(execution.application, false) >> []
+
     notThrown(PipelineValidationFailed)
 
     where:
@@ -48,15 +49,28 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "allows enabled pipeline to run"() {
-    given:
-    front50Service.getPipelines(execution.application, false) >> [
-      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    when:
+    validator.checkRunnable(execution)
+
+    then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
     ]
+    1 * front50Service.getPipelines(execution.application, false) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ]
+    0 * _
+
+    notThrown(PipelineValidationFailed)
 
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ]
+    0 * _
+
     notThrown(PipelineValidationFailed)
 
     where:
@@ -67,15 +81,28 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "prevents disabled pipeline from running"() {
-    given:
-    front50Service.getPipelines(execution.application, false) >> [
-      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    when:
+    validator.checkRunnable(execution)
+
+    then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
     ]
+    1 * front50Service.getPipelines(execution.application, false) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    ]
+    0 * _
+
+    thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    ]
+    0 * _
+
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     where:
@@ -88,7 +115,7 @@ class EnabledPipelineValidatorSpec extends Specification {
   def "allows enabled strategy to run"() {
     given:
     front50Service.getStrategies(execution.application) >> [
-      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
 
     when:
@@ -109,7 +136,7 @@ class EnabledPipelineValidatorSpec extends Specification {
   def "prevents disabled strategy from running"() {
     given:
     front50Service.getStrategies(execution.application) >> [
-      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ]
 
     when:
@@ -128,15 +155,14 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "doesn't choke on non-boolean strategy value"() {
-    given:
-    front50Service.getPipelines(execution.application, false) >> [
-      [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ]
+
     notThrown(PipelineValidationFailed)
 
     where:

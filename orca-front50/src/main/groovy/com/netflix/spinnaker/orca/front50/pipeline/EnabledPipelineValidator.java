@@ -48,6 +48,26 @@ public class EnabledPipelineValidator implements PipelineValidator {
       throw new UnsupportedOperationException(
           "Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
     }
+
+    if (!isStrategy(pipeline)) {
+      // attempt an optimized lookup via pipeline history vs fetching all pipelines for the
+      // application and filtering
+      List<Map<String, Object>> pipelineConfigHistory =
+          front50Service.getPipelineHistory(pipeline.getPipelineConfigId(), 1);
+
+      if (!pipelineConfigHistory.isEmpty()) {
+        Map<String, Object> pipelineConfig = pipelineConfigHistory.get(0);
+        if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
+          throw new PipelineIsDisabled(
+              pipelineConfig.get("id").toString(),
+              pipelineConfig.get("application").toString(),
+              pipelineConfig.get("name").toString());
+        }
+
+        return;
+      }
+    }
+
     List<Map<String, Object>> pipelines =
         isStrategy(pipeline)
             ? front50Service.getStrategies(pipeline.getApplication())
