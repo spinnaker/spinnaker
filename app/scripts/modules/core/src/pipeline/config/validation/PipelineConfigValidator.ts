@@ -105,9 +105,7 @@ export class PipelineConfigValidator {
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
             $log.warn(
-              `No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${
-                stage.type
-              })`,
+              `No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${stage.type})`,
             );
           } else {
             validations.push(

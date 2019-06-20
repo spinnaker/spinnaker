@@ -66,17 +66,17 @@ module.exports = angular
           'ecs.serverGroup.basicSettings',
           require('./location/basicSettings.html'),
         ),
-        container: overrideRegistry.getTemplate(
-          'ecs.serverGroup.container',
-          require('./container/container.html'),
-        ),
+        container: overrideRegistry.getTemplate('ecs.serverGroup.container', require('./container/container.html')),
         horizontalScaling: overrideRegistry.getTemplate(
           'ecs.serverGroup.horizontalScaling',
           require('./horizontalScaling/horizontalScaling.html'),
         ),
         networking: overrideRegistry.getTemplate('ecs.serverGroup.networking', require('./networking/networking.html')),
         logging: overrideRegistry.getTemplate('ecs.serverGroup.logging', require('./logging/logging.html')),
-        serviceDiscovery: overrideRegistry.getTemplate('ecs.serverGroup.serviceDiscovery', require('./serviceDiscovery/serviceDiscovery.html')),
+        serviceDiscovery: overrideRegistry.getTemplate(
+          'ecs.serverGroup.serviceDiscovery',
+          require('./serviceDiscovery/serviceDiscovery.html'),
+        ),
         advancedSettings: overrideRegistry.getTemplate(
           'ecs.serverGroup.advancedSettings',
           require('./advancedSettings/advancedSettings.html'),

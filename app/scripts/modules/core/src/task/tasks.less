@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .tasks-wrapper {
   display: flex;
@@ -37,7 +37,9 @@
       a {
         text-decoration: none;
         color: var(--color-mineshaft);
-        &:active, &:focus, &:hover {
+        &:active,
+        &:focus,
+        &:hover {
           color: var(--color-mineshaft);
         }
       }
@@ -74,8 +76,9 @@
     font-size: 90%;
   }
 
-  .task-step, .task-error-message {
-    >:first-child {
+  .task-step,
+  .task-error-message {
+    > :first-child {
       padding-left: 20px;
     }
   }
@@ -102,7 +105,6 @@
       background-color: var(--color-concrete);
     }
   }
-
 }
 
 .status-glyph {
@@ -115,7 +117,9 @@
   &.glyphicon-play {
     color: var(--color-accent);
   }
-  &.glyphicon-stop, &.glyphicon-pause, &.glyphicon-time {
+  &.glyphicon-stop,
+  &.glyphicon-pause,
+  &.glyphicon-time {
     color: var(--color-concrete);
   }
 }

@@ -34,53 +34,45 @@ export class ParametersAndArtifacts extends React.Component<
     this.setState({ showingParams: !showingParams });
   };
 
-  private getDisplayableParameters = memoizeOne(
-    (
-      execution: IExecution,
-      pipelineConfig: IPipeline,
-    ): { displayableParameters: IDisplayableParameter[]; pinnedDisplayableParameters: IDisplayableParameter[] } => {
-      // these are internal parameters that are not useful to end users
-      const strategyExclusions = [
-        'parentPipelineId',
-        'strategy',
-        'parentStageId',
-        'deploymentDetails',
-        'cloudProvider',
-      ];
+  private getDisplayableParameters = memoizeOne((execution: IExecution, pipelineConfig: IPipeline): {
+    displayableParameters: IDisplayableParameter[];
+    pinnedDisplayableParameters: IDisplayableParameter[];
+  } => {
+    // these are internal parameters that are not useful to end users
+    const strategyExclusions = ['parentPipelineId', 'strategy', 'parentStageId', 'deploymentDetails', 'cloudProvider'];
 
-      const truncateLength = 200;
+    const truncateLength = 200;
 
-      const isParamDisplayable = (paramKey: string) =>
-        execution.isStrategy ? !strategyExclusions.includes(paramKey) : true;
+    const isParamDisplayable = (paramKey: string) =>
+      execution.isStrategy ? !strategyExclusions.includes(paramKey) : true;
 
-      const displayableParameters: IDisplayableParameter[] = Object.keys(
-        (execution.trigger && execution.trigger.parameters) || {},
-      )
-        .filter(isParamDisplayable)
-        .sort()
-        .map((key: string) => {
-          const value = JSON.stringify(execution.trigger.parameters[key]);
-          const showTruncatedValue = value.length > truncateLength;
-          let valueTruncated;
-          if (showTruncatedValue) {
-            valueTruncated = truncate(value, { length: truncateLength });
-          }
-          return { key, value, valueTruncated, showTruncatedValue };
-        });
+    const displayableParameters: IDisplayableParameter[] = Object.keys(
+      (execution.trigger && execution.trigger.parameters) || {},
+    )
+      .filter(isParamDisplayable)
+      .sort()
+      .map((key: string) => {
+        const value = JSON.stringify(execution.trigger.parameters[key]);
+        const showTruncatedValue = value.length > truncateLength;
+        let valueTruncated;
+        if (showTruncatedValue) {
+          valueTruncated = truncate(value, { length: truncateLength });
+        }
+        return { key, value, valueTruncated, showTruncatedValue };
+      });
 
-      let pinnedDisplayableParameters: IDisplayableParameter[] = [];
+    let pinnedDisplayableParameters: IDisplayableParameter[] = [];
 
-      if (pipelineConfig) {
-        const paramConfigIndexByName = keyBy(pipelineConfig.parameterConfig, 'name');
-        const isParamPinned = (param: IDisplayableParameter): boolean =>
-          paramConfigIndexByName[param.key] && paramConfigIndexByName[param.key].pinned; // an older execution's parameter might be missing from a newer pipelineConfig.parameterConfig
+    if (pipelineConfig) {
+      const paramConfigIndexByName = keyBy(pipelineConfig.parameterConfig, 'name');
+      const isParamPinned = (param: IDisplayableParameter): boolean =>
+        paramConfigIndexByName[param.key] && paramConfigIndexByName[param.key].pinned; // an older execution's parameter might be missing from a newer pipelineConfig.parameterConfig
 
-        pinnedDisplayableParameters = displayableParameters.filter(isParamPinned);
-      }
+      pinnedDisplayableParameters = displayableParameters.filter(isParamPinned);
+    }
 
-      return { displayableParameters, pinnedDisplayableParameters };
-    },
-  );
+    return { displayableParameters, pinnedDisplayableParameters };
+  });
 
   private getLabel(displayableParameters: IDisplayableParameter[]): string {
     const { execution } = this.props;

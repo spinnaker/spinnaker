@@ -395,13 +395,11 @@ class AppengineServerGroupDetailsController implements IController {
     serverGroup: IServerGroup,
     app: Application,
   ): { [key: string]: number } {
-    const loadBalancer = app.getDataSource('loadBalancers').data.find(
-      (toCheck: IAppengineLoadBalancer): boolean => {
-        const allocations = get(toCheck, 'split.allocations', {});
-        const enabledServerGroups = Object.keys(allocations);
-        return enabledServerGroups.includes(serverGroup.name);
-      },
-    );
+    const loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
+      const allocations = get(toCheck, 'split.allocations', {});
+      const enabledServerGroups = Object.keys(allocations);
+      return enabledServerGroups.includes(serverGroup.name);
+    });
 
     if (loadBalancer) {
       let allocations = cloneDeep(loadBalancer.split.allocations);

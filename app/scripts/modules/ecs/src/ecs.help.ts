@@ -35,8 +35,7 @@ const helpContents: { [key: string]: string } = {
     '<p>A cluster query language expression to apply to memberOf constraints.  See <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-query-language.html" target="_blank">AWS documentation</a> for more details.</p>',
   'ecs.placementStrategy':
     '<p>The strategy the container scheduler will be using.  See <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html" target="_blank">AWS documentation</a> for more details. </p><p>You should at least balance across availability zones</p><p>Custom placement strategies have not been implemented yet.</p>',
-  'ecs.platformVersion':
-    '<p>Defaults to the latest platform version.</p>',
+  'ecs.platformVersion': '<p>Defaults to the latest platform version.</p>',
   'ecs.capacity.copySourceScalingPoliciesAndActions':
     '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',
@@ -53,16 +52,13 @@ const helpContents: { [key: string]: string } = {
     '<p>The container\'s logging driver.  This directly maps to the <a href="https://docs.docker.com/config/containers/logging/configure/#configure-the-default-logging-driver"><b>--log-driver</b> Docker flag.</a></p>',
   'ecs.logOptions':
     '<p>A map of log options.  This directly maps with the <a href="https://docs.docker.com/config/containers/logging/log_tags/"><b>--log-opt</b> Docker flag  </a></p>',
-  'ecs.tags':
-    '<p>The tags to apply to the task definition and the service',
+  'ecs.tags': '<p>The tags to apply to the task definition and the service',
   'ecs.environmentVariables':
     '<p>The environment variable(s) your container are deployed with. SERVER_GROUP, CLOUD_STACK and CLOUD_DETAIL environment variables are used during deployment to identify the task and cannot be set here.</p>',
-  'ecs.serviceDiscovery':
-    '<p>The AWS Cloud Map service discovery registries to assign to this service</p>',
-  'ecs.serviceDiscoveryRegistry':
-    '<p>The AWS Cloud Map service to use for service discovery registration</p>',
+  'ecs.serviceDiscovery': '<p>The AWS Cloud Map service discovery registries to assign to this service</p>',
+  'ecs.serviceDiscoveryRegistry': '<p>The AWS Cloud Map service to use for service discovery registration</p>',
   'ecs.serviceDiscoveryContainerPort':
-    '<p>The port to be used for your service discovery service. Required only for services using bridge or host network mode, and for services using awsvpc network mode and a type SRV DNS record'
+    '<p>The port to be used for your service discovery service. Required only for services using bridge or host network mode, and for services using awsvpc network mode and a type SRV DNS record',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

@@ -84,7 +84,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
           DetailsGetter,
           Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
           string,
-          string
+          string,
         ],
       ) => {
         const [Actions, detailsGetter, sections, templateUrl, controller] = values;

@@ -4,30 +4,37 @@ a.spelLink {
 }
 
 @keyframes fade-in {
-  from { opacity: 0}
-  to {opacity: 1}
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @-webkit-keyframes fade-in {
-  from { opacity: 0}
-  to {opacity: 1}
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 input.borderless,
-.borderless select
-{
+.borderless select {
   border: none;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 
 .button-input {
-  display:flex;
+  display: flex;
   flex-direction: row;
   align-items: center;
   border: 1px var(--color-alto) solid;
   border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   background: var(--color-white);
 }
 
@@ -37,13 +44,11 @@ input.borderless,
   flex-grow: 1;
 }
 
-
-
 .button-input.focus {
   border-color: var(--color-accent);
   outline: 0;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
 }
 
 .button-input .input select,
@@ -52,26 +57,26 @@ input.borderless,
 }
 
 .button-input.number {
-  width:245px
+  width: 245px;
 }
 
 .button-input:focus {
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
 }
 
 .button-input .btn-group {
   margin-left: 5px;
 }
 
-.button-input .btn-group button.active{
+.button-input .btn-group button.active {
   font-weight: 700;
 }
 
 .button-input .btn-group button:focus {
-  outline:none;
+  outline: none;
 }
 
-.button-input  .form-control:focus {
+.button-input .form-control:focus {
   box-shadow: none;
 }
 
@@ -80,14 +85,13 @@ input.borderless,
 .button-input .select2-container-active {
   border: none;
   background-image: none;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
-
 
 span.marker {
   display: inline;
-  padding: .2em .6em .3em;
+  padding: 0.2em 0.6em 0.3em;
   font-size: 75%;
   font-weight: bold;
   line-height: 1;
@@ -95,7 +99,7 @@ span.marker {
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
-  border-radius: .25em;
+  border-radius: 0.25em;
 }
 
 span.marker.param {
@@ -103,31 +107,31 @@ span.marker.param {
   color: var(--color-dovegray);
 }
 
-span.marker.stage{
+span.marker.stage {
   background-color: var(--color-accessory-light);
-  color: var(--color-mineshaft)
+  color: var(--color-mineshaft);
 }
 
 span.marker.function {
   background-color: var(--color-accent-g1);
-  color: var(--color-primary)
-};
+  color: var(--color-primary);
+}
 
-span.marker.value{
+span.marker.value {
   background-color: var(--color-accent-g1);
-  color: var(--color-primary)
-};
+  color: var(--color-primary);
+}
 
 span.marker.param:before {
-  content: "p";
+  content: 'p';
 }
 
 span.marker.stage:before {
-  content: "stage";
+  content: 'stage';
 }
 
 span.marker.function:before {
-  content: "fn";
+  content: 'fn';
 }
 
 .spel-dropdown {

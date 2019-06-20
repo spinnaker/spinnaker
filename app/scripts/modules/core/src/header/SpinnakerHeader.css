@@ -21,7 +21,7 @@
 .spinnaker-header .page-nav a.active,
 .spinnaker-header .page-nav a:active,
 .spinnaker-header .page-nav a:hover,
-.spinnaker-header .page-nav a:focus  {
+.spinnaker-header .page-nav a:focus {
   background-color: var(--color-primary-g1);
 }
 

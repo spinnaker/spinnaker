@@ -29,9 +29,7 @@ export class AnyFieldRequiredValidator extends BaseRequiredFieldValidator {
       .join(', ');
     return (
       validationConfig.message ||
-      `At least one of the following fields must be supplied for ${
-        config.label
-      } stages: <strong>${fieldString}</strong>.`
+      `At least one of the following fields must be supplied for ${config.label} stages: <strong>${fieldString}</strong>.`
     );
   }
 }

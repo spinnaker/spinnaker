@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .infrastructure-project {
   display: block;
@@ -8,7 +8,8 @@
   a {
     color: var(--color-mineshaft);
     display: block;
-    &:active, &:hover {
+    &:active,
+    &:hover {
       font-weight: 600;
     }
   }
@@ -25,7 +26,8 @@
         opacity: 1;
         transition: opacity 0.25s ease-in;
         color: var(--color-concrete);
-        &:hover, &:active {
+        &:hover,
+        &:active {
           color: var(--color-accent);
         }
       }
@@ -37,7 +39,7 @@
       a {
         color: var(--color-accessory-light);
         display: inline-block;
-        width: calc(~"100% - 20px");
+        width: calc(~'100% - 20px');
       }
     }
   }

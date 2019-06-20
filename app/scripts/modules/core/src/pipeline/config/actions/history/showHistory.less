@@ -1,5 +1,5 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
-@import (reference) "~bootstrap/less/variables.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
+@import (reference) '~bootstrap/less/variables.less';
 
 .modal-show-history {
   .modal-history-header {
@@ -25,7 +25,7 @@
       position: absolute;
       top: 0;
       right: -7px;
-      height: calc(~"100% - 8px");
+      height: calc(~'100% - 8px');
       .delta {
         width: 100%;
         position: absolute;
@@ -42,7 +42,7 @@
 
   .diff-summary {
     vertical-align: middle;
-    display:inline-block;
+    display: inline-block;
     margin: 0 20px;
     font-size: 120%;
     font-weight: 600;
@@ -64,7 +64,9 @@
   overflow-x: visible;
   margin: 0;
   padding-bottom: 0;
-  .match, .add, .remove {
+  .match,
+  .add,
+  .remove {
     font-family: @font-family-monospace;
     &::before {
       position: relative;

@@ -3,7 +3,9 @@
   padding: 3px 10px 0 10px;
   max-height: 185px;
   overflow-y: auto;
-  >a, >a:hover, >a:visited {
+  > a,
+  > a:hover,
+  > a:visited {
     text-decoration: none;
     color: inherit;
   }
@@ -13,10 +15,10 @@
       padding: 3px;
     }
     font-size: 13px;
-    >:hover {
+    > :hover {
       background-color: var(--color-primary-g1);
     }
-    span+span {
+    span + span {
       padding-left: 20px;
     }
     .stage-status {
@@ -29,7 +31,7 @@
     }
   }
   a:first-child {
-    >li {
+    > li {
       border-top: none;
     }
   }
@@ -37,7 +39,8 @@
 
 .group-stages-list-popover {
   background-color: var(--color-primary) !important;
-  .popover-content, &.inverse {
+  .popover-content,
+  &.inverse {
     background-color: var(--color-primary);
     color: var(--color-white);
     padding: 5px;

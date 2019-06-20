@@ -1,6 +1,6 @@
-@import "~bootstrap/less/mixins/vendor-prefixes.less";
-@import "~bootstrap/less/variables.less";
-@import (reference) "~core/presentation/main.less";
+@import '~bootstrap/less/mixins/vendor-prefixes.less';
+@import '~bootstrap/less/variables.less';
+@import (reference) '~core/presentation/main.less';
 
 .search {
   align-items: center;
@@ -22,10 +22,9 @@
     background: var(--color-white) none;
     border: 1px solid;
     border-radius: @border-radius-base;
-    .transition(~"border-color ease-in-out .15s, box-shadow ease-in-out .15s");
+    .transition(~'border-color ease-in-out .15s, box-shadow ease-in-out .15s');
 
     .search__input-wrapper {
-
       align-items: baseline;
       display: flex;
       flex: 1 1;
@@ -57,15 +56,15 @@
 
     &.search__input--focus {
       @color: @input-border-focus;
-      @color-rgba: rgba(red(@color), green(@color), blue(@color), .6);
+      @color-rgba: rgba(red(@color), green(@color), blue(@color), 0.6);
       border-color: @color;
       outline: 0;
-      .box-shadow(~"inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px @{color-rgba}");
+      .box-shadow(~'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px @{color-rgba}');
     }
 
     &.search__input--blur {
       border-color: var(--color-alto);
-      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075));
+      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
     }
   }
 }

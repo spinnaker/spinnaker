@@ -19,9 +19,7 @@ describe('PipelineTemplateV2Service', () => {
     const mockTemplate: IPipelineTemplateV2 = {
       id: mockId,
       metadata: {
-        description: `A pipeline template derived from pipeline "${mockPipeline.name}" in application "${
-          mockPipeline.application
-        }"`,
+        description: `A pipeline template derived from pipeline "${mockPipeline.name}" in application "${mockPipeline.application}"`,
         name: mockName,
         owner: mockOwner,
         scopes: ['global'],

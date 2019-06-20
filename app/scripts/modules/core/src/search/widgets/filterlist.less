@@ -1,6 +1,6 @@
-@import "~bootstrap/less/mixins/vendor-prefixes.less";
-@import (reference) "~core/presentation/main.less";
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import '~bootstrap/less/mixins/vendor-prefixes.less';
+@import (reference) '~core/presentation/main.less';
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .secondary-text() {
   color: var(--color-concrete);
@@ -8,11 +8,10 @@
 }
 
 .filter-list {
-
   background-color: var(--color-white);
   border: 1px solid @dropdown-border;
   border-radius: @border-radius-base;
-  .box-shadow(0 6px 12px rgba(0, 0, 0, .175));
+  .box-shadow(0 6px 12px rgba(0, 0, 0, 0.175));
   cursor: default;
   margin-top: 40px;
   position: absolute;
@@ -35,7 +34,6 @@
   }
 
   .filter {
-
     align-items: center;
     .clickable();
     display: flex;

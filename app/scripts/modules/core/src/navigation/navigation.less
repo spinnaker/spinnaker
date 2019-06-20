@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .secondary-panel {
   > div {
@@ -34,7 +34,6 @@
     .nav-search {
       margin-top: 10px;
     }
-
   }
   .nav-content {
     .header {
@@ -75,7 +74,8 @@
       }
     }
     .sort-filter {
-      .form-inline, .form-horizontal {
+      .form-inline,
+      .form-horizontal {
         border-bottom: 1px solid var(--color-seashell);
         padding: 0 10px 10px 10px;
         label {
@@ -88,11 +88,12 @@
         }
       }
       .form-inline {
-        @media(min-width: 768px) {
+        @media (min-width: 768px) {
           label {
             margin-left: 10px;
           }
-          input, select {
+          input,
+          select {
             margin-left: 10px;
           }
         }
@@ -114,7 +115,8 @@
 }
 
 .nav.navbar-nav {
-  .remove-border-top:hover, .remove-border-top:active {
+  .remove-border-top:hover,
+  .remove-border-top:active {
     border-top-color: transparent;
     transition: none;
   }

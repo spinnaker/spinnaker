@@ -17,7 +17,7 @@ export interface IManifestResourceProps {
             limits?: IManifestResources;
             requests?: IManifestResources;
           };
-        }
+        },
       ];
     };
     status?: {
@@ -28,7 +28,7 @@ export interface IManifestResourceProps {
     {
       containerName?: string;
       metrics?: IPodMetricsMap;
-    }
+    },
   ];
 }
 

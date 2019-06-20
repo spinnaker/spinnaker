@@ -1,9 +1,10 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 @indicator-size: 14px;
-@indicator-radius: @indicator-size/2;
+@indicator-radius: @indicator-size / 2;
 
-v2-modal-wizard, .wizard-modal {
+v2-modal-wizard,
+.wizard-modal {
   .modal-header {
     /* Set to keep sticky section headings beneath modal header*/
     position: relative;
@@ -61,7 +62,9 @@ v2-modal-wizard, .wizard-modal {
           background-color: var(--color-dovegray);
         }
       }
-      &.current, &:hover, &:active {
+      &.current,
+      &:hover,
+      &:active {
         transition: 0.25s;
         background-color: var(--color-cirrus);
         a {
@@ -77,7 +80,7 @@ v2-modal-wizard, .wizard-modal {
         a:before {
           color: var(--color-danger);
           background-color: transparent;
-          content: "\e088";
+          content: '\e088';
         }
       }
       &.waiting {
@@ -92,7 +95,7 @@ v2-modal-wizard, .wizard-modal {
     overflow-y: auto;
     overflow-x: hidden;
     clear: both;
-    max-height: calc(~"100vh - 215px");
+    max-height: calc(~'100vh - 215px');
     .wizard-subheading {
       padding: 0;
       h4 {
@@ -100,7 +103,7 @@ v2-modal-wizard, .wizard-modal {
         margin-bottom: 0;
         color: var(--color-primary);
         background-color: var(--color-accent-g2);
-        @media(max-width: 992px) {
+        @media (max-width: 992px) {
           padding-left: 0;
           &:before {
             display: inline-block;
@@ -122,7 +125,7 @@ v2-modal-wizard, .wizard-modal {
             &:before {
               color: var(--color-danger);
               background-color: transparent;
-              content: "\e088";
+              content: '\e088';
               font-family: 'Glyphicons Halflings';
             }
           }
@@ -131,7 +134,6 @@ v2-modal-wizard, .wizard-modal {
               background-color: var(--color-seashell);
             }
           }
-
         }
       }
       margin-bottom: 10px;

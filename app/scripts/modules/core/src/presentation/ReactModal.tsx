@@ -67,7 +67,7 @@ export class ReactModal {
 
       function render() {
         ReactDOM.render(
-          <Modal show={show} {...modalProps as ModalProps} onExited={onExited}>
+          <Modal show={show} {...(modalProps as ModalProps)} onExited={onExited}>
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
           </Modal>,
           mountNode,

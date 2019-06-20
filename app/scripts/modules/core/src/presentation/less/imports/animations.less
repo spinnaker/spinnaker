@@ -1,34 +1,58 @@
 .glowing(@duration: 1.75) {
-  -webkit-animation: animate-glow ~"@{duration}s" steps(12*@duration) infinite;
-  -moz-animation: animate-glow ~"@{duration}s" steps(12*@duration) infinite;
+  -webkit-animation: animate-glow ~'@{duration}s' steps(12 * @duration) infinite;
+  -moz-animation: animate-glow ~'@{duration}s' steps(12 * @duration) infinite;
 }
 
 @-webkit-keyframes animate-glow {
-  0% { opacity: 0.9; }
-  50% { opacity: 0.4; }
-  100% { opacity: 0.9; }
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0.9;
+  }
 }
 
 @-moz-keyframes animate-glow {
-  0% { opacity: 0.9; }
-  50% { opacity: 0.4; }
-  100% { opacity: 0.9; }
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0.9;
+  }
 }
 
 .pulsing(@duration: 1.5) {
-  -webkit-animation: pulse ~"@{duration}s" steps(12*@duration) infinite;
-  animation: pulse ~"@{duration}s"  steps(12*@duration) infinite;
+  -webkit-animation: pulse ~'@{duration}s' steps(12 * @duration) infinite;
+  animation: pulse ~'@{duration}s' steps(12 * @duration) infinite;
 }
 
 @-webkit-keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: .25; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: .25; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @-moz-keyframes spin {
@@ -58,7 +82,7 @@
 
 .spinning(@duration: 4) {
   transform: translateZ(0);
-  -webkit-animation:spin ~"@{duration}s" steps(30*@duration) infinite;
-  -moz-animation:spin ~"@{duration}s" steps(30*@duration) infinite;
-  animation:spin ~"@{duration}s" steps(30*@duration) infinite;
+  -webkit-animation: spin ~'@{duration}s' steps(30 * @duration) infinite;
+  -moz-animation: spin ~'@{duration}s' steps(30 * @duration) infinite;
+  animation: spin ~'@{duration}s' steps(30 * @duration) infinite;
 }

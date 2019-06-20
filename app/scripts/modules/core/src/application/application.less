@@ -1,4 +1,4 @@
-@import (reference) "~core/search/searchResult/baseTable.less";
+@import (reference) '~core/search/searchResult/baseTable.less';
 
 .application {
   display: flex;
@@ -20,7 +20,9 @@
 
 .link-inverse {
   color: var(--color-accessory-light);
-  &:active, &:focus, &:hover {
+  &:active,
+  &:focus,
+  &:hover {
     color: var(--color-accessory);
     text-decoration: none;
   }
@@ -59,21 +61,24 @@
   }
 }
 
-.glyphicon-none:before{
-  content:"\e113";
+.glyphicon-none:before {
+  content: '\e113';
   color: transparent !important;
 }
 
-input[type="checkbox"], input[type="radio"] {
+input[type='checkbox'],
+input[type='radio'] {
   cursor: pointer;
 }
 
 .table-search-results-application {
-  .table-header, .table-row {
+  .table-header,
+  .table-row {
     .col-application {
       width: 200px;
     }
-    .col-account, .col-accounts {
+    .col-account,
+    .col-accounts {
       width: 250px;
     }
     .col-email {

@@ -87,9 +87,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, app);
 
     ReactInjector.confirmationModalService.confirm({
-      header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${
-        loadBalancerFromParams.accountId
-      }?`,
+      header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${loadBalancerFromParams.accountId}?`,
       buttonText: `Delete ${loadBalancerFromParams.name}`,
       provider: 'aws',
       account: loadBalancerFromParams.accountId,

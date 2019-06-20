@@ -1,7 +1,11 @@
 insight-layout {
   display: flex;
 
-  insight-filter, cluster-filter, load-balancer-filter, security-group-filter, .insight-filter-content {
+  insight-filter,
+  cluster-filter,
+  load-balancer-filter,
+  security-group-filter,
+  .insight-filter-content {
     display: flex;
     width: 100%;
     overflow-x: hidden;
@@ -12,15 +16,16 @@ insight-layout {
     }
   }
 
-  insight-filter, .insight-filter-content {
+  insight-filter,
+  .insight-filter-content {
     flex-direction: column;
   }
 }
 
-ui-view[name="insight"],
-react-ui-view-adapter[name="insight"],
-react-ui-view-adapter[name="insight"] > .AngularJSAdapter,
-react-ui-view-adapter[name="detail"] > .AngularJSAdapter {
+ui-view[name='insight'],
+react-ui-view-adapter[name='insight'],
+react-ui-view-adapter[name='insight'] > .AngularJSAdapter,
+react-ui-view-adapter[name='detail'] > .AngularJSAdapter {
   flex: 1 1 auto;
   display: flex;
   overflow-x: hidden;

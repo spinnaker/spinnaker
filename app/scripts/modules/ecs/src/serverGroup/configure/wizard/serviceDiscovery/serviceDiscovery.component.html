@@ -18,7 +18,9 @@
             <td>
               <ui-select ng-model="serviceDiscoveryAssoc.registry" class="form-control input-sm">
                 <ui-select-match placeholder="Select...">{{ $select.selected.displayName }}</ui-select-match>
-                <ui-select-choices repeat="serviceDiscoveryRegistry in $ctrl.command.backingData.filtered.serviceDiscoveryRegistries">
+                <ui-select-choices
+                  repeat="serviceDiscoveryRegistry in $ctrl.command.backingData.filtered.serviceDiscoveryRegistries"
+                >
                   <span ng-bind-html="serviceDiscoveryRegistry.displayName | highlight: $select.search"></span>
                 </ui-select-choices>
               </ui-select>
@@ -45,7 +47,10 @@
         <tfoot>
           <tr>
             <td colspan="3">
-              <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.command.serviceDiscoveryAssociations.push({})">
+              <button
+                class="btn btn-block btn-sm add-new"
+                ng-click="$ctrl.command.serviceDiscoveryAssociations.push({})"
+              >
                 <span class="glyphicon glyphicon-plus-sign"></span>
                 Add New Service Registry
               </button>

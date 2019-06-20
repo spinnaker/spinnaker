@@ -372,7 +372,7 @@ export class EcsServerGroupConfigurationService {
 
   public configureAvailableRegions(command: IEcsServerGroupCommand): void {
     const regionsForAccount: IAccountDetails =
-    command.backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
+      command.backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
     command.backingData.filtered.regions = regionsForAccount.regions;
   }
 

@@ -37,11 +37,11 @@
     color: var(--color-white);
     padding: 0 5px;
     font-size: 14px;
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       color: var(--color-white);
     }
   }
-
 }
 
 .second-level-navigation-header {
@@ -54,7 +54,8 @@
     position: relative;
     box-shadow: 0 0 3px 1px var(--color-alto);
   }
-  .nav-item, .dropdown-toggle {
+  .nav-item,
+  .dropdown-toggle {
     &:after {
       content: ' ';
       width: 0;
@@ -63,12 +64,13 @@
       border-right: 16px solid transparent;
       border-bottom: 16px solid transparent;
       position: absolute;
-      left: calc(~"50% - 16px");
+      left: calc(~'50% - 16px');
       bottom: -4px;
       z-index: 3;
       transition: border-bottom-color 200ms ease-in;
     }
-    &.active, &:hover {
+    &.active,
+    &:hover {
       color: var(--color-primary);
       .badge {
         background-color: var(--color-primary);
@@ -111,7 +113,8 @@
       outline: none !important;
     }
   }
-  .nav-item, .nav-menu-item {
+  .nav-item,
+  .nav-menu-item {
     color: var(--color-accent);
     text-transform: uppercase;
     font-weight: 600;
@@ -126,7 +129,8 @@
       font-size: 16px;
       padding: 15px;
     }
-    &:focus, &:hover {
+    &:focus,
+    &:hover {
       outline: none !important;
       text-decoration: none !important;
     }
@@ -173,7 +177,9 @@
       font-size: 14px;
       padding: 10px;
     }
-    &.active, &:hover, &:focus {
+    &.active,
+    &:hover,
+    &:focus {
       text-decoration: none;
       color: var(--color-primary);
       border-bottom-color: var(--color-primary);

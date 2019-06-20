@@ -17,9 +17,7 @@ export class PipelineTemplateV2Service {
     return {
       id: UUIDGenerator.generateUuid(),
       metadata: {
-        description: `A pipeline template derived from pipeline "${pipeline.name}" in application "${
-          pipeline.application
-        }"`,
+        description: `A pipeline template derived from pipeline "${pipeline.name}" in application "${pipeline.application}"`,
         name: HumanReadableIds.random(),
         owner,
         scopes: ['global'],
