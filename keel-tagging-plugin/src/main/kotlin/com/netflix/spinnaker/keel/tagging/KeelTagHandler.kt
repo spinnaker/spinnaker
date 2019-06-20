@@ -116,7 +116,7 @@ class KeelTagHandler(
 
     val taskResponse = orcaService.orchestrate(OrchestrationRequest(
       "Upsert entity tag for resource ${resource.spec.keelId}",
-      "keel",
+      desired.entityRef.application,
       "Upsert entity tag for resource ${resource.spec.keelId}",
       listOf(Job(job["type"].toString(), job)),
       OrchestrationTrigger(resource.metadata.name.toString())
