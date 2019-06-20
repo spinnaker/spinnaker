@@ -106,7 +106,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   private V1Job getKubernetesJob(String account, String location, String id) {
     List<Manifest> manifests =
         manifestProviderList.stream()
-            .map(p -> p.getManifest(account, location, id))
+            .map(p -> p.getManifest(account, location, id, false))
             .filter(m -> m != null)
             .collect(Collectors.toList());
 

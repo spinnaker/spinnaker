@@ -21,7 +21,7 @@ import java.util.List;
 
 public class NoopManifestProvider implements ManifestProvider<Manifest> {
   @Override
-  public Manifest getManifest(String account, String location, String name) {
+  public Manifest getManifest(String account, String location, String name, boolean includeEvents) {
     return null;
   }
 

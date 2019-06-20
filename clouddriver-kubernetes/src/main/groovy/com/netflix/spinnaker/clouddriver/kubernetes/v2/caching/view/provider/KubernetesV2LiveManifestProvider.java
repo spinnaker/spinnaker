@@ -48,7 +48,8 @@ public class KubernetesV2LiveManifestProvider extends KubernetesV2AbstractManife
   }
 
   @Override
-  public KubernetesV2Manifest getManifest(String account, String location, String name) {
+  public KubernetesV2Manifest getManifest(
+      String account, String location, String name, boolean includeEvents) {
     if (!isAccountRelevant(account)) {
       return null;
     }
@@ -84,7 +85,10 @@ public class KubernetesV2LiveManifestProvider extends KubernetesV2AbstractManife
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
 
-    List<KubernetesManifest> events = credentials.eventsFor(kind, namespace, parsedName.getRight());
+    List<KubernetesManifest> events =
+        includeEvents
+            ? credentials.eventsFor(kind, namespace, parsedName.getRight())
+            : Collections.emptyList();
 
     List<KubernetesPodMetric.ContainerMetric> metrics = Collections.emptyList();
     if (kind == KubernetesKind.POD && credentials.isMetrics()) {

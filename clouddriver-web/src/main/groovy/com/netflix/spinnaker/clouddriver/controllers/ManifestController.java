@@ -33,6 +33,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -52,22 +53,32 @@ public class ManifestController {
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/_/{name:.+}", method = RequestMethod.GET)
-  Manifest getForAccountAndName(@PathVariable String account, @PathVariable String name) {
-    return getForAccountLocationAndName(account, "", name);
+  Manifest getForAccountAndName(
+      @PathVariable String account,
+      @PathVariable String name,
+      @RequestParam(value = "includeEvents", required = false, defaultValue = "true")
+          boolean includeEvents) {
+    return getForAccountLocationAndName(account, "", name, includeEvents);
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/{location:.+}/{name:.+}", method = RequestMethod.GET)
   Manifest getForAccountLocationAndName(
-      @PathVariable String account, @PathVariable String location, @PathVariable String name) {
+      @PathVariable String account,
+      @PathVariable String location,
+      @PathVariable String name,
+      @RequestParam(value = "includeEvents", required = false, defaultValue = "true")
+          boolean includeEvents) {
+
     List<Manifest> manifests =
         manifestProviders.stream()
             .map(
                 provider -> {
                   try {
                     return requestQueue.execute(
-                        account, () -> provider.getManifest(account, location, name));
+                        account,
+                        () -> provider.getManifest(account, location, name, includeEvents));
                   } catch (Throwable t) {
                     log.warn("Failed to read manifest ", t);
                     return null;
@@ -89,8 +100,12 @@ public class ManifestController {
   }
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
-  Manifest getForAccountLocationAndName(@PathVariable String account, @PathVariable String name) {
-    return getForAccountLocationAndName(account, "", name);
+  Manifest getForAccountLocationAndName(
+      @PathVariable String account,
+      @PathVariable String name,
+      @RequestParam(value = "includeEvents", required = false, defaultValue = "true")
+          boolean includeEvents) {
+    return getForAccountLocationAndName(account, "", name, includeEvents);
   }
 
   @RequestMapping(
