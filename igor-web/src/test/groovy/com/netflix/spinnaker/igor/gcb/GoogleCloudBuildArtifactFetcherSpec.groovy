@@ -98,7 +98,22 @@ class GoogleCloudBuildArtifactFetcherSpec extends Specification {
     def artifacts = artifactFetcher.getArtifacts(build)
 
     then:
-    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT) >> new ByteArrayInputStream()
+    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT, null) >> new ByteArrayInputStream()
+
+    artifacts.size() == 0
+  }
+
+  def "correctly fetches a manifest qualified with an object generation"() {
+    given:
+    Results results = new Results()
+    results.setArtifactManifest(MANIFEST_PATH + "#123")
+    Build build = new Build().setResults(results)
+
+    when:
+    def artifacts = artifactFetcher.getArtifacts(build)
+
+    then:
+    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT, 123) >> new ByteArrayInputStream()
 
     artifacts.size() == 0
   }
@@ -112,7 +127,7 @@ class GoogleCloudBuildArtifactFetcherSpec extends Specification {
     def artifacts = artifactFetcher.getArtifacts(build)
 
     then:
-    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
+    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT, null) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
 
     artifacts.size() == 1
     artifacts[0].name == "gs://artifact-bucket/test.out"
@@ -131,7 +146,7 @@ class GoogleCloudBuildArtifactFetcherSpec extends Specification {
     def artifacts = artifactFetcher.getArtifacts(build)
 
     then:
-    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
+    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT, null) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
 
     artifacts.size() == 2
     artifacts[0].name == "gs://artifact-bucket/test.out"
@@ -157,7 +172,7 @@ class GoogleCloudBuildArtifactFetcherSpec extends Specification {
     def artifacts = artifactFetcher.getArtifacts(build)
 
     then:
-    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
+    client.fetchStorageObject(MANIFEST_BUCKET, MANIFEST_OBJECT, null) >> new ByteArrayInputStream(getManifest(gcsObjects).getBytes())
 
     artifacts.size() == 2
 

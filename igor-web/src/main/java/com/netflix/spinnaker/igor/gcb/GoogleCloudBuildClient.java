@@ -58,7 +58,12 @@ public class GoogleCloudBuildClient {
     return executor.execute(() -> cloudBuild.projects().builds().get(projectId, buildId));
   }
 
-  public InputStream fetchStorageObject(String bucket, String object) throws IOException {
-    return cloudStorage.objects().get(bucket, object).executeMediaAsInputStream();
+  public InputStream fetchStorageObject(String bucket, String object, Long version)
+      throws IOException {
+    Storage.Objects.Get getRequest = cloudStorage.objects().get(bucket, object);
+    if (version != null) {
+      getRequest.setGeneration(version);
+    }
+    return getRequest.executeMediaAsInputStream();
   }
 }

@@ -115,7 +115,9 @@ public class GoogleCloudBuildArtifactFetcher {
   private List<GoogleCloudBuildArtifact> readGoogleCloudStorageManifest(
       GoogleCloudStorageObject manifest) throws IOException {
     List<GoogleCloudBuildArtifact> results = new ArrayList<>();
-    InputStream is = client.fetchStorageObject(manifest.getBucket(), manifest.getObject());
+    InputStream is =
+        client.fetchStorageObject(
+            manifest.getBucket(), manifest.getObject(), manifest.getVersion());
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
       String line;
       while ((line = reader.readLine()) != null) {
