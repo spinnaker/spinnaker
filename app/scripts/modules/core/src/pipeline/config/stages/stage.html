@@ -97,7 +97,11 @@
         skip-window-text="stage.skipWindowText"
         update-stage-field="stageConfigCtrl.updateStageField"
       ></execution-windows>
-      <override-timeout stage="stage"></override-timeout>
+      <override-timeout
+        stage-config="stageConfig"
+        stage-timeout-ms="stage.stageTimeoutMs"
+        update-stage-field="stageConfigCtrl.updateStageField"
+      ></override-timeout>
       <fail-on-failed-expressions stage="stage"></fail-on-failed-expressions>
       <optional-stage stage="stage"></optional-stage>
     </page-section>

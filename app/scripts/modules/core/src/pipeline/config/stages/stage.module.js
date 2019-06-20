@@ -18,13 +18,14 @@ import { EditStageJsonModal } from './common/EditStageJsonModal';
 import { ReactModal } from 'core/presentation';
 import { PRODUCES_ARTIFACTS_REACT } from './producesArtifacts/ProducesArtifacts';
 import { OVERRRIDE_FAILURE } from './overrideFailure/overrideFailure.module';
+import { OVERRIDE_TIMEOUT_COMPONENT } from './overrideTimeout/overrideTimeout.module';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     PRODUCES_ARTIFACTS_REACT,
     BASE_EXECUTION_DETAILS_CTRL,
     STAGE_NAME,
-    require('./overrideTimeout/overrideTimeout.directive').name,
+    OVERRIDE_TIMEOUT_COMPONENT,
     OVERRRIDE_FAILURE,
     require('./optionalStage/optionalStage.directive').name,
     require('./failOnFailedExpressions/failOnFailedExpressions.directive').name,
@@ -250,6 +251,8 @@ module.exports = angular
           $scope.description = null;
           $scope.extendedDescription = null;
         }
+
+        updateStageConfig($scope.stage);
       };
 
       function applyConfigController(config, stageScope) {
@@ -280,6 +283,12 @@ module.exports = angular
         if (!$scope.stage.name && config.label) {
           $scope.stage.name = config.label;
         }
+      }
+
+      function updateStageConfig(stage) {
+        $scope.$applyAsync(() => {
+          $scope.stageConfig = getConfig(stage);
+        });
       }
 
       $scope.$on('pipeline-reverted', this.selectStage);
