@@ -97,8 +97,12 @@ public class GcsStorageService {
     storage_ = storage;
   }
 
-  public InputStream openObjectStream(String bucketName, String path) throws IOException {
+  public InputStream openObjectStream(String bucketName, String path, Long generation)
+      throws IOException {
     Storage.Objects.Get get = storage_.objects().get(bucketName, path);
+    if (generation != null) {
+      get.setGeneration(generation);
+    }
     return get.executeMediaAsInputStream();
   }
 
@@ -143,7 +147,7 @@ public class GcsStorageService {
 
   public void downloadStorageObjectRelative(
       StorageObject obj, String ignorePrefix, String baseDirectory) throws IOException {
-    InputStream stream = openObjectStream(obj.getBucket(), obj.getName());
+    InputStream stream = openObjectStream(obj.getBucket(), obj.getName(), obj.getGeneration());
     String objPath = obj.getName();
     if (!ignorePrefix.isEmpty()) {
       ignorePrefix += File.separator;

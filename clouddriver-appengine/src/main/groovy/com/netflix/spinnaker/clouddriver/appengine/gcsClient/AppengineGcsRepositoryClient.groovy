@@ -20,11 +20,13 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
+import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 
+@CompileStatic
 @Slf4j
 @TupleConstructor
 class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
@@ -57,6 +59,16 @@ class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
     def slash = fullPath.indexOf("/")
     def bucketName = fullPath.substring(0, slash)
     def bucketPath = fullPath.substring(slash + 1)
+    Long version = null
+
+    def versionSeparator = bucketPath.indexOf("#")
+    if (versionSeparator >= 0) {
+      String versionString = bucketPath.substring(versionSeparator + 1)
+      if (!versionString.isEmpty()) {
+        version = Long.parseLong(versionString)
+      }
+      bucketPath = bucketPath.substring(0, versionSeparator)
+    }
 
     // Start with a clean directory for each deployment.
     File targetDirectory = new File(targetDirectoryPath)
@@ -67,8 +79,8 @@ class AppengineGcsRepositoryClient implements AppengineRepositoryClient {
       throw new IllegalArgumentException("GAE staging directory resolved to a file: ${}, failing...")
     }
 
-    if (fullPath.endsWith(".tar")) {
-      InputStream tas = storage.openObjectStream(bucketName, bucketPath)
+    if (bucketPath.endsWith(".tar")) {
+      InputStream tas = storage.openObjectStream(bucketName, bucketPath, version)
 
       // NOTE: We write the tar file out to an intermediate temp file because the tar input stream
       // directly from openObjectStream() closes unexpectedly when accessed from untarStreamToPath()
