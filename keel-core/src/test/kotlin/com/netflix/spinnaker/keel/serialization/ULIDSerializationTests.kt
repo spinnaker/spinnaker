@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.serialization
 
-import com.fasterxml.jackson.databind.node.JsonNodeType.NULL
+import com.fasterxml.jackson.databind.node.JsonNodeType.MISSING
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.randomUID
@@ -50,7 +50,7 @@ internal object ULIDSerializationTests : JUnit5Minutests {
           .valueToTree<ObjectNode>(person.copy(id = null))
         expectThat(tree)
           .path("id")
-          .hasNodeType(NULL)
+          .hasNodeType(MISSING)
       }
     }
 

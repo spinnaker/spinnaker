@@ -37,8 +37,6 @@ internal class ResourceMetadataTests : JUnit5Minutests {
           |serviceAccount: "keel@spinnaker"
           |clusterName: ""
           |creationTimestamp: "2017-05-31T12:56:35Z"
-          |deletionGracePeriodSeconds: null
-          |deletionTimestamp: null
           |namespace: "default"
           |selfLink: "/apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object"
           |""".trimMargin())
@@ -50,8 +48,6 @@ internal class ResourceMetadataTests : JUnit5Minutests {
         """---
         |clusterName: ""
         |creationTimestamp: 2017-05-31T12:56:35Z
-        |deletionGracePeriodSeconds: null
-        |deletionTimestamp: null
         |name: my-new-cron-object
         |namespace: default
         |selfLink: /apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object

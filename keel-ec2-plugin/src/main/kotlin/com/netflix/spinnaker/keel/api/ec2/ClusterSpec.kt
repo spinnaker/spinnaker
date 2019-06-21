@@ -17,8 +17,6 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
@@ -26,7 +24,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
 import com.netflix.spinnaker.keel.model.Moniker
 
-@JsonInclude(NON_NULL)
 data class ClusterSpec(
   val moniker: Moniker,
   val location: Location,

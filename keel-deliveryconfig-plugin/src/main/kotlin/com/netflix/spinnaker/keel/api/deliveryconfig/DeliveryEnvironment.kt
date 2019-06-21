@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.api.deliveryconfig
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.netflix.spinnaker.keel.api.ApiVersion
 
 data class DeliveryEnvironment(
@@ -10,7 +8,6 @@ data class DeliveryEnvironment(
   val targets: List<ChildResource>
 )
 
-@JsonInclude(NON_NULL)
 data class ChildResource(
   val apiVersion: ApiVersion,
   val kind: String,

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.serialization
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
@@ -39,6 +40,7 @@ private fun ObjectMapper.registerULIDModule(): ObjectMapper =
 
 private fun ObjectMapper.configureSaneDateTimeRepresentation(): ObjectMapper =
   enable(WRITE_DATES_AS_TIMESTAMPS)
+    .setSerializationInclusion(NON_NULL)
     .enable(WRITE_DATES_WITH_ZONE_ID)
     .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
     .apply {

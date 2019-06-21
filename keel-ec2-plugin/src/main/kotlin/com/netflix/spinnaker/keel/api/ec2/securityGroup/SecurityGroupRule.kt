@@ -15,14 +15,11 @@
  */
 package com.netflix.spinnaker.keel.api.ec2.securityGroup
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.JsonDeserializer.None
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.ec2.jackson.SecurityGroupRuleDeserializer
 
 @JsonDeserialize(using = SecurityGroupRuleDeserializer::class)
-@JsonInclude(NON_NULL)
 sealed class SecurityGroupRule {
   abstract val protocol: Protocol
   abstract val portRange: PortRange
