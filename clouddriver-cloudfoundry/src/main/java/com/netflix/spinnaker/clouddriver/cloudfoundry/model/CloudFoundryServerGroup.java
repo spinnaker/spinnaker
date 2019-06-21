@@ -93,7 +93,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   Long createdTime;
 
   @JsonView(Views.Cache.class)
-  Map<String, String> env;
+  Map<String, Object> env;
 
   @Wither
   @JsonView(Views.Cache.class)

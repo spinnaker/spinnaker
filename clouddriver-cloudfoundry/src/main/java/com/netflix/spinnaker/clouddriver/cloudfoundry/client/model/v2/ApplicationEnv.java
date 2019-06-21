@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 public class ApplicationEnv {
   private SystemEnv systemEnvJson;
-  private Map<String, String> environmentJson;
+  private Map<String, Object> environmentJson;
 
   @Data
   public static class SystemEnv {
