@@ -1,7 +1,7 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  implementation project(":front50-sql-mariadb")
+  implementation project(":front50-sql-mysql")
 
   implementation "com.netflix.spinnaker.front50:front50-core"
 
@@ -14,6 +14,10 @@ dependencies {
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
+  implementation("org.jooq:jooq:3.9.6"){
+    force = true
+  }
+  
   testImplementation "io.mockk:mockk"
   testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
