@@ -7,7 +7,7 @@ interface LoadBalancer {
   val moniker: Moniker
   val location: Location
   val loadBalancerType: LoadBalancerType
-  val isInternal: Boolean
+  val internal: Boolean
   val vpcName: String?
   val subnetType: String?
   val securityGroupNames: Set<String>

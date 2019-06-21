@@ -134,7 +134,7 @@ class ApplicationLoadBalancerHandler(
               subnet = null
             ),
             loadBalancerType = LoadBalancerType.valueOf(lb.loadBalancerType.toUpperCase()),
-            isInternal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
+            internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
             vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
             subnetType = cloudDriverCache.subnetBy(lb.subnets.first()).purpose,
             listeners = lb.listeners.map { l ->
@@ -189,7 +189,7 @@ class ApplicationLoadBalancerHandler(
         "loadBalancerType" to LoadBalancerType.APPLICATION.toString().toLowerCase(),
         "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
         "subnetType" to subnetType,
-        "isInternal" to isInternal,
+        "isInternal" to internal,
         "idleTimeout" to idleTimeout,
         "securityGroups" to securityGroupNames,
         "listeners" to listeners,

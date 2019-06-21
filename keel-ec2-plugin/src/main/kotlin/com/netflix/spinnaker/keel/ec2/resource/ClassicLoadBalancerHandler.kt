@@ -140,7 +140,7 @@ class ClassicLoadBalancerHandler(
                 subnet = null
               ),
               loadBalancerType = LoadBalancerType.valueOf(lb.loadBalancerType.toUpperCase()),
-              isInternal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
+              internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
               healthCheck = lb.healthCheck.target,
               healthInterval = lb.healthCheck.interval,
               healthyThreshold = lb.healthCheck.healthyThreshold,
@@ -183,7 +183,7 @@ class ClassicLoadBalancerHandler(
         "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
         "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
         "subnetType" to subnetType,
-        "isInternal" to isInternal,
+        "isInternal" to internal,
         "healthCheck" to healthCheck,
         "healthInterval" to healthInterval,
         "healthyThreshold" to healthyThreshold,

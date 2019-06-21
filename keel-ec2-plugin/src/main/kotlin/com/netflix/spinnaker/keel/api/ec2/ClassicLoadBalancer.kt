@@ -7,7 +7,7 @@ data class ClassicLoadBalancer(
   override val moniker: Moniker,
   override val location: Location,
   override val loadBalancerType: LoadBalancerType = LoadBalancerType.CLASSIC,
-  override val isInternal: Boolean = true,
+  override val internal: Boolean = true,
   override val vpcName: String?,
   override val subnetType: String?,
   override val securityGroupNames: Set<String> = emptySet(),
