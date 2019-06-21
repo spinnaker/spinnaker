@@ -36,7 +36,6 @@ Sample Usage:
 """
 
 # Standard python modules.
-# Standard python modules.
 import sys
 import json
 
