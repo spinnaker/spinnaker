@@ -21,7 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.net.URL;
+import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +47,8 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
 
     String environment = cloudFoundryAccount.getEnvironment();
     String apiHost = cloudFoundryAccount.getApiHost();
-    String appsManagerUri = cloudFoundryAccount.getAppsManagerUri();
-    String metricsUri = cloudFoundryAccount.getMetricsUri();
+    URL appsManagerUrl = cloudFoundryAccount.getAppsManagerUrl();
+    URL metricsUrl = cloudFoundryAccount.getMetricsUrl();
     String password = cloudFoundryAccount.getPassword();
     String user = cloudFoundryAccount.getUser();
     boolean skipSslValidation = cloudFoundryAccount.isSkipSslValidation();
@@ -60,16 +63,23 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
           Problem.Severity.ERROR, "You must provide a CF api endpoint host");
     }
 
-    if (StringUtils.isEmpty(appsManagerUri)) {
+    if (appsManagerUrl == null) {
       problemSetBuilder.addProblem(
           Problem.Severity.WARNING,
-          "To be able to link server groups to CF Appsmanager a URI is required: " + accountName);
+          "To be able to link server groups to CF Appsmanager a URL is required: " + accountName);
+    } else if (!isHttp(appsManagerUrl.getProtocol())) {
+      problemSetBuilder.addProblem(
+          Severity.ERROR,
+          "Apps manager URL scheme must be HTTP or HTTPS for account: " + accountName);
     }
 
-    if (StringUtils.isEmpty(metricsUri)) {
+    if (metricsUrl == null) {
       problemSetBuilder.addProblem(
           Problem.Severity.WARNING,
-          "To be able to link server groups to CF Metrics a URI is required: " + accountName);
+          "To be able to link server groups to CF Metrics a URL is required: " + accountName);
+    } else if (!isHttp(metricsUrl.getProtocol())) {
+      problemSetBuilder.addProblem(
+          Severity.ERROR, "Metrics URL scheme must be HTTP or HTTPS for account: " + accountName);
     }
 
     if (skipSslValidation) {
@@ -82,8 +92,8 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
     CloudFoundryCredentials cloudFoundryCredentials =
         new CloudFoundryCredentials(
             cloudFoundryAccount.getName(),
-            appsManagerUri,
-            metricsUri,
+            Objects.toString(appsManagerUrl, null),
+            Objects.toString(metricsUrl, null),
             apiHost,
             user,
             password,
@@ -102,5 +112,9 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
               + e.getMessage()
               + ".");
     }
+  }
+
+  private boolean isHttp(String protocol) {
+    return "http".equalsIgnoreCase(protocol) || "https".equalsIgnoreCase(protocol);
   }
 }

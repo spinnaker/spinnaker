@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
+import java.net.URL;
 
 @Parameters(separators = "=")
 public class CloudFoundryEditAccountCommand
@@ -36,14 +37,14 @@ public class CloudFoundryEditAccountCommand
   private String apiHost;
 
   @Parameter(
-      names = {"--apps-manager-uri", "--appsManagerUri"},
-      description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION)
-  private String appsManagerUri;
+      names = {"--apps-manager-url", "--apps-manager-uri", "--appsManagerUri"},
+      description = CloudFoundryCommandProperties.APPS_MANAGER_URL_DESCRIPTION)
+  private URL appsManagerUrl;
 
   @Parameter(
-      names = {"--metrics-uri", "--metricsUri"},
-      description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION)
-  private String metricsUri;
+      names = {"--metrics-url", "--metrics-uri", "--metricsUri"},
+      description = CloudFoundryCommandProperties.METRICS_URL_DESCRIPTION)
+  private URL metricsUrl;
 
   @Parameter(names = "--password", description = CloudFoundryCommandProperties.PASSWORD_DESCRIPTION)
   private String password;
@@ -60,8 +61,8 @@ public class CloudFoundryEditAccountCommand
   @Override
   protected Account editAccount(CloudFoundryAccount account) {
     account.setApiHost(isSet(apiHost) ? apiHost : account.getApiHost());
-    account.setAppsManagerUri(isSet(appsManagerUri) ? appsManagerUri : account.getAppsManagerUri());
-    account.setMetricsUri(isSet(metricsUri) ? metricsUri : account.getMetricsUri());
+    account.setAppsManagerUrl(isSet(appsManagerUrl) ? appsManagerUrl : account.getAppsManagerUrl());
+    account.setMetricsUrl(isSet(metricsUrl) ? metricsUrl : account.getMetricsUrl());
     account.setPassword(isSet(password) ? password : account.getPassword());
     account.setUser(isSet(user) ? user : account.getUser());
     account.setSkipSslValidation(

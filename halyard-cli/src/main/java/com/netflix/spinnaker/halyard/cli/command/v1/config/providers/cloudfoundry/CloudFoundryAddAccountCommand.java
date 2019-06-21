@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
+import java.net.URL;
 
 @Parameters(separators = "=")
 public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
@@ -31,14 +32,14 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
   private String apiHost;
 
   @Parameter(
-      names = {"--apps-manager-uri", "--appsManagerUri"},
-      description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION)
-  private String appsManagerUri;
+      names = {"--apps-manager-url", "--apps-manager-uri", "--appsManagerUri"},
+      description = CloudFoundryCommandProperties.APPS_MANAGER_URL_DESCRIPTION)
+  private URL appsManagerUrl;
 
   @Parameter(
-      names = {"--metrics-uri", "--metricsUri"},
-      description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION)
-  private String metricsUri;
+      names = {"--metrics-url", "--metrics-uri", "--metricsUri"},
+      description = CloudFoundryCommandProperties.METRICS_URL_DESCRIPTION)
+  private URL metricsUrl;
 
   @Parameter(
       names = "--password",
@@ -64,8 +65,8 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
         (CloudFoundryAccount) new CloudFoundryAccount().setName(accountName);
     return cloudFoundryAccount
         .setApiHost(apiHost)
-        .setAppsManagerUri(appsManagerUri)
-        .setMetricsUri(metricsUri)
+        .setAppsManagerUrl(appsManagerUrl)
+        .setMetricsUrl(metricsUrl)
         .setPassword(password)
         .setUser(user)
         .setSkipSslValidation(skipSslValidation);
