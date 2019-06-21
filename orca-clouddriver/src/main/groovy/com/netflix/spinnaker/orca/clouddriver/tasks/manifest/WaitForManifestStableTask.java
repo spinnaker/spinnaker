@@ -27,26 +27,25 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class WaitForManifestStableTask
     implements OverridableTimeoutRetryableTask, CloudProviderAware, ManifestAware {
   public static final String TASK_NAME = "waitForManifestToStabilize";
 
-  @Autowired OortService oortService;
-
-  @Autowired ObjectMapper objectMapper;
+  private final OortService oortService;
+  private final ObjectMapper objectMapper;
 
   @Override
   public long getBackoffPeriod() {
@@ -63,11 +62,15 @@ public class WaitForManifestStableTask
   public TaskResult execute(@Nonnull Stage stage) {
     String account = getCredentials(stage);
     Map<String, List<String>> deployedManifests = manifestNamesByNamespace(stage);
-    List<String> messages = new ArrayList<>();
-    List<String> failureMessages = new ArrayList<>();
-    List<Map<String, String>> stableManifests = new ArrayList<>();
-    List<Map<String, String>> failedManifests = new ArrayList<>();
-    List warnings = new ArrayList<>();
+
+    WaitForManifestStableContext context = stage.mapTo(WaitForManifestStableContext.class);
+
+    List<String> messages = context.getMessages();
+    List<String> failureMessages = context.getFailureMessages();
+    List<Map<String, String>> stableManifests = context.getStableManifests();
+    List<Map<String, String>> failedManifests = context.getFailedManifests();
+    List warnings = context.getWarnings();
+
     boolean allStable = true;
     boolean anyFailed = false;
     boolean anyUnknown = false;
@@ -75,7 +78,17 @@ public class WaitForManifestStableTask
     for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
       String location = entry.getKey();
       for (String name : entry.getValue()) {
+
         String identifier = readableIdentifier(account, location, name);
+
+        if (context.getCompletedManifests().stream()
+            .anyMatch(
+                completedManifest ->
+                    location.equals(completedManifest.get("location"))
+                        && name.equals(completedManifest.get("manifestName")))) {
+          continue;
+        }
+
         Manifest manifest;
         try {
           manifest = oortService.getManifest(account, location, name, false);
@@ -143,18 +156,18 @@ public class WaitForManifestStableTask
       builder.put("warnings", warnings);
     }
 
-    Map<String, Object> context = builder.build();
+    Map<String, Object> newContext = builder.build();
 
     if (!anyUnknown && anyFailed) {
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(context).build();
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(newContext).build();
     } else if (allStable) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED)
-          .context(context)
+          .context(newContext)
           .outputs(new HashMap<>())
           .build();
     } else {
       return TaskResult.builder(ExecutionStatus.RUNNING)
-          .context(context)
+          .context(newContext)
           .outputs(new HashMap<>())
           .build();
     }
