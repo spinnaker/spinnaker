@@ -26,6 +26,12 @@ data class Resource<T : Any>(
   val metadata: Map<String, Any?>,
   val spec: T
 ) {
+  init {
+    require(kind.isNotEmpty()) { "resource kind must be defined" }
+    require(metadata["uid"].isValidULID()) { "resource uid must be a valid ULID" }
+    require(metadata["name"].isValidName()) { "resource name must be a valid name" }
+  }
+
   constructor(resource: SubmittedResource<T>, metadata: Map<String, Any?>) :
     this(resource.apiVersion, resource.kind, metadata, resource.spec)
 }
@@ -45,3 +51,18 @@ val <T : Any> Resource<T>.uid: UID
 
 val <T : Any> Resource<T>.name: ResourceName
   get() = metadata.getValue("name").toString().let(::ResourceName)
+
+private fun Any?.isValidULID() =
+  when (this) {
+    is UID -> true
+    is String -> runCatching {
+      ULID.parseULID(toString())
+    }.isSuccess
+    else -> false
+  }
+
+private fun Any?.isValidName() =
+  when (this) {
+    is String -> isNotBlank()
+    else -> false
+  }

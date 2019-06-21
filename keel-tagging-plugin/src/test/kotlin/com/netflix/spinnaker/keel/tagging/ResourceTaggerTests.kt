@@ -71,7 +71,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rCluster = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     metadata = mapOf(
-      "name" to clusterName,
+      "name" to clusterName.toString(),
       "uid" to randomUID()
     ),
     kind = "cluster",
@@ -81,7 +81,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rClusterTag = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     metadata = mapOf(
-      "name" to clusterTagName,
+      "name" to clusterTagName.toString(),
       "uid" to randomUID()
     ),
     kind = "keel-tag",
@@ -105,7 +105,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rClusterTagNotDesired = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     metadata = mapOf(
-      "name" to clusterTagName,
+      "name" to clusterTagName.toString(),
       "uid" to randomUID()
     ),
     kind = "keel-tag",
