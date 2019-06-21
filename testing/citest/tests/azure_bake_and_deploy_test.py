@@ -28,8 +28,8 @@ Sample Usage:
     --test_azure_rg_location=$TEST_AZURE_RG_LOCATION, \
     --test_azure_resource_group=$TEST_AZURE_RG, \
     --test_azure_vnet=$TEST_AZURE_VNET_NAME, \
-    --test_azure_subnets=$TEST_AZURE_SUBNET1_NAME,$TEST_AZURE_SUBNET2_NAME \
-    --test_azure_subnets_address=$TEST_AZURE_SUBNET1_ADDRESS,$TEST_AZURE_SUBNET2_ADDRESS \
+    --test_azure_subnets=$TEST_AZURE_SUBNET1_NAME=$TEST_AZURE_SUBNET1_ADDRESS,\
+        $TEST_AZURE_SUBNET2_NAME=$TEST_AZURE_SUBNET1_ADDRESS \
     --native_hostname=localhost, \
     --native_platform=native, \
 
@@ -111,8 +111,8 @@ class AzureBakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         self.__rg_location = bindings['TEST_AZURE_RG_LOCATION']
         self.__subscription_id = bindings['TEST_AZURE_SUBSCRIPTION_ID']
         self.__vnet_name = bindings['TEST_AZURE_VNET']
-        self.__subnets = bindings['TEST_AZURE_SUBNETS'].split(',')
-        self.__subnets_address = bindings['TEST_AZURE_SUBNETS_ADDRESS'].split(',')
+        self.__subnets = [sn.split('=')[0] for sn in bindings['TEST_AZURE_SUBNETS'].split(',')]
+        self.__subnets_address = [sn.split('=')[1] for sn in bindings['TEST_AZURE_SUBNETS'].split(',')]
         self.__os_type = bindings['TEST_AZURE_OSTYPE']
         self.__base_os = bindings['TEST_AZURE_BASEOS']
         self.__stack = bindings['TEST_STACK']
@@ -697,7 +697,7 @@ def main():
 
     defaults = {
         'TEST_STACK': 'st',
-        'TEST_APP': 'azure_bake_and_deploy' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
+        'TEST_APP': 'azurebaketest' + AzureBakeAndDeployTestScenario.DEFAULT_TEST_ID
     }
 
     return citest.base.TestRunner.main(
