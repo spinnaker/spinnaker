@@ -31,9 +31,10 @@ import java.util.function.Consumer;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-abstract class AbstractCloudFoundryAtomicOperationConverter
+public abstract class AbstractCloudFoundryAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
-  Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
+
+  protected Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
     return client.getOrganizations().findSpaceByRegion(region);
   }
 

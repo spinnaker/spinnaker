@@ -21,7 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.TaskService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -69,6 +78,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private Applications applications;
   private ServiceInstances serviceInstances;
   private ServiceKeys serviceKeys;
+  private Tasks tasks;
 
   private final RequestInterceptor oauthInterceptor =
       new RequestInterceptor() {
@@ -192,6 +202,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.routes =
         new Routes(account, createService(RouteService.class), applications, domains, spaces);
     this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
+    this.tasks = new Tasks(createService(TaskService.class));
   }
 
   private static OkHttpClient createHttpClient(boolean skipSslValidation) {
@@ -292,5 +303,10 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   @Override
   public ServiceKeys getServiceKeys() {
     return serviceKeys;
+  }
+
+  @Override
+  public Tasks getTasks() {
+    return tasks;
   }
 }

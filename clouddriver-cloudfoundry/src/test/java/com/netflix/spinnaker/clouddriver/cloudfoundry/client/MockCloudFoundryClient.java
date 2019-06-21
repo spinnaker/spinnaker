@@ -27,6 +27,7 @@ public class MockCloudFoundryClient implements CloudFoundryClient {
   final Applications applications = mock(Applications.class);
   final ServiceInstances serviceInstances = mock(ServiceInstances.class);
   final ServiceKeys serviceKeys = mock(ServiceKeys.class);
+  final Tasks tasks = mock(Tasks.class);
 
   public Spaces getSpaces() {
     return spaces;
@@ -54,5 +55,10 @@ public class MockCloudFoundryClient implements CloudFoundryClient {
 
   public ServiceKeys getServiceKeys() {
     return serviceKeys;
+  }
+
+  @Override
+  public Tasks getTasks() {
+    return tasks;
   }
 }
