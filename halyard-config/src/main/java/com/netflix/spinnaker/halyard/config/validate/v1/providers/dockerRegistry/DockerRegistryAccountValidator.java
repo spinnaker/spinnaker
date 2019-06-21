@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +35,17 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class DockerRegistryAccountValidator extends Validator<DockerRegistryAccount> {
+  private static final String namePattern = "^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$";
   @Autowired private SecretSessionManager secretSessionManager;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, DockerRegistryAccount n) {
+    if (!Pattern.matches(namePattern, n.getName())) {
+      p.addProblem(Severity.ERROR, "Account name must match pattern " + namePattern)
+          .setRemediation(
+              "It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, or dashes");
+    }
+
     String resolvedPassword = null;
     String password = n.getPassword();
     String passwordCommand = n.getPasswordCommand();
