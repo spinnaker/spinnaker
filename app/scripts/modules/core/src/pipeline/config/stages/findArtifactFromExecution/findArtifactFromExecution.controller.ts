@@ -1,9 +1,13 @@
 import { IController, IScope } from 'angular';
 
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { IExpectedArtifact, IPipeline } from 'core/domain';
-import { ExpectedArtifactService } from '@spinnaker/core';
+import {
+  ApplicationReader,
+  ExpectedArtifactService,
+  IExpectedArtifact,
+  IPipeline,
+  IStage,
+  PipelineConfigService,
+} from '@spinnaker/core';
 
 export interface IFindArtifactFromExecutionStage {
   application: string;
@@ -13,7 +17,8 @@ export interface IFindArtifactFromExecutionStage {
     terminal?: boolean;
     running?: boolean;
   };
-  expectedArtifact: IExpectedArtifact;
+  expectedArtifact: IExpectedArtifact; // legacy
+  expectedArtifacts: IExpectedArtifact[];
 }
 
 export class FindArtifactFromExecutionCtrl implements IController {
@@ -41,8 +46,15 @@ export class FindArtifactFromExecutionCtrl implements IController {
     // Prior versions of this stage didn't allow a default artifact, so existing
     // stages may have a partly-initialized expected artifact. To handle these
     // cases, default any fields that are not present in the artifact.
-    const emptyArtifact = ExpectedArtifactService.createEmptyArtifact();
-    this.stage.expectedArtifact = { ...emptyArtifact, ...this.stage.expectedArtifact };
+    const initialArtifact = ExpectedArtifactService.createEmptyArtifact();
+    if (this.stage.expectedArtifact) {
+      Object.assign(initialArtifact, this.stage.expectedArtifact);
+    }
+
+    // Prior versions of this stage accepted only one expected artifact.
+    if (!Array.isArray(this.stage.expectedArtifacts)) {
+      this.stage.expectedArtifacts = [initialArtifact];
+    }
 
     this.loadApplications();
     this.loadPipelines();
@@ -72,4 +84,12 @@ export class FindArtifactFromExecutionCtrl implements IController {
   public onApplicationSelect() {
     this.loadPipelines();
   }
+
+  public addExpectedArtifact = () => {
+    ExpectedArtifactService.addNewArtifactTo(this.stage);
+  };
+
+  public removeExpectedArtifact = (stage: IStage, expectedArtifact: IExpectedArtifact) => {
+    stage.expectedArtifacts = stage.expectedArtifacts.filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
+  };
 }

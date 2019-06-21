@@ -19,7 +19,7 @@ describe('Find Artifact From Execution Controller:', function() {
 
   it('properly initializes an empty stage', () => {
     initializeController({});
-    const expectedArtifact = ctrl.stage.expectedArtifact;
+    const expectedArtifact = ctrl.stage.expectedArtifacts[0];
     const executionOptions: any = ctrl.stage.executionOptions;
 
     expect(executionOptions).toBeDefined();
@@ -41,7 +41,7 @@ describe('Find Artifact From Execution Controller:', function() {
       executionOptions: existingExecutionOptions,
     });
 
-    const expectedArtifact = ctrl.stage.expectedArtifact;
+    const expectedArtifact = ctrl.stage.expectedArtifacts[0];
     const executionOptions: any = ctrl.stage.executionOptions;
 
     expect(executionOptions).toBeDefined();
@@ -67,7 +67,7 @@ describe('Find Artifact From Execution Controller:', function() {
       expectedArtifact: existingExpectedArtifact,
     });
 
-    const expectedArtifact: any = ctrl.stage.expectedArtifact;
+    const expectedArtifact: any = ctrl.stage.expectedArtifacts[0];
 
     expect(expectedArtifact).toBeDefined();
     expect(expectedArtifact.id).toEqual(existingExpectedArtifact.id);
@@ -99,7 +99,7 @@ describe('Find Artifact From Execution Controller:', function() {
       expectedArtifact: existingExpectedArtifact,
     });
 
-    const expectedArtifact: any = ctrl.stage.expectedArtifact;
+    const expectedArtifact: any = ctrl.stage.expectedArtifacts[0];
 
     expect(expectedArtifact).toBeDefined();
     expect(expectedArtifact.id).toEqual(existingExpectedArtifact.id);

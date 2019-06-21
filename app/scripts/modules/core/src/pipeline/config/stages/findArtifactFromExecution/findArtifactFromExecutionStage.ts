@@ -14,8 +14,8 @@ module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [])
   .config(() => {
     if (SETTINGS.feature.artifacts) {
       Registry.pipeline.registerStage({
-        label: 'Find Artifact From Execution',
-        description: 'Find and bind an artifact from another execution',
+        label: 'Find Artifacts From Execution',
+        description: 'Find and bind artifacts from another execution',
         key: 'findArtifactFromExecution',
         templateUrl: require('./findArtifactFromExecutionConfig.html'),
         controller: 'findArtifactFromExecutionCtrl',

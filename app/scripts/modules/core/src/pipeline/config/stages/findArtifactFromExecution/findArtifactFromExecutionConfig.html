@@ -41,6 +41,18 @@
       <label> <input type="checkbox" ng-model="ctrl.stage.executionOptions.running" /> that are still running </label>
     </div>
   </div>
-  <h4>Match Artifact</h4>
-  <expected-artifact expected-artifact="ctrl.stage.expectedArtifact"></expected-artifact>
+  <h4>Match Artifacts</h4>
+  <expected-artifact
+    ng-repeat="artifact in ctrl.stage.expectedArtifacts"
+    context="ctrl.stage"
+    expected-artifact="artifact"
+    remove-expected-artifact="ctrl.removeExpectedArtifact"
+  />
+  <div class="row">
+    <div class="col-md-12">
+      <button class="btn btn-block btn-add-trigger add-new" ng-click="ctrl.addExpectedArtifact()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Artifact
+      </button>
+    </div>
+  </div>
 </div>

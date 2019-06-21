@@ -8,32 +8,36 @@ import {
 } from 'core/pipeline';
 import { JsonUtils } from 'core/utils';
 
-export function FindArtifactFromExecutionExecutionDetails(props: IExecutionDetailsSectionProps) {
-  const { stage } = props;
+export class FindArtifactFromExecutionExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
+  public static title = 'artifactDetails';
+  public render() {
+    const { current, name, stage } = this.props;
 
-  return (
-    <ExecutionDetailsSection name={props.name} current={props.current}>
-      <div className="row">
-        <div className="col-md-9">
-          <dl className="dl-narrow dl-horizontal">
-            <dt>Match Artifact</dt>
-            <dd>{JsonUtils.makeSortedStringFromObject(stage.context.expectedArtifact.matchArtifact)}</dd>
-            {stage.context.expectedArtifact.useDefaultArtifact && <dt>Default Artifact</dt>}
-            {stage.context.expectedArtifact.useDefaultArtifact && (
-              <dd>{JsonUtils.makeSortedStringFromObject(stage.context.expectedArtifact.defaultArtifact)}</dd>
-            )}
-          </dl>
+    // Prior versions of this stage accepted only one expected artifact.
+    const expectedArtifacts = Array.isArray(stage.context.expectedArtifacts)
+      ? stage.context.expectedArtifacts
+      : [stage.context.expectedArtifact];
+
+    return (
+      <ExecutionDetailsSection name={name} current={current}>
+        <div className="row">
+          {expectedArtifacts.map(expectedArtifact => (
+            <div key={expectedArtifact.id}>
+              <h5>{expectedArtifact.displayName}</h5>
+              <div>Match Artifact</div>
+              <pre>{JsonUtils.makeSortedStringFromObject(expectedArtifact.matchArtifact)}</pre>
+              {expectedArtifact.useDefaultArtifact && (
+                <>
+                  <div>Default Artifact</div>
+                  <pre>{JsonUtils.makeSortedStringFromObject(expectedArtifact.defaultArtifact)}</pre>
+                </>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
-
-      <StageFailureMessage stage={stage} message={stage.outputs.exception} />
-      <StageExecutionLogs stage={stage} />
-    </ExecutionDetailsSection>
-  );
-}
-
-// TODO: refactor this to not use namespace
-// eslint-disable-next-line
-export namespace FindArtifactFromExecutionExecutionDetails {
-  export const title = 'findArtifactFromExecutionConfig';
+        <StageFailureMessage stage={stage} message={stage.outputs.exception} />
+        <StageExecutionLogs stage={stage} />
+      </ExecutionDetailsSection>
+    );
+  }
 }
