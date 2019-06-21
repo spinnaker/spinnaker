@@ -1,12 +1,31 @@
+/*
+ * Copyright 2019 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeOperationRequest
-import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers
+import com.netflix.spinnaker.clouddriver.google.compute.FakeGoogleComputeOperationRequest
+import com.netflix.spinnaker.clouddriver.google.compute.FakeGoogleComputeRequest
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers
+import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -53,8 +72,8 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
       deviceName: DEVICE_NAME,
       credentials: CREDENTIALS)
     def operation = new SetStatefulDiskAtomicOperation(clusterProvider, computeApiFactory, description)
-    def updateOp = Mock(GoogleComputeOperationRequest)
-    def getManagerRequest = { new InstanceGroupManager() }
+    def updateOp = new FakeGoogleComputeOperationRequest<>(new Operation())
+    def getManagerRequest = new FakeGoogleComputeRequest<>(new InstanceGroupManager())
     _ * serverGroupManagers.get() >> getManagerRequest
 
     when:
@@ -64,6 +83,7 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
     1 * serverGroupManagers.update({
       it.getStatefulPolicy().getPreservedState().getDisks().containsKey(DEVICE_NAME)
     }) >> updateOp
-    1 * updateOp.executeAndWait(task, /* phase= */ _)
+
+    assert updateOp.waitedForCompletion()
   }
 }

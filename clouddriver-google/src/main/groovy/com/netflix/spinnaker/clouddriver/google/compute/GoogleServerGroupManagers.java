@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.Compute.InstanceGroupManagers;
 import com.google.api.services.compute.Compute.RegionInstanceGroupManagers;
+import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.Operation;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import java.io.IOException;
 import java.util.List;
@@ -29,11 +31,14 @@ import java.util.List;
  */
 public interface GoogleServerGroupManagers {
 
-  GoogleComputeOperationRequest abandonInstances(List<String> instances) throws IOException;
+  GoogleComputeOperationRequest<ComputeRequest<Operation>> abandonInstances(List<String> instances)
+      throws IOException;
 
-  GoogleComputeOperationRequest delete() throws IOException;
+  GoogleComputeOperationRequest<ComputeRequest<Operation>> delete() throws IOException;
 
-  GoogleComputeRequest<InstanceGroupManager> get() throws IOException;
+  GoogleComputeRequest<ComputeRequest<InstanceGroupManager>, InstanceGroupManager> get()
+      throws IOException;
 
-  GoogleComputeOperationRequest update(InstanceGroupManager content) throws IOException;
+  GoogleComputeOperationRequest<ComputeRequest<Operation>> update(InstanceGroupManager content)
+      throws IOException;
 }

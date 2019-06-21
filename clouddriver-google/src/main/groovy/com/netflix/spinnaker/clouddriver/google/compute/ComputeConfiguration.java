@@ -16,13 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
-import com.google.api.services.compute.ComputeRequest;
-import com.google.api.services.compute.model.Operation;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import java.io.IOException;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.Executors;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface GoogleComputeOperationRequest<RequestT extends ComputeRequest<Operation>>
-    extends GoogleComputeRequest<RequestT, Operation> {
+@Configuration
+public class ComputeConfiguration {
 
-  Operation executeAndWait(Task task, String phase) throws IOException;
+  public static final String BATCH_REQUEST_EXECUTOR = "batchRequestExecutor";
+
+  @Bean
+  @Qualifier(BATCH_REQUEST_EXECUTOR)
+  public ListeningExecutorService batchRequestExecutor() {
+    return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+  }
 }

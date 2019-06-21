@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
+import com.google.api.services.compute.ComputeRequest;
 import java.io.IOException;
 
-public interface GoogleComputeRequest<T> {
+public interface GoogleComputeRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT> {
 
-  T execute() throws IOException;
+  ResponseT execute() throws IOException;
+
+  RequestT getRequest();
 }

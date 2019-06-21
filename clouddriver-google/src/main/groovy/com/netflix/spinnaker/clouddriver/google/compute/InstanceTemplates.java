@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Operation;
@@ -46,31 +47,36 @@ public class InstanceTemplates {
     this.registry = registry;
   }
 
-  public GoogleComputeOperationRequest delete(String name) throws IOException {
+  public GoogleComputeOperationRequest<Compute.InstanceTemplates.Delete> delete(String name)
+      throws IOException {
 
-    ComputeRequest<Operation> request =
+    Compute.InstanceTemplates.Delete request =
         credentials.getCompute().instanceTemplates().delete(credentials.getProject(), name);
     return wrapOperationRequest(request, "delete");
   }
 
-  public GoogleComputeRequest<InstanceTemplate> get(String name) throws IOException {
-    ComputeRequest<InstanceTemplate> request =
+  public GoogleComputeRequest<Compute.InstanceTemplates.Get, InstanceTemplate> get(String name)
+      throws IOException {
+    Compute.InstanceTemplates.Get request =
         credentials.getCompute().instanceTemplates().get(credentials.getProject(), name);
     return wrapRequest(request, "get");
   }
 
-  public GoogleComputeOperationRequest insert(InstanceTemplate template) throws IOException {
-    ComputeRequest<Operation> request =
+  public GoogleComputeOperationRequest<Compute.InstanceTemplates.Insert> insert(
+      InstanceTemplate template) throws IOException {
+    Compute.InstanceTemplates.Insert request =
         credentials.getCompute().instanceTemplates().insert(credentials.getProject(), template);
     return wrapOperationRequest(request, "insert");
   }
 
-  private <T> GoogleComputeRequest<T> wrapRequest(ComputeRequest<T> request, String api) {
-    return new GoogleComputeRequestImpl<>(request, registry, getMetricName(api), TAGS);
+  private <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      GoogleComputeRequest<RequestT, ResponseT> wrapRequest(RequestT request, String api) {
+    return new GoogleComputeRequestImpl<RequestT, ResponseT>(
+        request, registry, getMetricName(api), TAGS);
   }
 
-  private GoogleComputeOperationRequest wrapOperationRequest(
-      ComputeRequest<Operation> request, String api) {
+  private <T extends ComputeRequest<Operation>>
+      GoogleComputeOperationRequest<T> wrapOperationRequest(T request, String api) {
     OperationWaiter waiter =
         (operation, task, phase) ->
             operationPoller.waitForGlobalOperation(
@@ -81,7 +87,7 @@ public class InstanceTemplates {
                 task,
                 GCEUtil.getLocalName(operation.getTargetLink()),
                 phase);
-    return new GoogleComputeOperationRequestImpl(
+    return new GoogleComputeOperationRequestImpl<T>(
         request, registry, getMetricName(api), TAGS, waiter);
   }
 

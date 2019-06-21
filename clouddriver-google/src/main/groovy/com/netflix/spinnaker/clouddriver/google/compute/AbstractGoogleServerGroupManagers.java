@@ -46,7 +46,8 @@ abstract class AbstractGoogleServerGroupManagers implements GoogleServerGroupMan
   }
 
   @Override
-  public GoogleComputeOperationRequest abandonInstances(List<String> instances) throws IOException {
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> abandonInstances(
+      List<String> instances) throws IOException {
     return wrapOperationRequest(performAbandonInstances(instances), "abandonInstances");
   }
 
@@ -54,36 +55,39 @@ abstract class AbstractGoogleServerGroupManagers implements GoogleServerGroupMan
       throws IOException;
 
   @Override
-  public GoogleComputeOperationRequest delete() throws IOException {
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> delete() throws IOException {
     return wrapOperationRequest(performDelete(), "delete");
   }
 
   abstract ComputeRequest<Operation> performDelete() throws IOException;
 
   @Override
-  public GoogleComputeRequest<InstanceGroupManager> get() throws IOException {
+  public GoogleComputeRequest<ComputeRequest<InstanceGroupManager>, InstanceGroupManager> get()
+      throws IOException {
     return wrapRequest(performGet(), "get");
   }
 
   abstract ComputeRequest<InstanceGroupManager> performGet() throws IOException;
 
   @Override
-  public GoogleComputeOperationRequest update(InstanceGroupManager content) throws IOException {
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
+      InstanceGroupManager content) throws IOException {
     return wrapOperationRequest(performUpdate(content), "update");
   }
 
   abstract ComputeRequest<Operation> performUpdate(InstanceGroupManager content) throws IOException;
 
-  private <T> GoogleComputeRequest<T> wrapRequest(ComputeRequest<T> request, String api) {
+  private <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      GoogleComputeRequest<RequestT, ResponseT> wrapRequest(RequestT request, String api) {
     return new GoogleComputeRequestImpl<>(
         request, registry, getMetricName(api), getRegionOrZoneTags());
   }
 
-  private GoogleComputeOperationRequest wrapOperationRequest(
+  private GoogleComputeOperationRequest<ComputeRequest<Operation>> wrapOperationRequest(
       ComputeRequest<Operation> request, String api) {
 
     OperationWaiter waiter = getOperationWaiter(credentials, poller);
-    return new GoogleComputeOperationRequestImpl(
+    return new GoogleComputeOperationRequestImpl<>(
         request, registry, getMetricName(api), getRegionOrZoneTags(), waiter);
   }
 

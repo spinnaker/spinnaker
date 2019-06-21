@@ -17,12 +17,31 @@
 package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.ComputeRequest;
-import com.google.api.services.compute.model.Operation;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
 import java.io.IOException;
 
-public interface GoogleComputeOperationRequest<RequestT extends ComputeRequest<Operation>>
-    extends GoogleComputeRequest<RequestT, Operation> {
+public class FakeGoogleComputeRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT>
+    implements GoogleComputeRequest<RequestT, ResponseT> {
 
-  Operation executeAndWait(Task task, String phase) throws IOException;
+  private final ResponseT response;
+
+  private boolean executed = false;
+
+  public FakeGoogleComputeRequest(ResponseT response) {
+    this.response = response;
+  }
+
+  @Override
+  public ResponseT execute() throws IOException {
+    executed = true;
+    return response;
+  }
+
+  @Override
+  public RequestT getRequest() {
+    throw new UnsupportedOperationException("FakeGoogleComputeRequest#getRequest()");
+  }
+
+  public boolean executed() {
+    return executed;
+  }
 }

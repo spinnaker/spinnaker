@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
+import com.google.api.services.compute.ComputeRequest;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,11 +31,20 @@ public class GoogleComputeApiFactory {
 
   private final GoogleOperationPoller operationPoller;
   private final Registry registry;
+  private String clouddriverUserAgentApplicationName;
+  private ListeningExecutorService batchExecutor;
 
   @Autowired
-  public GoogleComputeApiFactory(GoogleOperationPoller operationPoller, Registry registry) {
+  public GoogleComputeApiFactory(
+      GoogleOperationPoller operationPoller,
+      Registry registry,
+      String clouddriverUserAgentApplicationName,
+      @Qualifier(ComputeConfiguration.BATCH_REQUEST_EXECUTOR)
+          ListeningExecutorService batchExecutor) {
     this.operationPoller = operationPoller;
     this.registry = registry;
+    this.clouddriverUserAgentApplicationName = clouddriverUserAgentApplicationName;
+    this.batchExecutor = batchExecutor;
   }
 
   public GoogleServerGroupManagers createServerGroupManagers(
@@ -44,7 +56,18 @@ public class GoogleComputeApiFactory {
             credentials, operationPoller, registry, serverGroup.getName(), serverGroup.getZone());
   }
 
+  public Images createImages(GoogleNamedAccountCredentials credentials) {
+    return new Images(credentials, registry);
+  }
+
   public InstanceTemplates createInstanceTemplates(GoogleNamedAccountCredentials credentials) {
     return new InstanceTemplates(credentials, operationPoller, registry);
+  }
+
+  public <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      ComputeBatchRequest<RequestT, ResponseT> createBatchRequest(
+          GoogleNamedAccountCredentials credentials) {
+    return new ComputeBatchRequest<>(
+        credentials.getCompute(), registry, clouddriverUserAgentApplicationName, batchExecutor);
   }
 }

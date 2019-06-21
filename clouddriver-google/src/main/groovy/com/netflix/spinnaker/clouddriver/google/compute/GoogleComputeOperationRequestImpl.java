@@ -23,8 +23,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import java.io.IOException;
 import java.util.Map;
 
-final class GoogleComputeOperationRequestImpl extends GoogleComputeRequestImpl<Operation>
-    implements GoogleComputeOperationRequest {
+final class GoogleComputeOperationRequestImpl<RequestT extends ComputeRequest<Operation>>
+    extends GoogleComputeRequestImpl<RequestT, Operation>
+    implements GoogleComputeOperationRequest<RequestT> {
 
   @FunctionalInterface
   interface OperationWaiter {
@@ -34,7 +35,7 @@ final class GoogleComputeOperationRequestImpl extends GoogleComputeRequestImpl<O
   private final OperationWaiter operationWaiter;
 
   GoogleComputeOperationRequestImpl(
-      ComputeRequest<Operation> request,
+      RequestT request,
       Registry registry,
       String metricName,
       Map<String, String> tags,

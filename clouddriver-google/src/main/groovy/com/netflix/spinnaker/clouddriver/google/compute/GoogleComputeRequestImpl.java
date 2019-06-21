@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import static java.util.stream.Collectors.toList;
 
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.services.compute.ComputeRequest;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
@@ -29,15 +28,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-class GoogleComputeRequestImpl<T> implements GoogleComputeRequest<T> {
+class GoogleComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, ResponseT>
+    implements GoogleComputeRequest<RequestT, ResponseT> {
 
-  private final ComputeRequest<T> request;
+  private final RequestT request;
   private final Registry registry;
   private final String metricName;
   private final Map<String, String> tags;
 
   GoogleComputeRequestImpl(
-      ComputeRequest<T> request, Registry registry, String metricName, Map<String, String> tags) {
+      RequestT request, Registry registry, String metricName, Map<String, String> tags) {
     this.request = request;
     this.registry = registry;
     this.metricName = metricName;
@@ -45,16 +45,16 @@ class GoogleComputeRequestImpl<T> implements GoogleComputeRequest<T> {
   }
 
   @Override
-  public T execute() throws IOException {
+  public ResponseT execute() throws IOException {
     return timeExecute(request);
   }
 
-  private T timeExecute(AbstractGoogleClientRequest<T> request) throws IOException {
+  private ResponseT timeExecute(RequestT request) throws IOException {
     return GoogleExecutor.timeExecute(
         registry, request, "google.api", metricName, getTimeExecuteTags(request));
   }
 
-  private String[] getTimeExecuteTags(AbstractGoogleClientRequest<?> request) {
+  private String[] getTimeExecuteTags(RequestT request) {
     String account = AccountForClient.getAccount(request.getAbstractGoogleClient());
     return ImmutableList.<String>builder()
         .add("account")
@@ -68,5 +68,10 @@ class GoogleComputeRequestImpl<T> implements GoogleComputeRequest<T> {
     return tags.entrySet().stream()
         .flatMap(e -> Stream.of(e.getKey(), e.getValue()))
         .collect(toList());
+  }
+
+  @Override
+  public RequestT getRequest() {
+    return request;
   }
 }
