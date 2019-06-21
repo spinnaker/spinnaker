@@ -1,5 +1,6 @@
 import { distanceInWords } from 'date-fns';
 import { $log } from 'ngimport';
+import { get } from 'lodash';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
@@ -161,8 +162,9 @@ export class OrchestratedItemTransformer {
   private static getGeneralException(task: ITask): string {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
-      if (generalException.details && generalException.details.errors && generalException.details.errors.length) {
-        return generalException.details.errors.join(', ');
+      const errors = get(generalException, 'details.errors', []).filter(m => !!m);
+      if (errors.length) {
+        return errors.join(', ');
       }
       if (generalException.details && generalException.details.error) {
         return generalException.details.error;
