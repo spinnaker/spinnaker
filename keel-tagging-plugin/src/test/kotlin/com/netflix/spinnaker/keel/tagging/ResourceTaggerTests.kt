@@ -209,7 +209,12 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       test("we tag clbs") {
-        onCreateEvent(CreateEvent(ResourceName("ec2:clb:test:us-east-1:keel-managed")))
+        onCreateEvent(CreateEvent(ResourceName("ec2:classic-load-balancer:test:us-east-1:keel-managed")))
+        verify { resourcePersister.create(any()) }
+      }
+
+      test("we tag albs") {
+        onCreateEvent(CreateEvent(ResourceName("ec2:application-load-balancer:test:us-east-1:keel-managed")))
         verify { resourcePersister.create(any()) }
       }
 

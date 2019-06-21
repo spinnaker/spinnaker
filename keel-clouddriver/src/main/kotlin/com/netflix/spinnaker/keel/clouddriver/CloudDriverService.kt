@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
@@ -69,6 +70,14 @@ interface CloudDriverService {
     @Path("region") region: String,
     @Path("name") name: String
   ): List<ClassicLoadBalancerModel>
+
+  @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
+  suspend fun getApplicationLoadBalancer(
+    @Path("provider") provider: String,
+    @Path("account") account: String,
+    @Path("region") region: String,
+    @Path("name") name: String
+  ): List<ApplicationLoadBalancerModel>
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(

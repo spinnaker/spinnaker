@@ -8,20 +8,21 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-internal object ClassicLoadBalancerModelTests : JUnit5Minutests {
+internal object ApplicationLoadBalancerTest : JUnit5Minutests {
+
   data class Fixture(
     val mapper: ObjectMapper = configuredYamlMapper(),
     val yaml: String
   )
 
   fun tests() = rootContext<Fixture> {
-    context("a CLB definition in yaml") {
+    context("a simple ALB definition in yaml") {
       fixture {
         Fixture(
           yaml = """
             |---
             |moniker:
-            |  app: ashertest
+            |  app: testapp
             |  stack: managedogge
             |  detail: wow
             |location:
@@ -33,29 +34,29 @@ internal object ClassicLoadBalancerModelTests : JUnit5Minutests {
             |  - us-east-1e
             |vpcName: vpc0
             |subnetType: internal (vpc0)
-            |healthCheck: HTTP:7001/health
             |listeners:
-            | - internalProtocol: HTTP
-            |   internalPort: 7001
-            |   externalProtocol: HTTP
-            |   externalPort: 80
+            | - port: 80
+            |   protocol: HTTP
+            |targetGroups:
+            | - name: managedogge-wow-tg
+            |   port: 7001
           """.trimMargin()
         )
       }
 
-      derivedContext<ClassicLoadBalancer>("when deserialized") {
+      derivedContext<ApplicationLoadBalancer>("when deserialized") {
         deriveFixture {
           mapper.readValue(yaml)
         }
 
-        test("can be deserialized to a CLB object") {
+        test("can be deserialized to an ALB object") {
           expectThat(this)
-            .get { listeners.first().internalPort }.isEqualTo(7001)
+            .get { listeners.first().port }.isEqualTo(80)
         }
 
-        test("populates optional fields") {
+        test("populates default values for missing fields") {
           expectThat(this)
-            .get { healthInterval }.isEqualTo(10)
+            .get { targetGroups.first().healthCheckPath }.isEqualTo("/healthcheck")
         }
       }
     }

@@ -67,7 +67,12 @@ class ResourceTagger(
     "ec2" to "aws"
   )
 
-  private val taggableResources = listOf("cluster", "securityGroup", "clb")
+  private val taggableResources = listOf(
+    "cluster",
+    "securityGroup",
+    "classic-load-balancer",
+    "application-load-balancer"
+  )
 
   @EventListener(CreateEvent::class)
   fun onCreateEvent(event: CreateEvent) {

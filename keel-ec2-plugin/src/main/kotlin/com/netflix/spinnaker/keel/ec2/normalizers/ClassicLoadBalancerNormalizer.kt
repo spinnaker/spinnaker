@@ -13,7 +13,7 @@ class ClassicLoadBalancerNormalizer(
   private val objectMapper: ObjectMapper
 ) : ResourceNormalizer<ClassicLoadBalancer> {
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
-  override val supportedKind = "clb"
+  override val supportedKind = "classic-load-balancer"
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

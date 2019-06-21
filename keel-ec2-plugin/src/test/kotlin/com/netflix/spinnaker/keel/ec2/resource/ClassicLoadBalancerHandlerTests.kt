@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -51,14 +50,12 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
-  private val differ = ObjectDifferBuilder.buildDefault()
-
   private val normalizers: List<ResourceNormalizer<*>> = listOf(ClassicLoadBalancerNormalizer(mapper))
 
   private val yaml = """
     |---
     |moniker:
-    |  app: ashertest
+    |  app: testapp
     |  stack: managedogge
     |  detail: wow
     |location:
@@ -80,7 +77,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val spec = yamlMapper.readValue(yaml, ClassicLoadBalancer::class.java)
   private val resource = Resource(
     SPINNAKER_API_V1.subApi("ec2"),
-    "clb",
+    "classic-load-balancer",
     ResourceMetadata(
       name = ResourceName("my-clb"),
       uid = randomUID()
@@ -91,7 +88,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
-  private val sg1 = SecurityGroupSummary("ashertest-eb", "sg-55555")
+  private val sg1 = SecurityGroupSummary("testapp-eb", "sg-55555")
   private val sg2 = SecurityGroupSummary("nondefault-elb", "sg-12345")
   private val sg3 = SecurityGroupSummary("backdoor", "sg-666666")
 
@@ -182,9 +179,9 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
-          get("application").isEqualTo("ashertest")
+          get("application").isEqualTo("testapp")
           get("subnetType").isEqualTo(sub1.purpose)
-          get("securityGroups").isEqualTo(setOf("ashertest-elb"))
+          get("securityGroups").isEqualTo(setOf("testapp-elb"))
         }
       }
 

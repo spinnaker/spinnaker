@@ -40,7 +40,7 @@ data class ApplicationLoadBalancerModel(
 
   data class Rule(
     val priority: String,
-    val conditions: List<Condition> = emptyList(),
+    val conditions: List<Condition>?,
     val actions: List<Action>,
     val default: Boolean
   )
@@ -68,7 +68,7 @@ data class ApplicationLoadBalancerModel(
     val port: Int,
     val healthCheckEnabled: Boolean,
     val healthCheckTimeoutSeconds: Int,
-    val healthCheckPort: String,
+    val healthCheckPort: Int,
     val healthCheckProtocol: String,
     val healthCheckPath: String,
     val healthCheckIntervalSeconds: Int,
@@ -88,7 +88,7 @@ data class ApplicationLoadBalancerModel(
     val stickinessEnabled: Boolean = false,
 
     @JsonProperty("deregistration_delay.timeout_seconds")
-    val deregistrationTimeout: Int = 600,
+    val deregistrationTimeout: Int = 300,
 
     @JsonProperty("stickiness.type")
     val stickinessType: String = "lb_cookie",
