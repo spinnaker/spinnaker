@@ -6,6 +6,7 @@ import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService
 import { ExpectedArtifactService } from 'core/artifact/expectedArtifact.service';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
+import { PipelineConfigValidator } from 'core/pipeline';
 
 const angular = require('angular');
 
@@ -120,6 +121,7 @@ module.exports = angular
 
       $scope.updateTrigger = function(index, changes) {
         $scope.$applyAsync(() => {
+          PipelineConfigValidator.validatePipeline($scope.pipeline);
           $scope.pipeline.triggers = $scope.pipeline.triggers.slice(0);
           extend($scope.pipeline.triggers[index], changes);
           if (SETTINGS.feature['artifactsRewrite']) {

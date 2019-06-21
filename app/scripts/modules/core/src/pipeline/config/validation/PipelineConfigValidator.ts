@@ -93,6 +93,16 @@ export class PipelineConfigValidator {
             );
           }
         });
+      } else if (config && config.validateFn) {
+        validations.push(
+          $q<FormikErrors<IStage>>((resolve, reject) =>
+            Promise.resolve(config.validateFn(trigger, { pipeline })).then(resolve, reject),
+          ).then((errors: FormikErrors<ITrigger>) => {
+            PipelineConfigValidator.flattenValues(errors).forEach(message => {
+              pipelineValidations.push(message);
+            });
+          }),
+        );
       }
     });
     stages.forEach(stage => {

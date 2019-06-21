@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Formik, FormikProps, FormikErrors } from 'formik';
 
-import { IStage, IPipeline } from 'core/domain';
+import { IStage, IPipeline, ITrigger } from 'core/domain';
 import { Application } from 'core/application';
 import { LayoutProvider, ResponsiveFieldLayout, WatchValue } from 'core/presentation';
 
@@ -12,7 +12,7 @@ export interface IFormikStageConfigInjectedProps {
 }
 
 export type IContextualValidator = (
-  values: IStage,
+  values: IStage | ITrigger,
   context: any,
 ) => FormikErrors<IStage> | Promise<FormikErrors<IStage>>;
 

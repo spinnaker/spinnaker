@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
+import * as classNames from 'classnames';
 
 import { Application } from 'core/application';
 import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from 'core/domain';
@@ -113,10 +114,11 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
     const { pipeline, trigger } = this.props;
     const { TriggerContents } = this;
     const fieldSetClassName = classNames({ 'templated-pipeline-item': trigger.inherited });
+
     return (
       <div className="row">
         <div className="col-md-12">
-          <fieldset disabled={trigger.inherited} className={`templated-pipeline-item`}>
+          <fieldset disabled={trigger.inherited} className={fieldSetClassName}>
             <div className="form-horizontal panel-pipeline-phase">
               <div className="form-group row">
                 <div className="col-md-10">
@@ -143,7 +145,7 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
                 {trigger.inherited ? (
                   <span className="templated-pipeline-item__status btn btn-sm btn-default">
                     <Tooltip value="From Template">
-                      <i className="from-template fa fa-table"/>
+                      <i className="from-template fa fa-table" />
                     </Tooltip>
                     <span className="visible-xl-inline">From Template</span>
                   </span>
