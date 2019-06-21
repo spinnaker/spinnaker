@@ -223,8 +223,12 @@ module.exports = angular
 
         return $q.when({
           viewState: {
-            contextImages: contextImages,
             requiresTemplateSelection: true,
+            overrides: {
+              viewState: {
+                contextImages: contextImages,
+              },
+            },
           },
         });
       }
