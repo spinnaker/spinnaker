@@ -50,10 +50,10 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
         help='The name of the virtual network that contains the subnets')
     builder.add_argument(
         '--test_azure_subnets', 
-        help='The names of subnets eparated by comma')
+        help='The names of subnets separated by comma')
     builder.add_argument(
         '--test_azure_subnet_address', 
-        help='The addresses of subnets eparated by comma')
+        help='The addresses of subnets separated by comma')
     builder.add_argument(
         '--test_azure_vm_sku', 
         default = defaults.get('TEST_AZURE_VM_SKU', 'Standard_B1ms'),
