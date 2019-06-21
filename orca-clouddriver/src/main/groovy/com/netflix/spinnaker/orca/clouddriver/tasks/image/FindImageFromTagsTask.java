@@ -47,6 +47,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
   @Override
   public TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage);
+
     ImageFinder imageFinder =
         imageFinders.stream()
             .filter(it -> it.getCloudProvider().equals(cloudProvider))
@@ -57,6 +58,11 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
                         "ImageFinder not found for cloudProvider " + cloudProvider));
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
+
+    if (stageData.tags == null) {
+      stageData.tags = Collections.emptyMap();
+    }
+
     Collection<ImageFinder.ImageDetails> imageDetails =
         imageFinder.byTags(stage, stageData.packageName, stageData.tags);
 
