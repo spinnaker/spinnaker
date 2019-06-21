@@ -45,6 +45,7 @@ import './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.modul
 import './pipeline/stages/shareService/cloudfoundryShareServiceStage.module';
 import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
 import './pipeline/stages/unshareService/cloudfoundryUnshareServiceStage.module';
+import './pipeline/stages/runJob/cloudfoundryRunJob.module';
 
 CloudProviderRegistry.registerProvider('cloudfoundry', {
   name: 'Cloud Foundry',
