@@ -20,9 +20,12 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class EnabledPipelineValidatorSpec extends Specification {
 
@@ -55,6 +58,25 @@ class EnabledPipelineValidatorSpec extends Specification {
     then:
     1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
     ]
+    1 * front50Service.getPipelines(execution.application, false) >> [
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ]
+    0 * _
+
+    notThrown(PipelineValidationFailed)
+
+    when:
+    validator.checkRunnable(execution)
+
+    then:
+    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> {
+      throw RetrofitError.httpError(
+          "http://localhost",
+          new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
+          null,
+          null
+      )
+    }
     1 * front50Service.getPipelines(execution.application, false) >> [
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
