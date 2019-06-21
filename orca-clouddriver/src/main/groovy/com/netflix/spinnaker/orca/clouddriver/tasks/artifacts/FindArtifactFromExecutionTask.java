@@ -17,95 +17,47 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class FindArtifactFromExecutionTask implements Task {
   public static final String TASK_NAME = "findArtifactFromExecution";
 
-  @Autowired ArtifactResolver artifactResolver;
-
-  @Autowired ObjectMapper objectMapper;
+  private final ArtifactResolver artifactResolver;
 
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    Map<String, Object> context = stage.getContext();
+    FindArtifactFromExecutionContext context = stage.mapTo(FindArtifactFromExecutionContext.class);
     Map<String, Object> outputs = new HashMap<>();
-    String pipeline = (String) context.get("pipeline");
-    ExpectedArtifact expectedArtifact =
-        objectMapper.convertValue(context.get("expectedArtifact"), ExpectedArtifact.class);
-    ExecutionOptions executionOptions =
-        objectMapper.convertValue(context.get("executionOptions"), ExecutionOptions.class);
+    String pipeline = context.getPipeline();
+    List<ExpectedArtifact> expectedArtifacts = context.getExpectedArtifacts();
+    FindArtifactFromExecutionContext.ExecutionOptions executionOptions =
+        context.getExecutionOptions();
 
     List<Artifact> priorArtifacts =
         artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
 
-    Artifact match =
-        artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, null, false);
+    Set<Artifact> matchingArtifacts =
+        artifactResolver.resolveExpectedArtifacts(expectedArtifacts, priorArtifacts, null, false);
 
-    if (match == null) {
-      outputs.put(
-          "exception",
-          "No artifact matching " + expectedArtifact + " found among " + priorArtifacts);
-      return TaskResult.builder(ExecutionStatus.TERMINAL)
-          .context(new HashMap<>())
-          .outputs(outputs)
-          .build();
-    }
-
-    outputs.put("resolvedExpectedArtifacts", Collections.singletonList(expectedArtifact));
-    outputs.put("artifacts", Collections.singletonList(match));
+    outputs.put("resolvedExpectedArtifacts", expectedArtifacts);
+    outputs.put("artifacts", matchingArtifacts);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
-  }
-
-  @Data
-  private static class ExecutionOptions {
-    // Accept either 'succeeded' or 'successful' in the stage config. The front-end sets
-    // 'successful', but due to a bug
-    // this class was only looking for 'succeeded'. Fix this by accepting 'successful' but to avoid
-    // breaking anyone who
-    // discovered this bug and manually edited their stage to set 'succeeded', continue to accept
-    // 'succeeded'.
-    boolean succeeded;
-    boolean successful;
-
-    boolean terminal;
-    boolean running;
-
-    ExecutionCriteria toCriteria() {
-      List<String> statuses = new ArrayList<>();
-      if (succeeded || successful) {
-        statuses.add("SUCCEEDED");
-      }
-
-      if (terminal) {
-        statuses.add("TERMINAL");
-      }
-
-      if (running) {
-        statuses.add("RUNNING");
-      }
-
-      return new ExecutionCriteria().setStatuses(statuses);
-    }
   }
 }
