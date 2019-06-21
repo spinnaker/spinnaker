@@ -23,13 +23,13 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
 import com.netflix.spinnaker.front50.model.ObjectType.*
 import com.netflix.spinnaker.front50.model.sql.*
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import org.jooq.exception.SQLDialectNotSupportedException
 import kotlin.system.measureTimeMillis
 
 class SqlStorageService(
@@ -141,37 +141,88 @@ class SqlStorageService(
 
     try {
       jooq.transactional(sqlRetryProperties.transactions) { ctx ->
-        val insert = ctx.insertInto(
-          table(definitionsByType[objectType]!!.tableName),
-          definitionsByType[objectType]!!.getFields()
-        )
+        val insertPairs = definitionsByType[objectType]!!.getInsertPairs(objectMapper, objectKey, item)
+        val updatePairs = definitionsByType[objectType]!!.getUpdatePairs(insertPairs)
 
-        insert.apply {
-          values(definitionsByType[objectType]!!.getValues(objectMapper, objectKey, item))
-
-          onDuplicateKeyUpdate()
-            .set(field("body"), MySQLDSL.values(field("body")) as Any)
-            .set(field("last_modified_at"), MySQLDSL.values(field("last_modified_at")) as Any)
-            .set(field("last_modified_by"), MySQLDSL.values(field("last_modified_by")) as Any)
-            .set(field("is_deleted"), MySQLDSL.values(field("is_deleted")) as Any)
-            .apply(definitionsByType[objectType]!!.onDuplicateKeyUpdate())
-        }
-
-        insert.execute()
-
-        if (definitionsByType[objectType]!!.supportsHistory) {
-          val historicalInsert = ctx.insertInto(
-            table(definitionsByType[objectType]!!.historyTableName),
-            definitionsByType[objectType]!!.getHistoryFields()
-          )
-
-          historicalInsert.apply {
-            values(definitionsByType[objectType]!!.getHistoryValues(objectMapper, clock, objectKey, item))
-
-            onDuplicateKeyIgnore()
+        try {
+          ctx
+            .insertInto(
+              table(definitionsByType[objectType]!!.tableName),
+              *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
+            )
+            .values(insertPairs.values)
+            .onDuplicateKeyUpdate()
+            .set(updatePairs.mapKeys { DSL.field(it.key) })
+            .execute()
+        } catch (e: SQLDialectNotSupportedException) {
+          val exists = jooq.withRetry(sqlRetryProperties.reads) {
+            jooq.fetchExists(
+              jooq.select()
+                .from(definitionsByType[objectType]!!.tableName)
+                .where(field("id").eq(objectKey).and(field("is_deleted").eq(false)))
+                .forUpdate()
+            )
           }
 
-          historicalInsert.execute()
+          if (exists) {
+            jooq.withRetry(sqlRetryProperties.transactions) {
+              jooq
+                .update(table(definitionsByType[objectType]!!.tableName)).apply {
+                  updatePairs.forEach { k, v ->
+                    set(field(k), v)
+                  }
+                }
+                .set(field("id"), objectKey) // satisfy jooq fluent interface
+                .where(field("id").eq(objectKey))
+                .execute()
+            }
+          } else {
+            jooq.withRetry(sqlRetryProperties.transactions) {
+              jooq
+                .insertInto(
+                  table(definitionsByType[objectType]!!.tableName),
+                  *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
+                )
+                .values(insertPairs.values)
+                .execute()
+            }
+          }
+        }
+
+        if (definitionsByType[objectType]!!.supportsHistory) {
+          val historyPairs = definitionsByType[objectType]!!.getHistoryPairs(objectMapper, clock, objectKey, item)
+
+          try {
+            ctx
+              .insertInto(
+                table(definitionsByType[objectType]!!.historyTableName),
+                *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
+              )
+              .values(historyPairs.values)
+              .onDuplicateKeyIgnore()
+              .execute()
+          } catch (e: SQLDialectNotSupportedException) {
+            val exists = jooq.withRetry(sqlRetryProperties.reads) {
+              jooq.fetchExists(
+                jooq.select()
+                  .from(definitionsByType[objectType]!!.historyTableName)
+                  .where(field("id").eq(objectKey).and(field("body_sig").eq(historyPairs.getValue("body_sig"))))
+                  .forUpdate()
+              )
+            }
+
+            if (!exists) {
+              jooq.withRetry(sqlRetryProperties.transactions) {
+                jooq
+                  .insertInto(
+                    table(definitionsByType[objectType]!!.historyTableName),
+                    *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
+                  )
+                  .values(historyPairs.values)
+                  .execute()
+              }
+            }
+          }
         }
       }
     } catch (e: Exception) {
