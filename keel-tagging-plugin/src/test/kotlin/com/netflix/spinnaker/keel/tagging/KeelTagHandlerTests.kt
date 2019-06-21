@@ -20,8 +20,6 @@ package com.netflix.spinnaker.keel.tagging
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -107,9 +105,9 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
   val resourceWithTag = Resource(
     SPINNAKER_API_V1,
     "keel-tag",
-    ResourceMetadata(
-      name = ResourceName(keelId),
-      uid = randomUID()
+    mapOf(
+      "name" to keelId,
+      "uid" to randomUID()
     ),
     specWithTag
   )

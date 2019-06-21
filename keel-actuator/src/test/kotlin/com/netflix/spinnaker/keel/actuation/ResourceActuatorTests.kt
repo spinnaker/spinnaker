@@ -2,10 +2,10 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -66,9 +66,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       val resource = Resource(
         apiVersion = SPINNAKER_API_V1.subApi("plugin1"),
         kind = "foo",
-        metadata = ResourceMetadata(
-          name = ResourceName("resource1"),
-          uid = randomUID()
+        metadata = mapOf(
+          "name" to "resource1",
+          "uid" to randomUID()
         ),
         spec = DummyResourceSpec("whatever")
       )
@@ -79,7 +79,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       }
 
       test("before the actuator checks the resource the only event in its history is creation") {
-        expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+        expectThat(resourceRepository.eventHistory(resource.uid))
           .hasSize(1)
           .first()
           .isA<ResourceCreated>()
@@ -87,11 +87,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the plugin is already actuating this resource") {
         before {
-          coEvery { plugin1.actuationInProgress(resource.metadata.name) } returns true
+          coEvery { plugin1.actuationInProgress(resource.name) } returns true
 
           with(resource) {
             runBlocking {
-              subject.checkResource(metadata.name, apiVersion, kind)
+              subject.checkResource(name, apiVersion, kind)
             }
           }
         }
@@ -108,7 +108,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("nothing is added to the resource history") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+          expectThat(resourceRepository.eventHistory(resource.uid))
             .hasSize(1)
         }
 
@@ -119,7 +119,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the plugin is not already actuating this resource") {
         before {
-          coEvery { plugin1.actuationInProgress(resource.metadata.name) } returns false
+          coEvery { plugin1.actuationInProgress(resource.name) } returns false
         }
 
         context("the current state matches the desired state") {
@@ -133,7 +133,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             with(resource) {
               runBlocking {
-                subject.checkResource(metadata.name, apiVersion, kind)
+                subject.checkResource(name, apiVersion, kind)
               }
             }
           }
@@ -150,7 +150,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("nothing is added to the resource history") {
-            expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+            expectThat(resourceRepository.eventHistory(resource.uid))
               .hasSize(1)
           }
 
@@ -168,7 +168,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             with(resource) {
               runBlocking {
-                subject.checkResource(metadata.name, apiVersion, kind)
+                subject.checkResource(name, apiVersion, kind)
               }
             }
           }
@@ -178,7 +178,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("the resource state is recorded") {
-            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            expectThat(resourceRepository.eventHistory(resource.uid)) {
               hasSize(3)
               first().isA<ResourceActuationLaunched>()
               second().isA<ResourceMissing>()
@@ -198,7 +198,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             with(resource) {
               runBlocking {
-                subject.checkResource(metadata.name, apiVersion, kind)
+                subject.checkResource(name, apiVersion, kind)
               }
             }
           }
@@ -208,7 +208,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("the resource state is recorded") {
-            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            expectThat(resourceRepository.eventHistory(resource.uid)) {
               hasSize(3)
               first().isA<ResourceActuationLaunched>()
               second().isA<ResourceDeltaDetected>()
@@ -227,7 +227,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             with(resource) {
               runBlocking {
-                subject.checkResource(metadata.name, apiVersion, kind)
+                subject.checkResource(name, apiVersion, kind)
               }
             }
           }
@@ -238,7 +238,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           // TODO: do we want to track the error in the resource history?
           test("the resource state is not affected") {
-            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            expectThat(resourceRepository.eventHistory(resource.uid)) {
               hasSize(1)
               first().isA<ResourceCreated>()
             }
@@ -257,14 +257,14 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             with(resource) {
               runBlocking {
-                subject.checkResource(metadata.name, apiVersion, kind)
+                subject.checkResource(name, apiVersion, kind)
               }
             }
           }
 
           // TODO: do we want to track the error in the resource history?
           test("detection of the delta is tracked in resource history") {
-            expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            expectThat(resourceRepository.eventHistory(resource.uid)) {
               hasSize(2)
               first().isA<ResourceDeltaDetected>()
               second().isA<ResourceCreated>()

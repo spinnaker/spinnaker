@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
@@ -40,19 +41,15 @@ class SqlResourceRepository(
 
   override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
-      .select(UID, API_VERSION, KIND, NAME, METADATA, SPEC)
+      .select(API_VERSION, KIND, METADATA, SPEC)
       .from(RESOURCE)
       .where(UID.eq(uid.toString()))
       .fetchOne()
-      ?.let { (uid, apiVersion, kind, name, metadata, spec) ->
+      ?.let { (apiVersion, kind, metadata, spec) ->
         Resource(
           ApiVersion(apiVersion),
           kind,
-          ResourceMetadata(
-            ResourceName(name),
-            ULID.parseULID(uid),
-            objectMapper.readValue(metadata)
-          ),
+          objectMapper.readValue(metadata),
           objectMapper.readValue(spec, specType)
         )
       } ?: throw NoSuchResourceUID(uid)
@@ -60,19 +57,15 @@ class SqlResourceRepository(
 
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
-      .select(UID, API_VERSION, KIND, NAME, METADATA, SPEC)
+      .select(API_VERSION, KIND, METADATA, SPEC)
       .from(RESOURCE)
       .where(NAME.eq(name.value))
       .fetchOne()
-      ?.let { (uid, apiVersion, kind, name, metadata, spec) ->
+      ?.let { (apiVersion, kind, metadata, spec) ->
         Resource(
           ApiVersion(apiVersion),
           kind,
-          ResourceMetadata(
-            ResourceName(name),
-            ULID.parseULID(uid),
-            objectMapper.readValue(metadata)
-          ),
+          objectMapper.readValue(metadata),
           objectMapper.readValue(spec, specType)
         )
       } ?: throw NoSuchResourceName(name)
@@ -80,12 +73,12 @@ class SqlResourceRepository(
 
   override fun store(resource: Resource<*>) {
     jooq.inTransaction {
-      val uid = resource.metadata.uid.toString()
+      val uid = resource.uid.toString()
       val updatePairs = mapOf(
         API_VERSION to resource.apiVersion.toString(),
         KIND to resource.kind,
-        NAME to resource.metadata.name.value,
-        METADATA to objectMapper.writeValueAsString(resource.metadata.data),
+        NAME to resource.name.value,
+        METADATA to objectMapper.writeValueAsString(resource.metadata),
         SPEC to objectMapper.writeValueAsString(resource.spec)
       )
       val insertPairs = updatePairs + (UID to uid)
@@ -174,7 +167,7 @@ class SqlResourceRepository(
       update(RESOURCE)
         // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
         .set(mapOf(LAST_CHECKED to EPOCH.plusSeconds(1).let(Timestamp::from)))
-        .where(UID.eq(resource.metadata.uid.toString()))
+        .where(UID.eq(resource.uid.toString()))
         .execute()
     }
   }

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
@@ -46,8 +48,8 @@ class InMemoryResourceRepository(
 
   @Suppress("UNCHECKED_CAST")
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> =
-    resources.values.find { it.metadata.name == name }?.let {
-      get(it.metadata.uid, specType)
+    resources.values.find { it.name == name }?.let {
+      get(it.uid, specType)
     } ?: throw NoSuchResourceName(name)
 
   @Suppress("UNCHECKED_CAST")
@@ -62,15 +64,15 @@ class InMemoryResourceRepository(
     } ?: throw NoSuchResourceUID(uid)
 
   override fun store(resource: Resource<*>) {
-    resources[resource.metadata.uid] = resource
+    resources[resource.uid] = resource
     markCheckDue(resource)
   }
 
   override fun delete(name: ResourceName) {
     resources
       .values
-      .filter { it.metadata.name == name }
-      .map { it.metadata.uid }
+      .filter { it.name == name }
+      .map { it.uid }
       .singleOrNull()
       ?.also {
         resources.remove(it)
@@ -106,7 +108,7 @@ class InMemoryResourceRepository(
   }
 
   override fun markCheckDue(resource: Resource<*>) {
-    lastCheckTimes[resource.metadata.uid] = EPOCH
+    lastCheckTimes[resource.uid] = EPOCH
   }
 
   fun dropAll() {

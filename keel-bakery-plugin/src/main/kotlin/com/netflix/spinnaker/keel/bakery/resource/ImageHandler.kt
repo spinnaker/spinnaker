@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -104,7 +105,7 @@ class ImageHandler(
           )
         ),
         trigger = OrchestrationTrigger(
-          correlationId = resource.metadata.name.toString(),
+          correlationId = resource.name.toString(),
           artifacts = listOf(artifact)
         )
       )

@@ -3,8 +3,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.api.randomUID
@@ -78,9 +76,9 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val resource = Resource(
     SPINNAKER_API_V1.subApi("ec2"),
     "classic-load-balancer",
-    ResourceMetadata(
-      name = ResourceName("my-clb"),
-      uid = randomUID()
+    mapOf(
+      "name" to "my-clb",
+      "uid" to randomUID()
     ),
     spec
   )

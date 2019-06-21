@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -71,7 +72,7 @@ class ApplicationLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toUpsertJob()),
-              OrchestrationTrigger(resource.metadata.name.toString())
+              OrchestrationTrigger(resource.name.toString())
             )
           )
       }
@@ -93,7 +94,7 @@ class ApplicationLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toDeleteJob()),
-              OrchestrationTrigger(resource.metadata.name.toString())
+              OrchestrationTrigger(resource.name.toString())
             )
           )
       }

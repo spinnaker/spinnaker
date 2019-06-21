@@ -19,6 +19,8 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import java.time.Duration
 
@@ -29,8 +31,8 @@ data class ResourceHeader(
   val kind: String
 ) {
   constructor(resource: Resource<*>) : this(
-    resource.metadata.uid,
-    resource.metadata.name,
+    resource.uid,
+    resource.name,
     resource.apiVersion,
     resource.kind
   )

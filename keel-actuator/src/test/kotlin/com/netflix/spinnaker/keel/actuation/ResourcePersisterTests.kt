@@ -7,6 +7,8 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.get
@@ -49,7 +51,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
     @Suppress("UNCHECKED_CAST")
     fun update(updatedSpec: Any) {
-      resource = subject.update(resource.metadata.name, SubmittedResource(
+      resource = subject.update(resource.name, SubmittedResource(
         apiVersion = resource.apiVersion,
         kind = resource.kind,
         spec = updatedSpec
@@ -60,7 +62,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       repository.nextResourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
 
     fun eventHistory() =
-      repository.eventHistory(resource.metadata.uid)
+      repository.eventHistory(resource.uid)
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -82,9 +84,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         }
 
         test("stores the normalized resource") {
-          val persistedResource = repository.get<DummyResourceSpec>(resource.metadata.name)
+          val persistedResource = repository.get<DummyResourceSpec>(resource.name)
           expectThat(persistedResource) {
-            get { metadata.name.value }.isEqualTo("test:whatever:o hai")
+            get { name.value }.isEqualTo("test:whatever:o hai")
             get { spec.state }.isEqualTo("o hai")
           }
         }
@@ -100,7 +102,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           expectThat(resourcesDueForCheck())
             .hasSize(1)
             .first()
-            .get { uid }.isEqualTo(resource.metadata.uid)
+            .get { uid }.isEqualTo(resource.uid)
         }
 
         context("after an update") {
@@ -110,7 +112,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           }
 
           test("stores the updated resource") {
-            expectThat(repository.get<DummyResourceSpec>(resource.metadata.name))
+            expectThat(repository.get<DummyResourceSpec>(resource.name))
               .get { spec.state }
               .isEqualTo("kthxbye")
           }
@@ -126,7 +128,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             expectThat(resourcesDueForCheck())
               .hasSize(1)
               .first()
-              .get { uid }.isEqualTo(resource.metadata.uid)
+              .get { uid }.isEqualTo(resource.uid)
           }
         }
 

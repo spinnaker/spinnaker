@@ -29,9 +29,9 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
         request = Resource(
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2.SecurityGroup",
-          metadata = ResourceMetadata(
-            name = ResourceName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
-            uid = randomUID()
+          metadata = mapOf(
+            "name" to "ec2.SecurityGroup:keel:prod:us-east-1:keel",
+            "uid" to randomUID()
           ),
           spec = randomData()
         )

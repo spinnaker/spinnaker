@@ -20,9 +20,10 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
@@ -54,7 +55,7 @@ class RedisResourceRepository(
           readResource(redis, uid, Any::class.java)
             .also {
               callback(
-                ResourceHeader(uid, it.metadata.name, it.apiVersion, it.kind)
+                ResourceHeader(uid, it.name, it.apiVersion, it.kind)
               )
             }
         }
@@ -76,10 +77,10 @@ class RedisResourceRepository(
 
   override fun store(resource: Resource<*>) {
     redisClient.withCommandsClient<Unit> { redis ->
-      redis.hmset(resource.metadata.uid.key, resource.toHash())
-      redis.sadd(INDEX_SET, resource.metadata.uid.toString())
-      redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
-      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.metadata.uid.toString(), zAddParams().nx())
+      redis.hmset(resource.uid.key, resource.toHash())
+      redis.sadd(INDEX_SET, resource.uid.toString())
+      redis.hset(NAME_TO_UID_HASH, resource.name.value, resource.uid.toString())
+      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.uid.toString(), zAddParams().nx())
     }
   }
 
@@ -130,14 +131,14 @@ class RedisResourceRepository(
         .map(ULID::parseULID)
         .map { uid ->
           readResource(redis, uid, Any::class.java).let {
-            ResourceHeader(uid, it.metadata.name, it.apiVersion, it.kind)
+            ResourceHeader(uid, it.name, it.apiVersion, it.kind)
           }
         }
     }
 
   override fun markCheckDue(resource: Resource<*>) {
     redisClient.withCommandsClient<Unit> { redis ->
-      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.metadata.uid.toString())
+      redis.zadd(CHECK_TIMES_SORTED_SET, 0.0, resource.uid.toString())
     }
   }
 
@@ -154,7 +155,7 @@ class RedisResourceRepository(
       redis.hgetAll(uid.key).let {
         Resource<T>(
           apiVersion = ApiVersion(it.getValue("apiVersion")),
-          metadata = ResourceMetadata(objectMapper.readValue(it.getValue("metadata"))),
+          metadata = objectMapper.readValue(it.getValue("metadata")),
           kind = it.getValue("kind"),
           spec = objectMapper.readValue(it.getValue("spec"), specType)
         )
@@ -178,7 +179,7 @@ class RedisResourceRepository(
 
   private fun Resource<*>.toHash(): Map<String, String> = mapOf(
     "apiVersion" to apiVersion.toString(),
-    "name" to metadata.name.value,
+    "name" to name.value,
     "metadata" to objectMapper.writeValueAsString(objectMapper.convertValue<Map<String, Any?>>(metadata)),
     "kind" to kind,
     "spec" to objectMapper.writeValueAsString(spec)

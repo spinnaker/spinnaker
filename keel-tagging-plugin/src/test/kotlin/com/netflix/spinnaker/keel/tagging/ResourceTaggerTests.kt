@@ -19,9 +19,9 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
@@ -70,9 +70,9 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
   private val rCluster = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-    metadata = ResourceMetadata(
-      name = clusterName,
-      uid = randomUID()
+    metadata = mapOf(
+      "name" to clusterName,
+      "uid" to randomUID()
     ),
     kind = "cluster",
     spec = mapOf("fake" to "data")
@@ -80,9 +80,9 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
   private val rClusterTag = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
-    metadata = ResourceMetadata(
-      name = clusterTagName,
-      uid = randomUID()
+    metadata = mapOf(
+      "name" to clusterTagName,
+      "uid" to randomUID()
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
@@ -104,9 +104,9 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
   private val rClusterTagNotDesired = Resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
-    metadata = ResourceMetadata(
-      name = clusterTagName,
-      uid = randomUID()
+    metadata = mapOf(
+      "name" to clusterTagName,
+      "uid" to randomUID()
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
@@ -154,7 +154,15 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       every {
         resourcePersister.update(clusterTagName, any())
-      } answers { Resource(arg(1), ResourceMetadata(clusterTagName, randomUID())) }
+      } answers {
+        Resource(
+          arg(1),
+          mapOf(
+            "name" to clusterTagName.value,
+            "uid" to randomUID()
+          )
+        )
+      }
 
       after {
         (resourceRepository as InMemoryResourceRepository).dropAll()
@@ -173,7 +181,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       every {
-        resourcePersister.delete(rClusterTagNotDesired.metadata.name)
+        resourcePersister.delete(rClusterTagNotDesired.name)
       } returns rClusterTagNotDesired
 
       after {
@@ -183,14 +191,14 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("they're not removed if they're new") {
         removeTags()
 
-        verify { resourcePersister.delete(rClusterTagNotDesired.metadata.name) wasNot Called }
+        verify { resourcePersister.delete(rClusterTagNotDesired.name) wasNot Called }
       }
 
       test("they're removed if they're old") {
         clock.incrementBy(Duration.ofMinutes(61))
         removeTags()
 
-        verify { resourcePersister.delete(rClusterTagNotDesired.metadata.name) }
+        verify { resourcePersister.delete(rClusterTagNotDesired.name) }
       }
     }
 

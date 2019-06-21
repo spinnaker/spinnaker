@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.uid
 import java.time.Clock
 import java.time.Instant
 
@@ -70,10 +72,10 @@ data class ResourceCreated @JsonCreator constructor(
 ) : ResourceEvent()
 
 fun ResourceCreated(resource: Resource<*>, clock: Clock) = ResourceCreated(
-  resource.metadata.uid,
+  resource.uid,
   resource.apiVersion,
   resource.kind,
-  resource.metadata.name.value,
+  resource.name.value,
   clock.instant()
 )
 
@@ -94,10 +96,10 @@ data class ResourceUpdated(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
-    resource.metadata.uid,
+    resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name.value,
+    resource.name.value,
     delta,
     clock.instant()
   )
@@ -116,10 +118,10 @@ data class ResourceMissing(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock) : this(
-    resource.metadata.uid,
+    resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name.value,
+    resource.name.value,
     clock.instant()
   )
 
@@ -140,10 +142,10 @@ data class ResourceDeltaDetected(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
-    resource.metadata.uid,
+    resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name.value,
+    resource.name.value,
     delta,
     clock.instant()
   )
@@ -166,10 +168,10 @@ data class ResourceActuationLaunched(
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>, clock: Clock) :
     this(
-      resource.metadata.uid,
+      resource.uid,
       resource.apiVersion,
       resource.kind,
-      resource.metadata.name.value,
+      resource.name.value,
       plugin,
       tasks,
       clock.instant()
@@ -191,10 +193,10 @@ data class ResourceDeltaResolved(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock) : this(
-    resource.metadata.uid,
+    resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name.value,
+    resource.name.value,
     clock.instant()
   )
 

@@ -45,8 +45,8 @@ class DeliveryConfigHandler(
 
   private val DeliveryConfig.isResolved: Boolean
     get() = this.deliveryEnvironments.all { env ->
-      env.packageRef.resourceMetadata != null &&
-        env.targets.all { it.resourceMetadata != null }
+      env.packageRef.metadata != null &&
+        env.targets.all { it.metadata != null }
     }
 
   override suspend fun current(resource: Resource<DeliveryConfig>): DeliveryConfig? =
@@ -85,8 +85,8 @@ class DeliveryConfigHandler(
     )
 
   private fun ChildResource.refreshFromRepository() =
-    this.resourceMetadata?.let { meta ->
-      resourceRepository.get<Map<String, Any?>>(meta.name).let { res ->
+    metadata?.let { meta ->
+      resourceRepository.get<Map<String, Any?>>(ResourceName(meta.getValue("name").toString())).let { res ->
         this.copy(
           metadata = objectMapper.convertValue(res.metadata),
           spec = res.spec)
@@ -94,7 +94,7 @@ class DeliveryConfigHandler(
     } ?: this
 
   private fun ChildResource.getOrCreateResource(): ChildResource =
-    when (val resourceName = this.resourceMetadata?.name) {
+    when (val resourceName = metadata?.get("name")?.toString()?.let(::ResourceName)) {
       null -> this.createNew()
       else -> resourceName.getExisting()
     }

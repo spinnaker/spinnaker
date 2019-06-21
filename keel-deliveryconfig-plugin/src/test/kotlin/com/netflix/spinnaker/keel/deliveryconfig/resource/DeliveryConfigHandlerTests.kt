@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -27,9 +25,9 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
   private val resource = Resource(
     SPINNAKER_API_V1,
     "deliveryconfig",
-    ResourceMetadata(
-      name = ResourceName("foo"),
-      uid = idGenerator.nextValue()
+    mapOf(
+      "name" to "foo",
+      "uid" to idGenerator.nextValue()
     ),
     spec
   )

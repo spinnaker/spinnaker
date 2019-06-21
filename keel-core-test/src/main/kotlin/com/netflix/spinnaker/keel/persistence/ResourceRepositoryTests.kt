@@ -16,10 +16,11 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceUpdated
@@ -95,11 +96,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     context("a resource exists") {
       val resource = Resource(
         apiVersion = SPINNAKER_API_V1,
-        metadata = ResourceMetadata(
-          name = ResourceName("ec2:security-group:test:us-west-2:fnord"),
-          uid = randomUID(),
-          data = randomData()
-        ),
+        metadata = mapOf(
+          "name" to "ec2:security-group:test:us-west-2:fnord",
+          "uid" to randomUID().toString()
+        ) + randomData(),
         kind = "security-group",
         spec = randomData()
       )
@@ -118,22 +118,21 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("it can be retrieved by name") {
-        val retrieved = subject.get<Map<String, Any>>(resource.metadata.name)
+        val retrieved = subject.get<Map<String, Any>>(resource.name)
         expectThat(retrieved).isEqualTo(resource)
       }
 
       test("it can be retrieved by uid") {
-        val retrieved = subject.get<Map<String, Any>>(resource.metadata.uid)
+        val retrieved = subject.get<Map<String, Any>>(resource.uid)
         expectThat(retrieved).isEqualTo(resource)
       }
 
       context("storing another resource with a different name") {
         val anotherResource = Resource(
-          metadata = ResourceMetadata(
-            name = ResourceName("ec2:security-group:test:us-east-1:fnord"),
-            uid = randomUID(),
-            data = randomData()
-          ),
+          metadata = mapOf(
+            "name" to "ec2:security-group:test:us-east-1:fnord",
+            "uid" to randomUID()
+          ) + randomData(),
           apiVersion = SPINNAKER_API_V1,
           kind = "security-group",
           spec = randomData()
@@ -148,8 +147,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           subject.allResources(callback)
 
           verifyAll {
-            callback(match { it.uid == resource.metadata.uid })
-            callback(match { it.uid == anotherResource.metadata.uid })
+            callback(match { it.uid == resource.uid })
+            callback(match { it.uid == anotherResource.uid })
           }
         }
       }
@@ -165,7 +164,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("it replaces the original resource") {
-          expectThat(subject.get<Map<String, Any>>(resource.metadata.name))
+          expectThat(subject.get<Map<String, Any>>(resource.name))
             .get(Resource<*>::spec)
             .isEqualTo(updatedResource.spec)
         }
@@ -179,7 +178,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("the new state is included in the history") {
-          expectThat(subject.eventHistory(resource.metadata.uid))
+          expectThat(subject.eventHistory(resource.uid))
             .hasSize(2)
             .first()
             .isA<ResourceUpdated>()
@@ -193,7 +192,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the new state is included in the history") {
-            expectThat(subject.eventHistory(resource.metadata.uid))
+            expectThat(subject.eventHistory(resource.uid))
               .hasSize(3)
               .first()
               .isA<ResourceDeltaDetected>()
@@ -203,7 +202,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.delete(resource.metadata.name)
+          subject.delete(resource.name)
         }
 
         test("the resource is no longer returned when listing all resources") {
@@ -214,13 +213,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("the resource can no longer be retrieved by name") {
           expectThrows<NoSuchResourceException> {
-            subject.get<Map<String, Any>>(resource.metadata.name)
+            subject.get<Map<String, Any>>(resource.name)
           }
         }
 
         test("events for the resource are also deleted") {
           expectThrows<NoSuchResourceException>() {
-            subject.eventHistory(resource.metadata.uid)
+            subject.eventHistory(resource.uid)
           }
         }
       }
@@ -256,11 +255,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         repeat(4) {
           val resource = Resource(
             apiVersion = SPINNAKER_API_V1,
-            metadata = ResourceMetadata(
-              name = ResourceName("ec2:security-group:test:us-west-2:fnord-$it"),
-              uid = randomUID(),
-              data = randomData()
-            ),
+            metadata = mapOf(
+              "name" to "ec2:security-group:test:us-west-2:fnord-$it",
+              "uid" to randomUID()
+            ) + randomData(),
             kind = "security-group",
             spec = randomData()
           )

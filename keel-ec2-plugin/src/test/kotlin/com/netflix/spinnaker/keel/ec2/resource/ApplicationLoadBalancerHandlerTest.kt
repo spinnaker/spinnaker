@@ -3,8 +3,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.randomUID
@@ -22,7 +20,6 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -45,8 +42,6 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val orcaService = mockk<OrcaService>()
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
-
-  private val differ = ObjectDifferBuilder.buildDefault()
 
   private val normalizers: List<ResourceNormalizer<*>> = listOf(ApplicationLoadBalancerNormalizer(mapper))
 
@@ -76,9 +71,9 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val resource = Resource(
     SPINNAKER_API_V1.subApi("ec2"),
     "application-load-balancer",
-    ResourceMetadata(
-      name = ResourceName("my-alb"),
-      uid = randomUID()
+    mapOf(
+      "name" to "my-alb",
+      "uid" to randomUID()
     ),
     spec
   )
@@ -188,7 +183,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
           get("type").isEqualTo("upsertLoadBalancer")
         }
 
-        val listeners = slot.captured.job.first().get("listeners") as Set<ApplicationLoadBalancer.Listener>
+        val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancer.Listener>
 
         expectThat(listeners.first()) {
           get { defaultActions.first() }.isEqualTo(model.listeners.first().defaultActions.first())

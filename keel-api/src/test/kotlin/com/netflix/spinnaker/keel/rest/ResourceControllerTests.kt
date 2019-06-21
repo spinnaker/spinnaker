@@ -4,8 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -60,9 +59,9 @@ internal class ResourceControllerTests {
   var resource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
     kind = "securityGroup",
-    metadata = ResourceMetadata(
-      name = ResourceName("ec2:securityGroup:test:us-west-2:keel"),
-      uid = randomUID()
+    metadata = mapOf(
+      "name" to "ec2:securityGroup:test:us-west-2:keel",
+      "uid" to randomUID()
     ),
     spec = "mockingThis"
   )
@@ -117,9 +116,9 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can update a resource`() {
-    every { resourcePersister.update(resource.metadata.name, any()) } returns resource
+    every { resourcePersister.update(resource.name, any()) } returns resource
 
-    val request = put("/resources/${resource.metadata.name}")
+    val request = put("/resources/${resource.name}")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -133,14 +132,14 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.update(resource.metadata.name, match { it.spec == "kthxbye" }) }
+    verify { resourcePersister.update(resource.name, match { it.spec == "kthxbye" }) }
   }
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.update(resource.metadata.name, any()) } throws NoSuchResourceName(resource.metadata.name)
+    every { resourcePersister.update(resource.name, any()) } throws NoSuchResourceName(resource.name)
 
-    val request = put("/resources/${resource.metadata.name}")
+    val request = put("/resources/${resource.name}")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -178,7 +177,7 @@ internal class ResourceControllerTests {
   fun `can get a resource as YAML`() {
     resourceRepository.store(resource)
 
-    val request = get("/resources/${resource.metadata.name}")
+    val request = get("/resources/${resource.name}")
       .accept(APPLICATION_YAML)
     val result = mvc
       .perform(request)
@@ -192,20 +191,20 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can delete a resource`() {
-    every { resourcePersister.delete(resource.metadata.name) } returns resource
+    every { resourcePersister.delete(resource.name) } returns resource
 
     resourceRepository.store(resource)
 
-    val request = delete("/resources/${resource.metadata.name}")
+    val request = delete("/resources/${resource.name}")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.delete(resource.metadata.name) }
+    verify { resourcePersister.delete(resource.name) }
 
     // clean up after the test
-    resourceRepository.delete(resource.metadata.name)
+    resourceRepository.delete(resource.name)
   }
 
   @Test

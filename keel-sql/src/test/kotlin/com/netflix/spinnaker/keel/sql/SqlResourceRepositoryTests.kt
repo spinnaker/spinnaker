@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
@@ -62,11 +60,10 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
         repeat(1000) {
           val resource = Resource(
             apiVersion = SPINNAKER_API_V1,
-            metadata = ResourceMetadata(
-              name = ResourceName("ec2:security-group:test:us-west-2:fnord-$it"),
-              uid = randomUID(),
-              data = randomData()
-            ),
+            metadata = mapOf(
+              "name" to "ec2:security-group:test:us-west-2:fnord-$it",
+              "uid" to randomUID()
+            ) + randomData(),
             kind = "security-group",
             spec = randomData()
           )

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
@@ -30,7 +31,7 @@ class ResourcePersister(
       .also {
         resourceRepository.store(it)
         resourceRepository.appendHistory(ResourceCreated(it, clock))
-        publisher.publishEvent(CreateEvent(it.metadata.name))
+        publisher.publishEvent(CreateEvent(it.name))
       }
 
   fun update(name: ResourceName, updated: SubmittedResource<Any>): Resource<out Any> {
@@ -42,7 +43,7 @@ class ResourcePersister(
     val diff = ResourceDiff(normalized.spec, existing.spec)
 
     return if (diff.hasChanges()) {
-      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug())
+      log.debug("Resource {} updated: {}", normalized.name, diff.toDebug())
       normalized
         .also {
           resourceRepository.store(it)

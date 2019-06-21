@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
@@ -119,7 +120,7 @@ class KeelTagHandler(
       desired.entityRef.application,
       "Upsert entity tag for resource ${resource.spec.keelId}",
       listOf(Job(job["type"].toString(), job)),
-      OrchestrationTrigger(resource.metadata.name.toString())
+      OrchestrationTrigger(resource.name.toString())
     ))
     log.info("Started task {} to upsert entity tags", taskResponse.ref)
     return listOf(TaskRef(taskResponse.ref))

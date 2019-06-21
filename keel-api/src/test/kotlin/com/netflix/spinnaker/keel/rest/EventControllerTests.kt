@@ -5,8 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -73,14 +72,14 @@ internal class EventControllerTests : JUnit5Minutests {
     val resource: Resource<String> = Resource(
       apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
       kind = "securityGroup",
-      metadata = ResourceMetadata(
-        name = ResourceName("ec2:securityGroup:test:ap-south-1:keel"),
-        uid = randomUID()
+      metadata = mapOf(
+        "name" to "ec2:securityGroup:test:ap-south-1:keel",
+        "uid" to randomUID()
       ),
       spec = "mockingThis"
     )
   ) {
-    val eventsUri: URI = URI.create("/resources/events/${resource.metadata.name}")
+    val eventsUri: URI = URI.create("/resources/events/${resource.name}")
   }
 
   fun tests() = rootContext<Fixture> {
@@ -90,7 +89,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("no resource exists") {
       test("event eventHistory endpoint responds with 404") {
-        val request = get("/resources/events/${resource.metadata.name}")
+        val request = get("/resources/events/${resource.name}")
           .accept(APPLICATION_JSON)
         mvc
           .perform(request)

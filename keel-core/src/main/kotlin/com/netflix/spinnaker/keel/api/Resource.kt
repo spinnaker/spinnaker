@@ -15,16 +15,18 @@
  */
 package com.netflix.spinnaker.keel.api
 
+import de.huxhorn.sulky.ulid.ULID
+
 /**
  * Internal representation of a resource.
  */
 data class Resource<T : Any>(
   val apiVersion: ApiVersion,
   val kind: String, // TODO: create a type
-  val metadata: ResourceMetadata,
+  val metadata: Map<String, Any?>,
   val spec: T
 ) {
-  constructor(resource: SubmittedResource<T>, metadata: ResourceMetadata) :
+  constructor(resource: SubmittedResource<T>, metadata: Map<String, Any?>) :
     this(resource.apiVersion, resource.kind, metadata, resource.spec)
 }
 
@@ -37,3 +39,9 @@ data class SubmittedResource<T : Any>(
   val kind: String,
   val spec: T
 )
+
+val <T : Any> Resource<T>.uid: UID
+  get() = metadata.getValue("uid").toString().let(ULID::parseULID)
+
+val <T : Any> Resource<T>.name: ResourceName
+  get() = metadata.getValue("name").toString().let(::ResourceName)

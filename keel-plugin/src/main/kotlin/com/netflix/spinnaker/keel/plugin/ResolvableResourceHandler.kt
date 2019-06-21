@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
@@ -60,9 +60,9 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
         e
       )
     }
-    val metadata = ResourceMetadata(
-      name = generateName(spec),
-      uid = randomUID()
+    val metadata = mapOf(
+      "name" to generateName(spec),
+      "uid" to randomUID()
     )
     val hydratedResource = Resource(
       apiVersion = resource.apiVersion,
@@ -87,7 +87,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
     ) as Resource<S>
     for (normalizer in normalizers) {
       if (normalizer.handles(resource.apiVersion, resource.kind)) {
-        log.debug("Normalizing ${resource.metadata.name} with ${normalizer.javaClass}")
+        log.debug("Normalizing ${resource.name} with ${normalizer.javaClass}")
         normalizedResource = normalizer.normalize(normalizedResource) as Resource<S>
       }
     }

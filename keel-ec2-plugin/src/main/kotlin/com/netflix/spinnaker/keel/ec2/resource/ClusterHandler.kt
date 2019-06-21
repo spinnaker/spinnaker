@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.JenkinsJobImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.LatestFromPackageImageProvider
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -148,7 +149,7 @@ class ClusterHandler(
         spec.moniker.app,
         "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
         listOf(Job(job["type"].toString(), job)),
-        OrchestrationTrigger(resource.metadata.name.toString())
+        OrchestrationTrigger(resource.name.toString())
       ))
       .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -53,7 +54,7 @@ class ResourceActuator(
       when {
         current == null -> {
           with(resource) {
-            log.warn("Resource {} is missing", metadata.name)
+            log.warn("Resource {} is missing", name)
             publisher.publishEvent(ResourceChecked(resource, Missing))
 
             resourceRepository.appendHistory(ResourceMissing(resource, clock))
@@ -66,8 +67,8 @@ class ResourceActuator(
         }
         diff.hasChanges() -> {
           with(resource) {
-            log.warn("Resource {} is invalid", metadata.name)
-            log.info("Resource {} delta: {}", metadata.name, diff.toDebug())
+            log.warn("Resource {} is invalid", name)
+            log.info("Resource {} delta: {}", name, diff.toDebug())
             publisher.publishEvent(ResourceChecked(resource, Diff))
 
             resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
@@ -80,8 +81,8 @@ class ResourceActuator(
         }
         else -> {
           with(resource) {
-            log.info("Resource {} is valid", metadata.name)
-            val lastEvent = resourceRepository.eventHistory(resource.metadata.uid).first()
+            log.info("Resource {} is valid", name)
+            val lastEvent = resourceRepository.eventHistory(resource.uid).first()
             if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
               resourceRepository.appendHistory(ResourceDeltaResolved(resource, clock))
             }

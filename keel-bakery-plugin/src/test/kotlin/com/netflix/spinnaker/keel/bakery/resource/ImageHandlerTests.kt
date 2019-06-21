@@ -5,8 +5,6 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
@@ -59,9 +57,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val resource = Resource(
       apiVersion = handler.apiVersion,
       kind = handler.supportedKind.first.singular,
-      metadata = ResourceMetadata(
-        uid = randomUID(),
-        name = ResourceName("bakery:image:keel")
+      metadata = mapOf(
+        "uid" to randomUID(),
+        "name" to "bakery:image:keel"
       ),
       spec = ImageSpec(
         artifactName = "keel",

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -79,7 +80,7 @@ class SecurityGroupHandler(
           spec.moniker.app,
           "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
           listOf(spec.toCreateJob()),
-          OrchestrationTrigger(resource.metadata.name.toString())
+          OrchestrationTrigger(resource.name.toString())
         ))
     }
     log.info("Started task {} to create security group", taskRef.ref)
@@ -97,7 +98,7 @@ class SecurityGroupHandler(
           spec.moniker.app,
           "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
           listOf(spec.toUpdateJob()),
-          OrchestrationTrigger(resource.metadata.name.toString())
+          OrchestrationTrigger(resource.name.toString())
         ))
     }
     log.info("Started task {} to update security group", taskRef.ref)
@@ -112,7 +113,7 @@ class SecurityGroupHandler(
           spec.moniker.app,
           "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
           listOf(spec.toDeleteJob()),
-          OrchestrationTrigger(resource.metadata.name.toString())
+          OrchestrationTrigger(resource.name.toString())
         ))
     }
     log.info("Started task {} to upsert security group", taskRef.ref)

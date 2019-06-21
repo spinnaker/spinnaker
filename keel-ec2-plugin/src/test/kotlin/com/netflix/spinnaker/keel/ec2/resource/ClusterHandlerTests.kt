@@ -3,8 +3,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -98,9 +96,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val resource = Resource(
     SPINNAKER_API_V1,
     "cluster",
-    ResourceMetadata(
-      name = ResourceName("my-cluster"),
-      uid = randomUID()
+    mapOf(
+      "name" to "my-cluster",
+      "uid" to randomUID()
     ),
     spec
   )

@@ -17,8 +17,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.CrossAccountReferenceRule
@@ -502,11 +500,11 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   val Fixture.resource: Resource<SecurityGroup>
     get() = Resource(
       apiVersion = SPINNAKER_API_V1,
-      metadata = ResourceMetadata(
-        name = with(securityGroup) {
-          ResourceName("ec2.SecurityGroup:${moniker.app}:$accountName:$region:${moniker.name}")
+      metadata = mapOf(
+        "name" to with(securityGroup) {
+          "ec2.SecurityGroup:${moniker.app}:$accountName:$region:${moniker.name}"
         },
-        uid = randomUID()
+        "uid" to randomUID()
       ),
       kind = "ec2.SecurityGroup",
       spec = securityGroup

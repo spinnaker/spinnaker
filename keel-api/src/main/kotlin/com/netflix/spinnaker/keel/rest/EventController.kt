@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -35,7 +36,7 @@ class EventController(
     log.debug("Getting state history for: $name")
     return resourceRepository.get(name, Any::class.java).let { resource ->
       resourceRepository
-        .eventHistory(resource.metadata.uid)
+        .eventHistory(resource.uid)
         .filter { it.timestamp > since }
     }
   }

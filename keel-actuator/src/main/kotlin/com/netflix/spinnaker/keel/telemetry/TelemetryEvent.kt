@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.name
 
 sealed class TelemetryEvent
 
@@ -16,7 +17,7 @@ data class ResourceChecked(
   constructor(resource: Resource<*>, state: ResourceState) : this(
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name,
+    resource.name,
     state
   )
 }
@@ -29,7 +30,7 @@ data class ResourceCheckSkipped(
   constructor(resource: Resource<*>) : this(
     resource.apiVersion,
     resource.kind,
-    resource.metadata.name
+    resource.name
   )
 }
 

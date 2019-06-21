@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.randomData
@@ -61,9 +59,9 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         resource = Resource(
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:whatever",
-          metadata = ResourceMetadata(
-            uid = randomUID(),
-            name = ResourceName("ec2:prod:ap-south-1:a-thing")
+          metadata = mapOf(
+            "uid" to randomUID(),
+            "name" to "ec2:prod:ap-south-1:a-thing"
           ),
           spec = randomData()
         )

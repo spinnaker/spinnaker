@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.name
 
 sealed class InvalidResourceException(
   override val message: String?,
@@ -30,7 +31,7 @@ class FailedNormalizationException(
   resource: Resource<*>,
   cause: Throwable
 ) : InvalidResourceException(
-  "Resource ${resource.metadata.name} failed normalization with error: $errorMessage. Resource: $resource", cause
+  "Resource ${resource.name} failed normalization with error: $errorMessage. Resource: $resource", cause
 )
 
 class InvalidResourceStructureException(
