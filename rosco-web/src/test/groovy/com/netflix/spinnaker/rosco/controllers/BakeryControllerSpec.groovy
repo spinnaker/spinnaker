@@ -49,7 +49,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -87,7 +89,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -130,7 +134,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
@@ -166,7 +172,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -209,7 +217,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
@@ -268,7 +278,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
@@ -301,7 +313,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
@@ -335,7 +349,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -379,7 +395,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
@@ -420,7 +438,9 @@ class BakeryControllerSpec extends Specification {
     setup:
       def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
-      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+        getMaskedPackerParameters() >> []
+      }
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",

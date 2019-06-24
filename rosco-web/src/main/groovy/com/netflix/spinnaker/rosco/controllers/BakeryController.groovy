@@ -188,7 +188,7 @@ class BakeryController {
 
       def bakeRecipe = cloudProviderBakeHandler.produceBakeRecipe(region, bakeRequest)
       def jobRequest = new JobRequest(tokenizedCommand: bakeRecipe.command,
-                                      maskedParameters: cloudProviderBakeHandler.maskedPackerParameters,
+                                      maskedParameters: cloudProviderBakeHandler.getMaskedPackerParameters(),
                                       jobId: bakeRequest.request_id,
                                       executionId: bakeRequest.spinnaker_execution_id)
 
