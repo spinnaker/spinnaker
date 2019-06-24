@@ -158,6 +158,25 @@
       </div>
     </div>
     <stage-config-field
+      label="Delay before monitoring"
+      help-key="pipeline.config.webhook.waitBeforeMonitor"
+      ng-if="$ctrl.displayField('waitBeforeMonitor')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.waitBeforeMonitor" />
+    </stage-config-field>
+    <stage-config-field
+      label="Retry HTTP Statuses"
+      help-key="pipeline.config.webhook.retryStatusCodes"
+      ng-if="$ctrl.displayField('retryStatusCodes')"
+    >
+      <input
+        type="text"
+        class="form-control input-sm"
+        ng-model="$ctrl.viewState.retryStatusCodes"
+        ng-change="$ctrl.retryCodesChanged()"
+      />
+    </stage-config-field>
+    <stage-config-field
       label="Status JsonPath"
       help-key="pipeline.config.webhook.statusJsonPath"
       ng-if="$ctrl.displayField('statusJsonPath')"

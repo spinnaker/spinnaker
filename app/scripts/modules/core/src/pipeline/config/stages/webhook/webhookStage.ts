@@ -9,6 +9,7 @@ export interface IWebhookStageViewState {
   waitForCompletion?: boolean;
   statusUrlResolution: string;
   failFastStatusCodes: string;
+  retryStatusCodes: string;
 }
 
 export interface IWebhookStageCommand {
@@ -56,6 +57,7 @@ export class WebhookStage implements IController {
       waitForCompletion: this.stage.waitForCompletion || false,
       statusUrlResolution: this.stage.statusUrlResolution || 'getMethod',
       failFastStatusCodes: this.stage.failFastStatusCodes ? this.stage.failFastStatusCodes.join() : '',
+      retryStatusCodes: this.stage.retryStatusCodes ? this.stage.retryStatusCodes.join() : '',
     };
 
     this.command = {
@@ -72,6 +74,7 @@ export class WebhookStage implements IController {
         stageConfig.configuration.waitForCompletion || this.viewState.waitForCompletion;
       this.parameters = stageConfig.configuration.parameters || [];
       this.viewState.failFastStatusCodes = this.stage.failFastStatusCodes ? this.stage.failFastStatusCodes.join() : '';
+      this.viewState.retryStatusCodes = this.stage.retryStatusCodes ? this.stage.retryStatusCodes.join() : '';
     }
 
     if (this.parameters.length && !this.stage.parameterValues) {
@@ -108,6 +111,12 @@ export class WebhookStage implements IController {
     const failFastCodes = this.viewState.failFastStatusCodes.split(',').map(x => x.trim());
 
     this.stage.failFastStatusCodes = failFastCodes.map(x => parseInt(x, 10)).filter(x => !isNaN(x));
+  }
+
+  public retryCodesChanged(): void {
+    const retryCodes = this.viewState.retryStatusCodes.split(',').map(x => x.trim());
+
+    this.stage.retryStatusCodes = retryCodes.map(x => parseInt(x, 10)).filter(x => !isNaN(x));
   }
 
   public customHeaderCount(): number {
