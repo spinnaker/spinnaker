@@ -15,8 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.autoscaler.KubernetesAutoscalerDescription
@@ -48,7 +47,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSourceType
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesControllerConverter
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import io.kubernetes.client.custom.IntOrString
 import io.kubernetes.client.models.V1Capabilities
 import io.kubernetes.client.models.V1ConfigMapVolumeSource
 import io.kubernetes.client.models.V1Container
@@ -92,6 +93,7 @@ import io.kubernetes.client.models.V1beta1RollingUpdateStatefulSetStrategy
 import io.kubernetes.client.models.V1beta1StatefulSet
 import io.kubernetes.client.models.V1beta1StatefulSetSpec
 import io.kubernetes.client.models.V1beta1StatefulSetUpdateStrategy
+import io.kubernetes.client.util.Yaml
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -328,6 +330,7 @@ class KubernetesClientApiConverter {
     return kubernetesHandler
   }
 
+  @CompileStatic
   static KubernetesHttpGetAction fromHttpGetAction(V1HTTPGetAction httpGet) {
     if (!httpGet) {
       return null
@@ -337,7 +340,12 @@ class KubernetesClientApiConverter {
     kubernetesHttpGetAction.host = httpGet.host
     kubernetesHttpGetAction.path = httpGet.path
     try {
-      kubernetesHttpGetAction.port = httpGet.port?.toInteger() ?: 0
+      IntOrString port =  httpGet.port
+      if (port?.isInteger()) {
+        kubernetesHttpGetAction.port = port?.getIntValue()
+      } else {
+        kubernetesHttpGetAction.port = port?.getStrValue()?.toInteger()
+      }
     } catch (NumberFormatException ex) {
       log.warn "Port number is not Integer", ex
     }
@@ -398,9 +406,9 @@ class KubernetesClientApiConverter {
    * @param obj
    * @return
    */
+  @CompileStatic
   static String getYaml(Object obj) {
-    ObjectMapper m = new ObjectMapper(new YAMLFactory());
-    return m.writeValueAsString(obj).replaceAll("\\\\", "");
+    return Yaml.dump(obj)
   }
 
   static V1beta1StatefulSet toStatefulSet(DeployKubernetesAtomicOperationDescription description,
