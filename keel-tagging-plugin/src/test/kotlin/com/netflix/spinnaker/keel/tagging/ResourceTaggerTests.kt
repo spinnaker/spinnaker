@@ -87,7 +87,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     kind = "keel-tag",
     spec = KeelTagSpec(
       clusterName.toString(),
-      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "aws"),
+      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagDesired(tag = EntityTag(
         value = TagValue(
           message = KEEL_TAG_MESSAGE,
@@ -111,7 +111,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     kind = "keel-tag",
     spec = KeelTagSpec(
       clusterName.toString(),
-      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "aws"),
+      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )
   )

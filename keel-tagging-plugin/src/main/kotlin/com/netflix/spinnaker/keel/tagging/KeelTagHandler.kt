@@ -68,8 +68,7 @@ class KeelTagHandler(
         val desiredTag = (resource.spec.tagState as TagDesired).tag
         return TaggedResource(resource.spec.keelId, resource.spec.entityRef, desiredTag)
       }
-      else -> {
-        // TagNotDesired
+      is TagNotDesired -> {
         return TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
       }
     }

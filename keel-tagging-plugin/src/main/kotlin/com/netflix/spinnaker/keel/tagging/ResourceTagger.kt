@@ -67,6 +67,11 @@ class ResourceTagger(
     "ec2" to "aws"
   )
 
+  private val entityTypeTransforms = mapOf(
+    "classic-load-balancer" to "loadbalancer",
+    "application-load-balancer" to "loadbalancer"
+  )
+
   private val taggableResources = listOf(
     "cluster",
     "securityGroup",
@@ -187,11 +192,12 @@ class ResourceTagger(
     }
 
     return EntityRef(
-      entityType = resourceType,
+      entityType = entityTypeTransforms.getOrDefault(resourceType, resourceType),
       entityId = resourceId,
       application = resourceId.substringBefore("-"),
       region = region,
-      account = accountId,
+      account = account,
+      accountId = accountId,
       cloudProvider = transforms.getOrDefault(pluginGroup, pluginGroup)
     )
   }

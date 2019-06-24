@@ -18,7 +18,7 @@ internal class KeelTagSpecTests : JUnit5Minutests {
       fixture {
         val resource = KeelTagSpec(
           "ec2:cluster:mgmt:us-west-2:keel-prestaging",
-          EntityRef("cluster", "keel-prestaging", "keel", "us-west-2", "mgmt", "aws"),
+          EntityRef("cluster", "keel-prestaging", "keel", "us-west-2", "mgmt", "12345", "aws"),
           TagDesired(
             EntityTag(
               value = TagValue(

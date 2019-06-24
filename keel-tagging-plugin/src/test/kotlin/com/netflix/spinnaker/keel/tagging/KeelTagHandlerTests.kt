@@ -69,8 +69,9 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     entityId = "emburnstest-managed-reference-v005",
     application = "emburnstest",
     region = "us-west-1",
-    cloudProvider = "aws",
-    account = "test"
+    account = "test",
+    accountId = "1234",
+    cloudProvider = "aws"
   )
 
   val managedByKeelTag = EntityTag(

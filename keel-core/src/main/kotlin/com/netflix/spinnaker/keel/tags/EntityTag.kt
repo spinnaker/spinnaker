@@ -47,11 +47,12 @@ data class EntityRef(
   val entityId: String,
   val application: String,
   val region: String,
-  val account: String, // must be account number
+  val account: String, // account name
+  val accountId: String, // account number
   val cloudProvider: String
 ) {
   fun generateId(): String {
-    return "$cloudProvider:$entityType:$entityId:$account:$region"
+    return "$cloudProvider:$entityType:$entityId:$accountId:$region"
   }
 }
 
