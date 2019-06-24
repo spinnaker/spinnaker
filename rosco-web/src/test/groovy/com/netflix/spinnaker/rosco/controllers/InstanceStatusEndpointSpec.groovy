@@ -1,11 +1,11 @@
 /*
  * Copyright 2016 Schibsted ASA.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.rosco.endpoints
+package com.netflix.spinnaker.rosco.controllers
 
 import com.google.common.collect.Sets
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.controllers.StatusController
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,13 +33,12 @@ class InstanceStatusEndpointSpec extends Specification {
   void 'instance incomplete bakes with status'() {
     setup:
     def bakeStoreMock = Mock(RedisBackedBakeStore)
-    def statusHandler = new StatusHandler(bakeStoreMock, instanceId)
 
     @Subject
-    def statusEndpoint = new InstanceStatusEndpoint(statusHandler)
+    def statusHandler = new StatusController(bakeStoreMock, instanceId)
 
     when:
-    def instanceInfo = statusEndpoint.invoke()
+    def instanceInfo = statusHandler.instanceIncompleteBakes()
 
     then:
     1 * bakeStoreMock.getThisInstanceIncompleteBakeIds() >> Sets.newHashSet(JOB_ID)
@@ -51,13 +51,12 @@ class InstanceStatusEndpointSpec extends Specification {
     setup:
     def bakeStoreMock = Mock(RedisBackedBakeStore)
     bakeStoreMock.getThisInstanceIncompleteBakeIds() >> new HashSet<>()
-    def statusHandler = new StatusHandler(bakeStoreMock, instanceId)
 
     @Subject
-    def statusEndpoint = new InstanceStatusEndpoint(statusHandler)
+    def statusHandler = new StatusController(bakeStoreMock, instanceId)
 
     when:
-    def instanceInfo = statusEndpoint.invoke()
+    def instanceInfo = statusHandler.instanceIncompleteBakes()
 
     then:
     1 * bakeStoreMock.getThisInstanceIncompleteBakeIds()
@@ -68,13 +67,12 @@ class InstanceStatusEndpointSpec extends Specification {
   void 'no instance incomplete bakes'() {
     setup:
     def bakeStoreMock = Mock(RedisBackedBakeStore)
-    def statusHandler = new StatusHandler(bakeStoreMock, instanceId)
 
     @Subject
-    def statusEndpoint = new InstanceStatusEndpoint(statusHandler)
+    def statusHandler = new StatusController(bakeStoreMock, instanceId)
 
     when:
-    def instanceInfo = statusEndpoint.invoke()
+    def instanceInfo = statusHandler.instanceIncompleteBakes()
 
     then:
     instanceInfo.bakes.isEmpty()
@@ -85,13 +83,12 @@ class InstanceStatusEndpointSpec extends Specification {
     setup:
     def bakeStoreMock = Mock(RedisBackedBakeStore)
     bakeStoreMock.getThisInstanceIncompleteBakeIds() >> { throw new RuntimeException() }
-    def statusHandler = new StatusHandler(bakeStoreMock, instanceId)
 
     @Subject
-    def statusEndpoint = new InstanceStatusEndpoint(statusHandler)
+    def statusHandler = new StatusController(bakeStoreMock, instanceId)
 
     when:
-    statusEndpoint.invoke()
+    statusHandler.instanceIncompleteBakes()
 
     then:
     thrown(RuntimeException)
@@ -102,13 +99,12 @@ class InstanceStatusEndpointSpec extends Specification {
     def bakeStoreMock = Mock(RedisBackedBakeStore)
     bakeStoreMock.getThisInstanceIncompleteBakeIds() >> Sets.newHashSet(JOB_ID)
     bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> { throw new RuntimeException() }
-    def statusHandler = new StatusHandler(bakeStoreMock, instanceId)
 
     @Subject
-    def statusEndpoint = new InstanceStatusEndpoint(statusHandler)
+    def statusHandler = new StatusController(bakeStoreMock, instanceId)
 
     when:
-    statusEndpoint.invoke()
+    statusHandler.instanceIncompleteBakes()
 
     then:
     thrown(RuntimeException)

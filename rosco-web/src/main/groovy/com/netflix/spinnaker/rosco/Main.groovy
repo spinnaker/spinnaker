@@ -42,7 +42,6 @@ import javax.servlet.Filter
 @ComponentScan([
   "com.netflix.spinnaker.rosco.config",
   "com.netflix.spinnaker.rosco.controllers",
-  "com.netflix.spinnaker.rosco.endpoints",
   "com.netflix.spinnaker.rosco.executor",
   "com.netflix.spinnaker.rosco.filters",
   "com.netflix.spinnaker.rosco.jobs",
