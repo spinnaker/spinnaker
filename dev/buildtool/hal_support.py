@@ -94,7 +94,7 @@ class HalRunner(object):
       raise_and_log_error(
           ResponseError(
               '{url}: {code}\n{body}'.format(
-                  url=url, code=error.code, body=response.read()),
+                  url=url, code=error.code, body=error.read()),
               server='halyard'))
     self.__halyard_runtime_config = yaml.safe_load(response)
 
