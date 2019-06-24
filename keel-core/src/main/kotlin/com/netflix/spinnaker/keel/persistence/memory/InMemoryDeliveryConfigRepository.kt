@@ -16,7 +16,7 @@ class InMemoryDeliveryConfigRepository(
     configs[name] ?: throw NoSuchDeliveryConfigName(name)
 
   override fun store(deliveryConfig: DeliveryConfig) {
-    configs[deliveryConfig.name] = deliveryConfig
+    // TODO: can we do this in a transaction?
     deliveryConfig
       .artifacts
       .forEach { artifact ->
@@ -28,5 +28,6 @@ class InMemoryDeliveryConfigRepository(
       .forEach { resource ->
         resourceRepository.store(resource)
       }
+    configs[deliveryConfig.name] = deliveryConfig
   }
 }

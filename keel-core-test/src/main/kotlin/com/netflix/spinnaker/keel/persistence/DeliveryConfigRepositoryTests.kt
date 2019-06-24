@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import strikt.api.expectCatching
@@ -36,6 +37,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
     fun getByName() = expectCatching {
       repository.get(deliveryConfig.name)
     }
+
+    fun store() {
+      repository.store(deliveryConfig)
+    }
   }
 
   fun tests() = rootContext<Fixture>() {
@@ -58,7 +63,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
 
     context("storing a delivery config with no artifacts or environments") {
       before {
-        repository.store(deliveryConfig)
+        store()
       }
 
       test("the config can be retrieved by name") {
@@ -71,7 +76,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
       }
     }
 
-    context("a delivery config with artifacts and environments is stored") {
+    context("storing a delivery config with artifacts and environments") {
       deriveFixture {
         Fixture(
           deliveryConfig = deliveryConfig.copy(
@@ -110,38 +115,60 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
         )
       }
 
-      before {
-        repository.store(deliveryConfig)
-      }
+      context("the artifact and resource updates are successful") {
+        before {
+          store()
+        }
 
-      test("the config can be retrieved by name") {
-        getByName()
-          .succeeded()
-          .and {
-            get { artifacts }.isEqualTo(deliveryConfig.artifacts)
-            get { environments }.isEqualTo(deliveryConfig.environments)
-          }
-      }
-
-      test("artifacts are persisted via the artifact repository") {
-        deliveryConfig
-          .artifacts
-          .forEach { artifact ->
-            verify {
-              artifactRepository.register(artifact)
+        test("the config can be retrieved by name") {
+          getByName()
+            .succeeded()
+            .and {
+              get { artifacts }.isEqualTo(deliveryConfig.artifacts)
+              get { environments }.isEqualTo(deliveryConfig.environments)
             }
-          }
+        }
+
+        test("artifacts are persisted via the artifact repository") {
+          deliveryConfig
+            .artifacts
+            .forEach { artifact ->
+              verify {
+                artifactRepository.register(artifact)
+              }
+            }
+        }
+
+        test("resources are persisted via the resource repository") {
+          deliveryConfig
+            .environments
+            .flatMap { it.resources }
+            .forEach { resource ->
+              verify {
+                resourceRepository.store(resource)
+              }
+            }
+        }
       }
 
-      test("resources are persisted via the resource repository") {
-        deliveryConfig
-          .environments
-          .flatMap { it.resources }
-          .forEach { resource ->
-            verify {
-              resourceRepository.store(resource)
-            }
+      context("one of the other repositories throws an exception") {
+        before {
+          every {
+            resourceRepository.store(match { it.kind == "security-group" })
+          } throws IllegalStateException("o noes")
+
+          runCatching {
+            store()
           }
+        }
+
+        test("the delivery config is not persisted") {
+          getByName()
+            .failed()
+            .isA<NoSuchDeliveryConfigException>()
+        }
+
+        // TODO: really need to check the other resources / artifacts are also rolled back
       }
     }
   }
