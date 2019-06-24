@@ -7,7 +7,7 @@ import { StageArtifactSelector, IStageArtifactSelectorProps } from './StageArtif
 import { PreRewriteStageArtifactSelector, IPreRewriteArtifactSelectorProps } from './PreRewriteStageArtifactSelector';
 
 interface IStageArtifactSelectorDelegateProps {
-  helpKey: string;
+  helpKey?: string;
   label: string;
 }
 

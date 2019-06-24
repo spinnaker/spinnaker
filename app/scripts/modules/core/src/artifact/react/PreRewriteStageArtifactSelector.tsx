@@ -22,7 +22,7 @@ import {
 
 export interface IPreRewriteArtifactSelectorProps {
   excludedArtifactTypePatterns?: RegExp[];
-  helpKey: string;
+  helpKey?: string;
   label: string;
   selectedArtifactId: string;
   pipeline: IPipeline;
