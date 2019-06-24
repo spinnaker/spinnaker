@@ -18,11 +18,15 @@
 package com.netflix.spinnaker.orca.webhook.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import org.apache.tools.ant.taskdefs.condition.Http
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.HttpStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -52,10 +56,10 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     def ex = thrown IllegalStateException
-    ex.message == "Missing required parameter '${parameter}'" as String
+    ex.message.startsWith("Missing required parameter")
 
     where:
-    parameter << MonitorWebhookTask.requiredParameters
+    parameter << ["statusEndpoint", "statusJsonPath"]
   }
 
   def "should fail if no parameters are supplied"() {
@@ -67,7 +71,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     def ex = thrown IllegalStateException
-    ex.message == "Missing required parameters 'statusEndpoint', 'statusJsonPath'" as String
+    ex.message == "Missing required parameter(s): statusEndpoint = null, statusJsonPath = null" as String
   }
 
   def "should fail in case of URL validation error"() {
@@ -83,11 +87,11 @@ class MonitorWebhookTaskSpec extends Specification {
     }
 
     when:
-    monitorWebhookTask.execute stage
+    def result = monitorWebhookTask.execute(stage)
 
     then:
-    def ex = thrown IllegalArgumentException
-    ex.message == "Invalid URL"
+    result.status == ExecutionStatus.TERMINAL
+    result.context.webhook.monitor.error == "an exception occurred in webhook monitor to https://my-service.io/api/status/123: java.lang.IllegalArgumentException: Invalid URL"
   }
 
   def "should retry in case of name resolution error"() {
@@ -107,6 +111,38 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
+  }
+
+  @Unroll
+  def "should be #expectedTaskStatus in case of #statusCode"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", [
+      statusEndpoint: 'https://my-service.io/api/status/123',
+      statusJsonPath: '$.status',
+      successStatuses: 'SUCCESS',
+      canceledStatuses: 'CANCELED',
+      terminalStatuses: 'TERMINAL',
+      retryStatusCodes: [404, 405]
+    ])
+
+    monitorWebhookTask.webhookService = Mock(WebhookService) {
+      1 * getStatus("https://my-service.io/api/status/123", _) >> {
+        throw new HttpServerErrorException(statusCode, statusCode.name())
+      }
+    }
+
+    when:
+    def result = monitorWebhookTask.execute stage
+
+    then:
+    result.status == expectedTaskStatus
+
+    where:
+    statusCode                    | expectedTaskStatus
+    HttpStatus.TOO_MANY_REQUESTS  | ExecutionStatus.RUNNING
+    HttpStatus.NOT_FOUND          | ExecutionStatus.RUNNING
+    HttpStatus.METHOD_NOT_ALLOWED | ExecutionStatus.RUNNING
+    HttpStatus.NOT_ACCEPTABLE     | ExecutionStatus.TERMINAL
   }
 
   def "should do a get request to the defined statusEndpoint"() {

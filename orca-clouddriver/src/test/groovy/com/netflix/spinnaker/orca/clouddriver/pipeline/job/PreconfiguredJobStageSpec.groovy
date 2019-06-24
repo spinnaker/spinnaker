@@ -27,7 +27,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class PreconfiguredJobStageSpec extends Specification {
 
-  def "should should replace properties in context"() {
+  def "should replace properties in context"() {
     given:
     def jobService = Mock(JobService) {
       1 * getPreconfiguredStages() >> {

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
+import com.google.common.base.Strings
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -53,48 +54,54 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   @Autowired
   WebhookService webhookService
 
-  static requiredParameters = ["statusEndpoint", "statusJsonPath"]
-
   @Override
   TaskResult execute(Stage stage) {
-    def missing = requiredParameters.findAll { !stage.context.get(it) }
-    if (!missing.empty) {
-      throw new IllegalStateException("Missing required parameter${missing.size() > 1 ? 's' : ''} '${missing.join('\', \'')}'")
-    }
+    StageData stageData = stage.mapTo(StageData)
 
-    String statusEndpoint = stage.context.statusEndpoint
-    String statusJsonPath = stage.context.statusJsonPath
-    String progressJsonPath = stage.context.progressJsonPath
-    String successStatuses = stage.context.successStatuses
-    String canceledStatuses = stage.context.canceledStatuses
-    String terminalStatuses = stage.context.terminalStatuses
-    def customHeaders = stage.context.customHeaders
+    if (Strings.isNullOrEmpty(stageData.statusEndpoint) || Strings.isNullOrEmpty(stageData.statusJsonPath)) {
+      throw new IllegalStateException(
+        "Missing required parameter(s): statusEndpoint = ${stageData.statusEndpoint}, statusJsonPath = ${stageData.statusJsonPath}")
+    }
 
     def response
     try {
-      response = webhookService.getStatus(statusEndpoint, customHeaders)
+      response = webhookService.getStatus(stageData.statusEndpoint, stageData.customHeaders)
       log.debug(
         "Received status code {} from status endpoint {} in execution {} in stage {}",
         response.statusCode,
-        statusEndpoint,
+        stageData.statusEndpoint,
         stage.execution.id,
         stage.id
       )
     } catch (IllegalArgumentException e) {
       if (e.cause instanceof UnknownHostException) {
-        log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${statusEndpoint}, will retry.", e)
+        log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.statusEndpoint}, will retry.", e)
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
-      throw e
+      String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
+      log.error(errorMessage, e)
+      Map<String, ?> outputs = [webhook: [monitor: [:]]]
+      outputs.webhook.monitor << [error: errorMessage]
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     } catch (HttpStatusCodeException  e) {
       def statusCode = e.getStatusCode()
-      if (statusCode.is5xxServerError() || statusCode.value() == 429) {
-        log.warn("error getting webhook status from ${statusEndpoint}, will retry", e)
+      def statusValue = statusCode.value()
+
+      boolean shouldRetry = statusCode.is5xxServerError() ||
+                            (statusValue == 429) ||
+                            ((stageData.retryStatusCodes != null) && (stageData.retryStatusCodes.contains(statusValue)))
+
+      if (shouldRetry) {
+        log.warn("Failed to get webhook status from ${stageData.statusEndpoint} with statusCode=${statusCode.value()}, will retry", e)
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
-      throw e
+      String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
+      log.error(errorMessage, e)
+      Map<String, ?> outputs = [webhook: [monitor: [:]]]
+      outputs.webhook.monitor << [error: errorMessage]
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     }
 
     def result
@@ -111,26 +118,26 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."
     ]
     try {
-      result = JsonPath.read(response.body, statusJsonPath)
+      result = JsonPath.read(response.body, stageData.statusJsonPath)
     } catch (PathNotFoundException e) {
-      responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "status", statusJsonPath)]
+      responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "status", stageData.statusJsonPath)]
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
     }
     if (!(result instanceof String || result instanceof Number || result instanceof Boolean)) {
-      responsePayload.webhook.monitor << [error: "The json path '${statusJsonPath}' did not resolve to a single value", resolvedValue: result]
+      responsePayload.webhook.monitor << [error: "The json path '${stageData.statusJsonPath}' did not resolve to a single value", resolvedValue: result]
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
     }
 
-    if (progressJsonPath) {
+    if (stageData.progressJsonPath) {
       def progress
       try {
-        progress = JsonPath.read(response.body, progressJsonPath)
+        progress = JsonPath.read(response.body, stageData.progressJsonPath)
       } catch (PathNotFoundException e) {
-        responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "progress", statusJsonPath)]
+        responsePayload.webhook.monitor << [error: String.format(JSON_PATH_NOT_FOUND_ERR_FMT, "progress", stageData.statusJsonPath)]
         return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
       }
       if (!(progress instanceof String)) {
-        responsePayload.webhook.monitor << [error: "The json path '${progressJsonPath}' did not resolve to a String value", resolvedValue: progress]
+        responsePayload.webhook.monitor << [error: "The json path '${stageData.progressJsonPath}' did not resolve to a String value", resolvedValue: progress]
         return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
       }
       if (progress) {
@@ -139,7 +146,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       }
     }
 
-    def statusMap = createStatusMap(successStatuses, canceledStatuses, terminalStatuses)
+    def statusMap = createStatusMap(stageData.successStatuses, stageData.canceledStatuses, stageData.terminalStatuses)
 
     if (result instanceof Number) {
       def status = result == 100 ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
@@ -167,5 +174,16 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
   private static Map<String, ExecutionStatus> mapStatuses(String statuses, ExecutionStatus status) {
     statuses.split(",").collectEntries { [(it.trim().toUpperCase()): status] }
+  }
+
+  private static class StageData {
+    public String statusEndpoint
+    public String statusJsonPath
+    public String progressJsonPath
+    public String successStatuses
+    public String canceledStatuses
+    public String terminalStatuses
+    public Object customHeaders
+    public List<Integer> retryStatusCodes
   }
 }

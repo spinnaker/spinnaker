@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
@@ -33,16 +34,19 @@ class WebhookStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
-    String waitForCompletion = stage.context.waitForCompletion
+    StageData stageData = stage.mapTo(StageData)
 
     builder.withTask("createWebhook", CreateWebhookTask)
-    if (waitForCompletion?.toBoolean()) {
-      builder
-        .withTask("monitorWebhook", MonitorWebhookTask)
+    if (stageData.waitForCompletion) {
+      if (stageData.waitBeforeMonitor > 0) {
+        stage.context.putIfAbsent("waitTime", stageData.waitBeforeMonitor)
+        builder.withTask("waitBeforeMonitorWebhook", WaitTask)
+      }
+
+      builder.withTask("monitorWebhook", MonitorWebhookTask)
     }
     if (stage.context.containsKey("expectedArtifacts")) {
-      builder
-        .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+      builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class)
     }
   }
 
@@ -50,5 +54,10 @@ class WebhookStage implements StageDefinitionBuilder, CancellableStage {
   CancellableStage.Result cancel(Stage stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
     return new CancellableStage.Result(stage, [:])
+  }
+
+  static class StageData {
+    boolean waitForCompletion
+    int waitBeforeMonitor
   }
 }
