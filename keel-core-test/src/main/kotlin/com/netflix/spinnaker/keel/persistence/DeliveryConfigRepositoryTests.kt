@@ -75,13 +75,13 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
       deriveFixture {
         Fixture(
           deliveryConfig = deliveryConfig.copy(
-            deliveryArtifacts = setOf(
+            artifacts = setOf(
               DeliveryArtifact(
                 name = "keel",
                 type = DEB
               )
             ),
-            deliveryEnvironments = setOf(
+            environments = setOf(
               Environment(
                 name = "test",
                 resources = setOf(
@@ -118,14 +118,14 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
         getByName()
           .succeeded()
           .and {
-            get { deliveryArtifacts }.isEqualTo(deliveryConfig.deliveryArtifacts)
-            get { deliveryEnvironments }.isEqualTo(deliveryConfig.deliveryEnvironments)
+            get { artifacts }.isEqualTo(deliveryConfig.artifacts)
+            get { environments }.isEqualTo(deliveryConfig.environments)
           }
       }
 
       test("artifacts are persisted via the artifact repository") {
         deliveryConfig
-          .deliveryArtifacts
+          .artifacts
           .forEach { artifact ->
             verify {
               artifactRepository.register(artifact)
@@ -135,7 +135,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
 
       test("resources are persisted via the resource repository") {
         deliveryConfig
-          .deliveryEnvironments
+          .environments
           .flatMap { it.resources }
           .forEach { resource ->
             verify {

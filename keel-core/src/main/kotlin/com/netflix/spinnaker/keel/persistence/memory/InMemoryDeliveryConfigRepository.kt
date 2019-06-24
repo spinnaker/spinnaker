@@ -18,12 +18,12 @@ class InMemoryDeliveryConfigRepository(
   override fun store(deliveryConfig: DeliveryConfig) {
     configs[deliveryConfig.name] = deliveryConfig
     deliveryConfig
-      .deliveryArtifacts
+      .artifacts
       .forEach { artifact ->
         artifactRepository.register(artifact)
       }
     deliveryConfig
-      .deliveryEnvironments
+      .environments
       .flatMap { it.resources }
       .forEach { resource ->
         resourceRepository.store(resource)
