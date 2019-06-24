@@ -77,7 +77,8 @@ public class CreateBakeManifestTask implements RetryableTask {
         inputArtifactsObj.stream()
             .map(
                 p -> {
-                  Artifact a = artifactResolver.getBoundArtifactForId(stage, p.getId());
+                  Artifact a =
+                      artifactResolver.getBoundArtifactForStage(stage, p.getId(), p.getArtifact());
                   if (a == null) {
                     throw new IllegalArgumentException(
                         stage.getExecution().getId()
@@ -132,5 +133,6 @@ public class CreateBakeManifestTask implements RetryableTask {
   protected static class InputArtifactPair {
     String id;
     String account;
+    Artifact artifact;
   }
 }
