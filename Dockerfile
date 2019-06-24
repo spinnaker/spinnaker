@@ -6,7 +6,7 @@ COPY . workdir/
 
 WORKDIR workdir
 
-RUN GRADLE_USER_HOME=cache ./gradlew -I gradle/init-publish.gradle buildDeb -x test && \
+RUN GRADLE_USER_HOME=cache ./gradlew -PenablePublishing=true buildDeb -x test && \
   dpkg -i ./orca-web/build/distributions/*.deb && \
   cd .. && \
   rm -rf workdir

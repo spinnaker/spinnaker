@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import rx.Observable
@@ -43,13 +44,17 @@ class ArtifactResolverSpec extends Specification {
 
   def executionRepository = Stub(ExecutionRepository) {
     // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
-    retrievePipelinesForPipelineConfigId(pipelineId, expectedExecutionCriteria) >> Observable.empty();
+    retrievePipelinesForPipelineConfigId(pipelineId, expectedExecutionCriteria) >> Observable.empty()
     // any other interaction is unexpected
     0 * _
   }
 
   def makeArtifactResolver() {
-    return new ArtifactResolver(new ObjectMapper(), executionRepository,
+    return makeArtifactResolverWithStub(executionRepository)
+  }
+
+  def makeArtifactResolverWithStub(ExecutionRepository executionRepositoryStub) {
+    return new ArtifactResolver(new ObjectMapper(), executionRepositoryStub,
       new ContextParameterProcessor())
   }
 
@@ -309,6 +314,86 @@ class ArtifactResolverSpec extends Specification {
     artifacts*.type == ["2", "1", "trigger"]
   }
 
+  def "should find artifacts from a specific pipeline"() {
+    when:
+    def execution = pipeline {
+      id: pipelineId
+      status: ExecutionStatus.SUCCEEDED
+      stage {
+        refId = "1"
+        outputs.artifacts = [new Artifact(type: "1")]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        outputs.artifacts = [new Artifact(type: "2")]
+      }
+      stage {
+        // This stage does not emit an artifacts
+        requisiteStageRefIds = ["2"]
+      }
+    }
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria()
+    executionCriteria.setStatuses(ExecutionStatus.SUCCEEDED)
+
+    def executionTerminalCriteria = new ExecutionRepository.ExecutionCriteria()
+    executionTerminalCriteria.setStatuses(ExecutionStatus.TERMINAL)
+
+    def executionRepositoryStub = Stub(ExecutionRepository) {
+      // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
+      retrievePipelinesForPipelineConfigId(pipelineId, executionCriteria) >> Observable.just(execution)
+      retrievePipelinesForPipelineConfigId(pipelineId, executionTerminalCriteria) >> Observable.empty()
+      // any other interaction is unexpected
+      0 * _
+    }
+
+    def artifactResolver = makeArtifactResolverWithStub(executionRepositoryStub)
+
+    then:
+    def artifacts = artifactResolver.getArtifactsForPipelineId(pipelineId, executionCriteria)
+    artifacts.size == 3
+    artifacts*.type == ["2", "1", "trigger"]
+
+    def emptyArtifacts = artifactResolver.getArtifactsForPipelineId(pipelineId, executionTerminalCriteria)
+    emptyArtifacts == []
+  }
+
+  def "should find artifacts without a specific stage ref"() {
+    when:
+    def execution = pipeline {
+      id: pipelineId
+      stage {
+        refId = "1"
+        outputs.artifacts = [new Artifact(type: "1")]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        outputs.artifacts = [new Artifact(type: "2")]
+      }
+      stage {
+        // This stage does not emit an artifacts
+        requisiteStageRefIds = ["2"]
+      }
+    }
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+
+    def executionRepositoryStub = Stub(ExecutionRepository) {
+      // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
+      retrievePipelinesForPipelineConfigId(pipelineId, expectedExecutionCriteria) >> Observable.just(execution)
+      // any other interaction is unexpected
+      0 * _
+    }
+
+    def artifactResolver = makeArtifactResolverWithStub(executionRepositoryStub)
+
+    then:
+    def artifacts = artifactResolver.getArtifactsForPipelineIdWithoutStageRef(pipelineId, "2", expectedExecutionCriteria)
+    artifacts.size == 2
+    artifacts*.type == ["1", "trigger"]
+  }
   @Unroll
   def "should resolve expected artifacts from pipeline for #expectedArtifacts using #available and prior #prior"() {
     when:
