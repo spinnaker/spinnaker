@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
@@ -14,7 +15,9 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.SQLDialect.MYSQL_5_7
 import org.junit.jupiter.api.AfterAll
 import strikt.api.expectThat
+import strikt.assertions.containsKey
 import strikt.assertions.hasSize
+import strikt.assertions.isEqualTo
 import java.time.Clock
 
 internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceRepository>() {
@@ -78,6 +81,48 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
         }
 
         expectThat(results).hasSize(1000)
+      }
+    }
+
+    context("database schema consistency") {
+      before {
+        val resource = Resource(
+          apiVersion = SPINNAKER_API_V1,
+          metadata = mapOf(
+            "name" to "ec2:security-group:test:us-west-2:fnord",
+            "uid" to randomUID()
+          ) + randomData(),
+          kind = "security-group",
+          spec = randomData()
+        )
+        subject.store(resource)
+      }
+
+      test("metadata is persisted") {
+        jooq
+          .select(field<String>("metadata"))
+          .from("resource")
+          .fetchOne()
+          .let { (metadata) ->
+            configuredObjectMapper().readValue<Map<String, Any?>>(metadata)
+          }
+          .also { metadata ->
+            expectThat(metadata)
+              .containsKey("uid")
+              .containsKey("name")
+          }
+      }
+
+      test("uid is stored consistently") {
+        jooq
+          .select(field<String>("uid"), field<String>("metadata"))
+          .from("resource")
+          .fetchOne()
+          .also { (uid, metadata) ->
+            val metadataMap = configuredObjectMapper().readValue<Map<String, Any?>>(metadata)
+            expectThat(uid)
+              .isEqualTo(metadataMap["uid"].toString())
+          }
       }
     }
   }
