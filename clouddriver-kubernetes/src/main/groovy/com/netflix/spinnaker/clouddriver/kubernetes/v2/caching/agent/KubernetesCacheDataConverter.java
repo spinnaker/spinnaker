@@ -199,12 +199,7 @@ public class KubernetesCacheDataConverter {
     logMalformedManifest(() -> "Converting " + manifest + " to a cached resource", manifest);
 
     KubernetesKind kind = manifest.getKind();
-    boolean hasClusterRelationship = false;
-    boolean isNamespaced = true;
-    if (kind != null) {
-      hasClusterRelationship = kind.hasClusterRelationship();
-      isNamespaced = kind.isNamespaced();
-    }
+    boolean hasClusterRelationship = kind != null && kind.hasClusterRelationship();
 
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
@@ -274,7 +269,7 @@ public class KubernetesCacheDataConverter {
     return mapper.convertValue(o, KubernetesManifest.class);
   }
 
-  public static <T> T getResource(KubernetesManifest manifest, Class<T> clazz) {
+  public static <T> T getResource(Object manifest, Class<T> clazz) {
     // A little hacky, but the only way to deserialize any timestamps using string constructors
     return json.deserialize(json.serialize(manifest), clazz);
   }

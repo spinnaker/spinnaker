@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
-import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodStatus;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,8 +50,8 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
 
-    V1Pod pod = KubernetesCacheDataConverter.getResource(this.manifest, V1Pod.class);
-    V1PodStatus status = pod.getStatus();
+    V1PodStatus status =
+        KubernetesCacheDataConverter.getResource(this.manifest.getStatus(), V1PodStatus.class);
     if (status != null) {
       health.add(new KubernetesV2Health(status).toMap());
       if (status.getContainerStatuses() != null) {
