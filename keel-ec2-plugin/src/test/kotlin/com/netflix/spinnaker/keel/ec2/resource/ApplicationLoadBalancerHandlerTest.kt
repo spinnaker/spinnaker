@@ -127,7 +127,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         vpcId = vpc.id,
         attributes = ApplicationLoadBalancerModel.TargetGroupAttributes(
           stickinessEnabled = false,
-          deregistrationTimeout = 300,
+          deregistrationDelay = 300,
           stickinessType = "lb_cookie",
           stickinessDuration = 86400,
           slowStartDurationSeconds = 0

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ApplicationLoadBalancerModel(
@@ -84,19 +84,19 @@ data class ApplicationLoadBalancerModel(
   )
 
   data class TargetGroupAttributes(
-    @JsonProperty("stickiness.enabled")
+    @JsonAlias("stickiness.enabled")
     val stickinessEnabled: Boolean = false,
 
-    @JsonProperty("deregistration_delay.timeout_seconds")
-    val deregistrationTimeout: Int = 300,
+    @JsonAlias("deregistration_delay.timeout_seconds")
+    val deregistrationDelay: Int = 300,
 
-    @JsonProperty("stickiness.type")
+    @JsonAlias("stickiness.type")
     val stickinessType: String = "lb_cookie",
 
-    @JsonProperty("stickiness.lb_cookie.duration_seconds")
+    @JsonAlias("stickiness.lb_cookie.duration_seconds")
     val stickinessDuration: Int = 86400,
 
-    @JsonProperty("slow_start.duration_seconds")
+    @JsonAlias("slow_start.duration_seconds")
     val slowStartDurationSeconds: Int = 0,
 
     @get:JsonAnyGetter val properties: Map<String, Any?> = emptyMap()
