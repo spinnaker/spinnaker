@@ -1,0 +1,8 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "com.fasterxml.jackson.core:jackson-annotations"
+}
