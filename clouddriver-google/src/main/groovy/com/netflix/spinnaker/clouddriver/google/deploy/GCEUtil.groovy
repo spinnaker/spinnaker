@@ -742,6 +742,10 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/global/healthChecks/$healthCheckName"
   }
 
+  static String buildInstanceTemplateUrl(String projectName, String templateName) {
+    return GCE_API_PREFIX + "$projectName/global/instanceTemplates/$templateName"
+  }
+
   static String buildBackendServiceUrl(String projectName, String backendServiceName) {
     return GCE_API_PREFIX + "$projectName/global/backendServices/$backendServiceName"
   }

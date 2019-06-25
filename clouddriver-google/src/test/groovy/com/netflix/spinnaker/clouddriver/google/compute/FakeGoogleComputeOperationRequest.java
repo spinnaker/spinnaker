@@ -27,6 +27,10 @@ public class FakeGoogleComputeOperationRequest<RequestT extends ComputeRequest<O
 
   private boolean waited = false;
 
+  public FakeGoogleComputeOperationRequest() {
+    this(new Operation());
+  }
+
   public FakeGoogleComputeOperationRequest(Operation response) {
     super(response);
   }

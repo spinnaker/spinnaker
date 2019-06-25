@@ -39,6 +39,8 @@ public interface GoogleServerGroupManagers {
   GoogleComputeRequest<ComputeRequest<InstanceGroupManager>, InstanceGroupManager> get()
       throws IOException;
 
+  GoogleComputeOperationRequest patch(InstanceGroupManager content) throws IOException;
+
   GoogleComputeOperationRequest<ComputeRequest<Operation>> update(InstanceGroupManager content)
       throws IOException;
 }

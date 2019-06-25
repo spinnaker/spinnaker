@@ -70,6 +70,13 @@ abstract class AbstractGoogleServerGroupManagers implements GoogleServerGroupMan
   abstract ComputeRequest<InstanceGroupManager> performGet() throws IOException;
 
   @Override
+  public GoogleComputeOperationRequest patch(InstanceGroupManager content) throws IOException {
+    return wrapOperationRequest(performPatch(content), "patch");
+  }
+
+  abstract ComputeRequest<Operation> performPatch(InstanceGroupManager content) throws IOException;
+
+  @Override
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {
     return wrapOperationRequest(performUpdate(content), "update");

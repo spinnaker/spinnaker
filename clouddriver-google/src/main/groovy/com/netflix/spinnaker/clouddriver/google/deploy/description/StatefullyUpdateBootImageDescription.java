@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.compute;
+package com.netflix.spinnaker.clouddriver.google.deploy.description;
 
-import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
-import com.google.api.services.compute.ComputeRequest;
-import java.io.IOException;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable;
+import lombok.Data;
 
-public interface ComputeBatchRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT> {
+@Data
+public class StatefullyUpdateBootImageDescription
+    implements CredentialsNameable, ServerGroupNameable {
 
-  void queue(
-      GoogleComputeRequest<RequestT, ResponseT> request, JsonBatchCallback<ResponseT> callback);
-
-  void execute(String batchContext) throws IOException;
+  private GoogleNamedAccountCredentials credentials;
+  private String serverGroupName;
+  private String region;
+  private String bootImage;
 }

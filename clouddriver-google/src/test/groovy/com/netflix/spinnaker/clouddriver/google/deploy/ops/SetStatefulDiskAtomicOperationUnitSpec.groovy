@@ -72,7 +72,7 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
       deviceName: DEVICE_NAME,
       credentials: CREDENTIALS)
     def operation = new SetStatefulDiskAtomicOperation(clusterProvider, computeApiFactory, description)
-    def updateOp = new FakeGoogleComputeOperationRequest<>(new Operation())
+    def updateOp = new FakeGoogleComputeOperationRequest<>()
     def getManagerRequest = new FakeGoogleComputeRequest<>(new InstanceGroupManager())
     _ * serverGroupManagers.get() >> getManagerRequest
 

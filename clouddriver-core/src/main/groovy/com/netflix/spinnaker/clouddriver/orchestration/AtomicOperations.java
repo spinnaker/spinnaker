@@ -35,6 +35,7 @@ public final class AtomicOperations {
   public static final String START_SERVER_GROUP = "startServerGroup";
   public static final String STOP_SERVER_GROUP = "stopServerGroup";
   public static final String SET_STATEFUL_DISK = "setStatefulDisk";
+  public static final String STATEFULLY_UPDATE_BOOT_IMAGE = "statefullyUpdateBootImage";
   public static final String UPSERT_DISRUPTION_BUDGET = "upsertDisruptionBudget";
   public static final String UPDATE_JOB_PROCESSES = "updateJobProcesses";
 

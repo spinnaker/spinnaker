@@ -68,6 +68,11 @@ final class RegionGoogleServerGroupManagers extends AbstractGoogleServerGroupMan
   }
 
   @Override
+  ComputeRequest<Operation> performPatch(InstanceGroupManager content) throws IOException {
+    return managers.patch(getProject(), region, getInstanceGroupName(), content);
+  }
+
+  @Override
   ComputeRequest<Operation> performUpdate(InstanceGroupManager content) throws IOException {
     return managers.update(getProject(), region, getInstanceGroupName(), content);
   }

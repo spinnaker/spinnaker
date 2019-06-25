@@ -16,8 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.exception
 
+import com.google.common.base.Strings
+import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 
 @InheritConstructors
+@CompileStatic
+class GoogleResourceIllegalStateException extends GoogleOperationException {
 
-class GoogleResourceIllegalStateException extends GoogleOperationException {}
+  // @InheritConstructors apparently doesn't work with Java callers
+  GoogleResourceIllegalStateException(String message) {
+    super(message)
+  }
+
+  static checkResourceState(boolean expression, Object message) {
+    if (!expression) {
+      throw new GoogleResourceIllegalStateException(String.valueOf(message));
+    }
+  }
+
+  static checkResourceState(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
+    if (!expression) {
+      throw new GoogleResourceIllegalStateException(Strings.lenientFormat(errorMessageTemplate, errorMessageArgs));
+    }
+  }
+}
