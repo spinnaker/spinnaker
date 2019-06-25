@@ -66,6 +66,7 @@ public class JobDescription {
   private DisruptionBudget disruptionBudget;
 
   private SubmitJobRequest.Constraints constraints;
+  private ServiceJobProcesses serviceJobProcesses;
 
   // Soft/Hard constraints
 
@@ -120,6 +121,7 @@ public class JobDescription {
 
     disruptionBudget = request.getDisruptionBudget();
     constraints = request.getContainerConstraints();
+    serviceJobProcesses = request.getServiceJobProcesses();
   }
 
   public String getName() {
@@ -405,6 +407,14 @@ public class JobDescription {
     this.disruptionBudget = disruptionBudget;
   }
 
+  public ServiceJobProcesses getServiceJobProcesses() {
+    return serviceJobProcesses;
+  }
+
+  public void setServiceJobProcesses(ServiceJobProcesses serviceJobProcesses) {
+    this.serviceJobProcesses = serviceJobProcesses;
+  }
+
   @JsonIgnore
   public SubmitJobRequest.Constraints getConstraints() {
     return constraints;
@@ -566,12 +576,20 @@ public class JobDescription {
                         .build())
                 .build();
       }
-
+      com.netflix.titus.grpc.protogen.ServiceJobSpec.ServiceJobProcesses.Builder
+          titusServiceJobProcesses = ServiceJobSpec.ServiceJobProcesses.newBuilder();
+      if (serviceJobProcesses != null) {
+        titusServiceJobProcesses
+            .setDisableDecreaseDesired(serviceJobProcesses.isDisableDecreaseDesired())
+            .setDisableIncreaseDesired(serviceJobProcesses.isDisableIncreaseDesired())
+            .build();
+      }
       jobDescriptorBuilder.setService(
           ServiceJobSpec.newBuilder()
               .setEnabled(inService)
               .setCapacity(jobCapacity)
               .setMigrationPolicy(serviceMigrationPolicy)
+              .setServiceJobProcesses(titusServiceJobProcesses)
               .setRetryPolicy(
                   RetryPolicy.newBuilder()
                       .setExponentialBackOff(

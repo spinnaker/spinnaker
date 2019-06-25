@@ -306,6 +306,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
               [(it.key): it.value?.toString()]
             })
             .withDisruptionBudget(description.disruptionBudget)
+            .withServiceJobProcesses(description.serviceJobProcesses)
 
     if (dockerImage.imageDigest != null) {
       submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)
@@ -393,6 +394,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       description.capacity.min = sourceJob.instancesMin
       description.capacity.max = sourceJob.instancesMax
       description.capacity.desired = sourceJob.instancesDesired
+    }
+
+    if(description.serviceJobProcesses) {
+         description.serviceJobProcesses.disableDecreaseDesired = sourceJob.serviceJobProcesses.disableDecreaseDesired
+           description.serviceJobProcesses.disableIncreaseDesired = sourceJob.serviceJobProcesses.disableIncreaseDesired
     }
 
     description.resources.cpu = description.resources.cpu ?: sourceJob.cpu

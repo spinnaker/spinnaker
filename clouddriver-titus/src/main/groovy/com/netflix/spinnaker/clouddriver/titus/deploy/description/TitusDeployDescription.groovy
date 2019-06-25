@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
+import com.netflix.spinnaker.clouddriver.titus.client.model.ServiceJobProcesses
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import groovy.transform.Canonical
 
@@ -56,6 +57,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Boolean copySourceScalingPoliciesAndActions = true
   Integer sequence
   DisruptionBudget disruptionBudget
+  ServiceJobProcesses serviceJobProcesses
 
   // constraints take precedence over list of soft / hard constraints when specified
   SubmitJobRequest.Constraints constraints = new SubmitJobRequest.Constraints()

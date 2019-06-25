@@ -84,6 +84,10 @@ class TitusDeployHandlerSpec extends Specification {
         'k1': 'value1',
         'k2': 123
       ],
+        serviceJobProcesses: [
+          "disableIncreaseDesired": true,
+          "disableDecreaseDesired": true
+        ],
       constraints: [
           soft: [
             "AvailabilityZone" : "us-east-1d",
@@ -136,6 +140,7 @@ class TitusDeployHandlerSpec extends Specification {
         it.allocateIpAddress == titusDeployDescription.resources.allocateIpAddress &&
         it.labels.get("interestingHealthProviderNames") == "Titus,Discovery" &&
         it.containerConstraints == constraints
+        it.serviceJobProcesses == titusDeployDescription.serviceJobProcesses
     } as SubmitJobRequest) >> "123456"
   }
 
