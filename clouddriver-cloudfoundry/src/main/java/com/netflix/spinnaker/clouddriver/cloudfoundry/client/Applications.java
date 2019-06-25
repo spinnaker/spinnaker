@@ -321,11 +321,7 @@ public class Applications {
     final CloudFoundryBuildInfo buildInfo = getBuildInfoFromEnvVars(environmentVars);
     final ArtifactInfo artifactInfo = getArtifactInfoFromEnvVars(environmentVars);
     final String pipelineId =
-        Optional.ofNullable(environmentVars.get(ServerGroupMetaDataEnvVar.PipelineId.envVarName))
-            .map(Object::toString)
-            .orElse(null);
-    Arrays.asList(ServerGroupMetaDataEnvVar.values())
-        .forEach(envVar -> environmentVars.remove(envVar.envVarName));
+        getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.PipelineId);
 
     String healthCheckType = null;
     String healthCheckHttpEndpoint = null;
@@ -378,40 +374,26 @@ public class Applications {
         .build();
   }
 
+  private String getEnvironmentVar(
+      Map<String, Object> environmentVars, ServerGroupMetaDataEnvVar var) {
+    return Optional.ofNullable(environmentVars.get(var.envVarName))
+        .map(Object::toString)
+        .orElse(null);
+  }
+
   private CloudFoundryBuildInfo getBuildInfoFromEnvVars(Map<String, Object> environmentVars) {
     return CloudFoundryBuildInfo.builder()
-        .jobName(
-            Optional.ofNullable(environmentVars.get(ServerGroupMetaDataEnvVar.JobName.envVarName))
-                .map(Object::toString)
-                .orElse(null))
-        .jobNumber(
-            Optional.ofNullable(environmentVars.get(ServerGroupMetaDataEnvVar.JobNumber.envVarName))
-                .map(Object::toString)
-                .orElse(null))
-        .jobUrl(
-            Optional.ofNullable(environmentVars.get(ServerGroupMetaDataEnvVar.JobUrl.envVarName))
-                .map(Object::toString)
-                .orElse(null))
+        .jobName(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.JobName))
+        .jobNumber(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.JobNumber))
+        .jobUrl(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.JobUrl))
         .build();
   }
 
   private ArtifactInfo getArtifactInfoFromEnvVars(Map<String, Object> environmentVars) {
     return ArtifactInfo.builder()
-        .name(
-            Optional.ofNullable(
-                    environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactName.envVarName))
-                .map(Object::toString)
-                .orElse(null))
-        .version(
-            Optional.ofNullable(
-                    environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactVersion.envVarName))
-                .map(Object::toString)
-                .orElse(null))
-        .url(
-            Optional.ofNullable(
-                    environmentVars.get(ServerGroupMetaDataEnvVar.ArtifactUrl.envVarName))
-                .map(Object::toString)
-                .orElse(null))
+        .name(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.ArtifactName))
+        .version(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.ArtifactVersion))
+        .url(getEnvironmentVar(environmentVars, ServerGroupMetaDataEnvVar.ArtifactUrl))
         .build();
   }
 
