@@ -146,7 +146,10 @@ export class PipelineTemplateReader {
     return API.one('pipelineTemplates')
       .get()
       .then((templates: IPipelineTemplateV2[]) => {
-        return templates.filter(({ schema }) => schema === 'v2');
+        return templates.filter(
+          ({ digest, schema, tag }) =>
+            schema === 'v2' && tag === PipelineTemplateV2Service.defaultTag && typeof digest === 'undefined',
+        );
       });
   }
 }

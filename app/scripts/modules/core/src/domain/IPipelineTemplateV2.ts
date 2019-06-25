@@ -11,6 +11,7 @@ export interface IPipelineTemplateV2 {
   version?: string;
   updateTs?: string;
   digest?: string;
+  tag?: string;
 }
 
 interface IPipelineTemplateMetadataV2 {

@@ -77,6 +77,7 @@ export class PipelineTemplateV2Service {
   }
 
   private static schema = 'v2';
+  public static defaultTag = 'latest';
 
   public static inheritedKeys: Set<InheritedItem> = new Set([
     InheritedItem.Triggers,
