@@ -63,8 +63,9 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
     Execution execution = stage.getExecution()
     if (execution.type == PIPELINE) {
       String expectedId = operation.expectedArtifactId?.trim()
-      if (expectedId) {
-        Artifact boundArtifact = artifactResolver.getBoundArtifactForId(stage, expectedId)
+      Artifact expectedArtifact = operation.expectedArtifact
+      if (expectedId || expectedArtifact) {
+        Artifact boundArtifact = artifactResolver.getBoundArtifactForStage(stage, expectedId, expectedArtifact)
         if (boundArtifact) {
           operation.artifact = boundArtifact
         } else {
