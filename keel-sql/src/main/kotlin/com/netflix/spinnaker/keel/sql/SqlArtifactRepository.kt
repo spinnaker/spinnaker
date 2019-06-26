@@ -15,7 +15,8 @@ class SqlArtifactRepository(
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
     jooq.inTransaction {
-      insertInto(DELIVERY_ARTIFACT, UID, NAME, TYPE)
+      insertInto(DELIVERY_ARTIFACT)
+        .columns(UID, NAME, TYPE)
         .values(randomUID().toString(), artifact.name, artifact.type.name)
         .onDuplicateKeyIgnore()
         .execute()

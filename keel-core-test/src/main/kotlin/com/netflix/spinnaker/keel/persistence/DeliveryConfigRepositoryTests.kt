@@ -9,9 +9,6 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import strikt.api.expectCatching
 import strikt.assertions.failed
 import strikt.assertions.isA
@@ -20,19 +17,23 @@ import strikt.assertions.succeeded
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUnit5Minutests {
 
-  abstract fun factory(
-    artifactRepository: ArtifactRepository,
-    resourceRepository: ResourceRepository
-  ): T
+  abstract fun factory(resourceTypeIdentifier: (String) -> Class<*>): T
 
   open fun flush() {}
 
-  inner class Fixture(
+  data class Fixture<T : DeliveryConfigRepository>(
+    val factory: ((String) -> Class<*>) -> T,
     val deliveryConfig: DeliveryConfig
   ) {
-    val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
-    val resourceRepository: ResourceRepository = mockk(relaxUnitFun = true)
-    val repository: T = factory(artifactRepository, resourceRepository)
+    val resourceTypeIdentifier: (String) -> Class<*> = { kind: String ->
+      when (kind) {
+        "security-group" -> Map::class.java
+        "cluster" -> Map::class.java
+        else -> error("unsupported kind $kind")
+      }
+    }
+
+    val repository: T = factory(resourceTypeIdentifier)
 
     fun getByName() = expectCatching {
       repository.get(deliveryConfig.name)
@@ -43,14 +44,16 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
     }
   }
 
-  fun tests() = rootContext<Fixture>() {
+  fun tests() = rootContext<Fixture<T>>() {
     fixture {
       Fixture(
-        DeliveryConfig(
-          "keel",
-          "keel"
-        )
+        factory = this@DeliveryConfigRepositoryTests::factory,
+        deliveryConfig = DeliveryConfig("keel", "keel")
       )
+    }
+
+    after {
+      flush()
     }
 
     context("an empty repository") {
@@ -79,12 +82,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
     context("storing a delivery config with artifacts and environments") {
       deriveFixture {
         Fixture(
+          factory = this@DeliveryConfigRepositoryTests::factory,
           deliveryConfig = deliveryConfig.copy(
             artifacts = setOf(
-              DeliveryArtifact(
-                name = "keel",
-                type = DEB
-              )
+              DeliveryArtifact(name = "keel", type = DEB)
             ),
             environments = setOf(
               Environment(
@@ -94,7 +95,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "cluster",
                     metadata = mapOf(
-                      "uid" to randomUID(),
+                      "uid" to randomUID().toString(),
                       "name" to "test:cluster:whatever"
                     ),
                     spec = randomData()
@@ -103,7 +104,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "security-group",
                     metadata = mapOf(
-                      "uid" to randomUID(),
+                      "uid" to randomUID().toString(),
                       "name" to "test:security-group:whatever"
                     ),
                     spec = randomData()
@@ -124,51 +125,22 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
           getByName()
             .succeeded()
             .and {
-              get { artifacts }.isEqualTo(deliveryConfig.artifacts)
-              get { environments }.isEqualTo(deliveryConfig.environments)
+              get { name }.isEqualTo(deliveryConfig.name)
+              get { application }.isEqualTo(deliveryConfig.application)
             }
         }
 
-        test("artifacts are persisted via the artifact repository") {
-          deliveryConfig
-            .artifacts
-            .forEach { artifact ->
-              verify {
-                artifactRepository.register(artifact)
-              }
-            }
-        }
-
-        test("resources are persisted via the resource repository") {
-          deliveryConfig
-            .environments
-            .flatMap { it.resources }
-            .forEach { resource ->
-              verify {
-                resourceRepository.store(resource)
-              }
-            }
-        }
-      }
-
-      context("one of the other repositories throws an exception") {
-        before {
-          every {
-            resourceRepository.store(match { it.kind == "security-group" })
-          } throws IllegalStateException("o noes")
-
-          runCatching {
-            store()
-          }
-        }
-
-        test("the delivery config is not persisted") {
+        test("artifacts are attached") {
           getByName()
-            .failed()
-            .isA<NoSuchDeliveryConfigException>()
+            .succeeded()
+            .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
         }
 
-        // TODO: really need to check the other resources / artifacts are also rolled back
+        test("environments are attached") {
+          getByName()
+            .succeeded()
+            .get { environments }.isEqualTo(deliveryConfig.environments)
+        }
       }
     }
   }

@@ -1,33 +1,16 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 
-class InMemoryDeliveryConfigRepository(
-  private val artifactRepository: ArtifactRepository,
-  private val resourceRepository: ResourceRepository
-) : DeliveryConfigRepository {
+class InMemoryDeliveryConfigRepository() : DeliveryConfigRepository {
   private val configs = mutableMapOf<String, DeliveryConfig>()
 
   override fun get(name: String): DeliveryConfig =
     configs[name] ?: throw NoSuchDeliveryConfigName(name)
 
   override fun store(deliveryConfig: DeliveryConfig) {
-    // TODO: can we do this in a transaction?
-    deliveryConfig
-      .artifacts
-      .forEach { artifact ->
-        artifactRepository.register(artifact)
-      }
-    deliveryConfig
-      .environments
-      .flatMap { it.resources }
-      .forEach { resource ->
-        resourceRepository.store(resource)
-      }
     configs[deliveryConfig.name] = deliveryConfig
   }
 }

@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-delivery-config-tables
+      author: fletch
+      changes:
+        - createTable:
+            tableName: delivery_config
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: application
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: delivery_config_artifact
+            columns:
+              - column:
+                  name: delivery_config_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: environment
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: delivery_config_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: environment_resource
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resource_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: delivery_config
+        - dropTable:
+            tableName: delivery_config_artifact
+        - dropTable:
+            tableName: environment
+        - dropTable:
+            tableName: environment_resource
+  - changeSet:
+      id: create-delivery-config-pks
+      author: fletch
+      changes:
+        - addPrimaryKey:
+            constraintName: delivery_config_artifact_pk
+            tableName: delivery_config_artifact
+            columnNames: delivery_config_uid, artifact_uid
+        - addPrimaryKey:
+            constraintName: environment_resource_pk
+            tableName: environment_resource
+            columnNames: environment_uid, resource_uid
+      rollback:
+        - dropPrimaryKey:
+            constraintName: delivery_config_artifact_pk
+            tableName: delivery_config_artifact

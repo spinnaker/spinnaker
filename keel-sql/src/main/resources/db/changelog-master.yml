@@ -26,3 +26,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190515-add-last-checked-timestamp.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190626-delivery-config-tables.yml
+      relativeToChangelogFile: true
