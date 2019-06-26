@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
@@ -99,6 +100,9 @@ class StartExecutionHandler(
   private fun terminate(execution: Execution) {
     if (execution.status == CANCELED || execution.isCanceled) {
       publisher.publishEvent(ExecutionComplete(this, execution.type, execution.id, execution.status))
+      execution.pipelineConfigId?.let {
+        queue.push(StartWaitingExecutions(it, purgeQueue = !execution.isKeepWaitingPipelines))
+      }
     } else {
       log.warn("Execution (type: ${execution.type}, id: {}, status: ${execution.status}, application: {})" +
         " cannot be started unless state is NOT_STARTED. Ignoring StartExecution message.",

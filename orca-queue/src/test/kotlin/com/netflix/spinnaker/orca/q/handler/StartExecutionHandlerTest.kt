@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
@@ -140,7 +141,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
     }
 
-    given("a pipeline that was previously canceled and status is NOT_STARTED") {
+    given("a pipeline with no pipelineConfigId that was previously canceled and status is NOT_STARTED") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -170,6 +171,33 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("pushes no messages to the queue") {
         verifyNoMoreInteractions(queue)
+      }
+    }
+
+    given("a pipeline with a pipelineConfigId that was previously canceled and status is NOT_STARTED") {
+      val pipeline = pipeline {
+        pipelineConfigId = "aaaaa-12345-bbbbb-67890"
+        isKeepWaitingPipelines = false
+        stage {
+          type = singleTaskStage.type
+        }
+        isCanceled = true
+      }
+
+      val message = StartExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving a message") {
+        subject.handle(message)
+      }
+
+      it("starts waiting executions for the pipelineConfigId") {
+        verify(queue).push(StartWaitingExecutions("aaaaa-12345-bbbbb-67890", true))
       }
     }
 
