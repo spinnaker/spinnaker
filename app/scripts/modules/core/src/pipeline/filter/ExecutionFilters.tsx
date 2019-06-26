@@ -1,7 +1,7 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { get, isEmpty, orderBy, uniq } from 'lodash';
+import { get, isEmpty, orderBy, uniq, isEqual } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import * as classnames from 'classnames';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
@@ -20,6 +20,7 @@ import './executionFilters.less';
 
 export interface IExecutionFiltersProps {
   application: Application;
+  setReloadingForFilters: (reloadingForFilters: boolean) => void;
 }
 
 export interface IExecutionFiltersState {
@@ -54,7 +55,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     const { application } = this.props;
 
     this.executionsRefreshUnsubscribe = application.executions.onRefresh(null, () => {
-      this.refreshPipelines();
+      ExecutionFilterService.updateExecutionGroups(this.props.application);
     });
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() =>
       this.setState({ tags: ExecutionState.filterModel.asFilterModel.tags }),
@@ -87,8 +88,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private refreshExecutions = (): void => {
     ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
-    this.props.application.executions.refresh(true);
-    this.props.application.executions.reloadingForFilters = true;
+    this.props.setReloadingForFilters(true);
+    const dataSource = this.props.application.getDataSource('executions');
+    dataSource.refresh(true).then(() => {
+      ExecutionFilterService.updateExecutionGroups(this.props.application);
+      this.props.setReloadingForFilters(false);
+    });
   };
 
   private clearFilters = (): void => {
@@ -119,8 +124,13 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private refreshPipelines(): void {
-    this.setState({ pipelineNames: this.getPipelineNames(false), strategyNames: this.getPipelineNames(true) });
-    this.initialize();
+    const { pipelineNames, strategyNames } = this.state;
+    const newPipelineNames = this.getPipelineNames(false);
+    const newStrategyNames = this.getPipelineNames(true);
+    if (!isEqual(pipelineNames, newPipelineNames) || !isEqual(strategyNames, newStrategyNames)) {
+      this.setState({ pipelineNames: newPipelineNames, strategyNames: newStrategyNames });
+      this.initialize();
+    }
   }
 
   private initialize(): void {
@@ -129,7 +139,6 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
       return;
     }
     this.updateExecutionGroups();
-    application.executions.reloadingForFilters = false;
   }
 
   public componentWillUnmount(): void {

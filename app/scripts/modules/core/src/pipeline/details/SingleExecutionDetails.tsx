@@ -65,9 +65,7 @@ export class SingleExecutionDetails extends React.Component<
 
     executionService.getExecution($state.params.executionId).then(
       execution => {
-        const stateExecution = this.state.execution || execution;
         executionService.transformExecution(app, execution);
-        executionService.synchronizeExecution(stateExecution, execution);
         if (execution.isActive && !this.executionScheduler) {
           this.executionScheduler = SchedulerFactory.createScheduler(5000);
           this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
@@ -76,7 +74,7 @@ export class SingleExecutionDetails extends React.Component<
           this.executionScheduler.unsubscribe();
           this.executionLoader.unsubscribe();
         }
-        this.setState({ execution: stateExecution });
+        this.setState({ execution });
       },
       () => {
         this.setState({ execution: null, stateNotFound: true });

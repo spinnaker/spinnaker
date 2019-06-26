@@ -24,7 +24,9 @@ export class ExecutionsTransformer {
         targets.push(...stageConfig.accountExtractor(stage));
       }
     });
-    execution.deploymentTargets = uniq(targets).sort();
+    execution.deploymentTargets = uniq(targets)
+      .filter(a => !!a)
+      .sort();
   }
 
   private static siblingStageSorter(a: IOrchestratedItem, b: IOrchestratedItem): number {

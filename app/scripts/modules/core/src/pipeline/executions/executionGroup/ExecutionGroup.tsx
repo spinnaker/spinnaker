@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs';
-import { find, flatten, uniq, without } from 'lodash';
+import { flatten, uniq, without } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
@@ -14,6 +14,7 @@ import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
+import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
@@ -28,6 +29,7 @@ const ACCOUNT_TAG_OVERFLOW_LIMIT = 2;
 export interface IExecutionGroupProps {
   group: IExecutionGroup;
   application: Application;
+  parent: HTMLDivElement;
 }
 
 export interface IExecutionGroupState {
@@ -35,35 +37,34 @@ export interface IExecutionGroupState {
   pipelineConfig: IPipeline;
   triggeringExecution: boolean;
   open: boolean;
+  showingDetails: boolean;
   poll: IRetryablePromise<any>;
   displayExecutionActions: boolean;
   showAccounts: boolean;
   showOverflowAccountTags: boolean;
 }
 
-export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecutionGroupState> {
+export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IExecutionGroupState> {
   public state: IExecutionGroupState;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
 
   constructor(props: IExecutionGroupProps) {
     super(props);
+    const { group, application } = props;
+    const strategyConfig = application.strategyConfigs.data.find((c: IPipeline) => c.name === group.heading);
 
-    const strategyConfig = find(this.props.application.strategyConfigs.data, {
-      name: this.props.group.heading,
-    }) as IPipeline;
-
-    const pipelineConfig = find(this.props.application.pipelineConfigs.data, {
-      name: this.props.group.heading,
-    }) as IPipeline;
+    const pipelineConfig = application.pipelineConfigs.data.find((c: IPipeline) => c.name === group.heading);
 
     const sectionCacheKey = this.getSectionCacheKey();
+    const showingDetails = this.isShowingDetails();
 
     this.state = {
       deploymentAccounts: this.getDeploymentAccounts(),
       triggeringExecution: false,
+      showingDetails,
       open:
-        this.isShowingDetails() ||
+        showingDetails ||
         !CollapsibleSectionStateCache.isSet(sectionCacheKey) ||
         CollapsibleSectionStateCache.isExpanded(sectionCacheKey),
       poll: null,
@@ -151,8 +152,12 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       // If the heading is collapsed, but we've clicked on a link to an execution in this group, expand the group
+      const showingDetails = this.isShowingDetails();
       if (this.isShowingDetails() && !this.state.open) {
         this.toggle();
+      }
+      if (showingDetails !== this.state.showingDetails) {
+        this.setState({ showingDetails });
       }
     });
   }
@@ -201,7 +206,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   public render(): React.ReactElement<ExecutionGroup> {
     const { group } = this.props;
-    const { displayExecutionActions, pipelineConfig, triggeringExecution } = this.state;
+    const { displayExecutionActions, pipelineConfig, triggeringExecution, showingDetails } = this.state;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
@@ -220,7 +225,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     if (group.targetAccounts && group.targetAccounts.length > ACCOUNT_TAG_OVERFLOW_LIMIT) {
       groupTargetAccountLabels.push(
         <span
-          key="foo"
+          key="account-overflow"
           onMouseEnter={() => this.setState({ showOverflowAccountTags: true })}
           onMouseLeave={() => this.setState({ showOverflowAccountTags: false })}
         >
@@ -236,18 +241,9 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         }),
       );
     }
-    const executions = (group.executions || []).map((execution: IExecution) => (
-      <Execution
-        key={execution.id}
-        execution={execution}
-        pipelineConfig={pipelineConfig}
-        application={this.props.application}
-        onRerun={pipelineConfig && isConfigurable ? this.rerunExecutionClicked : undefined}
-      />
-    ));
 
     return (
-      <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>
+      <div className={`execution-group ${showingDetails ? 'showing-details' : 'details-hidden'}`}>
         {group.heading && (
           <div className="clickable sticky-header" onClick={this.handleHeadingClicked}>
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
@@ -336,11 +332,37 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                   <em>No executions found matching the selected filters.</em>
                 </div>
               )}
-              {executions}
+              <RenderWhenVisible
+                container={this.props.parent}
+                disableHide={showingDetails}
+                initiallyVisible={showingDetails}
+                placeholderHeight={group.executions.length * 110}
+                bufferHeight={1000}
+                render={() => this.renderExecutions()}
+              />
             </div>
           </div>
         )}
       </div>
+    );
+  }
+
+  private renderExecutions() {
+    const { pipelineConfig } = this.state;
+    const { executions } = this.props.group;
+    const isConfigurable = !pipelineConfig || PipelineTemplateV2Service.isConfigurable(pipelineConfig);
+    return (
+      <>
+        {executions.map(execution => (
+          <Execution
+            key={execution.id}
+            execution={execution}
+            pipelineConfig={pipelineConfig}
+            application={this.props.application}
+            onRerun={pipelineConfig && isConfigurable ? this.rerunExecutionClicked : undefined}
+          />
+        ))}
+      </>
     );
   }
 

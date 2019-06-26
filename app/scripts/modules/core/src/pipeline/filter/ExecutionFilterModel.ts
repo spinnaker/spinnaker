@@ -1,4 +1,5 @@
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
+import { ExecutionFilterService } from 'core/pipeline/filter/executionFilter.service';
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
 import { $rootScope } from 'ngimport';
@@ -77,22 +78,32 @@ export class ExecutionFilterModel {
 
     $rootScope.$on(
       '$stateChangeSuccess',
-      (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
-        if (this.movingToExecutionsState(toState) && (!toParams.pipeline || !this.groupCount)) {
-          this.mostRecentApplication = toParams.application;
-          this.assignViewStateFromCache();
-        }
-        if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
-          this.asFilterModel.applyParamsToUrl();
+      (
+        _event,
+        toState: Ng1StateDeclaration,
+        toParams: StateParams,
+        fromState: Ng1StateDeclaration,
+        fromParams: StateParams,
+      ) => {
+        if (!this.movingToExecutionsState(toState)) {
           return;
         }
-        if (this.movingToExecutionsState(toState)) {
-          if (this.shouldRouteToSavedState(toParams, fromState)) {
-            this.asFilterModel.restoreState(toParams);
-          }
-          if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
-            this.asFilterModel.clearFilters();
-          }
+        if (
+          !this.isExecutionStateOrChild(fromState.name) ||
+          !this.groupCount ||
+          toParams.application !== fromParams.application
+        ) {
+          this.mostRecentApplication = toParams.application;
+          this.asFilterModel.activate();
+          this.assignViewStateFromCache();
+          ExecutionFilterService.updateExecutionGroups();
+          return;
+        }
+        if (this.shouldRouteToSavedState(toParams, fromState)) {
+          this.asFilterModel.restoreState(toParams);
+        }
+        if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+          this.asFilterModel.clearFilters();
         }
       },
     );

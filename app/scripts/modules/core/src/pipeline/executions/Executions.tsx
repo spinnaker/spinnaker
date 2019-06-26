@@ -3,9 +3,8 @@ import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton'
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { Transition } from '@uirouter/core';
 import { get } from 'lodash';
-import { $timeout, $q } from 'ngimport';
+import { $q } from 'ngimport';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
@@ -20,7 +19,6 @@ import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionState } from 'core/state';
-import { ScrollToService } from 'core/utils';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { SchedulerFactory } from 'core/scheduler';
 
@@ -38,12 +36,12 @@ export interface IExecutionsState {
   sortFilter: ISortFilter;
   tags: IFilterTag[];
   triggeringExecution: boolean;
+  reloadingForFilters: boolean;
 }
 
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
-  private locationChangeUnsubscribe: Function;
   private insightFilterStateModel = ReactInjector.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
@@ -59,8 +57,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       tags: [],
       triggeringExecution: false,
+      reloadingForFilters: false,
     };
   }
+
+  private setReloadingForFilters = (reloadingForFilters: boolean) => {
+    if (this.state.reloadingForFilters !== reloadingForFilters) {
+      this.setState({ reloadingForFilters });
+    }
+  };
 
   private clearFilters = (): void => {
     ExecutionFilterService.clearFilters();
@@ -74,21 +79,32 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private updateExecutionGroups(reload?: boolean): void {
     this.normalizeExecutionNames();
     const { app } = this.props;
+    // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flags a bit
     if (reload) {
-      app.executions.refresh(true);
-      app.executions.reloadingForFilters = true;
+      this.setReloadingForFilters(true);
+      app.executions.refresh(true).then(() => {
+        ExecutionFilterService.updateExecutionGroups(app);
+        setTimeout(() => this.setReloadingForFilters(false), 50);
+      });
     } else {
       ExecutionFilterService.updateExecutionGroups(app);
       this.groupsUpdated();
-      // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
-      $timeout(() => {
+      setTimeout(() => {
         this.setState({ loading: false });
       }, 50);
     }
   }
 
   private groupsUpdated(): void {
-    this.setState({ tags: ExecutionState.filterModel.asFilterModel.tags });
+    const newTags = ExecutionState.filterModel.asFilterModel.tags;
+    const currentTags = this.state.tags;
+    const areEqual = (t1: IFilterTag, t2: IFilterTag) =>
+      t1.key === t2.key && t1.label === t2.label && t1.value === t2.value;
+    const tagsChanged =
+      newTags.length !== currentTags.length || newTags.some(t1 => !currentTags.some(t2 => areEqual(t1, t2)));
+    if (tagsChanged) {
+      this.setState({ tags: newTags });
+    }
   }
 
   private dataInitializationFailure(): void {
@@ -162,43 +178,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     ReactInjector.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
-  private scrollIntoView(delay = 200): void {
-    ScrollToService.scrollTo(
-      '#execution-' + ReactInjector.$stateParams.executionId,
-      '.all-execution-groups',
-      225,
-      delay,
-    );
-  }
-
-  public handleTransitionSuccess(transition: Transition): void {
-    const toParams = transition.params('to');
-    const fromParams = transition.params('from');
-    // if we're navigating to a different execution on the same page, scroll the new execution into view
-    // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
-    // but don't scroll it into view if we're navigating to a different stage in the same execution
-    let shouldScroll = false;
-    if (
-      transition.to.name.indexOf(transition.from.name) === 0 &&
-      toParams.application === fromParams.application &&
-      toParams.executionId
-    ) {
-      shouldScroll = true;
-      if (toParams.executionId === fromParams.executionId && toParams.details) {
-        if (
-          toParams.stage !== fromParams.stage ||
-          toParams.step !== fromParams.step ||
-          toParams.details !== fromParams.details
-        ) {
-          shouldScroll = false;
-        }
-      }
-    }
-    if (shouldScroll) {
-      this.scrollIntoView(0);
-    }
-  }
-
   public componentDidMount(): void {
     const { app } = this.props;
     if (ExecutionState.filterModel.mostRecentApplication !== app.name) {
@@ -218,9 +197,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     });
 
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
-    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, t =>
-      this.handleTransitionSuccess(t),
-    );
 
     this.executionsRefreshUnsubscribe = app.executions.onRefresh(
       null,
@@ -240,9 +216,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     $q.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
-      if (ReactInjector.$stateParams.executionId) {
-        this.scrollIntoView();
-      }
       const nameOrIdToStart = ReactInjector.$stateParams.startManualExecution;
       if (nameOrIdToStart) {
         const toStart = app.pipelineConfigs.data.find((p: IPipeline) => [p.id, p.name].includes(nameOrIdToStart));
@@ -262,7 +235,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     app.pipelineConfigs.deactivate();
     this.executionsRefreshUnsubscribe();
     this.groupsUpdatedSubscription.unsubscribe();
-    this.locationChangeUnsubscribe();
     this.activeRefresher && this.activeRefresher.unsubscribe();
     this.state.poll && this.state.poll.cancel();
   }
@@ -303,7 +275,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   public render(): React.ReactElement<Executions> {
     const { app } = this.props;
-    const { filtersExpanded, loading, sortFilter, tags, triggeringExecution } = this.state;
+    const { filtersExpanded, loading, sortFilter, tags, triggeringExecution, reloadingForFilters } = this.state;
 
     const hasPipelines = !!(get(app, 'executions.data', []).length || get(app, 'pipelineConfigs.data', []).length);
 
@@ -338,7 +310,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                   <i className="fa fa-backward" />
                 </Tooltip>
               </a>
-              {!loading && <ExecutionFilters application={app} />}
+              {!loading && <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />}
             </div>
             <div
               className={`full-content ${filtersExpanded ? 'filters-expanded' : ''} ${
@@ -447,7 +419,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                   <Spinner size="medium" />
                 </div>
               )}
-              {app.executions.reloadingForFilters && (
+              {reloadingForFilters && (
                 <div className="text-center transition-overlay" style={{ marginLeft: '-25px' }} />
               )}
               {!loading && !hasPipelines && (
@@ -460,7 +432,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                   <h4>There was an error loading executions. We'll try again shortly.</h4>
                 </div>
               )}
-              {!this.state.loading && hasPipelines && <ExecutionGroups application={app} />}
+              {!loading && hasPipelines && <ExecutionGroups application={app} />}
             </div>
           </div>
         </div>

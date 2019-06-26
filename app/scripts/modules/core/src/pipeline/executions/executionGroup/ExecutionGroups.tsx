@@ -17,6 +17,7 @@ export interface IExecutionGroupsProps {
 export interface IExecutionGroupsState {
   groups: IExecutionGroup[];
   showingDetails: boolean;
+  container?: HTMLDivElement; // need to pass the container down to children to use as root for IntersectionObserver
 }
 
 export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExecutionGroupsState> {
@@ -28,15 +29,20 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     super(props);
     const { stateEvents } = ReactInjector;
     this.state = {
-      groups: ExecutionState.filterModel.asFilterModel.groups.slice(),
-      showingDetails: this.showingDetails(),
+      groups: ExecutionState.filterModel.asFilterModel.groups,
+      showingDetails: ReactInjector.$state.includes('**.execution'),
     };
 
-    this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => {
-      this.forceUpdate();
+    this.applicationRefreshUnsubscribe = props.application.executions.onRefresh(null, () => {
+      ExecutionFilterService.updateExecutionGroups(props.application);
     });
+
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => {
-      this.setState({ groups: ExecutionState.filterModel.asFilterModel.groups.slice() });
+      const newGroups = ExecutionState.filterModel.asFilterModel.groups;
+      const { groups } = this.state;
+      if (newGroups.length !== groups.length || newGroups.some((g, i) => groups[i] !== g)) {
+        this.setState({ groups: newGroups });
+      }
     });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();
@@ -47,12 +53,23 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
   }
 
   private showingDetails(): boolean {
+    const { executionId } = ReactInjector.$stateParams;
+    // showingDetails() is just used to set a class ('.showing-details') on the wrapper around the execution groups.
+    // the effect of this class is that, when an execution is deep linked, all the other execution groups have a partial
+    // opacity (except when hovering over them).
+    // Here, we are checking if there is an executionId deep linked - and also confirming it's actually present
+    // on screen. If not, we will not apply the '.showing-details' class to the wrapper.
+    if (!executionId || this.state.groups.every(g => g.executions.every(e => e.id !== executionId))) {
+      return false;
+    }
     return ReactInjector.$state.includes('**.execution');
   }
 
-  public shouldComponentUpdate(_nextProps_: IExecutionGroupsProps, nextState: IExecutionGroupsState): boolean {
-    return nextState.groups !== this.state.groups || nextState.showingDetails !== this.state.showingDetails;
-  }
+  private setContainer = (container: HTMLDivElement) => {
+    if (this.state.container !== container) {
+      this.setState({ container });
+    }
+  };
 
   public componentWillUnmount(): void {
     if (this.applicationRefreshUnsubscribe) {
@@ -68,10 +85,11 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
   }
 
   public render(): React.ReactElement<ExecutionGroups> {
-    const hasGroups = this.state.groups && this.state.groups.length > 0;
-    const className = `row pipelines executions ${this.state.showingDetails ? 'showing-details' : ''}`;
-    const executionGroups = (this.state.groups || []).map((group: IExecutionGroup) => (
-      <ExecutionGroup key={group.heading} group={group} application={this.props.application} />
+    const { groups = [], container, showingDetails } = this.state;
+    const hasGroups = groups.length > 0;
+    const className = `row pipelines executions ${showingDetails ? 'showing-details' : ''}`;
+    const executionGroups = groups.map((group: IExecutionGroup) => (
+      <ExecutionGroup parent={container} key={group.heading} group={group} application={this.props.application} />
     ));
 
     return (
@@ -82,7 +100,9 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
               <h4>No executions match the filters you've selected.</h4>
             </div>
           )}
-          <div className="execution-groups all-execution-groups">{executionGroups}</div>
+          <div className="execution-groups all-execution-groups" ref={this.setContainer}>
+            {container && executionGroups}
+          </div>
         </div>
       </div>
     );

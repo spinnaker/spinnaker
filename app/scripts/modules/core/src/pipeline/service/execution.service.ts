@@ -370,7 +370,10 @@ export class ExecutionService {
             if (execution.status !== match.status) {
               application.executions.data[idx] = match;
             } else {
-              this.synchronizeExecution(execution, match);
+              // don't dehydrate!
+              if (execution.hydrated === match.hydrated) {
+                application.executions.data[idx] = match;
+              }
             }
           }
         }
@@ -388,7 +391,7 @@ export class ExecutionService {
           existingData.push(execution);
         }
       });
-      return existingData;
+      return [...existingData];
     } else {
       return executions;
     }
@@ -435,32 +438,6 @@ export class ExecutionService {
     application.runningExecutions.dataUpdated();
   }
 
-  public synchronizeExecution(current: IExecution, updated: IExecution): void {
-    // don't dehydrate!
-    if (!updated.hydrated && current.hydrated) {
-      return;
-    }
-    const hydrationFlagChanged = !current.hydrated && updated.hydrated;
-    (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
-      const currentSummary = current.stageSummaries[idx];
-      if (!currentSummary) {
-        current.stageSummaries.push(updatedSummary);
-      } else {
-        // if the stage is active, update it in place if it has changed to save Angular
-        // from removing, then re-rendering every DOM node
-        // also, don't dehydrate
-        if (updatedSummary.isActive || currentSummary.isActive || hydrationFlagChanged) {
-          if (this.stringify(currentSummary) !== this.stringify(updatedSummary)) {
-            Object.assign(currentSummary, updatedSummary);
-          }
-        }
-      }
-    });
-    current.stringVal = updated.stringVal;
-    current.hydrated = current.hydrated || updated.hydrated;
-    current.graphStatusHash = this.calculateGraphStatusHash(current);
-  }
-
   private calculateGraphStatusHash(execution: IExecution): string {
     return (execution.stageSummaries || [])
       .map(stage => {
@@ -482,22 +459,33 @@ export class ExecutionService {
       dataSource.data.forEach((currentExecution: IExecution, idx: number) => {
         if (updatedExecution.id === currentExecution.id) {
           updatedExecution.stringVal = this.stringifyExecution(updatedExecution);
-          if (updatedExecution.status !== currentExecution.status) {
+          if (
+            updatedExecution.status !== currentExecution.status ||
+            currentExecution.stringVal !== updatedExecution.stringVal
+          ) {
             this.transformExecution(application, updatedExecution);
+            updatedExecution.graphStatusHash = this.calculateGraphStatusHash(updatedExecution);
             dataSource.data[idx] = updatedExecution;
             dataSource.dataUpdated();
-          } else {
-            if (currentExecution.stringVal !== updatedExecution.stringVal) {
-              this.transformExecution(application, updatedExecution);
-              this.synchronizeExecution(currentExecution, updatedExecution);
-              dataSource.dataUpdated();
-            }
           }
         }
       });
     }
   }
 
+  /**
+   * Fetches a fully hydrated execution, then assigns all its values to the supplied execution.
+   * If the execution is already hydrated, the operation does not re-fetch the execution.
+   *
+   * If this method is called multiple times, only the first call performs the fetch;
+   * subsequent calls will return the promise produced by the first call.
+   *
+   * This is a mutating operation.
+   * @param application the application owning the execution; needed because the stupid
+   *   transformExecution requires it.
+   * @param unhydrated the execution to hydrate (which may already be hydrated)
+   * @return a Promise, which resolves with the execution itself.
+   */
   public hydrate(application: Application, unhydrated: IExecution): Promise<IExecution> {
     if (unhydrated.hydrator) {
       return unhydrated.hydrator;
@@ -507,15 +495,8 @@ export class ExecutionService {
     }
     const executionHydrator = this.getExecution(unhydrated.id).then(hydrated => {
       this.transformExecution(application, hydrated);
-      hydrated.stages.forEach(s => {
-        const toHydrate = unhydrated.stages.find(s2 => s2.id === s.id);
-        if (toHydrate) {
-          toHydrate.context = s.context;
-          toHydrate.outputs = s.outputs;
-          toHydrate.tasks = s.tasks;
-        }
-      });
-      this.synchronizeExecution(unhydrated, hydrated);
+      Object.assign(unhydrated, hydrated);
+      unhydrated.graphStatusHash = this.calculateGraphStatusHash(unhydrated);
       return unhydrated;
     });
     unhydrated.hydrator = Promise.resolve(executionHydrator);

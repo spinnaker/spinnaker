@@ -12,7 +12,6 @@ describe('Service: executionService', () => {
   let timeout: ITimeoutService;
   let $q: IQService;
 
-  beforeEach(() => State.initialize());
   beforeEach(mock.module(EXECUTION_SERVICE, 'ui.router'));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
@@ -34,6 +33,7 @@ describe('Service: executionService', () => {
         $httpBackend = _$httpBackend_;
         timeout = _$timeout_;
         $q = _$q_;
+        State.initialize();
         State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
       },
     ),
@@ -352,7 +352,7 @@ describe('Service: executionService', () => {
       expect(application.executions.data).toEqual([original, newOne]);
     });
 
-    it('should update mutated states in an existing execution if stringVal has changed', () => {
+    it('should replace an existing execution if stringVal has changed', () => {
       const originalStages = [
         { id: 'a', status: 'COMPLETED' },
         { id: 'b', status: 'RUNNING' },
@@ -385,15 +385,6 @@ describe('Service: executionService', () => {
       executionService.addExecutionsToApplication(application, execs);
 
       expect(application.executions.data).toEqual([updated]);
-      expect(application.executions.data).not.toBe([updated]);
-      expect(application.executions.data[0].stageSummaries[0]).toBe(originalStages[0]);
-      expect(application.executions.data[0].stageSummaries[0]).toEqual(updatedStages[0]);
-      expect(application.executions.data[0].stageSummaries[1]).toBe(originalStages[1]);
-      expect(application.executions.data[0].stageSummaries[1]).toEqual(updatedStages[1]);
-      expect(application.executions.data[0].stageSummaries[2]).toBe(originalStages[2]);
-      expect(application.executions.data[0].stageSummaries[2]).toEqual(updatedStages[2]);
-      expect(application.executions.data[0].stageSummaries[3]).toBe(originalStages[3]);
-      expect(application.executions.data[0].stageSummaries[3]).toEqual(updatedStages[3]);
     });
 
     it('should replace an existing execution if status changes', () => {

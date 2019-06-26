@@ -1,6 +1,5 @@
 /* tslint:disable: no-console */
 import { cloneDeep, uniq, without } from 'lodash';
-import { $log } from 'ngimport';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -118,7 +117,6 @@ export class CloudProviderRegistry {
     });
 
     if (notFound) {
-      $log.debug(`No value configured for "${key}" in provider "${cloudProvider}"`);
       return null;
     }
     return current;

@@ -1,4 +1,4 @@
-import { chain, compact, find, forOwn, get, groupBy, includes, uniq } from 'lodash';
+import { chain, compact, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 import { $log } from 'ngimport';
@@ -78,12 +78,9 @@ export class ExecutionFilterService {
   }
 
   @Debounce(25)
-  public static updateExecutionGroups(application: Application): void {
+  public static updateExecutionGroups(application: Application = this.lastApplication): void {
     if (!application) {
-      application = this.lastApplication;
-      if (!this.lastApplication) {
-        return null;
-      }
+      return null;
     }
     const executions = application.executions.data || [];
     executions.forEach((execution: IExecution) => this.fixName(execution, application));
@@ -171,13 +168,15 @@ export class ExecutionFilterService {
   private static addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
     const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
+    const groupNames: { [key: string]: any } = {};
+    groups.forEach(g => (groupNames[g.heading] = true));
     let toAdd = [];
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
-      toAdd = configs.filter((config: any) => !groups[config.name]);
+      toAdd = configs.filter((config: any) => !groupNames[config.name]);
     } else {
       toAdd = configs.filter((config: any) => {
         const filterMatches = (sortFilter.filter || '').toLowerCase().includes(config.name.toLowerCase());
-        return !groups[config.name] && (sortFilter.pipeline[config.name] || filterMatches);
+        return !groupNames[config.name] && (sortFilter.pipeline[config.name] || filterMatches);
       });
     }
 
@@ -207,7 +206,9 @@ export class ExecutionFilterService {
   }
 
   private static fixName(execution: IExecution, application: Application): void {
-    const config: IPipeline = find<IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
+    const config: IPipeline = application.pipelineConfigs.data.find(
+      (p: IPipeline) => p.id === execution.pipelineConfigId,
+    );
     if (config) {
       execution.name = config.name;
     }
@@ -221,7 +222,9 @@ export class ExecutionFilterService {
     });
 
     executions.forEach((execution: IExecution) => {
-      const config: IPipeline = find<IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
+      const config: IPipeline = application.pipelineConfigs.data.find(
+        (p: IPipeline) => p.id === execution.pipelineConfigId,
+      );
       if (config != null && config.type === 'templatedPipeline') {
         execution.fromTemplate = true;
       }
@@ -273,63 +276,53 @@ export class ExecutionFilterService {
     return groups;
   }
 
-  private static diffExecutionGroups(oldGroups: IExecutionGroup[], newGroups: IExecutionGroup[]): void {
-    const groupsToRemove: number[] = [];
-
-    oldGroups.forEach((oldGroup, idx) => {
-      const newGroup = find(newGroups, { heading: oldGroup.heading });
-      if (!newGroup) {
-        groupsToRemove.push(idx);
-      } else {
-        oldGroup.runningExecutions = newGroup.runningExecutions;
-        oldGroup.config = newGroup.config;
-        this.diffExecutions(oldGroup, newGroup);
-      }
-    });
-    groupsToRemove.reverse().forEach(idx => {
-      oldGroups.splice(idx, 1);
-    });
+  private static diffExecutionGroups(oldGroups: IExecutionGroup[], newGroups: IExecutionGroup[]): IExecutionGroup[] {
+    const diffedGroups: IExecutionGroup[] = [];
     newGroups.forEach(newGroup => {
-      const match = find(oldGroups, { heading: newGroup.heading });
-      if (!match) {
-        oldGroups.push(newGroup);
-      }
-    });
-    oldGroups.forEach(group => group.executions.sort((a, b) => this.executionSorter(a, b)));
-  }
-
-  private static diffExecutions(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): void {
-    const toRemove: number[] = [];
-    oldGroup.executions.forEach((execution, idx) => {
-      const newExecution = find(newGroup.executions, { id: execution.id });
-      if (!newExecution) {
-        $log.debug('execution no longer found, removing:', execution.id);
-        toRemove.push(idx);
+      const oldGroup = oldGroups.find(g => g.heading === newGroup.heading);
+      if (!oldGroup) {
+        diffedGroups.push(newGroup);
       } else {
-        if (execution.stringVal !== newExecution.stringVal) {
-          $log.debug('change detected, updating execution:', execution.id);
-          oldGroup.executions[idx] = newExecution;
+        if (this.executionsAreDifferent(oldGroup, newGroup)) {
+          diffedGroups.push(newGroup);
+        } else {
+          diffedGroups.push(oldGroup);
         }
       }
     });
-    toRemove.reverse().forEach(idx => {
-      oldGroup.executions.splice(idx, 1);
+    oldGroups.forEach(group => group.executions.sort((a, b) => this.executionSorter(a, b)));
+    return diffedGroups;
+  }
+
+  private static executionsAreDifferent(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): boolean {
+    let changeDetected = false;
+    oldGroup.executions.forEach(execution => {
+      const newExecution = newGroup.executions.find(g => g.id === execution.id);
+      if (!newExecution) {
+        changeDetected = true;
+        $log.debug('execution no longer found, removing:', execution.id);
+      } else {
+        if (execution.stringVal !== newExecution.stringVal) {
+          changeDetected = true;
+          $log.debug('change detected, updating execution:', execution.id);
+        }
+      }
     });
     newGroup.executions.forEach(execution => {
-      const oldExecution = find(oldGroup.executions, { id: execution.id });
+      const oldExecution = oldGroup.executions.find(g => g.id === execution.id);
       if (!oldExecution) {
+        changeDetected = true;
         $log.debug('new execution found, adding', execution.id);
         oldGroup.executions.push(execution);
       }
     });
+    return changeDetected;
   }
 
   private static applyGroupsToModel(groups: IExecutionGroup[]): void {
-    this.diffExecutionGroups(ExecutionState.filterModel.asFilterModel.groups, groups);
-
-    // sort groups in place so Angular doesn't try to update the world
-    ExecutionState.filterModel.asFilterModel.groups.sort((a: IExecutionGroup, b: IExecutionGroup) =>
-      this.executionGroupSorter(a, b),
+    const filterModel = ExecutionState.filterModel.asFilterModel;
+    filterModel.groups = this.diffExecutionGroups(filterModel.groups, groups).sort(
+      (a: IExecutionGroup, b: IExecutionGroup) => this.executionGroupSorter(a, b),
     );
   }
 
