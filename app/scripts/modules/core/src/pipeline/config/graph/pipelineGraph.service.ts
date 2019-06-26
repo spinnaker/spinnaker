@@ -32,6 +32,7 @@ export interface IPipelineGraphNode {
   parents: IPipelineGraphNode[];
   placeholder?: boolean;
   root?: boolean;
+  graphRowOverride?: number;
   row?: number; // Added after the fact in PipelineGraphDirective
   x?: number; // Added after the fact in PipelineGraphDirective
   y?: number; // Added after the fact in PipelineGraphDirective
@@ -70,6 +71,7 @@ export class PipelineGraphService {
         executionId: execution.id,
         executionStage: true,
         extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
+        graphRowOverride: stage.graphRowOverride || 0,
         hasNotStarted: stage.hasNotStarted,
         id: stage.refId,
         index: idx,
@@ -120,6 +122,7 @@ export class PipelineGraphService {
       const node: IPipelineGraphNode = {
         childLinks: [],
         children: [],
+        graphRowOverride: stage.graphRowOverride || 0,
         hasWarnings: !!warnings,
         id: stage.refId,
         index: idx,

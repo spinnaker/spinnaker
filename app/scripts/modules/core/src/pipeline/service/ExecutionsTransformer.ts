@@ -360,6 +360,7 @@ export class ExecutionsTransformer {
           group: context.group,
           id: stage.id,
           index: undefined,
+          graphRowOverride: context.graphRowOverride || 0,
           masterStage: stage,
           name: stage.name,
           refId: stage.refId,

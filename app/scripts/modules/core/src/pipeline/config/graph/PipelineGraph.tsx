@@ -194,6 +194,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
             }
             return 0;
           },
+          (node: IPipelineGraphNode) => (node.graphRowOverride ? node.graphRowOverride : 1000),
           // same highest parent, prefer farthest last node
           (node: IPipelineGraphNode) => 1 - node.lastPhase,
           // same highest parent, prefer fewer terminal children if any

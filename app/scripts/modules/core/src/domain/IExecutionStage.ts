@@ -59,6 +59,7 @@ export interface IExecutionStageSummary extends IOrchestratedItem {
   endTime: number;
   extraLabelLines?: (stage: IExecutionStageSummary) => number;
   firstActiveStage?: number;
+  graphRowOverride?: number;
   group?: string;
   groupStages?: IExecutionStageSummary[];
   id: string;
