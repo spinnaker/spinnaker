@@ -33,7 +33,7 @@ public interface ArtifactService {
 
   /** Used to populate the manual trigger dropdown with options */
   @Nonnull
-  List<String> getArtifactVersions(@Nonnull String name);
+  List<String> getArtifactVersions(@Nonnull String name, String releaseStatus);
 
   /** Used to fetch a specific artifact for decorating a trigger */
   @Nonnull

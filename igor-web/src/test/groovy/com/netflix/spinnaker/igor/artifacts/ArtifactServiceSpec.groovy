@@ -53,12 +53,23 @@ class ArtifactServiceSpec extends Specification {
   def "service finds artifact versions"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def versions = service.getArtifactVersions("test")
+    def versions = service.getArtifactVersions("test", null)
 
     then:
     assertThat(versions).isNotNull()
     assertThat(versions).isNotEmpty()
     versions.size() > 0
+  }
+
+  def "service finds only snapshot artifacts"() {
+    when:
+    def service = artifactServices.getService("artifactory")
+    def versions = service.getArtifactVersions("test", "snapshot")
+
+    then:
+    assertThat(versions).isNotNull()
+    assertThat(versions).isNotEmpty()
+    versions.size() == 1
   }
 
   def "service finds artifact"() {
@@ -75,7 +86,7 @@ class ArtifactServiceSpec extends Specification {
   def "versions list is empty when no versions found"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def versions = service.getArtifactVersions("blah")
+    def versions = service.getArtifactVersions("blah", "")
 
     then:
     assertThat(versions).isNotNull()

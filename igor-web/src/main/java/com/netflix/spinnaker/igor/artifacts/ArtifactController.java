@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,13 +44,15 @@ public class ArtifactController {
 
   @GetMapping("/{provider}/{name}")
   public List<String> getVersions(
-      @PathVariable("provider") String provider, @PathVariable("name") String name) {
+      @PathVariable("provider") String provider,
+      @PathVariable("name") String name,
+      @RequestParam(value = "releaseStatus", required = false) String releaseStatus) {
     ArtifactService artifactService = getService(provider);
-    return artifactService.getArtifactVersions(name);
+    return artifactService.getArtifactVersions(name, releaseStatus);
   }
 
   @GetMapping("/{provider}/{name}/{version:.+}")
-  public Artifact getVersions(
+  public Artifact getArtifact(
       @PathVariable("provider") String provider,
       @PathVariable("name") String name,
       @PathVariable("version") String version) {
