@@ -16,20 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.time.ZonedDateTime;
+import lombok.Builder;
 import lombok.Value;
 
 @Value
+@JsonDeserialize(builder = Task.TaskBuilder.class)
+@Builder
 public class Task {
-  private final String guid;
-  private final String name;
-  private final State state;
-  private final ZonedDateTime createdAt;
-  private final ZonedDateTime updatedAt;
+  private String guid;
+  private String name;
+  private State state;
+  private ZonedDateTime createdAt;
+  private ZonedDateTime updatedAt;
 
   public enum State {
     SUCCEEDED,
     RUNNING,
     FAILED
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class TaskBuilder {}
 }
