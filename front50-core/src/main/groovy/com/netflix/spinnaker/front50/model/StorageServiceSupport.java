@@ -362,7 +362,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
       Map<String, T> objectsById =
           objects.stream()
-              .collect(Collectors.toMap(Timestamped::getId, Function.identity(), (o1, o2) -> o1));
+              .collect(Collectors.toMap(this::buildObjectKey, Function.identity(), (o1, o2) -> o1));
 
       for (String objectKey : objectKeys) {
         if (objectsById.containsKey(objectKey)) {
@@ -371,6 +371,8 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
           // equivalent to the NotFoundException handling in the exceptional case below
           resultMap.remove(keyToId.get(objectKey));
           numRemoved.getAndIncrement();
+
+          log.warn("Unable to find result for {}:{} (filtering!)", objectType, objectKey);
         }
       }
     } catch (UnsupportedOperationException e) {
