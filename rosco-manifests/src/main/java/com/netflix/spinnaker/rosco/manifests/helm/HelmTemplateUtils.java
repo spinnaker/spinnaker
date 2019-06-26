@@ -2,16 +2,14 @@ package com.netflix.spinnaker.rosco.manifests.helm;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
-import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
@@ -52,17 +50,18 @@ public class HelmTemplateUtils extends TemplateUtils {
 
     Map<String, Object> overrides = request.getOverrides();
     if (!overrides.isEmpty()) {
-        List<String> overrideList = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : overrides.entrySet()) {
-            overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
-        }
-        command.add("--set-string");
-        command.add(overrideList.stream().collect(Collectors.joining(",")));
+      List<String> overrideList = new ArrayList<>();
+      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
+        overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
+      }
+      command.add("--set-string");
+      command.add(overrideList.stream().collect(Collectors.joining(",")));
     }
 
     if (!valuePaths.isEmpty()) {
       command.add("--values");
-      command.add(String.join(",", valuePaths.stream().map(Path::toString).collect(Collectors.toList())));
+      command.add(
+          String.join(",", valuePaths.stream().map(Path::toString).collect(Collectors.toList())));
     }
 
     result.setCommand(command);

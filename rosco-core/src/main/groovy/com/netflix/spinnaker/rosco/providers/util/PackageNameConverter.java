@@ -44,7 +44,9 @@ public class PackageNameConverter {
     public String qualifiedPackageName(PackageType packageType) {
       if (StringUtils.isNotEmpty(version)) {
         String releaseTag = StringUtils.isNotEmpty(release) ? "-" + release : "";
-        return name + packageType.getUtil().getPackageManagerVersionSeparator() + version
+        return name
+            + packageType.getUtil().getPackageManagerVersionSeparator()
+            + version
             + releaseTag;
       } else {
         return null;
@@ -56,16 +58,16 @@ public class PackageNameConverter {
     return packageType.getUtil().parsePackageName(packageName);
   }
 
-  public static List<OsPackageName> buildOsPackageNames(final PackageType packageType,
-      List<String> packageNames) {
+  public static List<OsPackageName> buildOsPackageNames(
+      final PackageType packageType, List<String> packageNames) {
     return packageNames.stream()
         .map(packageName -> buildOsPackageName(packageType, packageName))
         .filter(osPackage -> StringUtils.isNotEmpty(osPackage.getName()))
         .collect(Collectors.toList());
   }
 
-  public static String buildAppVersionStr(BakeRequest bakeRequest, OsPackageName osPackageName,
-      PackageType packageType) {
+  public static String buildAppVersionStr(
+      BakeRequest bakeRequest, OsPackageName osPackageName, PackageType packageType) {
     // As per source of AppVersion, these are valid appversion tags:
     //   subscriberha-1.0.0-h150
     //   subscriberha-1.0.0-h150.586499

@@ -78,5 +78,4 @@ public class RpmPackageUtil implements PackageUtil {
 
     return OsPackageName.builder().name(name).version(version).release(release).arch(arch).build();
   }
-
 }

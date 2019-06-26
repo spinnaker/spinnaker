@@ -47,12 +47,10 @@ public class PackerArtifactService {
       artifacts = new ArrayList<>();
     }
 
-    try (
-        BufferedOutputStream artifactStream =
-            new BufferedOutputStream(
-              Files.newOutputStream(artifactFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-            )
-    ) {
+    try (BufferedOutputStream artifactStream =
+        new BufferedOutputStream(
+            Files.newOutputStream(
+                artifactFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE))) {
       objectMapper.writeValue(artifactStream, artifacts);
     } catch (IOException e) {
       throw new IllegalStateException("Could not write artifacts to file: " + e.getMessage());

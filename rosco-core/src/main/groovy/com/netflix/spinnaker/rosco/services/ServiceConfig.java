@@ -36,9 +36,10 @@ public class ServiceConfig {
   // This should be service-agnostic if more integrations than clouddriver are used
   @Bean
   ClouddriverService clouddriverService() {
-    ObjectMapper objectMapper = new ObjectMapper()
-        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     return new RestAdapter.Builder()
         .setEndpoint(clouddriverBaseUrl)

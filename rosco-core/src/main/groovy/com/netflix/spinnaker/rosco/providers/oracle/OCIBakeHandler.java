@@ -21,15 +21,14 @@ import com.netflix.spinnaker.rosco.providers.oracle.config.OracleConfigurationPr
 import com.netflix.spinnaker.rosco.providers.oracle.config.OracleOperatingSystemVirtualizationSettings;
 import com.netflix.spinnaker.rosco.providers.oracle.config.OracleVirtualizationSettings;
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OCIBakeHandler extends CloudProviderBakeHandler {
@@ -38,11 +37,9 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
 
   ImageNameFactory imageNameFactory = new ImageNameFactory();
 
-  @Autowired
-  OracleBakeryDefaults oracleBakeryDefaults;
+  @Autowired OracleBakeryDefaults oracleBakeryDefaults;
 
-  @Autowired
-  OracleConfigurationProperties oracleConfigurationProperties;
+  @Autowired OracleConfigurationProperties oracleConfigurationProperties;
 
   @Override
   public Object getBakeryDefaults() {
@@ -53,7 +50,8 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
   public BakeOptions getBakeOptions() {
     List<BakeOptions.BaseImage> baseImages;
     if (oracleBakeryDefaults.getBaseImages().size() > 0) {
-      baseImages = oracleBakeryDefaults.getBaseImages().stream()
+      baseImages =
+          oracleBakeryDefaults.getBaseImages().stream()
               .map(OracleOperatingSystemVirtualizationSettings::getBaseImage)
               .collect(Collectors.toList());
     } else {
@@ -78,8 +76,10 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
   @Override
   public Object findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     if (oracleBakeryDefaults.getBaseImages().size() > 0) {
-      OracleOperatingSystemVirtualizationSettings settings = oracleBakeryDefaults.getBaseImages().stream()
-              .filter(baseImage -> bakeRequest.getBase_os().equals(baseImage.getBaseImage().getId()))
+      OracleOperatingSystemVirtualizationSettings settings =
+          oracleBakeryDefaults.getBaseImages().stream()
+              .filter(
+                  baseImage -> bakeRequest.getBase_os().equals(baseImage.getBaseImage().getId()))
               .findAny()
               .orElse(null);
       if (settings != null) {
@@ -87,33 +87,40 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
       }
     }
 
-    throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.");
+    throw new IllegalArgumentException(
+        "No virtualization settings found for '$bakeRequest.base_os'.");
   }
 
   @Override
-  public Map buildParameterMap(String region, Object virtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
-    OracleVirtualizationSettings oracleVirtualizationSettings = (OracleVirtualizationSettings) virtualizationSettings;
+  public Map buildParameterMap(
+      String region,
+      Object virtualizationSettings,
+      String imageName,
+      BakeRequest bakeRequest,
+      String appVersionStr) {
+    OracleVirtualizationSettings oracleVirtualizationSettings =
+        (OracleVirtualizationSettings) virtualizationSettings;
 
     ManagedOracleAccount managedAccount = resolveAccount(bakeRequest);
 
-    Map<String, String> parameterMap = new HashMap<String, String>() {
-      {
-        put("oracle_compartment_id", managedAccount.getCompartmentId());
-        put("oracle_tenancy_id", managedAccount.getTenancyId());
-        put("oracle_user_id", managedAccount.getUserId());
-        put("oracle_fingerprint", managedAccount.getFingerprint());
-        put("oracle_ssh_private_key_file_path", managedAccount.getSshPrivateKeyFilePath());
-        put("oracle_pass_phrase", managedAccount.getPrivateKeyPassphrase());
-        put("oracle_region", managedAccount.getRegion());
-        put("oracle_availability_domain", oracleBakeryDefaults.getAvailabilityDomain());
-        put("oracle_instance_shape", oracleBakeryDefaults.getInstanceShape());
-        put("oracle_subnet_id", oracleBakeryDefaults.getSubnetId());
-        put("oracle_base_image_id", oracleVirtualizationSettings.getBaseImageId());
-        put("oracle_ssh_user_name", oracleVirtualizationSettings.getSshUserName());
-        put("oracle_image_name", imageName);
-      }
-    };
-
+    Map<String, String> parameterMap =
+        new HashMap<String, String>() {
+          {
+            put("oracle_compartment_id", managedAccount.getCompartmentId());
+            put("oracle_tenancy_id", managedAccount.getTenancyId());
+            put("oracle_user_id", managedAccount.getUserId());
+            put("oracle_fingerprint", managedAccount.getFingerprint());
+            put("oracle_ssh_private_key_file_path", managedAccount.getSshPrivateKeyFilePath());
+            put("oracle_pass_phrase", managedAccount.getPrivateKeyPassphrase());
+            put("oracle_region", managedAccount.getRegion());
+            put("oracle_availability_domain", oracleBakeryDefaults.getAvailabilityDomain());
+            put("oracle_instance_shape", oracleBakeryDefaults.getInstanceShape());
+            put("oracle_subnet_id", oracleBakeryDefaults.getSubnetId());
+            put("oracle_base_image_id", oracleVirtualizationSettings.getBaseImageId());
+            put("oracle_ssh_user_name", oracleVirtualizationSettings.getSshUserName());
+            put("oracle_image_name", imageName);
+          }
+        };
 
     if (!StringUtils.isNullOrEmpty(bakeRequest.getBuild_info_url())) {
       parameterMap.put("build_info_url", bakeRequest.getBuild_info_url());
@@ -164,16 +171,17 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
     ManagedOracleAccount managedAccount = null;
 
     if (StringUtils.isNullOrEmpty(bakeRequest.getAccount_name())) {
-      if (oracleConfigurationProperties != null &&
-              oracleConfigurationProperties.getAccounts() != null &&
-              oracleConfigurationProperties.getAccounts().size() > 0) {
+      if (oracleConfigurationProperties != null
+          && oracleConfigurationProperties.getAccounts() != null
+          && oracleConfigurationProperties.getAccounts().size() > 0) {
         managedAccount = oracleConfigurationProperties.getAccounts().get(0);
       }
     } else {
-      if (oracleConfigurationProperties != null &&
-              oracleConfigurationProperties.getAccounts() != null &&
-              oracleConfigurationProperties.getAccounts().size() > 0) {
-        managedAccount = oracleConfigurationProperties.getAccounts().stream()
+      if (oracleConfigurationProperties != null
+          && oracleConfigurationProperties.getAccounts() != null
+          && oracleConfigurationProperties.getAccounts().size() > 0) {
+        managedAccount =
+            oracleConfigurationProperties.getAccounts().stream()
                 .filter(account -> bakeRequest.getAccount_name().equals(account.getName()))
                 .findAny()
                 .orElse(null);
@@ -181,10 +189,10 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
     }
 
     if (managedAccount == null) {
-      throw new IllegalArgumentException("Could not resolve Oracle account: (account_name=$bakeRequest.account_name).");
+      throw new IllegalArgumentException(
+          "Could not resolve Oracle account: (account_name=$bakeRequest.account_name).");
     }
 
     return managedAccount;
   }
-
 }

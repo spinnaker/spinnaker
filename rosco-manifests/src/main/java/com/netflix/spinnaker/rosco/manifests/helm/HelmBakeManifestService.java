@@ -6,23 +6,19 @@ import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.jobs.JobRequest;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
-import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class HelmBakeManifestService {
-  @Autowired
-  HelmTemplateUtils helmTemplateUtils;
+  @Autowired HelmTemplateUtils helmTemplateUtils;
 
-  @Autowired
-  JobExecutor jobExecutor;
+  @Autowired JobExecutor jobExecutor;
 
   HelmTemplateUtils templateUtils(HelmBakeManifestRequest request) {
     BakeManifestRequest.TemplateRenderer templateRenderer = request.getTemplateRenderer();
@@ -34,7 +30,8 @@ public class HelmBakeManifestService {
       case HELM2:
         return helmTemplateUtils;
       default:
-        throw new IllegalArgumentException("Request type " + templateRenderer + " is not supported.");
+        throw new IllegalArgumentException(
+            "Request type " + templateRenderer + " is not supported.");
     }
   }
 
@@ -45,13 +42,13 @@ public class HelmBakeManifestService {
     BakeStatus bakeStatus;
 
     try {
-      JobRequest jobRequest = new JobRequest(
-        recipe.getCommand(),
-        new ArrayList<>(),
-        UUID.randomUUID().toString(),
-        AuthenticatedRequest.getSpinnakerExecutionId().orElse(null),
-        false
-      );
+      JobRequest jobRequest =
+          new JobRequest(
+              recipe.getCommand(),
+              new ArrayList<>(),
+              UUID.randomUUID().toString(),
+              AuthenticatedRequest.getSpinnakerExecutionId().orElse(null),
+              false);
       String jobId = jobExecutor.startJob(jobRequest);
 
       bakeStatus = jobExecutor.updateJob(jobId);
@@ -66,7 +63,8 @@ public class HelmBakeManifestService {
       }
 
       if (bakeStatus.getResult() != BakeStatus.Result.SUCCESS) {
-        throw new IllegalStateException("Bake of " + request + " failed: " + bakeStatus.getLogsContent());
+        throw new IllegalStateException(
+            "Bake of " + request + " failed: " + bakeStatus.getLogsContent());
       }
     } finally {
       env.cleanup();

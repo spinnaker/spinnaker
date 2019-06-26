@@ -77,10 +77,8 @@ public class DebPackageUtil implements PackageUtil {
       if (parts.size() > 2) {
         arch = parts.get(2);
       }
-
     }
 
     return OsPackageName.builder().name(name).version(version).release(release).arch(arch).build();
   }
-
 }

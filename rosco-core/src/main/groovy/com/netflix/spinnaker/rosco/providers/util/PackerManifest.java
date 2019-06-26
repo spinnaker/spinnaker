@@ -31,9 +31,10 @@ public class PackerManifest {
 
   public PackerBuild getLastBuild() {
     return builds.stream()
-      .filter(build -> build.packerRunUuid.equals(lastRunUuid))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("Could not find most recent build in packer manifest"));
+        .filter(build -> build.packerRunUuid.equals(lastRunUuid))
+        .findFirst()
+        .orElseThrow(
+            () -> new IllegalStateException("Could not find most recent build in packer manifest"));
   }
 
   @Data

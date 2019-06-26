@@ -7,5 +7,5 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class HelmBakeManifestRequest extends BakeManifestRequest {
-    String namespace;
+  String namespace;
 }

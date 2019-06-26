@@ -53,10 +53,6 @@ subprojects {
       exceptionFormat = 'full'
     }
   }
-
-  spinnakerCodeStyle {
-    enabled = false
-  }
 }
 
 defaultTasks ':rosco-web:run'

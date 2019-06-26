@@ -44,12 +44,12 @@ public class PackerManifestService {
 
   private PackerManifest getManifest(String bakeId) {
     PackerManifest manifestData;
-    try (
-      BufferedInputStream manifestInput =
+    try (BufferedInputStream manifestInput =
         new BufferedInputStream(
-          Files.newInputStream(getManifestPath(bakeId), StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE)
-        )
-    ) {
+            Files.newInputStream(
+                getManifestPath(bakeId),
+                StandardOpenOption.READ,
+                StandardOpenOption.DELETE_ON_CLOSE))) {
       manifestData = objectMapper.readValue(manifestInput, PackerManifest.class);
     } catch (IOException e) {
       throw new IllegalStateException("Could not read packer manifest file: " + e.getMessage());

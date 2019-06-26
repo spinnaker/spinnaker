@@ -12,6 +12,7 @@ package com.netflix.spinnaker.rosco.providers.oracle.config;
 import com.netflix.spinnaker.rosco.api.BakeRequest;
 import com.netflix.spinnaker.rosco.providers.oracle.OCIBakeHandler;
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,19 +20,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-
 @Configuration
 @ConditionalOnProperty("oracle.enabled")
 @ComponentScan("com.netflix.spinnaker.rosco.providers.oracle")
 public class RoscoOracleConfiguration {
 
-  final private CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry;
+  private final CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry;
 
-  final private OCIBakeHandler ociBakeHandler;
+  private final OCIBakeHandler ociBakeHandler;
 
   @Autowired
-  public RoscoOracleConfiguration(CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry, OCIBakeHandler ociBakeHandler) {
+  public RoscoOracleConfiguration(
+      CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry,
+      OCIBakeHandler ociBakeHandler) {
     this.cloudProviderBakeHandlerRegistry = cloudProviderBakeHandlerRegistry;
     this.ociBakeHandler = ociBakeHandler;
   }
@@ -52,5 +53,4 @@ public class RoscoOracleConfiguration {
   public OracleConfigurationProperties oracleConfigurationProperties() {
     return new OracleConfigurationProperties();
   }
-
 }

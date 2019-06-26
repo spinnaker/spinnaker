@@ -18,15 +18,15 @@ package com.netflix.spinnaker.rosco.providers.util;
 import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter.OsPackageName;
 
 public interface PackageUtil {
-    String getPackageType();
+  String getPackageType();
 
-    String getPackageManagerVersionSeparator();
+  String getPackageManagerVersionSeparator();
 
-    String getVersionSeparator();
+  String getVersionSeparator();
 
-    String getBuildNumberSeparator();
+  String getBuildNumberSeparator();
 
-    String getCommitHashSeparator();
+  String getCommitHashSeparator();
 
-    OsPackageName parsePackageName(String fullyQualifiedPackageName);
+  OsPackageName parsePackageName(String fullyQualifiedPackageName);
 }
