@@ -70,6 +70,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 })
 @ComponentScan({
   "com.netflix.spinnaker.config",
+  "com.netflix.spinnaker.endpoint",
 })
 @EnableAutoConfiguration
 @EnableAsync
