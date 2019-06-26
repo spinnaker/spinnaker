@@ -41,7 +41,7 @@ class RoscoAzureConfiguration {
   AzureBakeHandler azureBakeHandler
 
   @Bean
-  @ConfigurationProperties('azure.bakeryDefaults')
+  @ConfigurationProperties('azure.bakery-defaults')
   AzureBakeryDefaults azureBakeryDefaults() {
     new AzureBakeryDefaults()
   }

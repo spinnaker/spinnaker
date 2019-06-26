@@ -30,22 +30,22 @@ import org.springframework.beans.factory.annotation.Value
 
 abstract class CloudProviderBakeHandler {
 
-  @Value('${rosco.configDir}')
+  @Value('${rosco.config-dir}')
   String configDir
 
   @Autowired
   PackerCommandFactory packerCommandFactory
 
-  @Value('${debianRepository:}')
+  @Value('${debian-repository:}')
   String debianRepository
 
-  @Value('${yumRepository:}')
+  @Value('${yum-repository:}')
   String yumRepository
 
-  @Value('${chocolateyRepository:}')
+  @Value('${chocolatey-repository:}')
   String chocolateyRepository
 
-  @Value('${templatesNeedingRoot:}')
+  @Value('${templates-needing-root:}')
   List<String> templatesNeedingRoot
 
   /**

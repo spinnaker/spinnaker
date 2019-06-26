@@ -1,7 +1,13 @@
 dependencies {
-  compileOnly spinnaker.dependency("lombok")
-
-  compile group: 'commons-io', name: 'commons-io', version: '2.4'
-
   compile project(":rosco-core")
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+
+  implementation "com.squareup.retrofit:retrofit"
 }

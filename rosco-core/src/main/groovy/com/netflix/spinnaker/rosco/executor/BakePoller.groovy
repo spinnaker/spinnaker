@@ -49,13 +49,13 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
   @Autowired
   String roscoInstanceId
 
-  @Value('${rosco.polling.pollingIntervalSeconds:15}')
+  @Value('${rosco.polling.polling-interval-seconds:15}')
   int pollingIntervalSeconds
 
-  @Value('${rosco.polling.orphanedJobPollingIntervalSeconds:30}')
+  @Value('${rosco.polling.orphaned-job-polling-interval-seconds:30}')
   int orphanedJobPollingIntervalSeconds
 
-  @Value('${rosco.polling.orphanedJobTimeoutMinutes:30}')
+  @Value('${rosco.polling.orphaned-job-timeout-minutes:30}')
   long orphanedJobTimeoutMinutes
 
   @Autowired

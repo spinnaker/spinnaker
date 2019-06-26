@@ -41,7 +41,7 @@ import java.util.function.ToDoubleFunction
 @Slf4j
 class JobExecutorLocal implements JobExecutor {
 
-  @Value('${rosco.jobs.local.timeoutMinutes:10}')
+  @Value('${rosco.jobs.local.timeout-minutes:10}')
   long timeoutMinutes
 
   @Autowired

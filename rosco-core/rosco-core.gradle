@@ -1,14 +1,19 @@
 dependencies {
-  spinnaker.group('bootWeb')
-  spinnaker.group('retrofitDefault')
-  compile spinnaker.dependency('rxJava')
-  spinnaker.group('jackson')
-  compile spinnaker.dependency("commonsExec")
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency('jacksonGuava')
-  compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency('korkJedis')
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency('korkArtifacts')
-  compileOnly spinnaker.dependency("lombok")
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "io.reactivex:rxjava"
+  implementation "org.apache.commons:commons-exec"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "redis.clients:jedis"
+
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.objenesis:objenesis"
 }

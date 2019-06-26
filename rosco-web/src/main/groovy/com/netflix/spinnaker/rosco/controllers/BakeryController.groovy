@@ -56,13 +56,13 @@ class BakeryController {
   @Autowired
   Registry registry
 
-  @Value('${defaultCloudProviderType:aws}')
+  @Value('${default-cloud-provider-type:aws}')
   BakeRequest.CloudProviderType defaultCloudProviderType
 
-  @Value('${rosco.polling.waitForJobStartTimeoutMillis:5000}')
+  @Value('${rosco.polling.wait-for-job-start-timeout-millis:5000}')
   long waitForJobStartTimeoutMillis
 
-  @Value('${rosco.polling.waitForJobStartPollingIntervalMillis:500}')
+  @Value('${rosco.polling.wait-for-job-start-polling-interval-millis:500}')
   long waitForJobStartPollingIntervalMillis
 
   @RequestMapping(value = '/bakeOptions', method = RequestMethod.GET)

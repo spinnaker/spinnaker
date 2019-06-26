@@ -28,7 +28,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.web.support.SpringBootServletInitializer
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -68,7 +68,7 @@ class Main extends SpringBootServletInitializer {
     'netflix.environment': 'test',
     'netflix.account': '${netflix.environment}',
     'netflix.stack': 'test',
-    'spring.config.location': '${user.home}/.spinnaker/',
+    'spring.config.additional-location': '${user.home}/.spinnaker/',
     'spring.application.name': 'rosco',
     'spring.config.name': 'spinnaker,${spring.application.name}',
     'spring.profiles.active': '${netflix.environment},local'

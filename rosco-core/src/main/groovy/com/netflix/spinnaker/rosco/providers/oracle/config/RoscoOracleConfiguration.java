@@ -42,7 +42,7 @@ public class RoscoOracleConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("oracle.bakeryDefaults")
+  @ConfigurationProperties("oracle.bakery-defaults")
   public OracleBakeryDefaults oracleBakeryDefaults() {
     return new OracleBakeryDefaults();
   }

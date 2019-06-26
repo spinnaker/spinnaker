@@ -43,7 +43,7 @@ class RoscoDockerConfiguration {
   DockerBakeHandler dockerBakeHandler
 
   @Bean
-  @ConfigurationProperties('docker.bakeryDefaults')
+  @ConfigurationProperties('docker.bakery-defaults')
   DockerBakeryDefaults dockerBakeryDefaults() {
     new DockerBakeryDefaults()
   }

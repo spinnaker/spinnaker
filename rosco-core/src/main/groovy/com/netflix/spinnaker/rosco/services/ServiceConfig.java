@@ -27,10 +27,10 @@ import retrofit.converter.JacksonConverter;
 
 @Configuration
 public class ServiceConfig {
-  @Value("${services.clouddriver.baseUrl:http://localhost:7002}")
+  @Value("${services.clouddriver.base-url:http://localhost:7002}")
   String clouddriverBaseUrl;
 
-  @Value("${retrofit.logLevel:BASIC}")
+  @Value("${retrofit.log-level:BASIC}")
   String retrofitLogLevel;
 
   // This should be service-agnostic if more integrations than clouddriver are used

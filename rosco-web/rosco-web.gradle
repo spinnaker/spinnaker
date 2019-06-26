@@ -1,11 +1,11 @@
 apply plugin: 'spinnaker.application'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 run {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.config.additional-location', project.springConfigLocation)
 }
 mainClassName = 'com.netflix.spinnaker.rosco.Main'
 
@@ -17,13 +17,15 @@ configurations.all {
 dependencies {
   compile project(":rosco-core")
   compile project(":rosco-manifests")
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("korkWeb")
-  compile spinnaker.dependency('korkStackdriver')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency("spectatorReg")
-  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
-  spinnaker.group("bootWeb")
+  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.objenesis:objenesis"
 }
 
 if (project.plugins.hasPlugin('spinnaker.package')) {
