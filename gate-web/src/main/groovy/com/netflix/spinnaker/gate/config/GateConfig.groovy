@@ -39,6 +39,7 @@ import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.gate.services.internal.KayentaService
+import com.netflix.spinnaker.gate.services.internal.KeelService
 import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -172,6 +173,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Bean
   ClouddriverService clouddriverService(OkHttpClient okHttpClient) {
     createClient "clouddriver", ClouddriverService, okHttpClient
+  }
+
+  @Bean
+  @ConditionalOnProperty("services.keel.enabled")
+  KeelService keelService(OkHttpClient okHttpClient) {
+    createClient "keel", KeelService, okHttpClient
   }
 
   @Bean

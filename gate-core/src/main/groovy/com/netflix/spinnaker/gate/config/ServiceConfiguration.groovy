@@ -41,7 +41,7 @@ class ServiceConfiguration {
   void postConstruct() {
     // this check is done in a @PostConstruct to avoid Spring's list merging in @ConfigurationProperties (vs. overriding)
     healthCheckableServices = healthCheckableServices ?: [
-      "orca", "clouddriver", "echo", "igor", "flex", "front50", "mahe", "mine"
+      "orca", "clouddriver", "echo", "igor", "flex", "front50", "mahe", "mine", "keel"
     ]
   }
 
