@@ -8,7 +8,6 @@ import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.contro
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
 import { KUBERNETES_V2_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { KUBERNETES_DELETE_MANIFEST_STAGE } from './pipelines/stages/deleteManifest/deleteManifestStage';
-import { KUBERNETES_PATCH_MANIFEST_STAGE } from './pipelines/stages/patchManifest/patchManifestStage';
 import { KUBERNETES_SCALE_MANIFEST_STAGE } from './pipelines/stages/scaleManifest/scaleManifestStage';
 import { KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE } from './pipelines/stages/undoRolloutManifest/undoRolloutManifestStage';
 import { KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE } from './pipelines/stages/findArtifactsFromResource/findArtifactsFromResourceStage';
@@ -43,6 +42,7 @@ import { KUBERNETES_V2_RUN_JOB_STAGE } from 'kubernetes/v2/pipelines/stages/runJ
 
 // React stages
 import './pipelines/stages/deployManifest/deployManifestStage';
+import './pipelines/stages/patchManifest/patchManifestStage';
 
 import './pipelines/validation/manifestSelector.validator';
 
@@ -76,7 +76,6 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER,
   require('../securityGroup/reader').name,
   KUBERNETES_DELETE_MANIFEST_STAGE,
-  KUBERNETES_PATCH_MANIFEST_STAGE,
   KUBERNETES_SCALE_MANIFEST_STAGE,
   KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE,
   KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE,

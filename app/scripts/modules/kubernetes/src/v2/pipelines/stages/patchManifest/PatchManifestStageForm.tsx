@@ -1,43 +1,37 @@
 import * as React from 'react';
-import { capitalize, get, isEmpty, map } from 'lodash';
 import { Option } from 'react-select';
+import { capitalize, get, isEmpty, map } from 'lodash';
 
 import {
   ArtifactTypePatterns,
-  CheckboxInput,
-  IAccountDetails,
   IArtifact,
   IExpectedArtifact,
   IFormikStageConfigInjectedProps,
-  IManifest,
   IPipeline,
   RadioButtonInput,
-  StageConfigField,
   StageArtifactSelectorDelegate,
+  StageConfigField,
   yamlDocumentsToString,
   YamlEditor,
 } from '@spinnaker/core';
 
-import { ManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
-import { CopyFromTemplateButton } from './CopyFromTemplateButton';
-import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
-import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
-import { ManifestBindArtifactsSelectorDelegate } from './ManifestBindArtifactsSelectorDelegate';
-import { NamespaceSelector } from './NamespaceSelector';
+import { ManifestBindArtifactsSelectorDelegate } from 'kubernetes/v2/pipelines/stages/deployManifest/ManifestBindArtifactsSelectorDelegate';
+import { IManifestBindArtifact } from 'kubernetes/v2/pipelines/stages/deployManifest/ManifestBindArtifactsSelector';
+import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
+import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
+import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
 
-interface IDeployManifestStageConfigFormProps {
-  accounts: IAccountDetails[];
+interface IPatchManifestStageConfigFormProps {
   updatePipeline: (pipeline: IPipeline) => void;
 }
 
-interface IDeployManifestStageConfigFormState {
+interface IPatchManifestStageConfigFormState {
   rawManifest: string;
-  overrideNamespace: boolean;
 }
 
-export class DeployManifestStageForm extends React.Component<
-  IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
-  IDeployManifestStageConfigFormState
+export class PatchManifestStageForm extends React.Component<
+  IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
+  IPatchManifestStageConfigFormState
 > {
   public readonly textSource = 'text';
   public readonly artifactSource = 'artifact';
@@ -49,37 +43,14 @@ export class DeployManifestStageForm extends React.Component<
     ArtifactTypePatterns.MAVEN_FILE,
   ];
 
-  public constructor(props: IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
+  public constructor(props: IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
     super(props);
-    const stage = this.props.formik.values;
-    const manifests: any[] = get(props.formik.values, 'manifests');
+    const patchBody: string = get(props.formik.values, 'patchBody');
     const isTextManifest: boolean = get(props.formik.values, 'source') === this.textSource;
     this.state = {
-      rawManifest: !isEmpty(manifests) && isTextManifest ? yamlDocumentsToString(manifests) : '',
-      overrideNamespace: get(stage, 'namespaceOverride', '') !== '',
+      rawManifest: !isEmpty(patchBody) && isTextManifest ? yamlDocumentsToString([patchBody]) : '',
     };
   }
-
-  private getSourceOptions = (): Array<Option<string>> => {
-    return map([this.textSource, this.artifactSource], option => ({
-      label: capitalize(option),
-      value: option,
-    }));
-  };
-
-  private handleCopy = (manifest: IManifest): void => {
-    this.props.formik.setFieldValue('manifests', [manifest]);
-    this.setState({
-      rawManifest: yamlDocumentsToString([manifest]),
-    });
-  };
-
-  private handleRawManifestChange = (rawManifest: string, manifests: any): void => {
-    this.setState({
-      rawManifest,
-    });
-    this.props.formik.setFieldValue('manifests', manifests);
-  };
 
   private onManifestArtifactSelected = (expectedArtifactId: string): void => {
     this.props.formik.setFieldValue('manifestArtifactId', expectedArtifactId);
@@ -110,53 +81,45 @@ export class DeployManifestStageForm extends React.Component<
     this.props.formik.setFieldValue('requiredArtifacts', bindings.filter(b => b.artifact));
   };
 
-  private overrideNamespaceChange(checked: boolean) {
-    if (!checked) {
-      this.props.formik.setFieldValue('namespaceOverride', '');
-    }
-    this.setState({ overrideNamespace: checked });
-  }
+  private handleRawManifestChange = (rawManifest: string, manifests: any): void => {
+    this.setState({
+      rawManifest,
+    });
+    this.props.formik.setFieldValue('patchBody', manifests[0]);
+  };
+
+  private onManifestSelectorChange = (): void => {};
+
+  private getSourceOptions = (): Array<Option<string>> => {
+    return map([this.textSource, this.artifactSource], option => ({
+      label: capitalize(option),
+      value: option,
+    }));
+  };
 
   public render() {
     const stage = this.props.formik.values;
     return (
-      <div className="form-horizontal">
-        <h4>Basic Settings</h4>
-        <ManifestBasicSettings
-          app={this.props.application}
-          accounts={this.props.accounts}
-          onAccountSelect={accountName => this.props.formik.setFieldValue('account', accountName)}
-          selectedAccount={stage.account}
+      <div className="container-fluid form-horizontal">
+        <h4>Resource to Patch</h4>
+        <ManifestSelector
+          application={this.props.application}
+          modes={[SelectorMode.Static, SelectorMode.Dynamic]}
+          onChange={this.onManifestSelectorChange}
+          selector={stage as any}
         />
-        <StageConfigField label="Override Namespace">
-          <CheckboxInput
-            checked={this.state.overrideNamespace}
-            onChange={(e: any) => this.overrideNamespaceChange(e.target.checked)}
-          />
-        </StageConfigField>
-        {this.state.overrideNamespace && (
-          <StageConfigField label="Namespace">
-            <NamespaceSelector
-              createable={true}
-              accounts={this.props.accounts}
-              selectedAccount={stage.account}
-              selectedNamespace={stage.namespaceOverride || ''}
-              onChange={namespace => this.props.formik.setFieldValue('namespaceOverride', namespace)}
-            />
-          </StageConfigField>
-        )}
         <hr />
-        <h4>Manifest Configuration</h4>
+        <h4>Patch Content</h4>
         <StageConfigField label="Manifest Source" helpKey="kubernetes.manifest.source">
           <RadioButtonInput
             options={this.getSourceOptions()}
             onChange={(e: any) => this.props.formik.setFieldValue('source', e.target.value)}
-            value={stage.source}
+            value={stage.source || 'text'}
+            inline={true}
           />
         </StageConfigField>
         {stage.source === this.textSource && (
           <StageConfigField label="Manifest">
-            <CopyFromTemplateButton application={this.props.application} handleCopy={this.handleCopy} />
             <YamlEditor onChange={this.handleRawManifestChange} value={this.state.rawManifest} />
           </StageConfigField>
         )}
@@ -178,13 +141,6 @@ export class DeployManifestStageForm extends React.Component<
               stage={stage}
               updatePipeline={this.props.updatePipeline}
             />
-            <StageConfigField label="Expression Evaluation" helpKey="kubernetes.manifest.skipExpressionEvaluation">
-              <CheckboxInput
-                checked={stage.skipExpressionEvaluation === true}
-                onChange={(e: any) => this.props.formik.setFieldValue('skipExpressionEvaluation', e.target.checked)}
-                text="Skip SpEL expression evaluation"
-              />
-            </StageConfigField>
           </>
         )}
         <StageConfigField label="Required Artifacts to Bind" helpKey="kubernetes.manifest.requiredArtifactsToBind">
@@ -195,12 +151,14 @@ export class DeployManifestStageForm extends React.Component<
             stage={stage}
           />
         </StageConfigField>
+
         <hr />
-        <ManifestDeploymentOptions
-          accounts={this.props.accounts}
-          config={stage.trafficManagement}
-          onConfigChange={config => this.props.formik.setFieldValue('trafficManagement', config)}
-          selectedAccount={stage.account}
+        <h4>Patch Options</h4>
+        <PatchManifestOptionsForm
+          strategy={!!stage.options && stage.options.strategy}
+          onStrategyChange={(strategy: string) => this.props.formik.setFieldValue('options.strategy', strategy)}
+          record={!!stage.options && stage.options.record}
+          onRecordChange={(record: boolean) => this.props.formik.setFieldValue('options.record', record)}
         />
       </div>
     );
