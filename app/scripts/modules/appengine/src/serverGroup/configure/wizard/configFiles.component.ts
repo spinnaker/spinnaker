@@ -1,4 +1,6 @@
 import { module, IController, IScope } from 'angular';
+import { extend } from 'lodash';
+
 import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 import {
   AccountService,
@@ -6,6 +8,7 @@ import {
   NgAppengineConfigArtifactDelegate,
   IArtifactAccount,
   IArtifactAccountPair,
+  IPipeline,
 } from '@spinnaker/core';
 
 import './serverGroupWizard.less';
@@ -96,6 +99,18 @@ class AppengineConfigFileConfigurerCtrl implements IController {
   public isContainerImageSource(): boolean {
     return this.command.sourceType === AppengineSourceType.CONTAINER_IMAGE;
   }
+
+  public updateConfigArtifacts = (configArtifacts: ConfigArtifact[]): void => {
+    this.$scope.$applyAsync(() => {
+      this.command.configArtifacts = configArtifacts;
+    });
+  };
+
+  public updatePipeline = (changes: Partial<IPipeline>): void => {
+    this.$scope.$applyAsync(() => {
+      extend(this.$scope.$parent.pipeline, changes);
+    });
+  };
 }
 
 const appengineConfigFileConfigurerComponent: ng.IComponentOptions = {

@@ -57,7 +57,7 @@ export class AppengineDeployDescription {
     this.trigger = command.trigger;
     this.gitCredentialType = command.gitCredentialType;
     this.configFiles = command.configFiles;
-    this.configArtifacts = command.configArtifacts.filter(a => !!a.id);
+    this.configArtifacts = command.configArtifacts.filter(a => !!a.id || !!a.artifact);
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
     this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
     this.expectedArtifactId = command.expectedArtifactId;

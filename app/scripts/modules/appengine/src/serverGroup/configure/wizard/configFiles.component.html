@@ -69,50 +69,14 @@
         <span class="glyphicon glyphicon-plus-sign"></span> Add Config File
       </button>
     </div>
-    <div
-      ng-repeat="artifact in $ctrl.command.configArtifacts track by $index"
-      class="artifact-configuration-section col-md-12"
-      ng-class="{ 'last-entry': $last }"
+    <config-file-artifact-list
+      ng-if="$ctrl.command.viewState.pipeline"
+      config-artifacts="$ctrl.command.configArtifacts"
+      pipeline="$ctrl.command.viewState.pipeline"
+      stage="$ctrl.command.viewState.stage"
+      update-config-artifacts="$ctrl.updateConfigArtifacts"
+      update-pipeline="$ctrl.updatePipeline"
     >
-      <div class="col-md-7 col-md-offset-3">
-        <expected-artifact-selector-react
-          expected-artifacts="artifact.delegate.expectedArtifacts"
-          selected="artifact.delegate.getSelectedExpectedArtifact()"
-          on-change="(artifact.controller.onArtifactChange)"
-          on-request-create="(artifact.controller.onRequestCreate)"
-          requesting-new="artifact.delegate.requestingNew"
-        >
-        </expected-artifact-selector-react>
-        <div ng-if="!artifact.delegate.requestingNew">
-          <artifact-account-selector-react
-            accounts="artifact.controller.accountsForArtifact"
-            selected="artifact.delegate.getSelectedAccount()"
-            on-change="(artifact.controller.onAccountChange)"
-          >
-          </artifact-account-selector-react>
-        </div>
-      </div>
-      <expected-artifact-editor-react
-        ng-if="artifact.delegate.requestingNew"
-        kinds="artifact.delegate.getSupportedArtifactKinds()"
-        sources="artifact.delegate.getExpectedArtifactSources()"
-        accounts="artifact.delegate.getExpectedArtifactAccounts()"
-        on-save="(artifact.controller.onArtifactCreated)"
-        field-columns="7"
-        field-group-class-name="''"
-        single-column="true"
-      >
-      </expected-artifact-editor-react>
-      <div class="col-md-1">
-        <button type="button" class="btn btn-sm btn-default" ng-click="$ctrl.deleteConfigArtifact($index)">
-          <span class="glyphicon glyphicon-trash"></span> Delete
-        </button>
-      </div>
-    </div>
-    <div class="col-md-7 col-md-offset-3">
-      <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addConfigArtifact()">
-        <span class="glyphicon glyphicon-plus-sign"></span> Add Config Artifact
-      </button>
-    </div>
+    </config-file-artifact-list>
   </div>
 </div>

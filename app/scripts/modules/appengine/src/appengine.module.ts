@@ -16,6 +16,7 @@ import { APPENGINE_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/detai
 import { APPENGINE_SERVER_GROUP_TRANSFORMER } from './serverGroup/transformer';
 import { APPENGINE_SERVER_GROUP_WRITER } from './serverGroup/writer/serverGroup.write.service';
 import './validation/ApplicationNameValidator';
+import { CONFIG_FILE_ARTIFACT_LIST } from './serverGroup/configure/wizard/configFileArtifactList.module';
 
 import './logo/appengine.logo.less';
 
@@ -39,6 +40,7 @@ module(APPENGINE_MODULE, [
   APPENGINE_SERVER_GROUP_DETAILS_CTRL,
   APPENGINE_SERVER_GROUP_TRANSFORMER,
   APPENGINE_SERVER_GROUP_WRITER,
+  CONFIG_FILE_ARTIFACT_LIST,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('appengine', {
     name: 'App Engine',
