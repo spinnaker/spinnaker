@@ -98,7 +98,8 @@ public class ArtifactService {
         .execute();
   }
 
-  public List<String> getVersionsOfArtifactForProvider(String provider, String packageName) {
+  public List<String> getVersionsOfArtifactForProvider(
+      String provider, String packageName, String releaseStatus) {
     if (!igorService.isPresent()) {
       throw new IllegalStateException(
           "Cannot fetch artifact versions because Igor is not enabled.");
@@ -106,7 +107,7 @@ public class ArtifactService {
 
     return stringListCommand(
             "artifactVersionsByProvider",
-            () -> igorService.get().getArtifactVersions(provider, packageName))
+            () -> igorService.get().getArtifactVersions(provider, packageName, releaseStatus))
         .execute();
   }
 }

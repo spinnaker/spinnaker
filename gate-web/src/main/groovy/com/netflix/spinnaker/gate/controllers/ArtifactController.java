@@ -73,10 +73,13 @@ public class ArtifactController {
   }
 
   @ApiOperation(
-      value = "Retrieve the available artifact versions for an artifact provider and package name")
+      value = "Retrieve the available artifact versions for an artifact provider and package name",
+      notes = "releaseStatus is an optional comma separated list of statuses to filter on.")
   @RequestMapping(value = "/{provider}/{packageName}", method = RequestMethod.GET)
   List<String> getVersionsOfArtifactForProvider(
-      @PathVariable String provider, @PathVariable String packageName) {
-    return artifactService.getVersionsOfArtifactForProvider(provider, packageName);
+      @PathVariable String provider,
+      @PathVariable String packageName,
+      @RequestParam(required = false) String releaseStatus) {
+    return artifactService.getVersionsOfArtifactForProvider(provider, packageName, releaseStatus);
   }
 }
