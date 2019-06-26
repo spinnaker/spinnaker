@@ -115,7 +115,9 @@ kayenta:
 #    endpoint:
 #      baseUrl: http://remotejudge.example.com/path/to/service
 
-management.security.enabled: false
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
 
 keiko:
   queue:
