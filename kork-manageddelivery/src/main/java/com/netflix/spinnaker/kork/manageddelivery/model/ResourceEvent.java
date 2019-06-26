@@ -47,24 +47,39 @@ public class ResourceEvent {
   String name;
   String timestamp;
 
+  /** A new resource was registered for management. */
   @Data
   @JsonTypeName("ResourceCreated")
   public static class ResourceCreated extends ResourceEvent {}
 
+  /** A managed resource does not currently exist in the cloud. */
   @Data
   @JsonTypeName("ResourceMissing")
   public static class ResourceMissing extends ResourceEvent {}
 
+  /**
+   * The desired and actual states of a managed resource now match where previously there was a
+   * delta (or the resource did not exist).
+   */
   @Data
   @JsonTypeName("ResourceDeltaResolved")
   public static class ResourceDeltaResolved extends ResourceEvent {}
 
+  /**
+   * A difference between the desired and actual state of a managed resource was detected.
+   *
+   * @property delta The difference between the "base" spec (desired) and "working" spec (actual).
+   */
   @Data
   @JsonTypeName("ResourceDeltaDetected")
   public static class ResourceDeltaDetected extends ResourceEvent {
     Map<String, Object> delta;
   }
 
+  /**
+   * A task or tasks were launched to resolve a mismatch between desired and actual state of a
+   * managed resource.
+   */
   @Data
   @JsonTypeName("ResourceActuationLaunched")
   public static class ResourceActuationLaunched extends ResourceEvent {
@@ -72,6 +87,12 @@ public class ResourceEvent {
     List<String> tasks;
   }
 
+  /**
+   * The desired state of a resource was updated.
+   *
+   * @property delta The difference between the "base" spec (previous version) and "working" spec
+   *     (the updated version).
+   */
   @Data
   @JsonTypeName("ResourceUpdated")
   public static class ResourceUpdated extends ResourceEvent {
