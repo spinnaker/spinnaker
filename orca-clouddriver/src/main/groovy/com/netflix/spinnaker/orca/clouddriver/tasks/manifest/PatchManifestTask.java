@@ -16,21 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -41,32 +34,6 @@ public class PatchManifestTask extends AbstractCloudProviderAwareTask implements
   public static final String TASK_NAME = "patchManifest";
 
   private final ManifestEvaluator manifestEvaluator;
-
-  @Value
-  @JsonDeserialize(builder = PatchManifestContext.PatchManifestContextBuilder.class)
-  @Builder(builderClassName = "PatchManifestContextBuilder", toBuilder = true)
-  private static class PatchManifestContext implements ManifestContext {
-    private List<Map<Object, Object>> patchBody;
-    private Source source;
-
-    private String manifestArtifactId;
-    private Artifact manifestArtifact;
-    private String manifestArtifactAccount;
-
-    private List<String> requiredArtifactIds;
-    private List<BindArtifact> requiredArtifacts;
-
-    @Builder.Default private boolean skipExpressionEvaluation = false;
-
-    @Nullable
-    @Override
-    public List<Map<Object, Object>> getManifests() {
-      return patchBody;
-    }
-
-    @JsonPOJOBuilder(withPrefix = "")
-    public static class PatchManifestContextBuilder {}
-  }
 
   @Nonnull
   @Override

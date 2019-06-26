@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 class ManifestContextTest {
@@ -51,5 +52,26 @@ class ManifestContextTest {
 
     DeployManifestContext context = new ObjectMapper().readValue(json, DeployManifestContext.class);
     assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+  }
+
+  @Test
+  void deserializePatchManifestNoArtifacts() throws IOException {
+    String json =
+        "{\n"
+            + "  \"manifestArtifactAccount\": \"account\",\n"
+            + "  \"source\": \"text\",\n"
+            + "  \"patchBody\": {\n"
+            + "         \"spec\": {\n"
+            + "             \"replicas\": \"3\"\n"
+            + "         }\n"
+            + "  }\n"
+            + "}";
+
+    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+    assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
+    assertThat(context.getPatchBody()).containsOnlyKeys("spec");
+    assertThat(context.getPatchBody().get("spec"))
+        .isEqualTo(Collections.singletonMap("replicas", "3"));
   }
 }
