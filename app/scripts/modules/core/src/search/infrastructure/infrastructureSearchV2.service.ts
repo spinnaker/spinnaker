@@ -1,7 +1,6 @@
 import { isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
-import { SETTINGS } from 'core/config';
 import { UrlBuilder, IQueryParams } from 'core/navigation';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
@@ -21,9 +20,6 @@ export class InfrastructureSearchServiceV2 {
     }
 
     const params = { ...apiParams };
-    if (SETTINGS.defaultProviders && SETTINGS.defaultProviders.length > 0) {
-      params.cloudProvider = SETTINGS.defaultProviders[0];
-    }
     const types = searchResultTypeRegistry.getAll();
     const otherResults$ = new Subject<ISearchResultSet>();
 
