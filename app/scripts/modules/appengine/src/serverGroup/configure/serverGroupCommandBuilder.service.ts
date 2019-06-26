@@ -4,6 +4,7 @@ import {
   AccountService,
   StorageAccountReader,
   Application,
+  IArtifact,
   IBuildTrigger,
   IExpectedArtifact,
   IGitTrigger,
@@ -52,6 +53,7 @@ export interface IAppengineServerGroupCommand {
   interestingHealthProviderNames: string[];
   fromArtifact: boolean;
   expectedArtifactId: string;
+  expectedArtifact?: IArtifact;
   sourceType: string;
   containerImageUrl?: string;
 }

@@ -89,49 +89,31 @@
           <div class="radio radio-inline">
             <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
           </div>
-          <div class="radio radio-inline">
+          <div class="radio radio-inline" ng-if="command.viewState.pipeline">
             <label>
               <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
             </label>
           </div>
         </div>
       </div>
-
-      <div class="form-group row" ng-if="command.fromArtifact">
-        <label class="col-md-3 sm-label-right">Artifact Account</label>
-        <div class="col-md-7">
-          <select
-            class="form-control input-sm"
-            ng-options="option for option in command.backingData.storageAccounts"
-            ng-model="command.storageAccountName"
-          >
-            <option value="">Select...</option>
-          </select>
-        </div>
-      </div>
-
-      <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
-        <expected-artifact-selector-react
-          expected-artifacts="command.backingData.expectedArtifacts"
-          selected="gcsArtifactDelegate.getSelectedExpectedArtifact()"
-          on-change="gcsArtifactController.onArtifactChange"
-          on-request-create="gcsArtifactController.onRequestCreate"
-          offered-artifact-types="gcsArtifactDelegate.getOfferedArtifactTypes()"
-          requesting-new="showCreateArtifactForm"
-        >
-        </expected-artifact-selector-react>
-      </stage-config-field>
-      <expected-artifact-editor-react
-        ng-if="showCreateArtifactForm"
-        kinds="gcsArtifactDelegate.getSupportedArtifactKinds()"
-        sources="gcsArtifactDelegate.getExpectedArtifactSources()"
-        on-save="gcsArtifactController.onArtifactCreated"
-        show-accounts="false"
-        single-column="true"
+      <stage-artifact-selector-delegate
+        ng-if="command.fromArtifact"
+        artifact="command.expectedArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedGcsArtifactTypes"
+        expected-artifact-id="command.expectedArtifactId"
         field-columns="7"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onExpectedArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onExpectedArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        selected-artifact-account="command.storageAccountName"
+        selected-artifact-id="command.expectedArtifactId"
+        set-artifact-account="basicSettingsCtrl.onExpectedArtifactAccountSelected"
+        set-artifact-id="basicSettingsCtrl.onChangeExpectedArtifactId"
+        stage="command.viewState.stage"
+        update-pipeline="basicSettingsCtrl.updatePipeline"
       >
-      </expected-artifact-editor-react>
-
+      </stage-artifact-selector-delegate>
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
           GCS URL
@@ -218,36 +200,31 @@
           <div class="radio radio-inline">
             <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
           </div>
-          <div class="radio radio-inline">
+          <div class="radio radio-inline" ng-if="command.viewState.pipeline">
             <label>
               <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
             </label>
           </div>
         </div>
       </div>
-
-      <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
-        <expected-artifact-selector-react
-          expected-artifacts="command.backingData.expectedArtifacts"
-          selected="containerArtifactDelegate.getSelectedExpectedArtifact()"
-          on-change="containerArtifactController.onArtifactChange"
-          on-request-create="containerArtifactController.onRequestCreate"
-          offered-artifact-types="containerArtifactDelegate.getOfferedArtifactTypes()"
-          requesting-new="showCreateArtifactForm"
-        >
-        </expected-artifact-selector-react>
-      </stage-config-field>
-      <expected-artifact-editor-react
-        ng-if="showCreateArtifactForm"
-        kinds="containerArtifactDelegate.getSupportedArtifactKinds()"
-        sources="containerArtifactDelegate.getExpectedArtifactSources()"
-        on-save="containerArtifactController.onArtifactCreated"
-        show-accounts="false"
-        single-column="true"
+      <stage-artifact-selector-delegate
+        ng-if="command.fromArtifact"
+        artifact="command.expectedArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedContainerArtifactTypes"
+        expected-artifact-id="command.expectedArtifactId"
         field-columns="7"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onExpectedArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onExpectedArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        selected-artifact-account="command.storageAccountName"
+        selected-artifact-id="command.expectedArtifactId"
+        set-artifact-account="basicSettingsCtrl.onExpectedArtifactAccountSelected"
+        set-artifact-id="basicSettingsCtrl.onChangeExpectedArtifactId"
+        stage="command.viewState.stage"
+        update-pipeline="basicSettingsCtrl.updatePipeline"
       >
-      </expected-artifact-editor-react>
-
+      </stage-artifact-selector-delegate>
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
           Image URL

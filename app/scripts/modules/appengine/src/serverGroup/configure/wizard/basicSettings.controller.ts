@@ -4,7 +4,11 @@ import { set } from 'lodash';
 
 import {
   ArtifactTypePatterns,
+  excludeAllTypesExcept,
   ExpectedArtifactSelectorViewController,
+  IArtifact,
+  IExpectedArtifact,
+  IPipeline,
   NgAppEngineDeployArtifactDelegate,
 } from '@spinnaker/core';
 
@@ -17,6 +21,7 @@ interface IAppengineBasicSettingsScope extends IScope {
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
   public static $inject = ['$scope', '$state', '$controller', '$uibModalStack'];
+
   constructor(
     public $scope: IAppengineBasicSettingsScope,
     $state: StateService,
@@ -103,6 +108,39 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
         return 'No credentials';
     }
   }
+
+  public readonly excludedGcsArtifactTypes = excludeAllTypesExcept(ArtifactTypePatterns.GCS_OBJECT);
+  public readonly excludedContainerArtifactTypes = excludeAllTypesExcept(ArtifactTypePatterns.DOCKER_IMAGE);
+
+  public onExpectedArtifactEdited = (artifact: IArtifact): void => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.command.expectedArtifactId = null;
+      this.$scope.command.expectedArtifact = artifact;
+    });
+  };
+
+  public onExpectedArtifactSelected = (expectedArtifact: IExpectedArtifact): void => {
+    this.onChangeExpectedArtifactId(expectedArtifact.id);
+  };
+
+  public onChangeExpectedArtifactId = (artifactId: string): void => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.command.expectedArtifactId = artifactId;
+      this.$scope.command.expectedArtifact = null;
+    });
+  };
+
+  public onExpectedArtifactAccountSelected = (accountName: string): void => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.command.storageAccountName = accountName;
+    });
+  };
+
+  public updatePipeline = (changes: Partial<IPipeline>): void => {
+    this.$scope.$applyAsync(() => {
+      extend(this.$scope.$parent.pipeline, changes);
+    });
+  };
 
   private findAccountInBackingData(): IAppengineAccount {
     return this.$scope.command.backingData.accounts.find((account: IAppengineAccount) => {

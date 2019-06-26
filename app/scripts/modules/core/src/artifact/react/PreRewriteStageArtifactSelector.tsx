@@ -22,6 +22,7 @@ import {
 
 export interface IPreRewriteArtifactSelectorProps {
   excludedArtifactTypePatterns?: RegExp[];
+  fieldColumns?: number;
   helpKey?: string;
   label: string;
   selectedArtifactId: string;
@@ -170,12 +171,19 @@ export class PreRewriteStageArtifactSelector extends React.Component<
   }
 
   public render() {
-    const { excludedArtifactTypePatterns, helpKey, label, selectedArtifactId, setArtifactAccount } = this.props;
+    const {
+      excludedArtifactTypePatterns,
+      fieldColumns,
+      helpKey,
+      label,
+      selectedArtifactId,
+      setArtifactAccount,
+    } = this.props;
     const { accountsForArtifact, allArtifactAccounts, showCreateArtifactForm } = this.state;
 
     return (
       <>
-        <StageConfigField helpKey={helpKey} label={label || 'Artifact'}>
+        <StageConfigField helpKey={helpKey} label={label || 'Artifact'} fieldColumns={fieldColumns}>
           <ExpectedArtifactSelector
             excludedArtifactTypes={excludedArtifactTypePatterns}
             expectedArtifacts={this.state.expectedArtifacts}
@@ -195,12 +203,15 @@ export class PreRewriteStageArtifactSelector extends React.Component<
           </StageConfigField>
         )}
         {this.state.showCreateArtifactForm && (
-          <ExpectedArtifactEditor
-            accounts={allArtifactAccounts}
-            kinds={this.getKinds()}
-            onSave={this.saveCreatedArtifact}
-            sources={this.getSources()}
-          />
+          <StageConfigField label="" fieldColumns={fieldColumns}>
+            <ExpectedArtifactEditor
+              accounts={allArtifactAccounts}
+              fieldColumns={fieldColumns}
+              kinds={this.getKinds()}
+              onSave={this.saveCreatedArtifact}
+              sources={this.getSources()}
+            />
+          </StageConfigField>
         )}
       </>
     );
