@@ -37,16 +37,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import rx.Observable;
 
 @ExtendWith(MockitoExtension.class)
-class SetStatefulDiskTaskTest {
+final class StatefullyUpdateBootImageTest {
 
-  private SetStatefulDiskTask task;
+  private StatefullyUpdateBootImageTask task;
 
   @Mock private KatoService katoService;
   @Mock private TargetServerGroupResolver resolver;
 
   @BeforeEach
   void setUp() {
-    task = new SetStatefulDiskTask(katoService, resolver);
+    task = new StatefullyUpdateBootImageTask(katoService, resolver);
   }
 
   @Test
@@ -62,7 +62,7 @@ class SetStatefulDiskTaskTest {
     stage.getContext().put("credentials", "spinnaker-test");
     stage.getContext().put("serverGroupName", "testapp-v000");
     stage.getContext().put("region", "us-desertoasis1");
-    stage.getContext().put("deviceName", "testapp-v000-1");
+    stage.getContext().put("bootImage", "new-kool-os");
 
     TaskResult result = task.execute(stage);
 
@@ -71,12 +71,12 @@ class SetStatefulDiskTaskTest {
             "credentials", "spinnaker-test",
             "serverGroupName", "testapp-v000",
             "region", "us-desertoasis1",
-            "deviceName", "testapp-v000-1");
+            "bootImage", "new-kool-os");
     verify(katoService)
         .requestOperations(
-            "gce", ImmutableList.of(ImmutableMap.of("setStatefulDisk", operationParams)));
+            "gce", ImmutableList.of(ImmutableMap.of("statefullyUpdateBootImage", operationParams)));
 
-    assertThat(result.getContext().get("notification.type")).isEqualTo("setstatefuldisk");
+    assertThat(result.getContext().get("notification.type")).isEqualTo("statefullyupdatebootimage");
     assertThat(result.getContext().get("serverGroupName")).isEqualTo("testapp-v000");
     assertThat(result.getContext().get("deploy.server.groups"))
         .isEqualTo(ImmutableMap.of("us-desertoasis1", ImmutableList.of("testapp-v000")));

@@ -17,28 +17,29 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.SetStatefulDiskTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.StatefullyUpdateBootImageTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SetStatefulDiskStage implements StageDefinitionBuilder {
+public final class StatefullyUpdateBootImageStage implements StageDefinitionBuilder {
 
   private final DynamicConfigService dynamicConfigService;
 
   @Autowired
-  public SetStatefulDiskStage(DynamicConfigService dynamicConfigService) {
+  StatefullyUpdateBootImageStage(DynamicConfigService dynamicConfigService) {
     this.dynamicConfigService = dynamicConfigService;
   }
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask("setStatefulDisk", SetStatefulDiskTask.class);
+  public void taskGraph(@Nonnull Stage stage, TaskNode.Builder builder) {
+    builder.withTask("statefullyUpdateBootDisk", StatefullyUpdateBootImageTask.class);
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
@@ -51,6 +52,6 @@ public class SetStatefulDiskStage implements StageDefinitionBuilder {
     public String accountName;
     public String serverGroupName;
     public String region;
-    public String deviceName;
+    public String bootImage;
   }
 }

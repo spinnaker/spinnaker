@@ -25,34 +25,35 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce.SetStatefulDiskStage.StageData;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce.StatefullyUpdateBootImageStage.StageData;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 
 @Component
-public class SetStatefulDiskTask extends AbstractCloudProviderAwareTask {
+public final class StatefullyUpdateBootImageTask extends AbstractCloudProviderAwareTask {
 
-  private static final String KATO_OP_NAME = "setStatefulDisk";
+  private static final String KATO_OP_NAME = "statefullyUpdateBootImage";
 
   private final KatoService katoService;
   private final TargetServerGroupResolver resolver;
 
   @Autowired
-  public SetStatefulDiskTask(KatoService katoService, TargetServerGroupResolver resolver) {
+  StatefullyUpdateBootImageTask(KatoService katoService, TargetServerGroupResolver resolver) {
     this.katoService = katoService;
     this.resolver = resolver;
   }
 
+  @Nonnull
   @Override
-  public TaskResult execute(Stage stage) {
-
+  public TaskResult execute(@Nonnull Stage stage) {
     StageData data = stage.mapTo(StageData.class);
 
     List<TargetServerGroup> resolvedServerGroups = resolver.resolve(stage);
@@ -75,7 +76,7 @@ public class SetStatefulDiskTask extends AbstractCloudProviderAwareTask {
             "credentials", getCredentials(stage),
             "serverGroupName", serverGroup.getName(),
             "region", data.getRegion(),
-            "deviceName", data.deviceName);
+            "bootImage", data.bootImage);
 
     Map<String, Map> operation = ImmutableMap.of(KATO_OP_NAME, opData);
     Observable<TaskId> observable =

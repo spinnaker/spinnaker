@@ -46,6 +46,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core:2.25.0")
+  testImplementation("org.mockito:mockito-junit-jupiter")
   testImplementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
