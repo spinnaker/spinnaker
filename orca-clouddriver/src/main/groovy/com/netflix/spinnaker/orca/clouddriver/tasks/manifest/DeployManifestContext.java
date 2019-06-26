@@ -23,18 +23,19 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
 
-@Value
-@JsonDeserialize(builder = DeployManifestContext.DeployManifestContextBuilder.class)
 @Builder(builderClassName = "DeployManifestContextBuilder", toBuilder = true)
+@JsonDeserialize(builder = DeployManifestContext.DeployManifestContextBuilder.class)
+@Value
 public class DeployManifestContext implements ManifestContext {
   @Nullable private List<Map<Object, Object>> manifests;
 
-  private TrafficManagement trafficManagement;
+  @Builder.Default @Nonnull
+  private TrafficManagement trafficManagement = TrafficManagement.builder().build();
 
   private Source source;
 
@@ -47,16 +48,23 @@ public class DeployManifestContext implements ManifestContext {
 
   @Builder.Default private boolean skipExpressionEvaluation = false;
 
-  @Data
+  @Builder(builderClassName = "TrafficManagementBuilder", toBuilder = true)
+  @JsonDeserialize(builder = DeployManifestContext.TrafficManagement.TrafficManagementBuilder.class)
+  @Value
   public static class TrafficManagement {
-    private boolean enabled = false;
-    private Options options = new Options();
+    @Builder.Default private boolean enabled = false;
+    @Nonnull @Builder.Default private Options options = Options.builder().build();
 
-    @Data
+    @Builder(builderClassName = "OptionsBuilder", toBuilder = true)
+    @JsonDeserialize(builder = DeployManifestContext.TrafficManagement.Options.OptionsBuilder.class)
+    @Value
     public static class Options {
-      private boolean enableTraffic = false;
-      private List<String> services = Collections.emptyList();
-      private ManifestStrategyType strategy = ManifestStrategyType.NONE;
+      @Builder.Default private boolean enableTraffic = false;
+      @Builder.Default private List<String> services = Collections.emptyList();
+      @Builder.Default private ManifestStrategyType strategy = ManifestStrategyType.NONE;
+
+      @JsonPOJOBuilder(withPrefix = "")
+      public static class OptionsBuilder {}
     }
 
     public enum ManifestStrategyType {
@@ -69,6 +77,9 @@ public class DeployManifestContext implements ManifestContext {
       @JsonProperty("none")
       NONE
     }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class TrafficManagementBuilder {}
   }
 
   @Override
