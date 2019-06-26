@@ -29,21 +29,16 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DeployManifestTaskSpec extends Specification {
-  def TASK_ID = "12345"
+  String TASK_ID = "12345"
 
-  def katoService = Mock(KatoService)
+  KatoService katoService = Mock(KatoService)
   def artifactResolver = Stub(ArtifactResolver) {
     getArtifacts(*_) >> []
   }
 
   @Subject
-  DeployManifestTask task = new DeployManifestTask(
-    katoService,
-    Stub(OortService),
-    artifactResolver,
-    new ObjectMapper(),
-    Stub(ContextParameterProcessor)
-  )
+  DeployManifestTask task = new DeployManifestTask(new ManifestEvaluator(artifactResolver,
+    Mock(OortService), new ObjectMapper(), Mock(ContextParameterProcessor), katoService))
 
   def "enables traffic when the trafficManagement field is absent"() {
     given:

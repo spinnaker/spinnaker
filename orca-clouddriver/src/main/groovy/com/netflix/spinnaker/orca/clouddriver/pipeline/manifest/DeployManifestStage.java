@@ -19,18 +19,19 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.*;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext.TrafficManagement;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestStrategyStagesAdder;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class DeployManifestStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "deployManifest";
 
-  private final ManifestStrategyStagesAdder manifestStrategyStagesAdder;
+  private final OortHelper oortHelper;
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
@@ -58,11 +59,93 @@ public class DeployManifestStage implements StageDefinitionBuilder {
   }
 
   public void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
-    DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
-    TrafficManagement trafficManagement = context.getTrafficManagement();
+    TrafficManagement trafficManagement =
+        stage.mapTo(DeployManifestContext.class).getTrafficManagement();
     if (trafficManagement.isEnabled()) {
-      manifestStrategyStagesAdder.addAfterStages(
-          trafficManagement.getOptions().getStrategy(), graph, context);
+      switch (trafficManagement.getOptions().getStrategy()) {
+        case RED_BLACK:
+          disableOldManifests(stage.getContext(), graph);
+          break;
+        case HIGHLANDER:
+          disableOldManifests(stage.getContext(), graph);
+          deleteOldManifests(stage.getContext(), graph);
+          break;
+        case NONE:
+          // do nothing
+      }
     }
+  }
+
+  private void disableOldManifests(Map parentContext, StageGraphBuilder graph) {
+    addStagesForOldManifests(parentContext, graph, DisableManifestStage.PIPELINE_CONFIG_TYPE);
+  }
+
+  private void deleteOldManifests(Map parentContext, StageGraphBuilder graph) {
+    addStagesForOldManifests(parentContext, graph, DeleteManifestStage.PIPELINE_CONFIG_TYPE);
+  }
+
+  private void addStagesForOldManifests(
+      Map parentContext, StageGraphBuilder graph, String stageType) {
+    Map deployedManifest = getNewManifest(parentContext);
+    String account = (String) parentContext.get("account");
+    Map manifestMoniker = (Map) parentContext.get("moniker");
+    String application = (String) manifestMoniker.get("app");
+
+    Map manifestMetadata = (Map) deployedManifest.get("metadata");
+    String manifestName = String.format("replicaSet %s", (String) manifestMetadata.get("name"));
+    String namespace = (String) manifestMetadata.get("namespace");
+    Map annotations = (Map) manifestMetadata.get("annotations");
+    String clusterName = (String) annotations.get("moniker.spinnaker.io/cluster");
+    String cloudProvider = "kubernetes";
+
+    List<String> previousManifestNames =
+        getOldManifestNames(application, account, clusterName, namespace, manifestName);
+    previousManifestNames.forEach(
+        name -> {
+          graph.append(
+              (stage) -> {
+                stage.setType(stageType);
+                Map<String, Object> context = stage.getContext();
+                context.put("account", account);
+                context.put("app", application);
+                context.put("cloudProvider", cloudProvider);
+                context.put("manifestName", name);
+                context.put("location", namespace);
+              });
+        });
+  }
+
+  private Map getNewManifest(Map parentContext) {
+    List<Map<String, ?>> manifests = (List<Map<String, ?>>) parentContext.get("outputs.manifests");
+    return manifests.get(0);
+  }
+
+  private List<String> getOldManifestNames(
+      String application,
+      String account,
+      String clusterName,
+      String namespace,
+      String newManifestName) {
+    Map cluster =
+        oortHelper
+            .getCluster(application, account, clusterName, "kubernetes")
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        String.format(
+                            "Error fetching cluster %s in account %s and namespace %s",
+                            clusterName, account, namespace)));
+
+    List<Map> serverGroups =
+        Optional.ofNullable((List<Map>) cluster.get("serverGroups")).orElse(null);
+
+    if (serverGroups == null) {
+      return new ArrayList<>();
+    }
+
+    return serverGroups.stream()
+        .filter(s -> s.get("region").equals(namespace) && !s.get("name").equals(newManifestName))
+        .map(s -> (String) s.get("name"))
+        .collect(Collectors.toList());
   }
 }
