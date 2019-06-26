@@ -75,7 +75,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       List<ArtifactAccountPair> configArtifacts = operation.configArtifacts
       if (configArtifacts != null && configArtifacts.size() > 0) {
         operation.configArtifacts = configArtifacts.collect { artifactAccountPair ->
-          def artifact = artifactResolver.getBoundArtifactForId(stage, artifactAccountPair.id)
+          def artifact = artifactResolver.getBoundArtifactForStage(stage, artifactAccountPair.id, artifactAccountPair.artifact)
           artifact.artifactAccount = artifactAccountPair.account
           return artifact
         }
@@ -85,6 +85,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
 }
 
 class ArtifactAccountPair {
-  String id;
-  String account;
+  String id
+  String account
+  Artifact artifact
 }
