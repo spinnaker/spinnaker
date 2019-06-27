@@ -31,6 +31,7 @@ public class TravisBuildConverter {
     genericBuild.setResult(build.getState().getResult());
     genericBuild.setName(repoSlug);
     genericBuild.setUrl(url(repoSlug, baseUrl, build.getId()));
+    genericBuild.setId(String.valueOf(build.getId()));
     if (build.getFinishedAt() != null) {
       genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
     }
@@ -45,6 +46,7 @@ public class TravisBuildConverter {
     genericBuild.setResult(build.getState().getResult());
     genericBuild.setName(build.getRepository().getSlug());
     genericBuild.setUrl(url(build.getRepository().getSlug(), baseUrl, build.getId()));
+    genericBuild.setId(String.valueOf(build.getId()));
     if (build.getFinishedAt() != null) {
       genericBuild.setTimestamp(String.valueOf(build.getTimestamp()));
     }

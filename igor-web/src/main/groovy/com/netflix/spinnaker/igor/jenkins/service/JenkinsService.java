@@ -254,19 +254,18 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> getBuildProperties(String job, int buildNumber, String fileName) {
+  public Map<String, Object> getBuildProperties(String job, GenericBuild build, String fileName) {
     if (StringUtils.isEmpty(fileName)) {
       return new HashMap<>();
     }
     Map<String, Object> map = new HashMap<>();
     try {
-      String path = getArtifactPathFromBuild(job, buildNumber, fileName);
+      String path = getArtifactPathFromBuild(job, build.getNumber(), fileName);
       try (InputStream propertyStream =
-          this.getPropertyFile(job, buildNumber, path).getBody().in()) {
+          this.getPropertyFile(job, build.getNumber(), path).getBody().in()) {
         if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
           Yaml yml = new Yaml(new SafeConstructor());
-          map = (Map<String, Object>) yml.load(propertyStream);
+          map = yml.load(propertyStream);
         } else if (fileName.endsWith(".json")) {
           map = objectMapper.readValue(propertyStream, new TypeReference<Map<String, Object>>() {});
         } else {
@@ -331,8 +330,8 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber) {
-    ScmDetails scmDetails = getGitDetails(job, buildNumber);
+  public List<GenericGitRevision> getGenericGitRevisions(String job, GenericBuild build) {
+    ScmDetails scmDetails = getGitDetails(job, build.getNumber());
     return scmDetails.genericGitRevisions();
   }
 }

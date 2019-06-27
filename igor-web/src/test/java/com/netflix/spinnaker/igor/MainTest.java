@@ -16,16 +16,28 @@
 
 package com.netflix.spinnaker.igor;
 
+import com.netflix.hystrix.Hystrix;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {Main.class})
-@ContextConfiguration(classes = {RedisConfig.class})
+@SpringBootTest(classes = {RedisConfig.class, Main.class})
 public class MainTest {
+
+  @BeforeClass
+  public static void setUp() {
+    Hystrix.reset();
+  }
+
   @Test
   public void startupTest() {}
+
+  @AfterClass
+  public static void tearDown() {
+    Hystrix.reset();
+  }
 }

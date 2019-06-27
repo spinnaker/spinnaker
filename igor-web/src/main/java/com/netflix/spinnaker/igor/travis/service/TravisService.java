@@ -23,7 +23,6 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
-import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
 import com.netflix.spinnaker.igor.build.model.Result;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
@@ -42,8 +41,6 @@ import com.netflix.spinnaker.igor.travis.client.model.Commit;
 import com.netflix.spinnaker.igor.travis.client.model.Config;
 import com.netflix.spinnaker.igor.travis.client.model.EmptyObject;
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth;
-import com.netflix.spinnaker.igor.travis.client.model.Job;
-import com.netflix.spinnaker.igor.travis.client.model.Jobs;
 import com.netflix.spinnaker.igor.travis.client.model.Repo;
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest;
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse;
@@ -60,19 +57,19 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import net.logstash.logback.argument.StructuredArguments;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
 public class TravisService implements BuildOperations, BuildProperties {
 
-  private static final int TRAVIS_BUILD_RESULT_LIMIT = 25;
+  static final int TRAVIS_BUILD_RESULT_LIMIT = 25;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final String baseUrl;
@@ -85,6 +82,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   private final Optional<ArtifactDecorator> artifactDecorator;
   private final String buildMessageKey;
   private final Permissions permissions;
+  private final boolean legacyLogFetching;
   protected AccessToken accessToken;
   private Accounts accounts;
 
@@ -98,7 +96,8 @@ public class TravisService implements BuildOperations, BuildProperties {
       Optional<ArtifactDecorator> artifactDecorator,
       Collection<String> artifactRegexes,
       String buildMessageKey,
-      Permissions permissions) {
+      Permissions permissions,
+      boolean legacyLogFetching) {
     this.numberOfRepositories = numberOfRepositories;
     this.groupKey = travisHostId;
     this.gitHubAuth = new GithubAuth(githubToken);
@@ -110,6 +109,7 @@ public class TravisService implements BuildOperations, BuildProperties {
         artifactRegexes != null ? new HashSet<>(artifactRegexes) : Collections.emptySet();
     this.buildMessageKey = buildMessageKey;
     this.permissions = permissions;
+    this.legacyLogFetching = legacyLogFetching;
   }
 
   @Override
@@ -123,19 +123,35 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, int buildNumber) {
+  public List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, GenericBuild build) {
     return new SimpleJava8HystrixCommand<>(
             groupKey,
             buildCommandKey("getGenericGitRevisions"),
             () -> {
               String repoSlug = cleanRepoSlug(inputRepoSlug);
-              Builds builds = getBuilds(repoSlug, buildNumber);
-              final List<Commit> commits = builds.getCommits();
-              if (commits != null) {
-                return commits.stream()
-                    .filter(commit -> commit.getBranch() != null)
-                    .map(Commit::getGenericGitRevision)
-                    .collect(Collectors.toList());
+              if (StringUtils.isNumeric(build.getId())) {
+                V3Build v3build = getV3Build(Integer.parseInt(build.getId()));
+                if (v3build.getCommit() != null) {
+                  return Collections.singletonList(
+                      v3build
+                          .getCommit()
+                          .getGenericGitRevision()
+                          .withName(v3build.getBranch().getName())
+                          .withBranch(v3build.getBranch().getName()));
+                }
+              } else {
+                log.info(
+                    "Getting getGenericGitRevisions for build {}:{} using deprecated V2 API",
+                    inputRepoSlug,
+                    build.getNumber());
+                Builds builds = getBuilds(repoSlug, build.getNumber());
+                final List<Commit> commits = builds.getCommits();
+                if (commits != null) {
+                  return commits.stream()
+                      .filter(commit -> commit.getBranch() != null)
+                      .map(Commit::getGenericGitRevision)
+                      .collect(Collectors.toList());
+                }
               }
               return null;
             })
@@ -191,25 +207,15 @@ public class TravisService implements BuildOperations, BuildProperties {
     return permissions;
   }
 
-  public List<Build> getBuilds() {
-    Builds builds = travisClient.builds(getAccessToken());
-    log.debug("fetched {} builds", builds.getBuilds().size());
-    return builds.getBuilds();
-  }
-
-  public Build getBuild(Repo repo, int buildNumber) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("getBuild"),
-            () -> travisClient.build(getAccessToken(), repo.getId(), buildNumber))
-        .execute();
-  }
-
   public V3Build getV3Build(int buildId) {
     return new SimpleJava8HystrixCommand<>(
             groupKey,
             buildCommandKey("getV3Build"),
-            () -> travisClient.v3build(getAccessToken(), buildId))
+            () ->
+                travisClient.v3build(
+                    getAccessToken(),
+                    buildId,
+                    "build.commit" + (legacyLogFetching ? "" : "," + includeLogFetching())))
         .execute();
   }
 
@@ -228,25 +234,19 @@ public class TravisService implements BuildOperations, BuildProperties {
 
   @Override
   public Map<String, Object> getBuildProperties(
-      String inputRepoSlug, int buildNumber, String fileName) {
+      String inputRepoSlug, GenericBuild build, String fileName) {
     try {
-      String repoSlug = cleanRepoSlug(inputRepoSlug);
-      Build build = getBuild(repoSlug, buildNumber);
-      return PropertyParser.extractPropertiesFromLog(getLog(build));
+      V3Build v3build = getV3Build(Integer.valueOf(build.getId()));
+      return PropertyParser.extractPropertiesFromLog(getLog(v3build));
     } catch (Exception e) {
       log.error("Unable to get igorProperties '{}'", kv("job", inputRepoSlug), e);
       return Collections.emptyMap();
     }
   }
 
-  public List<Build> getBuilds(Repo repo) {
-    Builds builds = travisClient.builds(getAccessToken(), repo.getId());
-    log.debug("fetched {} builds", builds.getBuilds().size());
-    return builds.getBuilds();
-  }
-
   public List<V3Build> getBuilds(Repo repo, int limit) {
-    final V3Builds builds = travisClient.builds(getAccessToken(), repo.getId(), limit);
+    final V3Builds builds =
+        travisClient.builds(getAccessToken(), repo.getId(), limit, includeLogFetching());
     log.debug("fetched {} builds", builds.getBuilds().size());
     return builds.getBuilds();
   }
@@ -256,9 +256,14 @@ public class TravisService implements BuildOperations, BuildProperties {
     // Increasing the limit to increase the odds for finding some tag builds.
     V3Builds builds =
         travisClient.v3buildsByEventType(
-            getAccessToken(), repoSlug, "push", TRAVIS_BUILD_RESULT_LIMIT * 2);
+            getAccessToken(),
+            repoSlug,
+            "push",
+            TRAVIS_BUILD_RESULT_LIMIT * 2,
+            includeLogFetching());
     return builds.getBuilds().stream()
         .filter(build -> build.getCommit().isTag())
+        .filter(V3Build::getLogComplete)
         .map(this::getGenericBuild)
         .collect(Collectors.toList());
   }
@@ -276,28 +281,34 @@ public class TravisService implements BuildOperations, BuildProperties {
       case branch:
         builds =
             travisClient.v3builds(
-                getAccessToken(), repoSlug, branch, "push", TRAVIS_BUILD_RESULT_LIMIT);
+                getAccessToken(),
+                repoSlug,
+                branch,
+                "push",
+                TRAVIS_BUILD_RESULT_LIMIT,
+                includeLogFetching());
         break;
       case pull_request:
         builds =
             travisClient.v3builds(
-                getAccessToken(), repoSlug, branch, "pull_request", TRAVIS_BUILD_RESULT_LIMIT);
+                getAccessToken(),
+                repoSlug,
+                branch,
+                "pull_request",
+                TRAVIS_BUILD_RESULT_LIMIT,
+                includeLogFetching());
         break;
       case unknown:
       default:
-        builds = travisClient.v3builds(getAccessToken(), repoSlug, TRAVIS_BUILD_RESULT_LIMIT);
+        builds =
+            travisClient.v3builds(
+                getAccessToken(), repoSlug, TRAVIS_BUILD_RESULT_LIMIT, includeLogFetching());
     }
 
-    return builds.getBuilds().stream().map(this::getGenericBuild).collect(Collectors.toList());
-  }
-
-  public Commit getCommit(String repoSlug, int buildNumber) {
-    Builds builds = getBuilds(repoSlug, buildNumber);
-    if (builds != null && builds.getCommits() != null && !builds.getCommits().isEmpty()) {
-      return builds.getCommits().get(0);
-    }
-
-    throw new NoSuchElementException("No commit found for " + repoSlug + ":" + buildNumber);
+    return builds.getBuilds().stream()
+        .filter(this::isLogReady)
+        .map(this::getGenericBuild)
+        .collect(Collectors.toList());
   }
 
   public List<Repo> getReposForAccounts() {
@@ -326,17 +337,6 @@ public class TravisService implements BuildOperations, BuildProperties {
             },
             (ignored) -> Collections.emptyList())
         .execute();
-  }
-
-  public Job getJob(int jobId) {
-    log.debug("fetching job for {}", jobId);
-    Jobs jobs =
-        new SimpleJava8HystrixCommand<>(
-                groupKey,
-                buildCommandKey("getJob"),
-                () -> travisClient.jobs(getAccessToken(), jobId))
-            .execute();
-    return jobs.getJob();
   }
 
   public String getLog(Build build) {
@@ -370,6 +370,19 @@ public class TravisService implements BuildOperations, BuildProperties {
         build.getId(),
         travisLog.length());
     return travisLog;
+  }
+
+  public boolean isLogReady(V3Build build) {
+    if (!legacyLogFetching) {
+      boolean logComplete = build.getLogComplete();
+      if (logComplete) {
+        return true;
+        // If not complete, we still want to try to fetch the log to check, because the logs are
+        // always completed for a
+        // while before the log_complete flag turns true
+      }
+    }
+    return isLogReady(build.getJobs().stream().map(V3Job::getId).collect(Collectors.toList()));
   }
 
   public boolean isLogReady(List<Integer> jobIds) {
@@ -407,14 +420,6 @@ public class TravisService implements BuildOperations, BuildProperties {
     }
   }
 
-  public Repo getRepo(int repositoryId) {
-    return travisClient.repo(getAccessToken(), repositoryId);
-  }
-
-  public Repo getRepo(String repoSlug) {
-    return travisClient.repoWrapper(getAccessToken(), repoSlug).getRepo();
-  }
-
   public GenericBuild getGenericBuild(Build build, String repoSlug) {
     GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl);
     boolean logReady = isLogReady(build.getJob_ids());
@@ -438,24 +443,6 @@ public class TravisService implements BuildOperations, BuildProperties {
     return genericBuild;
   }
 
-  public GenericJobConfiguration getJobConfig(String inputRepoSlug) {
-    String repoSlug = cleanRepoSlug(inputRepoSlug);
-    Builds builds = travisClient.builds(getAccessToken(), repoSlug);
-    final Config config = builds.getBuilds().get(0).getConfig();
-    return new GenericJobConfiguration(
-        extractRepoFromRepoSlug(repoSlug),
-        extractRepoFromRepoSlug(repoSlug),
-        repoSlug,
-        true,
-        getUrl(repoSlug),
-        false,
-        (config == null ? null : config.getParameterDefinitionList()));
-  }
-
-  public String getUrl(String repoSlug) {
-    return baseUrl + "/" + repoSlug;
-  }
-
   public Map<String, Integer> queuedBuild(int queueId) {
     Map<String, Integer> queuedJob = travisCache.getQueuedJob(groupKey, queueId);
     Request requestResponse =
@@ -475,45 +462,6 @@ public class TravisService implements BuildOperations, BuildProperties {
       return map;
     }
     return null;
-  }
-
-  public boolean hasRepo(String inputRepoSlug) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("hasRepo"),
-            () -> {
-              String repoSlug = cleanRepoSlug(inputRepoSlug);
-              try {
-                getRepo(repoSlug);
-              } catch (RetrofitError error) {
-                if (error.getResponse() != null) {
-                  if (error.getResponse().getStatus() == 404) {
-                    log.debug("repo not found {}", repoSlug);
-                    return false;
-                  }
-                }
-                log.info("Error requesting repo {}: {}", repoSlug, error.getMessage());
-                return true;
-              }
-              return true;
-            })
-        .execute();
-  }
-
-  public String branchedRepoSlug(String repoSlug, int buildNumber, Commit commit) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("branchedRepoSlug"),
-            () -> {
-              Build build = getBuild(repoSlug, buildNumber);
-              String branchedRepoSlug = repoSlug + "/";
-              if (build.getPullRequest()) {
-                branchedRepoSlug = branchedRepoSlug + "pull_request_";
-              }
-              return branchedRepoSlug + commit.getBranchNameWithTagHandling();
-            },
-            (ignored) -> repoSlug)
-        .execute();
   }
 
   public void syncRepos() {
@@ -572,10 +520,6 @@ public class TravisService implements BuildOperations, BuildProperties {
   private static String extractBranchFromRepoSlug(String inputRepoSlug) {
     List<String> parts = Arrays.asList(inputRepoSlug.split("/"));
     return parts.subList(2, parts.size()).stream().collect(Collectors.joining("/"));
-  }
-
-  private static String extractRepoFromRepoSlug(String repoSlug) {
-    return repoSlug.split("/")[1];
   }
 
   private void setAccessToken() {
@@ -643,5 +587,9 @@ public class TravisService implements BuildOperations, BuildProperties {
 
   public final TravisCache getTravisCache() {
     return travisCache;
+  }
+
+  private String includeLogFetching() {
+    return legacyLogFetching ? null : "build.log_complete";
   }
 }

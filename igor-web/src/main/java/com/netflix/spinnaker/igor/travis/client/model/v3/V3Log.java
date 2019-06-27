@@ -66,7 +66,7 @@ public class V3Log {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  static class V3LogPart {
+  public static class V3LogPart {
     private String content;
     private Integer number;
     private boolean isFinal;

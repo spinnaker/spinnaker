@@ -113,14 +113,12 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public List<GenericGitRevision> getGenericGitRevisions(String jobPath, int buildNumber) {
-    GenericBuild build = getGenericBuild(jobPath, buildNumber);
+  public List<GenericGitRevision> getGenericGitRevisions(String jobPath, GenericBuild build) {
     return build == null ? emptyList() : build.getGenericGitRevisions();
   }
 
   @Override
-  public Map<String, ?> getBuildProperties(String jobPath, int buildNumber, String fileName) {
-    GenericBuild build = getGenericBuild(jobPath, buildNumber);
+  public Map<String, ?> getBuildProperties(String jobPath, GenericBuild build, String fileName) {
     return build == null ? emptyMap() : build.getProperties();
   }
 

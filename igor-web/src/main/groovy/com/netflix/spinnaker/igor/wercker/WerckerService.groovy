@@ -80,7 +80,7 @@ class WerckerService implements BuildOperations {
     }
 
     @Override
-    List<GenericGitRevision> getGenericGitRevisions(final String job, final int buildNumber) {
+    List<GenericGitRevision> getGenericGitRevisions(final String job, final GenericBuild build) {
         return null
     }
 

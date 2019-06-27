@@ -74,7 +74,7 @@ class BuildController {
             return null
 
         try {
-            build.genericGitRevisions = buildService.getGenericGitRevisions(job, buildNumber)
+            build.genericGitRevisions = buildService.getGenericGitRevisions(job, build)
         } catch (Exception e) {
             log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber), e)
         }
@@ -108,7 +108,7 @@ class BuildController {
         def buildService = getBuildService(master)
         GenericBuild build = jobStatus(buildService, master, job, buildNumber)
         if (build && buildService instanceof BuildProperties && artifactExtractor != null) {
-            build.properties = buildService.getBuildProperties(job, buildNumber, propertyFile)
+            build.properties = buildService.getBuildProperties(job, build, propertyFile)
             return artifactExtractor.extractArtifacts(build)
         }
         return Collections.emptyList()
@@ -240,7 +240,8 @@ class BuildController {
         def buildService = getBuildService(master)
         if (buildService instanceof BuildProperties) {
             BuildProperties buildProperties = (BuildProperties) buildService
-            return buildProperties.getBuildProperties(job, buildNumber, fileName)
+          def genericBuild = buildService.getGenericBuild(job, buildNumber)
+          return buildProperties.getBuildProperties(job, genericBuild, fileName)
         }
         return Collections.emptyMap()
     }

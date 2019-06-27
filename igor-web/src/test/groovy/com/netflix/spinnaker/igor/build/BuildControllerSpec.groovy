@@ -70,10 +70,13 @@ class BuildControllerSpec extends Specification {
     final TRAVIS_SERVICE = 'TRAVIS_SERVICE'
     final HTTP_201 = 201
     final BUILD_NUMBER = 123
+    final BUILD_ID = 654321
     final QUEUED_JOB_NUMBER = 123456
     final JOB_NAME = "job/name/can/have/slashes"
     final JOB_NAME_LEGACY = "job"
     final FILE_NAME = "test.yml"
+
+    GenericBuild genericBuild
 
     void cleanup() {
         server.shutdown()
@@ -91,6 +94,10 @@ class BuildControllerSpec extends Specification {
             (JENKINS_SERVICE): jenkinsService,
             (TRAVIS_SERVICE): travisService,
         ])
+        genericBuild = new GenericBuild()
+        genericBuild.number = BUILD_NUMBER
+        genericBuild.id = BUILD_ID
+
         cache = Mock(BuildCache)
         server = new MockWebServer()
 
@@ -193,7 +200,8 @@ class BuildControllerSpec extends Specification {
 
     void 'get properties of a build with a bad filename'() {
         given:
-        jenkinsService.getBuildProperties(JOB_NAME, BUILD_NUMBER, FILE_NAME) >> {
+        1 * jenkinsService.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> genericBuild
+        1 * jenkinsService.getBuildProperties(JOB_NAME, genericBuild, FILE_NAME) >> {
             throw new NotFoundException()
         }
 
@@ -207,7 +215,8 @@ class BuildControllerSpec extends Specification {
 
     void 'get properties of a travis build'() {
         given:
-        1 * travisService.getBuildProperties(JOB_NAME, BUILD_NUMBER, _) >> ['foo': 'bar']
+        1 * travisService.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> genericBuild
+        1 * travisService.getBuildProperties(JOB_NAME, genericBuild, _) >> ['foo': 'bar']
 
         when:
         MockHttpServletResponse response = mockMvc.perform(

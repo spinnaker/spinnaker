@@ -108,7 +108,7 @@ class InfoControllerSpec extends Specification {
         TravisService travisService = new TravisService('travis-baz', null, null, 100, null, null, Optional.empty(), [], null,
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-3', 'group-4'])
-                .add(Authorization.WRITE, 'group-3').build())
+                .add(Authorization.WRITE, 'group-3').build(), false)
         createMocks([
             'jenkins-foo': jenkinsService1,
             'jenkins-bar': jenkinsService2,

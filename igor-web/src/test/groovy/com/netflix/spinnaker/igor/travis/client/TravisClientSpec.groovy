@@ -24,12 +24,10 @@ import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
-import com.netflix.spinnaker.igor.travis.client.model.Job
-import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
-import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.squareup.okhttp.mockwebserver.MockResponse
@@ -87,41 +85,6 @@ class TravisClientSpec extends Specification {
         account.login == 'gardalize'
     }
 
-    def "Builds"() {
-        given:
-        setResponse '''{
-        "builds": [
-        {
-            "commit_id": 6534711,
-            "config": { },
-            "duration": 2648,
-            "finished_at": "2014-04-08T19:52:56Z",
-            "id": 22555277,
-            "job_ids": [22555278, 22555279, 22555280, 22555281],
-            "number": "784",
-            "pull_request": true,
-            "pull_request_number": "1912",
-            "pull_request_title": "Example PR",
-            "repository_id": 82,
-            "started_at": "2014-04-08T19:37:44Z",
-            "state": "failed"
-        }
-        ],
-        "jobs": [ ],
-        "commits": [ ]
-        }'''
-
-        when:
-        Builds builds = client.builds("someToken")
-
-        then:
-        builds.builds.first().commitId == 6534711
-        builds.builds.first().job_ids   == [22555278, 22555279, 22555280, 22555281]
-
-    }
-
-
-
     def "Repos"() {
         given:
         setResponse '''{"repos":[{"id":8059977,"slug":"gardalize/travistest","description":"testing travis stuff","last_build_id":118583435,"last_build_number":"5","last_build_state":"passed","last_build_duration":39,"last_build_language":null,"last_build_started_at":"2016-03-25T22:29:44Z","last_build_finished_at":"2016-03-25T22:30:23Z","active":true,"github_language":"Ruby"}]}'''
@@ -133,49 +96,6 @@ class TravisClientSpec extends Specification {
         repos.repos.first().id   == 8059977
         repos.repos.first().slug == "gardalize/travistest"
         repos.repos.first().lastBuildId == 118583435
-    }
-
-    def "repoWrapper(accessToken, repoSlug)"() {
-        given:
-        setResponse '''
-        {
-        "repo": {
-            "id": 8059977,
-            "slug": "gardalize/travistest",
-            "active": true,
-            "description": "testing travis stuff",
-            "last_build_id": 123621158,
-            "last_build_number": "51",
-            "last_build_state": "passed",
-            "last_build_duration": 38,
-            "last_build_language": null,
-            "last_build_started_at": "2016-04-16T21:26:35Z",
-            "last_build_finished_at": "2016-04-16T21:27:13Z",
-            "github_language": "Ruby"
-            }
-        }
-        '''
-
-        when:
-        RepoWrapper repoWrapper = client.repoWrapper("someToken", "gardalize/travistest")
-
-        then:
-        repoWrapper.repo.slug == "gardalize/travistest"
-        repoWrapper.repo.lastBuildDuration == 38
-    }
-
-
-    def "Job"() {
-        given:
-        setResponse '''{"job":{"id":118582578,"repository_id":8059977,"repository_slug":"gardalize/travistest","build_id":118582577,"commit_id":33511919,"log_id":85633918,"number":"4.1","config":{"language":"ruby","rvm":"1.9.3",".result":"configured","group":"stable","dist":"precise","os":"linux"},"state":"passed","started_at":"2016-03-25T22:26:13Z","finished_at":"2016-03-25T22:26:48Z","queue":"builds.docker","allow_failure":false,"tags":null,"annotation_ids":[]},"commit":{"id":33511919,"sha":"f8f8a8defe21ddc337185850cf894fe40ada2b9f","branch":"master","branch_is_default":true,"message":"rake","committed_at":"2016-03-25T22:25:19Z","author_name":"Gard Rimestad","author_email":"gardalize@gurters.com","committer_name":"Gard Rimestad","committer_email":"gardalize@gurters.com","compare_url":"https://github.com/gardalize/travistest/compare/2a9956914194...f8f8a8defe21"},"annotations":[]}'''
-
-        when:
-        Jobs jobs = client.jobs("someToken", 118582578)
-
-        then:
-        Job job = jobs.job
-        job.id     == 118582578
-        job.logId == 85633918
     }
 
     def "triggerBuild()" () {
@@ -293,7 +213,41 @@ class TravisClientSpec extends Specification {
         !v3Log.ready
     }
 
-    def "getBuilds(accessToken, repoSlug, buildNumber"() {
+  def "detect incomplete log due to missing part"() {
+    given:
+    setResponse '''
+        {
+            "@type": "log",
+            "@href": "/job/123/log",
+            "@representation": "standard",
+            "@permissions": {
+                "read": true,
+                "debug": false,
+                "cancel": false,
+                "restart": false,
+                "delete_log": false
+            },
+            "id": 1337,
+            "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\nhttp://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+            "log_parts": [
+                {
+                    "content": "http://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+                    "final": true,
+                    "number": 1
+                }
+            ],
+            "@raw_log_href": "/v3/job/123/log.txt?log.token=hfeus7seyfhfe8"
+        }'''.stripIndent()
+
+    when:
+    V3Log v3Log = client.jobLog("someToken", 123)
+
+    then:
+    v3Log.content.contains "false:FalseClass"
+    !v3Log.ready
+  }
+
+    def "getBuilds(accessToken, repoSlug, buildNumber)"() {
         given:
         setResponse '''
             {
@@ -497,148 +451,235 @@ class TravisClientSpec extends Specification {
     def "Parse builds from the v3 api"() {
         given:
         setResponse '''
-{
-    "@type": "builds",
-    "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
-    "@representation": "standard",
-    "@pagination": {
-        "limit": 2,
-        "offset": 0,
-        "count": 160,
-        "is_first": true,
-        "is_last": false,
-        "next": {
-            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=2",
-            "offset": 2,
-            "limit": 2
-        },
-        "prev": null,
-        "first": {
-            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
-            "offset": 0,
-            "limit": 2
-        },
-        "last": {
-            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=158",
-            "offset": 158,
-            "limit": 2
-        }
-    },
-    "builds": [
-        {
-            "@type": "build",
-            "@href": "/api/build/1386282",
-            "@representation": "standard",
-            "@permissions": {
-                "read": true,
-                "cancel": true,
-                "restart": true
-            },
-            "id": 1386282,
-            "number": "389",
-            "state": "passed",
-            "duration": 413,
-            "event_type": "push",
-            "previous_state": "passed",
-            "pull_request_title": null,
-            "pull_request_number": null,
-            "started_at": "2017-06-06T18:06:56Z",
-            "finished_at": "2017-06-06T18:13:49Z",
-            "repository": {
-                "@type": "repository",
-                "@href": "/api/repo/1996",
-                "@representation": "minimal",
-                "id": 1996,
-                "name": "orca",
-                "slug": "spt-infrastructure/orca"
-            },
-            "branch": {
-                "@type": "branch",
-                "@href": "/api/repo/1996/branch/sch_master",
-                "@representation": "minimal",
-                "name": "sch_master"
-            },
-            "commit": {
-                "@type": "commit",
-                "@representation": "minimal",
-                "id": 802307,
-                "sha": "3d38456a3656a65032c4db9c08d3648abb696b58",
-                "ref": "refs/heads/sch_master",
-                "message": "Merge pull request #54 from spt-infrastructure/DOCD-1025\\n\\nDocd 1025",
-                "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/compare/0b373922a733...3d38456a3656",
-                "committed_at": "2017-06-06T18:06:51Z"
-            },
-            "jobs": [
-                {
-                    "@type": "job",
-                    "@href": "/api/job/1386283",
-                    "@representation": "minimal",
-                    "id": 1386283
-                }
-            ]
-        },
-        {
-            "@type": "build",
-            "@href": "/api/build/1384443",
-            "@representation": "standard",
-            "@permissions": {
-                "read": true,
-                "cancel": true,
-                "restart": true
-            },
-            "id": 1384443,
-            "number": "388",
-            "state": "passed",
-            "duration": 717,
-            "event_type": "pull_request",
-            "previous_state": "passed",
-            "pull_request_title": "Docd 1025",
-            "pull_request_number": 54,
-            "started_at": "2017-06-06T13:46:06Z",
-            "finished_at": "2017-06-06T13:58:03Z",
-            "repository": {
-                "@type": "repository",
-                "@href": "/api/repo/1996",
-                "@representation": "minimal",
-                "id": 1996,
-                "name": "orca",
-                "slug": "spt-infrastructure/orca"
-            },
-            "branch": {
-                "@type": "branch",
-                "@href": "/api/repo/1996/branch/sch_master",
-                "@representation": "minimal",
-                "name": "sch_master"
-            },
-            "commit": {
-                "@type": "commit",
-                "@representation": "minimal",
-                "id": 801226,
-                "sha": "40e8099ba9cab03febe17b38a650b8868434a068",
-                "ref": "refs/pull/54/merge",
-                "message": "DOCD-1025 enable pipelineTemplates and add proxy",
-                "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/pull/54",
-                "committed_at": "2017-06-06T13:34:13Z"
-            },
-            "jobs": [
-                {
-                    "@type": "job",
-                    "@href": "/api/job/1384444",
-                    "@representation": "minimal",
-                    "id": 1384444
-                }
-            ]
-        }
-    ]
-}
-'''
+          {
+              "@type": "builds",
+              "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
+              "@representation": "standard",
+              "@pagination": {
+                  "limit": 2,
+                  "offset": 0,
+                  "count": 160,
+                  "is_first": true,
+                  "is_last": false,
+                  "next": {
+                      "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=2",
+                      "offset": 2,
+                      "limit": 2
+                  },
+                  "prev": null,
+                  "first": {
+                      "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
+                      "offset": 0,
+                      "limit": 2
+                  },
+                  "last": {
+                      "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=158",
+                      "offset": 158,
+                      "limit": 2
+                  }
+              },
+              "builds": [
+                  {
+                      "@type": "build",
+                      "@href": "/api/build/1386282",
+                      "@representation": "standard",
+                      "@permissions": {
+                          "read": true,
+                          "cancel": true,
+                          "restart": true
+                      },
+                      "id": 1386282,
+                      "number": "389",
+                      "state": "passed",
+                      "duration": 413,
+                      "event_type": "push",
+                      "previous_state": "passed",
+                      "pull_request_title": null,
+                      "pull_request_number": null,
+                      "started_at": "2017-06-06T18:06:56Z",
+                      "finished_at": "2017-06-06T18:13:49Z",
+                      "repository": {
+                          "@type": "repository",
+                          "@href": "/api/repo/1996",
+                          "@representation": "minimal",
+                          "id": 1996,
+                          "name": "orca",
+                          "slug": "spt-infrastructure/orca"
+                      },
+                      "branch": {
+                          "@type": "branch",
+                          "@href": "/api/repo/1996/branch/sch_master",
+                          "@representation": "minimal",
+                          "name": "sch_master"
+                      },
+                      "commit": {
+                          "@type": "commit",
+                          "@representation": "minimal",
+                          "id": 802307,
+                          "sha": "3d38456a3656a65032c4db9c08d3648abb696b58",
+                          "ref": "refs/heads/sch_master",
+                          "message": "Merge pull request #54 from spt-infrastructure/DOCD-1025\\n\\nDocd 1025",
+                          "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/compare/0b373922a733...3d38456a3656",
+                          "committed_at": "2017-06-06T18:06:51Z"
+                      },
+                      "jobs": [
+                          {
+                              "@type": "job",
+                              "@href": "/api/job/1386283",
+                              "@representation": "minimal",
+                              "id": 1386283
+                          }
+                      ]
+                  },
+                  {
+                      "@type": "build",
+                      "@href": "/api/build/1384443",
+                      "@representation": "standard",
+                      "@permissions": {
+                          "read": true,
+                          "cancel": true,
+                          "restart": true
+                      },
+                      "id": 1384443,
+                      "number": "388",
+                      "state": "passed",
+                      "duration": 717,
+                      "event_type": "pull_request",
+                      "previous_state": "passed",
+                      "pull_request_title": "Docd 1025",
+                      "pull_request_number": 54,
+                      "started_at": "2017-06-06T13:46:06Z",
+                      "finished_at": "2017-06-06T13:58:03Z",
+                      "repository": {
+                          "@type": "repository",
+                          "@href": "/api/repo/1996",
+                          "@representation": "minimal",
+                          "id": 1996,
+                          "name": "orca",
+                          "slug": "spt-infrastructure/orca"
+                      },
+                      "branch": {
+                          "@type": "branch",
+                          "@href": "/api/repo/1996/branch/sch_master",
+                          "@representation": "minimal",
+                          "name": "sch_master"
+                      },
+                      "commit": {
+                          "@type": "commit",
+                          "@representation": "minimal",
+                          "id": 801226,
+                          "sha": "40e8099ba9cab03febe17b38a650b8868434a068",
+                          "ref": "refs/pull/54/merge",
+                          "message": "DOCD-1025 enable pipelineTemplates and add proxy",
+                          "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/pull/54",
+                          "committed_at": "2017-06-06T13:34:13Z"
+                      },
+                      "jobs": [
+                          {
+                              "@type": "job",
+                              "@href": "/api/job/1384444",
+                              "@representation": "minimal",
+                              "id": 1384444
+                          }
+                      ]
+                  }
+              ]
+          }
+          '''
 
         when:
-        V3Builds builds = client.v3builds("someToken", "org/repo","bah", 2)
+        V3Builds builds = client.v3builds("someToken", "org/repo","bah", 2, null)
 
         then:
         builds.builds.size() == 2
     }
+
+  def "Fetch a single V3 build"() {
+    given:
+    setResponse '''
+      {
+          "@type": "build",
+          "@href": "/api/build/7128433",
+          "@representation": "standard",
+          "@permissions": {
+              "read": true,
+              "cancel": true,
+              "restart": true
+          },
+          "id": 7128433,
+          "number": "265",
+          "state": "passed",
+          "duration": 19,
+          "event_type": "api",
+          "previous_state": "passed",
+          "pull_request_title": null,
+          "pull_request_number": null,
+          "started_at": "2019-05-31T10:27:47Z",
+          "finished_at": "2019-05-31T10:28:06Z",
+          "repository": {
+              "@type": "repository",
+              "@href": "/api/repo/8881",
+              "@representation": "minimal",
+              "id": 8881,
+              "name": "jervi-is-testing",
+              "slug": "arrested-developers/jervi-is-testing"
+          },
+          "branch": {
+              "@type": "branch",
+              "@href": "/api/repo/8881/branch/master",
+              "@representation": "minimal",
+              "name": "master"
+          },
+          "tag": null,
+          "commit": {
+              "@type": "commit",
+              "@representation": "standard",
+              "id": 4113219,
+              "sha": "fc726afaaf5d3892dae017e2dbe6fa8534f4423a",
+              "ref": null,
+              "message": "Triggered from Spinnaker: Hello world! 🐥 awesomeapp:Testing trigger",
+              "compare_url": "https://github.acme.io/arrested-developers/jervi-is-testing/compare/5e8a99bbc0e189dfbe1cec4b8da2a48aaa2f672e...fc726afaaf5d3892dae017e2dbe6fa8534f4423a",
+              "committed_at": "2019-05-31T10:26:30Z",
+              "committer": {
+                  "name": "Alice",
+                  "avatar_url": "https://0.gravatar.com/avatar/xxxxxxxxxxxxxxxxxx"
+              },
+              "author": {
+                  "name": "Bob",
+                  "avatar_url": "https://0.gravatar.com/avatar/xxxxxxxxxxxxxxxxxx"
+              }
+          },
+          "jobs": [
+              {
+                  "@type": "job",
+                  "@href": "/api/job/7128434",
+                  "@representation": "minimal",
+                  "id": 7128434
+              }
+          ],
+          "stages": [],
+          "created_by": {
+              "@type": "user",
+              "@href": "/api/user/574",
+              "@representation": "minimal",
+              "id": 574,
+              "login": "spinnaker"
+          },
+          "updated_at": "2019-05-31T10:28:06.312Z",
+          "log_complete": true
+      }
+          '''
+
+    when:
+    V3Build build = client.v3build("someToken", 7128433, "build.log_complete")
+
+    then:
+    build.number == 265
+    build.commit.committer.name == "Alice"
+    build.commit.author.name == "Bob"
+    build.jobs*.id == [7128434]
+    build.getLogComplete()
+  }
 
     def "commits, dont mark regular branches as tags"() {
         given:
@@ -678,7 +719,7 @@ class TravisClientSpec extends Specification {
         Builds builds = client.builds("someToken", "org/repo", 38)
 
         then:
-        builds.commits.first().isTag() == false
+        !builds.commits.first().isTag()
 
     }
 

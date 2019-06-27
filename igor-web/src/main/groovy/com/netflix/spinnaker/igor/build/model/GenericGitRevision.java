@@ -5,10 +5,12 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.experimental.Wither;
 
 @Getter
 @EqualsAndHashCode(of = "sha1")
 @Builder
+@Wither
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenericGitRevision {
   private String name;

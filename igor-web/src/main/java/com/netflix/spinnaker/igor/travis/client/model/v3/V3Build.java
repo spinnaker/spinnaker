@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.travis.client.model.Config;
 import java.time.Instant;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
 
@@ -31,6 +32,7 @@ import org.simpleframework.xml.Root;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "builds")
+@Slf4j
 public class V3Build {
   private V3Branch branch;
 
@@ -54,6 +56,9 @@ public class V3Build {
 
   @JsonProperty("finished_at")
   private Instant finishedAt;
+
+  @JsonProperty("log_complete")
+  private Boolean logComplete;
 
   private List<V3Job> jobs;
   private Config config;
@@ -201,5 +206,13 @@ public class V3Build {
 
   public void setConfig(Config config) {
     this.config = config;
+  }
+
+  public Boolean getLogComplete() {
+    return logComplete;
+  }
+
+  public void setLogComplete(Boolean logComplete) {
+    this.logComplete = logComplete;
   }
 }

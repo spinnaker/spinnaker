@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
+import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.ArrayList;
@@ -34,8 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +53,8 @@ import retrofit.converter.JacksonConverter;
 @Configuration
 @ConditionalOnProperty("travis.enabled")
 @EnableConfigurationProperties(com.netflix.spinnaker.igor.config.TravisProperties.class)
+@Slf4j
 public class TravisConfig {
-  private Logger log = LoggerFactory.getLogger(getClass());
 
   @Bean
   public Map<String, TravisService> travisMasters(
@@ -81,6 +81,18 @@ public class TravisConfig {
                               host.getAddress(),
                               igorConfigurationProperties.getClient().getTimeout(),
                               objectMapper);
+
+                      boolean useLegacyLogFetching = false;
+                      try {
+                        Root root = client.getRoot();
+                        useLegacyLogFetching = !root.hasLogCompleteAttribute();
+                        if (useLegacyLogFetching) {
+                          log.info(
+                              "It seems Travis Enterprise is older than version 2.2.9. Will use legacy log fetching.");
+                        }
+                      } catch (Exception e) {
+                        log.warn("Could not query Travis API to check API compability", e);
+                      }
                       return travisService(
                           travisName,
                           host.getBaseUrl(),
@@ -89,9 +101,10 @@ public class TravisConfig {
                           client,
                           travisCache,
                           artifactDecorator,
-                          (travisProperties == null ? null : travisProperties.getRegexes()),
+                          travisProperties.getRegexes(),
                           travisProperties.getBuildMessageKey(),
-                          host.getPermissions().build());
+                          host.getPermissions().build(),
+                          useLegacyLogFetching);
                     })
                 .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 
@@ -109,7 +122,8 @@ public class TravisConfig {
       Optional<ArtifactDecorator> artifactDecorator,
       Collection<String> artifactRexeges,
       String buildMessageKey,
-      Permissions permissions) {
+      Permissions permissions,
+      boolean legacyLogFetching) {
     return new TravisService(
         travisHostId,
         baseUrl,
@@ -120,7 +134,8 @@ public class TravisConfig {
         artifactDecorator,
         artifactRexeges,
         buildMessageKey,
-        permissions);
+        permissions,
+        legacyLogFetching);
   }
 
   public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {

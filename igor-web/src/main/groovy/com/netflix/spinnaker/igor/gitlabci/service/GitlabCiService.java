@@ -63,7 +63,7 @@ public class GitlabCiService implements BuildOperations {
   }
 
   @Override
-  public List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber) {
+  public List<GenericGitRevision> getGenericGitRevisions(String job, GenericBuild build) {
     throw new UnsupportedOperationException();
   }
 

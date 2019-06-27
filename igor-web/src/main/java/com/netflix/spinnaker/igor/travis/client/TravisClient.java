@@ -19,23 +19,19 @@ package com.netflix.spinnaker.igor.travis.client;
 
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken;
 import com.netflix.spinnaker.igor.travis.client.model.Accounts;
-import com.netflix.spinnaker.igor.travis.client.model.Build;
 import com.netflix.spinnaker.igor.travis.client.model.Builds;
 import com.netflix.spinnaker.igor.travis.client.model.EmptyObject;
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth;
-import com.netflix.spinnaker.igor.travis.client.model.Jobs;
-import com.netflix.spinnaker.igor.travis.client.model.Repo;
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest;
-import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper;
 import com.netflix.spinnaker.igor.travis.client.model.Repos;
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request;
+import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
 import retrofit.client.Response;
 import retrofit.http.Body;
-import retrofit.http.EncodedPath;
 import retrofit.http.GET;
 import retrofit.http.Header;
 import retrofit.http.Headers;
@@ -44,32 +40,22 @@ import retrofit.http.Path;
 import retrofit.http.Query;
 
 public interface TravisClient {
+  /**
+   * Root endpoint (<a
+   * href="https://developer.travis-ci.com/resource/home">developer.travis-ci.com/resource/home</a>),
+   * describes the API and its capabilities
+   *
+   * @return The root object, describing the API
+   */
+  @GET("/v3/")
+  @Headers("Travis-API-Version: 3")
+  public Root getRoot();
+
   @POST("/auth/github")
   public abstract AccessToken accessToken(@Body GithubAuth gitHubAuth);
 
   @GET("/accounts")
   public abstract Accounts accounts(@Header("Authorization") String accessToken);
-
-  @GET("/builds")
-  public abstract Builds builds(@Header("Authorization") String accessToken);
-
-  @GET("/builds")
-  public abstract Builds builds(
-      @Header("Authorization") String accessToken, @Query("repository_id") int repositoryId);
-
-  @GET("/builds")
-  public abstract Builds builds(
-      @Header("Authorization") String accessToken, @Query("slug") String repoSlug);
-
-  @GET("/builds/{build_id}")
-  public abstract Build build(
-      @Header("Authorization") String accessToken, @Path("build_id") int buildId);
-
-  @GET("/builds")
-  public abstract Build build(
-      @Header("Authorization") String accessToken,
-      @Query("repository_id") int repositoryId,
-      @Query("number") int buildNumber);
 
   @GET("/builds")
   public abstract Builds builds(
@@ -85,14 +71,6 @@ public interface TravisClient {
       @Query("limit") int limit,
       @Query("offset") int offset);
 
-  @GET("/repos/{repositoryId}")
-  public abstract Repo repo(
-      @Header("Authorization") String accessToken, @Path("repositoryId") int repositoryId);
-
-  @GET("/repos/{repo_slug}")
-  public abstract RepoWrapper repoWrapper(
-      @Header("Authorization") String accessToken, @EncodedPath("repo_slug") String repoSlug);
-
   @POST("/repo/{repoSlug}/requests")
   @Headers("Travis-API-Version: 3")
   public abstract TriggerResponse triggerBuild(
@@ -104,9 +82,6 @@ public interface TravisClient {
   public abstract Response usersSync(
       @Header("Authorization") String accessToken, @Body EmptyObject emptyObject);
 
-  @GET("/jobs/{job_id}")
-  public abstract Jobs jobs(@Header("Authorization") String accessToken, @Path("job_id") int jobId);
-
   @Headers({"Travis-API-Version: 3", "Accept: text/plain"})
   @GET("/job/{jobId}/log")
   public abstract V3Log jobLog(
@@ -115,21 +90,25 @@ public interface TravisClient {
   @GET("/build/{build_id}")
   @Headers("Travis-API-Version: 3")
   public abstract V3Build v3build(
-      @Header("Authorization") String accessToken, @Path("build_id") int repositoryId);
+      @Header("Authorization") String accessToken,
+      @Path("build_id") int buildId,
+      @Query("include") String include);
 
   @GET("/repo/{repository_id}/builds")
   @Headers("Travis-API-Version: 3")
   public abstract V3Builds builds(
       @Header("Authorization") String accessToken,
       @Path("repository_id") int repositoryId,
-      @Query("limit") int limit);
+      @Query("limit") int limit,
+      @Query("include") String include);
 
   @GET("/repo/{repository_slug}/builds")
   @Headers("Travis-API-Version: 3")
   public abstract V3Builds v3builds(
       @Header("Authorization") String accessToken,
       @Path("repository_slug") String repositorySlug,
-      @Query("limit") int limit);
+      @Query("limit") int limit,
+      @Query("include") String include);
 
   @GET("/repo/{repository_slug}/builds")
   @Headers("Travis-API-Version: 3")
@@ -137,7 +116,8 @@ public interface TravisClient {
       @Header("Authorization") String accessToken,
       @Path("repository_slug") String repositorySlug,
       @Query("branch.name") String branchName,
-      @Query("limit") int limit);
+      @Query("limit") int limit,
+      @Query("include") String include);
 
   @GET("/repo/{repository_slug}/builds")
   @Headers("Travis-API-Version: 3")
@@ -146,7 +126,8 @@ public interface TravisClient {
       @Path("repository_slug") String repositorySlug,
       @Query("branch.name") String branchName,
       @Query("event_type") String eventType,
-      @Query("limit") int limit);
+      @Query("limit") int limit,
+      @Query("include") String include);
 
   @GET("/repo/{repository_slug}/builds")
   @Headers("Travis-API-Version: 3")
@@ -154,7 +135,8 @@ public interface TravisClient {
       @Header("Authorization") String accessToken,
       @Path("repository_slug") String repositorySlug,
       @Query("event_type") String EventType,
-      @Query("limit") int limit);
+      @Query("limit") int limit,
+      @Query("include") String include);
 
   @GET("/repo/{repository_id}/request/{request_id}")
   @Headers("Travis-API-Version: 3")

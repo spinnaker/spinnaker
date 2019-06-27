@@ -31,10 +31,10 @@ public interface BuildOperations extends BuildService {
    * Get a list of the Spinnaker representation of the Git commits relevant for the given build
    *
    * @param job The name of the job
-   * @param buildNumber The build number
+   * @param build The build
    * @return A list of git revisions relevant for the build
    */
-  List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber);
+  List<GenericGitRevision> getGenericGitRevisions(String job, GenericBuild build);
 
   /**
    * Return all information of a given build

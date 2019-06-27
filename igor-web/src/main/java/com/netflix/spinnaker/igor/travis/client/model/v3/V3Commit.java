@@ -17,22 +17,32 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import java.time.Instant;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
 
 @Default
 @Root(name = "commits")
+@Data
+@NoArgsConstructor
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class V3Commit {
   private int id;
   private String sha;
   private String ref;
   private String message;
-
-  @JsonProperty("compare_url")
   private String compareUrl;
+  private Instant committedAt;
+  private Person author;
+  private Person committer;
 
   public boolean isTag() {
     return ref != null && ref.split("/")[1].equals("tags");
@@ -42,43 +52,23 @@ public class V3Commit {
     return ref != null && ref.split("/")[1].equals("pull");
   }
 
-  public int getId() {
-    return id;
+  @Data
+  @NoArgsConstructor
+  @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  private static class Person {
+    private String name;
+    private String avatarUrl;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getSha() {
-    return sha;
-  }
-
-  public void setSha(String sha) {
-    this.sha = sha;
-  }
-
-  public String getRef() {
-    return ref;
-  }
-
-  public void setRef(String ref) {
-    this.ref = ref;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
-  }
-
-  public String getCompareUrl() {
-    return compareUrl;
-  }
-
-  public void setCompareUrl(String compareUrl) {
-    this.compareUrl = compareUrl;
+  @JsonIgnore
+  public GenericGitRevision getGenericGitRevision() {
+    return GenericGitRevision.builder()
+        .sha1(sha)
+        .committer(getAuthor().getName())
+        .compareUrl(compareUrl)
+        .message(message)
+        .timestamp(committedAt)
+        .build();
   }
 }

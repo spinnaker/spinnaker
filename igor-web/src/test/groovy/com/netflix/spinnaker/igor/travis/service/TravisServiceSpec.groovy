@@ -26,12 +26,14 @@ import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
-import com.netflix.spinnaker.igor.travis.client.model.Builds
-import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
+import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import spock.lang.Shared
@@ -57,7 +59,7 @@ class TravisServiceSpec extends Specification{
         client = Mock()
         travisCache = Mock()
         artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
@@ -151,64 +153,6 @@ class TravisServiceSpec extends Specification{
         "my-org/repo/tags"                || false
     }
 
-    def "getCommit(repoSlug, buildNumber)"() {
-        given:
-        Commit commit = new Commit()
-        commit.branch = "1.0"
-        commit.compareUrl = "https://github.domain/org/repo/compare/1.0"
-        Builds builds = Mock(Builds)
-
-        when:
-        Commit fetchedCommit = service.getCommit("org/repo", 38)
-
-        then:
-        fetchedCommit.isTag()
-        1 * client.builds("token someToken", "org/repo", 38) >> builds
-        3 * builds.commits >> [commit]
-    }
-
-    def "getCommit(repoSlug, buildNumber) when no commit is found"() {
-        given:
-        Builds builds = Mock(Builds)
-
-        when:
-        service.getCommit("org/repo", 38)
-
-        then:
-        thrown NoSuchElementException
-        1 * client.builds("token someToken", "org/repo", 38) >> builds
-        2 * builds.commits >> []
-    }
-
-    def "branchedRepoSlug should return branch prefixed with pull_request if it is a pull request"() {
-        given:
-        Builds builds = Mock(Builds)
-        Build build = Mock(Build)
-        Commit commit = Mock(Commit)
-
-        when:
-        String branchedRepoSlug = service.branchedRepoSlug("my/slug", 21, commit)
-
-        then:
-        branchedRepoSlug == "my/slug/pull_request_master"
-        1 * client.builds("token someToken", "my/slug", 21) >> builds
-        2 * builds.builds >> [build]
-        1 * build.pullRequest >> true
-        1 * commit.getBranchNameWithTagHandling() >> "master"
-
-    }
-
-    def "branchedRepoSlug should fallback to input repoSlug if hystrix kicks in"() {
-        given:
-        Commit commit = Mock(Commit)
-
-        when:
-        String branchedRepoSlug = service.branchedRepoSlug("my/slug", 21, commit)
-
-        then:
-        branchedRepoSlug == "my/slug"
-    }
-
     @Unroll
     def "calculate pagination correctly"() {
         expect:
@@ -264,4 +208,57 @@ class TravisServiceSpec extends Specification{
 
         buildNumber == 1
     }
+
+  @Unroll
+  def "use correct way of checking if logs are completed when legacyLogFetching is #legacyLogFetching and log_complete flag is #isLogCompleteFlag"() {
+    given:
+    def job = new V3Job().with { v3job ->
+      v3job.id = 2
+      return v3job
+    }
+    def build = new V3Build([
+      id: 1,
+      jobs: [ job ],
+      state: TravisBuildState.passed,
+      repository: new V3Repository([slug: "my/slug"])
+    ])
+    if (!legacyLogFetching) {
+      build.logComplete = isLogCompleteFlag
+    }
+    def v3log = new V3Log([
+      logParts: [
+        new V3Log.V3LogPart([
+          number: 0,
+          content: "log",
+          isFinal: isLogReallyComplete
+        ])],
+      content: "log"
+    ])
+    service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, legacyLogFetching)
+    AccessToken accessToken = new AccessToken()
+    accessToken.accessToken = "someToken"
+    service.accessToken = accessToken
+
+    when:
+    def genericBuilds = service.getBuilds("my/slug")
+
+    then:
+    1 * client.v3builds("token someToken", "my/slug", TravisService.TRAVIS_BUILD_RESULT_LIMIT,
+      legacyLogFetching ? null : "build.log_complete") >> new V3Builds([builds: [build]])
+    (isLogCompleteFlag ? 0 : 1) * travisCache.getJobLog("travis-ci", 2) >> (isLogCached ? "log" : null)
+    (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> v3log
+    (!isLogCompleteFlag && !isLogCached && isLogReallyComplete ? 1 : 0) * travisCache.setJobLog("travis-ci", 2, "log")
+    genericBuilds.size() == expectedNumberOfBuilds
+
+    where:
+    legacyLogFetching | isLogCompleteFlag | isLogCached | isLogReallyComplete | expectedNumberOfBuilds
+    false             | true              | true        | true                | 1
+    false             | false             | true        | true                | 1
+    false             | false             | false       | true                | 1
+    false             | false             | false       | false               | 0
+    true              | null              | true        | true                | 1
+    true              | null              | true        | true                | 1
+    true              | null              | false       | true                | 1
+    true              | null              | false       | false               | 0
+  }
 }

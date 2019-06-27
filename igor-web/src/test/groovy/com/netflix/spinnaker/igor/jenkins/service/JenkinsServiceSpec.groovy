@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.service
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
@@ -279,9 +280,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 1
@@ -332,9 +335,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 2
@@ -385,9 +390,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 1
@@ -444,9 +451,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 2
@@ -506,9 +515,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 2
@@ -568,9 +579,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         when:
-        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', genericBuild)
 
         then:
         genericGitRevision.size() == 1
@@ -620,9 +633,11 @@ class JenkinsServiceSpec extends Specification {
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        def genericBuild = new GenericBuild()
+        genericBuild.number = 1
 
         expect:
-        service.getBuildProperties("PropertiesTest", 1, "props$extension") == testCase.result
+        service.getBuildProperties("PropertiesTest", genericBuild, "props$extension") == testCase.result
 
         cleanup:
         server.shutdown()
