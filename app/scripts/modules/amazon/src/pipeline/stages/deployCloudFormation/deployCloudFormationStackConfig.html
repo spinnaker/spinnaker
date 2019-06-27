@@ -16,7 +16,19 @@
         <label class="sm-label-right">
           <input type="text" class="form-control input-sm" required ng-model="stage.stackName" />
         </label>
+        <br />
+        <label>
+          <input type="checkbox" ng-checked="ctrl.isChangeSet()" ng-click="ctrl.toggleChangeSet()" />
+          <strong>Create CloudFormation ChangeSet</strong>
+        </label>
       </stage-config-field>
+      <div ng-if="ctrl.isChangeSet()">
+        <stage-config-field label="ChangeSet name">
+          <label class="sm-label-right">
+            <input type="text" class="form-control input-sm" ng-model="stage.changeSetName" />
+          </label>
+        </stage-config-field>
+      </div>
       <stage-config-field label="Source" help-key="aws.cloudformation.source">
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}" />

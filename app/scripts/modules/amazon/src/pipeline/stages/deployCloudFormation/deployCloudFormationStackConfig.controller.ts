@@ -48,4 +48,12 @@ export class DeployCloudFormationStackConfigController implements IController {
       this.cloudFormationStackArtifactController.accountsForArtifact.length > 1
     );
   }
+
+  public isChangeSet() {
+    return this.$scope.stage.isChangeSet;
+  }
+
+  public toggleChangeSet() {
+    this.$scope.stage.isChangeSet = !this.$scope.stage.isChangeSet;
+  }
 }
