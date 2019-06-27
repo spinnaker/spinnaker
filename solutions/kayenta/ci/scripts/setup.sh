@@ -23,7 +23,7 @@ curl -sS "https://storage.googleapis.com/stackdriver-prometheus-documentation/pr
 
 ## Install Spinnaker ##
 curl -sSL "https://www.spinnaker.io/downloads/kubernetes/quick-install.yml" | \
-    sed 's/version:.*/version: 1.13.8/g' | kubectl apply -f -
+    sed 's/version:.*/version: 1.13.10/g' | kubectl apply -f -
 # A successful Spinnaker install has 11 pods
 # Timeout of 20minutes (1200s)
 set +x

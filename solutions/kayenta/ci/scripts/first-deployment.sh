@@ -57,8 +57,8 @@ fi
 echo "Sampleapp ready!"
 set -x
 
-kubectl -n default run injector --image=alpine -- \
-    /bin/sh -c "apk add --no-cache --yes curl; \
+kubectl -n default run --generator=run-pod/v1 injector --image=alpine:3.10 -- \
+    /bin/sh -c "apk add --no-cache curl; \
     while true; do curl -sS --max-time 3 \
     http://sampleapp:8080/; done"
 
