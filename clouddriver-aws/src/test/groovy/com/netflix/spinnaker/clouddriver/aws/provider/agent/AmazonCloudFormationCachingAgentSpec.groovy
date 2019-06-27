@@ -17,8 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation
+import com.amazonaws.services.cloudformation.model.Change
+import com.amazonaws.services.cloudformation.model.ChangeSetSummary
+import com.amazonaws.services.cloudformation.model.DescribeChangeSetResult
 import com.amazonaws.services.cloudformation.model.DescribeStackEventsResult
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult
+import com.amazonaws.services.cloudformation.model.ListChangeSetsResult
 import com.amazonaws.services.cloudformation.model.Stack
 import com.amazonaws.services.cloudformation.model.StackEvent
 import com.amazonaws.services.ec2.AmazonEC2
@@ -69,6 +73,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def stackResults = Mock(DescribeStacksResult)
     def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
     def stack2 = new Stack().withStackId("stack2").withStackStatus("CREATE_SUCCESS")
+    def stackChangeSetsResults = Mock(ListChangeSetsResult)
 
     when:
     def cache = agent.loadData(providerCache)
@@ -76,8 +81,10 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     then:
     1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks() >> stackResults
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
     1 * stackResults.stacks >> [ stack1, stack2 ]
+    2 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    2 * stackChangeSetsResults.getSummaries() >> new ArrayList()
 
     results.find { it.id == Keys.getCloudFormationKey("stack1", "region", "accountName") }.attributes.'stackId' == stack1.stackId
     results.find { it.id == Keys.getCloudFormationKey("stack2", "region", "accountName") }.attributes.'stackId' == stack2.stackId
@@ -89,6 +96,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def stackResults = Mock(DescribeStacksResult)
     def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
     def stack2 = new Stack().withStackId("stack2").withStackStatus("CREATE_SUCCESS")
+    def stackChangeSetsResults = Mock(ListChangeSetsResult)
 
     when:
     def cache = agent.loadData(providerCache)
@@ -96,8 +104,10 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     then:
     1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks() >> stackResults
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
     1 * stackResults.stacks >> [ stack1, stack2 ]
+    2 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    2 * stackChangeSetsResults.getSummaries() >> new ArrayList()
 
     results.find { it.id == Keys.getCloudFormationKey("stack1", "region", "accountName") }.attributes.'stackId' == stack1.stackId
     results.find { it.id == Keys.getCloudFormationKey("stack2", "region", "accountName") }.attributes.'stackId' == stack2.stackId
@@ -108,13 +118,16 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     then:
     1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks() >> stackResults
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
     1 * stackResults.stacks >> [ stack1 ]
+    1 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    1 * stackChangeSetsResults.getSummaries() >> new ArrayList()
 
     results.find { it.id == Keys.getCloudFormationKey("stack1", "region", "accountName") }.attributes.'stackId' == stack1.stackId
     results.find { it.id == Keys.getCloudFormationKey("stack2", "region", "accountName") } == null
   }
 
+  @Unroll
   void "should include stack status reason when state is ROLLBACK_COMPLETE (failed)"() {
     given:
     def amazonCloudFormation = Mock(AmazonCloudFormation)
@@ -122,6 +135,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def stackResults = Mock(DescribeStacksResult)
     def stackEvent = new StackEvent().withResourceStatus(resourceStatus).withResourceStatusReason(expectedReason)
     def stackEventResults = Mock(DescribeStackEventsResult)
+    def stackChangeSetsResults = Mock(ListChangeSetsResult)
 
     when:
     def cache = agent.loadData(providerCache)
@@ -129,7 +143,9 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     then:
     1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    1 * amazonCloudFormation.describeStacks() >> stackResults
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    1 * stackChangeSetsResults.getSummaries() >> new ArrayList()
     1 * stackResults.stacks >> [ stack ]
     1 * amazonCloudFormation.describeStackEvents(_) >> stackEventResults
     1 * stackEventResults.getStackEvents() >> [ stackEvent ]
@@ -142,6 +158,49 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     'UPDATE_FAILED' | 'ROLLBACK_COMPLETE'        || "update failed"
     'CREATE_FAILED' | 'UPDATE_ROLLBACK_COMPLETE' || "create failed"
     'UPDATE_FAILED' | 'UPDATE_ROLLBACK_COMPLETE' || "update failed"
+  }
+
+  void "should include stack change sets if any available"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stack = new Stack().withStackId("stack1").withStackStatus("CREATE_COMPLETE")
+    def stackResults = Mock(DescribeStacksResult)
+    def listChangeSetsResult = Mock(ListChangeSetsResult)
+    def changeSet = new ChangeSetSummary()
+      .withChangeSetName("name")
+      .withStatus("status")
+      .withStatusReason("statusReason")
+    def describeChangeSetResult = Mock(DescribeChangeSetResult)
+    def change = new Change().withType("type")
+
+    when:
+    def cache = agent.loadData(providerCache)
+    def results = cache.cacheResults[Keys.Namespace.STACKS.ns]
+    def cachedStack = results.find {
+      it.id == Keys.getCloudFormationKey("stack1", "region", "accountName")
+    }
+    def cachedCangeSets = cachedStack.attributes.'changeSets'
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResults
+    1 * amazonCloudFormation.listChangeSets(_) >> listChangeSetsResult
+    1 * listChangeSetsResult.getSummaries() >> Collections.singletonList(changeSet)
+    1 * amazonCloudFormation.describeChangeSet(_) >> describeChangeSetResult
+    1 * describeChangeSetResult.getChanges() >> Collections.singletonList(change)
+    1 * stackResults.stacks >> [ stack ]
+
+    cachedCangeSets.size() == 1
+    with (cachedCangeSets.get(0)) {
+      name == "name"
+      status == "status"
+      statusReason == "statusReason"
+      changes.size() == 1
+      with(changes.get(0)) {
+        type == "type"
+      }
+    }
+
   }
 
   @Unroll
@@ -185,6 +244,7 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def stackResults = Mock(DescribeStacksResult)
     def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
     def stack2 = new Stack().withStackId("stack2").withStackStatus("CREATE_SUCCESS")
+    def stackChangeSetsResults = Mock(ListChangeSetsResult)
 
     when:
     def cache = agent.loadData(providerCache)
@@ -192,8 +252,10 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     then:
     2 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
-    2 * amazonCloudFormation.describeStacks() >> stackResults
+    2 * amazonCloudFormation.describeStacks(_) >> stackResults
     2 * stackResults.stacks >> [ stack1, stack2 ]
+    4 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResults
+    4 * stackChangeSetsResults.getSummaries() >> new ArrayList()
 
     def expected = cache.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
     def onDemand = results.cacheResult.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set

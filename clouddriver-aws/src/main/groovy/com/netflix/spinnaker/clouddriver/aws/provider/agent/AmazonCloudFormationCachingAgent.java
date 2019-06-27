@@ -22,11 +22,7 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.*;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.agent.AccountAware;
-import com.netflix.spinnaker.cats.agent.AgentDataType;
-import com.netflix.spinnaker.cats.agent.CacheResult;
-import com.netflix.spinnaker.cats.agent.CachingAgent;
-import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
+import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -42,7 +38,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
+public class AmazonCloudFormationCachingAgent
+    implements CachingAgent, OnDemandAgent, AccountAware, AgentIntervalAware {
   private final AmazonClientProvider amazonClientProvider;
   private final NetflixAmazonCredentials account;
   private final String region;
@@ -93,8 +90,14 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
           "Updating CloudFormation cache for account: {} and region: {}",
           account.getName(),
           this.region);
+      DescribeStacksRequest describeStacksRequest =
+          Optional.ofNullable((String) data.get("stackName"))
+              .map(stackName -> new DescribeStacksRequest().withStackName(stackName))
+              .orElse(new DescribeStacksRequest());
       return new OnDemandResult(
-          getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
+          getOnDemandAgentType(),
+          queryStacks(providerCache, describeStacksRequest, true),
+          Collections.emptyMap());
     } else {
       return null;
     }
@@ -133,40 +136,24 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    log.info("Describing items in {}", getAgentType());
+    return queryStacks(providerCache, new DescribeStacksRequest(), false);
+  }
+
+  public CacheResult queryStacks(
+      ProviderCache providerCache,
+      DescribeStacksRequest describeStacksRequest,
+      boolean isPartialResult) {
+    log.info("Describing items in {}, partial result: {}", getAgentType(), isPartialResult);
     AmazonCloudFormation cloudformation =
         amazonClientProvider.getAmazonCloudFormation(account, region);
 
-    Collection<CacheData> stackCacheData = new ArrayList<>();
+    ArrayList<CacheData> stackCacheData = new ArrayList<>();
 
     try {
-      List<Stack> stacks = cloudformation.describeStacks().getStacks();
+      List<Stack> stacks = cloudformation.describeStacks(describeStacksRequest).getStacks();
 
       for (Stack stack : stacks) {
-        Map<String, Object> stackAttributes = new HashMap<>();
-        stackAttributes.put("stackId", stack.getStackId());
-        stackAttributes.put(
-            "tags", stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
-        stackAttributes.put(
-            "outputs",
-            stack.getOutputs().stream()
-                .collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
-        stackAttributes.put("stackName", stack.getStackName());
-        stackAttributes.put("region", region);
-        stackAttributes.put("accountName", account.getName());
-        stackAttributes.put("accountId", account.getAccountId());
-        stackAttributes.put("stackStatus", stack.getStackStatus());
-        stackAttributes.put("creationTime", stack.getCreationTime());
-
-        if (stack.getStackStatus().endsWith("ROLLBACK_COMPLETE")) {
-          DescribeStackEventsRequest request =
-              new DescribeStackEventsRequest().withStackName(stack.getStackName());
-          cloudformation.describeStackEvents(request).getStackEvents().stream()
-              .filter(e -> e.getResourceStatus().endsWith("FAILED"))
-              .findFirst()
-              .map(StackEvent::getResourceStatusReason)
-              .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
-        }
+        Map<String, Object> stackAttributes = getStackAttributes(stack, cloudformation);
         String stackCacheKey =
             Keys.getCloudFormationKey(stack.getStackId(), region, account.getName());
         Map<String, Collection<String>> relationships = new HashMap<>();
@@ -180,6 +167,74 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
     log.info("Caching {} items in {}", stackCacheData.size(), getAgentType());
     HashMap<String, Collection<CacheData>> result = new HashMap<>();
     result.put(STACKS.getNs(), stackCacheData);
-    return new DefaultCacheResult(result);
+    return new DefaultCacheResult(result, isPartialResult);
+  }
+
+  private Map<String, Object> getStackAttributes(Stack stack, AmazonCloudFormation cloudformation) {
+    Map<String, Object> stackAttributes = new HashMap<>();
+    stackAttributes.put("stackId", stack.getStackId());
+    stackAttributes.put(
+        "tags", stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
+    stackAttributes.put(
+        "outputs",
+        stack.getOutputs().stream()
+            .collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
+    stackAttributes.put("stackName", stack.getStackName());
+    stackAttributes.put("region", region);
+    stackAttributes.put("accountName", account.getName());
+    stackAttributes.put("accountId", account.getAccountId());
+    stackAttributes.put("stackStatus", stack.getStackStatus());
+    stackAttributes.put("creationTime", stack.getCreationTime());
+    stackAttributes.put("changeSets", getChangeSets(stack, cloudformation));
+    getStackStatusReason(stack, cloudformation)
+        .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
+    return stackAttributes;
+  }
+
+  private List<Map<String, Object>> getChangeSets(
+      Stack stack, AmazonCloudFormation cloudformation) {
+    ListChangeSetsRequest listChangeSetsRequest =
+        new ListChangeSetsRequest().withStackName(stack.getStackName());
+    ListChangeSetsResult listChangeSetsResult =
+        cloudformation.listChangeSets(listChangeSetsRequest);
+    return listChangeSetsResult.getSummaries().stream()
+        .map(
+            summary -> {
+              Map<String, Object> changeSetAttributes = new HashMap<>();
+              changeSetAttributes.put("name", summary.getChangeSetName());
+              changeSetAttributes.put("status", summary.getStatus());
+              changeSetAttributes.put("statusReason", summary.getStatusReason());
+              DescribeChangeSetRequest describeChangeSetRequest =
+                  new DescribeChangeSetRequest()
+                      .withChangeSetName(summary.getChangeSetName())
+                      .withStackName(stack.getStackName());
+              DescribeChangeSetResult describeChangeSetResult =
+                  cloudformation.describeChangeSet(describeChangeSetRequest);
+              changeSetAttributes.put("changes", describeChangeSetResult.getChanges());
+              log.debug(
+                  "Adding change set attributes for stack {}: {}",
+                  stack.getStackName(),
+                  changeSetAttributes);
+              return changeSetAttributes;
+            })
+        .collect(Collectors.toList());
+  }
+
+  private Optional<String> getStackStatusReason(Stack stack, AmazonCloudFormation cloudformation) {
+    if (stack.getStackStatus().endsWith("ROLLBACK_COMPLETE")) {
+      DescribeStackEventsRequest request =
+          new DescribeStackEventsRequest().withStackName(stack.getStackName());
+      return cloudformation.describeStackEvents(request).getStackEvents().stream()
+          .filter(e -> e.getResourceStatus().endsWith("FAILED"))
+          .findFirst()
+          .map(StackEvent::getResourceStatusReason);
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Long getAgentInterval() {
+    return 60000L;
   }
 }

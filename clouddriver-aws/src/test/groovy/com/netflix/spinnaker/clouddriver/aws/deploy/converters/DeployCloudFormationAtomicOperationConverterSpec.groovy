@@ -51,7 +51,9 @@ class DeployCloudFormationAtomicOperationConverterSpec extends Specification {
                  tags           : [ tag1: "tag1" ],
                  capabilities   : [ "cap1", "cap2" ],
                  region         : "eu-west_1",
-                 credentials    : "credentials"]
+                 credentials    : "credentials",
+                 isChangeSet    : true,
+                 changeSetName  : "changeSetName"]
 
     when:
     def description = converter.convertDescription(input)

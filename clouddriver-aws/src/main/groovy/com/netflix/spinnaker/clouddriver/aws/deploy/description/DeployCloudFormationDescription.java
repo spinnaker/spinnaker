@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,4 +33,9 @@ public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDe
   private Map<String, String> tags = new HashMap<>();
   private String region;
   private List<String> capabilities = new ArrayList<>();
+
+  @JsonProperty("isChangeSet")
+  private boolean isChangeSet;
+
+  private String changeSetName;
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import com.amazonaws.services.cloudformation.model.Change
 import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Specification
 
@@ -34,7 +35,17 @@ class AmazonCloudFormationStackSpec extends Specification {
       accountName: "accountName",
       accountId: "accountId",
       stackStatus: "stackStatus",
-      stackStatusReason: "stackStatusReason"
+      stackStatusReason: "stackStatusReason",
+      changeSets: [
+        [
+          name: "name",
+          status: "status",
+          statusReason: "statusReason",
+          changes: [
+            new Change().withType("type")
+          ]
+        ]
+      ]
     ]
 
     when:
@@ -52,6 +63,13 @@ class AmazonCloudFormationStackSpec extends Specification {
       accountId == "accountId"
       stackStatus == "stackStatus"
       stackStatusReason == "stackStatusReason"
+      cf.changeSets.each {
+        it.name == "name"
+        it.status == "status"
+        it.statusReason == "statusReason"
+        it.changes.size() == 1
+        it.changes.get(0).type == "type"
+      }
     }
   }
 
@@ -74,6 +92,7 @@ class AmazonCloudFormationStackSpec extends Specification {
       accountId == null
       stackStatus == null
       stackStatusReason == null
+      changeSets == null
     }
   }
 
