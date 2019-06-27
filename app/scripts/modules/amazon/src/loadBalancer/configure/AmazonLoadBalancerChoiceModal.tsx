@@ -20,10 +20,14 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   };
 
   public static show(props: ILoadBalancerModalProps): Promise<void> {
-    return ReactModal.show(AmazonLoadBalancerChoiceModal, {
-      ...props,
-      className: 'create-pipeline-modal-overflow-visible',
-    });
+    return ReactModal.show(
+      AmazonLoadBalancerChoiceModal,
+      {
+        ...props,
+        className: 'create-pipeline-modal-overflow-visible modal-lg',
+      },
+      { bsSize: 'lg' },
+    );
   }
 
   constructor(props: ILoadBalancerModalProps) {

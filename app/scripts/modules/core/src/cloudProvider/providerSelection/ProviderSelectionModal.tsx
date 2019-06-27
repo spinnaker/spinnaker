@@ -50,7 +50,7 @@ export class ProviderSelectionModal extends React.Component<
           <div className="card-choices">
             {providerOptions.map(provider => (
               <div
-                className={`card ${selectedProvider === provider && 'active'}`}
+                className={`card vertical center middle ${selectedProvider === provider && 'active'}`}
                 key={provider}
                 onClick={() => this.setProvider(provider)}
               >
