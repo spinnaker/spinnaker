@@ -47,6 +47,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     def stage = stage()
     stage.context.put("credentials", credentials)
     stage.context.put("regions", regions)
+    stage.context.put("stackName", stackName)
 
     when:
     task.execute(stage)
@@ -55,11 +56,13 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     1 * task.cacheService.forceCacheUpdate('aws', CloudFormationForceCacheRefreshTask.REFRESH_TYPE, expectedData)
 
     where:
-    credentials   | regions       || expectedData
-    null          | null          || [:]
-    "credentials" | null          || [credentials: "credentials"]
-    null          | ["eu-west-1"] || [region: ["eu-west-1"]]
-    "credentials" | ["eu-west-1"] || [credentials: "credentials", region: ["eu-west-1"]]
+    credentials   | regions       | stackName    || expectedData
+    null          | null          | null         || [:]
+    "credentials" | null          | null         || [credentials: "credentials"]
+    null          | ["eu-west-1"] | null         || [region: ["eu-west-1"]]
+    "credentials" | ["eu-west-1"] | null         || [credentials: "credentials", region: ["eu-west-1"]]
+    null          | null          | "stackName"  || [stackName: "stackName"]
+    "credentials" | ["eu-west-1"] | "stackName"  || [credentials: "credentials", region: ["eu-west-1"], stackName: "stackName"]
 
 
   }

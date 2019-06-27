@@ -51,6 +51,11 @@ public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAw
       data.put("region", regions);
     }
 
+    String stackName = (String) stage.getContext().get("stackName");
+    if (stackName != null) {
+      data.put("stackName", stackName);
+    }
+
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
 
     return TaskResult.SUCCEEDED;

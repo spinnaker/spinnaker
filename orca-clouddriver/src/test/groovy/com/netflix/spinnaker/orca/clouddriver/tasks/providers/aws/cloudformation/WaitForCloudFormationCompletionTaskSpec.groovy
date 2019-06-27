@@ -33,16 +33,29 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   def waitForCloudFormationCompletionTask = new WaitForCloudFormationCompletionTask(oortService: oortService)
 
   @Unroll
-  def "should succeed if the stack creation is '#status'"() {
+  def "should succeed if the stack creation is '#status' and if isChangeSet property is '#isChangeSet'"() {
     given:
     def pipeline = Execution.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
+      'isChangeSet': isChangeSet,
+      'changeSetName': 'changeSetName',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new Stage(pipeline, 'test', 'test', context)
-    def stack = [stackId: 'stackId', stackStatus: status] as Map
+    def stack = [
+      stackId: 'stackId',
+      stackStatus: status,
+      stackStatusReason: statusReason,
+      changeSets: [
+        [
+          name: 'changeSetName',
+          status: status,
+          statusReason: statusReason
+        ]
+      ]
+    ]
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)
@@ -53,9 +66,10 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     result.outputs == stack
 
     where:
-    status            | expectedResult
-    'CREATE_COMPLETE' | ExecutionStatus.SUCCEEDED
-    'UPDATE_COMPLETE' | ExecutionStatus.SUCCEEDED
+    isChangeSet | status            | statusReason                                        || expectedResult
+    false       | 'CREATE_COMPLETE' | 'ignored'                                           || ExecutionStatus.SUCCEEDED
+    false       | 'UPDATE_COMPLETE' | 'ignored'                                           || ExecutionStatus.SUCCEEDED
+    true        | 'FAILED'          | 'The submitted information didn\'t contain changes' || ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
@@ -105,16 +119,29 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     result.outputs.isEmpty()
   }
 
-  def "should error on unknown stack status"() {
+  @Unroll
+  def "should error on known error states or unknown stack status"() {
     given:
     def pipeline = Execution.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
+      'isChangeSet': isChangeSet,
+      'changeSetName': 'changeSetName',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new Stage(pipeline, 'test', 'test', context)
-    def stack = [stackStatus: 'UNKNOWN']
+    def stack = [
+      stackStatus: status,
+      stackStatusReason: "Stack failed",
+      changeSets: [
+        [
+          name: 'changeSetName',
+          status: status,
+          statusReason: "Change set failed"
+        ]
+      ]
+    ]
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)
@@ -122,12 +149,20 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     then:
     1 * oortService.getCloudFormationStack('stackId') >> stack
     RuntimeException ex = thrown()
-    ex.message.startsWith("Unexpected stack status")
-    result == null
+    ex.message.startsWith(expectedMessage)
+
+    where:
+    isChangeSet | status              || expectedMessage
+    false       | 'UNKNOWN'           || 'Unexpected stack status'
+    false       | 'ROLLBACK_COMPLETE' || 'Stack failed'
+    false       | 'CREATE_FAILED'     || 'Stack failed'
+    true        | 'UNKNOWN'           || 'Unexpected stack status'
+    true        | 'ROLLBACK_COMPLETE' || 'Change set failed'
+    true        | 'FAILED'            || 'Change set failed'
   }
 
   def "should error when clouddriver responds with an error other than 404"() {
-        def pipeline = Execution.newPipeline('orca')
+    def pipeline = Execution.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
@@ -144,6 +179,40 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     RuntimeException ex = thrown()
     ex.message == "500 reason"
     result == null
+  }
+
+  @Unroll
+  def "should get the change set status if it's a change set"() {
+    def pipeline = Execution.newPipeline('orca')
+    def context = [
+      'credentials': 'creds',
+      'cloudProvider': 'aws',
+      'isChangeSet': true,
+      'changeSetName': 'changeSetName',
+      'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
+    ]
+    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stack = [
+      stackStatus: 'UPDATE_COMPLETE',
+      changeSets: [
+        [
+          name: 'changeSetName',
+          status: status
+        ]
+      ]
+    ]
+
+    when:
+    def result = waitForCloudFormationCompletionTask.execute(stage)
+
+    then:
+    1 * oortService.getCloudFormationStack('stackId') >> stack
+    result.status == expectedResult
+
+    where:
+    status                        | expectedResult
+    'CREATE_IN_PROGRESS'          | ExecutionStatus.RUNNING
+    'CREATE_COMPLETE'             | ExecutionStatus.SUCCEEDED
   }
 
 }

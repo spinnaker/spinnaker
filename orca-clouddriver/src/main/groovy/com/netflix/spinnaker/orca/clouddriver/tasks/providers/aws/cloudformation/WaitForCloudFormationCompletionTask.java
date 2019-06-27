@@ -20,8 +20,10 @@ import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,15 @@ import retrofit.RetrofitError;
 public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRetryableTask {
 
   public static final String TASK_NAME = "waitForCloudFormationCompletion";
+
+  private enum CloudFormationStates {
+    NOT_YET_READY,
+    CREATE_COMPLETE,
+    UPDATE_COMPLETE,
+    IN_PROGRESS,
+    ROLLBACK_COMPLETE,
+    FAILED
+  }
 
   private final long backoffPeriod = TimeUnit.SECONDS.toMillis(10);
   private final long timeout = TimeUnit.HOURS.toMillis(2);
@@ -54,14 +65,24 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
               + stackId
               + " with status "
               + stack.get("stackStatus"));
-      if (isComplete(stack.get("stackStatus"))) {
+      boolean isChangeSet =
+          (boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false);
+      log.info("Deploying a CloudFormation ChangeSet for stackId " + stackId + ": " + isChangeSet);
+      String status =
+          isChangeSet
+              ? getChangeSetInfo(stack, stage.getContext(), "status")
+              : getStackInfo(stack, "stackStatus");
+      if (isComplete(status) || isEmptyChangeSet(stage, stack)) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(stack).build();
-      } else if (isInProgress(stack.get("stackStatus"))) {
+      } else if (isInProgress(status)) {
         return TaskResult.RUNNING;
-      } else if (isFailed(stack.get("stackStatus"))) {
-        log.info(
-            "Cloud formation stack failed to completed. Status: " + stack.get("stackStatusReason"));
-        throw new RuntimeException((String) stack.get("stackStatusReason"));
+      } else if (isFailed(status)) {
+        String statusReason =
+            isChangeSet
+                ? getChangeSetInfo(stack, stage.getContext(), "statusReason")
+                : getStackInfo(stack, "stackStatusReason");
+        log.info("Cloud formation stack failed to completed. Status: " + statusReason);
+        throw new RuntimeException(statusReason);
       }
       throw new RuntimeException("Unexpected stack status: " + stack.get("stackStatus"));
     } catch (RetrofitError e) {
@@ -85,10 +106,36 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     return timeout;
   }
 
+  private String getStackInfo(Map stack, String field) {
+    return (String) stack.get(field);
+  }
+
+  private String getChangeSetInfo(Map stack, Map context, String field) {
+    String changeSetName = (String) context.get("changeSetName");
+    log.debug("Getting change set status from stack for changeset {}: {}", changeSetName, stack);
+    return Optional.ofNullable((List<Map<String, ?>>) stack.get("changeSets"))
+        .orElse(Collections.emptyList()).stream()
+        .filter(changeSet -> changeSet.get("name").equals(changeSetName))
+        .findFirst()
+        .map(changeSet -> (String) changeSet.get(field))
+        .orElse(CloudFormationStates.NOT_YET_READY.toString());
+  }
+
+  private boolean isEmptyChangeSet(Stage stage, Map<String, ?> stack) {
+    if ((boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false)) {
+      String status = getChangeSetInfo(stack, stage.getContext(), "status");
+      String statusReason = getChangeSetInfo(stack, stage.getContext(), "statusReason");
+      return status.equals(CloudFormationStates.FAILED.toString())
+          && statusReason.startsWith("The submitted information didn't contain changes");
+    } else {
+      return false;
+    }
+  }
+
   private boolean isComplete(Object status) {
     if (status instanceof String) {
-      return ((String) status).endsWith("CREATE_COMPLETE")
-          || ((String) status).endsWith("UPDATE_COMPLETE");
+      return ((String) status).endsWith(CloudFormationStates.CREATE_COMPLETE.toString())
+          || ((String) status).endsWith(CloudFormationStates.UPDATE_COMPLETE.toString());
     } else {
       return false;
     }
@@ -96,7 +143,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
 
   private boolean isInProgress(Object status) {
     if (status instanceof String) {
-      return ((String) status).endsWith("IN_PROGRESS");
+      return ((String) status).endsWith(CloudFormationStates.IN_PROGRESS.toString())
+          || ((String) status).endsWith(CloudFormationStates.NOT_YET_READY.toString());
     } else {
       return false;
     }
@@ -104,7 +152,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
 
   private boolean isFailed(Object status) {
     if (status instanceof String) {
-      return ((String) status).endsWith("ROLLBACK_COMPLETE");
+      return ((String) status).endsWith(CloudFormationStates.ROLLBACK_COMPLETE.toString())
+          || ((String) status).endsWith(CloudFormationStates.FAILED.toString());
     } else {
       return false;
     }
