@@ -170,17 +170,16 @@
         </label>
       </div>
     </div>
-    <div ng-if="invalidParameters.length" class="horizontal center sp-margin-l-top" style="width: 100%">
+    <div ng-if="hasInvalidParameters()" class="horizontal center sp-margin-l-top" style="width: 100%">
       <div class="alert alert-danger vertical">
         <p>
           <i class="fa fa-exclamation-triangle"></i>
           The following parameters are not accepted by the jenkins job but are still set in the stage configuration:
         </p>
-        <ul>
-          <li ng-repeat="paramName in invalidParameters">
-            {{paramName}}
-          </li>
-        </ul>
+        <div ng-repeat="(paramName, paramValue) in invalidParameters" class="flex-container-h" style="margin: 0.5em">
+          <label class="col-md-2">{{paramName}}</label>
+          <input class="flex-grow" type="text" style="width: 100%" disabled value="{{paramValue}}" />
+        </div>
         <button class="self-right passive" ng-click="jenkinsStageCtrl.removeInvalidParameters()">Remove all</button>
       </div>
     </div>

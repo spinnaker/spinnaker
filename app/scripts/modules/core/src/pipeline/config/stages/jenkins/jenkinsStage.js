@@ -4,6 +4,7 @@ import { Registry } from 'core/registry';
 
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
+import { pickBy } from 'lodash';
 
 const angular = require('angular');
 
@@ -118,8 +119,9 @@ module.exports = angular
 
             if ($scope.jobParams) {
               const acceptedJobParameters = $scope.jobParams.map(param => param.name);
-              $scope.invalidParameters = Object.keys($scope.userSuppliedParameters).filter(
-                paramName => !acceptedJobParameters.includes(paramName),
+              $scope.invalidParameters = pickBy(
+                $scope.userSuppliedParameters,
+                (value, name) => !acceptedJobParameters.includes(name),
               );
             }
 
@@ -133,6 +135,7 @@ module.exports = angular
         }
       }
 
+      $scope.hasInvalidParameters = () => Object.keys($scope.invalidParameters || {}).length;
       $scope.useDefaultParameters = {};
       $scope.userSuppliedParameters = {};
 
@@ -146,12 +149,12 @@ module.exports = angular
       };
 
       this.removeInvalidParameters = function() {
-        $scope.invalidParameters.forEach(param => {
+        Object.keys($scope.invalidParameters).forEach(param => {
           if ($scope.stage.parameters[param] !== 'undefined') {
             delete $scope.stage.parameters[param];
           }
         });
-        $scope.invalidParameters = [];
+        $scope.invalidParameters = {};
       };
 
       initializeMasters();
