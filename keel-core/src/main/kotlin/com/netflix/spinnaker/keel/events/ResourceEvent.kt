@@ -35,6 +35,7 @@ import com.netflix.spinnaker.keel.api.uid
 import java.time.Clock
 import java.time.Instant
 
+// todo emjburns: use the common class in kork, but refactor so you can also set the time in those.
 @JsonTypeInfo(
   use = Id.NAME,
   property = "type",

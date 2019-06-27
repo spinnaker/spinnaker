@@ -59,7 +59,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       kind = handler.supportedKind.first.singular,
       metadata = mapOf(
         "uid" to randomUID(),
-        "name" to "bakery:image:keel"
+        "name" to "bakery:image:keel",
+        "serviceAccount" to "keel@spinnaker"
       ),
       spec = ImageSpec(
         artifactName = "keel",

@@ -27,7 +27,8 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
     "deliveryconfig",
     mapOf(
       "name" to "foo",
-      "uid" to idGenerator.nextValue()
+      "uid" to idGenerator.nextValue(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     spec
   )

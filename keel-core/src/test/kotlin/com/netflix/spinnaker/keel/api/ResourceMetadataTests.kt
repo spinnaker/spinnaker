@@ -19,6 +19,7 @@ internal class ResourceMetadataTests : JUnit5Minutests {
         mapOf(
           "name" to "my-new-cron-object",
           "uid" to "1423255B460011E7AF6A28D244",
+          "serviceAccount" to "keel@spinnaker",
           "clusterName" to "",
           "creationTimestamp" to "2017-05-31T12:56:35Z",
           "deletionGracePeriodSeconds" to null,
@@ -33,6 +34,7 @@ internal class ResourceMetadataTests : JUnit5Minutests {
           """---
           |name: "my-new-cron-object"
           |uid: "1423255B460011E7AF6A28D244"
+          |serviceAccount: "keel@spinnaker"
           |clusterName: ""
           |creationTimestamp: "2017-05-31T12:56:35Z"
           |deletionGracePeriodSeconds: null
@@ -54,6 +56,7 @@ internal class ResourceMetadataTests : JUnit5Minutests {
         |namespace: default
         |selfLink: /apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object
         |uid: 1423255b460011e7af6a28d244
+        |serviceAccount: "keel@spinnaker"
       """.trimMargin()
       }
 

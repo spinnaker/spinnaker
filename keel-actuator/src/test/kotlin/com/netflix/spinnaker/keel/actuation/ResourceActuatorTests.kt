@@ -68,7 +68,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         kind = "foo",
         metadata = mapOf(
           "name" to "resource1",
-          "uid" to randomUID()
+          "uid" to randomUID(),
+          "serviceAccount" to "keel@spinnaker"
         ),
         spec = DummyResourceSpec("whatever")
       )

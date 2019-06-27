@@ -17,9 +17,13 @@ dependencies {
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.security:spring-security-config")
+
+  implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
+  implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-core-test"))

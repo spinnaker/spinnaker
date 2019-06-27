@@ -61,7 +61,8 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
           kind = "ec2:whatever",
           metadata = mapOf(
             "uid" to randomUID(),
-            "name" to "ec2:prod:ap-south-1:a-thing"
+            "name" to "ec2:prod:ap-south-1:a-thing",
+            "serviceAccount" to "keel@spinnaker"
           ),
           spec = randomData()
         )

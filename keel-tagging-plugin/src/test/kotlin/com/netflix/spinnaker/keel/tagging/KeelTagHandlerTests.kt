@@ -108,7 +108,8 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     "keel-tag",
     mapOf(
       "name" to keelId,
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     specWithTag
   )

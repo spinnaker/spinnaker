@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
@@ -12,15 +14,14 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
-import org.springframework.core.annotation.Order
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.core.Ordered
 import java.time.Clock
 
+@EnableFiatAutoConfig
 @Configuration
 class DefaultConfiguration {
   @Bean
@@ -52,9 +53,9 @@ class DefaultConfiguration {
   fun noResourcePlugins(): List<ResolvableResourceHandler<*, *>> = emptyList()
 
   @Bean
-  fun csrfDisable() = @Order(HIGHEST_PRECEDENCE) object : WebSecurityConfigurerAdapter() {
-    override fun configure(http: HttpSecurity) {
-      http.csrf().disable()
-    }
+  fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> {
+    val frb = FilterRegistrationBean(AuthenticatedRequestFilter(true))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
   }
 }

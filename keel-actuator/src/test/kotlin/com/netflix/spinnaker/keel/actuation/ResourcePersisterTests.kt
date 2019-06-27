@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.uid
@@ -52,6 +53,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     @Suppress("UNCHECKED_CAST")
     fun update(updatedSpec: Any) {
       resource = subject.update(resource.name, SubmittedResource(
+        metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
         kind = resource.kind,
         spec = updatedSpec
@@ -77,6 +79,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       context("creation") {
         before {
           create(SubmittedResource(
+            metadata = SubmittedMetadata("keel@spinnaker"),
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             spec = DummyResourceSpec("o hai")

@@ -70,6 +70,10 @@ subprojects {
       }
     }
   }
+
+  configurations.all {
+    exclude("javax.servlet","servlet-api")
+  }
 }
 
 defaultTasks(":keel-api:run")

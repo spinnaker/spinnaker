@@ -98,7 +98,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         apiVersion = SPINNAKER_API_V1,
         metadata = mapOf(
           "name" to "ec2:security-group:test:us-west-2:fnord",
-          "uid" to randomUID().toString()
+          "uid" to randomUID().toString(),
+          "serviceAccount" to "keel@spinnaker"
         ) + randomData(),
         kind = "security-group",
         spec = randomData()
@@ -131,7 +132,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         val anotherResource = Resource(
           metadata = mapOf(
             "name" to "ec2:security-group:test:us-east-1:fnord",
-            "uid" to randomUID()
+            "uid" to randomUID(),
+            "serviceAccount" to "keel@spinnaker"
           ) + randomData(),
           apiVersion = SPINNAKER_API_V1,
           kind = "security-group",
@@ -257,7 +259,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             apiVersion = SPINNAKER_API_V1,
             metadata = mapOf(
               "name" to "ec2:security-group:test:us-west-2:fnord-$it",
-              "uid" to randomUID()
+              "uid" to randomUID(),
+              "serviceAccount" to "keel@spinnaker"
             ) + randomData(),
             kind = "security-group",
             spec = randomData()

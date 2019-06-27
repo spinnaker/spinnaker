@@ -65,7 +65,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
             apiVersion = SPINNAKER_API_V1,
             metadata = mapOf(
               "name" to "ec2:security-group:test:us-west-2:fnord-$it",
-              "uid" to randomUID()
+              "uid" to randomUID(),
+              "serviceAccount" to "keel@spinnaker"
             ) + randomData(),
             kind = "security-group",
             spec = randomData()
@@ -90,7 +91,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
           apiVersion = SPINNAKER_API_V1,
           metadata = mapOf(
             "name" to "ec2:security-group:test:us-west-2:fnord",
-            "uid" to randomUID()
+            "uid" to randomUID(),
+            "serviceAccount" to "keel@spinnaker"
           ) + randomData(),
           kind = "security-group",
           spec = randomData()

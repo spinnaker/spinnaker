@@ -62,7 +62,8 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
     }
     val metadata = mapOf(
       "name" to generateName(spec).toString(),
-      "uid" to randomUID().toString()
+      "uid" to randomUID().toString(),
+      "serviceAccount" to resource.metadata.serviceAccount
     )
     val hydratedResource = Resource(
       apiVersion = resource.apiVersion,

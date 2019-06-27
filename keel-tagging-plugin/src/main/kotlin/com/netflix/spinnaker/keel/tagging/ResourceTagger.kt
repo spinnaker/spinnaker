@@ -21,6 +21,7 @@ package com.netflix.spinnaker.keel.tagging
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
@@ -151,6 +152,7 @@ class ResourceTagger(
 
   private fun KeelTagSpec.toSubmittedResource() =
     SubmittedResource(
+      metadata = SubmittedMetadata("keel@spinnaker.io"),
       apiVersion = SPINNAKER_API_V1.subApi("tag"),
       kind = "keel-tag",
       spec = this

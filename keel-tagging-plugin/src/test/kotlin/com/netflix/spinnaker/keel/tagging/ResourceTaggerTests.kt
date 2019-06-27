@@ -72,7 +72,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     metadata = mapOf(
       "name" to clusterName.toString(),
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     kind = "cluster",
     spec = mapOf("fake" to "data")
@@ -82,7 +83,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     metadata = mapOf(
       "name" to clusterTagName.toString(),
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
@@ -106,7 +108,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     metadata = mapOf(
       "name" to clusterTagName.toString(),
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
@@ -159,7 +162,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           arg(1),
           mapOf(
             "name" to clusterTagName.value,
-            "uid" to randomUID()
+            "uid" to randomUID(),
+            "serviceAccount" to "keel@spinnaker"
           )
         )
       }

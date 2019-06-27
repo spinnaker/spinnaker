@@ -31,7 +31,8 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
           kind = "ec2.SecurityGroup",
           metadata = mapOf(
             "name" to "ec2.SecurityGroup:keel:prod:us-east-1:keel",
-            "uid" to randomUID()
+            "uid" to randomUID(),
+            "serviceAccount" to "keel@spinnaker"
           ),
           spec = randomData()
         )

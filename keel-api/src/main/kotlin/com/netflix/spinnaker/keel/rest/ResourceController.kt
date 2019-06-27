@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
@@ -57,7 +58,9 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @ResponseStatus(CREATED)
-  fun create(@RequestBody submittedResource: SubmittedResource<Any>): Resource<out Any> {
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#submittedResource.metadata.serviceAccount)")
+  fun create(@RequestBody submittedResource: SubmittedResource<Any>): Resource<out Any>
+  {
     log.debug("Creating: $submittedResource")
     return resourcePersister.create(submittedResource)
   }
@@ -76,6 +79,7 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount)")
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: SubmittedResource<Any>): Resource<out Any> {
     log.debug("Updating: $resource")
     return resourcePersister.update(name, resource)
@@ -85,6 +89,7 @@ class ResourceController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.userCanModifyResource(#name)")
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.debug("Deleting: $name")
     return resourcePersister.delete(name)

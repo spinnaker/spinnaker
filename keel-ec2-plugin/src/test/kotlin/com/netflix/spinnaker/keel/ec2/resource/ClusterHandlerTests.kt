@@ -98,7 +98,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     "cluster",
     mapOf(
       "name" to "my-cluster",
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     spec
   )

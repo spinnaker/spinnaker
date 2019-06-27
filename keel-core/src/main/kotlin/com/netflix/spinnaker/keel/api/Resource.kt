@@ -30,6 +30,7 @@ data class Resource<T : Any>(
     require(kind.isNotEmpty()) { "resource kind must be defined" }
     require(metadata["uid"].isValidULID()) { "resource uid must be a valid ULID" }
     require(metadata["name"].isValidName()) { "resource name must be a valid name" }
+    require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
   }
 
   constructor(resource: SubmittedResource<T>, metadata: Map<String, Any?>) :
@@ -38,12 +39,19 @@ data class Resource<T : Any>(
 
 /**
  * External representation of a resource that would be submitted to the API
- * It doesn't need to contain metadata
  */
 data class SubmittedResource<T : Any>(
+  val metadata: SubmittedMetadata,
   val apiVersion: ApiVersion,
   val kind: String,
   val spec: T
+)
+
+/**
+ * Required metadata to be submitted with a resource
+ */
+data class SubmittedMetadata(
+  val serviceAccount: String
 )
 
 val <T : Any> Resource<T>.uid: UID
@@ -51,6 +59,9 @@ val <T : Any> Resource<T>.uid: UID
 
 val <T : Any> Resource<T>.name: ResourceName
   get() = metadata.getValue("name").toString().let(::ResourceName)
+
+val <T : Any> Resource<T>.serviceAccount: String
+  get() = metadata.getValue("serviceAccount").toString()
 
 private fun Any?.isValidULID() =
   when (this) {
@@ -62,6 +73,12 @@ private fun Any?.isValidULID() =
   }
 
 private fun Any?.isValidName() =
+  when (this) {
+    is String -> isNotBlank()
+    else -> false
+  }
+
+private fun Any?.isValidServiceAccount() =
   when (this) {
     is String -> isNotBlank()
     else -> false

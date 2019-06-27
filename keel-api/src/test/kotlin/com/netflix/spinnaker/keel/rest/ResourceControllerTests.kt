@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -54,6 +55,9 @@ internal class ResourceControllerTests {
   lateinit var resourceRepository: InMemoryResourceRepository
 
   @MockkBean
+  lateinit var authorizationSupport: AuthorizationSupport
+
+  @MockkBean
   lateinit var resourcePersister: ResourcePersister
 
   var resource = Resource(
@@ -61,7 +65,8 @@ internal class ResourceControllerTests {
     kind = "securityGroup",
     metadata = mapOf(
       "name" to "ec2:securityGroup:test:us-west-2:keel",
-      "uid" to randomUID()
+      "uid" to randomUID(),
+      "serviceAccount" to "keel@spinnaker"
     ),
     spec = "mockingThis"
   )
@@ -74,6 +79,7 @@ internal class ResourceControllerTests {
   @Test
   fun `can create a resource as YAML`() {
     every { resourcePersister.create(any()) } returns resource
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
       .accept(APPLICATION_YAML)
@@ -81,6 +87,8 @@ internal class ResourceControllerTests {
       .content(
         """---
           |apiVersion: test.spinnaker.netflix.com/v1
+          |metadata:
+          |  serviceAccount: keel@spinnaker
           |kind: whatever
           |spec: o hai"""
           .trimMargin()
@@ -95,6 +103,7 @@ internal class ResourceControllerTests {
   @Test
   fun `can create a resource as JSON`() {
     every { resourcePersister.create(any()) } returns resource
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
       .accept(APPLICATION_JSON)
@@ -103,6 +112,9 @@ internal class ResourceControllerTests {
         """{
           |  "apiVersion": "test.spinnaker.netflix.com/v1",
           |  "kind": "whatever",
+          |  "metadata": {
+          |  "serviceAccount": "keel@spinnaker"
+          |  },
           |  "spec": "o hai"
           |}"""
           .trimMargin()
@@ -115,7 +127,31 @@ internal class ResourceControllerTests {
   }
 
   @Test
+  fun `can't create a resource when unauthorized`() {
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns false
+
+    val request = post("/resources")
+      .accept(APPLICATION_JSON)
+      .contentType(APPLICATION_JSON)
+      .content(
+        """{
+          |  "apiVersion": "test.spinnaker.netflix.com/v1",
+          |  "kind": "whatever",
+          |  "metadata": {
+          |  "serviceAccount": "keel@spinnaker"
+          |  },
+          |  "spec": "o hai"
+          |}"""
+          .trimMargin()
+      )
+    mvc
+      .perform(request)
+      .andExpect(status().isForbidden)
+  }
+
+  @Test
   fun `can update a resource`() {
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
     every { resourcePersister.update(resource.name, any()) } returns resource
 
     val request = put("/resources/${resource.name}")
@@ -124,6 +160,8 @@ internal class ResourceControllerTests {
       .content(
         """---
           |apiVersion: test.spinnaker.netflix.com/v1
+          |metadata:
+          |  serviceAccount: keel@spinnaker
           |kind: whatever
           |spec: kthxbye"""
           .trimMargin()
@@ -138,6 +176,7 @@ internal class ResourceControllerTests {
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
     every { resourcePersister.update(resource.name, any()) } throws NoSuchResourceName(resource.name)
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = put("/resources/${resource.name}")
       .accept(APPLICATION_YAML)
@@ -145,6 +184,8 @@ internal class ResourceControllerTests {
       .content(
         """---
           |apiVersion: test.spinnaker.netflix.com/v1
+          |metadata:
+          |  serviceAccount: keel@spinnaker
           |kind: whatever
           |spec: kthxbye"""
           .trimMargin()
@@ -156,6 +197,8 @@ internal class ResourceControllerTests {
 
   @Test
   fun `an invalid request body results in an HTTP 400`() {
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
+
     val request = post("/resources")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
@@ -164,6 +207,7 @@ internal class ResourceControllerTests {
           |apiVersion: test.spinnaker.netflix.com/v1
           |kind: whatever
           |metadata:
+          |  serviceAccount: keel@spinnaker
           |  name: i-should-not-be-naming-my-resources-that-is-keels-job
           |spec: o hai"""
           .trimMargin()
@@ -192,7 +236,7 @@ internal class ResourceControllerTests {
   @Test
   fun `can delete a resource`() {
     every { resourcePersister.delete(resource.name) } returns resource
-
+    every { authorizationSupport.userCanModifyResource(resource.name.toString()) } returns true
     resourceRepository.store(resource)
 
     val request = delete("/resources/${resource.name}")
@@ -209,6 +253,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `unknown resource name results in a 404`() {
+    every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
     val request = get("/resources/i-do-not-exist")
       .accept(APPLICATION_YAML)
     mvc

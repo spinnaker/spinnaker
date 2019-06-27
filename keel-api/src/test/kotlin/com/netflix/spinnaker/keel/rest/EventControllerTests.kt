@@ -74,7 +74,8 @@ internal class EventControllerTests : JUnit5Minutests {
       kind = "securityGroup",
       metadata = mapOf(
         "name" to "ec2:securityGroup:test:ap-south-1:keel",
-        "uid" to randomUID()
+        "uid" to randomUID(),
+        "serviceAccount" to "keel@spinnaker"
       ),
       spec = "mockingThis"
     )
