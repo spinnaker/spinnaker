@@ -80,7 +80,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
           nextResults().let(results::addAll)
         }
 
-        expectThat(results).hasSize(1000)
+        expectThat(results).describedAs("number of unique resources processed").hasSize(1000)
       }
     }
 
