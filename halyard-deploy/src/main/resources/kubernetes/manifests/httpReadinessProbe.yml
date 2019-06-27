@@ -1,7 +1,7 @@
 {
   "httpGet": {
     "port": {{ port }},
-    "path": "{{ path }}"
+    "path": "{{ path }}",
     "scheme": "{{ scheme }}"
   }
 }
