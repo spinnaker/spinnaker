@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.clouddriver.data.ConfigFileService
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -34,13 +35,15 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
   CatsModule catsModule = Mock(CatsModule)
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
   NamerRegistry namerRegistry = Mock(NamerRegistry)
+  ConfigFileService configFileService = new ConfigFileService()
+
   KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
     "userAgent",
     new NoopRegistry(),
     namerRegistry,
     accountCredentialsRepository,
-    Mock(KubectlJobExecutor)
-  )
+    Mock(KubectlJobExecutor),
+    configFileService)
 
   KubernetesNamedAccountCredentialsInitializer kubernetesNamedAccountCredentialsInitializer = new KubernetesNamedAccountCredentialsInitializer(
     spectatorRegistry: new NoopRegistry()

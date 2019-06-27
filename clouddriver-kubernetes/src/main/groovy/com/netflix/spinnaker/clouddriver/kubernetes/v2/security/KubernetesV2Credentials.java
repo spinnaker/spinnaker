@@ -97,7 +97,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   public KubernetesV2Credentials(
       Registry registry,
       KubectlJobExecutor jobExecutor,
-      KubernetesConfigurationProperties.ManagedAccount managedAccount) {
+      KubernetesConfigurationProperties.ManagedAccount managedAccount,
+      String kubeconfigFile) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
@@ -116,7 +117,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     this.kubectlExecutable = managedAccount.getKubectlExecutable();
     this.kubectlRequestTimeoutSeconds = managedAccount.getKubectlRequestTimeoutSeconds();
-    this.kubeconfigFile = managedAccount.getKubeconfigFile();
+    this.kubeconfigFile = kubeconfigFile;
     this.serviceAccount = managedAccount.getServiceAccount();
     this.context = managedAccount.getContext();
 

@@ -28,7 +28,7 @@ class KubernetesV2CredentialsSpec extends Specification {
   String NAMESPACE = "my-namespace"
 
   private buildCredentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount)
+    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, null)
   }
 
   void "Built-in Kubernetes kinds are considered valid by default"() {

@@ -17,12 +17,16 @@
 package com.netflix.spinnaker.clouddriver.cache;
 
 import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider;
+import com.netflix.spinnaker.clouddriver.data.ConfigFileService;
 import com.netflix.spinnaker.clouddriver.refresh.CloudConfigRefreshScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.config.server.EnableConfigServer;
+import org.springframework.cloud.config.server.environment.EnvironmentRepository;
+import org.springframework.cloud.config.server.resource.ResourceRepository;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.context.annotation.*;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -33,21 +37,40 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 @Configuration
 @AutoConfigureAfter({RedisCacheConfig.class, DynomiteCacheConfig.class})
-@Conditional(RemoteConfigSourceConfigured.class)
 public class CloudConfigRefreshConfig {
 
-  @Bean
-  @ConditionalOnBean(DefaultAgentIntervalProvider.class)
-  public CloudConfigRefreshScheduler intervalProviderConfigRefreshScheduler(
-      ContextRefresher contextRefresher, DefaultAgentIntervalProvider agentIntervalProvider) {
-    return new CloudConfigRefreshScheduler(contextRefresher, agentIntervalProvider.getInterval());
+  @Configuration
+  @Conditional(RemoteConfigSourceConfigured.class)
+  @EnableConfigServer
+  static class RemoteConfigSourceConfiguration {
+    @Bean
+    ConfigFileService configFileService(
+        ResourceRepository resourceRepository, EnvironmentRepository environmentRepository) {
+      return new ConfigFileService(resourceRepository, environmentRepository);
+    }
+
+    @Bean
+    @ConditionalOnBean(DefaultAgentIntervalProvider.class)
+    public CloudConfigRefreshScheduler intervalProviderConfigRefreshScheduler(
+        ContextRefresher contextRefresher, DefaultAgentIntervalProvider agentIntervalProvider) {
+      return new CloudConfigRefreshScheduler(contextRefresher, agentIntervalProvider.getInterval());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DefaultAgentIntervalProvider.class)
+    public CloudConfigRefreshScheduler defaultIntervalConfigRefreshScheduler(
+        ContextRefresher contextRefresher) {
+      return new CloudConfigRefreshScheduler(contextRefresher, 60);
+    }
   }
 
-  @Bean
-  @ConditionalOnMissingBean(DefaultAgentIntervalProvider.class)
-  public CloudConfigRefreshScheduler defaultIntervalConfigRefreshScheduler(
-      ContextRefresher contextRefresher) {
-    return new CloudConfigRefreshScheduler(contextRefresher, 60);
+  @Configuration
+  static class DefaultConfiguration {
+    @Bean
+    @ConditionalOnMissingBean(ConfigFileService.class)
+    ConfigFileService configFileService() {
+      return new ConfigFileService();
+    }
   }
 }
 

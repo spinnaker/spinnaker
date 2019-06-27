@@ -28,16 +28,4 @@ class GoogleCommonManagedAccount {
   String serviceAccountProject
   @Deprecated List<String> requiredGroupMembership
   Permissions.Builder permissions = new Permissions.Builder()
-
-  public InputStream getInputStream() {
-    if (jsonPath) {
-      if (jsonPath.startsWith("classpath:")) {
-        return getClass().getResourceAsStream(jsonPath.replace("classpath:", ""))
-      } else {
-        return new FileInputStream(new File(jsonPath))
-      }
-    } else {
-      return null
-    }
-  }
 }

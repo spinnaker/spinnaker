@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.clouddriver.data.ConfigFileService
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.config.GoogleConfiguration.DeployDefaults
@@ -49,10 +50,11 @@ class GoogleCredentialsInitializer {
     String clouddriverUserAgentApplicationName,
     GoogleConfigurationProperties googleConfigurationProperties,
     AccountCredentialsRepository accountCredentialsRepository,
-    DeployDefaults googleDeployDefaults) {
+    DeployDefaults googleDeployDefaults,
+    ConfigFileService configFileService) {
     
     synchronizeGoogleAccounts(clouddriverUserAgentApplicationName, googleConfigurationProperties,
-      null, accountCredentialsRepository, googleDeployDefaults)
+      null, accountCredentialsRepository, googleDeployDefaults, configFileService)
   }
 
   List<? extends GoogleNamedAccountCredentials> synchronizeGoogleAccounts(
@@ -60,7 +62,8 @@ class GoogleCredentialsInitializer {
     GoogleConfigurationProperties googleConfigurationProperties,
     CatsModule catsModule,
     AccountCredentialsRepository accountCredentialsRepository,
-    DeployDefaults googleDeployDefaults) {
+    DeployDefaults googleDeployDefaults,
+    ConfigFileService configFileService) {
 
     def (ArrayList<GoogleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
@@ -69,7 +72,7 @@ class GoogleCredentialsInitializer {
 
     accountsToAdd.each { GoogleConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
+        def jsonKey = configFileService.getContents(managedAccount.getJsonPath())
         def googleAccount = new GoogleNamedAccountCredentials.Builder()
             .name(managedAccount.name)
             .environment(managedAccount.environment ?: managedAccount.name)
@@ -108,11 +111,5 @@ class GoogleCredentialsInitializer {
     accountCredentialsRepository.all.findAll {
       it instanceof GoogleNamedAccountCredentials
     } as List<GoogleNamedAccountCredentials>
-  }
-
-  private static String getJsonKey(GoogleConfigurationProperties.ManagedAccount managedAccount) {
-    def inputStream = managedAccount.inputStream
-
-    inputStream ? new String(managedAccount.inputStream.bytes) : null
   }
 }

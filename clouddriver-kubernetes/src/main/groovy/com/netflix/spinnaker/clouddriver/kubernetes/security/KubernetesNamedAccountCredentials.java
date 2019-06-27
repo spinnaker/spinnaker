@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.data.ConfigFileService;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
@@ -29,10 +30,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -114,9 +111,9 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
       ((KubernetesV2Credentials) creds)
           .getCustomResources()
           .forEach(
-              customResource -> {
-                kindMap.put(customResource.getKubernetesKind(), customResource.getSpinnakerKind());
-              });
+              customResource ->
+                  kindMap.put(
+                      customResource.getKubernetesKind(), customResource.getSpinnakerKind()));
     }
     return kindMap;
   }
@@ -129,8 +126,9 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
     private final NamerRegistry namerRegistry;
     private final AccountCredentialsRepository accountCredentialsRepository;
     private final KubectlJobExecutor jobExecutor;
+    private final ConfigFileService configFileService;
 
-    public KubernetesV1Credentials buildV1Credentials(
+    KubernetesV1Credentials buildV1Credentials(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       validateAccount(managedAccount);
       return new KubernetesV1Credentials(
@@ -149,7 +147,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
           accountCredentialsRepository);
     }
 
-    public KubernetesV2Credentials buildV2Credentials(
+    KubernetesV2Credentials buildV2Credentials(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       validateAccount(managedAccount);
       NamerRegistry.lookup()
@@ -158,7 +156,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
           .setNamer(
               KubernetesManifest.class,
               namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
-      return new KubernetesV2Credentials(spectatorRegistry, jobExecutor, managedAccount);
+      return new KubernetesV2Credentials(
+          spectatorRegistry, jobExecutor, managedAccount, getKubeconfigFile(managedAccount));
     }
 
     private void validateAccount(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
@@ -180,24 +179,16 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
 
     private String getKubeconfigFile(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      String kubeconfigFile = managedAccount.getKubeconfigFile();
-      if (StringUtils.isEmpty(kubeconfigFile)) {
-        if (StringUtils.isEmpty(managedAccount.getKubeconfigContents())) {
-          kubeconfigFile = System.getProperty("user.home") + "/.kube/config";
-        } else {
-          try {
-            File temp = File.createTempFile("kube", "config");
-            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
-            writer.write(managedAccount.getKubeconfigContents());
-            writer.close();
-            kubeconfigFile = temp.getAbsolutePath();
-          } catch (IOException e) {
-            throw new RuntimeException(
-                "Unable to persist 'kubeconfigContents' parameter to disk: " + e.getMessage(), e);
-          }
-        }
+      if (StringUtils.isNotEmpty(managedAccount.getKubeconfigFile())) {
+        return configFileService.getLocalPath(managedAccount.getKubeconfigFile(), "kube", "config");
       }
-      return kubeconfigFile;
+
+      if (StringUtils.isNotEmpty(managedAccount.getKubeconfigContents())) {
+        return configFileService.getLocalPathForContents(
+            managedAccount.getKubeconfigContents(), "kube", "config");
+      }
+
+      return System.getProperty("user.home") + "/.kube/config";
     }
   }
 }

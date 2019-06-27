@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.security
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
+import com.netflix.spinnaker.clouddriver.data.ConfigFileService
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
@@ -34,13 +35,15 @@ class AppengineCredentialsInitializer {
     String clouddriverUserAgentApplicationName,
     AppengineConfigurationProperties appengineConfigurationProperties,
     AccountCredentialsRepository accountCredentialsRepository,
-    AppengineJobExecutor jobExecutor) {
+    AppengineJobExecutor jobExecutor,
+    ConfigFileService configFileService) {
 
     synchronizeAppengineAccounts(clouddriverUserAgentApplicationName,
                                  appengineConfigurationProperties,
                                  null,
                                  accountCredentialsRepository,
-                                 jobExecutor)
+                                 jobExecutor,
+                                 configFileService)
   }
 
   private List<? extends AppengineNamedAccountCredentials> synchronizeAppengineAccounts(
@@ -48,7 +51,8 @@ class AppengineCredentialsInitializer {
     AppengineConfigurationProperties appengineConfigurationProperties,
     CatsModule catsModule,
     AccountCredentialsRepository accountCredentialsRepository,
-    AppengineJobExecutor jobExecutor) {
+    AppengineJobExecutor jobExecutor,
+    ConfigFileService configFileService) {
 
     def (ArrayList<AppengineConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
@@ -63,7 +67,7 @@ class AppengineCredentialsInitializer {
         }
         managedAccount.initialize(jobExecutor, gcloudPath)
 
-        def jsonKey = AppengineCredentialsInitializer.getJsonKey(managedAccount)
+        def jsonKey = configFileService.getContents(managedAccount.getJsonPath())
         def appengineAccount = new AppengineNamedAccountCredentials.Builder()
           .name(managedAccount.name)
           .environment(managedAccount.environment ?: managedAccount.name)
@@ -103,11 +107,5 @@ class AppengineCredentialsInitializer {
     accountCredentialsRepository.all.findAll {
       it instanceof AppengineNamedAccountCredentials
     } as List<AppengineNamedAccountCredentials>
-  }
-
-  private static String getJsonKey(AppengineConfigurationProperties.ManagedAccount managedAccount) {
-    def inputStream = managedAccount.inputStream
-
-    inputStream ? new String(inputStream.bytes) : null
   }
 }
