@@ -11,6 +11,7 @@ export interface IStateChange {
 
 export class StateEvents {
   public stateChangeSuccess: Subject<IStateChange> = new Subject<IStateChange>();
+  public locationChangeSuccess: Subject<string> = new Subject<string>();
 
   public static $inject = ['$rootScope'];
   constructor(private $rootScope: IRootScopeService) {
@@ -23,7 +24,10 @@ export class StateEvents {
     ) => {
       this.stateChangeSuccess.next({ to, toParams, from, fromParams });
     };
+    const onLocationChangeSuccess = (_event: IAngularEvent, newUrl: string) => this.locationChangeSuccess.next(newUrl);
+
     this.$rootScope.$on('$stateChangeSuccess', onChangeSuccess);
+    this.$rootScope.$on('$locationChangeSuccess', onLocationChangeSuccess);
   }
 }
 
