@@ -115,9 +115,9 @@ public class KubernetesCacheDataConverter {
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
 
     String key =
-        Keys.artifact(
+        Keys.ArtifactCacheKey.createKey(
             artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion());
-    String owner = Keys.infrastructure(manifest, account);
+    String owner = Keys.InfrastructureCacheKey.createKey(manifest, account);
     cacheRelationships.put(manifest.getKind().toString(), Collections.singletonList(owner));
 
     return defaultCacheData(key, logicalTtlSeconds, attributes, cacheRelationships);
@@ -180,10 +180,10 @@ public class KubernetesCacheDataConverter {
                 .put(
                     POD.toString(),
                     Collections.singletonList(
-                        Keys.infrastructure(POD, account, namespace, podName)))
+                        Keys.InfrastructureCacheKey.createKey(POD, account, namespace, podName)))
                 .build());
 
-    String id = Keys.metric(POD, account, namespace, podName);
+    String id = Keys.MetricCacheKey.createKey(POD, account, namespace, podName);
 
     return defaultCacheData(id, infrastructureTtlSeconds, attributes, relationships);
   }
@@ -247,7 +247,7 @@ public class KubernetesCacheDataConverter {
         ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
     cacheRelationships.putAll(implicitRelationships(manifest, account, resourceRelationships));
 
-    String key = Keys.infrastructure(kind, account, namespace, name);
+    String key = Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name);
     return defaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
   }
 
@@ -301,7 +301,7 @@ public class KubernetesCacheDataConverter {
       cacheRelationships.put(
           ARTIFACT.toString(),
           Collections.singletonList(
-              Keys.artifact(
+              Keys.ArtifactCacheKey.createKey(
                   artifact.getType(),
                   artifact.getName(),
                   artifact.getLocation(),
@@ -310,12 +310,14 @@ public class KubernetesCacheDataConverter {
 
     if (hasClusterRelationship) {
       cacheRelationships.put(
-          APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
+          APPLICATIONS.toString(),
+          Collections.singletonList(Keys.ApplicationCacheKey.createKey(application)));
       String cluster = moniker.getCluster();
       if (StringUtils.isNotEmpty(cluster)) {
         cacheRelationships.put(
             CLUSTERS.toString(),
-            Collections.singletonList(Keys.cluster(account, application, cluster)));
+            Collections.singletonList(
+                Keys.ClusterCacheKey.createKey(account, application, cluster)));
       }
     }
 
@@ -337,7 +339,7 @@ public class KubernetesCacheDataConverter {
       keys = new ArrayList<>();
     }
 
-    keys.add(Keys.infrastructure(kind, account, namespace, name));
+    keys.add(Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name));
 
     relationships.put(kind.toString(), keys);
   }
@@ -357,7 +359,7 @@ public class KubernetesCacheDataConverter {
         keys = new ArrayList<>();
       }
 
-      keys.add(Keys.infrastructure(kind, account, namespace, name));
+      keys.add(Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
 
@@ -376,7 +378,7 @@ public class KubernetesCacheDataConverter {
         keys = new ArrayList<>();
       }
 
-      keys.add(Keys.infrastructure(kind, account, namespace, name));
+      keys.add(Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
 
@@ -461,14 +463,17 @@ public class KubernetesCacheDataConverter {
       String account, String application, List<Moniker> monikers) {
     Set<String> clusterRelationships =
         monikers.stream()
-            .map(m -> Keys.cluster(account, application, m.getCluster()))
+            .map(m -> Keys.ClusterCacheKey.createKey(account, application, m.getCluster()))
             .collect(Collectors.toSet());
 
     Map<String, Object> attributes = new HashMap<>();
     Map<String, Collection<String>> relationships = new HashMap<>();
     relationships.put(CLUSTERS.toString(), clusterRelationships);
     return defaultCacheData(
-        Keys.application(application), logicalTtlSeconds, attributes, relationships);
+        Keys.ApplicationCacheKey.createKey(application),
+        logicalTtlSeconds,
+        attributes,
+        relationships);
   }
 
   static void logStratifiedCacheData(

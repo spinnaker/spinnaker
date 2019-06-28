@@ -41,7 +41,7 @@ public class KubernetesV2ArtifactProvider implements ArtifactProvider {
 
   @Override
   public List<Artifact> getArtifacts(String type, String name, String location) {
-    String key = Keys.artifact(type, name, location, "*");
+    String key = Keys.ArtifactCacheKey.createKey(type, name, location, "*");
     return cacheUtils.getAllDataMatchingPattern(Keys.Kind.ARTIFACT.toString(), key).stream()
         .sorted(
             Comparator.comparing(

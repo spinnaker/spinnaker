@@ -87,7 +87,7 @@ public class KubernetesV2LoadBalancerProvider
 
     KubernetesKind kind = parsedName.getLeft();
     String name = parsedName.getRight();
-    String key = Keys.infrastructure(kind, account, name, name);
+    String key = Keys.InfrastructureCacheKey.createKey(kind, account, name, name);
 
     Optional<CacheData> optionalLoadBalancerData = cacheUtils.getSingleEntry(kind.toString(), key);
     if (!optionalLoadBalancerData.isPresent()) {
@@ -107,7 +107,7 @@ public class KubernetesV2LoadBalancerProvider
                 kind ->
                     cacheUtils.getTransitiveRelationship(
                         APPLICATIONS.toString(),
-                        Collections.singletonList(Keys.application(application)),
+                        Collections.singletonList(Keys.ApplicationCacheKey.createKey(application)),
                         kind.toString()))
             .flatMap(Collection::stream)
             .collect(Collectors.toList());

@@ -113,7 +113,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
         primaryResource.values().stream()
             .flatMap(Collection::stream)
             .map(rs -> objectMapper.convertValue(rs, KubernetesManifest.class))
-            .map(mf -> Keys.infrastructure(mf, accountName))
+            .map(mf -> Keys.InfrastructureCacheKey.createKey(mf, accountName))
             .collect(Collectors.toList());
 
     List<CacheData> keepInOnDemand = new ArrayList<>();
@@ -329,7 +329,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     log.info("{}: Accepted on demand refresh of '{}'", getAgentType(), data);
     OnDemandAgent.OnDemandResult result;
     KubernetesManifest manifest = loadPrimaryResource(kind, namespace, name);
-    String resourceKey = Keys.infrastructure(kind, account, namespace, name);
+    String resourceKey = Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name);
     try {
       result =
           manifest == null

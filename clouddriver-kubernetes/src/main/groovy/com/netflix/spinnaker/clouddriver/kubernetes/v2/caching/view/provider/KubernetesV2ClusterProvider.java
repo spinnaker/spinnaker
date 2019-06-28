@@ -72,7 +72,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public Map<String, Set<KubernetesV2Cluster>> getClusterSummaries(String application) {
-    String applicationKey = Keys.application(application);
+    String applicationKey = Keys.ApplicationCacheKey.createKey(application);
     return groupByAccountName(
         translateClusters(
             cacheUtils.getTransitiveRelationship(
@@ -83,7 +83,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public Map<String, Set<KubernetesV2Cluster>> getClusterDetails(String application) {
-    String clusterGlobKey = Keys.cluster("*", application, "*");
+    String clusterGlobKey = Keys.ClusterCacheKey.createKey("*", application, "*");
     return groupByAccountName(
         translateClustersWithRelationships(
             cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), clusterGlobKey)));
@@ -91,7 +91,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public Set<KubernetesV2Cluster> getClusters(String application, String account) {
-    String globKey = Keys.cluster(account, application, "*");
+    String globKey = Keys.ClusterCacheKey.createKey(account, application, "*");
     return translateClustersWithRelationships(
         cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), globKey));
   }
@@ -105,7 +105,8 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
   public KubernetesV2Cluster getCluster(
       String application, String account, String name, boolean includeDetails) {
     return cacheUtils
-        .getSingleEntry(CLUSTERS.toString(), Keys.cluster(account, application, name))
+        .getSingleEntry(
+            CLUSTERS.toString(), Keys.ClusterCacheKey.createKey(account, application, name))
         .map(
             entry -> {
               Collection<CacheData> clusterData = Collections.singletonList(entry);
@@ -130,7 +131,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
     KubernetesKind kind = parsedName.getLeft();
     String shortName = parsedName.getRight();
-    String key = Keys.infrastructure(kind, account, namespace, shortName);
+    String key = InfrastructureCacheKey.createKey(kind, account, namespace, shortName);
     List<String> relatedTypes =
         kindMap.translateSpinnakerKind(INSTANCES).stream()
             .map(KubernetesKind::toString)

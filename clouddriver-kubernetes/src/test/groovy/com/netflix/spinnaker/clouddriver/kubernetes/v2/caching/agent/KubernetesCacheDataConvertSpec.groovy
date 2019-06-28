@@ -77,16 +77,16 @@ metadata:
     if (application == null) {
       true
     } else {
-      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.application(application)]
+      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.ApplicationCacheKey.createKey(application)]
       if (cluster) {
-        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.cluster(account, application, cluster)]
+        cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.ClusterCacheKey.createKey(account, application, cluster)]
       } else {
         cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == null
       }
       cacheData.attributes.get("name") == name
       cacheData.attributes.get("namespace") == namespace
       cacheData.attributes.get("kind") == kind
-      cacheData.id == Keys.infrastructure(kind, account, namespace, name)
+      cacheData.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
     }
 
     where:
@@ -106,7 +106,7 @@ metadata:
     def result = KubernetesCacheDataConverter.ownerReferenceRelationships(account, namespace, ownerRefs)
 
     then:
-    result.get(kind.toString()) == [Keys.infrastructure(kind, account, namespace, name)]
+    result.get(kind.toString()) == [Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)]
 
     where:
     kind                       | apiVersion                              | account           | cluster       | namespace        | name
@@ -119,7 +119,7 @@ metadata:
   @Unroll
   def "given a cache data entry, invert its relationships"() {
     setup:
-    def id = Keys.infrastructure(kind, "account", "namespace", "version")
+    def id = Keys.InfrastructureCacheKey.createKey(kind, "account", "namespace", "version")
     def cacheData = new DefaultCacheData(id, null, relationships)
 
     when:
@@ -136,12 +136,12 @@ metadata:
 
     where:
     kind                       | version                           | relationships
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": [Keys.application("app")]]
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": [Keys.ApplicationCacheKey.createKey("app")]]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["application": []]
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | [:]
-    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.infrastructure(KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg")]]
-    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.cluster("account", "app", "name")], "application": [Keys.application("blarg"), Keys.application("asdfasdf")]]
+    KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.InfrastructureCacheKey.createKey(KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.ClusterCacheKey.createKey("account", "app", "name")], "application": [Keys.ApplicationCacheKey.createKey("blarg")]]
+    KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.ClusterCacheKey.createKey("account", "app", "name")], "application": [Keys.ApplicationCacheKey.createKey("blarg"), Keys.ApplicationCacheKey.createKey("asdfasdf")]]
   }
 
   @Unroll
@@ -149,7 +149,7 @@ metadata:
     setup:
     def account = "account"
     def application = "app"
-    def id = Keys.infrastructure(kind, account, "namespace", cluster)
+    def id = Keys.InfrastructureCacheKey.createKey(kind, account, "namespace", cluster)
     def attributes = [
       moniker: [
         app: application,
@@ -163,9 +163,9 @@ metadata:
 
     then:
     result.size() == 1
-    result[0].id == Keys.application(application)
+    result[0].id == Keys.ApplicationCacheKey.createKey(application)
     result[0].relationships.clusters == [
-        Keys.cluster(account, application, cluster)
+      Keys.ClusterCacheKey.createKey(account, application, cluster)
     ] as Set
 
     where:

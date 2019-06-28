@@ -68,7 +68,7 @@ public class KubernetesV2SecurityGroupProvider
         .stream()
         .map(
             k -> {
-              String key = Keys.infrastructure(k, "*", namespace, "*");
+              String key = Keys.InfrastructureCacheKey.createKey(k, "*", namespace, "*");
               return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
             })
         .flatMap(Collection::stream)
@@ -82,7 +82,7 @@ public class KubernetesV2SecurityGroupProvider
         .stream()
         .map(
             k -> {
-              String key = Keys.infrastructure(k, account, "*", "*");
+              String key = Keys.InfrastructureCacheKey.createKey(k, account, "*", "*");
               return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
             })
         .flatMap(Collection::stream)
@@ -104,7 +104,7 @@ public class KubernetesV2SecurityGroupProvider
         .stream()
         .map(
             k -> {
-              String key = Keys.infrastructure(k, account, "*", name);
+              String key = Keys.InfrastructureCacheKey.createKey(k, account, "*", name);
               return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
             })
         .flatMap(Collection::stream)
@@ -119,7 +119,7 @@ public class KubernetesV2SecurityGroupProvider
         .stream()
         .map(
             k -> {
-              String key = Keys.infrastructure(k, account, namespace, "*");
+              String key = Keys.InfrastructureCacheKey.createKey(k, account, namespace, "*");
               return cacheUtils.getAllDataMatchingPattern(k.toString(), key);
             })
         .flatMap(Collection::stream)
@@ -141,7 +141,7 @@ public class KubernetesV2SecurityGroupProvider
         .stream()
         .map(
             k -> {
-              String key = Keys.infrastructure(k, account, namespace, name);
+              String key = Keys.InfrastructureCacheKey.createKey(k, account, namespace, name);
               return cacheUtils.getSingleEntry(k.toString(), key).orElse(null);
             })
         .filter(Objects::nonNull)

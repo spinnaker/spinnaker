@@ -46,7 +46,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
   public Set<? extends Application> getApplications(boolean expand) {
     // TODO(lwander) performance optimization: rely on expand parameter to make a more
     // cache-efficient call
-    String clusterGlobKey = Keys.cluster("*", "*", "*");
+    String clusterGlobKey = ClusterCacheKey.createKey("*", "*", "*");
     Map<String, Set<ClusterCacheKey>> keysByApplication =
         cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
             .map(Keys::parseKey)
@@ -63,7 +63,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
 
   @Override
   public Application getApplication(String name) {
-    String clusterGlobKey = Keys.cluster("*", name, "*");
+    String clusterGlobKey = ClusterCacheKey.createKey("*", name, "*");
     List<ClusterCacheKey> keys =
         cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
             .map(Keys::parseKey)

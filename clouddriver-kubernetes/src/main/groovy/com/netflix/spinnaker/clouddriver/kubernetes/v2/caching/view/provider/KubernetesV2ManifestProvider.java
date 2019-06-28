@@ -85,7 +85,8 @@ public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestPr
       location = "";
     }
 
-    String key = Keys.infrastructure(kind, account, location, parsedName.getRight());
+    String key =
+        Keys.InfrastructureCacheKey.createKey(kind, account, location, parsedName.getRight());
 
     Optional<CacheData> dataOptional = cacheUtils.getSingleEntry(kind.toString(), key);
     if (!dataOptional.isPresent()) {
@@ -109,7 +110,7 @@ public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestPr
     KubernetesHandler handler = properties.getHandler();
 
     return cacheUtils
-        .getSingleEntry(CLUSTERS.toString(), Keys.cluster(account, app, cluster))
+        .getSingleEntry(CLUSTERS.toString(), Keys.ClusterCacheKey.createKey(account, app, cluster))
         .map(
             c ->
                 cacheUtils.loadRelationshipsFromCache(c, kind).stream()
@@ -147,7 +148,7 @@ public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestPr
                 .collect(Collectors.toList())
             : Collections.emptyList();
 
-    String metricKey = Keys.metric(kind, account, namespace, manifest.getName());
+    String metricKey = Keys.MetricCacheKey.createKey(kind, account, namespace, manifest.getName());
     List<KubernetesPodMetric.ContainerMetric> metrics =
         cacheUtils
             .getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)

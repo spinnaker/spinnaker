@@ -55,7 +55,8 @@ public class KubernetesV2ServerGroupManagerProvider
       String application) {
     CacheData applicationDatum =
         cacheUtils
-            .getSingleEntry(APPLICATIONS.toString(), Keys.application(application))
+            .getSingleEntry(
+                APPLICATIONS.toString(), Keys.ApplicationCacheKey.createKey(application))
             .orElse(null);
     if (applicationDatum == null) {
       return null;

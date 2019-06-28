@@ -31,7 +31,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct app keys #key"() {
     expect:
-    Keys.application(application) == key
+    Keys.ApplicationCacheKey.createKey(application) == key
 
     where:
     application || key
@@ -42,7 +42,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct cluster keys #key"() {
     expect:
-    Keys.cluster(account, application, cluster) == key
+    Keys.ClusterCacheKey.createKey(account, application, cluster) == key
 
     where:
     account | application | cluster   || key
@@ -53,7 +53,7 @@ class KeysSpec extends Specification {
   @Unroll
   def "produces correct infra keys #key"() {
     expect:
-    Keys.infrastructure(kind, account, namespace, name) == key
+    Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name) == key
 
     where:
     kind                       | apiVersion                              | account | namespace   | name      || key
@@ -190,5 +190,21 @@ class KeysSpec extends Specification {
     input                         | result
     Keys.LogicalKind.APPLICATIONS | "applications"
     Keys.LogicalKind.CLUSTERS     | "clusters"
+  }
+
+  def "serialization and deserialization are inverses"() {
+    when:
+    def parsed = Keys.parseKey(key).get()
+
+    then:
+    parsed.toString() == key
+
+    where:
+    key << [
+      "kubernetes.v2:artifact:kubernetes/replicaSet:spinnaker-io:docs-site:v046",
+      "kubernetes.v2:infrastructure:secret:k8s:spin:spinnaker",
+      "kubernetes.v2:logical:applications:spinnaker",
+      "kubernetes.v2:logical:clusters:k8s:docs:docs-site"
+    ]
   }
 }

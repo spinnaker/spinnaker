@@ -79,7 +79,7 @@ public class KubernetesV2InstanceProvider
 
     KubernetesKind kind = parsedName.getLeft();
     String name = parsedName.getRight();
-    String key = Keys.infrastructure(kind, account, location, name);
+    String key = Keys.InfrastructureCacheKey.createKey(kind, account, location, name);
 
     Optional<CacheData> optionalInstanceData = cacheUtils.getSingleEntry(kind.toString(), key);
     if (!optionalInstanceData.isPresent()) {
