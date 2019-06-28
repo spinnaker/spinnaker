@@ -36,6 +36,11 @@ kayenta:
 #      - name:
 #        bucket:
 #        rootFolder: kayenta
+#        You can set credentials that you supply explicitly (see: AwsManagedAccount.ExplicitAwsCredentials)
+#        explicitCredentials:
+#          accessKey: explicitAccessKey
+#          secretKey: explicitSecretKey
+#          sessionToken: explicitSessionToken (optional)
 #        supportedTypes:
 #          - OBJECT_STORE
 #          - CONFIGURATION_STORE

@@ -36,6 +36,16 @@ public class AwsManagedAccount {
   private String proxyHost;
   private String proxyPort;
   private String proxyProtocol;
+  private ExplicitAwsCredentials explicitCredentials;
 
   private List<AccountCredentials.Type> supportedTypes;
+
+  @Data
+  public static class ExplicitAwsCredentials {
+
+    String accessKey;
+    String secretKey;
+    String sessionToken;
+
+  }
 }

@@ -18,6 +18,10 @@ package com.netflix.kayenta.aws.config;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -82,6 +86,15 @@ public class AwsConfiguration {
 
       if (!StringUtils.isEmpty(profileName)) {
         amazonS3ClientBuilder.withCredentials(new ProfileCredentialsProvider(profileName));
+      }
+
+      AwsManagedAccount.ExplicitAwsCredentials explicitCredentials = awsManagedAccount.getExplicitCredentials();
+      if (explicitCredentials != null) {
+        String sessionToken = explicitCredentials.getSessionToken();
+        AWSCredentials awsCreds = (sessionToken == null) ?
+                new BasicAWSCredentials(explicitCredentials.getAccessKey(), explicitCredentials.getSecretKey()) :
+                new BasicSessionCredentials(explicitCredentials.getAccessKey(), explicitCredentials.getSecretKey(), sessionToken);
+        amazonS3ClientBuilder.withCredentials(new AWSStaticCredentialsProvider(awsCreds));
       }
 
       String endpoint = awsManagedAccount.getEndpoint();
