@@ -173,8 +173,16 @@ export class TitusServerGroupConfigurationService {
         backingData.filtered = {};
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[cmd.credentials].regions;
         cmd.backingData = backingData;
+        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
+        let securityGroupRefresher = $q.when();
+        if (cmd.securityGroups && cmd.securityGroups.length) {
+          const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
+          if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
+            securityGroupRefresher = this.refreshSecurityGroups(cmd, false);
+          }
+        }
 
-        return $q.all([this.refreshLoadBalancers(cmd), this.refreshSecurityGroups(cmd, false)]).then(() => {
+        return $q.all([this.refreshLoadBalancers(cmd), securityGroupRefresher]).then(() => {
           this.attachEventHandlers(cmd);
         });
       });
