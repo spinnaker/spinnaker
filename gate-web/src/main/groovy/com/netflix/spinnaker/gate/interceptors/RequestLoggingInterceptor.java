@@ -17,30 +17,53 @@ package com.netflix.spinnaker.gate.interceptors;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
+import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 public class RequestLoggingInterceptor extends HandlerInterceptorAdapter {
+  static final String TIMER_ATTRIBUTE = "Request_startTime";
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
   @Override
-  public void afterCompletion(
-      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    request.setAttribute(TIMER_ATTRIBUTE, System.nanoTime());
+    return true;
+  }
+
+  @Override
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
     // 127.0.0.1 "GET /limecat.jpg HTTP/1.0" 200 2326
-    log.debug(
-        "{} \"{} {} {}\" {} {}",
-        value("sourceIp", sourceIpAddress(request)),
-        value("requestMethod", request.getMethod()),
-        value("requestEndpoint", getRequestEndpoint(request)),
-        value("requestProtocol", request.getProtocol()),
-        value("responseStatus", response.getStatus()),
-        value("responseSize", getResponseSize(response)));
+    try {
+      MDC.put("requestDuration", getRequestDuration(request));
+      log.debug(
+          "{} \"{} {} {}\" {} {}",
+          value("sourceIp", sourceIpAddress(request)),
+          value("requestMethod", request.getMethod()),
+          value("requestEndpoint", getRequestEndpoint(request)),
+          value("requestProtocol", request.getProtocol()),
+          value("responseStatus", response.getStatus()),
+          value("responseSize", getResponseSize(response)));
+    } finally {
+      MDC.remove("requestDuration");
+    }
+  }
+
+  private static String getRequestDuration(HttpServletRequest request) {
+    Long startTime = (Long) request.getAttribute(TIMER_ATTRIBUTE);
+    if (startTime == null) {
+      return "n/a";
+    }
+
+    return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + "ms";
   }
 
   private static String sourceIpAddress(HttpServletRequest request) {
