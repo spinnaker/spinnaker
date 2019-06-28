@@ -10,7 +10,7 @@ import * as React from 'react';
  * - Render Function
  * - JSX.Element or string
  */
-export function renderContent<T>(Content: string | JSX.Element | React.ComponentType<T>, props: T) {
+export function renderContent<T>(Content: string | JSX.Element | React.ComponentType<T>, props: T): React.ReactNode {
   const prototype = typeof Content === 'function' && Content.prototype;
 
   if (prototype && (prototype.isReactComponent || typeof prototype.render === 'function')) {

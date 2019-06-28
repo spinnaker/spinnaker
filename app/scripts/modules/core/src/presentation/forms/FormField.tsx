@@ -1,20 +1,18 @@
 import * as React from 'react';
-import { Subject } from 'rxjs';
-import { isNil, isString } from 'lodash';
+import { isNil } from 'lodash';
+import { IPromise } from 'angular';
+import { $q } from 'ngimport';
 
-import { noop } from 'core/utils';
-
+import { noop } from '../../utils';
+import { LayoutContext } from './layouts';
+import { useLatestPromise } from './useLatestPromise';
 import { createFieldValidator } from './FormikFormField';
 import { renderContent } from './fields/renderContent';
-import { LayoutConsumer } from './layouts/index';
-import { IValidator } from './validation';
-import { WatchValue } from '../WatchValue';
+import { IValidator, IValidatorResultRaw } from './validation';
 import {
   ICommonFormFieldProps,
   IControlledInputProps,
   IFieldLayoutPropsWithoutInput,
-  IFieldValidationStatus,
-  IFormFieldApi,
   IValidationProps,
 } from './interface';
 
@@ -30,106 +28,75 @@ export type IFormFieldProps = IFormFieldValidationProps &
   IFieldLayoutPropsWithoutInput &
   IValidationProps;
 
-interface IFormFieldState {
-  validationMessage: IValidationProps['validationMessage'];
-  validationStatus: IValidationProps['validationStatus'];
-  internalValidators: IValidator[];
+function firstDefined<T>(...values: T[]): T {
+  return values.find(val => !isNil(val));
 }
 
-const ifString = (val: any): string => (isString(val) ? val : undefined);
-const firstDefinedNode = (...values: React.ReactNode[]): React.ReactNode => values.find(val => !isNil(val));
+const { useState, useCallback, useContext, useMemo } = React;
 
-export class FormField extends React.Component<IFormFieldProps, IFormFieldState> implements IFormFieldApi {
-  public static defaultProps: Partial<IFormFieldProps> = {
-    validate: noop,
-    onBlur: noop,
-    onChange: noop,
-    name: null,
+export function FormField(props: IFormFieldProps) {
+  const { input, layout } = props; // ICommonFormFieldProps
+  const { label, help, required, actions } = props; // IFieldLayoutPropsWithoutInput
+  const { validationMessage: messageProp, validationStatus: statusProp, touched: touchedProp } = props;
+  const { value } = props;
+
+  const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
+
+  // Internal validators are defined by an Input component
+  const [internalValidators, setInternalValidators] = useState([]);
+  const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
+  const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
+
+  const fieldLayoutFromContext = useContext(LayoutContext);
+
+  const validate = useMemo(() => props.validate, []);
+  const fieldValidator = useMemo(
+    () => createFieldValidator(label, required, [].concat(validate || noop).concat(internalValidators)),
+    [label, required, validate],
+  );
+
+  const [errorMessage] = useLatestPromise(
+    // TODO: remove the following cast when we remove async validation from our API
+    () => $q.resolve((fieldValidator(value) as any) as IPromise<IValidatorResultRaw>),
+    [fieldValidator, value],
+  );
+
+  const validationMessage = firstDefined(messageProp, errorMessage ? errorMessage : undefined);
+  const validationStatus = firstDefined(statusProp, errorMessage ? 'error' : undefined);
+
+  const [hasBlurred, setHasBlurred] = useState(false);
+
+  const touched = firstDefined(touchedProp, hasBlurred);
+
+  const validationProps: IValidationProps = {
+    touched,
+    validationMessage,
+    validationStatus,
+    addValidator,
+    removeValidator,
   };
 
-  public state: IFormFieldState = {
-    validationMessage: undefined,
-    validationStatus: undefined,
-    internalValidators: [],
+  const controlledInputProps: IControlledInputProps = {
+    value: props.value,
+    name: props.name || noop,
+    onChange: props.onChange || noop,
+    onBlur: (e: React.FocusEvent) => {
+      setHasBlurred(true);
+      props.onBlur && props.onBlur(e);
+    },
   };
 
-  private destroy$ = new Subject();
-  private value$ = new Subject();
+  // Render the input
+  const inputElement = renderContent(input, { ...controlledInputProps, validation: validationProps });
 
-  public name = () => this.props.name;
-
-  public label = () => ifString(this.props.label);
-
-  public value = () => this.props.value;
-
-  public touched = () => this.props.touched;
-
-  public validationMessage = () => firstDefinedNode(this.props.validationMessage, this.state.validationMessage);
-
-  public validationStatus = () => this.props.validationStatus || this.state.validationStatus;
-
-  private addValidator = (internalValidator: IValidator) => {
-    this.setState(prevState => ({
-      internalValidators: prevState.internalValidators.concat(internalValidator),
-    }));
-  };
-
-  private removeValidator = (internalValidator: IValidator) => {
-    this.setState(prevState => ({
-      internalValidators: prevState.internalValidators.filter(x => x !== internalValidator),
-    }));
-  };
-
-  public componentDidMount() {
-    this.value$
-      .distinctUntilChanged()
-      .takeUntil(this.destroy$)
-      .subscribe(value => {
-        const { label, required, validate } = this.props;
-        const { internalValidators } = this.state;
-        const validator = createFieldValidator(label, required, [].concat(validate).concat(internalValidators));
-        Promise.resolve(validator(value)).then(error => {
-          const validationMessage: string = error ? error : undefined;
-          const validationStatus: IFieldValidationStatus = validationMessage ? 'error' : undefined;
-          this.setState({ validationMessage, validationStatus });
-        });
-      });
-  }
-
-  public componentWillUnmount() {
-    this.destroy$.next();
-  }
-
-  public render() {
-    const { input, layout } = this.props; // ICommonFormFieldProps
-    const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
-    const { onChange, onBlur, value, name } = this.props; // IControlledInputProps
-
-    const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
-    const controlledInputProps: IControlledInputProps = { onChange, onBlur, value, name };
-
-    const validationProps: IValidationProps = {
-      touched: this.touched(),
-      validationMessage: this.validationMessage(),
-      validationStatus: this.validationStatus(),
-      addValidator: this.addValidator,
-      removeValidator: this.removeValidator,
-    };
-
-    const inputElement = renderContent(input, { ...controlledInputProps, validation: validationProps });
-
-    return (
-      <WatchValue onChange={x => this.value$.next(x)} value={value}>
-        <LayoutConsumer>
-          {contextLayout =>
-            renderContent(layout || contextLayout, {
-              ...fieldLayoutPropsWithoutInput,
-              ...validationProps,
-              input: inputElement,
-            })
-          }
-        </LayoutConsumer>
-      </WatchValue>
-    );
-  }
+  // Render the layout passing the rendered input in
+  return (
+    <>
+      {renderContent(layout || fieldLayoutFromContext, {
+        ...fieldLayoutPropsWithoutInput,
+        ...validationProps,
+        input: inputElement,
+      })}
+    </>
+  );
 }

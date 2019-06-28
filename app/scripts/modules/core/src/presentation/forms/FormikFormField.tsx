@@ -1,16 +1,10 @@
 import * as React from 'react';
-import { isNil, isString, isUndefined } from 'lodash';
-import { Field, FastField, FieldProps, getIn, connect, FormikContext } from 'formik';
+import { isNil, isString } from 'lodash';
+import { Field, FastField, FieldProps, getIn, FormikContext, FormikConsumer } from 'formik';
 
-import {
-  ICommonFormFieldProps,
-  IFieldLayoutPropsWithoutInput,
-  IFieldValidationStatus,
-  IFormFieldApi,
-  IValidationProps,
-} from './interface';
+import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from './interface';
 import { WatchValue } from '../WatchValue';
-import { LayoutConsumer } from './layouts/index';
+import { LayoutContext } from './layouts/index';
 import { composeValidators, IValidator, Validators } from './validation';
 import { renderContent } from './fields/renderContent';
 
@@ -34,103 +28,68 @@ export interface IFormikFieldProps<T> {
   onChange?: (value: T, prevValue: T) => void;
 }
 
-export interface IFormikFormFieldImplState {
-  internalValidators: IValidator[];
-}
-
 export type IFormikFormFieldProps<T> = IFormikFieldProps<T> & ICommonFormFieldProps & IFieldLayoutPropsWithoutInput;
 type IFormikFormFieldImplProps<T> = IFormikFormFieldProps<T> & { formik: FormikContext<T> };
 
-const ifString = (val: any): string => (isString(val) ? val : undefined);
-const firstDefinedNode = (...values: React.ReactNode[]): React.ReactNode => values.find(val => !isNil(val));
+function firstDefined<T>(...values: T[]): T {
+  return values.find(val => !isNil(val));
+}
 
-export class FormikFormFieldImpl<T = any>
-  extends React.Component<IFormikFormFieldImplProps<T>, IFormikFormFieldImplState>
-  implements IFormFieldApi {
-  public static defaultProps: Partial<IFormikFormFieldProps<any>> = {
-    fastField: true,
-  };
+const { useCallback, useContext, useState } = React;
 
-  public state: IFormikFormFieldImplState = {
-    internalValidators: [],
-  };
+function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
+  const { formik } = props;
+  const { name, validate, onChange } = props; // IFormikFieldProps
+  const { input, layout } = props; // ICommonFieldProps
+  const { label, help, required, actions } = props; // IFieldLayoutPropsWithoutInput
+  const {
+    validationMessage: messageProp,
+    validationStatus: statusProp,
+    touched: touchedProp,
+    fastField: fastFieldProp,
+  } = props;
 
-  private addValidator = (internalValidator: IValidator) => {
-    this.setState(prevState => ({
-      internalValidators: prevState.internalValidators.concat(internalValidator),
-    }));
-  };
+  const validationMessage = firstDefined(messageProp, getIn(formik.errors, props.name) as string);
+  const validationStatus = firstDefined(statusProp, validationMessage ? 'error' : null);
+  const touched = firstDefined(touchedProp, getIn(formik.touched, name) as boolean);
+  const fastField = firstDefined(fastFieldProp, true);
 
-  private removeValidator = (internalValidator: IValidator) => {
-    this.setState(prevState => ({
-      internalValidators: prevState.internalValidators.filter(x => x !== internalValidator),
-    }));
-  };
+  const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
+  const fieldLayoutFromContext = useContext(LayoutContext);
 
-  public name = () => this.props.name;
+  const [internalValidators, setInternalValidators] = useState([]);
+  const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
+  const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
-  public label = () => ifString(this.props.label);
-
-  public value = () => getIn(this.props.formik.values, this.props.name);
-
-  public touched = () => {
-    const { formik, name, touched } = this.props;
-    return !isUndefined(touched) ? touched : getIn(formik.touched, name);
-  };
-
-  public validationMessage = () => {
-    const { name, formik, validationMessage } = this.props;
-    return firstDefinedNode(validationMessage, getIn(formik.errors, name));
-  };
-
-  public validationStatus = () => {
-    return (this.props.validationStatus || (this.validationMessage() ? 'error' : null)) as IFieldValidationStatus;
-  };
-
-  public render() {
-    const { internalValidators } = this.state;
-    const { name, validate, onChange } = this.props; // IFormikFieldProps
-    const { input, layout } = this.props; // ICommonFieldProps
-    const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
-
-    const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
-
-    const renderField = (props: FieldProps<any>) => {
-      const { field } = props;
-
-      const validationProps: IValidationProps = {
-        touched: this.touched(),
-        validationMessage: this.validationMessage(),
-        validationStatus: this.validationStatus(),
-        addValidator: this.addValidator,
-        removeValidator: this.removeValidator,
-      };
-
-      const inputElement = renderContent(input, { ...field, validation: validationProps });
-
-      return (
-        <WatchValue onChange={onChange} value={field.value}>
-          <LayoutConsumer>
-            {contextLayout =>
-              renderContent(layout || contextLayout, {
-                ...fieldLayoutPropsWithoutInput,
-                ...validationProps,
-                input: inputElement,
-              })
-            }
-          </LayoutConsumer>
-        </WatchValue>
-      );
+  const renderField = ({ field }: FieldProps<any>) => {
+    const validationProps: IValidationProps = {
+      touched,
+      validationMessage,
+      validationStatus,
+      addValidator,
+      removeValidator,
     };
 
-    const validator = createFieldValidator(label, required, [].concat(validate).concat(internalValidators));
+    const inputElement = renderContent(input, { ...field, validation: validationProps });
 
-    if (this.props.fastField) {
-      return <FastField name={name} validate={validator} render={renderField} />;
-    }
+    return (
+      <WatchValue onChange={onChange} value={field.value}>
+        {renderContent(layout || fieldLayoutFromContext, {
+          ...fieldLayoutPropsWithoutInput,
+          ...validationProps,
+          input: inputElement,
+        })}
+      </WatchValue>
+    );
+  };
 
-    return <Field name={name} validate={validator} render={renderField} />;
+  const validator = createFieldValidator(label, required, [].concat(validate).concat(internalValidators));
+
+  if (fastField) {
+    return <FastField name={name} validate={validator} render={renderField} />;
   }
+
+  return <Field name={name} validate={validator} render={renderField} />;
 }
 
 /** Returns a Validator composed of all the `validate` functions (and `isRequired` if `required` is truthy) */
@@ -139,7 +98,8 @@ export function createFieldValidator<T>(
   required: boolean,
   validate: IValidator[],
 ): IValidator {
-  const validator = composeValidators([!!required && Validators.isRequired()].concat(validate));
+  const validators = [!!required && Validators.isRequired()].concat(validate);
+  const validator = composeValidators(validators);
 
   if (!validator) {
     return null;
@@ -149,4 +109,6 @@ export function createFieldValidator<T>(
   return (value: any) => validator(value, labelString);
 }
 
-export const FormikFormField = connect(FormikFormFieldImpl);
+export function FormikFormField<T = any>(props: IFormikFormFieldProps<T>) {
+  return <FormikConsumer>{formik => <FormikFormFieldImpl {...props} formik={formik} />}</FormikConsumer>;
+}
