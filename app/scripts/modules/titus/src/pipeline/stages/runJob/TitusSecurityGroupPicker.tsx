@@ -105,7 +105,7 @@ export class TitusSecurityGroupPicker extends React.Component<
         return match ? match.name : groupId;
       });
 
-      const matchedGroups: ISecurityGroup[] = groupsToEdit
+      const matchedGroups: ISecurityGroup[] = oldGroupNames
         .map((groupId: string) => {
           const securityGroup: any = availableGroups.find(o => o.id === groupId || o.name === groupId);
           return securityGroup ? securityGroup.name : null;
