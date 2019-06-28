@@ -38,6 +38,7 @@ class Notification {
     EMAIL,
     GITHUB_STATUS,
     GOOGLECHAT,
+    HIPCHAT, // DEPRECATED/UNUSED; support was removed in commit d175913ab
     JIRA,
     PAGER_DUTY,
     PUBSUB,
