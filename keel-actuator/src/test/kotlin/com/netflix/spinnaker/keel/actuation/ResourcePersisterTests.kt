@@ -47,12 +47,12 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
     @Suppress("UNCHECKED_CAST")
     fun create(submittedResource: SubmittedResource<Any>) {
-      resource = subject.create(submittedResource) as Resource<DummyResourceSpec>
+      resource = subject.upsert(submittedResource) as Resource<DummyResourceSpec>
     }
 
     @Suppress("UNCHECKED_CAST")
     fun update(updatedSpec: Any) {
-      resource = subject.update(resource.name, SubmittedResource(
+      resource = subject.upsert(SubmittedResource(
         metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
         kind = resource.kind,
@@ -111,12 +111,17 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         context("after an update") {
           before {
             resourcesDueForCheck()
-            update(DummyResourceSpec("kthxbye"))
+            subject.upsert(SubmittedResource(
+              metadata = SubmittedMetadata("keel@spinnaker"),
+              apiVersion = resource.apiVersion,
+              kind = resource.kind,
+              spec = DummyResourceSpec("o hai", "kthxbye")
+            ))
           }
 
           test("stores the updated resource") {
             expectThat(repository.get<DummyResourceSpec>(resource.name))
-              .get { spec.state }
+              .get { spec.data }
               .isEqualTo("kthxbye")
           }
 

@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
@@ -25,16 +26,29 @@ class ResourcePersister(
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher
 ) {
+  fun upsert(resource: SubmittedResource<Any>): Resource<out Any> =
+    handlers.supporting(resource.apiVersion, resource.kind)
+      .normalize(resource)
+      .also {
+        if (it.name.isRegistered()) {
+          return update(it.name, resource)
+        } else {
+          return create(resource)
+        }
+      }
+
   fun create(resource: SubmittedResource<Any>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .also {
+        log.debug("Creating $it")
         resourceRepository.store(it)
         resourceRepository.appendHistory(ResourceCreated(it, clock))
         publisher.publishEvent(CreateEvent(it.name))
       }
 
   fun update(name: ResourceName, updated: SubmittedResource<Any>): Resource<out Any> {
+    log.debug("Updating $name")
     val handler = handlers.supporting(updated.apiVersion, updated.kind)
     val existing = resourceRepository.get(name, Any::class.java)
     val resource = existing.copy(spec = updated.spec)
@@ -62,6 +76,15 @@ class ResourcePersister(
         resourceRepository.delete(name)
         publisher.publishEvent(DeleteEvent(name))
       }
+
+  private fun ResourceName.isRegistered(): Boolean {
+    try {
+      resourceRepository.get(this, Any::class.java)
+      return true
+    } catch (e: NoSuchResourceException) {
+      return false
+    }
+  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

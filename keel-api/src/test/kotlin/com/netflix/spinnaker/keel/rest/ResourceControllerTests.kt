@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
-import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -29,7 +28,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
@@ -78,7 +76,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    every { resourcePersister.create(any()) } returns resource
+    every { resourcePersister.upsert(any()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
@@ -95,14 +93,14 @@ internal class ResourceControllerTests {
       )
     mvc
       .perform(request)
-      .andExpect(status().isCreated)
+      .andExpect(status().isOk)
 
-    verify { resourcePersister.create(match { it.spec == "o hai" }) }
+    verify { resourcePersister.upsert(match { it.spec == "o hai" }) }
   }
 
   @Test
   fun `can create a resource as JSON`() {
-    every { resourcePersister.create(any()) } returns resource
+    every { resourcePersister.upsert(any()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
@@ -121,9 +119,9 @@ internal class ResourceControllerTests {
       )
     mvc
       .perform(request)
-      .andExpect(status().isCreated)
+      .andExpect(status().isOk)
 
-    verify { resourcePersister.create(match { it.spec == "o hai" }) }
+    verify { resourcePersister.upsert(match { it.spec == "o hai" }) }
   }
 
   @Test
@@ -151,10 +149,10 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can update a resource`() {
+    every { resourcePersister.upsert(any()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
-    every { resourcePersister.update(resource.name, any()) } returns resource
 
-    val request = put("/resources/${resource.name}")
+    val request = post("/resources")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -170,15 +168,15 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.update(resource.name, match { it.spec == "kthxbye" }) }
+    verify { resourcePersister.upsert(match { it.spec == "kthxbye" }) }
   }
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.update(resource.name, any()) } throws NoSuchResourceName(resource.name)
+    every { resourcePersister.upsert(any()) } throws NoSuchResourceName(resource.name)
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
-    val request = put("/resources/${resource.name}")
+    val request = post("/resources")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -198,7 +196,6 @@ internal class ResourceControllerTests {
   @Test
   fun `an invalid request body results in an HTTP 400`() {
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
-
     val request = post("/resources")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)

@@ -284,6 +284,12 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
   get("second element %s") { toList()[1] }
 
-internal data class DummyResource(val state: String)
+internal data class DummyResource(
+  val state: String,
+  val data: String = "some data"
+)
 
-internal data class DummyResourceSpec(val state: String)
+internal data class DummyResourceSpec(
+  val state: String,
+  val data: String = "some data"
+)
