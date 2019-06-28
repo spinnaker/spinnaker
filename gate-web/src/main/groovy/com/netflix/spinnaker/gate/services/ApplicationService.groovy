@@ -107,10 +107,11 @@ class ApplicationService {
     } catch (ExecutionException ee) {
       throw ee.cause
     }
-    if (expand == false) {
+    if (!expand) {
       def cachedApplication = allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String) }
       if (cachedApplication) {
-        applications.add(cachedApplication)
+        // ensure that `cachedApplication` attributes are overridden by any previously fetched metadata from front50
+        applications.add(0, cachedApplication)
       }
     }
     List<Map> mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))

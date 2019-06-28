@@ -265,12 +265,23 @@ class ApplicationServiceSpec extends Specification {
     service.front50Service = front50
     service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
+    service.allApplicationsCache.set([
+        [name: name, email: "cached@email.com"]
+    ])
 
     when:
     def app = service.getApplication(name, false)
 
+
     then:
     0 * clouddriver.getApplication(name)
-    1 * front50.getApplication(name) >> null
+    1 * front50.getApplication(name) >> {
+      return [
+          name: name,
+          email: "updated@email.com"
+      ]
+    }
+
+    app.attributes.email == "updated@email.com"
   }
 }
