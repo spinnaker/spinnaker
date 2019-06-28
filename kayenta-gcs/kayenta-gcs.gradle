@@ -2,6 +2,6 @@ dependencies {
   implementation project(":kayenta-core")
   implementation project(":kayenta-google")
 
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.google.apis:google-api-services-storage"
+  api "com.netflix.spinnaker.kork:kork-exceptions"
+  api "com.google.apis:google-api-services-storage"
 }

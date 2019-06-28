@@ -2,11 +2,11 @@ apply plugin: 'java-library'
 apply plugin: 'scala'
 
 dependencies {
-  implementation "org.apache.commons:commons-math3:$mathCommonsVersion"
+  api "org.apache.commons:commons-math3:$mathCommonsVersion"
 
-  implementation 'org.scala-lang:scala-library-all:2.12.2'
-  implementation 'org.scala-lang:scala-reflect:2.12.2'
-  implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
+  api 'org.scala-lang:scala-library-all:2.12.2'
+  api 'org.scala-lang:scala-reflect:2.12.2'
+  api 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
 
   testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
 }

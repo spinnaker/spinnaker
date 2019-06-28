@@ -1,6 +1,6 @@
 dependencies {
   implementation project(":kayenta-core")
 
-  implementation "com.google.apis:google-api-services-monitoring"
-  implementation "com.google.apis:google-api-services-storage"
+  api "com.google.apis:google-api-services-monitoring"
+  api "com.google.apis:google-api-services-storage"
 }

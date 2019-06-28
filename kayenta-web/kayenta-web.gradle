@@ -15,27 +15,27 @@ configurations.all {
 }
 
 dependencies {
-  implementation project(':kayenta-atlas')
-  implementation project(':kayenta-aws')
-  implementation project(':kayenta-core')
-  implementation project(':kayenta-datadog')
-  implementation project(':kayenta-gcs')
-  implementation project(':kayenta-google')
-  implementation project(':kayenta-graphite')
-  implementation project(':kayenta-influxdb')
-  implementation project(':kayenta-judge')
-  implementation project(':kayenta-newrelic-insights')
-  implementation project(':kayenta-objectstore-configbin')
-  implementation project(':kayenta-objectstore-memory')
-  implementation project(':kayenta-orca')
-  implementation project(':kayenta-prometheus')
-  implementation project(':kayenta-s3')
-  implementation project(':kayenta-signalfx')
-  implementation project(':kayenta-stackdriver')
-  implementation project(':kayenta-standalone-canary-analysis')
-  implementation project(':kayenta-wavefront')
+  api project(':kayenta-atlas')
+  api project(':kayenta-aws')
+  api project(':kayenta-core')
+  api project(':kayenta-datadog')
+  api project(':kayenta-gcs')
+  api project(':kayenta-google')
+  api project(':kayenta-graphite')
+  api project(':kayenta-influxdb')
+  api project(':kayenta-judge')
+  api project(':kayenta-newrelic-insights')
+  api project(':kayenta-objectstore-configbin')
+  api project(':kayenta-objectstore-memory')
+  api project(':kayenta-orca')
+  api project(':kayenta-prometheus')
+  api project(':kayenta-s3')
+  api project(':kayenta-signalfx')
+  api project(':kayenta-stackdriver')
+  api project(':kayenta-standalone-canary-analysis')
+  api project(':kayenta-wavefront')
 
-  implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "com.netflix.spinnaker.kork:kork-web"
   runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-aws"
 }

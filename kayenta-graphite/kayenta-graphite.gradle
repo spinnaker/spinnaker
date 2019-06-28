@@ -170,7 +170,7 @@ integrationTest {
 dependencies {
     implementation project(":kayenta-core")
 
-    implementation "org.apache.commons:commons-io:1.3.2"
+    api "org.apache.commons:commons-io:1.3.2"
 
  //   testImplementation "com.fasterxml.jackson.core:jackson-databind"
 
