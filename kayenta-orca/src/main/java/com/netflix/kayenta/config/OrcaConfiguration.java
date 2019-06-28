@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 
 import java.net.InetAddress;
@@ -39,7 +38,6 @@ import java.util.UUID;
   RestrictExecutionDuringTimeWindow.class,
   StageNavigator.class,
 })
-@EnableConfigurationProperties
 @ComponentScan({
   "com.netflix.kayenta.orca",
   "com.netflix.spinnaker.orca.pipeline",

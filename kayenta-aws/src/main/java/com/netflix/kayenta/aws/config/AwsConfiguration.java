@@ -33,7 +33,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +44,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Configuration
-@EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.aws.enabled")
 @ComponentScan({"com.netflix.kayenta.aws"})
 @Slf4j

@@ -22,14 +22,12 @@ import com.netflix.kayenta.index.CanaryConfigIndexingAgent;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import redis.clients.jedis.JedisPool;
 
 @Configuration
-@EnableConfigurationProperties
 public class IndexConfiguration {
 
   @Bean

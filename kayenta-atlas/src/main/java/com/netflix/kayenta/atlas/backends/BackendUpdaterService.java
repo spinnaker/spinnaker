@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +31,6 @@ import java.util.List;
 
 @Service
 @Slf4j
-@EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.atlas.enabled")
 public class BackendUpdaterService extends AbstractHealthIndicator {
   private final RetrofitClientFactory retrofitClientFactory;

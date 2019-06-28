@@ -29,7 +29,6 @@ import com.squareup.okhttp.OkHttpClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
-@EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.graphite.enabled")
 @ComponentScan({"com.netflix.kayenta.graphite"})
 @Slf4j
