@@ -44,7 +44,7 @@ public class InfluxdbCanaryMetricSetQueryConfig implements CanaryMetricSetQueryC
   
   @Getter
   private List<String> fields;
-  
+
   @Override
   public String getServiceType() {
     return SERVICE_TYPE;

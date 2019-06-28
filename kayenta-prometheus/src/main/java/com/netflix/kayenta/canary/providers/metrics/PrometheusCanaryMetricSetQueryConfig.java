@@ -19,11 +19,12 @@ package com.netflix.kayenta.canary.providers.metrics;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,6 +58,15 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   @Getter
   private String customFilterTemplate;
+
+  @Override
+  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    if (StringUtils.isEmpty(customInlineTemplate)) {
+      return this;
+    } else {
+      return this.toBuilder().customInlineTemplate(customInlineTemplate.replace("${", "$\\{")).build();
+    }
+  }
 
   @Override
   public String getServiceType() {

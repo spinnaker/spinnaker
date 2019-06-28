@@ -17,7 +17,10 @@
 package com.netflix.kayenta.canary.providers
 
 import com.netflix.kayenta.canary.CanaryConfig
+import com.netflix.kayenta.canary.CanaryMetricConfig
+import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig
 import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils
+import org.springframework.util.StringUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -52,5 +55,42 @@ class QueryConfigUtilsSpec extends Specification {
     'A test: key1=${key1} key2=${key2}.'     || 'A test: key1=${key1} key2=${key2}.'
     'A test: key1=${key1} key2=$\\{key2}.'   || 'A test: key1=${key1} key2=${key2}.'
     'A test: key1=key1.'                     || 'A test: key1=key1.'
+  }
+
+  @Unroll
+  void "Custom inline template #customInlineTemplate is escaped to protect it from premature expression evaluation by orca"() {
+    expect:
+    CanaryMetricConfig canaryMetricConfig =
+      CanaryMetricConfig.builder().query(new TestCanaryMetricSetQueryConfig(customInlineTemplate: customInlineTemplate)).build()
+    CanaryConfig canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build()
+    QueryConfigUtils.escapeTemplates(canaryConfig).getMetrics()[0].getQuery().getCustomInlineTemplate() ==
+      expectedEscapedCustomInlineTemplate
+
+    where:
+    customInlineTemplate                 || expectedEscapedCustomInlineTemplate
+    'A test: key1=${key1}.'              || 'A test: key1=$\\{key1}.'
+    'A test: key1=${key1} key2=${key2}.' || 'A test: key1=$\\{key1} key2=$\\{key2}.'
+    'A test: key1=val1.'                 || 'A test: key1=val1.'
+    null                                 || null
+    ""                                   || ""
+  }
+}
+
+class TestCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+
+  String customInlineTemplate
+
+  @Override
+  CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    if (StringUtils.isEmpty(customInlineTemplate)) {
+      return this
+    } else {
+      return new TestCanaryMetricSetQueryConfig(customInlineTemplate: customInlineTemplate.replace('${', '$\\{'))
+    }
+  }
+
+  @Override
+  String getServiceType() {
+    "test-service"
   }
 }

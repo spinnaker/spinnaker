@@ -17,6 +17,7 @@
 package com.netflix.kayenta.canaryanalysis.controller;
 
 import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.canaryanalysis.domain.CanaryAnalysisAdhocExecutionRequest;
 import com.netflix.kayenta.canaryanalysis.domain.CanaryAnalysisConfig;
 import com.netflix.kayenta.canaryanalysis.domain.CanaryAnalysisExecutionRequest;
@@ -135,7 +136,7 @@ public class StandaloneCanaryAnalysisController {
             .metricsAccountName(resolvedMetricsAccountName)
             .storageAccountName(resolvedStorageAccountName)
             .configurationAccountName(configurationAccountName)
-            .canaryConfig(canaryConfig)
+            .canaryConfig(QueryConfigUtils.escapeTemplates(canaryConfig))
             .build());
   }
 
@@ -195,7 +196,7 @@ public class StandaloneCanaryAnalysisController {
             .executionRequest(canaryAnalysisAdhocExecutionRequest.getExecutionRequest())
             .metricsAccountName(resolvedMetricsAccountName)
             .storageAccountName(resolvedStorageAccountName)
-            .canaryConfig(canaryAnalysisAdhocExecutionRequest.getCanaryConfig())
+            .canaryConfig(QueryConfigUtils.escapeTemplates(canaryAnalysisAdhocExecutionRequest.getCanaryConfig()))
             .build());
   }
 

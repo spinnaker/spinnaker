@@ -45,5 +45,9 @@ public interface CanaryMetricSetQueryConfig {
     return null;
   }
 
+  default CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    return this;
+  }
+
   @NonNull String getServiceType();
 }

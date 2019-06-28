@@ -18,6 +18,7 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import freemarker.template.Configuration;
@@ -35,7 +36,9 @@ import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -147,14 +150,36 @@ public class QueryConfigUtils {
 
   @VisibleForTesting
   public static CanaryConfig escapeTemplates(CanaryConfig canaryConfig) {
+    if (canaryConfig == null) {
+      return null;
+    }
+
+    Map<String, String> escapedTemplates;
+
     if (!CollectionUtils.isEmpty(canaryConfig.getTemplates())) {
-      Map<String, String> escapedTemplates =
+      escapedTemplates =
         canaryConfig.getTemplates()
           .entrySet()
           .stream()
           .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().replace("${", "$\\{")));
+    } else {
+      escapedTemplates = Collections.emptyMap();
+    }
 
-      canaryConfig = canaryConfig.toBuilder().templates(escapedTemplates).build();
+    List<CanaryMetricConfig> escapedMetrics = null;
+
+    if (!CollectionUtils.isEmpty(canaryConfig.getMetrics())) {
+      escapedMetrics =
+        canaryConfig.getMetrics()
+          .stream()
+          .map(m -> m.toBuilder().query(m.getQuery().cloneWithEscapedInlineTemplate()).build())
+          .collect(Collectors.toList());
+    } else {
+      escapedMetrics = Collections.emptyList();
+    }
+
+    if (escapedTemplates != null || escapedMetrics != null) {
+      canaryConfig = canaryConfig.toBuilder().templates(escapedTemplates).clearMetrics().metrics(escapedMetrics).build();
     }
 
     return canaryConfig;
