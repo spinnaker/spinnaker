@@ -26,7 +26,12 @@ export const ManagedResourceDetailsIndicator = ({ entityTags }: IManagedResource
       <p>
         <b>Spinnaker is continuously managing this resource.</b>
       </p>
-      <p>Changes made in the UI will be stomped in favor of the existing declarative configuration.</p>
+      <p>
+        Changes made in the UI will be stomped in favor of the existing declarative configuration.{' '}
+        <a href="https://www.spinnaker.io/reference/managed-delivery" target="_blank">
+          Learn More
+        </a>
+      </p>
     </>
   );
 
