@@ -106,12 +106,10 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     boolean needToUpdateForwardingRule = false
     boolean needToUpdateTargetPool = false
     boolean needToUpdateHttpHealthCheck = false
-    boolean needToUpdateSessionAffinity = false
     boolean needToDeleteHttpHealthCheck = false
     boolean needToCreateNewForwardingRule = false
     boolean needToCreateNewTargetPool = false
     boolean needToCreateNewHttpHealthCheck = false
-
 
     // Check if there already exists a forwarding rule with the requested name.
     existingForwardingRule =
@@ -141,8 +139,6 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
           (description.instances != null
              || description.healthCheck && !existingTargetPool.healthChecks
              || !description.healthCheck && existingTargetPool.healthChecks)
-
-        needToUpdateSessionAffinity = description.sessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity());
 
         if (existingTargetPool.healthChecks) {
           existingHttpHealthCheck = GCEUtil.queryHttpHealthCheck(
@@ -192,7 +188,15 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     def targetPoolResourceOperation
     def targetPoolResourceLink
 
-    if (needToUpdateSessionAffinity && existingTargetPool.instances.any()) {
+    boolean sessionAffinityChanged
+    if (existingTargetPool == null) {
+      sessionAffinityChanged = description.sessionAffinity != GoogleSessionAffinity.NONE
+    }
+    else {
+      sessionAffinityChanged = description.sessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity())
+    }
+
+    if (sessionAffinityChanged && existingTargetPool != null && existingTargetPool.instances.any()) {
         task.updateStatus BASE_PHASE, "Impossible to change Session Affinity for target pool $targetPoolName with existing instances in $region"
         task.fail()
     }
