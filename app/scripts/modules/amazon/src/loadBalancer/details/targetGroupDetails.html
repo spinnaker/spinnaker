@@ -22,42 +22,21 @@
         {{ctrl.targetGroup.name}}
       </h3>
     </div>
-    <div>
-      <div class="actions">
-        <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button
-            type="button"
-            class="btn btn-sm btn-primary dropdown-toggle"
-            style="visibility: hidden"
-            disabled
-            uib-dropdown-toggle
-          >
-            Target Group Actions <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Target Group</a></li>
-            <li ng-if="!ctrl.loadBalancer.instances.length">
-              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Target Group</a>
-            </li>
-            <li
-              ng-if="ctrl.loadBalancer.instances.length"
-              class="disabled"
-              uib-tooltip="You must detach all instances before you can delete this load balancer."
-            >
-              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Target Group</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
   </div>
+  <managed-resource-details-indicator
+    ng-if="!ctrl.state.loading && ctrl.loadBalancer.entityTags"
+    entity-tags="[ctrl.loadBalancer.entityTags]"
+  >
+  </managed-resource-details-indicator>
   <div ng-if="!ctrl.state.loading" class="content">
     <collapsible-section heading="Target Group Details" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>In</dt>
         <dd><account-tag account="ctrl.targetGroup.account" pad="right"></account-tag> {{ctrl.targetGroup.region}}</dd>
         <dt>VPC</dt>
-        <dd><vpc-tag vpc-id="ctrl.targetGroup.vpcId"></vpc-tag></dd>
+        <dd>
+          <vpc-tag vpc-id="ctrl.targetGroup.vpcId"></vpc-tag>
+        </dd>
         <dt>Protocol</dt>
         <dd>{{ctrl.targetGroup.protocol}}</dd>
         <dt>Port</dt>

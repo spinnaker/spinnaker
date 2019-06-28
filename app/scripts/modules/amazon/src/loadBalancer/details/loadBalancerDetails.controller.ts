@@ -16,6 +16,7 @@ import {
   SecurityGroupReader,
   SubnetReader,
   FirewallLabels,
+  MANAGED_RESOURCE_DETAILS_INDICATOR,
 } from '@spinnaker/core';
 
 import {
@@ -234,4 +235,5 @@ module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   LOAD_BALANCER_ACTIONS,
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
+  MANAGED_RESOURCE_DETAILS_INDICATOR,
 ]).controller('awsLoadBalancerDetailsCtrl', AwsLoadBalancerDetailsController);

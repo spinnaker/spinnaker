@@ -25,7 +25,6 @@ module.exports = angular
   .controller('awsInstanceDetailsCtrl', [
     '$scope',
     '$state',
-    '$uibModal',
     'amazonInstanceWriter',
     'confirmationModalService',
     'instance',
@@ -37,7 +36,6 @@ module.exports = angular
     function(
       $scope,
       $state,
-      $uibModal,
       amazonInstanceWriter,
       confirmationModalService,
       instance,

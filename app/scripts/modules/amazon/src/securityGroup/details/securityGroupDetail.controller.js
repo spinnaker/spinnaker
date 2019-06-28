@@ -10,6 +10,7 @@ import {
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
   FirewallLabels,
+  MANAGED_RESOURCE_DETAILS_INDICATOR,
 } from '@spinnaker/core';
 
 import { VpcReader } from '../../vpc/VpcReader';
@@ -20,6 +21,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller').name,
+    MANAGED_RESOURCE_DETAILS_INDICATOR,
   ])
   .controller('awsSecurityGroupDetailsCtrl', [
     '$scope',

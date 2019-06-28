@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
+import { ManagedResourceDetailsIndicator } from 'core/managed';
 import { IServerGroup } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config/settings';
@@ -121,6 +122,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
         {serverGroup && serverGroup.isDisabled && (
           <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>
         )}
+        {!loading && <ManagedResourceDetailsIndicator entityTags={serverGroup.clusterEntityTags} />}
         {!loading && (
           <div className="content">
             <RunningTasks serverGroup={serverGroup} application={app} />

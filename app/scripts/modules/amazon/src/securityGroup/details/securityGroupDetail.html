@@ -54,17 +54,26 @@
       </div>
     </div>
   </div>
+  <managed-resource-details-indicator
+    ng-if="!state.loading && securityGroup.entityTags"
+    entity-tags="[securityGroup.entityTags]"
+  >
+  </managed-resource-details-indicator>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="{{ctrl.firewallLabel}} Details" expanded="true">
       <dl class="dl-horizontal dl-medium">
         <dt>ID</dt>
         <dd>{{securityGroup.id}}</dd>
         <dt>Account</dt>
-        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dd>
+          <account-tag account="securityGroup.accountName"></account-tag>
+        </dd>
         <dt>Region</dt>
         <dd>{{securityGroup.region}}</dd>
         <dt>VPC</dt>
-        <dd><vpc-tag vpc-id="securityGroup.vpcId"></vpc-tag></dd>
+        <dd>
+          <vpc-tag vpc-id="securityGroup.vpcId"></vpc-tag>
+        </dd>
         <dt>Description</dt>
         <dd>{{securityGroup.description}}</dd>
       </dl>
@@ -102,7 +111,9 @@
         ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
         ng-repeat="rule in securityGroupRules | orderBy: 'securityGroup.name' "
       >
-        <dt><firewall-label label="Firewall"></firewall-label></dt>
+        <dt>
+          <firewall-label label="Firewall"></firewall-label>
+        </dt>
         <dd ng-if="rule.securityGroup.name">
           <a
             ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'aws'})"

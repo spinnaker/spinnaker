@@ -44,6 +44,8 @@ export * from './loadBalancer';
 
 export * from './modal';
 
+export * from './managed';
+
 export * from './manifest';
 
 export * from './naming';
