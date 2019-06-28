@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
@@ -437,7 +438,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
         new TargetPool(
-          name: TARGET_POOL_NAME
+          name: TARGET_POOL_NAME,
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -532,7 +534,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         new TargetPoolList(items: [
           new TargetPool(
             name: TARGET_POOL_NAME,
-            healthChecks: [HEALTH_CHECK_NAME]
+            healthChecks: [HEALTH_CHECK_NAME],
+            sessionAffinity: GoogleSessionAffinity.NONE
           )
         ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -617,7 +620,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsListReal = new TargetPoolList(items: [
         new TargetPool(
           name: TARGET_POOL_NAME,
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
@@ -694,7 +698,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsListReal = new TargetPoolList(items: [
         new TargetPool(
           name: TARGET_POOL_NAME,
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
@@ -810,7 +815,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
         new TargetPool(
-          name: TARGET_POOL_NAME
+          name: TARGET_POOL_NAME,
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def globalOperations = Mock(Compute.GlobalOperations)
@@ -907,7 +913,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetPoolsListReal = new TargetPoolList(items: [
         new TargetPool(
           name: TARGET_POOL_NAME,
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -1018,7 +1025,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         new TargetPool(
           name: TARGET_POOL_NAME,
           instances: [INSTANCE_2_URL],
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -1115,7 +1123,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         new TargetPool(
           name: TARGET_POOL_NAME,
           instances: [INSTANCE_1_URL, INSTANCE_2_URL, INSTANCE_3_URL],
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -1212,7 +1221,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         new TargetPool(
           name: TARGET_POOL_NAME,
           instances: [INSTANCE_1_URL, INSTANCE_2_URL],
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -1314,7 +1324,8 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         new TargetPool(
           name: TARGET_POOL_NAME,
           instances: [INSTANCE_1_URL, INSTANCE_2_URL, INSTANCE_3_URL],
-          healthChecks: [HEALTH_CHECK_NAME]
+          healthChecks: [HEALTH_CHECK_NAME],
+          sessionAffinity: GoogleSessionAffinity.NONE
         )
       ])
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
