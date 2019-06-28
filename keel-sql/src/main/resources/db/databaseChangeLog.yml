@@ -29,3 +29,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190626-delivery-config-tables.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190627-drop-cluster-lock.yml
+      relativeToChangelogFile: true

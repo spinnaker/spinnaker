@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
+  <jdbc>
+    <driver>com.mysql.cj.jdbc.Driver</driver>
+    <url>jdbc:mysql://127.0.0.1:3306/keel?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
+    <user>root</user>
+    <password>sa</password>
+  </jdbc>
+  <generator>
+    <database>
+      <name>org.jooq.meta.mysql.MySQLDatabase</name>
+      <inputSchema>keel</inputSchema>
+      <excludes>
+        DATABASECHANGELOG
+        | DATABASECHANGELOGLOCK
+      </excludes>
+    </database>
+    <target>
+      <packageName>com.netflix.spinnaker.keel.persistence.metamodel</packageName>
+      <directory>keel-sql/src/generated/java</directory>
+    </target>
+    <generate>
+      <javaTimeTypes>true</javaTimeTypes>
+    </generate>
+  </generator>
+</configuration>
