@@ -338,6 +338,7 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Getter
+  @RequiredArgsConstructor
   public static class MetricCacheKey extends CacheKey {
     @Getter private static final Kind kind = KUBERNETES_METRIC;
     private final KubernetesKind kubernetesKind;

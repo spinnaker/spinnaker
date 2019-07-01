@@ -20,18 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class KubernetesPodMetric {
-  private String podName;
-  @Builder.Default private List<ContainerMetric> containerMetrics = new ArrayList<>();
+  private final String podName;
+  private final String namespace;
+  @Builder.Default private final List<ContainerMetric> containerMetrics = new ArrayList<>();
 
   @Data
   @Builder

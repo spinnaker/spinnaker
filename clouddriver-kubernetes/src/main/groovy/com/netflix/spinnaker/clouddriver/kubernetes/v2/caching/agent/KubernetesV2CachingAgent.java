@@ -175,10 +175,7 @@ public abstract class KubernetesV2CachingAgent
               }
             });
 
-    List<CacheData> resourceData = kubernetesCacheData.toCacheData();
-
-    Map<String, Collection<CacheData>> entries =
-        KubernetesCacheDataConverter.stratifyCacheDataByGroup(resourceData);
+    Map<String, Collection<CacheData>> entries = kubernetesCacheData.toStratifiedCacheData();
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
     return new DefaultCacheResult(entries);

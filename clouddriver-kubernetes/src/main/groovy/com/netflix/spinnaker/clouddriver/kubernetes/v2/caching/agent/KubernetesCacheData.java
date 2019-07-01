@@ -20,12 +20,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Value;
 
@@ -73,7 +68,24 @@ public class KubernetesCacheData {
 
   /** Return a List of CacheData entries representing the current items in the cache. */
   public List<CacheData> toCacheData() {
-    return items.values().stream().map(CacheItem::toCacheData).collect(Collectors.toList());
+    return items.values().stream()
+        .filter(item -> !item.omitItem())
+        .map(CacheItem::toCacheData)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Return a List of CacheData entries representing the current items in the cache, grouped by the
+   * item's group.
+   */
+  public Map<String, Collection<CacheData>> toStratifiedCacheData() {
+    return items.values().stream()
+        .filter(item -> !item.omitItem())
+        .collect(
+            Collectors.groupingBy(
+                item -> item.key.getGroup(),
+                Collectors.mapping(
+                    CacheItem::toCacheData, Collectors.toCollection(ArrayList::new))));
   }
 
   /**
@@ -103,6 +115,16 @@ public class KubernetesCacheData {
         groups.computeIfAbsent(key.getGroup(), k -> new HashSet<>()).add(key.toString());
       }
       return groups;
+    }
+
+    /**
+     * given that we now have large caching agents that are authoritative for huge chunks of the
+     * cache, it's possible that some resources (like events) still point to deleted resources.
+     * These won't have any attributes, but if we add a cache entry here, the deleted item will
+     * still be cached
+     */
+    public boolean omitItem() {
+      return key instanceof Keys.InfrastructureCacheKey && attributes.isEmpty();
     }
 
     /** Convert this CacheItem to its corresponding CacheData object */

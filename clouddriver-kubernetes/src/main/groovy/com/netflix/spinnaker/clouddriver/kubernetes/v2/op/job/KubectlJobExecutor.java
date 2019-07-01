@@ -640,6 +640,7 @@ public class KubectlJobExecutor {
               podName,
               KubernetesPodMetric.builder()
                   .podName(podName)
+                  .namespace(namespace)
                   .containerMetrics(new ArrayList<>())
                   .build());
 

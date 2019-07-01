@@ -26,6 +26,7 @@ class KubernetesCacheDataSpec extends Specification {
   private static final String ACCOUNT = "my-account"
   private static final String NAMESPACE = "my-namespace"
   private static final Keys.CacheKey REPLICA_SET_KEY = new Keys.InfrastructureCacheKey(KubernetesKind.REPLICA_SET, ACCOUNT, NAMESPACE, "testing")
+  private static final Keys.CacheKey OTHER_REPLICA_SET_KEY = new Keys.InfrastructureCacheKey(KubernetesKind.REPLICA_SET, ACCOUNT, NAMESPACE, "other-key")
   private static final Keys.CacheKey APPLICATION_KEY = new Keys.ApplicationCacheKey("app")
 
   def "returns an empty collection when no entries are added"() {
@@ -116,5 +117,53 @@ class KubernetesCacheDataSpec extends Specification {
     def applicationRelationships = application.relationships.get("replicaSet") as Collection<String>
     applicationRelationships.size() == 1
     applicationRelationships.contains(REPLICA_SET_KEY.toString())
+  }
+
+  def "correctly groups cache data items"() {
+    given:
+    KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
+    Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>().put("key", "value").build();
+    Map<String, Object> otherAttributes = new ImmutableMap.Builder<String, Object>().put("otherKey", "otherValue").build();
+
+    when:
+    kubernetesCacheData.addItem(REPLICA_SET_KEY, attributes)
+    kubernetesCacheData.addItem(OTHER_REPLICA_SET_KEY, otherAttributes)
+    kubernetesCacheData.addRelationship(REPLICA_SET_KEY, APPLICATION_KEY)
+    Map<String, Collection<CacheData>> cacheData = kubernetesCacheData.toStratifiedCacheData()
+    def replicaSetData = cacheData.get(REPLICA_SET_KEY.getGroup())
+    def applicationData = cacheData.get(APPLICATION_KEY.getGroup())
+
+    then:
+    replicaSetData.size() == 2
+    def replicaSet = replicaSetData.stream().filter({cd -> cd.id == REPLICA_SET_KEY.toString()}).findFirst().get()
+    replicaSet.attributes == attributes
+    def otherReplicaSet = replicaSetData.stream().filter({cd -> cd.id == OTHER_REPLICA_SET_KEY.toString()}).findFirst().get()
+    otherReplicaSet.attributes == otherAttributes
+
+    def application = applicationData.stream().filter({cd -> cd.id == APPLICATION_KEY.toString()}).findFirst().get()
+    application.attributes.get("name") == "app"
+  }
+
+  def "omits infrastructure keys without attribtues from returned cache data"() {
+    given:
+    KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
+    Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>().put("key", "value").build();
+    Map<String, Object> emptyAttributes = new ImmutableMap.Builder<String, Object>().build();
+
+    when:
+    kubernetesCacheData.addItem(REPLICA_SET_KEY, attributes)
+    kubernetesCacheData.addItem(OTHER_REPLICA_SET_KEY, emptyAttributes)
+    Collection<CacheData> cacheData = kubernetesCacheData.toCacheData()
+    Map<String, Collection<CacheData>> stratifiedCacheData = kubernetesCacheData.toStratifiedCacheData()
+
+    then:
+    cacheData.size() == 1
+    def replicaSet = cacheData.stream().filter({cd -> cd.id == REPLICA_SET_KEY.toString()}).findFirst().get()
+    replicaSet.attributes == attributes
+
+    def replicaSetData = stratifiedCacheData.get(REPLICA_SET_KEY.getGroup())
+    replicaSetData.size() == 1
+    def groupedReplicaSet = replicaSetData.stream().filter({cd -> cd.id == REPLICA_SET_KEY.toString()}).findFirst().get()
+    groupedReplicaSet.attributes == attributes
   }
 }
