@@ -68,7 +68,7 @@ public class ResourceEvent {
   /**
    * A difference between the desired and actual state of a managed resource was detected.
    *
-   * @property delta The difference between the "base" spec (desired) and "working" spec (actual).
+   * <p>[delta] The difference between the "base" spec (desired) and "working" spec (actual).
    */
   @Data
   @JsonTypeName("ResourceDeltaDetected")
@@ -90,8 +90,8 @@ public class ResourceEvent {
   /**
    * The desired state of a resource was updated.
    *
-   * @property delta The difference between the "base" spec (previous version) and "working" spec
-   *     (the updated version).
+   * <p>[delta] The difference between the "base" spec (previous version) and "working" spec (the
+   * updated version).
    */
   @Data
   @JsonTypeName("ResourceUpdated")
