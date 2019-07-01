@@ -140,6 +140,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
         def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
         def imageIdKey = Keys.getImageIdKey(DockerRegistryProviderUtils.imageId(registry, repository, tag))
         def digest = null
+        def creationDate = null
 
         if (credentials.trackDigests) {
           try {
@@ -157,11 +158,17 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
             }
           }
         }
+        try {
+          creationDate = credentials.client.getCreationDate(repository, tag)
+        } catch (Exception e) {
+          log.warn("Unable to fetch tag creation date, reason: {} (tag: {}, repository: {})", e.message, tag, repository)
+        }
 
         cachedTags[tagKey].with {
           attributes.name = "${repository}:${tag}".toString()
           attributes.account = accountName
           attributes.digest = digest
+          attributes.date = creationDate
         }
 
         cachedIds[imageIdKey].with {

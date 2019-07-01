@@ -41,7 +41,24 @@ class DockerRegistryImageLookupController {
   @RequestMapping(value = "/tags", method = RequestMethod.GET)
   List<String> getTags(@RequestParam('account') String account, @RequestParam('repository') String repository) {
     def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials(account)
-    credentials?.getTags(repository)
+    if (!credentials) {
+      return []
+    }
+
+    return DockerRegistryProviderUtils.getAllMatchingKeyPattern(
+      cacheView,
+      Keys.Namespace.TAGGED_IMAGE.ns,
+      Keys.getTaggedImageKey(account, repository, "*")
+    ).sort { a, b ->
+      if (credentials.sortTagsByDate) {
+        b.attributes.date <=> a.attributes.date
+      } else {
+        a.id <=> b.id
+      }
+    }.collect {
+      def parse = Keys.parse(it.id)
+      return (String) parse.tag
+    }
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
