@@ -1,30 +1,31 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { FormikErrors, Form, Formik, FormikProps } from 'formik';
-import { startCase } from 'lodash';
+import { pickBy } from 'lodash';
 
 import {
   Application,
-  HelpField,
-  IServerGroupJob,
-  ReactInjector,
+  CheckboxInput,
   FormikFormField,
-  TaskMonitor,
+  HelpField,
+  ICapacity,
   IModalComponentProps,
-  noop,
-  ReactModal,
+  IServerGroupJob,
+  MinMaxDesiredChanges,
   ModalClose,
+  NgReact,
   NumberInput,
   PlatformHealthOverride,
-  CheckboxInput,
+  ReactInjector,
+  ReactModal,
+  TaskMonitor,
   TaskReason,
   ValidationMessage,
-  NgReact,
-  ICapacity,
+  noop,
 } from '@spinnaker/core';
 
 import { AwsModalFooter } from 'amazon/common';
-import { IAmazonAsg, IAmazonServerGroup } from 'amazon/domain';
+import { IAmazonServerGroup } from 'amazon/domain';
 
 export interface IAmazonResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;
@@ -51,12 +52,6 @@ export interface IResizeJob extends IServerGroupJob {
   constraints?: { capacity: ICapacity };
   reason?: string;
   interestingHealthProviderNames: string[];
-}
-
-interface IChangedField {
-  field: keyof ICapacity;
-  prevValue: number | string;
-  value: number | string;
 }
 
 export class AmazonResizeServerGroupModal extends React.Component<
@@ -100,26 +95,11 @@ export class AmazonResizeServerGroupModal extends React.Component<
     };
   }
 
-  private getChangedFields(capacity: ICapacity, asg: IAmazonAsg): IChangedField[] {
-    const fields: IChangedField[] = [
-      { field: 'min', value: capacity.min, prevValue: asg.minSize },
-      { field: 'max', value: capacity.max, prevValue: asg.maxSize },
-      { field: 'desired', value: capacity.desired, prevValue: asg.desiredCapacity },
-    ];
-
-    return fields.filter(field => field.value !== field.prevValue);
-  }
-
   private validate = (
     values: IAmazonResizeServerGroupValues,
   ): Partial<FormikErrors<IAmazonResizeServerGroupValues>> => {
     const { min, max, desired } = values;
-    const { asg } = this.props.serverGroup;
     const errors: Partial<FormikErrors<IAmazonResizeServerGroupValues>> = {};
-
-    if (this.getChangedFields(values, asg).length === 0) {
-      (errors as any).nochange = 'no changes to capacity';
-    }
 
     if (!this.state.advancedMode) {
       return errors;
@@ -192,10 +172,14 @@ export class AmazonResizeServerGroupModal extends React.Component<
     const { serverGroup, application } = this.props;
     const { asg } = serverGroup;
 
-    const changedFields: IChangedField[] = this.getChangedFields({ min, max, desired }, asg);
-    const capacity = changedFields.reduce((acc: Partial<ICapacity>, change) => {
-      return { ...acc, [change.field]: change.value };
-    }, {});
+    const capacity = pickBy(
+      {
+        min: min !== asg.minSize ? min : undefined,
+        max: max !== asg.maxSize ? max : undefined,
+        desired: desired !== asg.desiredCapacity ? desired : undefined,
+      },
+      x => x !== undefined,
+    );
 
     const command: IResizeJob = {
       capacity,
@@ -419,7 +403,8 @@ export class AmazonResizeServerGroupModal extends React.Component<
           onSubmit={this.submit}
           render={formik => {
             const { asg } = serverGroup;
-            const changedCapacityFields: IChangedField[] = this.getChangedFields(formik.values, asg);
+            const currentCapacity = { min: asg.minSize, max: asg.maxSize, desired: asg.desiredCapacity };
+            const nextCapacity = formik.values;
 
             return (
               <>
@@ -451,13 +436,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
                     <div className="form-group">
                       <div className="col-md-3 sm-label-right">Changes</div>
                       <div className="col-md-9 sm-control-field">
-                        {!changedCapacityFields.length && 'no changes'}
-                        {changedCapacityFields.map(field => (
-                          <div key={field.field}>
-                            {startCase(field.field)}: <b>{field.prevValue}</b>{' '}
-                            <i className="fa fa-long-arrow-alt-right" /> <b>{field.value}</b>
-                          </div>
-                        ))}
+                        <MinMaxDesiredChanges current={currentCapacity} next={nextCapacity} />
                       </div>
                     </div>
                   </Form>
