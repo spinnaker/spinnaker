@@ -1,0 +1,9 @@
+FROM alpine
+
+RUN apk update \
+    && apk add ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+COPY spin /usr/local/bin
+
+CMD ["/bin/sh"]
