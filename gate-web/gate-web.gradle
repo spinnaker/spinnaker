@@ -9,7 +9,7 @@ run {
   systemProperty('spring.config.additional-location', project.springConfigLocation)
   systemProperty('spring.profiles.active', project.springProfiles)
 }
-mainClassName='com.netflix.spinnaker.gate.Main'
+mainClassName = 'com.netflix.spinnaker.gate.Main'
 
 repositories {
   maven {
@@ -24,6 +24,8 @@ dependencies {
 
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"

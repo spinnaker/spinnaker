@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
@@ -33,19 +34,8 @@ import com.netflix.spinnaker.gate.filters.OriginValidator
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
-import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.IgorService
-import com.netflix.spinnaker.gate.services.internal.KayentaService
-import com.netflix.spinnaker.gate.services.internal.KeelService
-import com.netflix.spinnaker.gate.services.internal.MineService
-import com.netflix.spinnaker.gate.services.internal.OrcaService
-import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
-import com.netflix.spinnaker.gate.services.internal.RoscoService
-import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
-import com.netflix.spinnaker.gate.services.internal.SwabbieService
+import com.netflix.spinnaker.gate.services.internal.*
+import com.netflix.spinnaker.gate.yaml.YamlHttpMessageConverter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
@@ -66,6 +56,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
+import org.springframework.http.MediaType
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
@@ -78,12 +70,7 @@ import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
+import javax.servlet.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -153,6 +140,15 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Autowired
   ServiceConfiguration serviceConfiguration
+
+  @Bean
+  AbstractJackson2HttpMessageConverter yamlHttpMessageConverter() {
+    return new YamlHttpMessageConverter(
+      new YAMLMapper(),
+      MediaType.parseMediaType("application/x-yaml"),
+      MediaType.parseMediaType("application/x-yaml;charset=UTF-8")
+    )
+  }
 
   @Bean
   OrcaServiceSelector orcaServiceSelector(OkHttpClient okHttpClient) {
@@ -235,8 +231,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
   KayentaService kayentaService(OkHttpClient defaultClient,
                                 OkHttpClientConfigurationProperties props,
                                 OkHttpMetricsInterceptor interceptor,
-                                @Value('${services.kayenta.externalhttps:false}') boolean kayentaExternalHttps)
-  {
+                                @Value('${services.kayenta.externalhttps:false}') boolean kayentaExternalHttps) {
     if (kayentaExternalHttps) {
       def noSslCustomizationProps = props.clone()
       noSslCustomizationProps.keyStore = null
