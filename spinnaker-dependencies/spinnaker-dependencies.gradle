@@ -131,7 +131,7 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.jooq:jooq:3.9.6") // this is in spring-boot-dependencies but we're deliberately downgrading until we get the clouddriver working
+    api("org.jooq:jooq:3.11.6")
     api("org.objenesis:objenesis:2.5.1")
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.1.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
