@@ -71,12 +71,18 @@ metadata:
     KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
 
     when:
-    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, manifest, [])
+    KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
+    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, manifest, [], false)
+    def optional = kubernetesCacheData.toCacheData().stream().filter({
+      cd -> cd.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
+    }).findFirst()
 
     then:
     if (application == null) {
       true
     } else {
+      optional.isPresent()
+      def cacheData = optional.get()
       cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.ApplicationCacheKey.createKey(application)]
       if (cluster) {
         cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.ClusterCacheKey.createKey(account, application, cluster)]
@@ -106,7 +112,7 @@ metadata:
     def result = KubernetesCacheDataConverter.ownerReferenceRelationships(account, namespace, ownerRefs)
 
     then:
-    result.get(kind.toString()) == [Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)]
+    result.contains(new Keys.InfrastructureCacheKey(kind, account, namespace, name))
 
     where:
     kind                       | apiVersion                              | account           | cluster       | namespace        | name
@@ -142,37 +148,6 @@ metadata:
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1BETA1 | ["deployment": [Keys.InfrastructureCacheKey.createKey(KubernetesKind.DEPLOYMENT, "account", "namespace", "a-name")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.ClusterCacheKey.createKey("account", "app", "name")], "application": [Keys.ApplicationCacheKey.createKey("blarg")]]
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1           | ["cluster": [Keys.ClusterCacheKey.createKey("account", "app", "name")], "application": [Keys.ApplicationCacheKey.createKey("blarg"), Keys.ApplicationCacheKey.createKey("asdfasdf")]]
-  }
-
-  @Unroll
-  def "given a cache data entry, determines cluster relationships"() {
-    setup:
-    def account = "account"
-    def application = "app"
-    def id = Keys.InfrastructureCacheKey.createKey(kind, account, "namespace", cluster)
-    def attributes = [
-      moniker: [
-        app: application,
-        cluster: cluster
-      ]
-    ]
-    def cacheData = new DefaultCacheData(id, attributes, [:])
-
-    when:
-    def result = KubernetesCacheDataConverter.getClusterRelationships(account, [cacheData])
-
-    then:
-    result.size() == 1
-    result[0].id == Keys.ApplicationCacheKey.createKey(application)
-    result[0].relationships.clusters == [
-      Keys.ClusterCacheKey.createKey(account, application, cluster)
-    ] as Set
-
-    where:
-    kind                       | cluster
-    KubernetesKind.REPLICA_SET | "my-app-321"
-    KubernetesKind.DEPLOYMENT  | "my-app"
-    KubernetesKind.POD         | "my-app-321-abcd"
   }
 
   @Unroll

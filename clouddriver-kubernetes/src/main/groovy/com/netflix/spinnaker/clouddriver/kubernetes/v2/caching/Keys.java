@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -162,6 +163,7 @@ public class Keys {
     }
   }
 
+  @EqualsAndHashCode
   public abstract static class CacheKey {
     private static final String provider = "kubernetes.v2";
 
@@ -180,6 +182,7 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Getter
+  @RequiredArgsConstructor
   public static class ArtifactCacheKey extends CacheKey {
     @Getter private static final Kind kind = Kind.ARTIFACT;
     private final String type;
@@ -215,6 +218,7 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Getter
+  @RequiredArgsConstructor
   public static class ApplicationCacheKey extends LogicalKey {
     private static final LogicalKind logicalKind = LogicalKind.APPLICATIONS;
     private final String name;
@@ -249,6 +253,7 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Getter
+  @RequiredArgsConstructor
   public static class ClusterCacheKey extends LogicalKey {
     private static final LogicalKind logicalKind = LogicalKind.CLUSTERS;
     private final String account;
@@ -287,6 +292,7 @@ public class Keys {
 
   @EqualsAndHashCode(callSuper = true)
   @Getter
+  @RequiredArgsConstructor
   public static class InfrastructureCacheKey extends CacheKey {
     @Getter private static final Kind kind = Kind.INFRASTRUCTURE;
     private final KubernetesKind kubernetesKind;
@@ -304,6 +310,10 @@ public class Keys {
       account = parts[3];
       namespace = parts[4];
       name = parts[5];
+    }
+
+    public InfrastructureCacheKey(KubernetesManifest manifest, String account) {
+      this(manifest.getKind(), account, manifest.getNamespace(), manifest.getName());
     }
 
     public static String createKey(

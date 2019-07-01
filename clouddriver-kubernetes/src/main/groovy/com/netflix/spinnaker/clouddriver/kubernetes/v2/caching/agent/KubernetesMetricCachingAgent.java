@@ -69,6 +69,7 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
     log.info(getAgentType() + ": agent is starting");
     reloadNamespaces();
 
+    KubernetesCacheData kubernetesCacheData = new KubernetesCacheData();
     List<CacheData> cacheData =
         namespaces
             .parallelStream()
