@@ -3,44 +3,43 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.collect.ImmutableSet;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode
 public class KubernetesApiGroup {
-  private static final Map<String, KubernetesApiGroup> values =
-      Collections.synchronizedMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
   // from https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/
-  public static KubernetesApiGroup NONE = new KubernetesApiGroup("");
-  public static KubernetesApiGroup CORE = new KubernetesApiGroup("core");
-  public static KubernetesApiGroup BATCH = new KubernetesApiGroup("batch");
-  public static KubernetesApiGroup APPS = new KubernetesApiGroup("apps");
-  public static KubernetesApiGroup EXTENSIONS = new KubernetesApiGroup("extensions");
-  public static KubernetesApiGroup STORAGE_K8S_IO = new KubernetesApiGroup("storage.k8s.io");
-  public static KubernetesApiGroup APIEXTENSIONS_K8S_IO =
+  public static final KubernetesApiGroup NONE = new KubernetesApiGroup("");
+  public static final KubernetesApiGroup CORE = new KubernetesApiGroup("core");
+  public static final KubernetesApiGroup BATCH = new KubernetesApiGroup("batch");
+  public static final KubernetesApiGroup APPS = new KubernetesApiGroup("apps");
+  public static final KubernetesApiGroup EXTENSIONS = new KubernetesApiGroup("extensions");
+  public static final KubernetesApiGroup STORAGE_K8S_IO = new KubernetesApiGroup("storage.k8s.io");
+  public static final KubernetesApiGroup APIEXTENSIONS_K8S_IO =
       new KubernetesApiGroup("apiextensions.k8s.io");
-  public static KubernetesApiGroup APIREGISTRATION_K8S_IO =
+  public static final KubernetesApiGroup APIREGISTRATION_K8S_IO =
       new KubernetesApiGroup("apiregistration.k8s.io");
-  public static KubernetesApiGroup AUTOSCALING = new KubernetesApiGroup("autoscaling");
-  public static KubernetesApiGroup ADMISSIONREGISTRATION_K8S_IO =
+  public static final KubernetesApiGroup AUTOSCALING = new KubernetesApiGroup("autoscaling");
+  public static final KubernetesApiGroup ADMISSIONREGISTRATION_K8S_IO =
       new KubernetesApiGroup("admissionregistration.k8s.io");
-  public static KubernetesApiGroup POLICY = new KubernetesApiGroup("policy");
-  public static KubernetesApiGroup SCHEDULING_K8S_IO = new KubernetesApiGroup("scheduling.k8s.io");
-  public static KubernetesApiGroup SETTINGS_K8S_IO = new KubernetesApiGroup("settings.k8s.io");
-  public static KubernetesApiGroup AUTHORIZATION_K8S_IO =
+  public static final KubernetesApiGroup POLICY = new KubernetesApiGroup("policy");
+  public static final KubernetesApiGroup SCHEDULING_K8S_IO =
+      new KubernetesApiGroup("scheduling.k8s.io");
+  public static final KubernetesApiGroup SETTINGS_K8S_IO =
+      new KubernetesApiGroup("settings.k8s.io");
+  public static final KubernetesApiGroup AUTHORIZATION_K8S_IO =
       new KubernetesApiGroup("authorization.k8s.io");
-  public static KubernetesApiGroup AUTHENTICATION_K8S_IO =
+  public static final KubernetesApiGroup AUTHENTICATION_K8S_IO =
       new KubernetesApiGroup("authentication.k8s.io");
-  public static KubernetesApiGroup RBAC_AUTHORIZATION_K8S_IO =
+  public static final KubernetesApiGroup RBAC_AUTHORIZATION_K8S_IO =
       new KubernetesApiGroup("rbac.authorization.k8s.io");
-  public static KubernetesApiGroup CERTIFICATES_K8S_IO =
+  public static final KubernetesApiGroup CERTIFICATES_K8S_IO =
       new KubernetesApiGroup("certificates.k8s.io");
-  public static KubernetesApiGroup NETWORKING_K8S_IO = new KubernetesApiGroup("networking.k8s.io");
+  public static final KubernetesApiGroup NETWORKING_K8S_IO =
+      new KubernetesApiGroup("networking.k8s.io");
 
-  private final String name;
+  @Nonnull private final String name;
 
   // including NONE since it seems like any resource without an api group would have to be native
   private static final ImmutableSet<KubernetesApiGroup> NATIVE_GROUPS =
@@ -64,9 +63,8 @@ public class KubernetesApiGroup {
           NETWORKING_K8S_IO,
           NONE);
 
-  protected KubernetesApiGroup(String name) {
-    this.name = name;
-    values.put(name, this);
+  private KubernetesApiGroup(@Nonnull String name) {
+    this.name = name.toLowerCase();
   }
 
   @Override
@@ -80,13 +78,11 @@ public class KubernetesApiGroup {
   }
 
   @JsonCreator
-  public static KubernetesApiGroup fromString(String name) {
-    if (StringUtils.isEmpty(name)) {
-      return null;
+  @Nonnull
+  public static KubernetesApiGroup fromString(@Nullable String name) {
+    if (name == null) {
+      return KubernetesApiGroup.NONE;
     }
-
-    synchronized (values) {
-      return values.computeIfAbsent(name, KubernetesApiGroup::new);
-    }
+    return new KubernetesApiGroup(name);
   }
 }

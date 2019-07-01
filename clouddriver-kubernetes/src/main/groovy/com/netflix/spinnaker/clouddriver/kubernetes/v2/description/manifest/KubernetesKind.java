@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -204,7 +205,7 @@ public final class KubernetesKind {
     Predicate<KubernetesKind> groupMatches =
         kind -> {
           // Exact match
-          if (kind.apiGroup == apiGroup) {
+          if (Objects.equals(kind.apiGroup, apiGroup)) {
             return true;
           }
 
