@@ -196,6 +196,9 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       Serializable resourceName,
       String resourceType,
       Object authorization) {
+    if (!fiatStatus.isEnabled()) {
+      return true;
+    }
     return hasPermission(getUsername(authentication), resourceName, resourceType, authorization);
   }
 
