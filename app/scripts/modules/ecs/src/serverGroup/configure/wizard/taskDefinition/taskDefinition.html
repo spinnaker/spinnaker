@@ -1,0 +1,44 @@
+<div class="clearfix">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="container-fluid form-horizontal">
+        <div class="form-group">
+          <div class="col-md-4 sm-label-right">
+            <b>Task Definition source</b>
+            <help-field key="ecs.taskDefinition"></help-field>
+          </div>
+          <div class="col-md-2 radio">
+            <label>
+              <input
+                type="radio"
+                ng-model="command.useTaskDefinitionArtifact"
+                ng-value="false"
+                id="taskDefinitionSourceInputs"
+              />
+              Inputs
+            </label>
+          </div>
+          <div class="col-md-1 radio">
+            <label>
+              <input
+                type="radio"
+                ng-model="command.useTaskDefinitionArtifact"
+                ng-value="true"
+                id="taskDefinitionSourceArtifact"
+              />
+              Artifact
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12" ng-if="command.useTaskDefinitionArtifact">
+      <hr />
+      <task-definition-react
+        command="command"
+        notify-angular="notifyAngular"
+        configure-command="configureCommand"
+      ></task-definition-react>
+    </div>
+  </div>
+</div>

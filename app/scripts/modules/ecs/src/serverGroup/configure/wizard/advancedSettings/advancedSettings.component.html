@@ -38,26 +38,28 @@
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-md-5 sm-label-right">
-      <b>Docker Image Credentials</b> <help-field key="ecs.dockerimagecredentials"></help-field>
-    </div>
-    <div class="col-md-7" ng-if="!$ctrl.command.backingData.filtered.secrets.length">
-      No account or region was selected, or no AWS Secrets Manager secrets are available in this account and region.
-    </div>
+  <div ng-if="!$ctrl.command.useTaskDefinitionArtifact">
+    <div class="form-group">
+      <div class="col-md-5 sm-label-right">
+        <b>Docker Image Credentials</b> <help-field key="ecs.dockerimagecredentials"></help-field>
+      </div>
+      <div class="col-md-7" ng-if="!$ctrl.command.backingData.filtered.secrets.length">
+        No account or region was selected, or no AWS Secrets Manager secrets are available in this account and region.
+      </div>
 
-    <div class="col-md-7" ng-if="$ctrl.command.backingData.filtered.secrets.length">
-      <ui-select
-        ng-model="$ctrl.command.dockerImageCredentialsSecret"
-        class="form-control input-sm"
-        required
-        on-select="$ctrl.fieldChanged()"
-      >
-        <ui-select-match>{{ $select.selected }}</ui-select-match>
-        <ui-select-choices repeat="secret in $ctrl.command.backingData.filtered.secrets | filter: $select.search">
-          <span ng-bind-html="secret"></span>
-        </ui-select-choices>
-      </ui-select>
+      <div class="col-md-7" ng-if="$ctrl.command.backingData.filtered.secrets.length">
+        <ui-select
+          ng-model="$ctrl.command.dockerImageCredentialsSecret"
+          class="form-control input-sm"
+          required
+          on-select="$ctrl.fieldChanged()"
+        >
+          <ui-select-match>{{ $select.selected }}</ui-select-match>
+          <ui-select-choices repeat="secret in $ctrl.command.backingData.filtered.secrets | filter: $select.search">
+            <span ng-bind-html="secret"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
     </div>
   </div>
 
@@ -114,10 +116,10 @@
                 class="form-control input-sm"
                 ng-model="constraint.type"
                 ng-options="type for type in ['distinctInstance', 'memberOf']"
-              />
+              ></select>
             </td>
             <td>
-              <input type="text" class="form-control input-sm no-spel" ng-model="constraint.expression"/>
+              <input type="text" class="form-control input-sm no-spel" ng-model="constraint.expression" />
             </td>
             <td>
               <div class="form-control-static">
@@ -143,20 +145,22 @@
     </form>
   </div>
 
-  <div class="form-group">
-    <div class="sm-label-left">
-      <b>Docker labels (optional)</b>
-      <help-field key="ecs.dockerLabels"></help-field>
+  <div ng-if="!$ctrl.command.useTaskDefinitionArtifact">
+    <div class="form-group">
+      <div class="sm-label-left">
+        <b>Docker labels (optional)</b>
+        <help-field key="ecs.dockerLabels"></help-field>
+      </div>
+      <map-editor model="$ctrl.command.dockerLabels" allow-empty="true"></map-editor>
     </div>
-    <map-editor model="$ctrl.command.dockerLabels" allow-empty="true"></map-editor>
-  </div>
 
-  <div class="form-group">
-    <div class="sm-label-left">
-      <b>Environment Variables (optional)</b>
-      <help-field key="ecs.environmentVariables"></help-field>
+    <div class="form-group">
+      <div class="sm-label-left">
+        <b>Environment Variables (optional)</b>
+        <help-field key="ecs.environmentVariables"></help-field>
+      </div>
+      <map-editor model="$ctrl.command.environmentVariables" allow-empty="true"></map-editor>
     </div>
-    <map-editor model="$ctrl.command.environmentVariables" allow-empty="true"></map-editor>
   </div>
 
   <div class="form-group">
@@ -165,5 +169,16 @@
       <help-field key="ecs.tags"></help-field>
     </div>
     <map-editor model="$ctrl.command.tags" allow-empty="true"></map-editor>
+  </div>
+
+  <div ng-if="$ctrl.command.useTaskDefinitionArtifact" style="color:#666;">
+    <hr />
+    <p>
+      <em
+        ><strong>Docker Image Credentials, Docker labels</strong>, and <strong>Environment Variables</strong> cannot be
+        individually set when using a Task Definition artifact. Please include them in their respective container
+        definition in that file.
+      </em>
+    </p>
   </div>
 </div>

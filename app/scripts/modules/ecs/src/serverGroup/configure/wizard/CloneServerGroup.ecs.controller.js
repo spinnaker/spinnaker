@@ -8,6 +8,7 @@ import {
   SERVER_GROUP_WRITER,
   TaskMonitor,
   ModalWizard,
+  STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
 } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
@@ -25,6 +26,7 @@ module.exports = angular
     IAM_ROLE_READ_SERVICE,
     ECS_CLUSTER_READ_SERVICE,
     ECS_SECRET_READ_SERVICE,
+    STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
   ])
   .controller('ecsCloneServerGroupCtrl', [
     '$scope',
@@ -80,6 +82,10 @@ module.exports = angular
         advancedSettings: overrideRegistry.getTemplate(
           'ecs.serverGroup.advancedSettings',
           require('./advancedSettings/advancedSettings.html'),
+        ),
+        taskDefinition: overrideRegistry.getTemplate(
+          'ecs.taskDefinition',
+          require('./taskDefinition/taskDefinition.html'),
         ),
       };
 
@@ -157,7 +163,7 @@ module.exports = angular
       });
 
       function configureCommand() {
-        ecsServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function() {
+        ecsServerGroupConfigurationService.configureCommand($scope.command).then(function() {
           $scope.state.loaded = true;
           initializeCommand();
           initializeSelectOptions();
@@ -224,6 +230,20 @@ module.exports = angular
       this.templateSelected = () => {
         $scope.state.requiresTemplateSelection = false;
         configureCommand();
+      };
+
+      // used by react components to update command fields in parent (angular) scope
+      $scope.notifyAngular = function(commandKey, value) {
+        if (commandKey == 'pipeline') {
+          $scope.command.viewState.pipeline = value;
+        } else {
+          $scope.command[commandKey] = value;
+        }
+      };
+
+      // used by react components to configure command for image queries
+      $scope.configureCommand = function(query) {
+        return ecsServerGroupConfigurationService.configureCommand($scope.command, query);
       };
     },
   ]);

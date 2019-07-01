@@ -5,7 +5,10 @@ import {
   AccountService,
   CACHE_INITIALIZER_SERVICE,
   IAccountDetails,
+  IArtifact,
   IDeploymentStrategy,
+  IPipeline,
+  IStage,
   IRegion,
   IServerGroupCommand,
   IServerGroupCommandBackingData,
@@ -59,6 +62,8 @@ export interface IEcsDockerImage extends IDockerImage {
 
 export interface IEcsServerGroupCommandViewState extends IServerGroupCommandViewState {
   contextImages: IEcsDockerImage[];
+  pipeline: IPipeline;
+  currentStage: IStage;
 }
 
 export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupCommandBackingDataFiltered {
@@ -87,6 +92,16 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   images: IEcsDockerImage[];
 }
 
+export interface IEcsTaskDefinitionArtifact {
+  artifact?: IArtifact;
+  artifactId?: string;
+}
+
+export interface IEcsContainerMapping {
+  containerName: string;
+  imageDescription: IEcsDockerImage;
+}
+
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
   backingData: IEcsServerGroupCommandBackingData;
   targetHealthyDeployPercentage: number;
@@ -95,6 +110,10 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   placementStrategySequence: IPlacementStrategy[];
   imageDescription: IEcsDockerImage;
   viewState: IEcsServerGroupCommandViewState;
+  taskDefinitionArtifact: IEcsTaskDefinitionArtifact;
+  taskDefinitionArtifactAccount: string;
+  containerMappings: IEcsContainerMapping[];
+  loadBalancedContainer: string;
 
   subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
@@ -210,6 +229,7 @@ export class EcsServerGroupConfigurationService {
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
+
         if (cmd.viewState.contextImages) {
           backingData.images = backingData.images.concat(cmd.viewState.contextImages);
         }

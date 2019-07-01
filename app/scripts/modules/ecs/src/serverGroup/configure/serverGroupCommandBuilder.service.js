@@ -141,6 +141,8 @@ module.exports = angular
               healthCheckGracePeriodSeconds: '',
               placementConstraints: [],
               placementStrategyName: '',
+              taskDefinitionArtifact: {},
+              useTaskDefinitionArtifact: false,
               placementStrategySequence: [],
               serviceDiscoveryAssociations: [],
               ecsClusterName: '',
@@ -201,6 +203,8 @@ module.exports = angular
             existingPipelineCluster: true,
             dirty: {},
             contextImages: contextImages,
+            pipeline: pipeline,
+            currentStage: current,
           };
 
           var viewOverrides = {
@@ -224,9 +228,12 @@ module.exports = angular
         return $q.when({
           viewState: {
             requiresTemplateSelection: true,
+            // applies viewState overrides after template selection
             overrides: {
               viewState: {
                 contextImages: contextImages,
+                pipeline: pipeline,
+                currentStage: current,
               },
             },
           },
@@ -247,6 +254,7 @@ module.exports = angular
       function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
         var preferredZonesLoader = AccountService.getPreferredZonesByAccount('ecs');
 
+        // TODO: not set when called w/ existing template, might need to call buildUpdateServerGroupCommand?
         var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         var asyncLoader = $q.all({
@@ -291,6 +299,11 @@ module.exports = angular
               .map(process => process.processName)
               .filter(name => !enabledProcesses.includes(name)),
             targetGroup: serverGroup.targetGroup,
+            taskDefinitionArtifact: {},
+            taskDefinitionArtifactAccount: '',
+            useTaskDefinitionArtifact: false,
+            containerMappings: [],
+            loadBalancedContainer: '',
             copySourceScalingPoliciesAndActions: true,
             viewState: {
               instanceProfile: asyncData.instanceProfile,
