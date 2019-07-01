@@ -8,17 +8,14 @@ export interface IExecutionPermalinkProps {
 }
 
 export const ExecutionPermalink = ({ standalone }: IExecutionPermalinkProps) => {
-  const [url, setUrl] = React.useState(location.href);
+  const asPermalink = (link: string) => (standalone ? link : link.replace('/executions', '/executions/details'));
+
+  const [url, setUrl] = React.useState(asPermalink(location.href));
 
   React.useEffect(() => {
-    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe(() => {
-      const newUrl = location.href;
+    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe(newUrl => {
       if (url !== newUrl) {
-        if (!standalone) {
-          setUrl(newUrl);
-        } else {
-          setUrl(newUrl.replace('/executions', '/executions/details'));
-        }
+        setUrl(asPermalink(newUrl));
       }
     });
     return () => subscription.unsubscribe();
