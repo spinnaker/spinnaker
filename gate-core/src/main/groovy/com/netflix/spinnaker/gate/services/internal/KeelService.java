@@ -17,10 +17,14 @@
  */
 package com.netflix.spinnaker.gate.services.internal;
 
+import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import com.netflix.spinnaker.kork.manageddelivery.model.ResourceEvent;
 import java.time.Instant;
 import java.util.List;
+import retrofit.http.Body;
+import retrofit.http.DELETE;
 import retrofit.http.GET;
+import retrofit.http.POST;
 import retrofit.http.Path;
 import retrofit.http.Query;
 
@@ -28,4 +32,13 @@ public interface KeelService {
 
   @GET("/resources/events/{name}")
   List<ResourceEvent> getResourceEvents(@Path("name") String name, @Query("since") Instant since);
+
+  @GET("/resources/{name}")
+  Resource getResource(@Path("name") String name);
+
+  @POST("/resources")
+  Resource upsertResource(@Body Resource resource);
+
+  @DELETE("/resources/{name}")
+  Resource deleteResource(@Path("name") String name);
 }
