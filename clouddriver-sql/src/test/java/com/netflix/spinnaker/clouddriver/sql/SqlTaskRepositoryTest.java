@@ -22,8 +22,6 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties;
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import java.time.Clock;
-import java.util.Arrays;
-import java.util.Optional;
 import org.junit.After;
 
 public class SqlTaskRepositoryTest extends TaskRepositoryTck {
@@ -32,7 +30,7 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
   @Override
   protected TaskRepository createTaskRepository() {
-    database = SqlTestUtil.initDatabase("jdbc:h2:mem:test" + System.currentTimeMillis());
+    database = SqlTestUtil.initTcMysqlDatabase();
 
     RetryProperties retry = new RetryProperties(0, 0);
     SqlRetryProperties properties =
@@ -46,8 +44,6 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
   @After
   public void cleanup() {
-    Optional.ofNullable(database)
-        .ifPresent(
-            d -> SqlTestUtil.cleanupDb(d, Arrays.asList("tasks", "task_states", "task_results")));
+    SqlTestUtil.cleanupDb(database.context);
   }
 }

@@ -42,8 +42,6 @@ class TitusEurekaSupport extends AbstractEurekaSupport {
     EurekaUtil.getWritableEureka(credentials.discovery, region)
   }
 
-  @VisibleForTesting
-  @PackageScope
   boolean verifyInstanceAndAsgExist(def credentials,
                                     String region,
                                     String instanceId,

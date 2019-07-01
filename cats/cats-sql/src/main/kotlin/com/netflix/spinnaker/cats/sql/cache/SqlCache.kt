@@ -841,25 +841,14 @@ class SqlCache(
   private fun createTables(type: String) {
     if (!createdTables.contains(type)) {
       try {
-        if (jooq.dialect().name != "H2") {
-          withRetry(RetryCategory.WRITE) {
-            jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(type)} " +
-              "LIKE cats_v${schemaVersion}_resource_template")
-            jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(type)} " +
-              "LIKE cats_v${schemaVersion}_rel_template")
-          }
-
-          createdTables.add(type)
-        } else {
-          withRetry(RetryCategory.WRITE) {
-            jooq.execute("CREATE TABLE ${resourceTableName(type)} " +
-              "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
-            jooq.execute("CREATE TABLE ${relTableName(type)} " +
-              "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
-          }
-
-          createdTables.add(type)
+        withRetry(RetryCategory.WRITE) {
+          jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(type)} " +
+            "LIKE cats_v${schemaVersion}_resource_template")
+          jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(type)} " +
+            "LIKE cats_v${schemaVersion}_rel_template")
         }
+
+        createdTables.add(type)
       } catch (e: Exception) {
         log.error("Error creating tables for type $type", e)
       }
@@ -867,25 +856,14 @@ class SqlCache(
     if (!createdTables.contains(onDemandType)) {
       // TODO not sure if best schema for onDemand
       try {
-        if (jooq.dialect().name != "H2") {
-          withRetry(RetryCategory.WRITE) {
-            jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(onDemandType)} " +
-              "LIKE cats_v${schemaVersion}_resource_template")
-            jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(onDemandType)} " +
-              "LIKE cats_v${schemaVersion}_rel_template")
-          }
-
-          createdTables.add(onDemandType)
-        } else {
-          withRetry(RetryCategory.WRITE) {
-            jooq.execute("CREATE TABLE ${resourceTableName(onDemandType)} " +
-              "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
-            jooq.execute("CREATE TABLE ${relTableName(onDemandType)} " +
-              "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
-          }
-
-          createdTables.add(onDemandType)
+        withRetry(RetryCategory.WRITE) {
+          jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(onDemandType)} " +
+            "LIKE cats_v${schemaVersion}_resource_template")
+          jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(onDemandType)} " +
+            "LIKE cats_v${schemaVersion}_rel_template")
         }
+
+        createdTables.add(onDemandType)
       } catch (e: Exception) {
         log.error("Error creating $onDemandType table", e)
       }

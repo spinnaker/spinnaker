@@ -25,12 +25,11 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "io.github.resilience4j:resilience4j-retry"
-  implementation("org.jooq:jooq:3.9.6") {
-    force = true
-
-  }
+  implementation "org.jooq:jooq"
 
   testImplementation project(":clouddriver-core-tck")
 
   testImplementation "com.netflix.spinnaker.kork:kork-sql-test"
+  testImplementation "org.testcontainers:mysql"
+  testImplementation "mysql:mysql-connector-java"
 }

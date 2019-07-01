@@ -95,7 +95,7 @@ abstract class CacheSpec extends Specification {
         '*TEST*'                | ['blaTEST', 'blaTESTbla', 'TESTbla']
         'bla*'                  | ['blaTEST', 'blaTESTbla', 'blaPest', 'blaFEST']
         'bla[TF]EST'            | ['blaTEST', 'blaFEST']
-        'bla?EST'               | ['blaTEST', 'blaFEST']
+        'bla????'               | ['blaTEST', 'blaPest', 'blaFEST']
         '??a[FTP][Ee][Ss][Tt]*' | ['blaTEST', 'blaTESTbla', 'blaPest', 'blaFEST']
 
         identifiers = ['blaTEST', 'TESTbla', 'blaTESTbla', 'blaPest', 'blaFEST']

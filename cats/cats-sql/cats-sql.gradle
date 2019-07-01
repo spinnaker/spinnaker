@@ -32,7 +32,6 @@ dependencies {
   testAnnotationProcessor "org.projectlombok:lombok"
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.h2database:h2:1.4.197"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
@@ -46,9 +45,7 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1"
-  implementation("org.jooq:jooq:3.9.6"){
-    force = true
-  }
+  implementation("org.jooq:jooq")
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation project(":cats:cats-test")
@@ -67,4 +64,6 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testImplementation "org.testcontainers:mysql"
+  testImplementation "mysql:mysql-connector-java"
 }

@@ -45,8 +45,6 @@ class AwsEurekaSupport extends AbstractEurekaSupport {
     return eureka
   }
 
-  @VisibleForTesting
-  @PackageScope
   boolean verifyInstanceAndAsgExist(def credentials,
                                     String region,
                                     String instanceId,

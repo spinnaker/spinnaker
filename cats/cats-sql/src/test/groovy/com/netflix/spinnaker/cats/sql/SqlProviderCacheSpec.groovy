@@ -14,6 +14,8 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+import com.zaxxer.hikari.HikariDataSource
+import org.jooq.DSLContext
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -22,18 +24,19 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDatabase
 
 class SqlProviderCacheSpec extends ProviderCacheSpec {
 
   @Shared
+  DSLContext context
+
   @AutoCleanup("close")
-  SqlTestUtil.TestDatabase currentDatabase
+  HikariDataSource dataSource
 
   WriteableCache backingStore
 
   def cleanup() {
-    currentDatabase.context.dropSchemaIfExists("test")
+    SqlTestUtil.cleanupDb(context)
   }
 
   @Override
@@ -50,10 +53,14 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
     def dynamicConfigService = Mock(DynamicConfigService) {
       getConfig(_ as Class, _ as String, _) >> 10
     }
-    currentDatabase = initDatabase("jdbc:h2:mem:test${System.currentTimeMillis()}")
+
+    SqlTestUtil.TestDatabase testDatabase = SqlTestUtil.initTcMysqlDatabase()
+    context = testDatabase.context
+    dataSource = testDatabase.dataSource
+
     backingStore = new SqlCache(
       "test",
-      currentDatabase.context,
+      context,
       mapper,
       null,
       clock,
