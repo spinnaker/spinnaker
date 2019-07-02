@@ -138,71 +138,75 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   @PackageScope
   Collection<String> handleLogin(String email, X509Certificate x509) {
 
-    final Instant now = clock.instant()
-    final boolean loginDebounceEnabled = dynamicConfigService.isEnabled('x509.loginDebounce', false)
-    final boolean shouldLogin
-    if (loginDebounceEnabled) {
-      final Duration debounceWindow = Duration.ofSeconds(dynamicConfigService.getConfig(Long, 'x509.loginDebounce.debounceWindowSeconds', TimeUnit.MINUTES.toSeconds(5)))
-      final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
-      UserPermission.View fiatPermission = AuthenticatedRequest.allowAnonymous { fiatPermissionEvaluator.getPermission(email) }
-      shouldLogin = fiatPermission == null ||
-        lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
-    } else {
-      shouldLogin = true
-    }
+    return AuthenticatedRequest.allowAnonymous({ ->
+      final Instant now = clock.instant()
+      final boolean loginDebounceEnabled = dynamicConfigService.isEnabled('x509.loginDebounce', false)
+      boolean shouldLogin
 
-    def roles = [email]
+      if (loginDebounceEnabled) {
+        final Duration debounceWindow = Duration.ofSeconds(dynamicConfigService.getConfig(Long, 'x509.loginDebounce.debounceWindowSeconds', TimeUnit.MINUTES.toSeconds(5)))
+        final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
+        UserPermission.View fiatPermission = AuthenticatedRequest.allowAnonymous { fiatPermissionEvaluator.getPermission(email) }
+        shouldLogin = fiatPermission == null ||
+          lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
+      } else {
+        shouldLogin = true
+      }
 
-    if (rolesExtractor) {
-      def extractedRoles = rolesExtractor.fromCertificate(x509)
-      log.debug("Extracted roles from certificate for user {}: {}", email, extractedRoles)
-      roles += extractedRoles
-    }
+      def roles = [email]
 
-    if (shouldLogin) {
-      def id = registry
+      if (rolesExtractor) {
+        def extractedRoles = rolesExtractor.fromCertificate(x509)
+        log.debug("Extracted roles from certificate for user {}: {}", email, extractedRoles)
+        roles += extractedRoles
+      }
+
+      if (shouldLogin) {
+        def id = registry
           .createId("fiat.login")
           .withTag("type", "x509")
 
-      try {
-        if (rolesExtractor) {
-          permissionService.loginWithRoles(email, roles)
-          log.debug("Successful X509 authentication (user: {}, roleCount: {}, roles: {})", email, roles.size(), roles)
-        } else {
-          permissionService.login(email)
-          log.debug("Successful X509 authentication (user: {})", email)
-        }
+        try {
+          if (rolesExtractor) {
+            permissionService.loginWithRoles(email, roles)
+            log.debug("Successful X509 authentication (user: {}, roleCount: {}, roles: {})", email, roles.size(), roles)
+          } else {
+            permissionService.login(email)
+            log.debug("Successful X509 authentication (user: {})", email)
+          }
 
-        id = id.withTag("success", true).withTag("fallback", "none")
-      } catch (Exception e) {
-        log.debug(
+          id = id.withTag("success", true).withTag("fallback", "none")
+        } catch (Exception e) {
+          log.debug(
             "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
             email,
             roles.size(),
             roles,
             fiatClientConfigurationProperties.legacyFallback
-        )
-        id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
+          )
+          id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
 
-        if (!fiatClientConfigurationProperties.legacyFallback) {
-          throw e
+          if (!fiatClientConfigurationProperties.legacyFallback) {
+            throw e
+          }
+        } finally {
+          registry.counter(id).increment()
         }
-      } finally {
-        registry.counter(id).increment()
+
+        if (loginDebounceEnabled) {
+          loginDebounce.put(email, now)
+        }
       }
 
-      if (loginDebounceEnabled) {
-        loginDebounce.put(email, now)
+      def permission = fiatPermissionEvaluator.getPermission(email)
+      def roleNames = permission?.getRoles()?.collect { it -> it.getName() }
+      log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
+      if (roleNames) {
+        roles.addAll(roleNames)
       }
-    }
 
-    def permission = fiatPermissionEvaluator.getPermission(email)
-    def roleNames = permission?.getRoles()?.collect { it -> it.getName()}
-    log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
-    if (roleNames) {
-      roles.addAll(roleNames)
-    }
-    return roles.unique(/* mutate = */false)
+      return roles.unique(/* mutate = */false)
+    })
   }
 
   /**

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,20 +35,28 @@ class WebhookService {
   Map webhooks(String type, String source, Map event) {
     if (event == null) {
       // Need this since Retrofit.Body does not work with null as Body
-      event = new HashMap();
+      event = new HashMap()
     }
-    echoService.webhooks(type, source, event)
+
+    return AuthenticatedRequest.allowAnonymous( {
+      echoService.webhooks(type, source, event)
+    })
   }
 
   Map webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
     if (event == null) {
       // Need this since Retrofit.Body does not work with null as Body
-      event = new HashMap();
+      event = new HashMap()
     }
-    echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
+
+    return AuthenticatedRequest.allowAnonymous({
+      echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
+    })
   }
 
   List preconfiguredWebhooks() {
-    return orcaServiceSelector.withContext(RequestContext.get()).preconfiguredWebhooks()
+    return AuthenticatedRequest.allowAnonymous({
+      orcaServiceSelector.withContext(RequestContext.get()).preconfiguredWebhooks()
+    })
   }
 }

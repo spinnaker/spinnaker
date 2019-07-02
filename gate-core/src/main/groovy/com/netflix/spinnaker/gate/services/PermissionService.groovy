@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,8 +55,10 @@ class PermissionService {
     if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "login") {
         try {
-          fiatService.loginUser(userId, "")
-          permissionEvaluator.invalidatePermission(userId)
+          AuthenticatedRequest.allowAnonymous({
+            fiatService.loginUser(userId, "")
+            permissionEvaluator.invalidatePermission(userId)
+          })
         } catch (RetrofitError e) {
           throw classifyError(e)
         }
@@ -67,8 +70,10 @@ class PermissionService {
     if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "loginWithRoles") {
         try {
-          fiatService.loginWithRoles(userId, roles)
-          permissionEvaluator.invalidatePermission(userId)
+          AuthenticatedRequest.allowAnonymous({
+            fiatService.loginWithRoles(userId, roles)
+            permissionEvaluator.invalidatePermission(userId)
+          })
         } catch (RetrofitError e) {
           throw classifyError(e)
         }
