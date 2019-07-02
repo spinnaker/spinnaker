@@ -114,6 +114,7 @@ class SchedulerConfiguration {
         if (sqlEnabled) {
           Properties props = new Properties()
           props.put("org.quartz.jobStore.isClustered", "true")
+          props.put("org.quartz.jobStore.acquireTriggersWithinLock", "true")
           schedulerFactoryBean.setQuartzProperties(props)
         }
         schedulerFactoryBean.setGlobalTriggerListeners(triggerListener)
