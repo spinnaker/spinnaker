@@ -215,23 +215,23 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   protected String attributesId(String type, String id) {
-    return String.format("%s:%s:attributes:%s", prefix, type, id);
+    return String.join(":", prefix, type, "attributes", id);
   }
 
   protected String relationshipId(String type, String id, String relationship) {
-    return String.format("%s:%s:relationships:%s:%s", prefix, type, id, relationship);
+    return String.join(":", prefix, type, "relationships", id, relationship);
   }
 
   private String hashesDisabled(String type) {
-    return String.format("%s:%s:hashes.disabled", prefix, type);
+    return String.join(":", prefix, type, "hashes.disabled");
   }
 
   protected String allRelationshipsId(String type) {
-    return String.format("%s:%s:relationships", prefix, type);
+    return String.join(":", prefix, type, "relationships");
   }
 
   protected String allOfTypeId(String type) {
-    return String.format("%s:%s:members", prefix, type);
+    return String.join(":", prefix, type, "members");
   }
 
   protected TypeReference getRelationshipsTypeReference() {
