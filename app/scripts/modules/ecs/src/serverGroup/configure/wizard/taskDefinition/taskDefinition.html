@@ -24,11 +24,16 @@
                 type="radio"
                 ng-model="command.useTaskDefinitionArtifact"
                 ng-value="true"
+                ng-disabled="command.viewState.mode === 'create'"
                 id="taskDefinitionSourceArtifact"
               />
               Artifact
             </label>
           </div>
+        </div>
+        <div ng-if="command.viewState.mode === 'create'" class="color-text-caption">
+          <hr />
+          <span><em>Artifacts not supported outside of pipelines.</em></span>
         </div>
       </div>
     </div>
