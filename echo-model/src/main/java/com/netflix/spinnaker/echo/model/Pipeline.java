@@ -39,7 +39,7 @@ import lombok.experimental.Wither;
 public class Pipeline {
   @JsonProperty @NonNull String application;
 
-  @JsonProperty Object config;
+  Object config;
 
   @JsonProperty @NonNull String name;
 
@@ -86,12 +86,16 @@ public class Pipeline {
   @JsonPOJOBuilder(withPrefix = "")
   public static final class PipelineBuilder {
     @JsonProperty("config")
-    private void unpackConfig(Map<String, Object> config) {
-      if (config == null) {
-        return;
+    private void setConfig(Map<String, Object> config) {
+      if (config != null) {
+        this.config = config;
+        schema = (String) config.get("schema");
       }
-      this.config = config;
-      schema = (String) config.get("schema");
+    }
+
+    @JsonProperty()
+    Object getConfig() {
+      return this.config;
     }
   }
 }

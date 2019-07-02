@@ -24,15 +24,16 @@ import spock.lang.Specification
 
 class PipelineSpec extends Specification {
 
-    @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared
+  ObjectMapper objectMapper = new ObjectMapper()
 
-    void setupSpec() {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    }
+  void setupSpec() {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  }
 
-    void 'pipeline config deserialization should work fine'() {
-        setup:
-        String pipelineJson = ''' {
+  void 'pipeline config deserialization should work fine'() {
+    setup:
+    String pipelineJson = ''' {
             "name": "Testing Triggering",
             "stages": [
                 {
@@ -63,26 +64,26 @@ class PipelineSpec extends Specification {
             "id": "68a14710-1ade-11e5-89a8-65c9c7540d0f"
         }
         '''
-        when:
-        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
 
-        then:
-        noExceptionThrown()
-        pipeline != null
-        pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
-        pipeline.name == 'Testing Triggering'
-        pipeline.application == 'api'
-        pipeline.triggers?.size() == 1
-        pipeline.triggers[0] != null
-        pipeline.triggers[0].id == 'ec2728d9-9dd2-43da-ab91-1e318ef592af'
-        pipeline.triggers[0].type == 'cron'
-        pipeline.triggers[0].cronExpression == '* 0/30 * * * ? *'
-        !pipeline.triggers[0].enabled
-    }
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+    pipeline.name == 'Testing Triggering'
+    pipeline.application == 'api'
+    pipeline.triggers?.size() == 1
+    pipeline.triggers[0] != null
+    pipeline.triggers[0].id == 'ec2728d9-9dd2-43da-ab91-1e318ef592af'
+    pipeline.triggers[0].type == 'cron'
+    pipeline.triggers[0].cronExpression == '* 0/30 * * * ? *'
+    !pipeline.triggers[0].enabled
+  }
 
-    void 'pipeline configs deserialization should work fine'() {
-        setup:
-        String pipelineJson = ''' [
+  void 'pipeline configs deserialization should work fine'() {
+    setup:
+    String pipelineJson = ''' [
             {
                 "name": "Testing Triggering",
                 "stages": [
@@ -131,25 +132,25 @@ class PipelineSpec extends Specification {
             }
         ]
         '''
-        when:
-        List<Pipeline> pipelines = objectMapper.readValue(pipelineJson, new TypeReference<List<Pipeline>>() {})
+    when:
+    List<Pipeline> pipelines = objectMapper.readValue(pipelineJson, new TypeReference<List<Pipeline>>() {})
 
-        then:
-        noExceptionThrown()
-        pipelines?.size() == 2
-        pipelines[0] != null
-        pipelines[0].id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
-        pipelines[0].triggers?.size() == 1
-        pipelines[0].triggers[0] != null
-        pipelines[1] != null
-        pipelines[1].id == 'e06e9950-113d-11e5-ae15-5107b26a5b34'
-        pipelines[1].triggers?.size() == 1
-        pipelines[1].triggers[0] != null
-    }
+    then:
+    noExceptionThrown()
+    pipelines?.size() == 2
+    pipelines[0] != null
+    pipelines[0].id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+    pipelines[0].triggers?.size() == 1
+    pipelines[0].triggers[0] != null
+    pipelines[1] != null
+    pipelines[1].id == 'e06e9950-113d-11e5-ae15-5107b26a5b34'
+    pipelines[1].triggers?.size() == 1
+    pipelines[1].triggers[0] != null
+  }
 
-    void 'pipeline config deserialization for pipelines with no triggers should work fine'() {
-        setup:
-        String pipelineJson = ''' {
+  void 'pipeline config deserialization for pipelines with no triggers should work fine'() {
+    setup:
+    String pipelineJson = ''' {
             "name": "Testing Triggering",
             "stages": [
                 {
@@ -164,20 +165,20 @@ class PipelineSpec extends Specification {
             "id": "68a14710-1ade-11e5-89a8-65c9c7540d0f"
         }
         '''
-        when:
-        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
 
-        then:
-        noExceptionThrown()
-        pipeline != null
-        pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
-        pipeline.name == 'Testing Triggering'
-        pipeline.application == 'api'
-        pipeline.triggers?.size() == 0
-    }
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+    pipeline.name == 'Testing Triggering'
+    pipeline.application == 'api'
+    pipeline.triggers?.size() == 0
+  }
 
-    void 'pipeline config deserialization for pipelines with jenkins trigger should work fine'() {
-        String pipelineJson = ''' {
+  void 'pipeline config deserialization for pipelines with jenkins trigger should work fine'() {
+    String pipelineJson = ''' {
             "name": "Testing Execution Windows",
             "stages": [
                 {
@@ -200,24 +201,24 @@ class PipelineSpec extends Specification {
         }
         '''
 
-        when:
-        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
 
-        then:
-        noExceptionThrown()
-        pipeline != null
-        pipeline.id == 'e06e9950-113d-11e5-ae15-5107b26a5b34'
-        pipeline.triggers?.size() == 1
-        pipeline.triggers[0] != null
-        pipeline.triggers[0].id == null
-        pipeline.triggers[0].type == 'jenkins'
-        pipeline.triggers[0].cronExpression == null
-        pipeline.triggers[0].enabled == true
-    }
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == 'e06e9950-113d-11e5-ae15-5107b26a5b34'
+    pipeline.triggers?.size() == 1
+    pipeline.triggers[0] != null
+    pipeline.triggers[0].id == null
+    pipeline.triggers[0].type == 'jenkins'
+    pipeline.triggers[0].cronExpression == null
+    pipeline.triggers[0].enabled == true
+  }
 
-    void 'pipeline config deserialization with multiple triggers should work fine'() {
-        setup:
-        String pipelineJson = ''' {
+  void 'pipeline config deserialization with multiple triggers should work fine'() {
+    setup:
+    String pipelineJson = ''' {
             "name": "Testing Triggering",
             "stages": [
                 {
@@ -244,32 +245,32 @@ class PipelineSpec extends Specification {
             "id": "68a14710-1ade-11e5-89a8-65c9c7540d0f"
         }
         '''
-        when:
-        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
 
-        then:
-        noExceptionThrown()
-        pipeline != null
-        pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
-        pipeline.name == 'Testing Triggering'
-        pipeline.application == 'api'
-        pipeline.triggers?.size() == 2
-        pipeline.triggers[0] != null
-        pipeline.triggers[0].id == 'ec2728d9-9dd2-43da-ab91-1e318ef592af'
-        pipeline.triggers[0].type == 'cron'
-        pipeline.triggers[0].cronExpression == '* 0/30 * * * ? *'
-        !pipeline.triggers[0].enabled
-        pipeline.triggers[1] != null
-        pipeline.triggers[1].id == null
-        pipeline.triggers[1].type == 'jenkins'
-        pipeline.triggers[1].cronExpression == null
-        pipeline.triggers[1].enabled
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+    pipeline.name == 'Testing Triggering'
+    pipeline.application == 'api'
+    pipeline.triggers?.size() == 2
+    pipeline.triggers[0] != null
+    pipeline.triggers[0].id == 'ec2728d9-9dd2-43da-ab91-1e318ef592af'
+    pipeline.triggers[0].type == 'cron'
+    pipeline.triggers[0].cronExpression == '* 0/30 * * * ? *'
+    !pipeline.triggers[0].enabled
+    pipeline.triggers[1] != null
+    pipeline.triggers[1].id == null
+    pipeline.triggers[1].type == 'jenkins'
+    pipeline.triggers[1].cronExpression == null
+    pipeline.triggers[1].enabled
 
-    }
+  }
 
-    void 'pipeline config deserialization should work fine for templated pipelines'() {
-        setup:
-        String pipelineJson = ''' {
+  void 'pipeline config deserialization should work fine for templated pipelines'() {
+    setup:
+    String pipelineJson = ''' {
             "name": "Testing Templates",
             "stages": [],
             "config": {
@@ -290,15 +291,23 @@ class PipelineSpec extends Specification {
             "id": "68a14710-1ade-11e5-89a8-65c9c7540d0f"
         }
         '''
-        when:
-        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+    when:
+    Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
 
-        then:
-        noExceptionThrown()
-        pipeline != null
-        pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
-        pipeline.name == 'Testing Templates'
-        pipeline.application == 'testapp'
-        pipeline.config.pipeline.pipelineConfigId == '4a522db6-b127-47b2-9c42-9b01b2625ce1'
-    }
+    then:
+    noExceptionThrown()
+    pipeline != null
+    pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+    pipeline.name == 'Testing Templates'
+    pipeline.application == 'testapp'
+    pipeline.config.pipeline.pipelineConfigId == '4a522db6-b127-47b2-9c42-9b01b2625ce1'
+
+    when:
+    String pipelineAsString = objectMapper.writeValueAsString(pipeline)
+    Pipeline pipelineRoundTrip = objectMapper.readValue(pipelineAsString, Pipeline)
+
+    then:
+    noExceptionThrown()
+    pipeline == pipelineRoundTrip
+  }
 }
