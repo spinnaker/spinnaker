@@ -231,6 +231,7 @@ module.exports = angular
             // applies viewState overrides after template selection
             overrides: {
               viewState: {
+                mode: 'editPipeline',
                 contextImages: contextImages,
                 pipeline: pipeline,
                 currentStage: current,
