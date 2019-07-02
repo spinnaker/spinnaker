@@ -217,7 +217,7 @@ public class KubernetesManifestAnnotater {
                 annotations,
                 SEQUENCE,
                 new TypeReference<Integer>() {},
-                manifest.getKind() == KubernetesKind.REPLICA_SET
+                manifest.getKind().equals(KubernetesKind.REPLICA_SET)
                     ? getAnnotation(
                         annotations,
                         DEPLOYMENT_REVISION,

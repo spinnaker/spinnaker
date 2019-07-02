@@ -88,7 +88,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
     Set<Rule> inboundRules = new HashSet<>();
     Set<Rule> outboundRules = new HashSet<>();
 
-    if (manifest.getKind() != KubernetesKind.NETWORK_POLICY) {
+    if (!manifest.getKind().equals(KubernetesKind.NETWORK_POLICY)) {
       log.warn("Unknown security group kind " + manifest.getKind());
     } else {
       if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)

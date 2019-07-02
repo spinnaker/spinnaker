@@ -263,7 +263,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
   private void validateManifestsForRolloutStrategies(List<KubernetesManifest> manifests) {
     if (description.getStrategy() != null
-        && (manifests.size() != 1 || manifests.get(0).getKind() != KubernetesKind.REPLICA_SET)) {
+        && (manifests.size() != 1
+            || !manifests.get(0).getKind().equals(KubernetesKind.REPLICA_SET))) {
       throw new RuntimeException(
           "Spinnaker can manage traffic for ReplicaSets only. Please deploy exactly one ReplicaSet manifest or disable rollout strategies.");
     }

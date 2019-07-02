@@ -68,7 +68,7 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     getTask().updateStatus(OP_NAME, "Running Kubernetes job...");
     KubernetesManifest jobSpec = this.description.getManifest();
     KubernetesKind kind = jobSpec.getKind();
-    if (kind != KubernetesKind.JOB) {
+    if (!kind.equals(KubernetesKind.JOB)) {
       throw new IllegalArgumentException(
           "Only kind of Job is accepted for the V2 Run Job operation.");
     }

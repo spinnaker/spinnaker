@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -229,12 +230,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  public boolean isValidKind(KubernetesKind kind) {
+  public boolean isValidKind(@Nonnull KubernetesKind kind) {
     return getInvalidKindReason(kind) == null;
   }
 
-  public InvalidKindReason getInvalidKindReason(KubernetesKind kind) {
-    if (kind == KubernetesKind.NONE) {
+  public InvalidKindReason getInvalidKindReason(@Nonnull KubernetesKind kind) {
+    if (kind.equals(KubernetesKind.NONE)) {
       return InvalidKindReason.KIND_NONE;
     } else if (!this.kinds.isEmpty()) {
       return !kinds.contains(kind) ? InvalidKindReason.MISSING_FROM_ALLOWED_KINDS : null;
@@ -340,7 +341,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     Map<KubernetesKind, InvalidKindReason> unreadableKinds =
         allKinds
             .parallelStream()
-            .filter(k -> k != KubernetesKind.NONE)
+            .filter(k -> !k.equals(KubernetesKind.NONE))
             .filter(k -> !omitKinds.keySet().contains(k))
             .filter(k -> !canReadKind(k, checkNamespace))
             .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
