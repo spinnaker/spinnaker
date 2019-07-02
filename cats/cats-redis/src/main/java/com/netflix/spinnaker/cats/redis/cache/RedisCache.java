@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.cats.redis.cache;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
@@ -442,7 +440,7 @@ public class RedisCache extends AbstractRedisCache {
       boolean hasTtl) {
     if (options.isHashingEnabled() && !hasTtl) {
       final String hash =
-          Hashing.sha1().newHasher().putString(serializedValue, UTF_8).hash().toString();
+          Hashing.sha1().newHasher().putUnencodedChars(serializedValue).hash().toString();
       final String existingHash = hashes.get(id);
       if (hash.equals(existingHash)) {
         return true;
