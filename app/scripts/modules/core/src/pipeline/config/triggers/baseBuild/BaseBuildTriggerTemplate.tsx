@@ -14,6 +14,7 @@ import { Spinner } from 'core/widgets/spinners/Spinner';
 import { buildDisplayName } from 'core/pipeline/executionBuild/buildDisplayName.filter';
 import { timestamp } from 'core/utils/timeFormatters';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
+import { TextInput } from 'core/presentation';
 
 export interface IBaseBuildTriggerTemplateProps extends ITriggerTemplateComponentProps {
   buildTriggerType: BuildServiceType;
@@ -25,6 +26,7 @@ export interface IBaseBuildTriggerTemplateState {
   buildsLoading?: boolean;
   loadError?: boolean;
   selectedBuild?: number;
+  explicitBuild?: boolean;
 }
 
 export class BaseBuildTriggerTemplate extends React.Component<
@@ -44,6 +46,7 @@ export class BaseBuildTriggerTemplate extends React.Component<
       buildsLoading: false,
       loadError: false,
       selectedBuild: 0,
+      explicitBuild: false,
     };
   }
 
@@ -106,6 +109,16 @@ export class BaseBuildTriggerTemplate extends React.Component<
       .subscribe(this.buildLoadSuccess, this.buildLoadFailure);
   };
 
+  private manuallySpecify = () => {
+    this.setState({
+      explicitBuild: true,
+    });
+  };
+
+  private explicitlyUpdateBuildNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.updateSelectedBuild({ number: event.target.value });
+  };
+
   public componentDidMount() {
     this.initialize();
   }
@@ -134,27 +147,38 @@ export class BaseBuildTriggerTemplate extends React.Component<
   };
 
   public render() {
-    const { builds, buildsLoading, loadError, selectedBuild } = this.state;
+    const { builds, buildsLoading, loadError, selectedBuild, explicitBuild } = this.state;
+
+    const loadingBuilds = (
+      <div className="form-control-static text-center">
+        <Spinner size={'small'} />
+      </div>
+    );
+    const errorLoadingBuilds = <div className="col-md-6">Error loading builds!</div>;
+    const noBuildsFound = (
+      <div>
+        <p className="form-control-static">No builds found</p>
+      </div>
+    );
 
     return (
       <div className="form-group">
         <label className="col-md-4 sm-label-right">Build</label>
-        {buildsLoading && (
-          <div className="col-md-6">
-            <div className="form-control-static text-center">
-              <Spinner size={'small'} />
-            </div>
-          </div>
-        )}
-        {loadError && <div className="col-md-6">Error loading builds!</div>}
-        {!buildsLoading && (
-          <div className="col-md-6">
-            {builds.length === 0 && (
-              <div>
-                <p className="form-control-static">No builds found</p>
-              </div>
-            )}
-            {builds.length > 0 && (
+        <div className="col-md-6">
+          <div>
+            {explicitBuild ? (
+              <TextInput
+                inputClassName="input-sm"
+                value={this.props.command.extraFields.buildNumber}
+                onChange={this.explicitlyUpdateBuildNumber}
+              />
+            ) : buildsLoading ? (
+              loadingBuilds
+            ) : loadError ? (
+              errorLoadingBuilds
+            ) : builds.length <= 0 ? (
+              noBuildsFound
+            ) : (
               <TetheredSelect
                 options={builds}
                 valueKey="number"
@@ -166,7 +190,14 @@ export class BaseBuildTriggerTemplate extends React.Component<
               />
             )}
           </div>
-        )}
+          {!explicitBuild && (
+            <div className="small" style={{ marginTop: '5px' }}>
+              <a className="clickable" onClick={this.manuallySpecify}>
+                Manually specify build
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
