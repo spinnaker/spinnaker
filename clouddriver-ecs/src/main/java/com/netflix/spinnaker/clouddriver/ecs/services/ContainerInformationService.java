@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.services;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.amazonaws.services.ecs.model.NetworkBinding;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient;
@@ -144,16 +145,17 @@ public class ContainerInformationService {
     return null;
   }
 
-  public String getTaskPrivateAddress(String accountName, String region, Task task) {
-    if (task.getContainers().size() > 1) {
-      throw new IllegalArgumentException("Multiple containers for a task is not supported.");
-    }
-
+  public String getTaskPrivateAddress(String accountName, String region, Task task) { //
     int hostPort;
-    try {
-      hostPort = task.getContainers().get(0).getNetworkBindings().get(0).getHostPort();
-    } catch (Exception e) {
-      hostPort = -1;
+
+    if (task.getContainers().size() > 1) {
+      hostPort = getAddressHostPortForMultipleContainers(task);
+    } else {
+      try {
+        hostPort = task.getContainers().get(0).getNetworkBindings().get(0).getHostPort();
+      } catch (Exception e) {
+        hostPort = -1;
+      }
     }
 
     if (hostPort < 0 || hostPort > 65535) {
@@ -209,5 +211,27 @@ public class ContainerInformationService {
       }
     }
     return null;
+  }
+
+  private int getAddressHostPortForMultipleContainers(Task task) {
+    List<Integer> hostPorts = new ArrayList<Integer>() {};
+
+    task.getContainers()
+        .forEach(
+            (c) -> {
+              List<NetworkBinding> networkBindings = c.getNetworkBindings();
+              networkBindings.forEach(
+                  (b) -> {
+                    if (b.getHostPort() != null) {
+                      hostPorts.add(b.getHostPort());
+                    }
+                  });
+            });
+
+    if (hostPorts.size() == 1) {
+      return hostPorts.get(0);
+    }
+
+    return -1;
   }
 }

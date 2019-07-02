@@ -25,6 +25,8 @@ import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement
 import com.amazonaws.services.identitymanagement.model.GetRoleResult
 import com.amazonaws.services.identitymanagement.model.Role
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
@@ -45,6 +47,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
   def autoScalingClient = Mock(AWSApplicationAutoScaling)
   def subnetSelector = Mock(SubnetSelector)
   def securityGroupSelector = Mock(SecurityGroupSelector)
+  def objectMapper = Mock(ObjectMapper)
+  def artifactDownloader = Mock(ArtifactDownloader)
 
   def applicationName = 'myapp'
   def stack = 'kcats'
@@ -513,6 +517,168 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     environments.get("SERVER_GROUP") == "v1-kcats-liated-v001"
     environments.get("CLOUD_STACK") == "kcats"
     environments.get("CLOUD_DETAIL") == "liated"
+  }
+
+  def 'should generate a RegisterTaskDefinitionRequest object from artifact'() {
+    given:
+    def resolvedArtifact = [
+      name: "taskdef.json",
+      reference: "fake.github.com/repos/org/repo/taskdef.json",
+      artifactAccount: "my-github-acct",
+      type: "github/file"
+    ]
+    def containerDef1 =
+      new ContainerDefinition()
+        .withName("web")
+        .withImage("PLACEHOLDER")
+        .withMemoryReservation(512)
+    def containerDef2 =
+      new ContainerDefinition()
+        .withName("logs")
+        .withImage("PLACEHOLDER")
+        .withMemoryReservation(1024)
+    def registerTaskDefRequest =
+      new RegisterTaskDefinitionRequest()
+        .withContainerDefinitions([containerDef1, containerDef2])
+        .withExecutionRoleArn("arn:aws:role/myExecutionRole")
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'ecs'
+    description.getFreeFormDetails() >> 'test'
+    description.ecsClusterName = 'test-cluster'
+    description.iamRole = 'None (No IAM role)'
+    description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
+    description.getContainerToImageMap() >> [
+      web: "docker-image-url/one",
+      logs: "docker-image-url/two"
+    ]
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "arn:aws:role/myExecutionRole"
+
+    result.getContainerDefinitions().size() == 2
+
+    def webContainer = result.getContainerDefinitions().find {it.getName() == "web"}
+    assert webContainer != null
+    webContainer.image == "docker-image-url/one"
+    webContainer.memoryReservation == 512
+
+    def logsContainer = result.getContainerDefinitions().find {it.getName() == "logs"}
+    assert logsContainer != null
+    logsContainer.image == "docker-image-url/two"
+    logsContainer.memoryReservation == 1024
+
+    result.getContainerDefinitions().forEach({
+      it.environment.size() == 3
+
+      def environments = [:]
+      for(elem in it.environment){
+        environments.put(elem.getName(), elem.getValue())
+      }
+      environments.get("SERVER_GROUP") == "v1-ecs-test-v001"
+      environments.get("CLOUD_STACK") == "ecs"
+      environments.get("CLOUD_DETAIL") == "test"
+    })
+  }
+
+  def 'should set spinnaker role on FARGATE RegisterTaskDefinitionRequest if none in artifact'() {
+    given:
+    def resolvedArtifact = [
+      name: "taskdef.json",
+      reference: "fake.github.com/repos/org/repo/taskdef.json",
+      artifactAccount: "my-github-acct",
+      type: "github/file"
+    ]
+    def containerDef =
+      new ContainerDefinition()
+        .withName("web")
+        .withImage("PLACEHOLDER")
+        .withMemoryReservation(512)
+    def registerTaskDefRequest =
+      new RegisterTaskDefinitionRequest().withContainerDefinitions([containerDef])
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'ecs'
+    description.getFreeFormDetails() >> 'test'
+    description.ecsClusterName = 'test-cluster'
+    description.iamRole = 'None (No IAM role)'
+    description.getLaunchType() >> 'FARGATE'
+    description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
+    description.getContainerToImageMap() >> [
+      web: "docker-image-url"
+    ]
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    RegisterTaskDefinitionRequest result =
+      operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-ecs-test"
+    result.getExecutionRoleArn() == "test-role"
+
+    result.getContainerDefinitions().size() == 1
+    def containerDefinition = result.getContainerDefinitions().first()
+    containerDefinition.name == "web"
+    containerDefinition.image == "docker-image-url"
+    containerDefinition.memoryReservation == 512
+  }
+
+  def 'should fail if network mode in artifact does not match description'() {
+    given:
+    def resolvedArtifact = [
+      name: "taskdef.json",
+      reference: "fake.github.com/repos/org/repo/taskdef.json",
+      artifactAccount: "my-github-acct",
+      type: "github/file"
+    ]
+    def registerTaskDefRequest =
+      new RegisterTaskDefinitionRequest()
+        .withContainerDefinitions([new ContainerDefinition()])
+        .withNetworkMode("bridge")
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'ecs'
+    description.getFreeFormDetails() >> 'test'
+    description.ecsClusterName = 'test-cluster'
+    description.getLaunchType() >> 'FARGATE'
+    description.getNetworkMode() >> 'awsvpc'
+    description.getResolvedTaskDefinitionArtifact() >> resolvedArtifact
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+    operation.artifactDownloader = artifactDownloader
+    operation.mapper = objectMapper
+
+    artifactDownloader.download(_) >> new ByteArrayInputStream()
+    objectMapper.readValue(_,_) >> registerTaskDefRequest
+
+    when:
+    operation.makeTaskDefinitionRequestFromArtifact("test-role", "v1-ecs-test-v001")
+
+    then:
+    IllegalArgumentException exception = thrown()
+    exception.message ==
+      "Task definition networkMode does not match server group value. Found 'bridge' but expected 'awsvpc'"
   }
 
   def 'should set additional environment variables'() {

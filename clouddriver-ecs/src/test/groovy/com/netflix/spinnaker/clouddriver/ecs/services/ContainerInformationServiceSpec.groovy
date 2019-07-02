@@ -327,18 +327,99 @@ class ContainerInformationServiceSpec extends Specification {
     retrievedIp == null
   }
 
-  def 'should throw an exception when task has multiple containers'() {
+  def 'should return null when task has multiple network bindings'() {
     given:
-    def task = new Task(
-      containers: [new Container(), new Container(), new Container()]
+    def account = 'test-account'
+    def region = 'us-west-1'
+
+    def ecsAccount = new ECSCredentialsConfig.Account(
+      name: account,
+      awsAccount: 'aws-' + account
     )
 
+    def task = new Task(
+      containerInstanceArn: 'container-instance-arn',
+      containers: [
+        new Container(
+          networkBindings: [
+            new NetworkBinding(
+              hostPort: 1234
+            )
+          ]
+        ),
+        new Container(
+          networkBindings: [
+            new NetworkBinding(
+              hostPort: 5678
+            )
+          ]
+        )
+      ]
+    )
+
+    def containerInstance = new ContainerInstance(
+      ec2InstanceId: 'i-deadbeef'
+    )
+
+    def instance = new Instance(
+      privateIpAddress: '127.0.0.1'
+    )
+
+    containerInstanceCacheClient.get(_) >> containerInstance
+    ecsInstanceCacheClient.find(_, _, _) >> [instance]
+    ecsCredentialsConfig.getAccounts() >> [ecsAccount]
+
     when:
-    service.getTaskPrivateAddress('test-account', 'region', task)
+    def retrievedIp = service.getTaskPrivateAddress(account, region, task)
 
     then:
-    IllegalArgumentException exception = thrown()
-    exception.message == 'Multiple containers for a task is not supported.'
+    retrievedIp == null
+  }
+
+  def 'should return a proper address when task has multiple containers but only one network binding'() {
+    given:
+    def account = 'test-account'
+    def region = 'us-west-1'
+    def containerInstanceArn = 'container-instance-arn'
+    def ip = '127.0.0.1'
+    def port = 1337
+
+    def ecsAccount = new ECSCredentialsConfig.Account(
+      name: account,
+      awsAccount: 'aws-' + account
+    )
+
+    def task = new Task(
+      containerInstanceArn: containerInstanceArn,
+      containers: [
+        new Container(
+          networkBindings: [
+            new NetworkBinding(
+              hostPort: port
+            )
+          ]
+        ),
+        new Container()
+      ]
+    )
+
+    def containerInstance = new ContainerInstance(
+      ec2InstanceId: 'i-deadbeef'
+    )
+
+    def instance = new Instance(
+      privateIpAddress: ip
+    )
+
+    containerInstanceCacheClient.get(_) >> containerInstance
+    ecsInstanceCacheClient.find(_, _, _) >> [instance]
+    ecsCredentialsConfig.getAccounts() >> [ecsAccount]
+
+    when:
+    def retrievedIp = service.getTaskPrivateAddress(account, region, task)
+
+    then:
+    retrievedIp == ip + ':' + port
   }
 
   def 'should throw an exception when container has multiple ec2 instances'() {
