@@ -74,7 +74,7 @@ export const OverrideFailure = (props: IOverrideFailureConfigProps) => {
     } else if (value === 'faileventual') {
       props.updateStageField({
         failPipeline: false,
-        continuePipeline: true,
+        continuePipeline: false,
         completeOtherBranchesThenFail: true,
       });
     }
