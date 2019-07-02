@@ -31,9 +31,9 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * This class inspects the context of a stage, preceding stages, the trigger, and possibly the
- * parent pipeline in order to see if an artifact matching the name(s) specified in the bake stage
- * was produced. If so, that version will be used in the bake request. If nothing is found after all
+ * This class inspects the context of a stage, preceding stages, the trigger, and the parent
+ * pipeline in order to see if an artifact matching the name(s) specified in the bake stage was
+ * produced. If so, that version will be used in the bake request. If nothing is found after all
  * this searching it is up to the bakery to pull the latest package version.
  *
  * <p>Artifact information comes from Jenkins on the pipeline trigger in the field
@@ -385,19 +385,17 @@ public class PackageInfo {
 
   private static Map<String, Object> findBuildInfoInUpstreamStage(
       Stage currentStage, List<Pattern> packageFilePatterns) {
+
     Stage upstreamStage =
-        currentStage.ancestors().stream()
-            .filter(
-                it -> {
-                  Map<String, Object> buildInfo =
-                      (Map<String, Object>) it.getOutputs().get("buildInfo");
-                  return buildInfo != null
-                      && artifactMatch(
-                          (List<Map<String, String>>) buildInfo.get("artifacts"),
-                          packageFilePatterns);
-                })
-            .findFirst()
-            .orElse(null);
+        currentStage.findAncestor(
+            it -> {
+              Map<String, Object> buildInfo =
+                  (Map<String, Object>) it.getOutputs().get("buildInfo");
+              return buildInfo != null
+                  && artifactMatch(
+                      (List<Map<String, String>>) buildInfo.get("artifacts"), packageFilePatterns);
+            });
+
     return upstreamStage != null
         ? (Map<String, Object>) upstreamStage.getOutputs().get("buildInfo")
         : emptyMap();
@@ -405,6 +403,7 @@ public class PackageInfo {
 
   private static boolean artifactMatch(
       List<Map<String, String>> artifacts, List<Pattern> patterns) {
+
     return artifacts != null
         && artifacts.stream()
             .anyMatch(

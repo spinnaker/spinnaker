@@ -49,7 +49,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
       if (imageDescription.fromContext) {
         if (stage.execution.type == ExecutionType.ORCHESTRATION) {
           // Use image from specific "find image from tags" stage
-          def imageStage = getAncestors(stage, stage.execution).find {
+          def imageStage = stage.ancestorsWithParentPipelines().find {
             it.refId == imageDescription.stageId && it.context.containsKey("amiDetails")
           }
 
