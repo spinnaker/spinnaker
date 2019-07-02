@@ -28,6 +28,8 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
+import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
+import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.CorsFilter
 import com.netflix.spinnaker.gate.filters.GateOriginValidator
 import com.netflix.spinnaker.gate.filters.OriginValidator
@@ -35,7 +37,6 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
-import com.netflix.spinnaker.gate.yaml.YamlHttpMessageConverter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
@@ -56,7 +57,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
-import org.springframework.http.MediaType
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.session.data.redis.config.ConfigureRedisAction
@@ -141,13 +141,22 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Autowired
   ServiceConfiguration serviceConfiguration
 
+  /**
+   * This needs to be before the yaml converter in order for json to be the default
+   * response type.
+   */
+  @Bean
+  AbstractJackson2HttpMessageConverter jsonHttpMessageConverter() {
+    ObjectMapper objectMapper = new ObjectMapper()
+      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
+    return new JsonHttpMessageConverter(objectMapper)
+  }
+
   @Bean
   AbstractJackson2HttpMessageConverter yamlHttpMessageConverter() {
-    return new YamlHttpMessageConverter(
-      new YAMLMapper(),
-      MediaType.parseMediaType("application/x-yaml"),
-      MediaType.parseMediaType("application/x-yaml;charset=UTF-8")
-    )
+    return new YamlHttpMessageConverter(new YAMLMapper())
   }
 
   @Bean
