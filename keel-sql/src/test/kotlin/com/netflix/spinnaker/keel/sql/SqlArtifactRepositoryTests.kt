@@ -1,24 +1,23 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
-import org.jooq.SQLDialect.MYSQL_5_7
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import org.junit.jupiter.api.AfterAll
 
 internal object SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository>() {
-  private val jooq = initDatabase(
-    "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
-    MYSQL_5_7
-  )
+  private val testDatabase = initTcMysqlDatabase()
+  private val jooq = testDatabase.context
 
   override fun factory() = SqlArtifactRepository(jooq)
 
   override fun flush() {
-    jooq.flushAll()
+    cleanupDb(jooq)
   }
 
   @JvmStatic
   @AfterAll
   fun shutdown() {
-    jooq.close()
+    testDatabase.dataSource.close()
   }
 }

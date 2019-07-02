@@ -14,6 +14,7 @@ dependencies {
 
   runtimeOnly("mysql:mysql-connector-java")
 
+  testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-core-test"))
