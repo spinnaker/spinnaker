@@ -44,6 +44,9 @@ public class RequestLoggingInterceptor extends HandlerInterceptorAdapter {
     // 127.0.0.1 "GET /limecat.jpg HTTP/1.0" 200 2326
     try {
       MDC.put("requestDuration", getRequestDuration(request));
+      MDC.put("requestUserAgent", request.getHeader("User-Agent"));
+      MDC.put("requestPort", String.valueOf(request.getServerPort()));
+
       log.debug(
           "{} \"{} {} {}\" {} {}",
           value("sourceIp", sourceIpAddress(request)),
@@ -54,6 +57,8 @@ public class RequestLoggingInterceptor extends HandlerInterceptorAdapter {
           value("responseSize", getResponseSize(response)));
     } finally {
       MDC.remove("requestDuration");
+      MDC.remove("requestUserAgent");
+      MDC.remove("requestPort");
     }
   }
 
