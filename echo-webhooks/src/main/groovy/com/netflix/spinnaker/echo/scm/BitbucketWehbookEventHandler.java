@@ -127,7 +127,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
 
     String eventType = event.content.get("event_type").toString();
     switch (eventType) {
-      case "repo:refs_changesd":
+      case "repo:refs_changed":
         return ((Map<String, Object>) event.content.get("repository")).get("name").toString();
       case "pr:merged":
         Map<String, Object> toRef =
