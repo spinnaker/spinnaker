@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -120,10 +119,7 @@ public final class KubernetesKind {
   public static final KubernetesKind NONE =
       createAndRegisterKind("none", KubernetesApiGroup.NONE, null, true, false);
 
-  @Getter @Nonnull private final String name;
-  @EqualsAndHashCode.Include @Nonnull private final String lcName;
-  @Getter @Nonnull private final KubernetesApiGroup apiGroup;
-  @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
+  @EqualsAndHashCode.Include @Nonnull @Getter ScopedKind scopedKind;
 
   @Getter @Nullable private final String alias;
   @Getter private final boolean isNamespaced;
@@ -153,14 +149,7 @@ public final class KubernetesKind {
       boolean hasClusterRelationship,
       boolean isDynamic,
       boolean isRegistered) {
-    this.name = name;
-    this.lcName = name.toLowerCase();
-    this.apiGroup = apiGroup;
-    if (apiGroup.isNativeGroup()) {
-      this.customApiGroup = null;
-    } else {
-      this.customApiGroup = apiGroup;
-    }
+    this.scopedKind = new ScopedKind(name, apiGroup);
     this.alias = alias;
     this.isNamespaced = isNamespaced;
     this.hasClusterRelationship = hasClusterRelationship;
@@ -175,10 +164,7 @@ public final class KubernetesKind {
   @Override
   @JsonValue
   public String toString() {
-    if (apiGroup.isNativeGroup()) {
-      return name;
-    }
-    return name + "." + apiGroup.toString();
+    return scopedKind.toString();
   }
 
   @Nonnull
@@ -200,7 +186,7 @@ public final class KubernetesKind {
   @Nonnull
   public static KubernetesKind fromString(@Nonnull final String name) {
     ScopedKind scopedKind = parseQualifiedKind(name);
-    return fromString(scopedKind.kindName, scopedKind.apiGroup);
+    return fromString(scopedKind.getName(), scopedKind.getApiGroup());
   }
 
   @Nonnull
@@ -250,7 +236,7 @@ public final class KubernetesKind {
   public static KubernetesKind getOrRegisterKind(
       @Nonnull final String qualifiedName, boolean isNamespaced) {
     ScopedKind scopedKind = parseQualifiedKind(qualifiedName);
-    return getOrRegisterKind(scopedKind.kindName, true, isNamespaced, scopedKind.apiGroup);
+    return getOrRegisterKind(scopedKind.getName(), true, isNamespaced, scopedKind.getApiGroup());
   }
 
   @Nonnull
@@ -263,9 +249,30 @@ public final class KubernetesKind {
     return kindRegistry.getRegisteredKinds();
   }
 
-  @RequiredArgsConstructor
-  private static class ScopedKind {
-    public final String kindName;
-    public final KubernetesApiGroup apiGroup;
+  @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+  public static class ScopedKind {
+    @Getter @Nonnull private final String name;
+    @EqualsAndHashCode.Include @Nonnull private final String lcName;
+    @Getter @Nonnull private final KubernetesApiGroup apiGroup;
+    @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
+
+    public ScopedKind(@Nonnull String name, @Nullable KubernetesApiGroup apiGroup) {
+      this.name = name;
+      this.lcName = name.toLowerCase();
+      this.apiGroup = Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE);
+      if (this.apiGroup.isNativeGroup()) {
+        this.customApiGroup = null;
+      } else {
+        this.customApiGroup = apiGroup;
+      }
+    }
+
+    @Override
+    public String toString() {
+      if (apiGroup.isNativeGroup()) {
+        return name;
+      }
+      return name + "." + apiGroup.toString();
+    }
   }
 }

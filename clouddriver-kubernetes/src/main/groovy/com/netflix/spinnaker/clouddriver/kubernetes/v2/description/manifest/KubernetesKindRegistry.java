@@ -17,23 +17,27 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 public class KubernetesKindRegistry {
-  private final List<KubernetesKind> values = Collections.synchronizedList(new ArrayList<>());
+  private final Map<KubernetesKind.ScopedKind, KubernetesKind> nameMap = new ConcurrentHashMap<>();
+  private final Map<KubernetesKind.ScopedKind, KubernetesKind> aliasMap = new ConcurrentHashMap<>();
 
   /** Registers a given {@link KubernetesKind} into the registry and returns the kind */
   @Nonnull
-  public KubernetesKind registerKind(@Nonnull KubernetesKind kind) {
-    values.add(kind);
+  public synchronized KubernetesKind registerKind(@Nonnull KubernetesKind kind) {
+    nameMap.put(kind.getScopedKind(), kind);
+    if (kind.getAlias() != null) {
+      aliasMap.put(
+          new KubernetesKind.ScopedKind(kind.getAlias(), kind.getScopedKind().getApiGroup()), kind);
+    }
     return kind;
   }
 
@@ -71,33 +75,23 @@ public class KubernetesKindRegistry {
       throw new IllegalArgumentException("The 'NONE' kind cannot be read.");
     }
 
-    Predicate<KubernetesKind> groupMatches =
-        kind -> {
-          // Exact match
-          if (Objects.equals(kind.getApiGroup(), apiGroup)) {
-            return true;
-          }
+    KubernetesKind.ScopedKind searchKey = new KubernetesKind.ScopedKind(name, apiGroup);
+    KubernetesKind result = nameMap.get(searchKey);
+    if (result != null) {
+      return Optional.of(result);
+    }
 
-          // If we have not specified an API group, default to finding a native kind that matches
-          if (apiGroup == null || apiGroup.isNativeGroup()) {
-            return kind.getApiGroup().isNativeGroup();
-          }
+    result = aliasMap.get(searchKey);
+    if (result != null) {
+      return Optional.of(result);
+    }
 
-          return false;
-        };
-
-    return values.stream()
-        .filter(
-            v ->
-                v.getName().equalsIgnoreCase(name)
-                    || (v.getAlias() != null && v.getAlias().equalsIgnoreCase(name)))
-        .filter(groupMatches)
-        .findAny();
+    return Optional.empty();
   }
 
   /** Returns a list of all registered kinds */
   @Nonnull
   public List<KubernetesKind> getRegisteredKinds() {
-    return values;
+    return new ArrayList<>(nameMap.values());
   }
 }
