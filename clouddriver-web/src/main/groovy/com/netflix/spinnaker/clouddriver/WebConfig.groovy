@@ -32,6 +32,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.filter.ShallowEtagHeaderFilter
@@ -72,7 +73,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   RequestQueue requestQueue(DynamicConfigService dynamicConfigService,
                             RequestQueueConfiguration requestQueueConfiguration,
                             Registry registry) {
-    return RequestQueue.forConfig(dynamicConfigService, registry, requestQueueConfiguration);
+    return RequestQueue.forConfig(dynamicConfigService, registry, requestQueueConfiguration)
   }
 
   @Bean
@@ -84,8 +85,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
   @Override
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    super.configureContentNegotiation(configurer)
-    configurer.favorPathExtension(false)
+    configurer
+      .defaultContentType(MediaType.APPLICATION_JSON_UTF8)
+      .favorPathExtension(false)
+      .ignoreAcceptHeader(true)
   }
 
   @ControllerAdvice
