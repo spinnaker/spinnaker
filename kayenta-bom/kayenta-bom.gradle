@@ -17,15 +17,9 @@
 apply plugin: "java-platform"
 apply plugin: "maven-publish"
 
-// without this building the pom fails when using the Nebula publishing plugin
-configurations {
-  create("compileOnly")
-}
-
 javaPlatform {
   allowDependencies()
 }
-
 
 if (Boolean.valueOf(enablePublishing)) {
   publishing {
