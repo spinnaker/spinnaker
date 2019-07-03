@@ -396,11 +396,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       description.capacity.desired = sourceJob.instancesDesired
     }
 
-    if(description.serviceJobProcesses) {
-         description.serviceJobProcesses.disableDecreaseDesired = sourceJob.serviceJobProcesses.disableDecreaseDesired
-           description.serviceJobProcesses.disableIncreaseDesired = sourceJob.serviceJobProcesses.disableIncreaseDesired
-    }
-
     description.resources.cpu = description.resources.cpu ?: sourceJob.cpu
     description.resources.memory = description.resources.memory ?: sourceJob.memory
     description.resources.disk = description.resources.disk ?: sourceJob.disk
