@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.exceptions;
 
+import com.google.common.base.Strings;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /** ExceptionHandler. */
 public interface ExceptionHandler {
@@ -90,7 +92,13 @@ public interface ExceptionHandler {
   static Map<String, Object> responseDetails(String error, List<String> errors) {
     Map<String, Object> details = new HashMap<>();
     details.put("error", error);
-    details.put("errors", errors == null ? Collections.emptyList() : errors);
+    if (errors == null) {
+      errors = Collections.emptyList();
+    }
+
+    details.put(
+        "errors",
+        errors.stream().filter(x -> !Strings.isNullOrEmpty(x)).collect(Collectors.toList()));
     return details;
   }
 }
