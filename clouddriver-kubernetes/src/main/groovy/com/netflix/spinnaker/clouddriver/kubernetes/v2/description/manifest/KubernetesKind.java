@@ -19,12 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,9 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
 public final class KubernetesKind {
-  @Getter
-  private static final List<KubernetesKind> values =
-      Collections.synchronizedList(new ArrayList<>());
+  private static final KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry();
 
   public static final KubernetesKind API_SERVICE =
       createAndRegisterKind(
@@ -126,12 +120,12 @@ public final class KubernetesKind {
   public static final KubernetesKind NONE =
       createAndRegisterKind("none", KubernetesApiGroup.NONE, null, true, false);
 
-  @Nonnull private final String name;
+  @Getter @Nonnull private final String name;
   @EqualsAndHashCode.Include @Nonnull private final String lcName;
-  @Nonnull private final KubernetesApiGroup apiGroup;
+  @Getter @Nonnull private final KubernetesApiGroup apiGroup;
   @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
 
-  @Nullable private final String alias;
+  @Getter @Nullable private final String alias;
   @Getter private final boolean isNamespaced;
   // generally reserved for workloads, can be read as "does this belong to a spinnaker cluster?"
   private final boolean hasClusterRelationship;
@@ -146,11 +140,9 @@ public final class KubernetesKind {
       @Nullable String alias,
       boolean isNamespaced,
       boolean hasClusterRelationship) {
-    KubernetesKind kind =
+    return kindRegistry.registerKind(
         new KubernetesKind(
-            name, apiGroup, alias, isNamespaced, hasClusterRelationship, false, true);
-    values.add(kind);
-    return kind;
+            name, apiGroup, alias, isNamespaced, hasClusterRelationship, false, true));
   }
 
   private KubernetesKind(
@@ -211,9 +203,11 @@ public final class KubernetesKind {
     return fromString(scopedKind.kindName, scopedKind.apiGroup);
   }
 
+  @Nonnull
   public static KubernetesKind fromString(
       @Nonnull final String name, @Nullable final KubernetesApiGroup apiGroup) {
-    return getRegisteredKind(name, apiGroup)
+    return kindRegistry
+        .getRegisteredKind(name, apiGroup)
         .orElseGet(
             () ->
                 new KubernetesKind(
@@ -226,70 +220,30 @@ public final class KubernetesKind {
                     false));
   }
 
-  private static Optional<KubernetesKind> getRegisteredKind(
-      @Nonnull final String name, @Nullable final KubernetesApiGroup apiGroup) {
-    if (StringUtils.isEmpty(name)) {
-      return Optional.of(KubernetesKind.NONE);
-    }
-
-    if (name.equalsIgnoreCase(KubernetesKind.NONE.toString())) {
-      throw new IllegalArgumentException("The 'NONE' kind cannot be read.");
-    }
-
-    Predicate<KubernetesKind> groupMatches =
-        kind -> {
-          // Exact match
-          if (Objects.equals(kind.apiGroup, apiGroup)) {
-            return true;
-          }
-
-          // If we have not specified an API group, default to finding a native kind that matches
-          if (apiGroup == null || apiGroup.isNativeGroup()) {
-            return kind.apiGroup.isNativeGroup();
-          }
-
-          return false;
-        };
-
-    // separate from the above chain to avoid concurrent modification of the values list
-    return values.stream()
-        .filter(
-            v ->
-                v.name.equalsIgnoreCase(name)
-                    || (v.alias != null && v.alias.equalsIgnoreCase(name)))
-        .filter(groupMatches)
-        .findAny();
-  }
-
   @Nonnull
   public static KubernetesKind getOrRegisterKind(
       @Nonnull final String name,
       final boolean registered,
       final boolean namespaced,
       @Nullable final KubernetesApiGroup apiGroup) {
-    synchronized (values) {
-      Optional<KubernetesKind> kindOptional = getRegisteredKind(name, apiGroup);
-      // separate from the above chain to avoid concurrent modification of the values list
-      return kindOptional.orElseGet(
-          () -> {
-            log.info(
-                "Dynamically registering {}, (namespaced: {}, registered: {})",
-                name,
-                namespaced,
-                registered);
-            KubernetesKind kind =
-                new KubernetesKind(
-                    name,
-                    Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE),
-                    null,
-                    namespaced,
-                    false,
-                    true,
-                    registered);
-            values.add(kind);
-            return kind;
-          });
-    }
+    return kindRegistry.getOrRegisterKind(
+        name,
+        apiGroup,
+        () -> {
+          log.info(
+              "Dynamically registering {}, (namespaced: {}, registered: {})",
+              name,
+              namespaced,
+              registered);
+          return new KubernetesKind(
+              name,
+              Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE),
+              null,
+              namespaced,
+              false,
+              true,
+              registered);
+        });
   }
 
   @Nonnull
@@ -299,8 +253,14 @@ public final class KubernetesKind {
     return getOrRegisterKind(scopedKind.kindName, true, isNamespaced, scopedKind.apiGroup);
   }
 
-  public static List<KubernetesKind> getOrRegisterKinds(List<String> names) {
+  @Nonnull
+  public static List<KubernetesKind> getOrRegisterKinds(@Nonnull List<String> names) {
     return names.stream().map(k -> getOrRegisterKind(k, true)).collect(Collectors.toList());
+  }
+
+  @Nonnull
+  public static List<KubernetesKind> getRegisteredKinds() {
+    return kindRegistry.getRegisteredKinds();
   }
 
   @RequiredArgsConstructor

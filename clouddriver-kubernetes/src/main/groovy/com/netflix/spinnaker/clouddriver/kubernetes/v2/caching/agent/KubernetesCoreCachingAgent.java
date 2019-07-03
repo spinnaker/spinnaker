@@ -70,11 +70,9 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
 
   @Override
   protected List<KubernetesKind> primaryKinds() {
-    synchronized (KubernetesKind.getValues()) {
-      return KubernetesKind.getValues().stream()
-          .filter(credentials::isValidKind)
-          .filter(k -> !k.isDynamic())
-          .collect(Collectors.toList());
-    }
+    return KubernetesKind.getRegisteredKinds().stream()
+        .filter(credentials::isValidKind)
+        .filter(k -> !k.isDynamic())
+        .collect(Collectors.toList());
   }
 }

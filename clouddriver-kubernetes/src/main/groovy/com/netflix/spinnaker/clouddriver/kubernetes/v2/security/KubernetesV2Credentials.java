@@ -334,7 +334,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine
     // a cluster with 100s of namespaces).
     String checkNamespace = namespaces.get(0);
-    List<KubernetesKind> allKinds = KubernetesKind.getValues();
+    List<KubernetesKind> allKinds = KubernetesKind.getRegisteredKinds();
 
     log.info(
         "Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
