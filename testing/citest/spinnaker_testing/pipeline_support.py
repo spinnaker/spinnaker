@@ -24,13 +24,13 @@ class PipelineSupport(object):
   def __init__(self, scenario):
     self.scenario = scenario
 
-  def submit_pipeline_contract(self, name, stages, expectedArtifacts=[]):
+  def submit_pipeline_contract(self, name, stages, expectedArtifacts=[], user='anonymous'):
     s = self.scenario
     job = {
         'keepWaitingPipelines': 'false',
         'application': s.TEST_APP,
         'name': name,
-        'lastModifiedBy': 'anonymous',
+        'lastModifiedBy': user,
         'limitConcurrent': 'true',
         'parallel': 'true',
         'stages': stages,

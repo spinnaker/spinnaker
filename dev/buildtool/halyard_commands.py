@@ -207,10 +207,6 @@ class BuildHalyardCommand(GradleCommandProcessor):
     if not self.options.run_unit_tests:
       args.append('-x test')
 
-    if (os.path.isfile(os.path.join(repository.git_dir,
-                                    "gradle", "init-publish.gradle"))):
-      args.append('-I gradle/init-publish.gradle')
-
     args.extend(self.gradle.get_debian_args(
         'trusty-nightly,xenial-nightly,bionic-nightly'))
     build_number = source_info.build_number
@@ -218,10 +214,6 @@ class BuildHalyardCommand(GradleCommandProcessor):
     self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
                           version=version, build_number=build_number)
 
-    ## Tags above were written back. Nebula chokes on branches with that.
-    self.gradle.prepare_local_git_for_nebula(
-        repository.git_dir, repository,
-        version=version, build_number=build_number)
     build_halyard_docs(self, repository)
     self.build_all_halyard_deployments(repository)
     self.publish_halyard_version_commits(repository)
@@ -436,11 +428,7 @@ class PublishHalyardCommand(CommandProcessor):
 
     git_dir = repository.git_dir
     summary = self.__scm.git.collect_repository_summary(git_dir)
-
     args = self.__gradle.get_common_args()
-    if (os.path.isfile(os.path.join(repository.git_dir,
-                                    "gradle", "init-publish.gradle"))):
-      args.append('-I gradle/init-publish.gradle')
 
     args.extend(self.__gradle.get_debian_args(
         'trusty-stable,xenial-stable,bionic-stable'))

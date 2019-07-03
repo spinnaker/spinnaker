@@ -13,15 +13,14 @@
 # limitations under the License.
 
 
-import json
 import logging
-import os
+import time
 
-import datetime
-
-from citest.service_testing import (base_agent, http_agent)
+from citest.service_testing import base_agent
 
 from google.cloud import storage
+
+from spinnaker_testing.gate import GateAgent
 
 
 class GcsFileUploadAgent(base_agent.BaseAgent):
@@ -43,7 +42,8 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
   def upload_string(self, bucket_name, upload_path, contents):
     """Uploads a local file to a bucket at a relative upload path.
     """
-    logging.info('Uploading string to bucket %s at path %s', bucket_name, upload_path)
+    logging.info('Uploading string to bucket %s at path %s',
+                 bucket_name, upload_path)
     bucket = self.__client.get_bucket(bucket_name)
     upload_blob = bucket.blob(upload_path)
     upload_blob.upload_from_string(contents)
@@ -61,8 +61,8 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
     super(GcsFileUploadAgent, self).export_to_json_snapshot(snapshot, entity)
 
   def new_gcs_pubsub_trigger_operation(
-        self, gate_agent, title, bucket_name, upload_path,
-        local_filename, status_class, status_path):
+      self, gate_agent, title, bucket_name, upload_path,
+      local_filename, status_class, status_path):
     return GcsPubsubUploadTriggerOperation(
         title, self, gate_agent, bucket_name, upload_path,
         local_filename, status_class, status_path)
@@ -71,51 +71,59 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
 class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
   """Specialization for base gcs pubsub trigger operations.
   """
-  def __init__(self, title, gcs_pubsub_agent, max_wait_secs=None):
-    self.__title = title
-    self.__agent = gcs_pubsub_agent
-    super(BaseGcsPubsubTriggerOperation, self).__init__(
-        title, gcs_pubsub_agent, max_wait_secs=max_wait_secs)
+  def __init__(self, title, gcs_pubsub_agent, gate_agent, **kwargs):
+    """Construct operation
+
+    Args:
+      gcs_pubsub_agent: [GcsFileUploadAgent] agent to perform operation
+      gate_agent: [GateAgent] agent used for monitoring status
+    """
     if (not gcs_pubsub_agent
         or not isinstance(gcs_pubsub_agent, GcsFileUploadAgent)):
-      raise TypeError('agent is not a GcsFileUploadAgent: '
+      raise TypeError('gcs_pubsub_agent is not a GcsFileUploadAgent: '
                       + gcs_pubsub_agent.__class__.__name__)
+    if (not gate_agent or not isinstance(gate_agent, GateAgent)):
+      raise TypeError('gate_agent is not a GateAgent: '
+                      + gate_agent.__class__.__name__)
+    super(BaseGcsPubsubTriggerOperation, self).__init__(
+        title, gate_agent, **kwargs)
+    self.__pubsub_agent = gcs_pubsub_agent
 
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_mechanism(
-        entity, 'Gcs Pubsub Agent', self.agent)
+        entity, 'Gcs Pubsub Agent', self.__pubsub_agent)
     super(BaseGcsPubsubTriggerOperation, self).export_to_json_snapshot(
         snapshot, entity)
 
   def execute(self, agent=None):
-    status = self._do_execute(self.agent)
-    self.agent.logger.debug('Returning status %s', status)
+    status = self._do_execute(self.__pubsub_agent)
+    self.__pubsub_agent.logger.debug('Returning status %s', status)
     return status
 
   def _do_execute(self, agent):
-    raise UnimplementedError('{0}._do_execute'.format(type(self)))
+    raise NotImplementedError('{0}._do_execute'.format(type(self)))
 
 
 class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
   """Specialization for main logic of gcs pubsub trigger operations.
   """
   def __init__(
-        self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
-        local_filename, status_class, status_path):
+      self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
+      local_filename, status_class, status_path):
     super(GcsPubsubUploadTriggerOperation, self).__init__(
-        title, gcs_pubsub_agent)
+        title, gcs_pubsub_agent, gate_agent)
     self.__bucket_name = bucket_name
     self.__upload_path = upload_path
     self.__local_filename = local_filename
-    self.__gate_agent = gate_agent
     self.__status_class = status_class
     self.__status_path = status_path
 
   def _do_execute(self, agent):
-    # self.agent is the gcs_pubsub_agent
-    self.agent.upload_file(self.__bucket_name, self.__upload_path, self.__local_filename)
+    agent.upload_file(
+        self.__bucket_name, self.__upload_path, self.__local_filename)
 
-    return GcsPubsubTriggerOperationStatus(self, self.__gate_agent, self.__status_class, self.__status_path)
+    return GcsPubsubTriggerOperationStatus(
+        self, self.__status_class, self.__status_path)
 
 
 class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
@@ -123,79 +131,68 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
   """
   @property
   def finished(self):
-    return self.finished_ok or self.timed_out
+    return self.__trigger_status.finished or self.__is_timed_out
 
   @property
   def finished_ok(self):
-    return self.__finished_ok
+    return self.__trigger_status.finished_ok
 
   @property
   def id(self):
-    return self.__class__.__name__
+    return self.__trigger_status.id
 
   @property
   def detail(self):
-    return 'trigger response: {}'.format(self.__trigger_response)
+    return 'trigger response: {response}'.format(
+        response=self.__trigger_response)
 
   @property
   def timed_out(self):
-    return self.__is_timed_out
-
-  @property
-  def timeout_delta(self):
-    return self.__timeout_delta
-
-  @timeout_delta.setter
-  def timeout_delta(self, val):
-    self.__timeout_delta = val
+    return self.__trigger_status.timed_out or self.__is_timed_out
 
   def refresh(self):
-    if self.__finished_ok:
+    if self.finished:
       return
 
     self.__trigger_status.refresh()
-    self.__finished_ok = self.__trigger_status.finished_ok
-    if self.__finished_ok:
-      return
+    detail_path = self.__trigger_status.detail_path
 
-    ping = datetime.datetime.utcnow()
-    diff = ping - self.__start
-    self.__is_timed_out = diff > self.timeout_delta
+    self.__trigger_response = self.operation.agent.get(detail_path)
+    if not self.__trigger_status.finished:
+      self.__is_timed_out = time.time() >= self.__timeout_time
 
-  def __init__(self, operation, gate_agent, status_class, status_path):
+  def __init__(self, operation, status_class, status_path,
+               **kwargs):
     """Constructs a GcsPubsubTriggerOperationStatus object.
 
     Args:
     operation [BaseGcsPubsubTriggerOperation]: The GCS operation this is for.
     """
-    self.__gate_agent = gate_agent
-    operation.bind_agent(gate_agent)
-    self.__status_class = status_class
-    self.__status_path = status_path
     super(GcsPubsubTriggerOperationStatus, self).__init__(operation)
-    self.__trigger_status = status_class(operation)
+    max_wait_secs = kwargs.pop('max_wait_secs', 300)
+    self.__timeout_time = time.time() + max_wait_secs
+    self.__trigger_response = operation.agent.get(status_path)
+    self.__trigger_status = status_class(operation, original_response=self.__trigger_response)
     self.__trigger_status._bind_id("n/a")
     self.__trigger_status._bind_detail_path(status_path)
-    self.__trigger_response = self.__gate_agent.get(self.__status_path)
-    self.__start = datetime.datetime.utcnow()
-    self.__timeout_delta = datetime.timedelta(minutes=5)
     self.__is_timed_out = False
-    self.__finished_ok = False
 
   def export_summary_to_json_snapshot(self, snapshot, entity):
     """Implements JsonSnapshotableEntity interface."""
-    super(GcsPubsubTriggerOperationStatus,
-          self).export_summary_to_json_snapshot(
-        snapshot, entity)
-    trigger_status = self.__trigger_response
-    trigger_status_summary = snapshot.make_entity_for_object_summary(
-        trigger_status)
-    relation = ('VALID' if trigger_status.ok() else 'INVALID')
+    (super(GcsPubsubTriggerOperationStatus, self)
+     .export_summary_to_json_snapshot(snapshot, entity))
+
+    if self.__trigger_response:
+      summary = snapshot.make_entity_for_object_summary(self.__trigger_response)
+      relation = 'VALID' if self.__trigger_response.ok() else 'INVALID'
+    else:
+      summary = 'No Trigger Response Yet'
+      relation = None
     snapshot.edge_builder.make(
-        entity, 'Trigger Status', trigger_status_summary, relation=relation)
+      entity, 'Trigger Response', summary, relation=relation)
 
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_output(
-        entity, 'Trigger Status', self.__trigger_response)
+        entity, 'Trigger Response', self.__trigger_response)
     super(GcsPubsubTriggerOperationStatus, self).export_to_json_snapshot(
-      snapshot, entity)
+        snapshot, entity)

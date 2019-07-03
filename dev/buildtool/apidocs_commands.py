@@ -42,6 +42,7 @@ from buildtool import (
     check_options_set,
     check_path_exists,
     check_subprocess,
+    check_subprocesses_to_logfile,
     maybe_log_exception,
     run_subprocess,
     start_subprocess,
@@ -139,28 +140,54 @@ class BuildApiDocsCommand(RepositoryCommandProcessor):
         TimeoutError('%s not ready' % url),
         '%s not ready after %s secs' % (url, timeout_secs))
 
-  def build_swagger_docs(self, repository, docs_url):
+  def __generate_json_from_url(
+      self, repository, server_url, output_path):
+    """Build the swagger json from the swagger endpoint."""
+    ensure_dir_exists(os.path.dirname(output_path))
+    logging.info('Generating swagger docs for %s', repository.name)
+    check_subprocess('curl -s {url} -o {output_path}'
+                     .format(url=server_url, output_path=output_path))
+
+  def build_swagger_docs(self, repository, json_path):
     """Build the API from the swagger endpoint."""
     if repository.name != 'gate':
       raise_and_log_error(
           UnexpectedError('Repo "%s" != "gate"' % repository.name))
 
-    docs_dir = self.get_output_dir()
-    ensure_dir_exists(docs_dir)
-    docs_path = os.path.join(docs_dir, 'docs.json')
-
-    logging.info('Generating swagger docs for %s', repository.name)
-    check_subprocess('curl -s {url} -o {docs_path}'
-                     .format(url=docs_url, docs_path=docs_path))
+    docs_dir = os.path.dirname(json_path)
     check_subprocess(
-        'java -jar {jar_path} generate -i {docs_path} -l html2'
+        'java -jar {jar_path} generate -i {json_path} -l html2'
         ' -o {output_dir} -t {templates_directory}'
         .format(jar_path=self.options.swagger_codegen_cli_jar_path,
-                docs_path=docs_path, output_dir=docs_dir,
+                json_path=json_path, output_dir=docs_dir,
                 templates_directory=self.__templates_directory))
     logging.info('Writing docs to directory %s', docs_dir)
 
   def _do_repository(self, repository):
+    generate_path = self.options.generate_swagger_path
+    if not generate_path:
+      self.__build_from_live_server(repository)
+      return
+
+    swagger_dir = os.path.dirname(generate_path)
+    generate_logfile = self.get_logfile_path(
+        repository.name + '-generate_swagger')
+    check_subprocesses_to_logfile(
+        'Extracting API to JSON', generate_logfile, [generate_path],
+        cwd=repository.git_dir)
+
+    docs_dir = self.get_output_dir()
+    ensure_dir_exists(docs_dir)
+    json_path = os.path.join(docs_dir, 'docs.json')
+    swagger_output_path = os.path.join(
+        repository.git_dir, swagger_dir, 'swagger.json')
+    with open(swagger_output_path, 'r') as stream:
+      content = stream.read()
+    with open(json_path, 'w') as stream:
+      stream.write(content)
+    self.build_swagger_docs(repository, json_path)
+
+  def __build_from_live_server(self, repository):
     """Implements CommandProcessor interface."""
     docs_url_path = SWAGGER_URL_PATHS[repository.name]
     env = dict(os.environ)
@@ -185,7 +212,10 @@ class BuildApiDocsCommand(RepositoryCommandProcessor):
       logging.info('Waiting up to %s secs for %s to be ready on port %d',
                    max_wait_secs, repository.name, port)
       self.wait_for_url(base_url + '/health', max_wait_secs)
-      self.build_swagger_docs(repository, base_url + '/' + docs_url_path)
+      json_path = os.path.join(self.get_output_dir(), 'docs.json')
+      self.__generate_json_from_url(
+          repository, base_url + '/' + docs_url_path, json_path)
+      self.build_swagger_docs(repository, json_path)
     finally:
       try:
         gate_logstream.flush()
@@ -219,9 +249,18 @@ class BuildApiDocsFactory(RepositoryCommandFactory):
     BranchSourceCodeManager.add_parser_args(parser, defaults)
 
     self.add_argument(
+        parser, 'generate_swagger_path',
+        defaults, 'swagger/generate_swagger.sh',
+        help='Path to standard script (relative to repository) for'
+        ' generating swagger JSON document. If this is empty then'
+        ' spawn a live server to query instead. It is assumed that'
+        ' if present, this will write a "swagger.json" into'
+        ' its directory.')
+    self.add_argument(
         parser, 'max_wait_secs_startup', defaults, 210, type=int,
         help='Number of seconds to wait for gate server to startup'
-             ' before giving up and timing out.')
+             ' before giving up and timing out.'
+             ' Used only if generate_swagger_path is not empty.')
     self.add_argument(
         parser, 'swagger_codegen_cli_jar_path', defaults, None,
         help='The location of the swagger-codegen-cli jarfile.'

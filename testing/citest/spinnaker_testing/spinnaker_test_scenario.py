@@ -33,7 +33,6 @@ from spinnaker_testing import appengine_scenario_support
 from spinnaker_testing import google_scenario_support
 from spinnaker_testing import kubernetes_scenario_support
 from spinnaker_testing import kubernetes_v2_scenario_support
-from spinnaker_testing import openstack_scenario_support
 from spinnaker_testing import azure_scenario_support
 from spinnaker_testing import dcos_scenario_support
 
@@ -45,7 +44,6 @@ PLATFORM_SUPPORT_CLASSES = [
     appengine_scenario_support.AppEngineScenarioSupport,
     kubernetes_scenario_support.KubernetesScenarioSupport,
     kubernetes_v2_scenario_support.KubernetesV2ScenarioSupport,
-    openstack_scenario_support.OpenStackScenarioSupport,
     azure_scenario_support.AzureScenarioSupport,
     dcos_scenario_support.DcosScenarioSupport
 ]
@@ -159,12 +157,36 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' standard port.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
     builder.add_argument(
+        '--native_base_url', default=defaults.get('NATIVE_BASE_URL', None),
+        help='Base URL that {system} is running on. If provided, this field'
+             ' will override --native_hostname and --native_port.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
+
+    builder.add_argument(
         '--test_stack', default=defaults.get('TEST_STACK', 'test'),
         help='Default Spinnaker stack decorator.')
 
     builder.add_argument(
         '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
         help='Default Spinnaker application name to use with test.')
+
+    builder.add_argument(
+        '--test_user', default=defaults.get('TEST_USER', 'anonymous'),
+        help='User used to make API calls to a Spinnaker application.')
+
+    builder.add_argument(
+        '--bearer_auth_token', default=defaults.get('BEARER_AUTH_TOKEN', None),
+        help='Bearer token used to authenticate outbound requests to {system}.'
+            ' This parameter is only used if the spinnaker host platform'
+            ' is "native". It is not needed if the system is not using'
+            ' authentication.'.format(system=cls.ENDPOINT_SUBSYSTEM))
+
+    builder.add_argument(
+        '--ignore_ssl_cert_verification', default=defaults.get('IGNORE_SSL_CERT_VERIFICATION', False),
+        type=bool,
+        help='Ignores SSL certification verification when making requests to'
+             ' Spinnaker.')
 
   @classmethod
   def init_bindings_builder(cls, builder, defaults=None):
@@ -229,15 +251,6 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       Exception if the observer is not available.
     """
     return self.__platform_support['appengine'].observer
-
-  @property
-  def os_observer(self):
-    """The observer for inspecting OpenStack platform state.
-
-    Raises:
-      Exception if the observer is not available.
-    """
-    return self.__platform_support['openstack'].observer
 
   @property
   def az_observer(self):

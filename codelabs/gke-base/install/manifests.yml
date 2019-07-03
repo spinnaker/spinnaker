@@ -169,11 +169,6 @@ data:
             oauthScopes: []
             oAuthScopes: []
           primaryAccount: my-kubernetes-account
-        openstack:
-          enabled: false
-          accounts: []
-          bakeryDefaults:
-            baseImages: []
         oraclebmcs:
           enabled: false
           accounts: []

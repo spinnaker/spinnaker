@@ -196,6 +196,10 @@ class SemanticVersion(
       return semver.minor - other.minor
     return semver.patch - other.patch
 
+  def __lt__(self, other):
+    """Implements __lt__ for sorted operator comparison."""
+    return self.compare(self, other) < 0
+
   def most_significant_diff_index(self, arg):
     """Returns the *_INDEX for the most sigificant component differnce."""
     if arg.series_name != self.series_name:
@@ -318,7 +322,7 @@ class CommitMessage(
       # Some tags indicate only a patch release.
       re.compile(r'^\s*'
                  r'(?:\*\s+)?'
-                 r'((?:fix|bug|chore|docs?|test)[\(:].*)',
+                 r'((?:fix|bug|chore|docs?|perf|test)[\(:].*)',
                  re.MULTILINE)
   ]
   DEFAULT_MINOR_REGEXS = [
@@ -327,7 +331,7 @@ class CommitMessage(
       # implementation changes that suggest a higher level of risk.
       re.compile(r'^\s*'
                  r'(?:\*\s+)?'
-                 r'((?:feat|feature|refactor|perf|config)[\(:].*)',
+                 r'((?:feat|feature|refactor|config)[\(:].*)',
                  re.MULTILINE)
   ]
   DEFAULT_MAJOR_REGEXS = [
@@ -827,29 +831,33 @@ class GitRunner(object):
     # If we checked out some branch other than master, we might not have
     # the actual branch so cannot use the symbolic name.
     master_commit = self.check_run(git_dir, 'show-ref master').split(' ')[0]
+    logging.debug('  master_commit=%s may be used to locate the branch.', master_commit)
 
     # Find branch our commit is on. There could be multiple branches.
     # We'll remember them all. These should be the same in practice, but
     # could be different if a branch spawned another for some reason.
-    commit_branches = self.check_run(
-        git_dir, 'branch --contains {id}'.format(id=commit_id))
+    # We use -r here because the branches arent known to the original git clone.
+    remote_commit_branches = self.check_run(
+        git_dir, 'branch -r --contains {id}'.format(id=commit_id))
+
     commit_branch_nodes = set([])
-    for commit_branch in commit_branches.split('\n'):
-      if commit_branch.startswith('*'):
-        commit_branch = commit_branch[1:].strip()
-      if commit_branch.startswith('('):
-        # Skip detached branches from when we checkout specific commits
+    for remote_commit_branch in remote_commit_branches.split('\n'):
+      remote_commit_branch = remote_commit_branch.strip()
+      if not remote_commit_branch.startswith('origin/release-'):
+        logging.debug('   skipping non-release branch %r', remote_commit_branch)
         continue
 
       # Find place our branch diverges from master. We'll be using this to
       # detect if a tag we consider was after our branch. We'll do this by
       # checking if the common point between us is it is here.
-      commit_branch_nodes.add(self.check_run(
+      node = self.check_run(
           git_dir, 'merge-base {branch} {master}'.format(
-              branch=commit_branch, master=master_commit)))
+              branch=remote_commit_branch, master=master_commit))
+      commit_branch_nodes.add(node)
+      logging.debug('   adding branching node=%r', node)
 
     logging.debug('Initial tag id=%s branch=%s which diverged @ %s with tag=%s.',
-                  commit_id, commit_branches, commit_branch_nodes, start_tag)
+                  commit_id, remote_commit_branches, commit_branch_nodes, start_tag)
 
     # Now there could be other versions that were created in branches between
     # that first commit and our commit, such as tag 0.2.0 in the above.

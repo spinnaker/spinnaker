@@ -24,18 +24,20 @@ from distutils.version import LooseVersion
 
 from buildtool import (
     DEFAULT_BUILD_NUMBER,
+    SPIN_REPOSITORY_NAMES,
 
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
     CommandFactory,
+    ConfigError,
+    GitRunner,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
-    check_subprocess,
+    SemanticVersion,
     check_subprocesses_to_logfile,
     check_options_set,
-    raise_and_log_error,
-    ConfigError)
+    raise_and_log_error)
 
 from google.cloud import storage
 
@@ -46,18 +48,25 @@ class DistArch(namedtuple('DistArch', ['dist', 'arch'])):
   def __repl__(self):
     return '{},{}'.format(self.dist, self.arch)
 
+  @property
+  def filename(self):
+    return 'spin.exe' if self.dist == 'windows' else 'spin'
+
 
 DIST_ARCH_LIST = [
     DistArch('darwin', 'amd64'),
-    DistArch('linux', 'amd64')
+    DistArch('linux', 'amd64'),
+    DistArch('windows', 'amd64')
 ]
 
 
 class BuildSpinCommand(RepositoryCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     super(BuildSpinCommand, self).__init__(
-      factory, options, source_repository_names=['spin'], **kwargs)
+      factory, options, source_repository_names=SPIN_REPOSITORY_NAMES, **kwargs)
+    options_copy = copy.copy(options)
     self.__gcs_uploader = SpinGcsUploader(options)
+    self.__scm = BranchSourceCodeManager(options_copy, self.get_input_dir())
     self.__build_version = None  # recorded after build
     bom_contents = BomSourceCodeManager.load_bom(options)
     gate_entry = bom_contents.get('services', {}).get('gate', {})
@@ -74,7 +83,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
 
     version_exists = [
       self.__gcs_uploader.check_file_exists(
-        'spin/{}/{}/{}/spin'.format(self.__build_version, d.dist, d.arch))
+        'spin/{}/{}/{}/{}'.format(self.__build_version, d.dist, d.arch, d.filename))
       for d in DIST_ARCH_LIST
     ]
     all_exist = all(version_exists)
@@ -111,12 +120,26 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     env.update({'GOPATH': gopath})
 
     # spin source + dependency update.
-    check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
+    for dist_arch in DIST_ARCH_LIST:
+      env.update({'GOOS': dist_arch.dist,
+                  'GOARCH': dist_arch.arch})
+      context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
+      logfile = self.get_logfile_path(
+          repository.name + '-go-get-' + context)
+      labels = {'repository': repository.name,
+                'dist': dist_arch.dist,
+                'arch': dist_arch.arch}
+      cmd = 'go get -v -u {}'.format(spin_package_path)
+      self.metrics.time_call(
+          'GoGet', labels, self.metrics.default_determine_outcome_labels,
+          check_subprocesses_to_logfile, 'Fetching Go packages ' + context,
+          logfile, [cmd], cwd=gopath, env=env)
+
     for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
-      version_bin_path = ('spin/{}/{}/{}/spin'
-                          .format(self.__build_version, dist_arch.dist, dist_arch.arch))
+      version_bin_path = ('spin/{}/{}/{}/{}'
+                          .format(self.__build_version, dist_arch.dist, dist_arch.arch, dist_arch.filename))
 
       context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
       logfile = self.get_logfile_path(
@@ -128,17 +151,13 @@ class BuildSpinCommand(RepositoryCommandProcessor):
                   'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
 
-      # Note: spin CLI is coupled to the Gate major and minor version.
-      # Gate is a routing server, so features and breaking changes in Gate
-      # must be reflected in spin since it is a client.
-      dash = self.__gate_version.find('-')
-      gate_semver = self.__gate_version[:dash]
-
       version_package_prefix = os.path.join(spin_package_path, 'version')
-
       # Unset ReleasePhase tag for proper versions.
-      ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=version_package_prefix,
-                                                                                             gate_version=gate_semver)
+      # NOTE: We always set the internal version here with the next logical patch
+      # version. We check in publish whether the built commit is different from
+      # the commit at the last tag (and we need to publish the new version).
+      ldflags = '-ldflags "-X {pref}.Version={internal_version} -X {pref}.ReleasePhase="'.format(pref=version_package_prefix,
+                                                                                                 internal_version=self.__determine_internal_version(repository))
       logging.info('Building spin binary for %s with ldflags: %s', dist_arch, ldflags)
       cmd = 'go build {ldflags} .'.format(ldflags=ldflags)
       self.metrics.time_call(
@@ -146,7 +165,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
           check_subprocesses_to_logfile, 'Building spin ' + context, logfile,
           [cmd], cwd=config_root, env=env)
 
-      spin_path = '{}/spin'.format(config_root)
+      spin_path = '{}/{}'.format(config_root, dist_arch.filename)
       self.__gcs_uploader.upload_from_filename(
         version_bin_path, spin_path)
       os.remove(spin_path)
@@ -155,6 +174,17 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     """Implements RepositoryCommandProcessor interface."""
     self.source_code_manager.ensure_local_repository(repository)
     self.build_all_distributions(repository)
+    built_version_file = os.path.join(self.get_output_dir(), 'built_spin_version')
+    with open(built_version_file, 'w') as output_version_file:
+      output_version_file.write(self.__build_version)
+      logging.info('Built spin version {} written to output file {}'
+                   .format(self.__build_version, built_version_file))
+
+  def __determine_internal_version(self, repository):
+    git_dir = repository.git_dir
+    git = self.__scm.git
+    gate_version = self.__gate_version
+    return bump_spin_patch(git, git_dir, gate_version).to_version()
 
 
 class SpinGcsUploader(object):
@@ -246,7 +276,7 @@ class PublishSpinCommand(CommandProcessor):
           ConfigError('Expected spinnaker version in the form X.Y.Z-N, got {}'
                       .format(self.__spinnaker_version)))
 
-    release_branch = 'release-{maj}.{min}.x'.format(
+    release_branch = 'origin/release-{maj}.{min}.x'.format(
         maj=semver_parts[0], min=semver_parts[1])
     release_tag = 'version-' + self.__stable_version
     logging.info('Pushing branch=%s and tag=%s to %s',
@@ -254,58 +284,40 @@ class PublishSpinCommand(CommandProcessor):
     git.check_run_sequence(
         git_dir,
         [
-            'checkout -b ' + release_branch,
-            'push origin ' + release_branch,
+            'checkout ' + release_branch,
             'tag ' + release_tag,
-            'push origin ' + release_tag
         ])
+    git.push_tag_to_origin(git_dir, release_tag)
 
   def promote_spin(self, repository):
     """Promote an existing build to become the spin CLI stable version."""
     git_dir = repository.git_dir
     git = self.__scm.git
 
-    match = re.match(r'(\d+)\.(\d+)\.(\d+)-\d+', self.__gate_version)
-    gate_major = match.group(1)
-    gate_min = match.group(2)
-    if match is None:
-      raise_and_log_error(
-          ConfigError('gate version {version} is not X.Y.Z-<buildnum>'
-                      .format(version=self.__gate_version)))
-
-    semver_parts = self.__spinnaker_version.split('.')
-    if len(semver_parts) != 3:
+    if len(self.__spinnaker_version.split('.')) != 3:
       raise_and_log_error(
           ConfigError('Expected spinnaker version in the form X.Y.Z-N'))
 
-    # Note: spin CLI is coupled to the Gate major and minor version.
-    # Gate is a routing server, so features and breaking changes in Gate
-    # must be reflected in spin since it is a client. We pin only the major
-    # and minor versions so fixes (thus patch version) are decoupled between
-    # the two.
-    patch = '0' # Patch is reset on a new Gate major or minor.
-    tag_matcher = re.compile(r'version-{maj}.{min}.(\d+)'
-                             .format(maj=gate_major, min=gate_min))
-    tags = git.fetch_tags(git_dir)
-    tag_matches = [tag_matcher.match(t) for t in tags if tag_matcher.match(t)]
-    if tag_matches:
-      patch_versions = [int(m.group(1)) for m in tag_matches]
-      max_patch = max(patch_versions)
-      last_tag = 'version-{maj}.{min}.{max_patch}'.format(maj=gate_major,
-                                                          min=gate_min,
-                                                          max_patch=max_patch)
-      self.__no_changes = git.query_local_repository_commit_id(git_dir) == git.query_commit_at_tag(git_dir, last_tag)
-      patch = str(max_patch + 1)
+    next_spin_semver = bump_spin_patch(git, git_dir, self.__gate_version)
+    gate_major = next_spin_semver.major
+    gate_min = next_spin_semver.minor
+    last_patch = str(max(next_spin_semver.patch - 1, 0))
+    self.__stable_version = next_spin_semver.to_version()
+    logging.info('calculated new stable version: {}'
+                 .format(self.__stable_version))
+    # NOTE: major and minor for spin binaries are dependent on gate versions.
+    last_tag = 'version-{maj}.{min}.{patch}'.format(maj=gate_major,
+                                                    min=gate_min,
+                                                    patch=last_patch)
+    self.__no_changes = git.query_local_repository_commit_id(git_dir) == git.query_commit_at_tag(git_dir, last_tag)
 
-    self.__stable_version = '{major}.{minor}.{patch}'.format(
-        major=match.group(1), minor=match.group(2), patch=patch)
     candidate = self.options.spin_version
     if self.__no_changes:
       logging.info('No changes in spin since last tag, skipping publish.')
     else:
       for d in DIST_ARCH_LIST:
-        source = 'spin/{}/{}/{}/spin'.format(candidate, d.dist, d.arch)
-        dest = 'spin/{}/{}/{}/spin'.format(self.__stable_version, d.dist, d.arch)
+        source = 'spin/{}/{}/{}/{}'.format(candidate, d.dist, d.arch, d.filename)
+        dest = 'spin/{}/{}/{}/{}'.format(self.__stable_version, d.dist, d.arch, d.filename)
         self.__gcs_uploader.copy_file(source, dest)
 
       self.__update_release_latest_file(gate_major, gate_min)
@@ -373,6 +385,8 @@ class PublishSpinCommandFactory(CommandFactory):
         'Publish a new spin CLI release.')
 
   def init_argparser(self, parser, defaults):
+    GitRunner.add_parser_args(parser, defaults)
+    GitRunner.add_publishing_parser_args(parser, defaults)
     super(PublishSpinCommandFactory, self).init_argparser(
         parser, defaults)
     self.add_argument(
@@ -386,6 +400,49 @@ class PublishSpinCommandFactory(CommandFactory):
         help='The semantic version of the release to publish.')
     # BomSourceCodeManager adds bom_version and bom_path arguments to fetch BOMs.
     BomSourceCodeManager.add_parser_args(parser, defaults)
+
+
+def bump_spin_patch(git, git_dir, gate_version):
+  '''Calculates the next spin version from the gate version and previous spin tags.
+
+  Spin is coupled to the Gate major and minor version.
+  Gate is a routing server, so features and breaking changes in Gate
+  must be reflected in spin since it is a client.
+
+  :param git: git support helper class.
+  :param git_dir: spin git directory.
+  :param gate_version: gate version to align spin version with in <maj>.<min>.<patch>-<buildnum> format.
+  :return: (SemanticVersion) Next semver spin version.
+  '''
+  gate_version_parts = gate_version.split('-')
+  if len(gate_version_parts) != 2:
+    raise_and_log_error(
+        ValueError('Malformed gate version {}'.format(gate_version)))
+
+  # SemanticVersion.make() expects a tag, so formulate the input gate version as a tag.
+  gate_semver = SemanticVersion.make('version-{}'.format(gate_version_parts[0]))
+  tag_pattern = r'version-{maj}.{min}.(\d+)'.format(maj=gate_semver.major,
+                                                    min=gate_semver.minor)
+  tag_matcher = re.compile(tag_pattern)
+  tags = git.fetch_tags(git_dir)
+
+  logging.info('searching git tags {} for patterns matching {}'.format(tags, tag_pattern))
+  matching_semvers = [SemanticVersion.make(t) for t in tags if tag_matcher.match(t)]
+  logging.info('found matching semvers: {}'.format(matching_semvers))
+  if matching_semvers:
+    max_semver = max(matching_semvers)
+    next_semver = max_semver.next(SemanticVersion.PATCH_INDEX)
+    patch = next_semver.patch
+  else:
+    patch = '0'
+
+  # SemanticVersion.make() expects a tag, so formulate the input gate version as a tag.
+  spin_semver = SemanticVersion.make('version-{major}.{minor}.{patch}'
+                                     .format(major=gate_semver.major,
+                                             minor=gate_semver.minor,
+                                             patch=patch))
+  logging.info('calculated next spin patch version: {}'.format(spin_semver))
+  return spin_semver
 
 
 def register_commands(registry, subparsers, defaults):

@@ -15,6 +15,7 @@
 """Helper functions for raising and logging errors."""
 
 
+import io
 import logging
 import os
 import re
@@ -62,7 +63,7 @@ class UnexpectedError(BuildtoolError):
 
 def exception_to_message(ex):
   """Get the message from an exception."""
-  return ex.args[0]
+  return ex.args[0] if ex.args else str(ex)
 
 
 def maybe_log_exception(where, ex, action_msg='propagating exception'):
@@ -112,7 +113,7 @@ def check_kwargs_empty(kwargs):
 
 def scan_logs_for_install_errors(path):
   """Scan logfile at path and count specific errors of interest."""
-  content = open(path, 'r').read()
+  content = io.open(path, 'r', encoding='utf-8').read()
   match = re.search(
       "^E:.* Version '([^']+)' for '([^']+)' was not found",
       content,

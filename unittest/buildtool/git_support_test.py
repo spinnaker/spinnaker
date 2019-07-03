@@ -42,9 +42,9 @@ TAG_VERSION_PATTERN = r'^version-[0-9]+\.[0-9]+\.[0-9]+$'
 VERSION_BASE = 'version-0.1.0'
 VERSION_A = 'version-0.4.0'
 VERSION_B = 'version-0.5.0'
-BRANCH_A = 'branch-a'
-BRANCH_B = 'branch-b'
-BRANCH_C = 'branch-c'
+BRANCH_A = 'release-a'
+BRANCH_B = 'release-b'
+BRANCH_C = 'release-c'
 BRANCH_BASE = 'baseline'
 UPSTREAM_USER = 'unittest'
 TEST_REPO_NAME = 'test_repository'
@@ -169,10 +169,18 @@ class TestGitRunner(unittest.TestCase):
     git = self.git
     test_method = git.query_local_repository_commits_to_existing_tag_from_id
 
-    self.run_git('checkout ' + BRANCH_C)
-    commit_id = git.query_local_repository_commit_id(self.git_dir)
-    all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
-    tag, messages = test_method(self.git_dir, commit_id, all_tags)
+    # Clone the repo because the <test_method> only works on remote repositories
+    # so we need to give a local repository in front of the test repo we set up.
+    # The reason for the remote constraint is because it wants to use "branch -r".
+    clone_dir = os.path.join(self.base_temp_dir, 'tag_at_later_branch')
+    os.makedirs(clone_dir)
+    check_subprocess('git clone {source} {target}'.format(
+        source=self.git_dir, target=clone_dir))
+
+    check_subprocess('git -C {dir} checkout '.format(dir=clone_dir) + BRANCH_C)
+    commit_id = git.query_local_repository_commit_id(clone_dir)
+    all_tags = git.query_tag_commits(clone_dir, TAG_VERSION_PATTERN)
+    tag, messages = test_method(clone_dir, commit_id, all_tags)
     self.assertEqual(VERSION_B, tag)
     self.assertEqual(2, len(messages))
     self.assertTrue(messages[0].message.find('added c_file'))
@@ -199,11 +207,18 @@ class TestGitRunner(unittest.TestCase):
         self.run_git('commit -a -m "{message}"'.format(message=message))
         pending_messages.append(' '*4 + message)
 
-      commit_id = git.query_local_repository_commit_id(self.git_dir)
+      # Clone the repo because the <test_method> only works on remote repositories
+      # so we need to give a local repository in front of the test repo we set up.
+      # The reason for the remote constraint is because it wants to use "branch -r".
+      clone_dir = os.path.join(self.base_temp_dir, 'tag_at_patch', branch)
+      os.makedirs(clone_dir)
+      check_subprocess('git clone {source} {target}'.format(
+          source=self.git_dir, target=clone_dir))
+      commit_id = git.query_local_repository_commit_id(clone_dir)
 
       # The pending change shows up for the old tag (and are most recent first)
-      all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
-      tag, messages = test_method(self.git_dir, commit_id, all_tags)
+      all_tags = git.query_tag_commits(clone_dir, TAG_VERSION_PATTERN)
+      tag, messages = test_method(clone_dir, commit_id, all_tags)
       self.assertEqual(version, tag)
       self.assertEqual(len(pending_messages), len(messages))
       self.assertEqual(sorted(pending_messages, reverse=True),
@@ -404,6 +419,31 @@ class TestSemanticVersion(unittest.TestCase):
       if expect_index is not None and expect_index > SemanticVersion.TAG_INDEX:
         self.assertEqual(next_semver, semver.next(expect_index))
 
+  def test_semver_sort(self):
+    versions = [
+        SemanticVersion.make('version-1.9.7'),
+        SemanticVersion.make('version-9.8.7'),
+        SemanticVersion.make('version-11.0.0'),
+        SemanticVersion.make('version-3.10.2'),
+        SemanticVersion.make('version-3.0.4'),
+        SemanticVersion.make('version-3.2.2'),
+        SemanticVersion.make('version-3.2.0'),
+        SemanticVersion.make('version-3.2.1'),
+    ]
+
+    got = sorted(versions)
+    expect = [
+        SemanticVersion.make('version-1.9.7'),
+        SemanticVersion.make('version-3.0.4'),
+        SemanticVersion.make('version-3.2.0'),
+        SemanticVersion.make('version-3.2.1'),
+        SemanticVersion.make('version-3.2.2'),
+        SemanticVersion.make('version-3.10.2'),
+        SemanticVersion.make('version-9.8.7'),
+        SemanticVersion.make('version-11.0.0'),
+    ]
+    self.assertEquals(expect, got)
+    
 
 class TestCommitMessage(unittest.TestCase):
   PATCH_BRANCH = 'patch_branch'

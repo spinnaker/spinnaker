@@ -8,9 +8,8 @@ gcloud config set compute/zone us-central1-f
 
 ## Create GKE cluster ##
 gcloud beta container clusters create kayenta-tutorial \
-    --machine-type=n1-standard-2 --cluster-version=1.10 \
-    --enable-stackdriver-kubernetes \
-    --scopes=gke-default,compute-ro
+    --machine-type=n1-standard-2 \
+    --enable-stackdriver-kubernetes
 gcloud container clusters get-credentials kayenta-tutorial
 
 ## Install Stackdriver Prometheus plugin ##
@@ -23,8 +22,8 @@ curl -sS "https://storage.googleapis.com/stackdriver-prometheus-documentation/pr
     kubectl apply -f -
 
 ## Install Spinnaker ##
-curl -sSL "https://spinnaker.io/downloads/kubernetes/quick-install.yml" | \
-    sed 's/version:.*/version: 1.10.5/g' | kubectl apply -f -
+curl -sSL "https://www.spinnaker.io/downloads/kubernetes/quick-install.yml" | \
+    sed 's/version:.*/version: 1.13.10/g' | kubectl apply -f -
 # A successful Spinnaker install has 11 pods
 # Timeout of 20minutes (1200s)
 set +x

@@ -16,3 +16,4 @@ packer/example_output.txt
 *.deb
 consul/hello-consul/target
 .vscode/
+venv

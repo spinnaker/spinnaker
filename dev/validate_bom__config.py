@@ -578,6 +578,11 @@ class AppengineConfigurator(Configurator):
       return
 
     script.append('hal -q --log=info config provider appengine enable')
+
+    if options.deploy_spinnaker_type == 'localdebian':
+      script.append(
+          'hal -q --log=info config provider appengine edit --gcloudPath `which gcloud`')
+
     account_params = [
         options.appengine_account_name,
         '--project', options.appengine_account_project
@@ -830,10 +835,7 @@ class GoogleConfigurator(Configurator):
   def validate_options(self, options):
     """Implements interface."""
     options.google_account_enabled = (
-        options.google_account_credentials is not None)
-    if options.google_account_credentials:
-      if not options.google_account_project:
-        raise ValueError('--google_account_project was not specified.')
+        options.google_account_project is not None)
 
   def add_config(self, options, script):
     """Implements interface."""
@@ -1584,6 +1586,9 @@ class HaConfigurator(Configurator):
         parser, 'ha_clouddriver_redis_slave_endpoint', defaults, None,
         help='The endpoint of the clouddriver Redis slave service')
     add_parser_argument(
+        parser, 'ha_clouddriver_redis_slave_deck_endpoint', defaults, None,
+        help='The endpoint of the clouddriver-ro-deck Redis slave service')
+    add_parser_argument(
         parser, 'ha_echo_enabled', defaults, False, type=bool,
         help='Whether or not to deploy echo in HA mode.')
 
@@ -1607,6 +1612,9 @@ class HaConfigurator(Configurator):
       if options.ha_clouddriver_redis_master_endpoint is not None:
         ha_clouddriver_params.extend(['--redis-master-endpoint',
                                       options.ha_clouddriver_redis_master_endpoint])
+      if options.ha_clouddriver_redis_slave_deck_endpoint is not None:
+        ha_clouddriver_params.extend(['--redis-slave-deck-endpoint',
+                                      options.ha_clouddriver_redis_slave_deck_endpoint])
       if options.ha_clouddriver_redis_slave_endpoint is not None:
         ha_clouddriver_params.extend(['--redis-slave-endpoint',
                                       options.ha_clouddriver_redis_slave_endpoint])

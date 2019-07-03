@@ -12,9 +12,16 @@
     withLimitConcurrent(limitConcurrent):: self + { limitConcurrent: limitConcurrent },
     withName(name):: self + { name: name },
     withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
+    withRoles(roles):: self + if std.type(roles) == 'array' then { roles: roles } else { roles: [roles] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
     withParameters(parameters):: self + if std.type(parameters) == 'array' then { parameterConfig: parameters } else { parameterConfig: [parameters] },
+
+    // v2 MPT fields
+    withTemplate(templateArtifact):: self + { template: templateArtifact },
+    withSchema(schema):: self + { schema: schema },
+    withInherit(inheritedFields):: self + if std.type(inheritedFields) == 'array' then { inherit: inheritedFields } else { inherit: [inheritedFields] },
+    withVariableValues(variables):: self + { variables: variables },  // variables are key-value pairs of <variable name> -> <variable value>
   },
 
   moniker(app, cluster):: {
@@ -26,8 +33,9 @@
 
   // artifacts
 
-  artifact(type):: {
+  artifact(type, kind):: {
     type: type,
+    kind: kind,
     withArtifactAccount(artifactAccount):: self + { artifactAccount: artifactAccount },
     withLocation(location):: self + { location: location },
     withName(name):: self + { name: name },
@@ -38,16 +46,17 @@
 
   local artifact = self.artifact,
   artifacts:: {
-    bitbucketFile():: artifact('bitbucket/file'),
-    dockerImage():: artifact('docker/image'),
-    embeddedBase64():: artifact('embedded/base64'),
-    gcsObject():: artifact('gcs/object'),
-    githubFile():: artifact('github/file'),
-    gitlabFile():: artifact('gitlab/file'),
-    httpFile():: artifact('http/file'),
+    bitbucketFile():: artifact('bitbucket/file', 'bitbucket'),
+    dockerImage():: artifact('docker/image', 'docker'),
+    embeddedBase64():: artifact('embedded/base64', 'base64'),
+    gcsObject():: artifact('gcs/object', 'gcs'),
+    githubFile():: artifact('github/file', 'github'),
+    gitlabFile():: artifact('gitlab/file', 'gitlab'),
+    httpFile():: artifact('http/file', 'http'),
     // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
-    kubernetesObject(kind):: artifact('kubernetes/' + kind),
-    s3Object():: artifact('s3/object'),
+    s3Object():: artifact('s3/object', 's3'),
+    kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
+    front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials'),  // credentials are static
   },
 
   // expected artifacts
@@ -60,7 +69,7 @@
         // TODO: For Docker, the name field should be registry and repository.
         name: matchArtifact.name,
         type: matchArtifact.type,
-        [if 'kind' in matchArtifact then 'kind']: matchArtifact.kind,
+        kind: matchArtifact.kind,
       },
     },
     withDefaultArtifact(defaultArtifact):: self + {
@@ -68,6 +77,7 @@
         reference: defaultArtifact.reference,
         name: defaultArtifact.name,
         type: defaultArtifact.type,
+        kind: if defaultArtifact.kind == 'custom' then defaultArtifact else 'default.' + defaultArtifact.kind,
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
         [if 'kind' in defaultArtifact then 'kind']: defaultArtifact.kind,
         [if 'version' in defaultArtifact then 'version']: defaultArtifact.version,
@@ -131,6 +141,7 @@
       withAccount(account):: self + { account: account },
       withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
       withOrganization(organization):: self + { organization: organization },
+      withRunAsUser(runAsUser):: self + { runAsUser: runAsUser },
       withRegistry(registry):: self + { registry: registry },
       withRepository(repository):: self + { repository: repository },
       withTag(tag):: self + { tag: tag },
@@ -232,6 +243,7 @@
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },
+      withParameters(parameters):: self + { parameters: parameters},
       withPropertyFile(propertyFile):: self + { propertyFile: propertyFile },
       withMarkUnstableAsSuccessful(markUnstableAsSuccessful):: self + { markUnstableAsSuccessful: markUnstableAsSuccessful },
       withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
@@ -262,6 +274,7 @@
       withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, source: 'artifact' },
       withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
       withMoniker(moniker):: self + { moniker: moniker },
+      withSkipExpressionEvaluation():: self + { skipExpressionEvaluation: true },
     },
     deleteManifest(name):: stage(name, 'deleteManifest') {
       cloudProvider: 'kubernetes',
@@ -305,8 +318,8 @@
       cloudProvider: 'kubernetes',
       withAccount(account):: self + { account: account },
       withNamespace(namespace):: self + { location: namespace },
-      withRevisionsBack(revisionsBack): self + { numRevisionsBack: revisionsBack },
-      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
+      withRevisionsBack(revisionsBack):: self + { numRevisionsBack: revisionsBack },
+      withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
 
     // pipeline stages

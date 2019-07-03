@@ -80,6 +80,7 @@ data:
     event:
       handlers:
       - name: label_issue_comment_event_handler
+      - name: issue_comment_assign_handler
       - name: log_event_handler
         config:
           payload: false

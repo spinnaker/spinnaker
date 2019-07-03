@@ -156,6 +156,8 @@ class GradleMetricsUpdater(object):
 class GradleRunner(object):
   """Helper module for running gradle."""
 
+  __GRADLE_PUBLISH_FILE = os.path.join("gradle", "init-publish.gradle")
+
   @staticmethod
   def add_parser_args(parser, defaults):
     """Add parser arguments for gradle."""
@@ -171,7 +173,9 @@ class GradleRunner(object):
         '{home}/.gradle'.format(home=os.environ['HOME'])
         if os.environ.get('HOME') else None,
         help='Path to a gradle cache directory to use for the builds.')
-
+    add_parser_argument(
+        parser, 'gradle_network_timeout_secs', defaults, 60,
+        help='Seconds to configure gradle timeouts (e.g. with bintray).')
     add_parser_argument(
         parser, 'maven_custom_init_file', defaults,
         os.path.join(os.path.dirname(__file__), '..', 'maven-init.gradle'),
@@ -309,7 +313,6 @@ class GradleRunner(object):
     args = [
         '--stacktrace',
         '--info',
-        '-Prelease.useLastTag=true',
     ]
 
     if options.maven_custom_init_file:
@@ -343,16 +346,30 @@ class GradleRunner(object):
     return args
 
   def check_run(self, args, command_processor, repository, target, context,
-                gradle_dir=None, **kwargs):
+      version, build_number, gradle_dir=None):
     """Run the gradle command on the given repository."""
     gradle_dir = gradle_dir or repository.git_dir
-    version = kwargs.pop('version', None)
-    build_number = kwargs.pop('build_number', None)
-    build_number = self.prepare_local_git_for_nebula(
-        gradle_dir, repository, version=version, build_number=build_number)
+
+    if self.__has_init_publish_file(repository):
+      args.extend(['-I', self.__GRADLE_PUBLISH_FILE])
+
+    if self.__is_plugin_version_6(repository):
+      args.extend(['-PenablePublishing=true',
+                   '-Prelease.disableGitChecks=true',
+                   '-Prelease.version=%s-%s' % (version, build_number)])
+    else:
+      args.append('-Prelease.useLastTag=true')
+      build_number = self.prepare_local_git_for_nebula(
+          gradle_dir, repository, version=version, build_number=build_number)
 
     full_args = list(args)
     full_args.append('-PbintrayPackageBuildNumber=%s' % build_number)
+
+    # This gradle options wasnt introduced until 4.10.2
+    timeout = self.__options.gradle_network_timeout_secs * 1000
+    if timeout:
+      full_args.append('-Dorg.gradle.internal.http.socketTimeout=%d' % timeout)
+      full_args.append('-Dorg.gradle.internal.http.connectionTimeout=%d' % timeout)
 
     name = repository.name
     logfile = command_processor.get_logfile_path(name + '-' + context)
@@ -371,6 +388,14 @@ class GradleRunner(object):
         postprocess_hook=GradleMetricsUpdater(self.__metrics,
                                               repository, target))
 
+  def __is_plugin_version_6(self, repository):
+    return not self.__has_init_publish_file(
+        repository) and not repository.name == 'spinnaker-monitoring'
+
+  def __has_init_publish_file(self, repository):
+    return os.path.isfile(
+      os.path.join(repository.git_dir, self.__GRADLE_PUBLISH_FILE))
+
   def prepare_local_git_for_nebula(
       self, gradle_dir, repository, version=None, build_number=None):
     """Tag the repository with the version we want to build.
@@ -385,6 +410,8 @@ class GradleRunner(object):
 
     if not build_number:
       build_number = self.__scm.determine_build_number(repository)
+    # This doesn't really work because get_repository_service_build_version only
+    # exists in BomSourceCodeManager.
     if not version:
       build_version = self.__scm.get_repository_service_build_version(
           repository)

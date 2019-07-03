@@ -83,6 +83,7 @@ import logging
 import math
 import os
 import re
+import ssl
 import subprocess
 import socket
 import threading
@@ -91,9 +92,9 @@ import traceback
 import yaml
 
 try:
-  from urllib2 import urlopen, HTTPError, URLError
+  from urllib2 import urlopen, Request, HTTPError, URLError
 except ImportError:
-  from urllib.request import urlopen
+  from urllib.request import urlopen, Request
   from urllib.error import HTTPError, URLError
 
 
@@ -110,6 +111,9 @@ from buildtool import (
 
 from validate_bom__deploy import replace_ha_services
 
+from iap_generate_google_auth_token import (
+    generate_auth_token,
+    get_service_account_email)
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
 
@@ -343,7 +347,8 @@ class ValidateBomTestController(object):
 
     region_info_json = check_subprocess('gcloud compute regions describe'
                                         ' --format yaml'
-                                        ' %s' % region)
+                                        ' --project %s'
+                                        ' %s' % (project, region))
     region_info = yaml.safe_load(region_info_json)
     region_quota = {
         'gce_region_%s' % info.get('metric', 'UNKNOWN'): int(max(
@@ -351,7 +356,7 @@ class ValidateBomTestController(object):
         for info in region_info['quotas']
     }
     return project_quota, region_quota
-    
+
   def __init__(self, deployer):
     options = deployer.options
     quota_spec = {}
@@ -407,6 +412,7 @@ class ValidateBomTestController(object):
         'clouddriver-caching': 7002,
         'clouddriver-rw': 7002,
         'clouddriver-ro': 7002,
+        'clouddriver-ro-deck': 7002,
         'gate': 8084,
         'front50': 8080,
 
@@ -418,6 +424,29 @@ class ValidateBomTestController(object):
         'echo-scheduler': 8089,
         'echo-worker': 8089
     }
+
+    # Map of services with provided endpoints and credentials.
+    self.__public_service_configs = {}
+    self.__add_gate_service_config(self.__public_service_configs)
+
+  def __add_gate_service_config(self, configs):
+    if not self.options.test_gate_service_base_url:
+      return
+    service_config = {
+      'base_url': self.options.test_gate_service_base_url,
+    }
+    credentials_path = self.options.test_gate_iap_credentials  # This can be None, which would mean we use the Application Default Credentials
+    client_id = self.options.test_gate_iap_client_id
+    impersonated_service_account = self.options.test_gate_iap_impersonated_service_account
+    if client_id:
+      service_config['service_account_email'] = impersonated_service_account or get_service_account_email(credentials_path)
+      service_config['bearer_auth_token'] = generate_auth_token(client_id,
+          service_account_file=credentials_path,
+          impersonate_service_account_email=impersonated_service_account)
+    configs['gate'] = service_config
+
+  def __bearer_auth_token_or_none(self, service_name, client_id, credentials_path=None):
+    return generate_auth_token(client_id, credentials_path)
 
   def __replace_ha_api_service(self, service, options):
     transform_map = {}
@@ -551,7 +580,7 @@ class ValidateBomTestController(object):
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
-    logging.info('Waiting on "%s..."', service_name)
+    logging.info('Waiting on "%s"...', service_name)
     if port is None:
       port = self.__service_port_map[service_name]
 
@@ -591,6 +620,43 @@ class ValidateBomTestController(object):
     raise_and_log_error(
         ResponseError('It appears that {0} failed'.format(service_name),
                       server='tunnel'))
+
+  def __validate_service_base_url(self, service_name, timeout=None):
+    service_config = self.__public_service_configs[service_name]
+    base_url = service_config['base_url']
+
+    timeout = timeout or self.options.test_service_startup_timeout
+    end_time = time.time() + timeout
+    logging.info('Validating base URL of "%s"...', service_name)
+
+    try:
+      url = '{base_url}/health'.format(base_url=base_url)
+      request = Request(url=url)
+      if 'bearer_auth_token' in service_config:
+        request.add_header('Authorization', 'Bearer {}'.format(service_config['bearer_auth_token']))
+      context = None
+      if self.options.test_ignore_ssl_cert_verification:
+        context = ssl._create_unverified_context()
+      urlopen(request, context=context)
+      logging.info('"%s" is ready on service endpoint %s',
+                   service_name, base_url)
+      return
+    except HTTPError as error:
+      logging.error('%s service endpoint got %s.',
+                    service_name, error)
+      raise_and_log_error(
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=base_url))
+    except Exception as error:
+      raise_and_log_error(
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=base_url))
+    except URLError as error:
+      if time.time() >= end_time:
+        logging.error(
+            'Timing out waiting for %s', service_name)
+        raise_and_log_error(TimeoutError(service_name, cause=service_name))
+      raise
 
   def run_tests(self):
     """The actual controller that coordinates and runs the tests.
@@ -728,12 +794,13 @@ class ValidateBomTestController(object):
             This argument will be pruned as values are consumed from it.
 
     Returns:
-      True if requirements are satisifed, False if not.
+      True if requirements are satisfied, False if not.
     """
     if not 'api' in spec:
       raise_and_log_error(
           UnexpectedError('Test "{name}" is missing an "api" spec.'.format(
               name=test_name)))
+
     requires = spec.pop('requires', {})
     configuration = requires.pop('configuration', {})
     our_config = vars(self.options)
@@ -753,6 +820,7 @@ class ValidateBomTestController(object):
 
     services = set(replace_ha_services(
         requires.pop('services', []), self.options))
+
     services.add(self.__replace_ha_api_service(
         spec.pop('api'), self.options))
 
@@ -765,15 +833,21 @@ class ValidateBomTestController(object):
           ConfigError('Unexpected fields in {name} specification: {remaining}'
                       .format(name=test_name, remaining=spec)))
 
-    def wait_on_services(services):
-      thread_pool = ThreadPool(len(services))
-      thread_pool.map(self.wait_on_service, services)
-      thread_pool.terminate()
+    for service in self.__public_service_configs:
+      self.__validate_service_base_url(service)
 
-    self.__deployer.metrics.track_and_time_call(
-        'WaitingOnServiceAvailability',
-        metric_labels, self.__deployer.metrics.default_determine_outcome_labels,
-        wait_on_services, services)
+    if self.options.test_wait_on_services:
+      def wait_on_services(services):
+        thread_pool = ThreadPool(len(services))
+        thread_pool.map(self.wait_on_service, services)
+        thread_pool.terminate()
+
+      self.__deployer.metrics.track_and_time_call(
+          'WaitingOnServiceAvailability',
+          metric_labels, self.__deployer.metrics.default_determine_outcome_labels,
+          wait_on_services, services)
+    else:
+      logging.warning('Skipping waiting for services')
 
     return True
 
@@ -860,9 +934,27 @@ class ValidateBomTestController(object):
         'python', test_path,
         '--log_dir', citest_log_dir,
         '--log_filebase', test_name,
-        '--native_host', 'localhost',
-        '--native_port', str(self.__forwarded_ports[microservice_api].port)
+        '--ignore_ssl_cert_verification', str(options.test_ignore_ssl_cert_verification)
     ]
+    if microservice_api in self.__public_service_configs:
+      service_config = self.__public_service_configs[microservice_api]
+      command.extend([
+          '--native_base_url', service_config['base_url']
+      ])
+      if 'bearer_auth_token' in service_config:
+        command.extend([
+            '--bearer_auth_token', service_config['bearer_auth_token']
+        ])
+      if 'service_account_email' in service_config:
+        command.extend([
+            '--test_user', service_config['service_account_email']
+        ])
+    else:
+      command.extend([
+          '--native_host', 'localhost',
+          '--native_port', str(self.__forwarded_ports[microservice_api].port)
+      ])
+
     if options.test_stack:
       command.extend(['--test_stack', str(options.test_stack)])
 
@@ -875,7 +967,7 @@ class ValidateBomTestController(object):
     def run_and_log_test_script(command):
       logfile = os.path.join(self.options.output_dir, 'citest_logs',
                              '%s-%s.console.log' % (test_name, os.getpid()))
-      logging.info('Logging test "%s" to %s...', test_name, logfile)
+      logging.info('Logging test "%s" to %s', test_name, logfile)
       try:
         check_subprocesses_to_logfile('running test', logfile, [command])
         retcode = 0
@@ -1001,12 +1093,17 @@ def init_argument_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'testing_enabled', defaults, True, type=bool,
-      help='If false then dont run the testing phase.')
+      help='If false then do not run the testing phase.')
 
   add_parser_argument(
       parser, 'test_disable', defaults, False, action='store_true',
       dest='testing_enabled',
       help='DEPRECATED: Use --testing_enabled=false.')
+
+  add_parser_argument(
+      parser, 'test_wait_on_services', defaults, True, type=bool,
+      help='If false then do not wait on services to be ready during'
+           ' testing phase.')
 
   add_parser_argument(
       parser, 'test_include', defaults, '.*',
@@ -1027,6 +1124,44 @@ def init_argument_parser(parser, defaults):
       parser, 'test_jenkins_job_name', defaults, 'TriggerBake',
       help='The Jenkins job name to use in tests.')
 
+  add_parser_argument(
+      parser, 'test_gate_service_base_url', defaults, None,
+      help='Gate base URL (including protocol, host, and port) to use'
+           ' rather than port-forwarding.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_client_id', defaults, None,
+      help='IAP client ID used to authenticate requests to an'
+           ' IAP-protected Spinnaker. The inclusion of this flag'
+           ' indicates that the Gate service is IAP-protected.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_credentials', defaults, None,
+      help='Path to google credentials file to authenticate requests'
+           ' to an IAP-protected Spinnaker. This must be used with the'
+           ' test_gate_iap_client_id flag.'
+           ' If left empty then use Application Default Credentials.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_impersonated_service_account', defaults, None,
+      help='Service account to impersonate to receive the credentials'
+           ' to make authenticated requests to an IAP-protected Spinnaker.'
+           ' If test_gate_iap_credentials is provided, the service account'
+           ' specified by test_gate_iap_credentials will impersonate this'
+           ' service account. If test_gate_iap_credentials is not provided,'
+           ' the Application Default Credentials will be used to impersonate'
+           ' this service account. This must be used with the'
+           ' test_gate_iap_client_id flag.'
+           ' If left empty then no service account will be impersonated.')
+
+  add_parser_argument(
+      parser, 'test_ignore_ssl_cert_verification', defaults, False, type=bool,
+      help='Whether or not to ignore SSL certificate verification when making'
+           ' requests to Spinnaker. This is False by default.')
+
+  add_parser_argument(
+      parser, 'test_appengine_region', defaults, 'us-central',
+      help='Region to use for AppEngine tests.')
 
 def validate_options(options):
   """Validate testing related command-line parameters."""

@@ -73,7 +73,7 @@ def replace_ha_services(services, options):
   transform_map = {}
   if options.ha_clouddriver_enabled:
     transform_map['clouddriver'] = \
-        ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro']
+        ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro', 'clouddriver-ro-deck']
   if options.ha_echo_enabled:
     transform_map['echo'] = \
         ['echo-scheduler', 'echo-worker']

@@ -469,9 +469,9 @@ class CollectArtifactVersions(CommandProcessor):
     user = os.environ.get('BINTRAY_USER')
     password = os.environ.get('BINTRAY_KEY')
     if user and password:
-      encoded_auth = base64.encodestring('{user}:{password}'.format(
-          user=user, password=password))[:-1]  # strip eoln
-      self.__basic_auth = 'Basic ' + encoded_auth
+      user_password = '{user}:{password}'.format(user=user, password=password)
+      encoded_auth = base64.encodestring(user_password.encode())[:-1] # no eoln
+      self.__basic_auth = 'Basic %s' % encoded_auth.decode()
     else:
       self.__basic_auth = None
 
@@ -483,7 +483,7 @@ class CollectArtifactVersions(CommandProcessor):
       response = urlopen(request)
       headers = response.info()
       payload = response.read()
-      content = json.JSONDecoder(encoding='utf-8').decode(payload)
+      content = json.JSONDecoder().decode(payload.decode())
     except HTTPError as ex:
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
@@ -531,8 +531,8 @@ class CollectArtifactVersions(CommandProcessor):
         key = package[len(prefix):]
       if not key in jar_map:
         key = package
-        if key == 'spinnaker-monitoring-daemon':
-          key = 'spinnaker-monitoring'
+        if key == 'spinnaker-monitoring':
+          key = 'spinnaker-monitoring-daemon'
         if not key in jar_map:
           if key == 'spinnaker-monitoring-third-party':
             continue
@@ -595,7 +595,7 @@ class CollectArtifactVersions(CommandProcessor):
       command_parts.extend(['--account', options.gcb_service_account])
     response = check_subprocess(' '.join(command_parts))
     result = []
-    for version in json.JSONDecoder(encoding='utf-8').decode(response):
+    for version in json.JSONDecoder().decode(response):
       result.extend(version['tags'])
     return (image[image.rfind('/') + 1:], result)
 
@@ -612,7 +612,7 @@ class CollectArtifactVersions(CommandProcessor):
 
     response = check_subprocess(' '.join(command_parts))
     images = [entry['name']
-              for entry in json.JSONDecoder(encoding='utf-8').decode(response)]
+              for entry in json.JSONDecoder().decode(response)]
     image_versions = pool.map(self.query_gcr_image_versions, images)
 
     image_map = {}
@@ -641,7 +641,7 @@ class CollectArtifactVersions(CommandProcessor):
 
     response = check_subprocess(' '.join(command_parts))
     images = [entry['name']
-              for entry in json.JSONDecoder(encoding='utf-8').decode(response)]
+              for entry in json.JSONDecoder().decode(response)]
     image_map = {}
     for name in images:
       parts = name.split('-', 2)
@@ -997,11 +997,11 @@ class AuditArtifactVersions(CommandProcessor):
         bad_list.append(text)
         self.__invalid_versions[name] = bad_list
         logging.error('Ignoring invalid %s version "%s": %s', name, text, ex)
-    return sorted(sem_vers, cmp=SemanticVersion.compare)[-1].to_version()
+    return sorted(sem_vers)[-1].to_version()
 
   def test_buildnum(self, buildver):
     dash = buildver.rfind('-')
-    if dash < 0:
+    if dash < 0 or not self.options.prune_min_buildnum_prefix:
       return True
     buildnum = buildver[dash + 1:]
     return buildnum < self.options.prune_min_buildnum_prefix
@@ -1050,7 +1050,12 @@ class AuditArtifactVersions(CommandProcessor):
         unused_list = unused_map.get(name, None)
         if unused_list is None:
           unused_list = unused_map.get('spinnaker-' + name, [])
-
+          if not unused_list and name == 'monitoring-daemon':
+            # Some repos have 'spinnaker-monitoring', not individual components
+            unused_list = unused_map.get('spinnaker-monitoring', [])
+            if unused_list:
+              name = 'spinnaker-monitoring'
+            
         newest_version = self.most_recent_version(name, unused_list)
         candidates = filter_from_candidates(newest_version, unused_list)
 
@@ -1279,7 +1284,11 @@ class AuditArtifactVersions(CommandProcessor):
         for _, buildnums in commits.items():
           for buildnum, info_list in buildnums.items():
             version_buildnum = '%s-%s' % (version, buildnum)
-            jar_ok = self.audit_jar(service, version_buildnum, info_list)
+            if service in ['monitoring-daemon', 'monitoring-third-party']:
+              # Uses debians, but not jars so missing jars is ok.
+              jar_ok = True
+            else:
+              jar_ok = self.audit_jar(service, version_buildnum, info_list)
             deb_ok = self.audit_debian(service, version_buildnum, info_list)
             gcr_ok = self.audit_container(service, version_buildnum, info_list)
             image_ok = self.audit_image(service, version_buildnum, info_list)

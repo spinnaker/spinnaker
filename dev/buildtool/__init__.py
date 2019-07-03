@@ -12,6 +12,9 @@ SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
 # For building and validating a release
 SPINNAKER_PROCESS_REPOSITORY_NAMES = ['spinnaker']
 
+# Additional tools that accompany a release
+SPIN_REPOSITORY_NAMES = ['spin']
+
 # Halyard is independent of spinnaker
 SPINNAKER_HALYARD_REPOSITORY_NAME = 'halyard'
 

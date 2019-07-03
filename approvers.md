@@ -9,10 +9,11 @@
 * brandonnelson3
 * cfieber
 * christopherthielen
+* claymccoy
 * csanden
 * dibyom
 * dorbin
-* dpeach
+* danielpeach
 * dreynaud
 * duftler
 * edwinavalos
@@ -22,6 +23,7 @@
 * ewiseblatt
 * ezimanyi
 * gardleopard
+* jammy-louie
 * jeyrschabu
 * jkschneider
 * joonlim
@@ -29,6 +31,7 @@
 * jtk54
 * lwander
 * maggieneterval
+* marchello2000
 * robfletcher
 * robzienert
 * sbwsg

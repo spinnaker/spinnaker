@@ -5,6 +5,10 @@ commit_types = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'cho
 branchre = re.compile('release-(\d+\.\d+\.x)')
 commitre = re.compile('({})(.*): (.*)'.format('|'.join(commit_types)))
 
+def FormatCommit(commit):
+    title = commit.message.split('\n')[0]
+    return '{}: {}'.format(commit.sha, title)
+
 def ParseReleaseBranch(branch):
     branch = ReleaseBranchFor(branch)
     if branch is None:

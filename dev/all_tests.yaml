@@ -300,6 +300,7 @@ tests:
       git_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
       app_directory_root: appengine/standard/hello_world
       branch: master
+      test_appengine_region: $test_appengine_region
 
   appengine_smoke_test_gcs:
     requires:
@@ -314,6 +315,7 @@ tests:
       app_directory_root: appengine/standard/hello_world
       test_gcs_bucket: $storage_gcs_bucket
       branch: master
+      test_appengine_region: $test_appengine_region
 
   appengine_gcs_pubsub_test:
     requires:
@@ -341,6 +343,3 @@ tests:
     api: gate
     args:
       alias: [standard_dcos_provider_params]
-
-# Add openstack_smoke_test
-#    need to add config support first

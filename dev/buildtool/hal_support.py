@@ -94,7 +94,7 @@ class HalRunner(object):
       raise_and_log_error(
           ResponseError(
               '{url}: {code}\n{body}'.format(
-                  url=url, code=error.code, body=response.read()),
+                  url=url, code=error.code, body=error.read()),
               server='halyard'))
     self.__halyard_runtime_config = yaml.safe_load(response)
 
@@ -146,6 +146,6 @@ class HalRunner(object):
                            halyard_version=min_halyard_version))
     if latest:
       logging.info(
-          'Publishing spinnaker verison "%s" as latest', release_version)
+          'Publishing spinnaker version "%s" as latest', release_version)
       self.check_run('admin publish latest "{version}"'.format(
           version=release_version))

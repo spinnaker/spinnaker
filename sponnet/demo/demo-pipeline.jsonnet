@@ -11,6 +11,7 @@ local moniker = sponnet.moniker(app, 'some-cluster')
 
 local myJenkinsMaster = 'staging-jenkins';
 local myJenkinsJob = 'smoketest';
+local jobParameters = { COMMAND: 'integration_test.yaml', REPO_URL: 'git@github.com:spinnaker/spinnaker.git' };
 
 local notificationAddress = 'development';
 local notificationType = 'slack';
@@ -148,7 +149,8 @@ local deployManifestArtifact = sponnet.stages
                                .withMoniker(moniker)
                                .withOverrideTimeout('300000')
                                .withRestrictedExecutionWindow(['1', '2', '3'], whitelist)
-                               .withRequisiteStages(wait);
+                               .withRequisiteStages(wait)
+                               .withSkipExpressionEvaluation();
 
 local deployManifestTextBaseline = sponnet.stages
                                    .deployManifest('Deploy a manifest')
@@ -193,6 +195,7 @@ local jenkinsJob = sponnet.stages
                    .withMarkUnstableAsSuccessful('false')
                    .withMaster(myJenkinsMaster)
                    .withNotifications(slackStageNotification)
+                   .withParameters(jobParameters)
                    .withOverrideTimeout('300000')
                    .withRequisiteStages(findArtifactsFromResource)
                    .withWaitForCompletion('true');

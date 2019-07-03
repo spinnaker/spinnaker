@@ -8,15 +8,12 @@ citest
 # This is to make gsutil compatible with virtualenv
 # it isnt directly used by any tests, only tests that
 # use gsutil.
-google_compute_engine
+google-compute-engine>=2.8.13
 
 # These are needed by the google_http_lb_tests
-cffi
-pyopenssl
+cffi>=1.12.2
+pyopenssl>=19.0.0
 
-# OpenStack client needed for openstack_smoke_test
-python-openstackclient
-
-google-cloud-storage>=1.7
-google-cloud-pubsub>=0.26.0
+google-cloud-storage>=1.14.0
+google-cloud-pubsub>=0.40.0
 

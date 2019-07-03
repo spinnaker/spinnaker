@@ -92,6 +92,10 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         help='Storage account when testing GCS buckets.'
         ' If not specified, use the application default credentials.')
 
+    parser.add_argument(
+        '--test_appengine_region', default='us-central',
+        help='Region to use for AppEngine tests.')
+
     parser.add_argument('--git_repo_url', default=None,
                         help='URL of a GIT source code repository used by Spinnaker to deploy to App Engine.')
     parser.add_argument('--branch', default='master',
@@ -129,36 +133,69 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
     self.__branch = bindings['BRANCH']
     self.pipeline_id = None
 
-    test_bucket = bindings['TEST_GCS_BUCKET']
-    if test_bucket:
-      self.__prepare_bucket(test_bucket)
-      self.__test_repository_url = 'gs://' + test_bucket
-    else:
-      self.__test_repository_url = bindings['GIT_REPO_URL']
+    try:
+      repo_path = self.__clone_app_repo()
+      appengine_dir = self.bindings['APP_DIRECTORY_ROOT']
+      repo_appengine_path = os.path.join(repo_path, appengine_dir)
 
-  def __prepare_bucket(self, bucket):
-    root = self.bindings['APP_DIRECTORY_ROOT']
+      self.__prepare_app_default_version(repo_appengine_path)
+
+      test_bucket = bindings['TEST_GCS_BUCKET']
+      if test_bucket:
+        self.__prepare_bucket(test_bucket, repo_appengine_path)
+        self.__test_repository_url = 'gs://' + test_bucket
+      else:
+        self.__test_repository_url = bindings['GIT_REPO_URL']
+    finally:
+      shutil.rmtree(repo_path)
+
+  def __clone_app_repo(self):
     temp = tempfile.mkdtemp()
-    local_path = os.path.join(temp, root)
 
-    branch = self.bindings['BRANCH']
     git_repo = self.bindings['GIT_REPO_URL']
+    branch = self.bindings['BRANCH']
+
+    command = 'git clone {repo} -b {branch} {dir}'.format(
+        repo=git_repo, branch=branch, dir=temp)
+    logging.info('Fetching %s', git_repo)
+    subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
+
+    return temp
+
+  def __prepare_bucket(self, bucket, repo_appengine_path):
+    root = self.bindings['APP_DIRECTORY_ROOT']
     gcs_path = 'gs://{bucket}/{root}'.format(
         bucket=self.bindings['TEST_GCS_BUCKET'], root=root)
 
-    try:
-      command = 'git clone {repo} -b {branch} {dir}'.format(
-          repo=git_repo, branch=branch, dir=temp)
-      logging.info('Fetching %s', git_repo)
+    command = 'gsutil -m rsync {local} {gcs}'.format(
+        local=repo_appengine_path, gcs=gcs_path)
+    logging.info('Preparing %s', gcs_path)
+    subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
+
+  def __prepare_app_default_version(self, repo_appengine_path):
+    if not self.__has_default_version():
+      deployable_path = os.path.join(repo_appengine_path, 'app.yaml')
+      command = 'gcloud app deploy {deployable} --project={project} --quiet'.format(
+          project=self.__gcp_project, deployable=deployable_path)
+      logging.info('Deploying AppEngine app with default version')
       subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
 
-      command = 'gsutil -m rsync {local} {gcs}'.format(
-          local=local_path, gcs=gcs_path)
-      logging.info('Preparing %s', gcs_path)
-      subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
-    finally:
-      shutil.rmtree(local_path)
+  def __has_default_version(self):
+    command = 'gcloud app services list --project={project}'.format(
+        project=self.__gcp_project)
+    out, err = (subprocess.Popen(command,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 shell=True)
+                .communicate())
+    logging.debug(
+        'Checking if project has default app version: {command} returned: {out}'
+        .format(command=command, out=out))
 
+    # Expect an output similar to:
+    # SERVICE        NUM_VERSIONS
+    # default        1
+    # other_version  1
+    return '\ndefault ' in out.decode(encoding='utf-8')
 
   def create_app(self):
     # Not testing create_app, since the operation is well tested elsewhere.
@@ -195,7 +232,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'configFiles': [self.__app_yaml],
         'type': 'createServerGroup',
         'cloudProvider': 'appengine',
-        'region': 'us-central'
+        'region': self.bindings['TEST_APPENGINE_REGION']
       }
     storageAccountName = self.bindings.get('TEST_STORAGE_ACCOUNT_NAME')
     if storageAccountName is not None:
@@ -233,7 +270,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'application': self.TEST_APP,
         'cloudProvider': 'appengine',
         'provider': 'appengine',
-        'region': 'us-central',
+        'region': self.bindings['TEST_APPENGINE_REGION'],
         'repositoryUrl': self.__test_repository_url,
         'stack': self.TEST_STACK
     }
@@ -262,7 +299,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
             'loadBalancerName': self.__lb_name,
             'migrateTraffic': False,
             'name': self.__lb_name,
-            'region': 'us-central',
+            'region': self.bindings['TEST_APPENGINE_REGION'],
             'splitDescription': {
                 'allocationDescriptions': [
                 {

@@ -23,16 +23,12 @@ gcloud iam service-accounts create \
   $SERVICE_ACCOUNT_NAME \
   --display-name $SERVICE_ACCOUNT_NAME
 
-SA_EMAIL=$(gcloud iam service-accounts list \
-  --filter="displayName:$SERVICE_ACCOUNT_NAME" \
-  --format='value(email)')
-
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:$SA_EMAIL \
+  --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
   --role roles/owner
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:$SA_EMAIL \
+  --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
   --role roles/pubsub.subscriber
 
 bold "Using bucket $BUCKET_URI..."
@@ -42,10 +38,10 @@ gsutil mb -p $PROJECT_ID $BUCKET_URI
 bold "Configuring sample code & pipelines..."
 
 gsutil cp gs://gke-spinnaker-codelab/services.tgz .
-tar -xvf services.tgz
+tar -xvzf services.tgz
 
 gsutil cp gs://gke-spinnaker-codelab/front50.tgz .
-tar -xvf front50.tgz
+tar -xvzf front50.tgz
 
 replace() {
   find front50 -type f -name "*.json" -print0 | xargs -0 sed -i $1
@@ -72,16 +68,18 @@ rm -rf front50/ # TODO remove front50.tgz as well
 
 bold "Pushing sample images into gcr.io/$PROJECT_ID..."
 
-gcloud docker -- pull gcr.io/spinnaker-marketplace/frontend
-gcloud docker -- pull gcr.io/spinnaker-marketplace/backend
+gcloud auth configure-docker -q
 
-gcloud docker -- tag gcr.io/spinnaker-marketplace/frontend \
+docker pull gcr.io/spinnaker-marketplace/frontend
+docker pull gcr.io/spinnaker-marketplace/backend
+
+docker tag gcr.io/spinnaker-marketplace/frontend \
   gcr.io/$PROJECT_ID/frontend
-gcloud docker -- tag gcr.io/spinnaker-marketplace/backend \
+docker tag gcr.io/spinnaker-marketplace/backend \
   gcr.io/$PROJECT_ID/backend
 
-gcloud docker -- push gcr.io/$PROJECT_ID/frontend
-gcloud docker -- push gcr.io/$PROJECT_ID/backend
+docker push gcr.io/$PROJECT_ID/frontend
+docker push gcr.io/$PROJECT_ID/backend
 
 bold "Configuring pub/sub from $GCS_TOPIC -> $GCS_SUB..."
 
@@ -96,7 +94,7 @@ gcloud beta pubsub subscriptions create $GCR_SUB --topic $GCR_TOPIC
 bold "Creating your cluster $GKE_CLUSTER..."
 
 gcloud container clusters create $GKE_CLUSTER --zone $ZONE \
-  --service-account $SA_EMAIL \
+  --service-account $SERVICE_ACCOUNT_EMAIL \
   --username admin \
   --machine-type n1-standard-4 --image-type COS --disk-size 100 \
   --num-nodes 3 --enable-cloud-logging --enable-cloud-monitoring

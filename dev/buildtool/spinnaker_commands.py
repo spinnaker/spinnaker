@@ -29,6 +29,7 @@ from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     SPINNAKER_PROCESS_REPOSITORY_NAMES,
+    SPIN_REPOSITORY_NAMES,
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
@@ -51,6 +52,7 @@ class InitiateReleaseBranchFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     repo_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
     repo_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
+    repo_names.extend(SPIN_REPOSITORY_NAMES)
     repo_names.append(SPINNAKER_GITHUB_IO_REPOSITORY_NAME)
     super(InitiateReleaseBranchFactory, self).__init__(
         'new_release_branch', InitiateReleaseBranchCommand,
@@ -242,9 +244,10 @@ class PublishSpinnakerCommand(CommandProcessor):
             '"{tag}" already exists in "{repo}" at commit {have}, not {want}'
             .format(tag=tag, repo=git_dir,
                     have=existing_commit, want=want_commit)))
+    return False  # not reached
 
   def __branch_and_tag_repository(self, repository, branch, version):
-    """Create a branch and/or verison tag in the repository, if needed."""
+    """Create a branch and/or version tag in the repository, if needed."""
     tag = 'version-' + version
     if self.__already_have_tag(repository, tag):
       return False
@@ -254,7 +257,7 @@ class PublishSpinnakerCommand(CommandProcessor):
 
   def __push_branch_and_maybe_tag_repository(self, repository, branch, version,
                                              also_tag):
-    """Push the branch and verison tag to the origin."""
+    """Push the branch and version tag to the origin."""
     tag = 'version-' + version
     self.__git.push_branch_to_origin(repository.git_dir, branch)
     if also_tag:

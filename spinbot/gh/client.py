@@ -68,6 +68,10 @@ class Client(object):
 
         return label
 
+    def get_repo(self, r):
+        print(r)
+        return self.g.get_repo(r)
+
     def repos(self):
         for r in self._repos:
             yield self.g.get_repo(r)

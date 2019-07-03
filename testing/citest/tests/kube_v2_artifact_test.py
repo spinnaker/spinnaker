@@ -76,6 +76,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+    self.TEST_USER = bindings['TEST_USER']
 
     # Take just the first if there are multiple
     # because some uses below assume just one.
@@ -269,7 +270,9 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
         'manifests': [deployment],
     }
 
-    return self.ps.submit_pipeline_contract(pipeline_name, [configmap_stage, deployment_stage])
+    return self.ps.submit_pipeline_contract(pipeline_name,
+            [configmap_stage, deployment_stage],
+            user=self.TEST_USER)
 
   def execute_deploy_manifest_pipeline(self, pipeline_name):
     deployment_name = self.TEST_APP + '-deployment'
@@ -447,10 +450,10 @@ class KubeV2ArtifactTest(st.AgentTestCase):
     self.run_test_case(self.scenario.delete_kind('configmap', version='v000'), max_retries=2)
 
   def test_z_delete_app(self):
-    # Give a total of a minute because it might also need
+    # Give a total of 2 minutes because it might also need
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),
-                       retry_interval_secs=8, max_retries=8)
+                       retry_interval_secs=8, max_retries=15)
 
 
 def main():

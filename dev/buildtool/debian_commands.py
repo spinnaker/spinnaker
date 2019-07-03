@@ -63,13 +63,13 @@ class BuildDebianCommand(GradleCommandProcessor):
         or (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       args.append('-x test')
 
-    if (os.path.isfile(os.path.join(repository.git_dir, "gradle", "init-publish.gradle"))):
-      args.append('-I gradle/init-publish.gradle')
-
     args.extend(self.gradle.get_debian_args('trusty,xenial,bionic'))
 
+    source_info = self.scm.lookup_source_info(repository)
     with self.__semaphore:
-      self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
+      self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
+                            source_info.summary.version,
+                            source_info.build_number)
 
 
 def add_bom_parser_args(parser, defaults):

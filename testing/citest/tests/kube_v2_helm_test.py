@@ -101,6 +101,7 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+    self.TEST_USER = bindings['TEST_USER']
 
     # Take just the first if there are multiple
     # because some uses below assume just one.
@@ -226,7 +227,8 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
 
     return self.ps.submit_pipeline_contract('bake-deploy-pipeline',
             [bake_stage, deploy_stage],
-            expectedArtifacts=[chart_expected_artifact, values_expected_artifact])
+            expectedArtifacts=[chart_expected_artifact, values_expected_artifact],
+            user=self.TEST_USER)
 
   def execute_bake_deploy_manifest_pipeline(self, image):
     name = self.TEST_APP + '-deployment'
@@ -321,10 +323,10 @@ class KubeV2HelmTest(st.AgentTestCase):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
 
   def test_z_delete_app(self):
-    # Give a total of a minute because it might also need
+    # Give a total of 2 minutes because it might also need
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),
-                       retry_interval_secs=8, max_retries=8)
+                       retry_interval_secs=8, max_retries=15)
 
 
 def main():

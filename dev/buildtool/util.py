@@ -15,6 +15,7 @@
 """Common helper functions across buildtool modules."""
 
 import datetime
+import io
 import logging
 import os
 import socket
@@ -78,7 +79,7 @@ def timedelta_string(delta):
 
   if delta_hours or day_str:
     return day_str + '%02d:%02d:%02d' % (delta_hours, delta_mins, delta_secs)
-  elif delta_mins:
+  if delta_mins:
     return '%02d:%02d' % (delta_mins, delta_secs)
   return '%d.%03d secs' % (delta_secs, delta.microseconds // 1000)
 
@@ -108,5 +109,9 @@ def write_to_path(content, path):
   This will create the parent directory if needed.
   """
   ensure_dir_exists(os.path.dirname(os.path.abspath(path)))
-  with open(path, 'wb') as f:
-    f.write(content.encode('utf-8'))
+  if isinstance(content, str):
+    with open(path, 'w') as f:
+      f.write(content)
+  else:
+    with io.open(path, 'w', encoding='utf-8') as f:
+      f.write(content)

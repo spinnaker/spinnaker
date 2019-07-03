@@ -19,7 +19,14 @@ kubectl -n spinnaker port-forward $DECK_POD 8080:9000 \
     >/dev/null &
 sleep 5
 
-spin application save --application-name sampleapp --owner-email example@example.com --cloud-providers "kubernetes" --gate-endpoint http://localhost:8080/gate/
+GATE_POD=$(kubectl -n spinnaker get pods -l \
+    cluster=spin-gate,app=spin \
+    -o=jsonpath='{.items[0].metadata.name}')
+kubectl -n spinnaker port-forward $GATE_POD 8084:8084 \
+    >/dev/null &
+sleep 5
+
+spin application save --application-name sampleapp --owner-email example@example.com --cloud-providers "kubernetes" --gate-endpoint http://localhost:8084
 
 sleep 5
 
@@ -50,8 +57,8 @@ fi
 echo "Sampleapp ready!"
 set -x
 
-kubectl -n default run injector --image=alpine -- \
-    /bin/sh -c "apk add --no-cache --yes curl; \
+kubectl -n default run --generator=run-pod/v1 injector --image=alpine:3.10 -- \
+    /bin/sh -c "apk add --no-cache curl; \
     while true; do curl -sS --max-time 3 \
     http://sampleapp:8080/; done"
 

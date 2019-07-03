@@ -108,7 +108,7 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
     builder.add_argument(
         '--test_gce_image_name',
         default=defaults.get('TEST_GCE_IMAGE_NAME',
-                             'ubuntu-1404-trusty-v20160919'),
+                             'citest-boot-image'),
         help='Default Google Compute Engine image name to use when'
              ' creating test instances.')
 
@@ -161,8 +161,7 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
       raise ValueError('There is no "google_primary_managed_project_id"')
 
     return gcp.GcpComputeAgent.make_agent(
-        scopes=(gcp.COMPUTE_READ_WRITE_SCOPE
-                if bindings['GCE_CREDENTIALS_PATH'] else None),
+        scopes=gcp.COMPUTE_READ_WRITE_SCOPE,
         credentials_path=bindings['GCE_CREDENTIALS_PATH'],
         default_variables={
             'project': bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],

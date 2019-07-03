@@ -17,6 +17,7 @@
 import logging
 import re
 import time
+import ssl
 import socket
 from json import JSONDecoder
 
@@ -81,23 +82,33 @@ def infer(json):
   return expr_dict
 
 
-def scrape_spring_config(url, timeout=60, empty_if_404=True):
+def scrape_spring_config(url, timeout=60, empty_if_404=True, headers={}, ignore_ssl_cert_verification=False):
   """Construct a config binding dictionary from a running instance's baseUrl.
 
   Args:
     url: The url to construct from.
     empty_if_404: With spring boot 1.5.4 resolvedEnv is not visible by default.
                   If True then tolerate this treating a 404 as being empty.
+    headers: Key value pair of headers to add to the request.
+    ignore_ssl_cert_verification: If True, ignore verifying SSL certification.
 
   Raises:
     urlib2.URLError if url is bad.
   """
   request = Request(url=url)
+
+  for key, val in headers.items():
+    request.add_header(key, val)
+
+  context = None
+  if ignore_ssl_cert_verification:
+    context = ssl._create_unverified_context()
+
   final_time = time.time() + timeout
   while True:
     # Sometimes this is not yet ready, so allow retries
     try:
-      response = urlopen(request, timeout=min(10, timeout))
+      response = urlopen(request, timeout=min(10, timeout), context=context)
       break
     except socket.timeout as ex:
       logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
