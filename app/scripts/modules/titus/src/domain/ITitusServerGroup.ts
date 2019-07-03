@@ -10,6 +10,7 @@ export interface ITitusServerGroup extends IServerGroup {
   image?: ITitusImage;
   scalingPolicies?: ITitusPolicy[];
   targetGroups?: string[];
+  capacityGroup?: string;
 }
 
 export interface ITitusImage {

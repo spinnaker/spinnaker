@@ -5,6 +5,7 @@ import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/co
 import { AmazonLoadBalancersTag } from '@spinnaker/amazon';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
+import { TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION } from './serverGroup/details/capacityDetailsSection.component';
 import './validation/ApplicationNameValidator';
 import './help/titus.help';
 import { TITUS_REACT_MODULE } from './reactShims/titus.react.module';
@@ -39,6 +40,7 @@ module(TITUS_MODULE, [
   require('./pipeline/stages/disableCluster/titusDisableClusterStage').name,
   require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage').name,
   require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage').name,
+  TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION,
   TITUS_MIGRATION_CONFIG_COMPONENT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('titus', {

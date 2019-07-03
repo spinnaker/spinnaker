@@ -29,7 +29,6 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     DISRUPTION_BUDGET_DETAILS_SECTION,
     SERVER_GROUP_WRITER,
-    require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
     SCALING_POLICY_MODULE,
     TITUS_SECURITY_GROUPS_DETAILS,
@@ -339,21 +338,6 @@ module.exports = angular
         };
 
         confirmationModalService.confirm(confirmationModalParams);
-      };
-
-      this.resizeServerGroup = function resizeServerGroup() {
-        $uibModal.open({
-          templateUrl: require('./resize/resizeServerGroup.html'),
-          controller: 'titusResizeServerGroupCtrl as ctrl',
-          resolve: {
-            serverGroup: function() {
-              return $scope.serverGroup;
-            },
-            application: function() {
-              return application;
-            },
-          },
-        });
       };
 
       this.cloneServerGroup = function cloneServerGroup() {

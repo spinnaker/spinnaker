@@ -99,29 +99,10 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="true">
-      <dl class="dl-horizontal dl-flex" ng-if="serverGroup.capacity.min === serverGroup.capacity.max">
-        <dt>Desired</dt>
-        <dd>{{serverGroup.capacity.desired}}</dd>
-        <dt>Current</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
-        <dt ng-if="serverGroup.capacityGroup">Cap. Group</dt>
-        <dd ng-if="serverGroup.capacityGroup">{{serverGroup.capacityGroup}}</dd>
-      </dl>
-      <dl class="dl-horizontal dl-flex" ng-if="serverGroup.capacity.min !== serverGroup.capacity.max">
-        <dt>Min</dt>
-        <dd>{{serverGroup.capacity.min}}</dd>
-        <dt>Desired</dt>
-        <dd>{{serverGroup.capacity.desired}}</dd>
-        <dt>Max</dt>
-        <dd>{{serverGroup.capacity.max}}</dd>
-        <dt>Current</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
-        <dt ng-if="serverGroup.capacityGroup">Cap. Group</dt>
-        <dd ng-if="serverGroup.capacityGroup">{{serverGroup.capacityGroup}}</dd>
-      </dl>
-      <div>
-        <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
-      </div>
+      <titus-capacity-details-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-capacity-details-section>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true" ng-if="serverGroup.instanceCounts.total > 0">
       <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
