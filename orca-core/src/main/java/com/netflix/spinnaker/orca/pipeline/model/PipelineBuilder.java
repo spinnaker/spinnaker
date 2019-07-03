@@ -50,6 +50,15 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withInitialConfig(Map<String, Object> initialConfig) {
+    pipeline.getInitialConfig().clear();
+    if (initialConfig != null) {
+      pipeline.getInitialConfig().putAll(initialConfig);
+    }
+
+    return this;
+  }
+
   public PipelineBuilder withPipelineConfigId(String id) {
     pipeline.setPipelineConfigId(id);
     return this;

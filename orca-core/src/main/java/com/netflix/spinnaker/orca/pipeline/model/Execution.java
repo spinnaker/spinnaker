@@ -292,9 +292,9 @@ public class Execution implements Serializable {
     return notifications;
   }
 
-  private final Map<String, Serializable> initialConfig = new HashMap<>();
+  private final Map<String, Object> initialConfig = new HashMap<>();
 
-  public @Nonnull Map<String, Serializable> getInitialConfig() {
+  public @Nonnull Map<String, Object> getInitialConfig() {
     return initialConfig;
   }
 

@@ -50,6 +50,12 @@ public class EnabledPipelineValidator implements PipelineValidator {
           "Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
     }
 
+    Boolean isExplicitlyEnabled =
+        (Boolean) pipeline.getInitialConfig().getOrDefault("enabled", false);
+    if (isExplicitlyEnabled) {
+      return;
+    }
+
     if (!isStrategy(pipeline)) {
       try {
         // attempt an optimized lookup via pipeline history vs fetching all pipelines for the
