@@ -61,7 +61,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
     } else {
       kubernetesApiGroup = null;
     }
-    return KubernetesKind.getOrRegisterKind(kindName, true, true, kubernetesApiGroup);
+    return KubernetesKind.fromString(kindName, kubernetesApiGroup);
   }
 
   @JsonIgnore

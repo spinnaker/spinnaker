@@ -58,7 +58,7 @@ public class KubernetesResourceProperties {
 
     KubernetesHandler handler =
         CustomKubernetesHandlerFactory.create(
-            KubernetesKind.fromString(
+            KubernetesKind.getOrRegisterKind(
                 customResource.getKubernetesKind(), customResource.isNamespaced()),
             KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
             customResource.isVersioned(),
