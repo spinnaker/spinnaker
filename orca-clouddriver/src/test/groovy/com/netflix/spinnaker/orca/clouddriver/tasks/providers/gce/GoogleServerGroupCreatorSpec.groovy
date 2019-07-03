@@ -111,7 +111,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
       context.putAll(ctx)
     }
     Artifact buildArtifact = Artifact.ArtifactBuilder.newInstance().name("santaImage").build();
-    artifactResolver.getBoundArtifactForId(*_) >> buildArtifact
+    artifactResolver.getBoundArtifactForStage(*_) >> buildArtifact
     ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
 
     then:

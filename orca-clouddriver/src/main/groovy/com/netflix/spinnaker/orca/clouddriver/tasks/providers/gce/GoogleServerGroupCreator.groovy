@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
@@ -34,6 +35,9 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
   @Autowired
   ArtifactResolver artifactResolver
+
+  @Autowired
+  ObjectMapper objectMapper
 
   @Override
   List<Map> getOperations(Stage stage) {
@@ -68,10 +72,11 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     def stageContext = stage.getContext()
 
     def artifactId = stageContext.imageArtifactId as String
-    if (artifactId == null) {
+    Artifact imageArtifact = stageContext.imageArtifact ? objectMapper.convertValue(stageContext.imageArtifact, Artifact.class) : null
+    if (artifactId == null && imageArtifact == null) {
       throw new IllegalArgumentException("Image source was set to artifact but no artifact was specified.")
     }
-    return artifactResolver.getBoundArtifactForId(stage, artifactId)
+    return artifactResolver.getBoundArtifactForStage(stage, artifactId, imageArtifact)
   }
 
   private String getImage(Stage stage) {
