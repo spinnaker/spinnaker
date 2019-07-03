@@ -104,7 +104,6 @@ subprojects { project ->
       api "org.slf4j:slf4j-api"
       api "org.springframework.boot:spring-boot-starter-web"
       api "com.netflix.spinnaker.kork:kork-swagger"
-      api "org.springframework.boot:spring-boot-properties-migrator"
       api "com.netflix.spinnaker.orca:orca-core"
 
       api "com.squareup.retrofit:retrofit"
