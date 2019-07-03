@@ -65,7 +65,7 @@ class SqlCache(
     private val schemaVersion = SqlSchemaVersion.current()
     private val useRegexp = """.*[\?\[].*""".toRegex()
     private val cleanRegexp = """\.+\*""".toRegex()
-    private val typeSanitization = """[:/\-]""".toRegex()
+    private val typeSanitization = """[^A-Za-z0-9_]""".toRegex()
 
     private val log = LoggerFactory.getLogger(SqlCache::class.java)
   }
