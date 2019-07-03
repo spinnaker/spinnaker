@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { Transition } from '@uirouter/core';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
@@ -84,7 +85,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
     const pipelines: INestedState = {
       name: 'pipelines',
       url: '/executions',
-      abstract: true,
+      redirectTo: (trans: Transition) => `${trans.to().name}.executions`,
       views: {
         insight: {
           template: '<div ui-view="pipelines" sticky-headers class="flex-fill"></div>',
