@@ -22,6 +22,7 @@ export interface IExecution extends IOrchestratedItem {
   id: string;
   isComplete?: boolean;
   isStrategy?: boolean;
+  limitConcurrent?: boolean;
   name?: string;
   pipelineConfigId?: string;
   pipelineConfig?: IPipeline;

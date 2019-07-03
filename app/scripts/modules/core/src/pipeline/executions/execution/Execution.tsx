@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
+import { UISref } from '@uirouter/react';
 import { isEqual } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
@@ -294,6 +295,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       pipelineConfig,
     } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
+    const { $state } = ReactInjector;
 
     const accountLabels = this.props.execution.deploymentTargets.map(account => (
       <AccountTag key={account} account={account} />
@@ -348,6 +350,19 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
               Status:{' '}
               <span className={`status execution-status execution-status-${execution.status.toLowerCase()}`}>
                 {execution.status}
+                {execution.status === 'NOT_STARTED' && execution.limitConcurrent && (
+                  <>
+                    {' ('}
+                    waiting on{' '}
+                    <UISref
+                      to={`${$state.current.name.endsWith('.execution') ? '^' : ''}.^.executions`}
+                      params={{ pipeline: execution.name, status: 'RUNNING' }}
+                    >
+                      <a>RUNNING</a>
+                    </UISref>{' '}
+                    executions)
+                  </>
+                )}
               </span>
               {execution.cancellationReason && (
                 <Tooltip value={execution.cancellationReason}>
