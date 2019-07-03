@@ -63,7 +63,11 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
         objectMapper.convertValue(postedEvent, GithubWebhookEvent.class);
 
     event.content.put("hash", githubWebhookEvent.after);
-    event.content.put("branch", githubWebhookEvent.ref.replace("refs/heads/", ""));
+    if (githubWebhookEvent.ref == null) {
+      event.content.put("branch", "");
+    } else {
+      event.content.put("branch", githubWebhookEvent.ref.replace("refs/heads/", ""));
+    }
     event.content.put("repoProject", githubWebhookEvent.repository.owner.name);
     event.content.put("slug", githubWebhookEvent.repository.name);
   }
