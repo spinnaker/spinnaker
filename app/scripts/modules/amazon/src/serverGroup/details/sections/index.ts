@@ -1,6 +1,6 @@
 export * from './AdvancedSettingsDetailsSection';
 export * from './AmazonInfoDetailsSection';
-export * from './CapacityDetailsSection';
+export * from './AmazonCapacityDetailsSection';
 export * from './HealthDetailsSection';
 export * from './IAmazonServerGroupDetailsSectionProps';
 export * from './LaunchConfigDetailsSection';
