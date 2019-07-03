@@ -23,7 +23,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.Abstra
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonCanaryGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 
 @Parameters(separators = "=")
@@ -64,6 +67,16 @@ public class GoogleEditCanaryAccountCommand
     account.setBucket(isSet(bucket) ? bucket : account.getBucket());
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
     account.setBucketLocation(isSet(bucketLocation) ? bucketLocation : account.getBucketLocation());
+
+    String currentDeployment = getCurrentDeployment();
+    // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
+    Canary canary =
+        new OperationHandler<Canary>()
+            .setFailureMesssage("Failed to get canary.")
+            .setOperation(Daemon.getCanary(currentDeployment, false))
+            .get();
+
+    GoogleAddEditCanaryAccountUtils.updateSupportedTypes(canary, account);
 
     return account;
   }

@@ -26,6 +26,8 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 
 @Parameters(separators = "=")
 public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegrationCommand {
@@ -98,31 +100,25 @@ public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegratio
     }
 
     if (googleCanaryServiceIntegration.isGcsEnabled()) {
-      googleCanaryServiceIntegration
-          .getAccounts()
+      googleCanaryServiceIntegration.getAccounts().stream()
+          .filter(a -> StringUtils.isNotEmpty(a.getBucket()))
           .forEach(
               a ->
                   a.getSupportedTypes()
-                      .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      googleCanaryServiceIntegration
-          .getAccounts()
-          .forEach(
-              a ->
-                  a.getSupportedTypes()
-                      .add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+                      .addAll(
+                          Arrays.asList(
+                              AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE,
+                              AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE)));
     } else {
       googleCanaryServiceIntegration
           .getAccounts()
           .forEach(
               a ->
                   a.getSupportedTypes()
-                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE));
-      googleCanaryServiceIntegration
-          .getAccounts()
-          .forEach(
-              a ->
-                  a.getSupportedTypes()
-                      .remove(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE));
+                      .removeAll(
+                          Arrays.asList(
+                              AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE,
+                              AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE)));
     }
 
     if (originalHash == canary.hashCode()) {

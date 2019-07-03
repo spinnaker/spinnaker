@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.CollectionUtils;
 
@@ -50,7 +51,9 @@ public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegrat
 
     if (n.isGcsEnabled()) {
       List<GoogleCanaryAccount> accountsWithBucket =
-          n.getAccounts().stream().filter(a -> a.getBucket() != null).collect(Collectors.toList());
+          n.getAccounts().stream()
+              .filter(a -> StringUtils.isNotEmpty(a.getBucket()))
+              .collect(Collectors.toList());
 
       if (CollectionUtils.isEmpty(accountsWithBucket)) {
         p.addProblem(

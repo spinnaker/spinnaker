@@ -20,15 +20,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractAddCanaryAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonCanaryGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 
 @Parameters(separators = "=")
 public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
@@ -70,22 +67,7 @@ public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountComma
     account.setBucket(bucket).setBucketLocation(bucketLocation);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
 
-    GoogleCanaryServiceIntegration googleCanaryServiceIntegration =
-        (GoogleCanaryServiceIntegration)
-            CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
-
-    if (googleCanaryServiceIntegration.isStackdriverEnabled()) {
-      account
-          .getSupportedTypes()
-          .add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
-    }
-
-    if (googleCanaryServiceIntegration.isGcsEnabled()) {
-      account
-          .getSupportedTypes()
-          .add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
-      account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE);
-    }
+    GoogleAddEditCanaryAccountUtils.updateSupportedTypes(canary, account);
 
     return account;
   }
