@@ -2,6 +2,7 @@ import { IArtifactKindConfig } from 'core/domain';
 
 import { Base64Match, Base64Default } from './base64/Base64ArtifactEditor';
 import { BitbucketMatch, BitbucketDefault } from './bitbucket/BitbucketArtifactEditor';
+import { CustomMatch, CustomDefault } from './custom/CustomArtifactEditor';
 import { DockerMatch, DockerDefault } from './docker/DockerArtifactEditor';
 import { GcsMatch, GcsDefault } from './gcs/GcsArtifactEditor';
 import { GithubMatch, GithubDefault } from './github/GithubArtifactEditor';
@@ -19,6 +20,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   Base64Default,
   BitbucketMatch,
   BitbucketDefault,
+  CustomMatch,
+  CustomDefault,
   DockerMatch,
   DockerDefault,
   GcsMatch,

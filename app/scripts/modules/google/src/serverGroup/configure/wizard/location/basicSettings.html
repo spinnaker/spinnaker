@@ -89,30 +89,25 @@
         help-field-key="gce.image.source"
       >
       </image-source-selector>
-      <stage-config-field
-        label="Expected Artifact"
-        help-key="gce.image.artifact"
-        field-columns="8"
+      <stage-artifact-selector-delegate
         ng-if="command.imageSource === 'artifact'"
+        artifact="command.imageArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedImageArtifactTypes"
+        expected-artifact-id="command.imageArtifactId"
+        field-columns="7"
+        help-key="'gce.image.artifact'"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onImageArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onImageArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        selected-artifact-account="command.imageAccountName"
+        selected-artifact-id="command.imageArtifactId"
+        set-artifact-account="basicSettingsCtrl.onImageArtifactAccountSelected"
+        set-artifact-id="basicSettingsCtrl.onChangeImageArtifactId"
+        stage="command.viewState.stage"
+        update-pipeline="basicSettingsCtrl.updatePipeline"
       >
-        <expected-artifact-selector-react
-          expected-artifacts="command.viewState.expectedArtifacts"
-          selected="gceImageArtifact.delegate.getSelectedExpectedArtifact()"
-          on-change="gceImageArtifact.controller.onArtifactChange"
-          on-request-create="gceImageArtifact.controller.onRequestCreate"
-          offered-artifact-types="gceImageArtifact.delegate.getOfferedArtifactTypes()"
-          requesting-new="gceImageArtifact.showCreateArtifactForm"
-        >
-        </expected-artifact-selector-react>
-      </stage-config-field>
-      <expected-artifact-editor-react
-        ng-if="gceImageArtifact.showCreateArtifactForm"
-        kinds="gceImageArtifact.delegate.getSupportedArtifactKinds()"
-        sources="gceImageArtifact.delegate.getExpectedArtifactSources()"
-        on-save="gceImageArtifact.controller.onArtifactCreated"
-        show-accounts="false"
-      >
-      </expected-artifact-editor-react>
+      </stage-artifact-selector-delegate>
     </div>
     <div class="form-group" ng-if="!command.viewState.disableImageSelection">
       <div class="col-md-3 sm-label-right">

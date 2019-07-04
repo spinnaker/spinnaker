@@ -394,8 +394,10 @@ module.exports = angular
         const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
         return $q.when({
           viewState: {
+            pipeline,
             expectedArtifacts: expectedArtifacts,
             requiresTemplateSelection: true,
+            stage: currentStage,
           },
         });
       }

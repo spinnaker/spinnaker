@@ -4,6 +4,7 @@ export interface IArtifactTypePatterns {
 
 export const ArtifactTypePatterns: IArtifactTypePatterns = {
   BITBUCKET_FILE: /bitbucket\/file/,
+  CUSTOM_OBJECT: /custom\/object/,
   DOCKER_IMAGE: /docker\/image/,
   EMBEDDED_BASE64: /embedded\/base64/,
   GCS_OBJECT: /gcs\/object/,

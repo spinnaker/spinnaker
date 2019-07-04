@@ -90,6 +90,8 @@ export class DeployInitializerController implements IController {
     viewState.hideClusterNamePreview = baseCommand.viewState.hideClusterNamePreview || false;
     viewState.templatingEnabled = true;
     viewState.imageSourceText = baseCommand.viewState.imageSourceText;
+    viewState.pipeline = baseCommand.viewState.pipeline;
+    viewState.stage = baseCommand.viewState.stage;
     Object.assign(command, baseCommand.viewState.overrides || {});
     Object.assign(baseCommand, command);
   }

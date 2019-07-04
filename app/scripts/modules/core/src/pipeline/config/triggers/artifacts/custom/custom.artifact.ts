@@ -13,7 +13,7 @@ module(CUSTOM_ARTIFACT, [])
   .config(() => {
     Registry.pipeline.registerCustomArtifactKind({
       label: 'Custom',
-      description: 'A custom-defined artifact.',
+      description: 'A custom-defined artifact. (Deprecated)',
       key: 'custom',
       customKind: true,
       isDefault: true,

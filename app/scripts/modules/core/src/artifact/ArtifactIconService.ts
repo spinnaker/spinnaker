@@ -26,6 +26,7 @@ export class ArtifactIconService {
   }
 }
 
+ArtifactIconService.registerType(ArtifactTypePatterns.CUSTOM_OBJECT, unknownArtifactPath);
 ArtifactIconService.registerType(ArtifactTypePatterns.DOCKER_IMAGE, require('./icons/docker-image-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.KUBERNETES, require('./icons/kubernetes-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.EMBEDDED_BASE64, require('./icons/embedded-base64-artifact.svg'));
