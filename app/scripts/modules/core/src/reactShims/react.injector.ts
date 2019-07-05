@@ -68,16 +68,21 @@ export class CoreReactInject extends ReactInject {
     const $rootScope = this.$injector.get('$rootScope') as IRootScopeService;
     const $q = this.$injector.get('$q') as IQService;
     const originalGo = wrappedState.go;
+
+    // Calls $state.go() inside the angularjs digest
+    // I forget exactly what this does, but it fixes some angularjs-y digest cycle problem we had once
     wrappedState.go = function () {
       const args = arguments;
-      const deferred = $q.defer();
-      const promise = Object.create(deferred);
-      promise.promise.transition = null;
-      promise.promise.catch(() => {});
+      const deferred = Object.create($q.defer());
+      const { promise } = deferred;
+      promise.transition = null;
+      promise.catch(() => {});
       $rootScope.$applyAsync(() => {
-        promise.transition = originalGo.apply(this, args).then(promise.resolve, promise.reject);
+        const originalPromise = originalGo.apply(this, args);
+        promise.transition = originalPromise.transition;
+        originalPromise.then(deferred.resolve, deferred.reject);
       });
-      return promise.promise;
+      return promise;
     };
     return wrappedState;
   }
