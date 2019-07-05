@@ -16,18 +16,16 @@
 
 package com.netflix.spinnaker.echo.config
 
-
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineConfigsPollingJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerJob
-import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerConverter
+import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.squareup.okhttp.OkHttpClient
 import org.quartz.JobDetail
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
-import org.springframework.boot.autoconfigure.quartz.QuartzProperties
 import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -37,6 +35,7 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean
 import retrofit.client.Client
 import retrofit.client.OkClient
+
 import javax.sql.DataSource
 import java.util.concurrent.TimeUnit
 
@@ -115,6 +114,7 @@ class SchedulerConfiguration {
           Properties props = new Properties()
           props.put("org.quartz.jobStore.isClustered", "true")
           props.put("org.quartz.jobStore.acquireTriggersWithinLock", "true")
+          props.put("org.quartz.scheduler.instanceId", "AUTO")
           schedulerFactoryBean.setQuartzProperties(props)
         }
         schedulerFactoryBean.setGlobalTriggerListeners(triggerListener)
