@@ -51,7 +51,7 @@ class PipelineTriggerJob implements Job {
       pipeline = TriggerConverter.toPipeline(pipelineCache, context.getMergedJobDataMap().getWrappedMap())
       def eventId = pipeline.trigger.eventId ? pipeline.trigger.eventId : "not set"
 
-      LOGGER.info("Executing PipelineTriggerJob for '${pipeline}', eventId='${eventId}'")
+      LOGGER.info("Executing PipelineTriggerJob for '${pipeline}', eventId='${eventId}', triggerId='${context.trigger.key.name}'")
       pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
     } catch (Exception e) {
       LOGGER.error("Exception occurred while executing PipelineTriggerJob for ${pipeline}", e)
