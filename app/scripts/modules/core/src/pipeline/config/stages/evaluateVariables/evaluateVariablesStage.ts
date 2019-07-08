@@ -14,7 +14,6 @@ Registry.pipeline.registerStage({
   },
   component: EvaluateVariablesStageConfig,
   executionDetailsSections: [EvaluateVariablesExecutionDetails, ExecutionDetailsTasks],
-  useCustomTooltip: true,
   strategy: true,
   validators: [{ type: 'requiredField', fieldName: 'variables' }],
 });

@@ -12,7 +12,6 @@ Registry.pipeline.registerStage({
   },
   component: ConcourseStageConfig,
   executionDetailsSections: [ConcourseExecutionDetails],
-  useCustomTooltip: true,
   strategy: true,
   validators: [
     { type: 'requiredField', fieldName: 'master' },

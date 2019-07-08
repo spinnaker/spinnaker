@@ -165,6 +165,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
           placement={placementOverride || placement}
           target={this.targetRef.current}
           container={container}
+          shouldUpdatePosition={true}
         >
           <PopoverOffset
             ref={this.rendererRefCallback}

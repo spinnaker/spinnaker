@@ -1,10 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
-import { Spinner } from 'core/widgets';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { duration } from 'core/utils/timeFormatters';
 
@@ -30,7 +27,6 @@ export interface IExecutionMarkerState {
 
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
   private runningTime: OrchestratedItemRunningTime;
-  private mounted = false;
 
   constructor(props: IExecutionMarkerProps) {
     super(props);
@@ -43,17 +39,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     };
   }
 
-  private hydrate = (): void => {
-    const { execution, application } = this.props;
-    ReactInjector.executionService.hydrate(application, execution).then(() => {
-      if (this.mounted && !this.state.hydrated) {
-        this.setState({ hydrated: true });
-      }
-    });
-  };
-
   public componentDidMount() {
-    this.mounted = true;
     this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) =>
       this.setState({ duration: duration(time) }),
     );
@@ -64,7 +50,6 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   }
 
   public componentWillUnmount() {
-    this.mounted = false;
     this.runningTime.reset();
   }
 
@@ -87,7 +72,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       stage.isRunning ? 'glowing' : '',
     ].join(' ');
 
-    const TooltipComponent = stage.labelComponent;
+    const TooltipComponent = stage.useCustomTooltip ? stage.labelComponent : ExecutionBarLabel;
     const MarkerIcon = stage.markerIcon;
     const stageContents = (
       <div className={markerClassName} style={{ width, backgroundColor: stage.color }} onClick={this.handleStageClick}>
@@ -97,32 +82,10 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
         </span>
       </div>
     );
-    if (stage.useCustomTooltip) {
-      if (execution.hydrated) {
-        return (
-          <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
-            {stageContents}
-          </TooltipComponent>
-        );
-      } else {
-        const loadingTooltip = (
-          <Tooltip id={stage.id}>
-            <Spinner size="small" />
-          </Tooltip>
-        );
-        return (
-          <span onMouseEnter={this.hydrate}>
-            <OverlayTrigger placement="top" overlay={loadingTooltip}>
-              {stageContents}
-            </OverlayTrigger>
-          </span>
-        );
-      }
-    }
     return (
-      <ExecutionBarLabel application={application} execution={execution} stage={stage} executionMarker={true}>
+      <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
         {stageContents}
-      </ExecutionBarLabel>
+      </TooltipComponent>
     );
   }
 }

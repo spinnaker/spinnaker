@@ -13,7 +13,6 @@ Registry.pipeline.registerStage({
   },
   component: ApplyEntityTagsStageConfig,
   executionDetailsSections: [ApplyEntityTagsExecutionDetails, ExecutionDetailsTasks],
-  useCustomTooltip: true,
   strategy: true,
   validators: [{ type: 'requiredField', fieldName: 'entityRef.entityType' }],
 });

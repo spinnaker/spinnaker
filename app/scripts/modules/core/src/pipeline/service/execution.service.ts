@@ -480,7 +480,7 @@ export class ExecutionService {
    * If this method is called multiple times, only the first call performs the fetch;
    * subsequent calls will return the promise produced by the first call.
    *
-   * This is a mutating operation.
+   * This is a mutating operation - it fills the context, outputs, and tasks on the stages of the unhydrated execution.
    * @param application the application owning the execution; needed because the stupid
    *   transformExecution requires it.
    * @param unhydrated the execution to hydrate (which may already be hydrated)
@@ -495,7 +495,18 @@ export class ExecutionService {
     }
     const executionHydrator = this.getExecution(unhydrated.id).then(hydrated => {
       this.transformExecution(application, hydrated);
-      Object.assign(unhydrated, hydrated);
+      unhydrated.stages.forEach((s, i) => {
+        // stages *should* be in the same order, so getting the hydrated one by index should be fine.
+        // worth verifying, though, and, if not, find the stage by id (which makes this an O(n^2) operation instead of O(n))
+        const hydratedStage =
+          hydrated.stages[i].id === s.id ? hydrated.stages[i] : hydrated.stages.find(s2 => s.id === s2.id);
+        if (hydratedStage) {
+          s.context = hydratedStage.context;
+          s.outputs = hydratedStage.outputs;
+          s.tasks = hydratedStage.tasks;
+        }
+      });
+      unhydrated.hydrated = true;
       unhydrated.graphStatusHash = this.calculateGraphStatusHash(unhydrated);
       return unhydrated;
     });
