@@ -13,6 +13,9 @@ export interface IExecutionBarLabelProps extends IExecutionStageLabelProps {
 }
 
 export interface IExecutionBarLabelState {
+  // We could get this off the execution itself; however, hydration can occur by mousing over any stage in the pipeline,
+  // and the execution prop itself does not get replaced on hydration (only the 'hydrated' field on the execution), so
+  // there's not a clean way to notify stages that hydration has occurred
   hydrated: boolean;
 }
 
@@ -27,20 +30,22 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   }
 
   private hydrate = (): void => {
-    const { stage, application, execution } = this.props;
-    const { suspendedStageTypes } = stage;
-    const suspendedTypesNeedingHydration = ['restrictExecutionDuringTimeWindow', 'waitForCondition'];
-    const requiresHydration =
-      stage.labelComponent !== ExecutionBarLabel ||
-      suspendedTypesNeedingHydration.some(s => suspendedStageTypes.has(s));
-    if (!requiresHydration || !execution || execution.hydrated) {
+    const { application, execution } = this.props;
+    if (!this.requiresHydration() || !execution) {
       return;
     }
     ReactInjector.executionService.hydrate(application, execution).then(() => {
-      if (this.mounted) {
+      if (this.mounted && !this.state.hydrated) {
         this.setState({ hydrated: true });
       }
     });
+  };
+
+  private requiresHydration = (): boolean => {
+    const { stage } = this.props;
+    const { suspendedStageTypes } = stage;
+    const requireHydration = ['restrictExecutionDuringTimeWindow', 'waitForCondition'];
+    return stage.labelComponent !== ExecutionBarLabel || requireHydration.some(s => suspendedStageTypes.has(s));
   };
 
   public componentDidMount() {
@@ -110,16 +115,13 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   }
 
   public render() {
-    const { stage, execution, executionMarker } = this.props;
+    const { stage, executionMarker } = this.props;
     const { suspendedStageTypes } = stage;
     const { getExecutionWindowTemplate, getWaitForConditionTemplate, DefaultLabel } = this;
     if (executionMarker) {
-      const suspendedTypesNeedingHydration = ['restrictExecutionDuringTimeWindow', 'waitForCondition'];
-      const requiresHydration =
-        stage.labelComponent !== ExecutionBarLabel ||
-        suspendedTypesNeedingHydration.some(s => suspendedStageTypes.has(s));
+      const requiresHydration = this.requiresHydration();
       let template: JSX.Element = null;
-      if (requiresHydration && !execution.hydrated) {
+      if (requiresHydration && !this.state.hydrated) {
         template = <Spinner size="small" />;
       } else if (suspendedStageTypes.has('restrictExecutionDuringTimeWindow')) {
         template = getExecutionWindowTemplate();
