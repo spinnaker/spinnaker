@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
-import com.jayway.jsonpath.internal.JsonContext
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -157,7 +156,7 @@ class CreateWebhookTask implements RetryableTask {
       }
       if (stage.context.containsKey("expectedArtifacts") && !((List) stage.context.get("expectedArtifacts")).isEmpty()) {
         try {
-          def artifacts = new JsonContext().parse(response.body).read("artifacts")
+          def artifacts = JsonPath.parse(response.body).read("artifacts")
           outputs << [artifacts: artifacts]
         } catch (Exception e) {
           outputs.webhook << [error: "Expected artifacts in webhook response none were found"]
