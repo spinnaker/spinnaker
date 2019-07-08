@@ -499,7 +499,9 @@ export class ExecutionService {
         // stages *should* be in the same order, so getting the hydrated one by index should be fine.
         // worth verifying, though, and, if not, find the stage by id (which makes this an O(n^2) operation instead of O(n))
         const hydratedStage =
-          hydrated.stages[i].id === s.id ? hydrated.stages[i] : hydrated.stages.find(s2 => s.id === s2.id);
+          hydrated.stages.length === unhydrated.stages.length && hydrated.stages[i].id === s.id
+            ? hydrated.stages[i]
+            : hydrated.stages.find(s2 => s.id === s2.id);
         if (hydratedStage) {
           s.context = hydratedStage.context;
           s.outputs = hydratedStage.outputs;
