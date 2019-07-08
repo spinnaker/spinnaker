@@ -36,7 +36,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * environment repository backend on a schedule that matches the cache refresh schedule.
  */
 @Configuration
-@AutoConfigureAfter({RedisCacheConfig.class, DynomiteCacheConfig.class})
+@AutoConfigureAfter({RedisCacheConfig.class})
 public class CloudConfigRefreshConfig {
 
   @Configuration

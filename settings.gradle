@@ -35,7 +35,6 @@ gradle.ext.includedCloudProviderProjects = includeCloudProviders.split(',')
   .collectMany { cloudProviderProjects[it.toLowerCase()] }
 
 include 'cats:cats-core',
-  'cats:cats-dynomite',
   'cats:cats-redis',
   'cats:cats-test',
   'cats:cats-sql',

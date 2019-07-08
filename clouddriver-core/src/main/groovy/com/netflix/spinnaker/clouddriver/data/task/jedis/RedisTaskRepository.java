@@ -20,7 +20,6 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
@@ -28,10 +27,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +57,7 @@ public class RedisTaskRepository implements TaskRepository {
 
   private static final RetryPolicy REDIS_RETRY_POLICY =
       new RetryPolicy()
-          .retryOn(
-              Arrays.asList(
-                  JedisException.class, DynoException.class, ClientDelegateException.class))
+          .retryOn(Collections.singletonList(JedisException.class))
           .withDelay(500, TimeUnit.MILLISECONDS)
           .withMaxRetries(3);
 

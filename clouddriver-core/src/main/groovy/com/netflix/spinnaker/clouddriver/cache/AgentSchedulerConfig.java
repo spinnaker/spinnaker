@@ -19,16 +19,12 @@ import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
-import com.netflix.spinnaker.cats.dynomite.cluster.DynoClusteredAgentScheduler;
-import com.netflix.spinnaker.cats.dynomite.cluster.DynoClusteredSortAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler;
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.net.URI;
-import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -66,32 +62,6 @@ public class AgentSchedulerConfig {
     } else if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("sort")) {
       return new ClusteredSortAgentScheduler(
           jedisPool,
-          nodeStatusProvider,
-          agentIntervalProvider,
-          redisConfigurationProperties.getParallelism());
-    } else {
-      throw new IllegalStateException("redis.scheduler must be one of 'default', 'sort', or ''.");
-    }
-  }
-
-  @Bean
-  @ConditionalOnExpression("${dynomite.enabled:false} && ${dynomite.scheduler.enabled:false}")
-  AgentScheduler dynomiteAgentScheduler(
-      Clock clock,
-      RedisConfigurationProperties redisConfigurationProperties,
-      RedisClientDelegate redisClientDelegate,
-      AgentIntervalProvider agentIntervalProvider,
-      NodeStatusProvider nodeStatusProvider) {
-    if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("default")) {
-      return new DynoClusteredAgentScheduler(
-          (DynomiteClientDelegate) redisClientDelegate,
-          new DefaultNodeIdentity(),
-          agentIntervalProvider,
-          nodeStatusProvider);
-    } else if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("sort")) {
-      return new DynoClusteredSortAgentScheduler(
-          clock,
-          redisClientDelegate,
           nodeStatusProvider,
           agentIntervalProvider,
           redisConfigurationProperties.getParallelism());

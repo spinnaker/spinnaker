@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
-import com.netflix.spinnaker.clouddriver.core.DynomiteConfig
+
 import com.netflix.spinnaker.clouddriver.core.NoopAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.core.NoopCloudProvider
 import com.netflix.spinnaker.clouddriver.core.ProjectClustersService
@@ -104,7 +104,6 @@ import java.time.Clock
 @Configuration
 @Import([
   RedisConfig,
-  DynomiteConfig,
   CacheConfig,
   SearchExecutorConfig
 ])
