@@ -19,7 +19,6 @@ package com.netflix.spinnaker.front50.model.sql
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import org.jooq.DSLContext
-import org.jooq.Record
 import org.jooq.impl.DSL
 
 internal val retrySupport = RetrySupport()
@@ -43,4 +42,3 @@ internal fun <T> DSLContext.withRetry(retryProperties: RetryProperties, fn: (DSL
     fn(this)
   }, retryProperties.maxRetries, retryProperties.backoffMs, false)
 }
-

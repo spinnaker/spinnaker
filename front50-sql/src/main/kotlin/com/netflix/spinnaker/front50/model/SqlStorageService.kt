@@ -19,17 +19,34 @@ package com.netflix.spinnaker.front50.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION
+import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION_PERMISSION
+import com.netflix.spinnaker.front50.model.ObjectType.DELIVERY
+import com.netflix.spinnaker.front50.model.ObjectType.ENTITY_TAGS
+import com.netflix.spinnaker.front50.model.ObjectType.NOTIFICATION
+import com.netflix.spinnaker.front50.model.ObjectType.PIPELINE
+import com.netflix.spinnaker.front50.model.ObjectType.PIPELINE_TEMPLATE
+import com.netflix.spinnaker.front50.model.ObjectType.PROJECT
+import com.netflix.spinnaker.front50.model.ObjectType.SERVICE_ACCOUNT
+import com.netflix.spinnaker.front50.model.ObjectType.SNAPSHOT
+import com.netflix.spinnaker.front50.model.ObjectType.STRATEGY
+import com.netflix.spinnaker.front50.model.sql.DefaultTableDefinition
+import com.netflix.spinnaker.front50.model.sql.DeliveryTableDefinition
+import com.netflix.spinnaker.front50.model.sql.PipelineStrategyTableDefinition
+import com.netflix.spinnaker.front50.model.sql.PipelineTableDefinition
+import com.netflix.spinnaker.front50.model.sql.ProjectTableDefinition
+import com.netflix.spinnaker.front50.model.sql.transactional
+import com.netflix.spinnaker.front50.model.sql.withRetry
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.jooq.DSLContext
+import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.max
+import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import java.time.Clock
-
-import com.netflix.spinnaker.front50.model.ObjectType.*
-import com.netflix.spinnaker.front50.model.sql.*
-import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
-import org.jooq.exception.SQLDialectNotSupportedException
 import kotlin.system.measureTimeMillis
 
 class SqlStorageService(
@@ -260,9 +277,11 @@ class SqlStorageService(
     return objectKeys
   }
 
-  override fun <T : Timestamped> listObjectVersions(objectType: ObjectType,
-                                                    objectKey: String,
-                                                    maxResults: Int): List<T> {
+  override fun <T : Timestamped> listObjectVersions(
+    objectType: ObjectType,
+    objectKey: String,
+    maxResults: Int
+  ): List<T> {
     if (maxResults == 1) {
       // will throw NotFoundException if object does not exist
       return mutableListOf(loadObject(objectType, objectKey))

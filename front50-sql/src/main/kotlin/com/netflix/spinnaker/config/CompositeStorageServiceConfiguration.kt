@@ -35,10 +35,12 @@ class CompositeStorageServiceConfiguration() {
   @Bean
   @Primary
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
-  fun compositeStorageService(dynamicConfigService: DynamicConfigService,
-                              registry: Registry,
-                              properties: StorageServiceMigratorConfigurationProperties,
-                              storageServices: List<StorageService>) =
+  fun compositeStorageService(
+    dynamicConfigService: DynamicConfigService,
+    registry: Registry,
+    properties: StorageServiceMigratorConfigurationProperties,
+    storageServices: List<StorageService>
+  ) =
     CompositeStorageService(
       dynamicConfigService,
       registry,
@@ -48,11 +50,13 @@ class CompositeStorageServiceConfiguration() {
 
   @Bean
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
-  fun storageServiceMigrator(dynamicConfigService: DynamicConfigService,
-                             registry: Registry,
-                             properties: StorageServiceMigratorConfigurationProperties,
-                             storageServices: List<StorageService>,
-                             entityTagsDAO : EntityTagsDAO) =
+  fun storageServiceMigrator(
+    dynamicConfigService: DynamicConfigService,
+    registry: Registry,
+    properties: StorageServiceMigratorConfigurationProperties,
+    storageServices: List<StorageService>,
+    entityTagsDAO: EntityTagsDAO
+  ) =
     StorageServiceMigrator(
       dynamicConfigService,
       registry,

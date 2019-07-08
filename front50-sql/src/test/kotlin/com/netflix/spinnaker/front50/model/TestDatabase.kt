@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.model
 
-
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import liquibase.Liquibase

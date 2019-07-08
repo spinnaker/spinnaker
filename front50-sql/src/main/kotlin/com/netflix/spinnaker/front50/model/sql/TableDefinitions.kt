@@ -46,10 +46,12 @@ open class DefaultTableDefinition(
     )
   }
 
-  fun getHistoryPairs(objectMapper: ObjectMapper,
-                      clock: Clock,
-                      objectKey: String,
-                      item: Timestamped): Map<String, Any> {
+  fun getHistoryPairs(
+    objectMapper: ObjectMapper,
+    clock: Clock,
+    objectKey: String,
+    item: Timestamped
+  ): Map<String, Any> {
     val objectAsString = objectMapper.writeValueAsString(item)
 
     val signature = Hashing.murmur3_128().newHasher().putString(objectAsString, UTF_8).hash().toString()

@@ -23,7 +23,11 @@ import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.*
+import io.mockk.Called
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verifyAll
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo

@@ -174,9 +174,11 @@ class CompositeStorageService(
     return objectKeys
   }
 
-  override fun <T : Timestamped?> listObjectVersions(objectType: ObjectType?,
-                                                     objectKey: String?,
-                                                     maxResults: Int): MutableCollection<T> {
+  override fun <T : Timestamped?> listObjectVersions(
+    objectType: ObjectType?,
+    objectKey: String?,
+    maxResults: Int
+  ): MutableCollection<T> {
     var exception: Exception? = null
 
     if (isPrimaryReadEnabled()) {

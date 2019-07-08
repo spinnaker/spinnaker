@@ -35,10 +35,12 @@ import java.time.Clock
 class SqlConfiguration : CommonStorageServiceDAOConfig() {
 
   @Bean
-  fun sqlStorageService(objectMapper: ObjectMapper,
-                        registry: Registry,
-                        jooq: DSLContext,
-                        sqlProperties: SqlProperties): SqlStorageService =
+  fun sqlStorageService(
+    objectMapper: ObjectMapper,
+    registry: Registry,
+    jooq: DSLContext,
+    sqlProperties: SqlProperties
+  ): SqlStorageService =
     SqlStorageService(
       objectMapper,
       registry,

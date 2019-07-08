@@ -1,9 +1,8 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
+  implementation project(":front50-core")
   implementation project(":front50-sql-mysql")
-
-  implementation "com.netflix.spinnaker.front50:front50-core"
 
   implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
@@ -17,7 +16,7 @@ dependencies {
   implementation("org.jooq:jooq:3.9.6"){
     force = true
   }
-  
+
   testImplementation "io.mockk:mockk"
   testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
