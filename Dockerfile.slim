@@ -20,7 +20,7 @@ RUN wget https://amazon-eks.s3-us-west-2.amazonaws.com/1.11.5/2018-12-06/bin/lin
   ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
 
 RUN apk -v --update add py-pip && \
-  pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
+  pip install --upgrade awscli==1.16.145 s3cmd==2.0.1 python-magic && \
   apk -v --purge del py-pip && \
   rm /var/cache/apk/*
 
