@@ -416,8 +416,7 @@ public class RegionScopedTitusClient implements TitusClient {
         .addFields("id")
         .addFields("jobId");
 
-    List<com.netflix.titus.grpc.protogen.Task> grpcTasks =
-        getTasksWithFilter(taskQueryBuilder, 10000);
+    List<com.netflix.titus.grpc.protogen.Task> grpcTasks = getTasksWithFilter(taskQueryBuilder);
     return grpcTasks.stream()
         .collect(
             Collectors.groupingBy(
@@ -491,12 +490,8 @@ public class RegionScopedTitusClient implements TitusClient {
 
   private List<com.netflix.titus.grpc.protogen.Task> getTasksWithFilter(
       TaskQuery.Builder taskQueryBuilder) {
-    return getTasksWithFilter(
-        taskQueryBuilder, titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
-  }
 
-  private List<com.netflix.titus.grpc.protogen.Task> getTasksWithFilter(
-      TaskQuery.Builder taskQueryBuilder, Integer pageSize) {
+    final int pageSize = 1000;
     List<com.netflix.titus.grpc.protogen.Task> grpcTasks = new ArrayList<>();
 
     TaskQueryResult taskResults;
