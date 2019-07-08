@@ -96,7 +96,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     // track and save the graph scroll position for executions so it doesn't get reset to
     // zero every second due to repaint.
     if (this.props.execution) {
-      PipelineGraphService.xScrollOffset[this.props.execution.id] = e.deltaX;
+      PipelineGraphService.xScrollOffset[this.props.execution.id] = (e.target as HTMLElement).parentElement.scrollLeft;
     }
   };
 

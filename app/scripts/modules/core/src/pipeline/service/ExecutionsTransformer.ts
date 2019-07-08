@@ -322,6 +322,19 @@ export class ExecutionsTransformer {
 
     OrchestratedItemTransformer.defineProperties(execution);
     this.processStageSummaries(execution);
+    execution.graphStatusHash = ExecutionsTransformer.calculateGraphStatusHash(execution);
+  }
+
+  private static calculateGraphStatusHash(execution: IExecution): string {
+    return (execution.stageSummaries || [])
+      .map(stage => {
+        const stageConfig = Registry.pipeline.getStageConfig(stage);
+        if (stageConfig && stageConfig.extraLabelLines) {
+          return [stageConfig.extraLabelLines(stage), stage.status].join('-');
+        }
+        return stage.status;
+      })
+      .join(':');
   }
 
   private static calculateRunningTime(stage: IExecutionStageSummary): () => number {

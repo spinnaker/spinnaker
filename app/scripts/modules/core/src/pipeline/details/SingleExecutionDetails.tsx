@@ -14,6 +14,7 @@ import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
+import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 
 import './singleExecutionDetails.less';
 
@@ -65,7 +66,7 @@ export class SingleExecutionDetails extends React.Component<
 
     executionService.getExecution($state.params.executionId).then(
       execution => {
-        executionService.transformExecution(app, execution);
+        ExecutionsTransformer.transformExecution(app, execution);
         if (execution.isActive && !this.executionScheduler) {
           this.executionScheduler = SchedulerFactory.createScheduler(5000);
           this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
