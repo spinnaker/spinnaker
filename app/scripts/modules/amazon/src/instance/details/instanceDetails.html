@@ -39,7 +39,10 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li>
-              <a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()"
+              <a
+                href
+                ng-click="ctrl.enableInstanceInDiscovery()"
+                ng-if="ctrl.canRegisterWithDiscovery() && !instance.serverGroupDisabled"
                 >Enable in Discovery</a
               >
             </li>
