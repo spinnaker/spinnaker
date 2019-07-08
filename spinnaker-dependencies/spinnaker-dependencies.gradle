@@ -33,7 +33,7 @@ ext {
     spectator     : "0.75.0",
     spek          : "1.1.5",
     springBoot    : "2.1.6.RELEASE",
-    springCloud   : "Greenwich.SR1",
+    springCloud   : "Greenwich.SR2",
     swagger       : "2.7.0",
     testcontainers: "1.11.2"
   ]
