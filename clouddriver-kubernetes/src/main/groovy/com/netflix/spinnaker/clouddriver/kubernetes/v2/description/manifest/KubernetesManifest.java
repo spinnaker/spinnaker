@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -33,6 +34,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class KubernetesManifest extends HashMap<String, Object> {
   private static ObjectMapper mapper = new ObjectMapper();
+
+  @Nullable private KubernetesKind computedKind;
 
   @Override
   public KubernetesManifest clone() {
@@ -51,6 +54,14 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   @Nonnull
   public KubernetesKind getKind() {
+    if (computedKind == null) {
+      computedKind = computeKind();
+    }
+    return computedKind;
+  }
+
+  @Nonnull
+  private KubernetesKind computeKind() {
     // using ApiVersion here allows a translation from a kind of NetworkPolicy in the manifest to
     // something
     // like  NetworkPolicy.crd.projectcalico.org for custom resources
@@ -72,6 +83,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public void setKind(KubernetesKind kind) {
     put("kind", kind.toString());
+    computedKind = null;
   }
 
   @JsonIgnore
@@ -82,6 +94,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public void setApiVersion(KubernetesApiVersion apiVersion) {
     put("apiVersion", apiVersion.toString());
+    computedKind = null;
   }
 
   @JsonIgnore

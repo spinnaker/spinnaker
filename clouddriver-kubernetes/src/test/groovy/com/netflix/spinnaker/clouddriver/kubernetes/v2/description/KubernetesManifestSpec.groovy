@@ -129,4 +129,34 @@ class KubernetesManifestSpec extends Specification {
     then:
     manifest.isNewerThanObservedGeneration()
   }
+
+  void "correctly handles a change to the manifest's kind"() {
+    when:
+    def testPayload =  gsonObj.fromJson(basicManifestSource(), Object)
+    KubernetesManifest manifest = objectToManifest(testPayload)
+
+    then:
+    manifest.getKind() == KIND
+
+    when:
+    manifest.setKind(KubernetesKind.DEPLOYMENT)
+
+    then:
+    manifest.getKind() == KubernetesKind.DEPLOYMENT
+  }
+
+  void "correctly handles a change to the manifest's API group"() {
+    when:
+    def testPayload =  gsonObj.fromJson(basicManifestSource(), Object)
+    KubernetesManifest manifest = objectToManifest(testPayload)
+
+    then:
+    manifest.getApiVersion() == KubernetesApiVersion.EXTENSIONS_V1BETA1
+
+    when:
+    manifest.setApiVersion(KubernetesApiVersion.NETWORKING_K8S_IO_V1)
+
+    then:
+    manifest.getApiVersion() == KubernetesApiVersion.NETWORKING_K8S_IO_V1
+  }
 }

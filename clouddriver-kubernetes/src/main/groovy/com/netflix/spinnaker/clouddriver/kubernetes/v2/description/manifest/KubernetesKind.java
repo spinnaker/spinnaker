@@ -259,7 +259,7 @@ public final class KubernetesKind {
     public ScopedKind(@Nonnull String name, @Nullable KubernetesApiGroup apiGroup) {
       this.name = name;
       this.lcName = name.toLowerCase();
-      this.apiGroup = Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE);
+      this.apiGroup = apiGroup == null ? KubernetesApiGroup.NONE : apiGroup;
       if (this.apiGroup.isNativeGroup()) {
         this.customApiGroup = null;
       } else {
