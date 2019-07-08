@@ -13,10 +13,6 @@ dependencies {
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
-  implementation("org.jooq:jooq:3.9.6"){
-    force = true
-  }
-
   testImplementation "io.mockk:mockk"
   testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
