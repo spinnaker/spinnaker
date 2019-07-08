@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.ToString
+import lombok.EqualsAndHashCode
 
 @ToString(includeNames = true)
 class KubernetesConfigurationProperties {
@@ -66,12 +67,17 @@ class KubernetesConfigurationProperties {
 }
 
 @ToString(includeNames = true)
+@EqualsAndHashCode
 class LinkedDockerRegistryConfiguration {
+  @EqualsAndHashCode.Include
   String accountName
+
+  @EqualsAndHashCode.Include
   List<String> namespaces
 }
 
 @ToString(includeNames = true)
+@EqualsAndHashCode
 class CustomKubernetesResource {
   String kubernetesKind
   String spinnakerKind = KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED.toString()
@@ -81,6 +87,7 @@ class CustomKubernetesResource {
 }
 
 @ToString(includeNames = true)
+@EqualsAndHashCode
 class KubernetesCachingPolicy {
   String kubernetesKind
   int maxEntriesPerAgent

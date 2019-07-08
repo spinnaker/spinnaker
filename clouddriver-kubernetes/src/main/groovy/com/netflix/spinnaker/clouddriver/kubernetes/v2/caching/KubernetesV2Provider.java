@@ -31,7 +31,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
-class KubernetesV2Provider extends AgentSchedulerAware implements Provider {
+public class KubernetesV2Provider extends AgentSchedulerAware implements Provider {
   public static final String PROVIDER_NAME = KubernetesCloudProvider.getID();
 
   private Collection<Agent> agents = emptyAgentCollection();

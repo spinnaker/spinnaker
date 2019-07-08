@@ -17,11 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.security;
 
+import static lombok.EqualsAndHashCode.Include;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubeconfigFileHasher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor;
@@ -33,29 +36,36 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.validation.ConstraintViolationException;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Data
 public class KubernetesV1Credentials implements KubernetesCredentials {
   private final KubernetesApiAdaptor apiAdaptor;
   private KubernetesClientApiAdapter apiClientAdaptor;
-  private final List<String> namespaces;
-  private final List<String> omitNamespaces;
-  private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
-  private final HashMap<String, Set<String>> imagePullSecrets = new HashMap<>();
+
+  @Include private final List<String> namespaces;
+
+  @Include private final List<String> omitNamespaces;
+
+  @Include private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
+
+  @Include private final HashMap<String, Set<String>> imagePullSecrets = new HashMap<>();
   private final Logger LOG;
   private final AccountCredentialsRepository repository;
   private final HashSet<String> dynamicRegistries = new HashSet<>();
-  private final boolean configureImagePullSecrets;
+
+  @Include private final boolean configureImagePullSecrets;
   private List<String> oldNamespaces;
+
+  @Include private final String kubeconfigFile;
+
+  @Include private final String kubeconfigFileHash;
 
   public KubernetesV1Credentials(
       String name,
@@ -71,6 +81,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
       List<LinkedDockerRegistryConfiguration> dockerRegistries,
       Registry spectatorRegistry,
       AccountCredentialsRepository accountCredentialsRepository) {
+    this.kubeconfigFile = kubeconfigFile;
+
     if (dockerRegistries == null || dockerRegistries.size() == 0) {
       throw new IllegalArgumentException(
           "Docker registries for Kubernetes account " + name + " are required.");
@@ -85,6 +97,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
         new KubernetesApiClientConfig(
             kubeconfigFile, context, cluster, user, userAgent, serviceAccount);
 
+    this.kubeconfigFileHash = KubeconfigFileHasher.hashKubeconfigFile(this.kubeconfigFile);
+
     this.apiAdaptor = new KubernetesApiAdaptor(name, config, spectatorRegistry);
     this.apiClientAdaptor = new KubernetesClientApiAdapter(name, configClient, spectatorRegistry);
     this.namespaces = namespaces != null ? namespaces : new ArrayList<>();
@@ -93,7 +107,6 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     this.repository = accountCredentialsRepository;
     this.LOG = LoggerFactory.getLogger(KubernetesV1Credentials.class);
     this.configureImagePullSecrets = configureImagePullSecrets;
-
     configureDockerRegistries();
   }
 
@@ -111,7 +124,8 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     this.repository = repository;
     this.LOG = LoggerFactory.getLogger(KubernetesV1Credentials.class);
     this.configureImagePullSecrets = true;
-
+    this.kubeconfigFile = "";
+    this.kubeconfigFileHash = "";
     configureDockerRegistries();
   }
 

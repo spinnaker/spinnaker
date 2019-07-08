@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google, Inc.
+ * Copyright 2019 Armory
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,34 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.data.ConfigFileService
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
-import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentialsInitializer
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import spock.lang.Specification
 
-class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
+class KubernetesV2ProviderSynchronizableSpec extends Specification {
+
   CatsModule catsModule = Mock(CatsModule)
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
   NamerRegistry namerRegistry = Mock(NamerRegistry)
-  ConfigFileService configFileService = new ConfigFileService()
+  ConfigFileService configFileService = Mock(ConfigFileService)
+  KubernetesV2Provider kubernetesV2Provider = new KubernetesV2Provider()
+  KubernetesV2CachingAgentDispatcher agentDispatcher = Mock(KubernetesV2CachingAgentDispatcher)
+  KubernetesResourcePropertyRegistry kubernetesResourcePropertyRegistry = Mock(KubernetesResourcePropertyRegistry)
 
   KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
     "userAgent",
@@ -43,21 +49,30 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
     namerRegistry,
     accountCredentialsRepository,
     Mock(KubectlJobExecutor),
-    configFileService)
-
-  KubernetesNamedAccountCredentialsInitializer kubernetesNamedAccountCredentialsInitializer = new KubernetesNamedAccountCredentialsInitializer(
-    spectatorRegistry: new NoopRegistry()
+    configFileService
   )
 
-  def synchronizeAccounts(KubernetesConfigurationProperties kubernetesConfigurationProperties) {
-    return kubernetesNamedAccountCredentialsInitializer.synchronizeKubernetesAccounts(
-      credentialFactory, kubernetesConfigurationProperties, catsModule, accountCredentialsRepository)
+  def synchronizeAccounts(KubernetesConfigurationProperties configurationProperties) {
+    KubernetesV2ProviderSynchronizable synchronizable = new KubernetesV2ProviderSynchronizable(
+      kubernetesV2Provider,
+      accountCredentialsRepository,
+      agentDispatcher,
+      kubernetesResourcePropertyRegistry,
+      configurationProperties,
+      credentialFactory,
+      new KubernetesSpinnakerKindMap(),
+      catsModule
+    )
+
+    synchronizable.synchronize()
   }
 
   void "is a no-op when there are no configured accounts"() {
     when:
     KubernetesConfigurationProperties kubernetesConfigurationProperties = new KubernetesConfigurationProperties()
+    accountCredentialsRepository.getAll() >> new HashSet<AccountCredentials>()
     synchronizeAccounts(kubernetesConfigurationProperties)
+
 
     then:
     0 * accountCredentialsRepository.save(*_)
@@ -68,15 +83,16 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
     KubernetesNamedAccountCredentials credentials
 
     when:
-    KubernetesConfigurationProperties kubernetesConfigurationProperties = new KubernetesConfigurationProperties()
-    kubernetesConfigurationProperties.setAccounts([
+    KubernetesConfigurationProperties configurationProperties = new KubernetesConfigurationProperties()
+    configurationProperties.setAccounts([
       new KubernetesConfigurationProperties.ManagedAccount(
         name: "test-account",
         namespaces: ["default"],
-        providerVersion: ProviderVersion.v2)
+        providerVersion: ProviderVersion.v2,
+      )
     ])
-    synchronizeAccounts(kubernetesConfigurationProperties)
-
+    accountCredentialsRepository.getAll() >> new HashSet<AccountCredentials>()
+    synchronizeAccounts(configurationProperties)
 
     then:
     1 * accountCredentialsRepository.save("test-account", _ as KubernetesNamedAccountCredentials) >> { _, creds ->
@@ -89,8 +105,8 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
     credentials.getEnvironment() == "test-account"
     credentials.getAccountType() == "test-account"
     credentials.getSkin() == "v2"
-    credentials.getCacheThreads() == 1
     credentials.getCacheIntervalSeconds() == null
+    credentials.getCacheThreads() == 1
 
     credentials.getCredentials() instanceof KubernetesV2Credentials
     KubernetesV2Credentials accountCredentials = (KubernetesV2Credentials) credentials.getCredentials()
@@ -99,51 +115,5 @@ class KubernetesNamedAccountCredentialsInitializerSpec extends Specification {
     accountCredentials.isDebug() == false
     accountCredentials.isMetrics() == true
     accountCredentials.isLiveManifestCalls() == false
-  }
-
-  void "correctly creates a v1 account and defaults properties"() {
-    given:
-    KubernetesNamedAccountCredentials credentials
-
-    when:
-    KubernetesConfigurationProperties kubernetesConfigurationProperties = new KubernetesConfigurationProperties()
-    kubernetesConfigurationProperties.setAccounts([
-      new KubernetesConfigurationProperties.ManagedAccount(
-        name: "test-account",
-        kubeconfigContents: """
-apiVersion: v1
-contexts:
-- name: default
-  context:
-    cluster: test
-    user: test
-current-context: default
-clusters:
-- name: test
-  cluster:
-    server: "https://foo:6443"
-""",
-        namespaces: ["default"],
-        dockerRegistries: [new LinkedDockerRegistryConfiguration(accountName: "docker-account")]
-      )
-    ])
-    synchronizeAccounts(kubernetesConfigurationProperties)
-
-    then:
-    1 * accountCredentialsRepository.save("test-account", _ as KubernetesNamedAccountCredentials) >> { _, creds ->
-      credentials = creds
-    }
-
-    credentials.getName() == "test-account"
-    credentials.getProviderVersion() == ProviderVersion.v1
-    credentials.getEnvironment() == "test-account"
-    credentials.getAccountType() == "test-account"
-    credentials.getSkin() == "v1"
-    credentials.getCacheThreads() == 1
-    credentials.getCacheIntervalSeconds() == null
-
-    credentials.getCredentials() instanceof KubernetesV1Credentials
-    KubernetesV1Credentials accountCredentials = (KubernetesV1Credentials) credentials.getCredentials()
-    accountCredentials.getDeclaredNamespaces() == ["default"]
   }
 }

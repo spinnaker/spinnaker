@@ -91,7 +91,7 @@ public class KubernetesV2LiveManifestProvider extends KubernetesV2AbstractManife
             : Collections.emptyList();
 
     List<KubernetesPodMetric.ContainerMetric> metrics = Collections.emptyList();
-    if (kind.equals(KubernetesKind.POD) && credentials.isMetrics()) {
+    if (kind.equals(KubernetesKind.POD) && credentials.isMetricsComputed()) {
       metrics =
           credentials.topPod(namespace, parsedName.getRight()).stream()
               .map(KubernetesPodMetric::getContainerMetrics)
