@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
@@ -52,6 +53,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
   val repository: ExecutionRepository = mock()
   val executor = MoreExecutors.directExecutor()
   val taskResolver: TaskResolver = TaskResolver(emptyList())
+  val stageNavigator: StageNavigator = mock()
 
   val cancellableStage: CancelableStageDefinitionBuilder = mock()
   val stageResolver = StageResolver(listOf(singleTaskStage, cancellableStage))
@@ -61,6 +63,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
       queue,
       repository,
       DefaultStageDefinitionBuilderFactory(stageResolver),
+      stageNavigator,
       executor,
       taskResolver
     )

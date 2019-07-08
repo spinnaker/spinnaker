@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
@@ -35,10 +36,11 @@ class CancelStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
+  override val stageNavigator: StageNavigator,
 
   @Qualifier("messageHandlerPool") private val executor: Executor,
   private val taskResolver: TaskResolver
-) : OrcaMessageHandler<CancelStage>, StageBuilderAware {
+) : OrcaMessageHandler<CancelStage>, StageBuilderAware, AuthenticationAware {
 
   override val messageType = CancelStage::class.java
 
@@ -84,7 +86,9 @@ class CancelStageHandler(
             // routines may run long enough to cause message acknowledgment to
             // time out.
             executor.execute {
-              builder.cancel(stage)
+              stage.withAuth {
+                builder.cancel(stage)
+              }
               // Special case for PipelineStage to ensure prompt cancellation of
               // child pipelines and deployment strategies regardless of task backoff
               if (stage.type.equals("pipeline", true) && stage.context.containsKey("executionId")) {
