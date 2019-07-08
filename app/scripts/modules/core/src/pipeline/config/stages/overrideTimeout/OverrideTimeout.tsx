@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { IStage } from 'core/domain';
 import { CheckboxInput, NumberInput } from 'core/presentation';
-import { HelpContentsRegistry, HelpField } from 'core/help';
+import { HelpField } from 'core/help';
 
 const { useEffect, useState } = React;
 
@@ -22,30 +22,20 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
   const [overrideTimeout, setOverrideTimeout] = useState(false);
   const [configurable, setConfigurable] = useState(false);
   const [defaults, setDefaults] = useState({ hours: 0, minutes: 0 });
-  const helpContent = HelpContentsRegistry.getHelpField('pipeline.config.timeout');
 
   useEffect(() => {
-    setOverrideValues(overrideTimeout);
-  }, [props.stageConfig]);
+    stageChanged();
+  }, [props.stageConfig, props.stageTimeoutMs]);
 
-  const setOverrideValues = (newOverrideTimeout: boolean) => {
-    const stageDefaults = props.stageConfig ? props.stageConfig.defaultTimeoutMs : null;
-    const originalOverrideTimeout = newOverrideTimeout === true;
-    const shouldRemoveOverride = originalOverrideTimeout === false;
-
-    setConfigurable(!!stageDefaults);
-    setDefaults(toHoursAndMinutes(stageDefaults));
-
-    if (shouldRemoveOverride) {
-      props.updateStageField({ stageTimeoutMs: undefined });
-    } else if (originalOverrideTimeout || props.stageTimeoutMs !== undefined) {
-      // Either vm.overrideTimeout was originally true, or forcing to true because stageTimeoutMs is defined
-      setOverrideTimeout(true);
-      props.updateStageField({
-        stageTimeoutMs: props.stageTimeoutMs || stageDefaults,
-      });
-      setHours(toHoursAndMinutes(props.stageTimeoutMs).hours);
-      setMinutes(toHoursAndMinutes(props.stageTimeoutMs).minutes);
+  const stageChanged = () => {
+    const { stageConfig, stageTimeoutMs } = props;
+    const defaultTimeoutMs = stageConfig && stageConfig.defaultTimeoutMs;
+    setConfigurable(!!defaultTimeoutMs);
+    setDefaults(toHoursAndMinutes(defaultTimeoutMs));
+    if (stageTimeoutMs !== undefined) {
+      enableTimeout();
+    } else {
+      clearTimeout();
     }
   };
 
@@ -54,6 +44,25 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
     timeout += 60 * 60 * 1000 * h;
     timeout += 60 * 1000 * m;
     props.updateStageField({ stageTimeoutMs: timeout });
+  };
+
+  const toggleTimeout = () => {
+    overrideTimeout ? clearTimeout() : enableTimeout();
+  };
+
+  const clearTimeout = () => {
+    props.updateStageField({ stageTimeoutMs: undefined });
+    setOverrideTimeout(false);
+  };
+
+  const enableTimeout = () => {
+    const stageDefaults = props.stageConfig ? props.stageConfig.defaultTimeoutMs : null;
+    setOverrideTimeout(true);
+    props.updateStageField({
+      stageTimeoutMs: props.stageTimeoutMs || stageDefaults,
+    });
+    setHours(toHoursAndMinutes(props.stageTimeoutMs).hours);
+    setMinutes(toHoursAndMinutes(props.stageTimeoutMs).minutes);
   };
 
   function toHoursAndMinutes(ms: number) {
@@ -88,15 +97,11 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
                         {defaults.minutes} {defaults.minutes > 1 ? 'minutes' : 'minute'}
                       </span>
                     )}
-                    )<HelpField content={helpContent} />
+                    ) <HelpField id="pipeline.config.timeout" />
                   </>
                 }
                 value={overrideTimeout}
-                onChange={() => {
-                  const newOverrideTimeout = !overrideTimeout;
-                  setOverrideTimeout(newOverrideTimeout);
-                  setOverrideValues(newOverrideTimeout);
-                }}
+                onChange={toggleTimeout}
               />
             </div>
           </div>
@@ -114,7 +119,7 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
                     synchronizeTimeout(e.target.value, minutes);
                   }}
                   value={hours}
-                />
+                />{' '}
                 hours
                 <NumberInput
                   inputClassName={'form-control input-sm inline-number with-space-before'}
@@ -124,7 +129,7 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
                     synchronizeTimeout(hours, e.target.value);
                   }}
                   value={minutes}
-                />
+                />{' '}
                 minutes to complete
               </div>
             </div>
