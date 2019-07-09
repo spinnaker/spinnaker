@@ -19,6 +19,7 @@ include(
   "kork-artifacts",
   "kork-aws",
   "kork-bom",
+  "kork-config",
   "kork-core",
   "kork-core-tck",
   "kork-dynomite",
