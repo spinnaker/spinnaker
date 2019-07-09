@@ -480,6 +480,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           asg: [minSize        : instanceGroupManager.targetSize,
                 maxSize        : instanceGroupManager.targetSize,
                 desiredCapacity: instanceGroupManager.targetSize],
+          statefulPolicy: instanceGroupManager.statefulPolicy,
           autoHealingPolicy: instanceGroupManager.autoHealingPolicies?.getAt(0)
       )
     }

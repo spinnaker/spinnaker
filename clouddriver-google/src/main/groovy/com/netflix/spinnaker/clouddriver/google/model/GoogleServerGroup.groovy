@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
+import com.google.api.services.compute.model.StatefulPolicy
 import com.google.api.services.iam.v1.model.ServiceAccount
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
@@ -74,6 +75,9 @@ class GoogleServerGroup implements GoogleLabeledResource {
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   AutoscalingPolicy autoscalingPolicy
 
+  @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+  StatefulPolicy statefulPolicy
+
   List<String> autoscalingMessages
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
@@ -124,6 +128,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
     Boolean discovery = GoogleServerGroup.this.discovery
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions
     AutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
+    StatefulPolicy statefulPolicy = GoogleServerGroup.this.statefulPolicy
     List<String> autoscalingMessages = GoogleServerGroup.this.autoscalingMessages
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
     GoogleDistributionPolicy distributionPolicy = GoogleServerGroup.this.distributionPolicy
