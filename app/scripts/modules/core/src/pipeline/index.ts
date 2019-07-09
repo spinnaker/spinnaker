@@ -16,3 +16,4 @@ export * from './executions/execution/Execution';
 export * from './filter/ExecutionFilterModel';
 export * from './manualExecution/TriggerTemplate';
 export * from './service/execution.service';
+export * from './service/ExecutionsTransformer';
