@@ -141,7 +141,6 @@ module.exports = angular
             determineAssociatePublicIPAddress();
 
             findStartupScript();
-            prepareDiskDescriptions();
             prepareAvailabilityPolicies();
             prepareShieldedVmConfig();
             prepareAutoHealingPolicy();
@@ -168,66 +167,6 @@ module.exports = angular
           }
         }
       };
-
-      const prepareDiskDescriptions = () => {
-        if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.disks')) {
-          const diskDescriptions = [];
-
-          this.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
-            const diskLabel = disk.initializeParams.diskType + ':' + disk.initializeParams.diskSizeGb;
-            const existingDiskDescription = _.find(diskDescriptions, description => {
-              return description.bareLabel === diskLabel;
-            });
-
-            if (existingDiskDescription) {
-              existingDiskDescription.count++;
-              existingDiskDescription.countSuffix = ' (×' + existingDiskDescription.count + ')';
-              existingDiskDescription.sourceImages = getSourceImage(disk)
-                ? [getSourceImage(disk)].concat(existingDiskDescription.sourceImages)
-                : existingDiskDescription.sourceImages;
-            } else {
-              diskDescriptions.push({
-                bareLabel: diskLabel,
-                count: 1,
-                countSuffix: '',
-                finalLabel:
-                  translateDiskType(disk.initializeParams.diskType) + ': ' + disk.initializeParams.diskSizeGb + 'GB',
-                sourceImages: getSourceImage(disk) ? [getSourceImage(disk)] : [],
-              });
-            }
-          });
-
-          diskDescriptions.forEach(description => {
-            if (!description.sourceImages.length) {
-              return;
-            }
-
-            description.sourceImages = _.uniq(description.sourceImages);
-
-            switch (description.count) {
-              case 0:
-                break;
-              case 1:
-                if (description.sourceImages[0]) {
-                  description.helpField = `This disk uses the source image <em>${description.sourceImages[0]}</em>.`;
-                }
-                break;
-              default:
-                description.helpField = `
-                These disks use the following source images:
-                <ul>
-                  ${description.sourceImages.map(image => `<li><em>${image}</em></li>`).join('')}
-                </ul>
-              `;
-                break;
-            }
-          });
-
-          this.serverGroup.diskDescriptions = diskDescriptions;
-        }
-      };
-
-      const getSourceImage = disk => _.last(_.get(disk, 'initializeParams.sourceImage', '').split('/'));
 
       const prepareAvailabilityPolicies = () => {
         if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.scheduling')) {
@@ -298,16 +237,6 @@ module.exports = angular
           if (!this.serverGroup.currentActionsSummary.length) {
             delete this.serverGroup.currentActionsSummary;
           }
-        }
-      };
-
-      const translateDiskType = diskType => {
-        if (diskType === 'pd-ssd') {
-          return 'Persistent SSD';
-        } else if (diskType === 'local-ssd') {
-          return 'Local SSD';
-        } else {
-          return 'Persistent Std';
         }
       };
 

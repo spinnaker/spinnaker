@@ -5,3 +5,4 @@ export * from './loadBalancer';
 export * from './network';
 export * from './serverGroup';
 export * from './subnet';
+export * from './disk';
