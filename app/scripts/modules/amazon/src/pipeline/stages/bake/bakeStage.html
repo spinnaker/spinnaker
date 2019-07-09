@@ -13,9 +13,13 @@
       <input type="text" class="form-control input-sm" ng-model="stage.package" />
     </stage-config-field>
     <stage-config-field label="Base OS">
-      <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
+      <bake-stage-choose-os
+        model="stage.baseOs"
+        base-os-options="baseOsOptions"
+        on-change="bakeStageCtrl.handleBaseOsChange()"
+      ></bake-stage-choose-os>
     </stage-config-field>
-    <stage-config-field label="VM Type">
+    <stage-config-field label="VM Type" ng-if="viewState.showVmTypeSelector">
       <label class="radio-inline" ng-repeat="vmType in vmTypes">
         <input type="radio" ng-model="stage.vmType" ng-value="vmType" />
         {{vmType | uppercase}}

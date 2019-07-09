@@ -57,6 +57,7 @@ module.exports = angular
         loading: true,
         roscoMode: SETTINGS.feature.roscoMode,
         minRootVolumeSize: AWSProviderSettings.minRootVolumeSize,
+        showVmTypeSelector: true,
       };
 
       function initialize() {
@@ -64,14 +65,9 @@ module.exports = angular
           regions: BakeryReader.getRegions('aws'),
           baseOsOptions: BakeryReader.getBaseOsOptions('aws'),
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-          vmTypes: ['hvm', 'pv'],
           storeTypes: ['ebs', 'docker'],
         }).then(function(results) {
           $scope.regions = results.regions;
-          $scope.vmTypes = results.vmTypes;
-          if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
-            $scope.stage.vmType = $scope.vmTypes[0];
-          }
           $scope.storeTypes = results.storeTypes;
           if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
             $scope.stage.storeType = $scope.storeTypes[0];
@@ -95,6 +91,10 @@ module.exports = angular
           }
           if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
             $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+          }
+          setVmTypes();
+          if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
+            $scope.stage.vmType = $scope.vmTypes[0];
           }
           $scope.showAdvancedOptions = showAdvanced();
           $scope.viewState.loading = false;
@@ -121,6 +121,21 @@ module.exports = angular
           stg.amiSuffix ||
           stg.rootVolumeSize
         );
+      }
+
+      function setVmTypes() {
+        if ($scope.baseOsOptions.length && $scope.baseOsOptions.every(({ vmTypes }) => vmTypes)) {
+          const allVmTypes =
+            $scope.baseOsOptions.length &&
+            new Set($scope.baseOsOptions.reduce((types, { vmTypes }) => types.concat(vmTypes), []));
+          const baseOs = $scope.baseOsOptions.find(({ id }) => id === $scope.stage.baseOs);
+
+          $scope.viewState.showVmTypeSelector = allVmTypes.size > 1;
+          $scope.vmTypes = baseOs.vmTypes;
+        } else {
+          $scope.viewState.showVmTypeSelector = true;
+          $scope.vmTypes = ['hvm', 'pv'];
+        }
       }
 
       this.addExtendedAttribute = function() {
@@ -163,6 +178,13 @@ module.exports = angular
 
       this.showVarFileName = function() {
         return $scope.viewState.roscoMode || $scope.stage.varFileName;
+      };
+
+      this.handleBaseOsChange = function() {
+        setVmTypes();
+        if ($scope.vmTypes && $scope.vmTypes.length && !$scope.vmTypes.includes($scope.stage.vmType)) {
+          $scope.stage.vmType = $scope.vmTypes[0];
+        }
       };
 
       $scope.$watch('stage', deleteEmptyProperties, true);

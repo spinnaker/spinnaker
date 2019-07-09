@@ -10,6 +10,7 @@ export interface IBaseOsOption {
 export class BakeStageChooseOSController implements IController {
   public model: any;
   public baseOsOptions: IBaseOsOption[];
+  public onChange: () => any;
 
   public showRadioButtons = false;
 
@@ -30,6 +31,7 @@ const bakeStageChooseOsComponent: IComponentOptions = {
   bindings: {
     baseOsOptions: '<',
     model: '=',
+    onChange: '=',
   },
   controller: BakeStageChooseOSController,
   templateUrl: require('./bakeStageChooseOs.component.html'),

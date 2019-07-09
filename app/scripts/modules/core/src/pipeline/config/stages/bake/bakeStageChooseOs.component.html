@@ -1,4 +1,10 @@
-<ui-select ng-if="!$ctrl.showRadioButtons" ng-model="$ctrl.model" required class="form-control input-sm">
+<ui-select
+  ng-if="!$ctrl.showRadioButtons"
+  ng-model="$ctrl.model"
+  on-select="$ctrl.onChange()"
+  required
+  class="form-control input-sm"
+>
   <ui-select-match placeholder="Select a base OS">
     <span ng-bind-html="$ctrl.getBaseOsDescription($select.selected)"></span>
   </ui-select-match>
