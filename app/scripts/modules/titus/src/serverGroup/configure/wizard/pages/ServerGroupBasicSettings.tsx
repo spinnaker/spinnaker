@@ -185,7 +185,12 @@ export class ServerGroupBasicSettings
             {values.credentials !== undefined && (
               <div className="small">
                 Uses resources from the Amazon account{' '}
-                <AccountTag account={values.backingData.credentialsKeyedByAccount[values.credentials].awsAccount} />
+                <AccountTag
+                  account={
+                    values.backingData.credentialsKeyedByAccount[values.credentials] &&
+                    values.backingData.credentialsKeyedByAccount[values.credentials].awsAccount
+                  }
+                />
               </div>
             )}
           </div>

@@ -81,7 +81,13 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
             <Field type="text" className="form-control input-sm no-spel" name="iamProfile" />
           </div>
           <div className="col-md-1 small" style={{ whiteSpace: 'nowrap', paddingLeft: '0px', paddingTop: '7px' }}>
-            in <AccountTag account={values.backingData.credentialsKeyedByAccount[values.credentials].awsAccount} />
+            in{' '}
+            <AccountTag
+              account={
+                values.backingData.credentialsKeyedByAccount[values.credentials] &&
+                values.backingData.credentialsKeyedByAccount[values.credentials].awsAccount
+              }
+            />
           </div>
         </div>
         <div className="form-group">

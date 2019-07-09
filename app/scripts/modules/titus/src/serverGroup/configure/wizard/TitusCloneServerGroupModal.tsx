@@ -123,7 +123,10 @@ export class TitusCloneServerGroupModal extends React.Component<
   private configureCommand = () => {
     const { command } = this.props;
     TitusReactInjector.titusServerGroupConfigurationService.configureCommand(command).then(() => {
-      command.registry = (command.backingData.credentialsKeyedByAccount[command.credentials] as any).registry;
+      if (!command.credentials.includes('${')) {
+        // so as to not erase registry when account is a spel expression
+        command.registry = ((command.backingData.credentialsKeyedByAccount[command.credentials] as any) || {}).registry;
+      }
       this.setState({ loaded: true, requiresTemplateSelection: false });
     });
   };
@@ -168,7 +171,12 @@ export class TitusCloneServerGroupModal extends React.Component<
             command.credentials !== undefined && (
               <p>
                 Uses target groups from the Amazon account{' '}
-                <AccountTag account={command.backingData.credentialsKeyedByAccount[command.credentials].awsAccount} />
+                <AccountTag
+                  account={
+                    command.backingData.credentialsKeyedByAccount[command.credentials] &&
+                    command.backingData.credentialsKeyedByAccount[command.credentials].awsAccount
+                  }
+                />
               </p>
             )}
         </div>
@@ -180,6 +188,7 @@ export class TitusCloneServerGroupModal extends React.Component<
     const amazonAccount =
       command.backingData &&
       command.backingData.credentialsKeyedByAccount &&
+      command.backingData.credentialsKeyedByAccount[command.credentials] &&
       command.backingData.credentialsKeyedByAccount[command.credentials].awsAccount;
     if (!amazonAccount || command.credentials === undefined) {
       return null;
