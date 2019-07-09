@@ -1,5 +1,7 @@
 'use strict';
 
+import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
+
 const angular = require('angular');
 import _ from 'lodash';
 
@@ -11,6 +13,7 @@ import {
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
   SETTINGS,
+  ReactModal,
 } from '@spinnaker/core';
 
 import { TitusReactInjector } from 'titus/reactShims';
@@ -308,6 +311,10 @@ module.exports = angular
               this.showEnableServerGroupModal();
             }
           });
+      };
+
+      this.resizeServerGroup = () => {
+        ReactModal.show(TitusResizeServerGroupModal, { serverGroup: $scope.serverGroup, application });
       };
 
       this.showEnableServerGroupModal = () => {
