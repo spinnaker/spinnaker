@@ -178,6 +178,11 @@ public class Keys {
     @Getter private static final Kind kind = Kind.LOGICAL;
 
     public abstract LogicalKind getLogicalKind();
+
+    @Override
+    public final String getGroup() {
+      return getLogicalKind().toString();
+    }
   }
 
   @EqualsAndHashCode(callSuper = true)
@@ -244,11 +249,6 @@ public class Keys {
     public String toString() {
       return createKeyFromParts(getKind(), logicalKind, name);
     }
-
-    @Override
-    public String getGroup() {
-      return logicalKind.toString();
-    }
   }
 
   @EqualsAndHashCode(callSuper = true)
@@ -282,11 +282,6 @@ public class Keys {
     @Override
     public String toString() {
       return createKeyFromParts(getKind(), logicalKind, account, application, name);
-    }
-
-    @Override
-    public String getGroup() {
-      return logicalKind.toString();
     }
   }
 
