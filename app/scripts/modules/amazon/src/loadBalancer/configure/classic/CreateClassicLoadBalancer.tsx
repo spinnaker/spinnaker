@@ -59,7 +59,9 @@ export class CreateClassicLoadBalancer extends React.Component<
   constructor(props: ICreateClassicLoadBalancerProps) {
     super(props);
 
-    const loadBalancerCommand = props.loadBalancer
+    const loadBalancerCommand = props.command
+      ? (props.command as IAmazonClassicLoadBalancerUpsertCommand) // ejecting from a wizard
+      : props.loadBalancer
       ? AwsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(props.loadBalancer)
       : AwsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(props.app);
 
