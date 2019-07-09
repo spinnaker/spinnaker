@@ -122,7 +122,18 @@ module.exports = angular
           // these on a subsequent run.
           trigger.artifacts = [];
         }
-        this.command.trigger = trigger || _.head(this.triggers);
+        if (trigger) {
+          // Find the pipeline.trigger that matches trigger (the trigger from the execution being re-run)
+          this.command.trigger = this.triggers.find(t =>
+            Object.keys(t)
+              .filter(k => k !== 'description')
+              .every(k => t[k] === trigger[k]),
+          );
+          // If we found a match, rehydrate it with everything from trigger, otherwise just default back to setting it to trigger
+          this.command.trigger = this.command.trigger ? Object.assign(this.command.trigger, trigger) : trigger;
+        } else {
+          this.command.trigger = _.head(this.triggers);
+        }
       };
 
       const updatePipelinePlan = pipeline => {
