@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -47,6 +48,8 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
 
   @Autowired OortService oortService;
 
+  @Autowired ObjectMapper objectMapper;
+
   @Autowired ArtifactResolver artifactResolver;
 
   public static final String TASK_NAME = "deployCloudFormation";
@@ -63,17 +66,26 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
     }
 
     if (task.get("source").equals("artifact")) {
-      if (!StringUtils.isNotBlank((String) task.get("stackArtifactId"))) {
+      if (!StringUtils.isNotBlank((String) task.get("stackArtifactId"))
+          && task.get("stackArtifact") == null) {
         throw new IllegalArgumentException(
             "Invalid stage format, no stack template artifact was specified.");
       }
-      if (!StringUtils.isNotBlank((String) task.get("stackArtifactAccount"))) {
+      if (!StringUtils.isNotBlank((String) task.get("stackArtifactAccount"))
+          && task.get("stackArtifact") == null) {
         throw new IllegalArgumentException(
             "Invalid stage format, no artifact account was specified.");
       }
+      String stackArtifactId =
+          Optional.ofNullable(task.get("stackArtifactId")).map(Object::toString).orElse(null);
+      Artifact stackArtifact =
+          Optional.ofNullable(task.get("stackArtifact"))
+              .map(m -> objectMapper.convertValue(m, Artifact.class))
+              .orElse(null);
       Artifact artifact =
-          artifactResolver.getBoundArtifactForId(stage, task.get("stackArtifactId").toString());
-      artifact.setArtifactAccount(task.get("stackArtifactAccount").toString());
+          artifactResolver.getBoundArtifactForStage(stage, stackArtifactId, stackArtifact);
+      Optional.ofNullable(task.get("stackArtifactAccount"))
+          .ifPresent(account -> artifact.setArtifactAccount(account.toString()));
       Response response = oortService.fetchArtifact(artifact);
       try {
         String template = CharStreams.toString(new InputStreamReader(response.getBody().in()));
