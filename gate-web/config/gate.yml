@@ -27,14 +27,17 @@ services:
             shortDescription: v14.04
             detailedDescription: Ubuntu Trusty Tahr v14.04
             packageType: DEB
+            vmTypes: [ 'hvm', 'pv' ]
           - id: ubuntu
             shortDescription: v12.04
             detailedDescription: Ubuntu Precise Pangolin v12.04
             packageType: DEB
+            vmTypes: [ 'hvm', 'pv' ]
           - id: centos
             shortDescription: deprecated
             detailedDescription: CentOS v5.11
             packageType: RPM
+            vmTypes: [ 'hvm', 'pv' ]
 # optional services:
   echo:
     baseUrl: http://localhost:8089

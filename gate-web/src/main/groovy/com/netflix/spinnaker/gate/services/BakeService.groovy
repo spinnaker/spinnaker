@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,10 +67,12 @@ class BakeService {
     List<BaseImage> baseImages
   }
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   static class BaseImage {
     String id
     String shortDescription
     String detailedDescription
     String packageType
+    List<String> vmTypes
   }
 }
