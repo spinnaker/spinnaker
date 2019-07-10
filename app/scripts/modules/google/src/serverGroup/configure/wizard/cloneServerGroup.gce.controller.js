@@ -138,15 +138,6 @@ module.exports = angular
         gceServerGroupConfigurationService
           .configureCommand(application, serverGroupCommand)
           .then(function() {
-            const mode = serverGroupCommand.viewState.mode;
-            if (mode === 'clone' || mode === 'create') {
-              if (
-                !serverGroupCommand.backingData.packageImages ||
-                !serverGroupCommand.backingData.packageImages.length
-              ) {
-                serverGroupCommand.viewState.useAllImageSelection = true;
-              }
-            }
             $scope.state.loaded = true;
             initializeSelectOptions();
             initializeWatches();

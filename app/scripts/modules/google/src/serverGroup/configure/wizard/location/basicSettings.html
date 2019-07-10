@@ -114,29 +114,12 @@
         Image
         <help-field key="gce.serverGroup.imageName"></help-field>
       </div>
-      <div class="col-md-9" ng-if="command.viewState.useAllImageSelection">
-        <ui-select ng-model="command.image" class="form-control input-sm" required>
-          <ui-select-match placeholder="Search for an image..."
-            >{{$select.selected.imageName || 'Search for an image...'}}</ui-select-match
-          >
-          <ui-select-choices
-            repeat="result.imageName as result in command.backingData.allImages | filter: { imageName: $select.search }"
-          >
-            <span ng-bind-html="result.imageName | highlight: $select.search"></span>
-          </ui-select-choices>
-        </ui-select>
-      </div>
-      <div class="col-md-9" ng-if="!command.viewState.useAllImageSelection">
-        <ui-select class="form-control input-sm" required ng-model="command.image">
-          <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
-          <ui-select-choices
-            repeat="image.imageName as image in command.backingData.allImages | filter: { imageName: $select.search }"
-          >
-            <span ng-bind-html="image.imageName | highlight: $select.search"></span>
-          </ui-select-choices>
-        </ui-select>
-        <a href ng-click="basicSettingsCtrl.enableAllImageSearch()">Search All Images</a
-        ><help-field key="aws.serverGroup.allImages"></help-field>
+      <div class="col-md-7">
+        <gce-image-select
+          available-images="command.backingData.allImages"
+          selected-image="command.image"
+          select-image="basicSettingsCtrl.selectImage"
+        />
       </div>
     </div>
     <div class="form-group">

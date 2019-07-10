@@ -84,15 +84,6 @@ module.exports = angular
       ];
 
       function configureCommand(application, command) {
-        let imageLoader;
-        if (command.viewState.disableImageSelection) {
-          imageLoader = $q.when(null);
-        } else {
-          imageLoader = command.viewState.imageId
-            ? loadImagesFromImageName(command)
-            : loadImagesFromApplicationName(application, command.selectedProvider, command.credentials);
-        }
-
         return $q
           .all({
             credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('gce'),
@@ -100,7 +91,6 @@ module.exports = angular
             networks: NetworkReader.listNetworksByProvider('gce'),
             subnets: SubnetReader.listSubnetsByProvider('gce'),
             loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
-            packageImages: imageLoader,
             allImages: loadAllImages(command.credentials),
             instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
             persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
@@ -153,39 +143,11 @@ module.exports = angular
           });
       }
 
-      function loadImagesFromApplicationName(application, provider, account) {
-        return gceImageReader.findImages({
-          account: account,
-          provider: provider,
-          q: application.name.replace(/_/g, '[_\\-]') + '*',
-        });
-      }
-
-      // Used to populate the image selection dropdowns in the persistent disk configurer.
       function loadAllImages(account) {
         return gceImageReader.findImages({
           account: account,
           provider: 'gce',
           q: '*',
-        });
-      }
-
-      function loadImagesFromImageName(command) {
-        command.image = command.viewState.imageId;
-
-        let packageBase = command.image.split('_')[0];
-        const parts = packageBase.split('-');
-        if (parts.length > 3) {
-          packageBase = parts.slice(0, -3).join('-');
-        }
-        if (!packageBase || packageBase.length < 3) {
-          return [{ account: command.credentials, imageName: command.image }];
-        }
-
-        return gceImageReader.findImages({
-          account: command.credentials,
-          provider: command.selectedProvider,
-          q: packageBase + '*',
         });
       }
 
@@ -346,13 +308,12 @@ module.exports = angular
       }
 
       function configureImages(command) {
+        command.image = command.viewState.imageId;
         const result = { dirty: {} };
         if (command.credentials !== command.viewState.lastImageAccount) {
           command.viewState.lastImageAccount = command.credentials;
-          const filteredImages = extractFilteredImages(command);
-          command.backingData.filtered.images = filteredImages;
           if (
-            !_.chain(filteredImages)
+            !_.chain(command.backingData.allImages)
               .find({ imageName: command.image })
               .value()
           ) {
@@ -486,13 +447,6 @@ module.exports = angular
         if (Object.keys(backendServices).length > 0) {
           command.backendServices = backendServices;
         }
-      }
-
-      function extractFilteredImages(command) {
-        return _.chain(command.backingData.packageImages)
-          .filter({ account: command.credentials })
-          .uniq()
-          .value();
       }
 
       function refreshLoadBalancers(command, skipCommandReconfiguration) {

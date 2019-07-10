@@ -41,15 +41,17 @@ module.exports = angular
       const imageSearchResultsStream = new Subject();
       imageSearchResultsStream.switchMap(fetchImagesForAccount).subscribe(images => {
         $scope.command.backingData.allImages = images;
-        $scope.command.backingData.packageImages = images;
       });
 
       this.accountUpdated = () => {
         imageSearchResultsStream.next();
       };
 
-      this.enableAllImageSearch = () => {
-        $scope.command.viewState.useAllImageSelection = true;
+      this.selectImage = image => {
+        // called from a React component
+        $scope.$apply(() => {
+          $scope.command.image = image;
+        });
       };
 
       angular.extend(

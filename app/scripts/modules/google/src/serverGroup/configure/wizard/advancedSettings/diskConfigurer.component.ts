@@ -1,4 +1,4 @@
-import { module, IComponentOptions, IComponentController } from 'angular';
+import { module, IComponentOptions, IComponentController, IScope } from 'angular';
 import { get, without } from 'lodash';
 
 interface IGceDisk {
@@ -16,6 +16,9 @@ class GceDiskConfigurerController implements IComponentController {
   public command: any;
   public disks: IGceDisk[];
   private updateDisks: (arg: { disks: IGceDisk[] }) => void;
+
+  public static $inject = ['$scope'];
+  constructor(public $scope: IScope) {}
 
   public $onInit(): void {
     this.setLocalSSDCount();
@@ -55,6 +58,14 @@ class GceDiskConfigurerController implements IComponentController {
     disks = this.sortDisks(disks);
     this.updateDisks({ disks });
   }
+
+  public handleImageChange = (imageName: string, target: IGceDisk) => {
+    // called from a React component
+    this.$scope.$apply(() => {
+      target.sourceImage = imageName;
+      this.handlePersistentDiskChange();
+    });
+  };
 
   public addPersistentDisk(): void {
     this.persistentDisks = this.persistentDisks.concat([{ type: 'pd-ssd', sizeGb: 10, sourceImage: null }]);
@@ -153,16 +164,13 @@ const gceDiskConfigurer: IComponentOptions = {
                     This disk will use the image inferred from this pipeline's execution context.
                   </p>
                 </div>
-                <ui-select ng-if="$index > 0"
-                           ng-model="disk.sourceImage"
-                           ng-change="$ctrl.handlePersistentDiskChange()"
-                           class="form-control input-sm"
-                           required>
-                  <ui-select-match placeholder="Select an image...">{{$select.selected.imageName || 'Select an image...'}}</ui-select-match>
-                  <ui-select-choices repeat="image.imageName as image in $ctrl.command.backingData.allImages | filter: { imageName: $select.search }">
-                    <span ng-bind-html="image.imageName | highlight: $select.search"></span>
-                  </ui-select-choices>
-                </ui-select>
+                <gce-image-select
+                  ng-if="$index > 0"
+                  available-images="$ctrl.command.backingData.allImages"
+                  selected-image="disk.sourceImage"
+                  select-image="$ctrl.handleImageChange"
+                  target="disk"
+                />
               </td>
               <td ng-if="$index > 0">
                 <a class="btn btn-link sm-label" style="margin-top: 0;" ng-click="$ctrl.removePersistentDisk($index)">
