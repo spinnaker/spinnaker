@@ -95,7 +95,7 @@
           </td>
           <td class="title" align="left" valign="middle" style="padding: 16px 0 16px 32px; height: 100%;">
             <h1 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 28px;">Cleanup Notifications</h1>
-            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} image(s) not in use scheduled for cleanup</h2>
+            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} resources(s) not in use scheduled for cleanup</h2>
           </td>
           <td align="center" valign="top" style="padding: 16px 32px 16px 16px; width: 140px;" class="logo">
             <img alt="Spinnaker" src="https://www.spinnaker.io/assets/emails/spinnaker-logo-400.png" width="140" height="140" border="0">
@@ -111,7 +111,8 @@
 
     <!-- CONTENT -->
       <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 1000px;">
-
+        <!-- To map the resourceType to web ui we need an additional 's' -->
+      <#assign rawResourceType = notification.additionalContext.configuration.resourceType+"s">
       <!-- LOOP -->
         <#foreach resource in notification.additionalContext.resources>
         <tr class="loop" style="border-bottom: 1px solid #cccccc;">
@@ -124,8 +125,10 @@
               <td class="loop__key" align="right" valign="top" style="padding: 4px 16px 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold;" width="30%">
                 id
               </td>
+
               <td align="left" style="padding: 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
-                ${resource.resourceId}
+                <#assign resourceWebUrl = notification.additionalContext.spinnakerLink+resource.resourceId+"&tab="+rawResourceType>
+                <a href="${resourceWebUrl}">${resource.resourceId}</a>
               </td>
             </tr>
             <#if resource.resourceId != resource.name>
@@ -168,7 +171,7 @@
             </tr>
           </table>
           </td>
-          <td class="loop__btns" valign="middle" style="padding: 16px 32px 16px 16px; width: 112px;">
+          <td class="loop__btns" valign="middle" style="padding: 16px 32px 16px 16px; width: 145px;">
             <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}" target="_blank" style="font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; margin: 8px 0; text-decoration: none; background-color: #149cb5; text-align: center; text-decoration: none; border-radius: 4px; padding: 8px 16px; display: block;" class="mobile-button">More Info</a>
             <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}/optOut" target="_blank" style="font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #666666; margin: 8px 0; text-decoration: none; background-color: #ffffff; text-align: center; text-decoration: none; border-radius: 4px; padding: 8px 16px; display: block; border: 1px solid #cccccc" class="mobile-button">Opt Out of Delete</a>
           </td>
