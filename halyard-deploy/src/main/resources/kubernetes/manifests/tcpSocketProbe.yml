@@ -1,0 +1,6 @@
+{
+  "tcpSocket": {
+    "port": {{ port }}
+  },
+  "initialDelaySeconds": {{ initialDelaySeconds }}
+}

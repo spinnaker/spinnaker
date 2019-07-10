@@ -114,6 +114,20 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
       description = "This is the git user your github fork exists under.")
   private String gitOriginUser;
 
+  @Parameter(
+      names = "--liveness-probe-enabled",
+      arity = 1,
+      description =
+          "When true, enable Kubernetes liveness probes on Spinnaker services deployed in a Distributed installation. See docs for more information: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/")
+  private Boolean livenessProbesEnabled;
+
+  @Parameter(
+      names = "--liveness-probe-initial-delay-seconds",
+      arity = 1,
+      description =
+          "The number of seconds to wait before performing the first liveness probe. Should be set to the longest service startup time. See docs for more information: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/")
+  private Integer livenessProbeInitialDelaySeconds;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -146,6 +160,12 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
       vault = new DeploymentEnvironment.Vault();
     }
 
+    DeploymentEnvironment.LivenessProbeConfig livenessProbeConfig =
+        deploymentEnvironment.getLivenessProbeConfig();
+    if (livenessProbeConfig == null) {
+      livenessProbeConfig = new DeploymentEnvironment.LivenessProbeConfig();
+    }
+
     deploymentEnvironment.setAccountName(
         isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setBootstrapOnly(
@@ -161,6 +181,14 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
     vault.setAddress(isSet(vaultAddress) ? vaultAddress : vault.getAddress());
     vault.setEnabled(isSet(vaultEnabled) ? vaultEnabled : vault.isEnabled());
     deploymentEnvironment.setVault(vault);
+
+    if (isSet(livenessProbesEnabled)) {
+      livenessProbeConfig.setEnabled(livenessProbesEnabled);
+    }
+    if (isSet(livenessProbeInitialDelaySeconds)) {
+      livenessProbeConfig.setInitialDelaySeconds(livenessProbeInitialDelaySeconds);
+    }
+    deploymentEnvironment.setLivenessProbeConfig(livenessProbeConfig);
 
     deploymentEnvironment.setLocation(
         isSet(location) ? location : deploymentEnvironment.getLocation());

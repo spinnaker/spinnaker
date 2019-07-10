@@ -69,8 +69,7 @@ class ResourceBuilder {
                   });
         });
 
-    ProbeBuilder probeBuilder = new ProbeBuilder();
-
+    String healthEndpoint = settings.getHealthEndpoint();
     String scheme = settings.getScheme();
     if (StringUtils.isNotEmpty(scheme)) {
       scheme = scheme.toUpperCase();
@@ -78,17 +77,17 @@ class ResourceBuilder {
       scheme = null;
     }
 
-    if (settings.getHealthEndpoint() != null) {
-      probeBuilder =
-          probeBuilder
-              .withNewHttpGet()
-              .withNewPort(port)
-              .withPath(settings.getHealthEndpoint())
-              .withScheme(scheme)
-              .endHttpGet();
-    } else {
-      probeBuilder =
-          probeBuilder.withNewTcpSocket().withNewPort().withIntVal(port).endPort().endTcpSocket();
+    ProbeBuilder readinessProbeBuilder = buildProbeBuilder(port, scheme, healthEndpoint, null);
+    ProbeBuilder livenessProbeBuilder = null;
+
+    DeploymentEnvironment.LivenessProbeConfig livenessProbeConfig =
+        deploymentEnvironment.getLivenessProbeConfig();
+    if (livenessProbeConfig != null
+        && livenessProbeConfig.isEnabled()
+        && livenessProbeConfig.getInitialDelaySeconds() != null) {
+      livenessProbeBuilder =
+          buildProbeBuilder(
+              port, scheme, healthEndpoint, livenessProbeConfig.getInitialDelaySeconds());
     }
 
     List<VolumeMount> volumeMounts =
@@ -110,8 +109,12 @@ class ResourceBuilder {
             .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
             .withVolumeMounts(volumeMounts)
             .withEnv(envVars)
-            .withReadinessProbe(probeBuilder.build())
+            .withReadinessProbe(readinessProbeBuilder.build())
             .withResources(buildResourceRequirements(name, deploymentEnvironment));
+
+    if (livenessProbeBuilder != null) {
+      containerBuilder.withLivenessProbe(livenessProbeBuilder.build());
+    }
 
     return containerBuilder.build();
   }
@@ -151,5 +154,27 @@ class ResourceBuilder {
     }
 
     return resourceRequirementsBuilder.build();
+  }
+
+  private static ProbeBuilder buildProbeBuilder(
+      Integer port, String scheme, String healthEndpoint, Integer initialDelaySeconds) {
+    ProbeBuilder probeBuilder = new ProbeBuilder();
+    if (healthEndpoint != null) {
+      return probeBuilder
+          .withNewHttpGet()
+          .withNewPort(port)
+          .withPath(healthEndpoint)
+          .withScheme(scheme)
+          .endHttpGet()
+          .withInitialDelaySeconds(initialDelaySeconds);
+    } else {
+      return probeBuilder
+          .withNewTcpSocket()
+          .withNewPort()
+          .withIntVal(port)
+          .endPort()
+          .endTcpSocket()
+          .withInitialDelaySeconds(initialDelaySeconds);
+    }
   }
 }

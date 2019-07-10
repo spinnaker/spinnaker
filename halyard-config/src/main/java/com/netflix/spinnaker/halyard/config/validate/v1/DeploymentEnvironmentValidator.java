@@ -60,6 +60,8 @@ public class DeploymentEnvironmentValidator extends Validator<DeploymentEnvironm
       default:
         throw new RuntimeException("Unknown deployment environment type " + type);
     }
+
+    validateLivenessProbeConfig(p, n);
   }
 
   private void validateGitDeployment(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
@@ -110,6 +112,16 @@ public class DeploymentEnvironmentValidator extends Validator<DeploymentEnvironm
           "Account "
               + accountName
               + " is not in a provider that supports distributed installation of Spinnaker yet");
+    }
+  }
+
+  private void validateLivenessProbeConfig(ConfigProblemSetBuilder p, DeploymentEnvironment n) {
+    if (n.getLivenessProbeConfig() != null && n.getLivenessProbeConfig().isEnabled()) {
+      if (n.getLivenessProbeConfig().getInitialDelaySeconds() == null) {
+        p.addProblem(
+            Problem.Severity.FATAL,
+            "Setting `initialDelaySeconds` is required when enabling liveness probes. Use the --liveness-probe-initial-delay-seconds sub-command to set `initialDelaySeconds`.");
+      }
     }
   }
 }

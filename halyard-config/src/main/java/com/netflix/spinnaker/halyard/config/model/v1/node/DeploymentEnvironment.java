@@ -106,6 +106,7 @@ public class DeploymentEnvironment extends Node {
   private Map<String, AffinityConfig> affinity = new HashMap<>();
   private Map<String, String> nodeSelectors = new HashMap<>();
   private GitConfig gitConfig = new GitConfig();
+  private LivenessProbeConfig livenessProbeConfig = new LivenessProbeConfig();
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.10.0",
@@ -133,5 +134,11 @@ public class DeploymentEnvironment extends Node {
   public static class GitConfig {
     String upstreamUser = "spinnaker";
     String originUser;
+  }
+
+  @Data
+  public static class LivenessProbeConfig {
+    boolean enabled;
+    Integer initialDelaySeconds;
   }
 }

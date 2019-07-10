@@ -1,5 +1,0 @@
-{
-  "tcpSocket": {
-    "port": {{ port }}
-  }
-}

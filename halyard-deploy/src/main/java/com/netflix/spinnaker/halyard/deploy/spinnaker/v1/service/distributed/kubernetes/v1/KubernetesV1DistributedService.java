@@ -417,24 +417,8 @@ public interface KubernetesV1DistributedService<T>
     return getObjectMapper().convertValue(description, new TypeReference<Map<String, Object>>() {});
   }
 
-  default KubernetesContainerDescription buildContainer(
-      String name,
-      ServiceSettings settings,
-      List<ConfigSource> configSources,
-      DeploymentEnvironment deploymentEnvironment,
-      DeployKubernetesAtomicOperationDescription description) {
-    KubernetesContainerDescription container = new KubernetesContainerDescription();
-    KubernetesProbe readinessProbe = new KubernetesProbe();
+  default KubernetesHandler buildProbeHandler(int port, String scheme, String healthEndpoint) {
     KubernetesHandler handler = new KubernetesHandler();
-    int port = settings.getPort();
-    String scheme = settings.getScheme();
-    if (StringUtils.isNotEmpty(scheme)) {
-      scheme = scheme.toUpperCase();
-    } else {
-      scheme = null;
-    }
-
-    String healthEndpoint = settings.getHealthEndpoint();
     if (healthEndpoint != null) {
       handler.setType(KubernetesHandlerType.HTTP);
       KubernetesHttpGetAction action = new KubernetesHttpGetAction();
@@ -448,9 +432,41 @@ public interface KubernetesV1DistributedService<T>
       action.setPort(port);
       handler.setTcpSocketAction(action);
     }
+    return handler;
+  }
 
-    readinessProbe.setHandler(handler);
+  default KubernetesContainerDescription buildContainer(
+      String name,
+      ServiceSettings settings,
+      List<ConfigSource> configSources,
+      DeploymentEnvironment deploymentEnvironment,
+      DeployKubernetesAtomicOperationDescription description) {
+    KubernetesContainerDescription container = new KubernetesContainerDescription();
+    String healthEndpoint = settings.getHealthEndpoint();
+    int port = settings.getPort();
+    String scheme = settings.getScheme();
+    if (StringUtils.isNotEmpty(scheme)) {
+      scheme = scheme.toUpperCase();
+    } else {
+      scheme = null;
+    }
+
+    KubernetesProbe readinessProbe = new KubernetesProbe();
+    KubernetesHandler readinessHandler = buildProbeHandler(port, scheme, healthEndpoint);
+    readinessProbe.setHandler(readinessHandler);
     container.setReadinessProbe(readinessProbe);
+
+    DeploymentEnvironment.LivenessProbeConfig livenessProbeConfig =
+        deploymentEnvironment.getLivenessProbeConfig();
+    if (livenessProbeConfig != null
+        && livenessProbeConfig.isEnabled()
+        && livenessProbeConfig.getInitialDelaySeconds() != null) {
+      KubernetesProbe livenessProbe = new KubernetesProbe();
+      KubernetesHandler livenessHandler = buildProbeHandler(port, scheme, healthEndpoint);
+      livenessProbe.setHandler(livenessHandler);
+      livenessProbe.setInitialDelaySeconds(livenessProbeConfig.getInitialDelaySeconds());
+      container.setLivenessProbe(livenessProbe);
+    }
 
     applyCustomSize(container, deploymentEnvironment, name, description);
 
