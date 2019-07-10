@@ -28,8 +28,8 @@ public class DefaultPropertiesBuilder {
     defaults.put("netflix.environment", "test");
     defaults.put("netflix.account", "${netflix.environment}");
     defaults.put("netflix.stack", "test");
-    defaults.put("spring.config.node", "${user.home}/.spinnaker/");
-    defaults.put("spring.config.name", "${spring.application.name}");
+    defaults.put("spring.config.name", "spinnaker,${spring.application.name}");
+    defaults.put("spring.config.additional-location", "${user.home}/.spinnaker/");
     defaults.put("spring.profiles.active", "${netflix.environment},local");
     // add the Spring Cloud Config "composite" profile to default to a configuration
     // source that won't prevent app startup if custom configuration is not provided
