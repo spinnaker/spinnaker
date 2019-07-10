@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +48,17 @@ public class GoogleCloudBuildNotificationAgent implements EchoEventListener {
           (MessageDescription) event.getContent().get("messageDescription");
       retrySupport.retry(
           () ->
-              igorService.updateBuildStatus(
-                  messageDescription.getSubscriptionName(),
-                  messageDescription.getMessageAttributes().get("buildId"),
-                  messageDescription.getMessageAttributes().get("status"),
-                  new TypedByteArray(
-                      "application/json",
-                      messageDescription.getMessagePayload().getBytes(StandardCharsets.UTF_8))),
+              AuthenticatedRequest.allowAnonymous(
+                  () ->
+                      igorService.updateBuildStatus(
+                          messageDescription.getSubscriptionName(),
+                          messageDescription.getMessageAttributes().get("buildId"),
+                          messageDescription.getMessageAttributes().get("status"),
+                          new TypedByteArray(
+                              "application/json",
+                              messageDescription
+                                  .getMessagePayload()
+                                  .getBytes(StandardCharsets.UTF_8)))),
           5,
           2000,
           false);
