@@ -1,7 +1,7 @@
 dependencies {
-  compile 'com.github.jk1:gradle-license-report:1.6'
-  compile 'org.owasp:dependency-check-gradle:4.0.2'
-  compile 'com.diffplug.spotless:spotless-plugin-gradle:3.21.0'
+  compile 'com.github.jk1:gradle-license-report:1.8'
+  compile 'org.owasp:dependency-check-gradle:5.1.0'
+  compile "com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion"
   compile 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
 }
 

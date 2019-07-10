@@ -4,8 +4,8 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:6.0.4'
-    classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.16.0'
+    classpath "com.netflix.nebula:gradle-netflixoss-project-plugin:$gradleNetflixOssProjectVersion"
+    classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion"
   }
 }
 

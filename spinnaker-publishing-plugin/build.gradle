@@ -1,5 +1,5 @@
 dependencies {
   compile project(":spinnaker-dev-plugin")
-  compile('com.netflix.nebula:gradle-netflixoss-project-plugin:7.1.3')
-  compile 'com.netflix.nebula:gradle-ospackage-plugin:6.1.4'
+  compile "com.netflix.nebula:gradle-netflixoss-project-plugin:$gradleNetflixOssProjectVersion"
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:6.2.1'
 }
