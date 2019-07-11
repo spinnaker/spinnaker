@@ -43,8 +43,8 @@ public class KubernetesKindRegistry {
 
   /**
    * Searches the registry for a {@link KubernetesKind} with the supplied name and apiGroup. If a
-   * kind is found, it is returned. If no kind is found, the provided {@link
-   * Supplier<KubernetesKind>} is invoked and the resulting kind is registered.
+   * kind is found, it is returned. If no kind is found, the provided {@link Supplier}&lt;{@link
+   * KubernetesKind}&gt; is invoked and the resulting kind is registered.
    *
    * <p>This method is guaranteed to atomically check and register the kind.
    */
@@ -58,8 +58,8 @@ public class KubernetesKindRegistry {
 
   /**
    * Searches the registry for a {@link KubernetesKind} with the supplied name and apiGroup. Returns
-   * an {@link Optional<KubernetesKind>} containing the kind, or an empty {@link Optional} if no
-   * kind is found.
+   * an {@link Optional}&lt;{@link KubernetesKind}&gt; containing the kind, or an empty {@link
+   * Optional} if no kind is found.
    *
    * <p>Kinds whose API groups are different but are both is a native API groups (see {@link
    * KubernetesApiGroup#isNativeGroup()}) are considered to match.
