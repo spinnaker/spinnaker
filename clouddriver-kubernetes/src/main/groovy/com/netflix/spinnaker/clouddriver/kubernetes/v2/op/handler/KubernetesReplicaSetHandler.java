@@ -103,7 +103,7 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
 
     Long observedGeneration = status.getObservedGeneration();
     if (observedGeneration != null
-        && observedGeneration != replicaSet.getMetadata().getGeneration()) {
+        && !observedGeneration.equals(replicaSet.getMetadata().getGeneration())) {
       result.unstable("Waiting for replicaset spec update to be observed");
     }
 
