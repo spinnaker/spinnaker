@@ -37,4 +37,5 @@ public class KubernetesSettings {
   String nodePort = null;
   Boolean useExecHealthCheck = true;
   KubernetesSecurityContext securityContext = null;
+  DeploymentStrategy deploymentStrategy = null;
 }

@@ -19,6 +19,16 @@ spec:
     matchLabels:
       app: spin
       cluster: spin-{{ name }}
+  {% if deploymentStrategy != null %}
+  strategy:
+    {% if deploymentStrategy.type == "rollingUpdate" and deploymentStrategy.strategySettings|length > 0 %}
+    {{ deploymentStrategy.type }}:
+      {% for key, value in deploymentStrategy.strategySettings.items() %}
+      {{ key }} : {{ value }}
+      {% endfor %}
+    {% endif %}
+    type: {% if deploymentStrategy.type == "recreate" %} Recreate {% else %} RollingUpdate {% endif %}
+  {% endif %}
   template:
     metadata:
       annotations: {
