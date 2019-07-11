@@ -2,15 +2,14 @@ import { Page } from '../../core/pages/Page';
 
 export class CloneModalPage extends Page {
   public static locators = {
-    imageSelect: `//a[contains(@placeholder, 'Search for an image')]`,
-    imageInput: `//*[contains(@ng-model, 'command.image')]//*[contains(@class, 'search-container')]/input`,
+    imageSelect: `(//gce-image-select//*[contains(@class, 'Select')])`,
+    imageInput: `(//gce-image-select//input)`,
     customInstanceCoresSelectArrow: `(//gce-custom-instance-configurer//*[@class = 'Select-arrow'])[1]`,
     customInstanceMemorySelectArrow: `(//gce-custom-instance-configurer//*[@class = 'Select-arrow'])[2]`,
     customInstanceDropdownListItems: `(//gce-custom-instance-configurer//*[contains(@class, 'Select-option')])`,
 
     factories: {
-      machineImageFromName: (name: string) =>
-        `//*[contains(@class, 'select2-result-label')]//*[contains(text(), '${name}')]`,
+      machineImageFromName: (name: string) => `//gce-image-select//*[contains(text(), '${name}')]`,
       machineTypeFromLabel: (label: string) =>
         `//*[contains(@class, 'instance-profile') and descendant::text()[contains(., '${label}')]]`,
     },
