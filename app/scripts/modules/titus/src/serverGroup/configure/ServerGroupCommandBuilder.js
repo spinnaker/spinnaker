@@ -53,6 +53,7 @@ module.exports = angular
             hard: {},
             soft: {},
           },
+          serviceJobProcesses: {},
           viewState: {
             useSimpleCapacity: true,
             usePreferredZones: true,
@@ -106,6 +107,7 @@ module.exports = angular
             hard: (serverGroup.constraints && serverGroup.constraints.hard) || {},
             soft: (serverGroup.constraints && serverGroup.constraints.soft) || {},
           },
+          serviceJobProcesses: Object.assign({}, serverGroup.serviceJobProcesses),
           inService: serverGroup.disabled ? false : true,
           source: {
             account: serverGroup.account,

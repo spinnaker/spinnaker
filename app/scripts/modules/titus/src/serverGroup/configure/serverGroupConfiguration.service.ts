@@ -29,6 +29,7 @@ import {
 } from '@spinnaker/amazon';
 
 import { IJobDisruptionBudget } from 'titus/domain';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];
@@ -107,6 +108,7 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
     hard: { [key: string]: string };
     soft: { [key: string]: string };
   };
+  serviceJobProcesses: ITitusServiceJobProcesses;
 }
 
 export class TitusServerGroupConfigurationService {

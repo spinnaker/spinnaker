@@ -142,6 +142,13 @@
       style="display: block"
     ></titus-security-groups>
 
+    <collapsible-section heading="Service Job Policies">
+      <titus-service-job-processes-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-service-job-processes-section>
+    </collapsible-section>
+
     <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
       <titus-scaling-policy-summary
         ng-repeat="policy in serverGroup.scalingPolicies"

@@ -9,10 +9,13 @@ import {
   MapEditor,
   PlatformHealthOverride,
   Application,
+  ChecklistInput,
 } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
-import { intersection } from 'lodash';
+import { intersection, set, union } from 'lodash';
+import { enabledProcesses, processesList } from 'titus/serverGroup/details/serviceJobProcesses/ServiceJobProcesses';
+import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 export interface IServerGroupParametersProps {
   app: Application;
@@ -112,6 +115,27 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
                 setFieldValue('migrationPolicy', { ...values.migrationPolicy, ...{ type: option.value } })
               }
               clearable={false}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <div className="col-md-4 sm-label-right">
+            <b>Service Job Processes </b>
+          </div>
+          <div className="col-md-4">
+            <ChecklistInput
+              value={enabledProcesses(values.serviceJobProcesses)}
+              stringOptions={union(processesList, Object.keys(values.serviceJobProcesses))}
+              onChange={(e: React.ChangeEvent<any>) =>
+                setFieldValue(
+                  'serviceJobProcesses',
+                  union(processesList, Object.keys(values.serviceJobProcesses)).reduce(
+                    (processes: ITitusServiceJobProcesses, process: string) =>
+                      set(processes, process, e.target.value.includes(process)),
+                    {},
+                  ),
+                )
+              }
             />
           </div>
         </div>
