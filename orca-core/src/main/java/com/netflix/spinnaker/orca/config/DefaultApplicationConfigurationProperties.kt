@@ -22,6 +22,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * value will be used instead.
  */
 @ConfigurationProperties("orca")
-data class DefaultApplicationConfigurationProperties(
+class DefaultApplicationConfigurationProperties {
   var defaultApplicationName: String = "spinnaker_unknown"
-)
+}

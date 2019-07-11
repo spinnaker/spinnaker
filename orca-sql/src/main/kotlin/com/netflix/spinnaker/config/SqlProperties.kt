@@ -28,38 +28,38 @@ import java.util.concurrent.TimeUnit.SECONDS
  * @param batchReadSize Defines the internal page size for large select scans
  */
 @ConfigurationProperties("sql")
-data class SqlProperties(
-  var migration: MigrationProperties = MigrationProperties(),
-  var connectionPool: ConnectionPoolProperties = ConnectionPoolProperties(),
-  var transactionRetry: TransactionRetryProperties = TransactionRetryProperties(),
-  var partitionName: String? = null,
-  var batchReadSize: Int = 10,
+class SqlProperties {
+  var migration: MigrationProperties = MigrationProperties()
+  var connectionPool: ConnectionPoolProperties = ConnectionPoolProperties()
+  var transactionRetry: TransactionRetryProperties = TransactionRetryProperties()
+  var partitionName: String? = null
+  var batchReadSize: Int = 10
   var stageReadSize: Int = 200
-)
+}
 
-data class MigrationProperties(
-  var jdbcUrl: String = "jdbc:mysql://localhost/orca",
-  var user: String? = null,
-  var password: String? = null,
-  var driver: String? = null,
+class MigrationProperties {
+  var jdbcUrl: String = "jdbc:mysql://localhost/orca"
+  var user: String? = null
+  var password: String? = null
+  var driver: String? = null
   var additionalChangeLogs: List<String> = mutableListOf()
-)
+}
 
-data class ConnectionPoolProperties(
-  var dialect: SQLDialect = SQLDialect.MYSQL,
-  var jdbcUrl: String = "jdbc:mysql://localhost/orca",
-  var driver: String? = null,
-  var user: String? = null,
-  var password: String? = null,
-  var connectionTimeoutMs: Long = SECONDS.toMillis(5),
-  var validationTimeoutMs: Long = SECONDS.toMillis(5),
-  var idleTimeoutMs: Long = MINUTES.toMillis(1),
-  var maxLifetimeMs: Long = SECONDS.toMillis(30),
-  var minIdle: Int = 5,
+class ConnectionPoolProperties {
+  var dialect: SQLDialect = SQLDialect.MYSQL
+  var jdbcUrl: String = "jdbc:mysql://localhost/orca"
+  var driver: String? = null
+  var user: String? = null
+  var password: String? = null
+  var connectionTimeoutMs: Long = SECONDS.toMillis(5)
+  var validationTimeoutMs: Long = SECONDS.toMillis(5)
+  var idleTimeoutMs: Long = MINUTES.toMillis(1)
+  var maxLifetimeMs: Long = SECONDS.toMillis(30)
+  var minIdle: Int = 5
   var maxPoolSize: Int = 20
-)
+}
 
-data class TransactionRetryProperties(
-  var maxRetries: Int = 5,
+class TransactionRetryProperties {
+  var maxRetries: Int = 5
   var backoffMs: Long = 100
-)
+}
