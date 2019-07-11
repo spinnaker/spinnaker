@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent
-import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
@@ -49,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
+import com.netflix.spinnaker.kork.aws.bastion.BastionConfig
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

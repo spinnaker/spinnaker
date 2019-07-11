@@ -15,6 +15,7 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-aws"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "com.netflix.spinnaker.moniker:moniker"
