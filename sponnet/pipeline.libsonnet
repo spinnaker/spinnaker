@@ -53,8 +53,8 @@
     githubFile():: artifact('github/file', 'github'),
     gitlabFile():: artifact('gitlab/file', 'gitlab'),
     httpFile():: artifact('http/file', 'http'),
-    // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
     s3Object():: artifact('s3/object', 's3'),
+    // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
     kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
     front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials'),  // credentials are static
   },
@@ -132,7 +132,7 @@
     name: name,
     type: type,
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
-    isEnabled(boolean):: self + { enabled: false },
+    isEnabled(isEnabled):: self + { enabled: isEnabled },
   },
 
   local trigger = self.trigger,
