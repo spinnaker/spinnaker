@@ -2,8 +2,9 @@ apply plugin: "java-library"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
-
   api project(":kork-sql")
+
+  api("org.testcontainers:mysql")
 
   runtimeOnly "com.h2database:h2"
 }

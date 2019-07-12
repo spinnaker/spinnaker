@@ -36,6 +36,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.testcontainers.containers.MySQLContainer;
 
 public class SqlTestUtil {
 
@@ -48,7 +49,27 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initTcMysqlDatabase() {
-    return initDatabase("jdbc:tc:mysql:5.7.22://somehostname:someport/db", SQLDialect.MYSQL_5_7);
+    // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
+    // overridden to "test" by the driver.
+    return initDatabase(
+        "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb", SQLDialect.MYSQL_5_7);
+  }
+
+  public static TestDatabase initPreviousTcMysqlDatabase() {
+    MySQLContainer container =
+        new MySQLContainer("mysql:5.7.22")
+            .withDatabaseName("previous")
+            .withUsername("test")
+            .withPassword("test");
+
+    container.start();
+
+    String jdbcUrl =
+        String.format(
+            "%s?user=%s&password=%s",
+            container.getJdbcUrl(), container.getUsername(), container.getPassword());
+
+    return initDatabase(jdbcUrl, SQLDialect.MYSQL_5_7, "previous");
   }
 
   public static TestDatabase initDatabase(String jdbcUrl) {
@@ -56,6 +77,10 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDatabase(String jdbcUrl, SQLDialect dialect) {
+    return initDatabase(jdbcUrl, dialect, "test");
+  }
+
+  public static TestDatabase initDatabase(String jdbcUrl, SQLDialect dialect, String dbName) {
     HikariConfig cpConfig = new HikariConfig();
     cpConfig.setJdbcUrl(jdbcUrl);
     cpConfig.setMaximumPoolSize(5);
@@ -64,7 +89,10 @@ public class SqlTestUtil {
     DefaultConfiguration config = new DefaultConfiguration();
     config.set(new DataSourceConnectionProvider(dataSource));
     config.setSQLDialect(dialect);
-    config.settings().withRenderNameStyle(AS_IS);
+
+    if (dialect == H2) {
+      config.settings().withRenderNameStyle(AS_IS);
+    }
 
     DSLContext context = new DefaultDSLContext(config);
 
@@ -82,7 +110,7 @@ public class SqlTestUtil {
     }
 
     try {
-      migrate.update("test");
+      migrate.update(dbName);
     } catch (LiquibaseException e) {
       throw new DatabaseInitializationFailed(e);
     }
