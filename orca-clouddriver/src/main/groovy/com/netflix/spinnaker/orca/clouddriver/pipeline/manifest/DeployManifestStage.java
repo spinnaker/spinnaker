@@ -117,7 +117,15 @@ public class DeployManifestStage implements StageDefinitionBuilder {
 
   private Map getNewManifest(Map parentContext) {
     List<Map<String, ?>> manifests = (List<Map<String, ?>>) parentContext.get("outputs.manifests");
-    return manifests.get(0);
+    List<Map<String, ?>> replicaSetManifests =
+        manifests.stream()
+            .filter(manifest -> manifest.get("kind").equals("ReplicaSet"))
+            .collect(Collectors.toList());
+    if (replicaSetManifests.size() != 1) {
+      throw new IllegalArgumentException(
+          "Spinnaker can manage traffic for one ReplicaSet only. Please deploy one ReplicaSet manifest or disable rollout strategies.");
+    }
+    return replicaSetManifests.get(0);
   }
 
   private List<String> getOldManifestNames(
