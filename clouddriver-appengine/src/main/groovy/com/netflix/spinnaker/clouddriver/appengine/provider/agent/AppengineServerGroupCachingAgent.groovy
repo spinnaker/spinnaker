@@ -318,9 +318,11 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
       def callback = new AppengineCallback<ListVersionsResponse>()
         .success { ListVersionsResponse versionsResponse, HttpHeaders responseHeaders ->
           def versions = versionsResponse.getVersions()
-          versions.removeIf { shouldIgnoreServerGroup(it.getId()) }
           if (versions) {
-            serverGroupsByLoadBalancer[loadBalancer].addAll(versions)
+            versions.removeIf { shouldIgnoreServerGroup(it.getId()) }
+            if(versions) {
+              serverGroupsByLoadBalancer[loadBalancer].addAll(versions)
+            }
           }
         }
 
