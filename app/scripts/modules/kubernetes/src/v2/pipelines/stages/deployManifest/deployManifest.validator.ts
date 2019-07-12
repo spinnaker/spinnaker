@@ -20,12 +20,13 @@ export const deployManifestValidators = (): IValidatorConfig[] => {
         }
         if (enabled && stage.source === 'text') {
           const manifests = get(stage, 'manifests', []);
-          if (manifests.length !== 1 || get(manifests, [0, 'kind']) !== 'ReplicaSet') {
-            return 'Spinnaker can manage traffic for ReplicaSets only. Please enter exactly one ReplicaSet manifest or disable rollout strategies.';
+          const replicaSetManifests = manifests.filter(m => m.kind === 'ReplicaSet');
+          if (replicaSetManifests.length !== 1) {
+            return 'Spinnaker can manage traffic for one ReplicaSet only. Please enter one ReplicaSet manifest or disable rollout strategies.';
           }
           const strategy = get(stage, 'trafficManagement.options.strategy');
           const maxVersionHistory = parseInt(
-            get(manifests, [0, 'metadata', 'annotations', MAX_VERSION_HISTORY_ANNOTATION]),
+            get(replicaSetManifests, [0, 'metadata', 'annotations', MAX_VERSION_HISTORY_ANNOTATION]),
             10,
           );
           if (strategy === strategyRedBlack.key && maxVersionHistory < 2) {
