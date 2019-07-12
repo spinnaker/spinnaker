@@ -291,8 +291,8 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
         on("looking for zombies") {
           subject.checkForZombies()
 
-          it("does not run a zombie check") {
-            verifyZeroInteractions(repository, queue, zombieCounter)
+          it("does not increment zombie counter") {
+            verifyZeroInteractions(zombieCounter)
           }
         }
       }

@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
@@ -30,14 +30,12 @@ import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.sql.SqlTestUtil
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static com.netflix.spinnaker.orca.sql.SqlTestUtil.initDatabase
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import static java.time.temporal.ChronoUnit.DAYS
 
 class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
@@ -66,11 +64,10 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
   )
 
   def setupSpec() {
-    currentDatabase = initDatabase()
+    currentDatabase = initTcMysqlDatabase()
     executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
   }
 
-  @Ignore("Broken by H2's inversion of order by desc when using a limit")
   def "should preserve the most recent 5 executions when cleaning up old pipeline executions"() {
     given:
     (1..10).each {

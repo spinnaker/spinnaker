@@ -32,13 +32,15 @@ dependencies {
 
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-groovy"))
-  testImplementation("com.h2database:h2")
+  testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
   testImplementation("io.strikt:strikt-core")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("dev.minutest:minutest")
   testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("org.testcontainers:mysql")
 
+  testRuntimeOnly("mysql:mysql-connector-java")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")

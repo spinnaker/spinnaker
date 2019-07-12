@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.TransactionRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -29,13 +30,15 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initPreviousTcMysqlDatabase
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_ASC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import static com.netflix.spinnaker.orca.sql.SqlTestUtil.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 
 class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepository> {
 
@@ -56,13 +59,13 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
   TestDatabase previousDatabase
 
   def setupSpec() {
-    currentDatabase = initDatabase()
-    previousDatabase = initPreviousDatabase()
+    currentDatabase = initTcMysqlDatabase()
+    previousDatabase = initPreviousTcMysqlDatabase()
   }
 
   def cleanup() {
-    cleanupDb(currentDatabase)
-    cleanupDb(previousDatabase)
+    cleanupDb(currentDatabase.context)
+    cleanupDb(previousDatabase.context)
   }
 
   @Override
