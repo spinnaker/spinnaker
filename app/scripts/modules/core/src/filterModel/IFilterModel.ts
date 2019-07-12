@@ -47,15 +47,12 @@ export interface ISortFilter {
 }
 
 export interface IFilterModel {
+  config: IFilterConfig[];
   groups: any[];
   tags: any[];
   displayOptions: any;
-  savedState: any;
   sortFilter: ISortFilter;
   addTags: () => void;
-  saveState: (state: Ng1StateDeclaration, params: StateParams, filters: any) => void;
-  restoreState: (toParams: StateParams) => void;
-  hasSavedState: (toParams: StateParams) => boolean;
   clearFilters: () => void;
   activate: () => void;
   applyParamsToUrl: () => void;

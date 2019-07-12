@@ -1,6 +1,6 @@
 import { StateParams } from '@uirouter/core';
-import { cloneDeep, size, some, reduce, forOwn, includes, chain } from 'lodash';
-import { $location, $timeout } from 'ngimport';
+import { cloneDeep, size, some, isNil, reduce, forOwn, includes, chain, pick } from 'lodash';
+import { $location } from 'ngimport';
 
 import { IFilterModel, IFilterConfig, ISortFilter } from './IFilterModel';
 import { ReactInjector } from 'core/reactShims';
@@ -104,67 +104,18 @@ export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
     const { converters } = this;
 
+    filterModelConfig.forEach(property => (property.param = property.param || property.model));
+    filterModel.config = filterModelConfig;
     filterModel.groups = [];
     filterModel.tags = [];
     filterModel.displayOptions = {};
-    filterModel.savedState = {};
     filterModel.sortFilter = {} as ISortFilter;
-
-    filterModelConfig.forEach(property => (property.param = property.param || property.model));
 
     filterModel.addTags = () => {
       filterModel.tags = [];
       filterModelConfig
         .filter(property => !property.displayOption)
         .forEach(property => this.addTagsForSection(filterModel, property));
-    };
-
-    filterModel.saveState = (state, params, filters) => {
-      if (params.application) {
-        filters = filters || $location.search();
-        filterModel.savedState[params.application] = {
-          filters: cloneDeep(filters),
-          state,
-          params,
-        };
-      }
-    };
-
-    filterModel.restoreState = toParams => {
-      const application = toParams.application;
-      const savedState = filterModel.savedState[application];
-      if (savedState) {
-        Object.keys(ReactInjector.$stateParams).forEach(k => delete ReactInjector.$stateParams[k]);
-        Object.assign(ReactInjector.$stateParams, cloneDeep(savedState.params));
-        const currentParams = $location.search();
-        // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
-        // but this state does not have that field set, so angular.extend will not overwrite it
-        forOwn(currentParams, function(_val, key) {
-          if (savedState.filters.hasOwnProperty(key)) {
-            delete currentParams[key];
-          }
-        });
-        $timeout(function() {
-          Object.assign(currentParams, savedState.filters);
-          $location.search(currentParams);
-          filterModel.activate();
-          $location.replace();
-        });
-      }
-    };
-
-    filterModel.hasSavedState = toParams => {
-      const application = toParams.application;
-      const serverGroup = toParams.serverGroup;
-
-      const savedStateForApplication = filterModel.savedState[application];
-
-      return (
-        savedStateForApplication !== undefined &&
-        savedStateForApplication.params !== undefined &&
-        (!serverGroup ||
-          (savedStateForApplication.params.serverGroup && savedStateForApplication.params.serverGroup === serverGroup))
-      );
     };
 
     filterModel.clearFilters = () => {
@@ -181,9 +132,28 @@ export class FilterModelService {
       });
     };
 
+    // What is this trying to do?
+
+    // The filter model is stored as keys/values on the `sortFilter` object
+    // When the user modifies the filter, the ng-model binding is updated to the `sortFilter`
+    // After the ng-model binding is updated, this function is called to update the URL.
+
+    // The values in `sortFilter` are sometimes non-primitive nested objects such as `region: { east: true, west: true }`
+    // To represent these values in the URL, they are encoded as strings using a custom ui-router parameter types.
+    // In addition, there is also parameter encode/decode logic in the `converters` registry that predates the ui-router parameter types.
     filterModel.applyParamsToUrl = () => {
-      const newFilters = Object.keys(ReactInjector.$stateParams).reduce(
+      // Get the current state parameters
+      const params = ReactInjector.$stateParams;
+      const newFilters = Object.keys(params).reduce(
+        // Iterate over each state parameter
         (acc, paramName) => {
+          // Find the filter model config for that parameter
+          // If there is a model config:
+          // - Try to convert the param's object model into a query parameter string
+          // - If the string is nil, set the accumulator to null
+          // - Otherwise, copy the sortfilter value for that param to the accumulator
+          // If there isn't a model config:
+          // - clone the current state parameter value and store on the accumulator
           const modelConfig = filterModelConfig.find(c => c.param === paramName);
           if (modelConfig) {
             const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
@@ -200,10 +170,52 @@ export class FilterModelService {
         {} as StateParams,
       );
 
-      ReactInjector.$state.go('.', newFilters, { inherit: false });
+      // Finally, apply the accumulator as the new state parameters
+      const promise = ReactInjector.$state.go('.', newFilters, { inherit: false });
+      const handleResult = () => {
+        if (promise.transition.success) {
+          console.log(
+            'applyParamsToUrl transition was successful and changed the following params: ',
+            JSON.stringify(promise.transition.paramsChanged()),
+          );
+        } else {
+          console.log('applyParamsToUrl had no effect');
+        }
+      };
+      promise.then(handleResult, handleResult);
     };
 
     return filterModel;
+  }
+
+  public static registerSaveAndRestoreRouterHooks(filterModel: IFilterModel, stateGlob: string) {
+    const { transitionService } = ReactInjector.$uiRouter;
+    const filterParams = filterModel.config.map(cfg => cfg.param);
+    let savedParamsForScreen: any = {};
+
+    // When exiting the screen, save the filters for that screen
+    transitionService.onSuccess({ exiting: stateGlob, retained: '**.application' }, trans => {
+      const fromParams = trans.params('from');
+      savedParamsForScreen = pick(fromParams, filterParams);
+    });
+
+    // When entering the screen, restore the filters for that screen
+    transitionService.onBefore({ entering: stateGlob, retained: '**.application' }, trans => {
+      const toParams = trans.params();
+      const hasFilters = filterParams.some(key => !isNil(toParams[key]));
+
+      const savedParams = savedParamsForScreen;
+      const hasSavedFilters = filterParams.some(key => !isNil(savedParams[key]));
+
+      // Don't restore the saved filters if there are already filters specified (via url, ui-sref, etc)
+      const shouldRedirectWithSavedParams = !hasFilters && hasSavedFilters;
+      return shouldRedirectWithSavedParams ? trans.targetState().withParams(savedParams) : null;
+    });
+
+    // When switching apps, clear the saved state
+    transitionService.onStart({ exiting: '**.application' }, () => {
+      savedParamsForScreen = {};
+    });
   }
 
   public static isFilterable(sortFilterModel: { [key: string]: boolean }): boolean {
