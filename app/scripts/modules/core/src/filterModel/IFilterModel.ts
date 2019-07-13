@@ -1,11 +1,8 @@
-import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
-import { FilterModelServiceConverters } from 'core/filterModel';
-
 export interface IFilterConfig {
   model: keyof ISortFilter;
   param?: string;
   clearValue?: any;
-  type?: keyof FilterModelServiceConverters;
+  type?: string;
   filterLabel?: string;
   filterTranslator?: { [key: string]: string };
   displayOption?: boolean;

@@ -43,7 +43,7 @@ export class ExecutionFilterModel {
     });
 
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
-    FilterModelService.registerSaveAndRestoreRouterHooks(this.asFilterModel, '**.application.pipelines.executions');
+    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.pipelines.executions');
     this.asFilterModel.activate();
 
     transitionService.onBefore({ entering: '**.application.pipelines.executions' }, trans => {

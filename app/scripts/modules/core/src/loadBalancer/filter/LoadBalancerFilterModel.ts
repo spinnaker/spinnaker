@@ -28,7 +28,7 @@ export class LoadBalancerFilterModel {
 
   constructor() {
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
-    FilterModelService.registerSaveAndRestoreRouterHooks(this.asFilterModel, '**.application.insight.loadBalancers');
+    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.insight.loadBalancers');
     this.asFilterModel.activate();
   }
 }

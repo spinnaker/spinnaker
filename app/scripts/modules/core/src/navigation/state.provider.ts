@@ -12,7 +12,7 @@ import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 import { IFilterConfig } from '../filterModel/IFilterModel';
 
 import './navigation.less';
-import { ReactViewDeclaration } from '@uirouter/react';
+import { ReactViewDeclaration, ParamTypeDefinition } from '@uirouter/react';
 
 // Typescript kludge to widen interfaces so INestedState can support both react and angular views
 export interface IReactHybridIntermediate extends Ng1StateDeclaration {
@@ -94,7 +94,7 @@ export class StateConfigProvider implements IServiceProvider {
   }
 }
 
-export const trueKeyObjectParamType = {
+export const trueKeyObjectParamType: ParamTypeDefinition = {
   decode: (val: string) => {
     if (val) {
       const r: any = {};
@@ -122,7 +122,7 @@ export const trueKeyObjectParamType = {
   is: (val: any) => isPlainObject(val),
 };
 
-export const inverseBooleanParamType = {
+export const inverseBooleanParamType: ParamTypeDefinition = {
   decode: (val: string) => {
     if (val) {
       return val !== 'true';
@@ -136,7 +136,7 @@ export const inverseBooleanParamType = {
   is: () => true,
 };
 
-export const booleanParamType = {
+export const booleanParamType: ParamTypeDefinition = {
   // as a string instead of a bit
   decode: (val: string) => {
     if (val) {
@@ -151,7 +151,7 @@ export const booleanParamType = {
   is: () => true,
 };
 
-export const sortKeyParamType = {
+export const sortKeyParamType: ParamTypeDefinition = {
   decode: (val: string) => {
     return { key: val };
   },
