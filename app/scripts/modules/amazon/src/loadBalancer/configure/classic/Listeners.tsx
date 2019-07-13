@@ -112,7 +112,7 @@ export class Listeners extends React.Component<IListenersProps, IListenersState>
       internalProtocol: 'HTTP',
       externalProtocol: 'HTTP',
       externalPort: 80,
-      internalPort: 0,
+      internalPort: 80,
     });
     this.updateListeners();
   };
