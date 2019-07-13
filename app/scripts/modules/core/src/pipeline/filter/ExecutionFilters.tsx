@@ -260,6 +260,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                 <FilterStatus status="NOT_STARTED" label="Not Started" refresh={this.refreshExecutions} />
                 <FilterStatus status="CANCELED" label="Canceled" refresh={this.refreshExecutions} />
                 <FilterStatus status="STOPPED" label="Stopped" refresh={this.refreshExecutions} />
+                <FilterStatus status="PAUSED" label="Paused" refresh={this.refreshExecutions} />
                 <FilterStatus status="BUFFERED" label="Buffered" refresh={this.refreshExecutions} />
               </div>
             </FilterSection>
