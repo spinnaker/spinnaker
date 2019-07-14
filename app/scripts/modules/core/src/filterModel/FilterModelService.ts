@@ -1,6 +1,6 @@
 import { cloneDeep, size, some, isNil, reduce, forOwn, includes, pick } from 'lodash';
 
-import { IFilterModel, IFilterConfig, ISortFilter } from './IFilterModel';
+import { IFilterModel, IFilterConfig } from './IFilterModel';
 import { ReactInjector } from 'core/reactShims';
 
 export class FilterModelService {
@@ -10,7 +10,7 @@ export class FilterModelService {
     filterModel.groups = [];
     filterModel.tags = [];
     filterModel.displayOptions = {};
-    filterModel.sortFilter = {} as ISortFilter;
+    filterModel.sortFilter = FilterModelService.mapRouterParamsToSortFilter(filterModel, {});
 
     filterModel.addTags = () => {
       filterModel.tags = [];
@@ -27,20 +27,52 @@ export class FilterModelService {
       });
     };
 
-    // TODO: remove usages of this, then remove this
+    // TODO: Remove all calls to activate
     filterModel.activate = () => {};
 
     // Apply any mutations to the current sortFilter values as ui-router state params
     filterModel.applyParamsToUrl = () => {
-      const { sortFilter } = filterModel;
-      const toParams = filterModel.config.reduce(
-        (acc, filter) => ({ ...acc, [filter.param]: sortFilter[filter.model] }),
-        {},
-      );
+      const toParams = FilterModelService.mapSortFilterToRouterParams(filterModel);
       ReactInjector.$state.go('.', toParams);
     };
 
     return filterModel;
+  }
+
+  // Maps the sortFilter data from an IFilterModel object to router params
+  public static mapSortFilterToRouterParams(filterModel: IFilterModel) {
+    const { sortFilter, config } = filterModel;
+    return config.reduce((acc, filter) => ({ ...acc, [filter.param]: sortFilter[filter.model] }), {});
+  }
+
+  // Maps router param values to sortFilter values, applying known default values if the parameter is missing
+  public static mapRouterParamsToSortFilter(filterModel: IFilterModel, params: any) {
+    const getValueIfNill = (filterType: string) => {
+      switch (filterType) {
+        case 'trueKeyObject':
+          return {};
+        case 'string':
+          return '';
+        case 'boolean':
+          return false;
+        case 'inverse-boolean':
+          return true;
+      }
+      return undefined;
+    };
+
+    const iFilterConfigs = filterModel.config;
+
+    return iFilterConfigs.reduce(
+      (acc, filter) => {
+        const valueIfNil = getValueIfNill(filter.type);
+        const rawValue = params[filter.param];
+        const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
+        // Clone deep so angularjs mutations happen on a different object reference
+        return { ...acc, [filter.model]: cloneDeep(paramValue) };
+      },
+      {} as any,
+    );
   }
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {
@@ -72,32 +104,11 @@ export class FilterModelService {
       savedParamsForScreen = {};
     });
 
-    // Copy the param values to the sortModel for before each transition, applying default values if the param isn't set
+    // Map transition param values to sortFilter values and save on the filterModel before each transition
     // In the future, we should remove  the AngularJS code that watches for mutations on the sortFilter object
     transitionService.onBefore({ to: stateGlob }, trans => {
       const toParams = trans.params();
-
-      const getValueIfNill = (filterType: string) => {
-        switch (filterType) {
-          case 'trueKeyObject':
-            return {};
-          case 'string':
-            return '';
-          case 'boolean':
-            return false;
-          case 'inverse-boolean':
-            return true;
-        }
-        return undefined;
-      };
-
-      filterModel.config.forEach(filter => {
-        const valueIfNil = getValueIfNill(filter.type);
-        const rawValue = toParams[filter.param];
-        const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
-        // Clone deep so angularjs mutations happen on a different object reference
-        filterModel.sortFilter[filter.model] = cloneDeep(paramValue);
-      });
+      Object.assign(filterModel.sortFilter, FilterModelService.mapRouterParamsToSortFilter(filterModel, toParams));
     });
   }
 

@@ -6,7 +6,7 @@ import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { FilterModelService } from 'core/filterModel';
-import { ReactInjector } from '../../reactShims';
+import { ReactInjector } from 'core/reactShims';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },

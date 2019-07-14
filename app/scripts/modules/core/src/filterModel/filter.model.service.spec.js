@@ -1,35 +1,27 @@
 'use strict';
 import { FilterModelService } from './FilterModelService';
-import { ReactInjector } from 'core/reactShims';
-import { $location } from 'ngimport';
+import { REACT_MODULE, ReactInjector } from 'core/reactShims';
+import { StateConfigProvider } from 'core/navigation';
 
 describe('Service: FilterModelService', function() {
-  var searchParams;
   var filterModel;
   var filterModelConfig;
+  var $uiRouter;
+  var $rootScope;
 
   function configure() {
     FilterModelService.configureFilterModel(filterModel, filterModelConfig);
     filterModel.activate();
   }
 
-  beforeEach(window.module('ui.router'));
+  beforeEach(window.module('ui.router', REACT_MODULE));
 
   beforeEach(
-    window.inject(function() {
-      spyOn($location, 'search').and.callFake(function(key, val) {
-        if (key) {
-          searchParams[key] = val;
-        } else {
-          return searchParams;
-        }
-      });
-      spyOn(ReactInjector.$state, 'go').and.callFake(function(state, params) {
-        Object.keys(params).forEach(k => (searchParams[k] = params[k]));
-      });
-      searchParams = {};
+    window.inject(function(_$uiRouter_, _$rootScope_) {
       filterModel = {};
       filterModelConfig = [];
+      $uiRouter = _$uiRouter_;
+      $rootScope = _$rootScope_;
     }),
   );
 
@@ -372,88 +364,60 @@ describe('Service: FilterModelService', function() {
     });
   });
 
-  describe('saving state', function() {
-    var params;
+  describe('parameter router hooks', function() {
+    function go(state, params) {
+      $uiRouter.stateService.go(state, params);
+      $rootScope.$digest();
+    }
+
     beforeEach(function() {
-      filterModelConfig = [{ model: 'region', type: 'trueKeyObject' }, { model: 'account', type: 'trueKeyObject' }];
-      params = { application: 'deck' };
-    });
-    it('should set filters based on location.search', function() {
-      $location.search('region', 'us-east-1,us-west-1');
-      $location.search('account', 'prod');
+      filterModelConfig = [{ model: 'region', type: 'string' }, { model: 'account', type: 'string' }];
       configure();
 
-      filterModel.saveState('application.clusters', params);
-      var savedState = filterModel.savedState.deck;
+      $uiRouter.stateRegistry.register({ name: 'other' });
+      $uiRouter.stateRegistry.register({ name: 'application', url: '/applications/:application' });
+      $uiRouter.stateRegistry.register({
+        name: 'application.filtered',
+        url: '/filter?region&account',
+        params: new StateConfigProvider().buildDynamicParams(filterModelConfig),
+      });
+      $uiRouter.stateRegistry.register({ name: 'application.otherchild' });
 
-      expect(savedState.filters).toEqual({ region: 'us-east-1,us-west-1', account: 'prod' });
-      expect(savedState.state).toEqual('application.clusters');
-      expect(savedState.params).toBe(params);
+      FilterModelService.registerRouterHooks(filterModel, 'application.filtered');
     });
 
-    it('should overwrite existing saved state', function() {
-      $location.search('region', 'us-east-1,us-west-1');
-      $location.search('account', 'prod');
-      configure();
+    it('should restore the latest filters when reactivating a filter state in the same application', function() {
+      go('application.filtered', { application: 'myapp', region: 'west', account: 'prod' });
+      expect($uiRouter.globals.params.region).toBe('west');
+      expect($uiRouter.globals.params.account).toBe('prod');
 
-      filterModel.saveState('application.clusters', params);
-      var savedState = filterModel.savedState;
+      go('application.otherchild');
+      expect($uiRouter.globals.params.region).toBe(undefined);
+      expect($uiRouter.globals.params.account).toBe(undefined);
 
-      expect(savedState.deck.filters).toEqual({ region: 'us-east-1,us-west-1', account: 'prod' });
-      expect(savedState.deck.state).toEqual('application.clusters');
-      expect(savedState.deck.params).toBe(params);
+      go('application.filtered');
+      expect($uiRouter.globals.params.region).toBe('west');
+      expect($uiRouter.globals.params.account).toBe('prod');
+    });
 
-      $location.search('account', 'test');
-      delete searchParams.region;
+    it('should not restore the latest filters when switching apps', function() {
+      go('application.filtered', { application: 'foo', region: 'west', account: 'prod' });
+      expect($uiRouter.globals.params.region).toBe('west');
+      expect($uiRouter.globals.params.account).toBe('prod');
 
-      var newParams = { application: 'deck', cluster: 'deck-main' };
-      filterModel.saveState('application.cluster', newParams);
+      go('application.otherchild');
+      expect($uiRouter.globals.params.region).toBe(undefined);
+      expect($uiRouter.globals.params.account).toBe(undefined);
 
-      expect(savedState.deck.filters).toEqual({ account: 'test' });
-      expect(savedState.deck.state).toEqual('application.cluster');
-      expect(savedState.deck.params).toBe(newParams);
+      go('application.filtered', { application: 'otherapp' });
+      expect($uiRouter.globals.params.region).toBe(undefined);
+      expect($uiRouter.globals.params.account).toBe(undefined);
     });
   });
 
   describe('restore state', function() {
     beforeEach(function() {
       filterModelConfig = [{ model: 'account', type: 'trueKeyObject' }];
-    });
-
-    it('should do nothing if no state saved for application', function() {
-      configure();
-      expect($location.search.calls.count()).toBe(1);
-
-      filterModel.restoreState({ application: 'deck' });
-
-      expect($location.search.calls.count()).toBe(1);
-    });
-
-    it('should overwrite any $stateParams with those in saved state', function() {
-      configure();
-      filterModel.saveState('application.clusters', {
-        application: 'deck',
-        cluster: 'deck-prestaging',
-        region: 'us-west-1',
-      });
-      ReactInjector.$stateParams.application = 'deck';
-      ReactInjector.$stateParams.account = 'prod';
-      ReactInjector.$stateParams.cluster = 'deck-main';
-      filterModel.restoreState({ application: 'deck' });
-
-      expect(ReactInjector.$stateParams.application).toBe('deck');
-      expect(ReactInjector.$stateParams.account).toBeUndefined();
-      expect(ReactInjector.$stateParams.region).toBe('us-west-1');
-    });
-
-    it('should remove current params if they are configured for model but not saved', function() {
-      configure();
-      $location.search('account', 'prod');
-      filterModel.savedState.deck = {
-        filters: {},
-      };
-      filterModel.restoreState({ application: 'deck' });
-      expect($location.search('account')).toBeUndefined();
     });
 
     describe('default param naming', function() {
@@ -499,116 +463,17 @@ describe('Service: FilterModelService', function() {
     });
 
     describe('applyParamsToUrl', function() {
-      it('should set params on all configured fields', function() {
+      it('should start a transition with params for all configured fields', function() {
+        const spy = spyOn(ReactInjector.$state, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
-          { model: 'search', type: 'string' },
+          { model: 'search', type: 'string', param: 'q' },
         ];
-        ReactInjector.$stateParams.search = {};
-        ReactInjector.$stateParams.showInstances = {};
         configure();
         filterModel.sortFilter.search = 'deck';
         filterModel.sortFilter.showInstances = true;
-
         filterModel.applyParamsToUrl();
-        expect(searchParams.search).toBe('deck');
-        expect(searchParams.showInstances).toBe(true);
-      });
-
-      it('should set numeric values, including zero', function() {
-        filterModelConfig = [{ model: 'min', type: 'int' }, { model: 'max', type: 'int' }];
-        ReactInjector.$stateParams.min = {};
-        ReactInjector.$stateParams.max = {};
-        configure();
-        filterModel.sortFilter.min = 0;
-        filterModel.sortFilter.max = 3;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.min).toBe(0);
-        expect(searchParams.max).toBe(3);
-      });
-
-      it('should not set numeric fields if they are not numbers', function() {
-        filterModelConfig = [{ model: 'min', type: 'int' }];
-        ReactInjector.$stateParams.min = {};
-        configure();
-        filterModel.sortFilter.min = 'boo';
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.min).toBeNull();
-      });
-
-      it('should not set an empty string', function() {
-        filterModelConfig = [{ model: 'search', type: 'string' }];
-        ReactInjector.$stateParams.search = {};
-        configure();
-        filterModel.sortFilter.search = '';
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.search).toBeNull();
-      });
-    });
-
-    describe('activate', function() {
-      it('should set objects by splitting parameter on comma', function() {
-        filterModelConfig = [{ model: 'account', type: 'trueKeyObject' }];
-        $location.search('account', 'prod,test');
-        configure();
-
-        expect(filterModel.sortFilter.account).toEqual({ prod: true, test: true });
-      });
-
-      it('should set numeric values, including zero', function() {
-        filterModelConfig = [{ model: 'min', type: 'int' }];
-        $location.search('min', '3');
-        configure();
-
-        expect(filterModel.sortFilter.min).toBe(3);
-      });
-
-      it('should not set numeric fields if they are not numbers', function() {
-        filterModelConfig = [{ model: 'min', type: 'int' }];
-        $location.search('min', 'foo');
-        configure();
-
-        expect(filterModel.sortFilter.min).toBe(null);
-      });
-
-      it('should set an empty string if no value present', function() {
-        filterModelConfig = [{ model: 'search', type: 'string' }];
-        configure();
-
-        expect(filterModel.sortFilter.search).toBe('');
-      });
-
-      it('should set sortKey field based on value', function() {
-        filterModelConfig = [{ model: 'instanceSort', type: 'string' }];
-        $location.search('instanceSort', 'zone');
-        configure();
-
-        expect(filterModel.sortFilter.instanceSort).toBe('zone');
-      });
-
-      it('should set to default value if provided', function() {
-        filterModelConfig = [{ model: 'instanceSort', type: 'string', defaultValue: 'launchTime' }];
-        configure();
-
-        expect(filterModel.sortFilter.instanceSort).toBe('launchTime');
-      });
-
-      it('should set boolean values', function() {
-        filterModelConfig = [{ model: 'showInstances', type: 'boolean' }];
-        $location.search('showInstances', 'true');
-        configure();
-
-        expect(filterModel.sortFilter.showInstances).toBe(true);
-      });
-
-      it('should set inverse-boolean values if not in params', function() {
-        filterModelConfig = [{ model: 'hideInstances', type: 'inverse-boolean' }];
-        configure();
-
-        expect(filterModel.sortFilter.hideInstances).toBe(true);
+        expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true });
       });
     });
   });

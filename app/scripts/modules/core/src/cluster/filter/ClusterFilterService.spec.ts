@@ -1,5 +1,6 @@
 import { mock } from 'angular';
 import * as _ from 'lodash';
+import { REACT_MODULE } from 'core/reactShims';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
@@ -17,7 +18,7 @@ describe('Service: clusterFilterService', function() {
   let application: Application;
 
   beforeEach(function() {
-    mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router');
+    mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router', REACT_MODULE);
     mock.inject(function(_applicationJSON_: any, _groupedJSON_: any, _clusterService_: any) {
       clusterService = _clusterService_;
 
