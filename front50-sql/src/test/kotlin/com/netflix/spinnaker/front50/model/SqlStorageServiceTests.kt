@@ -103,6 +103,17 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
         expectThrows<NotFoundException> {
           sqlStorageService.loadObject<Application>(ObjectType.APPLICATION, "application001")
         }
+
+        // recover the application
+        sqlStorageService.recover(
+          AdminOperations.Recover().apply {
+            objectType = "application"
+            objectId = "application001"
+          }
+        )
+
+        application = sqlStorageService.loadObject(ObjectType.APPLICATION, "application001")
+        expectThat(application.description).isEqualTo("my updated application!")
       }
     }
 

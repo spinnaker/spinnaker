@@ -56,7 +56,7 @@ class SqlStorageService(
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
   private val chunkSize: Int
-) : StorageService {
+) : StorageService, AdminOperations {
 
   companion object {
     private val log = LoggerFactory.getLogger(SqlStorageService::class.java)
@@ -326,5 +326,26 @@ class SqlStorageService(
     } else {
       0
     }
+  }
+
+  override fun recover(operation: AdminOperations.Recover) {
+    val objectType = ObjectType.values().find {
+      it.clazz.simpleName.equals(operation.objectType, true)
+    } ?: throw NotFoundException("Object type ${operation.objectType} is unsupported")
+
+    jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      val updatedCount = ctx
+        .update(table(definitionsByType[objectType]!!.tableName))
+        .set(DSL.field("is_deleted", Boolean::class.java), false)
+        .set(DSL.field("last_modified_at", Long::class.java), clock.millis())
+        .where(DSL.field("id", String::class.java).eq(operation.objectId.toLowerCase()))
+        .execute()
+
+      if (updatedCount == 0) {
+        throw NotFoundException("Object ${operation.objectType}:${operation.objectId} was not found")
+      }
+    }
+
+    log.info("Object ${operation.objectType}:${operation.objectId} was recovered")
   }
 }
