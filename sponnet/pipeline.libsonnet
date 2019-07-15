@@ -15,6 +15,7 @@
     withRoles(roles):: self + if std.type(roles) == 'array' then { roles: roles } else { roles: [roles] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
+    withParameters(parameters):: self + if std.type(parameters) == 'array' then { parameterConfig: parameters } else { parameterConfig: [parameters] },
 
     // v2 MPT fields
     withTemplate(templateArtifact):: self + { template: templateArtifact },
@@ -40,6 +41,7 @@
     withName(name):: self + { name: name },
     withReference(reference):: self + { reference: reference },
     withVersion(version):: self + { version: version },
+    withKind(kind):: self + { kind: kind },
   },
 
   local artifact = self.artifact,
@@ -51,6 +53,7 @@
     githubFile():: artifact('github/file', 'github'),
     gitlabFile():: artifact('gitlab/file', 'gitlab'),
     httpFile():: artifact('http/file', 'http'),
+    s3Object():: artifact('s3/object', 's3'),
     // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
     kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
     front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials'),  // credentials are static
@@ -61,6 +64,7 @@
 
   expectedArtifact(id):: {
     id: id,
+    displayName: id,
     withMatchArtifact(matchArtifact):: self + {
       matchArtifact+: {
         // TODO: For Docker, the name field should be registry and repository.
@@ -75,11 +79,19 @@
         type: defaultArtifact.type,
         kind: if defaultArtifact.kind == 'custom' then defaultArtifact else 'default.' + defaultArtifact.kind,
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
-        [if std.objectHas(defaultArtifact, 'version') then 'version']: defaultArtifact.version,
+        [if 'version' in defaultArtifact then 'version']: defaultArtifact.version,
       },
     },
+    withDisplayName(displayName):: self + { displayName: displayName },
     withUsePriorArtifact(usePriorArtifact):: self + { usePriorArtifact: usePriorArtifact },
     withUseDefaultArtifact(useDefaultArtifact):: self + { useDefaultArtifact: useDefaultArtifact },
+  },
+
+  inputArtifact(id):: {
+    id: id,
+    fromAccount(account):: self + {
+      account: account
+    },
   },
 
   // notifications
@@ -101,6 +113,18 @@
   },
   local notification = self.notification,
 
+  // parameters
+  parameter(name):: {
+    name: name,
+    required: false,
+    hasOptions: false,
+    withLabel(label):: self + { label: label },
+    withDescription(description) :: self + { description: description },
+    withDefaultValue(default) :: self + { default: default },
+    isRequired(isRequired):: self + { required: isRequired },
+    withOptions(options) :: self + { hasOptions: true, options: [{ value: x } for x in options]},
+  },
+
   // triggers
 
   trigger(name, type):: {
@@ -108,6 +132,7 @@
     name: name,
     type: type,
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
+    isEnabled(isEnabled):: self + { enabled: isEnabled },
   },
 
   local trigger = self.trigger,
@@ -126,6 +151,11 @@
       withProject(project):: self + { project: project },
       withSlug(slug):: self + { slug: slug },
       withSource(source):: self + { source: source },
+    },
+    webhook(name):: trigger(name, 'webhook') {
+      payloadConstraints: {},
+      withSource(source):: self + { source: source },
+      addPayloadConstraint(key, value):: self + { payloadConstraints +: super.payloadConstraints + { [key]: value }},
     },
 
   },
@@ -221,6 +251,20 @@
 
     // kubernetes stages
 
+    bakeManifest(name):: stage(name, 'bakeManifest') {
+      templateRenderer: "HELM2",
+      inputArtifacts: self.templateArtifact + self.valueArtifacts,
+      overrides: {},
+      templateArtifact:: [],
+      valueArtifacts:: [],
+      withExpectedArtifacts(artifacts):: self + if std.type(artifacts) == 'array' then { expectedArtifacts: [{ id: a.id, matchArtifact: a.matchArtifact } for a in artifacts] } else { expectedArtifacts: [{ id: artifacts.id, matchArtifacts: artifacts.matchArtifact }] },
+      withNamespace(namespace):: self + { namespace: namespace },
+      withReleaseName(name):: self + { outputName: name },
+      withTemplateArtifact(artifact):: self + { templateArtifact:: [artifact] },
+      withValueArtifacts(artifacts):: self + if std.type(artifacts) == 'array' then { valueArtifacts:: artifacts } else { valueArtifacts:: [artifacts] },
+      withValueOverrides(overrides) :: self + { overrides: overrides },
+      addValueOverride(key, value):: self + { overrides: super.overrides + { [key]: value} },
+    },
     deployManifest(name):: stage(name, 'deployManifest') {
       cloudProvider: 'kubernetes',
       source: 'text',

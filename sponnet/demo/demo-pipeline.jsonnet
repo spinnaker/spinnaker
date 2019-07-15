@@ -24,6 +24,8 @@ local myManifestArtifactLocation = 'someLocation';
 // Must be specified in pipeline, but not in artifact creation
 local myManifestArtifactAccount = 'gitlab-account';
 
+local myHelmArtifactName = 'charts/my-helm-chart.tgz';
+
 local myDockerArtifactName = 'docker-name';
 local myDockerAccount = 'docker-account';
 local myDockerOrganization = 'your-docker-org';
@@ -60,6 +62,26 @@ local expectedManifest = sponnet.expectedArtifact(myManifestArtifactName)
                          .withMatchArtifact(gitlabArtifact)
                          .withUsePriorArtifact(false)
                          .withUseDefaultArtifact(true);
+
+local helmArtifact = sponnet.artifacts
+                    .s3Object()
+                    .withName(myHelmArtifactName)
+                    .withReference(myHelmArtifactName)
+                    .withVersion('/'+myHelmArtifactName);
+
+local expectedHelm = sponnet.expectedArtifact(myHelmArtifactName)
+                     .withDefaultArtifact(helmArtifact)
+                     .withMatchArtifact(helmArtifact)
+                     .withUseDefaultArtifact(true)
+                     .withUsePriorArtifact(false);
+
+local bakedManifest = sponnet.artifacts
+                      .embeddedBase64()
+                      .withName(app+"-baked")
+                      .withKind("base64");
+
+local expectedBakedManifest = sponnet.expectedArtifact(app+"-baked")
+                              .withMatchArtifact(bakedManifest);
 
 local dockerTrigger = sponnet.triggers
                       .docker('myDockerTrigger')
@@ -151,6 +173,22 @@ local findArtifactsFromResource = sponnet.stages
                                   .withManifestName('Deployment nginx-deployment')
                                   .withRequisiteStages([deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact]);
 
+local bakeManifest = sponnet.stages
+                     .bakeManifest('Bake a manifest')
+                     .withReleaseName(app)
+                     .withNamespace('default')
+                     .withTemplateArtifact(sponnet.inputArtifact(expectedHelm.id).fromAccount("s3"))
+                     .withValueArtifacts([sponnet.inputArtifact(expectedManifest.id).fromAccount("gitlab")])
+                     .withExpectedArtifacts([expectedBakedManifest]);
+
+local deployBakedManifest = sponnet.stages
+                            .deployManifest('Deploy a baked manifest')
+                            .withAccount(account)
+                            .withManifestArtifactAccount("embedded-artifact")
+                            .withManifestArtifact(expectedBakedManifest)
+                            .withRequisiteStages(bakeManifest)
+                            .withMoniker(moniker);
+
 local jenkinsJob = sponnet.stages
                    .jenkins('Run Jenkins Job')
                    .withJob(myJenkinsJob)
@@ -164,9 +202,9 @@ local jenkinsJob = sponnet.stages
 
 sponnet.pipeline()
 .withApplication(app)
-.withExpectedArtifacts([expectedDocker, expectedManifest])
+.withExpectedArtifacts([expectedDocker, expectedManifest, expectedHelm])
 .withId('sponnet-demo-pipeline')
 .withName('Demo pipeline')
 .withNotifications([emailPipelineNotification])
 .withTriggers([dockerTrigger, gitTrigger])
-.withStages([manualJudgment, checkPreconditions, wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, findArtifactsFromResource, jenkinsJob])
+.withStages([manualJudgment, checkPreconditions, wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, bakeManifest, deployBakedManifest, findArtifactsFromResource, jenkinsJob])
