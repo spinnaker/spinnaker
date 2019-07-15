@@ -12,6 +12,12 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
 
@@ -26,46 +32,46 @@ class SqlDeliveryConfigRepository(
     jooq.inTransaction {
       val uid = randomUID().toString()
       with(deliveryConfig) {
-        insertInto(Schema.DeliveryConfig.table)
-          .set(Schema.DeliveryConfig.uid, uid)
-          .set(Schema.DeliveryConfig.name, name)
-          .set(Schema.DeliveryConfig.application, application)
+        insertInto(DELIVERY_CONFIG)
+          .set(DELIVERY_CONFIG.UID, uid)
+          .set(DELIVERY_CONFIG.NAME, name)
+          .set(DELIVERY_CONFIG.APPLICATION, application)
           .onDuplicateKeyIgnore()
           .execute()
         artifacts.forEach { artifact ->
-          insertInto(Schema.Artifact.table)
-            .set(Schema.Artifact.uid, randomUID().toString())
-            .set(Schema.Artifact.name, artifact.name)
-            .set(Schema.Artifact.type, artifact.type.name)
+          insertInto(DELIVERY_ARTIFACT)
+            .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
+            .set(DELIVERY_ARTIFACT.NAME, artifact.name)
+            .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
             .onDuplicateKeyIgnore()
             .execute()
-          insertInto(Schema.DeliveryConfigArtifact.table)
-            .set(Schema.DeliveryConfigArtifact.deliveryConfigUid, uid)
-            .set(Schema.DeliveryConfigArtifact.artifactUid, select(Schema.Artifact.uid).from(Schema.Artifact.table).where(Schema.Artifact.name.eq(artifact.name)))
+          insertInto(DELIVERY_CONFIG_ARTIFACT)
+            .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
+            .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, select(DELIVERY_ARTIFACT.UID).from(DELIVERY_ARTIFACT).where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)))
             .onDuplicateKeyIgnore()
             .execute()
         }
         environments.forEach { environment ->
           val environmentUID = randomUID().toString()
-          insertInto(Schema.Environment.table)
-            .set(Schema.Environment.uid, environmentUID)
-            .set(Schema.Environment.deliveryConfigUid, uid)
-            .set(Schema.Environment.name, environment.name)
+          insertInto(ENVIRONMENT)
+            .set(ENVIRONMENT.UID, environmentUID)
+            .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
+            .set(ENVIRONMENT.NAME, environment.name)
             .onDuplicateKeyIgnore()
             .execute()
           environment.resources.forEach { resource ->
-            insertInto(Schema.Resource.table)
-              .set(Schema.Resource.uid, resource.uid.toString())
-              .set(Schema.Resource.apiVersion, resource.apiVersion.toString())
-              .set(Schema.Resource.kind, resource.kind)
-              .set(Schema.Resource.name, resource.name.value)
-              .set(Schema.Resource.metadata, mapper.writeValueAsString(resource.metadata))
-              .set(Schema.Resource.spec, mapper.writeValueAsString(resource.spec))
+            insertInto(RESOURCE)
+              .set(RESOURCE.UID, resource.uid.toString())
+              .set(RESOURCE.API_VERSION, resource.apiVersion.toString())
+              .set(RESOURCE.KIND, resource.kind)
+              .set(RESOURCE.NAME, resource.name.value)
+              .set(RESOURCE.METADATA, mapper.writeValueAsString(resource.metadata))
+              .set(RESOURCE.SPEC, mapper.writeValueAsString(resource.spec))
               .onDuplicateKeyIgnore()
               .execute()
-            insertInto(Schema.EnvironmentResource.table)
-              .set(Schema.EnvironmentResource.environmentUid, environmentUID)
-              .set(Schema.EnvironmentResource.resourceUid, resource.uid.toString())
+            insertInto(ENVIRONMENT_RESOURCE)
+              .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
+              .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, resource.uid.toString())
               .onDuplicateKeyIgnore()
               .execute()
           }
@@ -77,43 +83,43 @@ class SqlDeliveryConfigRepository(
   override fun get(name: String): DeliveryConfig =
     jooq
       .select(
-        Schema.DeliveryConfig.uid,
-        Schema.DeliveryConfig.name,
-        Schema.DeliveryConfig.application
+        DELIVERY_CONFIG.UID,
+        DELIVERY_CONFIG.NAME,
+        DELIVERY_CONFIG.APPLICATION
       )
-      .from(Schema.DeliveryConfig.table)
-      .where(Schema.DeliveryConfig.name.eq(name))
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.NAME.eq(name))
       .fetchOne { (uid, name, application) ->
         uid to DeliveryConfig(name, application)
       }
       ?.let { (uid, deliveryConfig) ->
         jooq
-          .select(Schema.Artifact.name, Schema.Artifact.type)
-          .from(Schema.Artifact.table, Schema.DeliveryConfigArtifact.table)
-          .where(Schema.DeliveryConfigArtifact.artifactUid.eq(Schema.Artifact.uid))
-          .and(Schema.DeliveryConfigArtifact.deliveryConfigUid.eq(uid))
+          .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE)
+          .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
+          .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+          .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
           .fetch { (name, type) ->
             DeliveryArtifact(name, ArtifactType.valueOf(type))
           }
           .let { artifacts ->
             jooq
-              .select(Schema.Environment.uid, Schema.Environment.name)
-              .from(Schema.Environment.table)
-              .where(Schema.Environment.deliveryConfigUid.eq(uid))
+              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME)
+              .from(ENVIRONMENT)
+              .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
               .fetch { (environmentUid, name) ->
                 environmentUid to Environment(name, emptySet())
               }
               .map { (environmentUid, environment) ->
                 jooq
                   .select(
-                    Schema.Resource.apiVersion,
-                    Schema.Resource.kind,
-                    Schema.Resource.metadata,
-                    Schema.Resource.spec
+                    RESOURCE.API_VERSION,
+                    RESOURCE.KIND,
+                    RESOURCE.METADATA,
+                    RESOURCE.SPEC
                   )
-                  .from(Schema.Resource.table, Schema.EnvironmentResource.table)
-                  .where(Schema.Resource.uid.eq(Schema.EnvironmentResource.resourceUid))
-                  .and(Schema.EnvironmentResource.environmentUid.eq(environmentUid))
+                  .from(RESOURCE, ENVIRONMENT_RESOURCE)
+                  .where(RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
+                  .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(environmentUid))
                   .fetch { (apiVersion, kind, metadata, spec) ->
                     Resource(
                       ApiVersion(apiVersion),
