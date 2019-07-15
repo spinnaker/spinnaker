@@ -2,9 +2,4 @@ Listen {%DECK_HOST%}:{%DECK_PORT%}
 
 <IfModule ssl_module>
         SSLPassPhraseDialog exec:/etc/apache2/passphrase
-        Listen {%DECK_PORT%}
-</IfModule>
-
-<IfModule mod_gnutls.c>
-        Listen {%DECK_PORT%}
 </IfModule>
