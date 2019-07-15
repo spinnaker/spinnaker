@@ -1,44 +1,30 @@
-import { module, IScope } from 'angular';
+import { module } from 'angular';
 
-import { AuthenticationService } from 'core/authentication/AuthenticationService';
-import { IStage } from 'core/domain';
 import { Registry } from 'core/registry';
+import { AuthenticationService } from 'core/authentication';
+import { ExecutionDetailsTasks } from 'core/pipeline';
 
-import { ExecutionDetailsTasks } from '../common';
-import { ScriptExecutionDetails } from '../script/ScriptExecutionDetails';
+import { ScriptStageConfig, validate } from './ScriptStageConfig';
+import { ScriptExecutionDetails } from './ScriptExecutionDetails';
 
 export const SCRIPT_STAGE = 'spinnaker.core.pipeline.stage.scriptStage';
-module(SCRIPT_STAGE, [])
-  .config(() => {
-    Registry.pipeline.registerStage({
-      label: 'Script',
-      description: 'Runs a script',
-      defaultTimeoutMs: 1000 * 60 * 60 * 2, // 2 hours
-      key: 'script',
-      restartable: true,
-      controller: 'ScriptStageCtrl',
-      controllerAs: 'scriptStageCtrl',
-      templateUrl: require('./scriptStage.html'),
-      executionDetailsSections: [ScriptExecutionDetails, ExecutionDetailsTasks],
-      strategy: true,
-      validators: [{ type: 'requiredField', fieldName: 'command' }],
-    });
-  })
-  .controller('ScriptStageCtrl', [
-    '$scope',
-    'stage',
-    function($scope: IScope, stage: IStage) {
-      $scope.stage = stage;
-      $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
-      $scope.stage.waitForCompletion =
-        $scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion;
-
-      if (!$scope.stage.user) {
-        $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-      }
-
-      $scope.viewState = {
-        loading: false,
-      };
+module(SCRIPT_STAGE, []).config(() => {
+  Registry.pipeline.registerStage({
+    label: 'Script',
+    description: 'Runs a script',
+    defaultTimeoutMs: 1000 * 60 * 60 * 2, // 2 hours
+    key: 'script',
+    restartable: true,
+    defaults: {
+      waitForCompletion: true,
+      failPipeline: true,
+      get user() {
+        return AuthenticationService.getAuthenticatedUser().name;
+      },
     },
-  ]);
+    component: ScriptStageConfig,
+    executionDetailsSections: [ScriptExecutionDetails, ExecutionDetailsTasks],
+    strategy: true,
+    validateFn: validate,
+  });
+});

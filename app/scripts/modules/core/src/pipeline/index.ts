@@ -17,3 +17,4 @@ export * from './filter/ExecutionFilterModel';
 export * from './manualExecution/TriggerTemplate';
 export * from './service/execution.service';
 export * from './service/ExecutionsTransformer';
+export * from './config/stages/FormikStageConfig';
