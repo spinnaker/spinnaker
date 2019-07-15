@@ -96,7 +96,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
                     kind = "cluster",
                     metadata = mapOf(
                       "uid" to randomUID().toString(),
-                      "name" to "test:cluster:whatever"
+                      "name" to "test:cluster:whatever",
+                      "serviceAccount" to "keel@spinnaker"
                     ),
                     spec = randomData()
                   ),
@@ -105,7 +106,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
                     kind = "security-group",
                     metadata = mapOf(
                       "uid" to randomUID().toString(),
-                      "name" to "test:security-group:whatever"
+                      "name" to "test:security-group:whatever",
+                      "serviceAccount" to "keel@spinnaker"
                     ),
                     spec = randomData()
                   )
