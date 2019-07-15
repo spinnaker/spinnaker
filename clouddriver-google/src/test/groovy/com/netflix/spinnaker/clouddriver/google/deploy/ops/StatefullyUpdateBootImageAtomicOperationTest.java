@@ -24,13 +24,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting;
+import com.google.api.client.http.HttpStatusCodes;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.InstanceTemplates.Delete;
 import com.google.api.services.compute.Compute.InstanceTemplates.Insert;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.ImageList;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerVersion;
 import com.google.api.services.compute.model.InstanceProperties;
@@ -125,7 +127,7 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void couldNotFindImage() throws IOException {
-    when(mockImages.list(any())).thenReturn(images());
+    when(mockImages.get(any(), any())).thenReturn(status404());
 
     Exception e =
         assertThrows(
@@ -135,7 +137,7 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void exceptionFindingImage() throws IOException {
-    when(mockImages.list(any())).thenThrow(new IOException("uh oh"));
+    when(mockImages.get(any(), any())).thenThrow(new IOException("uh oh"));
 
     Exception e = assertThrows(Exception.class, () -> operation.operate(ImmutableList.of()));
     assertThat(e).hasMessageContaining("uh oh");
@@ -143,10 +145,10 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void multipleInstanceGroupTemplates() throws IOException {
-    when(mockImages.list(any())).thenReturn(images(baseImage()));
+    when(mockImages.get(any(), any())).thenReturn(image(baseImage()));
     when(mockServerGroupManagers.get())
         .thenReturn(
-            new FakeGoogleComputeRequest<>(
+            FakeGoogleComputeRequest.createWithResponse(
                 baseInstanceGroupManager()
                     .setVersions(
                         ImmutableList.of(
@@ -159,10 +161,11 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void noStatefulPolicy() throws IOException {
-    when(mockImages.list(any())).thenReturn(images(baseImage()));
+    when(mockImages.get(any(), any())).thenReturn(image(baseImage()));
     when(mockServerGroupManagers.get())
         .thenReturn(
-            new FakeGoogleComputeRequest<>(baseInstanceGroupManager().setStatefulPolicy(null)));
+            FakeGoogleComputeRequest.createWithResponse(
+                baseInstanceGroupManager().setStatefulPolicy(null)));
 
     Exception e = assertThrows(Exception.class, () -> operation.operate(ImmutableList.of()));
     assertThat(e).hasMessageContaining("StatefulPolicy");
@@ -170,16 +173,16 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void multipleBootDisks() throws IOException {
-    when(mockImages.list(any())).thenReturn(images(baseImage()));
+    when(mockImages.get(any(), any())).thenReturn(image(baseImage()));
     when(mockServerGroupManagers.get())
-        .thenReturn(new FakeGoogleComputeRequest<>(baseInstanceGroupManager()));
+        .thenReturn(FakeGoogleComputeRequest.createWithResponse(baseInstanceGroupManager()));
     InstanceTemplate instanceTemplate = baseInstanceTemplate();
     instanceTemplate
         .getProperties()
         .setDisks(
             ImmutableList.of(new AttachedDisk().setBoot(true), new AttachedDisk().setBoot(true)));
     when(mockInstanceTemplates.get(any()))
-        .thenReturn(new FakeGoogleComputeRequest<>(instanceTemplate));
+        .thenReturn(FakeGoogleComputeRequest.createWithResponse(instanceTemplate));
 
     IllegalStateException e =
         assertThrows(IllegalStateException.class, () -> operation.operate(ImmutableList.of()));
@@ -189,11 +192,11 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
 
   @Test
   void success() throws IOException {
-    when(mockImages.list(any())).thenReturn(images(new Image().setSelfLink(IMAGE_URL)));
+    when(mockImages.get(any(), any())).thenReturn(image(new Image().setSelfLink(IMAGE_URL)));
     when(mockServerGroupManagers.get())
-        .thenReturn(new FakeGoogleComputeRequest<>(baseInstanceGroupManager()));
+        .thenReturn(FakeGoogleComputeRequest.createWithResponse(baseInstanceGroupManager()));
     when(mockInstanceTemplates.get(any()))
-        .thenReturn(new FakeGoogleComputeRequest<>(baseInstanceTemplate()));
+        .thenReturn(FakeGoogleComputeRequest.createWithResponse(baseInstanceTemplate()));
     FakeGoogleComputeOperationRequest<Insert> insertOp = new FakeGoogleComputeOperationRequest<>();
     when(mockInstanceTemplates.insert(any())).thenReturn(insertOp);
     FakeGoogleComputeOperationRequest<Delete> deleteOp = new FakeGoogleComputeOperationRequest<>();
@@ -231,9 +234,17 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
     return new Image().setName(IMAGE_NAME).setSelfLink(IMAGE_URL);
   }
 
-  private static FakeGoogleComputeRequest<Compute.Images.List, ImageList> images(Image... images) {
-    return new FakeGoogleComputeRequest<>(
-        mock(Compute.Images.List.class), new ImageList().setItems(ImmutableList.copyOf(images)));
+  private static FakeGoogleComputeRequest<Compute.Images.Get, Image> image(Image image) {
+    return FakeGoogleComputeRequest.createWithResponse(image, mock(Compute.Images.Get.class));
+  }
+
+  private static FakeGoogleComputeRequest<Compute.Images.Get, Image> status404()
+      throws IOException {
+    return FakeGoogleComputeRequest.createWithException(
+        GoogleJsonResponseExceptionFactoryTesting.newMock(
+            JacksonFactory.getDefaultInstance(),
+            HttpStatusCodes.STATUS_CODE_NOT_FOUND,
+            "not found"));
   }
 
   private static InstanceTemplate baseInstanceTemplate() {

@@ -16,28 +16,57 @@
 
 package com.netflix.spinnaker.clouddriver.google.compute;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.api.services.compute.ComputeRequest;
+import java.io.IOException;
+import javax.annotation.Nullable;
 
 public class FakeGoogleComputeRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT>
     implements GoogleComputeRequest<RequestT, ResponseT> {
 
   private final RequestT request;
   private final ResponseT response;
+  private final IOException exception;
 
   private boolean executed = false;
 
-  public FakeGoogleComputeRequest(ResponseT response) {
-    this(null, response);
+  public static <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      FakeGoogleComputeRequest<RequestT, ResponseT> createWithResponse(ResponseT response) {
+    return createWithResponse(response, /* request= */ null);
   }
 
-  public FakeGoogleComputeRequest(RequestT request, ResponseT response) {
+  public static <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      FakeGoogleComputeRequest<RequestT, ResponseT> createWithResponse(
+          ResponseT response, RequestT request) {
+    return new FakeGoogleComputeRequest<>(response, request);
+  }
+
+  public static <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      FakeGoogleComputeRequest<RequestT, ResponseT> createWithException(IOException exception) {
+    return new FakeGoogleComputeRequest<RequestT, ResponseT>(exception, /* request= */ null);
+  }
+
+  FakeGoogleComputeRequest(ResponseT response, @Nullable RequestT request) {
+    checkNotNull(response);
     this.request = request;
     this.response = response;
+    this.exception = null;
+  }
+
+  FakeGoogleComputeRequest(IOException exception, @Nullable RequestT request) {
+    checkNotNull(exception);
+    this.request = request;
+    this.response = null;
+    this.exception = exception;
   }
 
   @Override
-  public ResponseT execute() {
+  public ResponseT execute() throws IOException {
     executed = true;
+    if (exception != null) {
+      throw exception;
+    }
     return response;
   }
 

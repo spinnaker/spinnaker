@@ -24,7 +24,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.ImageList;
 import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.NoopRegistry;
@@ -34,42 +33,34 @@ import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.io.IOException;
-import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.runner.RunWith;
 
-public class ImagesTest {
+@RunWith(JUnitPlatform.class)
+final class ImagesTest {
 
   private static final int CLOCK_STEP_TIME_MS = 1234;
   private static final int CLOCK_STEP_TIME_NS = 1234 * 1000000;
 
   @Test
-  public void list_success() throws IOException {
+  void get_success() throws IOException {
 
     HttpTransport transport =
         new ComputeOperationMockHttpTransport(
             new MockLowLevelHttpResponse()
                 .setStatusCode(200)
-                .setContent(
-                    ""
-                        + "{"
-                        + "  \"items\": ["
-                        + "    { \"name\": \"centos\" },"
-                        + "    { \"name\": \"ubuntu\" }"
-                        + "  ]"
-                        + "}"));
+                .setContent("{ \"name\": \"my-wacky-image-name\" }"));
 
     Images imagesApi = createImages(transport);
 
-    ImageList imageList = imagesApi.list("my-project").execute();
+    Image image = imagesApi.get("my-project", "my-image").execute();
 
-    List<Image> images = imageList.getItems();
-    assertThat(images).hasSize(2);
-    assertThat(images.get(0).getName()).isEqualTo("centos");
-    assertThat(images.get(1).getName()).isEqualTo("ubuntu");
+    assertThat(image.getName()).isEqualTo("my-wacky-image-name");
   }
 
   @Test
-  public void list_error() {
+  public void get_error() {
 
     HttpTransport transport =
         new ComputeOperationMockHttpTransport(
@@ -78,12 +69,12 @@ public class ImagesTest {
     Images imagesApi = createImages(transport);
 
     assertThatIOException()
-        .isThrownBy(() -> imagesApi.list("my-project").execute())
+        .isThrownBy(() -> imagesApi.get("my-project", "my-image").execute())
         .withMessageContaining("404");
   }
 
   @Test
-  public void list_successMetrics() throws IOException {
+  public void get_successMetrics() throws IOException {
 
     Registry registry = new DefaultRegistry(new SteppingClock(CLOCK_STEP_TIME_MS));
     HttpTransport transport =
@@ -92,7 +83,7 @@ public class ImagesTest {
 
     Images imagesApi = createImages(transport, registry);
 
-    imagesApi.list("my-project").execute();
+    imagesApi.get("my-project", "my-image").execute();
 
     assertThat(registry.timers().count()).isEqualTo(1);
     Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
@@ -101,7 +92,7 @@ public class ImagesTest {
     //               global state) so that we can test for the account tags
     assertThat(timer.id().tags())
         .contains(
-            tag("api", "compute.images.list"),
+            tag("api", "compute.images.get"),
             tag("scope", "global"),
             tag("status", "2xx"),
             tag("success", "true"));
@@ -109,7 +100,7 @@ public class ImagesTest {
   }
 
   @Test
-  public void list_errorMetrics() {
+  public void get_errorMetrics() {
 
     Registry registry = new DefaultRegistry(new SteppingClock(CLOCK_STEP_TIME_MS));
     HttpTransport transport =
@@ -118,7 +109,7 @@ public class ImagesTest {
 
     Images imagesApi = createImages(transport, registry);
 
-    assertThatIOException().isThrownBy(() -> imagesApi.list("my-project").execute());
+    assertThatIOException().isThrownBy(() -> imagesApi.get("my-project", "my-image").execute());
 
     assertThat(registry.timers().count()).isEqualTo(1);
     Timer timer = registry.timers().findFirst().orElseThrow(AssertionError::new);
@@ -127,7 +118,7 @@ public class ImagesTest {
     //               global state) so that we can test for the account tags
     assertThat(timer.id().tags())
         .contains(
-            tag("api", "compute.images.list"),
+            tag("api", "compute.images.get"),
             tag("scope", "global"),
             tag("status", "4xx"),
             tag("success", "false"));

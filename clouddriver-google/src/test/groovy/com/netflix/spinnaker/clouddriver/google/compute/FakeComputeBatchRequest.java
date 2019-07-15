@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.services.compute.ComputeRequest;
 import java.io.IOException;
@@ -40,6 +41,15 @@ public final class FakeComputeBatchRequest<RequestT extends ComputeRequest<Respo
     for (QueuedRequest request : requests) {
       try {
         request.callback.onSuccess(request.request.execute(), new HttpHeaders());
+      } catch (GoogleJsonResponseException e) {
+        // Exceptions created by GoogleJsonResponseExceptionFactoryTesting don't have details.
+        GoogleJsonError details = e.getDetails();
+        if (details == null) {
+          details = new GoogleJsonError();
+          details.setCode(e.getStatusCode());
+          details.setMessage(e.getMessage());
+        }
+        request.callback.onFailure(details, e.getHeaders());
       } catch (IOException | RuntimeException e) {
         request.callback.onFailure(new GoogleJsonError(), new HttpHeaders());
       }

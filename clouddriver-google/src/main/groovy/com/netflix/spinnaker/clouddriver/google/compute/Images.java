@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.ComputeRequest;
-import com.google.api.services.compute.model.ImageList;
+import com.google.api.services.compute.model.Image;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
@@ -38,11 +38,10 @@ public class Images {
     this.registry = registry;
   }
 
-  public GoogleComputeRequest<Compute.Images.List, ImageList> list(String project)
+  public GoogleComputeRequest<Compute.Images.Get, Image> get(String project, String image)
       throws IOException {
-
-    Compute.Images.List request = credentials.getCompute().images().list(project);
-    return wrapRequest(request, "list");
+    Compute.Images.Get request = credentials.getCompute().images().get(project, image);
+    return wrapRequest(request, "get");
   }
 
   private <RequestT extends ComputeRequest<ResponseT>, ResponseT>

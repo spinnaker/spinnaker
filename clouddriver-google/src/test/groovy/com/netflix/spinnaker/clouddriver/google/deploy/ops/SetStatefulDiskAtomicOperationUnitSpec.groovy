@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-
 import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.compute.FakeGoogleComputeOperationRequest
@@ -73,7 +71,7 @@ class SetStatefulDiskAtomicOperationUnitSpec extends Specification {
       credentials: CREDENTIALS)
     def operation = new SetStatefulDiskAtomicOperation(clusterProvider, computeApiFactory, description)
     def updateOp = new FakeGoogleComputeOperationRequest<>()
-    def getManagerRequest = new FakeGoogleComputeRequest<>(new InstanceGroupManager())
+    def getManagerRequest = FakeGoogleComputeRequest.createWithResponse(new InstanceGroupManager())
     _ * serverGroupManagers.get() >> getManagerRequest
 
     when:

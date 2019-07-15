@@ -23,12 +23,12 @@ import static java.util.stream.Collectors.toList;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.util.Throwables;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.InstanceTemplates.Get;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.ImageList;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerUpdatePolicy;
 import com.google.api.services.compute.model.InstanceTemplate;
@@ -173,13 +173,12 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
     Images imagesApi = computeApiFactory.createImages(credentials);
 
     SettableFuture<Image> foundImage = SettableFuture.create();
-    String filter = "name eq " + description.getBootImage();
 
-    ComputeBatchRequest<Compute.Images.List, ImageList> batchRequest =
+    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
         computeApiFactory.createBatchRequest(credentials);
     for (String project : getImageProjects(credentials)) {
-      GoogleComputeRequest<Compute.Images.List, ImageList> request = imagesApi.list(project);
-      request.getRequest().setFilter(filter);
+      GoogleComputeRequest<Compute.Images.Get, Image> request =
+          imagesApi.get(project, description.getBootImage());
       batchRequest.queue(request, new ImageListCallback(project, foundImage));
     }
     batchRequest.execute("findImage");
@@ -213,7 +212,7 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
         .build();
   }
 
-  private static class ImageListCallback extends JsonBatchCallback<ImageList> {
+  private static class ImageListCallback extends JsonBatchCallback<Image> {
 
     final String project;
     final SettableFuture<Image> foundImage;
@@ -224,15 +223,18 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
     }
 
     @Override
-    public void onSuccess(ImageList imageList, HttpHeaders responseHeaders) {
-      if (imageList.getItems() != null && !imageList.getItems().isEmpty())
-        foundImage.set(imageList.getItems().get(0));
+    public void onSuccess(Image image, HttpHeaders responseHeaders) {
+      foundImage.set(image);
     }
 
     @Override
     public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
-      log.warn(
-          String.format("Error retrieving images from project %s: %s", project, e.getMessage()));
+      // Only a single project (of the many we query) will actually contain this image, so 404s are
+      // expected.
+      if (e.getCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
+        log.warn(
+            String.format("Error retrieving images from project %s: %s", project, e.getMessage()));
+      }
     }
   }
 

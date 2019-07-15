@@ -32,7 +32,7 @@ public class FakeGoogleComputeOperationRequest<RequestT extends ComputeRequest<O
   }
 
   public FakeGoogleComputeOperationRequest(Operation response) {
-    super(response);
+    super(response, /* request= */ null);
   }
 
   @Override
