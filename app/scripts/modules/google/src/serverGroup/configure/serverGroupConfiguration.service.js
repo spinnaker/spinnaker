@@ -17,6 +17,7 @@ import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.ser
 import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
+import { GceImageReader } from 'google/image';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.configuration.service', [
@@ -24,7 +25,6 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    require('../../image/image.reader').name,
     require('../../instance/gceInstanceType.service').name,
     require('./../../instance/custom/customInstanceBuilder.gce.service').name,
     GCE_HTTP_LOAD_BALANCER_UTILS,
@@ -32,7 +32,6 @@ module.exports = angular
     require('./wizard/securityGroups/tagManager.service').name,
   ])
   .factory('gceServerGroupConfigurationService', [
-    'gceImageReader',
     'securityGroupReader',
     'gceInstanceTypeService',
     'cacheInitializer',
@@ -44,7 +43,6 @@ module.exports = angular
     'gceTagManager',
     'gceLoadBalancerSetTransformer',
     function(
-      gceImageReader,
       securityGroupReader,
       gceInstanceTypeService,
       cacheInitializer,
@@ -144,7 +142,7 @@ module.exports = angular
       }
 
       function loadAllImages(account) {
-        return gceImageReader.findImages({
+        return GceImageReader.findImages({
           account: account,
           provider: 'gce',
           q: '*',

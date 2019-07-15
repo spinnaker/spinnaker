@@ -5,12 +5,10 @@ import * as React from 'react';
 import { Async, AutocompleteResult, Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
-interface IImage {
-  imageName: string;
-}
+import { IGceImage } from '../image';
 
 interface IImageSelectProps {
-  availableImages: IImage[];
+  availableImages: IGceImage[];
   selectedImage: string;
   selectImage: (image: string, target?: any) => void;
   target?: any;

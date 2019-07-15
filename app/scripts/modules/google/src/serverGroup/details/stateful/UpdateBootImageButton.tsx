@@ -3,16 +3,17 @@ import * as React from 'react';
 import {
   Application,
   FormikFormField,
+  IFormInputProps,
   IModalComponentProps,
   ReactModal,
   TaskMonitor,
-  TextInput,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
 
 import { IGceServerGroup } from 'google/domain';
 import { StatefulMIGService } from './StatefulMIGService';
+import { GceImageReader, IGceImage, ImageSelect } from 'google/image';
 
 interface IUpdateBootImageButtonProps {
   application: Application;
@@ -39,6 +40,7 @@ interface IUpdateBootImageModalProps extends IModalComponentProps, IUpdateBootIm
 }
 
 interface IUpdateBootImageModalState {
+  availableImages: IGceImage[];
   taskMonitor: TaskMonitor;
 }
 
@@ -50,6 +52,7 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
   public constructor(props: IUpdateBootImageModalProps) {
     super(props);
     this.state = {
+      availableImages: [],
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Updating Boot Image',
@@ -58,13 +61,22 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
     };
   }
 
+  public componentDidMount() {
+    GceImageReader.findImages({
+      account: this.props.serverGroup.account,
+      provider: 'gce',
+      q: '*',
+    }).then(images => {
+      this.setState({ availableImages: images });
+    });
+  }
+
   private submit = (values: IUpdateBootImageModalFormValues): void => {
     this.state.taskMonitor.submit(() =>
       StatefulMIGService.statefullyUpdateBootDisk(this.props.application.name, values.image, this.props.serverGroup),
     );
   };
 
-  // todo(mneterval): replace TextInput with new, performant React GceImageSelector
   public render() {
     return (
       <WizardModal<IUpdateBootImageModalFormValues>
@@ -74,13 +86,27 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
         initialValues={{ image: this.props.bootImage }}
         submitButtonLabel="Update Image"
         taskMonitor={this.state.taskMonitor}
-        render={({ nextIdx, wizard }) => (
+        render={({ formik, nextIdx, wizard }) => (
           <WizardPage
             label="Boot Image"
             wizard={wizard}
             order={nextIdx()}
             render={() => (
-              <FormikFormField input={TextInput} label="Enter name of new boot image:" name="image" required={true} />
+              <FormikFormField
+                fastField={false}
+                input={(props: IFormInputProps) => (
+                  <div className="full-width" style={{ height: '225px' }}>
+                    <ImageSelect
+                      availableImages={this.state.availableImages}
+                      selectedImage={props.value}
+                      selectImage={(imageName: string) => formik.setFieldValue('image', imageName)}
+                    />
+                  </div>
+                )}
+                label="Boot image name:"
+                name="image"
+                required={true}
+              />
             )}
           />
         )}
