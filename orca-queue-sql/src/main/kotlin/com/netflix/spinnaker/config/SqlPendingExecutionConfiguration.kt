@@ -7,7 +7,6 @@ import com.netflix.spinnaker.orca.q.sql.pending.SqlPendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -27,18 +26,18 @@ class SqlPendingExecutionConfiguration {
     @Qualifier("redisQueueObjectMapper") mapper: ObjectMapper,
     clock: Clock,
     registry: Registry,
-    properties: SqlProperties,
-    @Value("\${queue.pending.max-depth:50}") maxDepth: Int
+    sqlProperties: SqlProperties,
+    sqlPendingProperties: SqlPendingExecutionProperties
   ) =
     SqlPendingExecutionService(
-      properties.partitionName,
+      sqlProperties.partitionName,
       jooq,
       queue,
       repository,
       mapper,
       clock,
       registry,
-      properties.transactionRetry,
-      maxDepth
+      sqlProperties.transactionRetry,
+      sqlPendingProperties.maxDepth
     )
 }
