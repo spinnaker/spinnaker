@@ -8,7 +8,7 @@ import com.netflix.spinnaker.q.Queue
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,10 +19,8 @@ import java.time.Clock
 class SqlPendingExecutionConfiguration {
 
   @Bean
-  @ConditionalOnExpression(
-    "\${execution-repository.sql.enabled:false} && \${queue.sql.pending-execution-service.enabled:false}"
-  )
-  fun pendingExecutionService(
+  @ConditionalOnProperty(value = ["queue.pending-execution-service.sql.enabled"])
+  fun sqlPendingExecutionService(
     jooq: DSLContext,
     queue: Queue,
     repository: ExecutionRepository,

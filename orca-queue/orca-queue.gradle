@@ -30,7 +30,9 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.ben-manes.caffeine:guava")
 
+  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))
+  testImplementation(project(":orca-queue-redis"))
   testImplementation("org.assertj:assertj-core")
 }

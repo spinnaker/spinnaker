@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
-import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
 import com.netflix.spinnaker.orca.q.redis.migration.OrcaToKeikoSerializationMigrator
 import com.netflix.spinnaker.orca.q.redis.migration.TaskTypeDeserializer
@@ -32,7 +31,7 @@ import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -82,7 +81,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
   }
 
   @Bean
-  @ConditionalOnMissingBean(PendingExecutionService::class)
+  @ConditionalOnProperty(value = ["queue.pending-execution-service.redis.enabled"], matchIfMissing = true)
   fun pendingExecutionService(
     @Qualifier("queueRedisPool") jedisPool: Pool<Jedis>,
     mapper: ObjectMapper
