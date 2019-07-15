@@ -7,7 +7,10 @@
     <h3 ng-if="!vm.command.pipeline">Select Pipeline</h3>
   </div>
   <ng-form name="manualExecutionForm">
-    <div class="modal-body container-fluid form-horizontal">
+    <div ng-if="vm.planError" class="alert alert-danger">
+      <p>Could not load pipeline plan. Please try reloading.</p>
+    </div>
+    <div class="modal-body container-fluid form-horizontal" ng-if="!vm.planError">
       <div class="form-group" ng-if="vm.pipelineOptions">
         <label class="col-md-4 sm-label-right">Pipeline</label>
         <div class="col-md-6">
@@ -18,12 +21,14 @@
             on-select="vm.pipelineSelected()"
           >
             <ui-select-match>
-              <strong>{{$select.selected.name}}</strong>
+              <strong>{{ $select.selected.name }}</strong>
             </ui-select-match>
             <ui-select-choices
               repeat="pipeline as pipeline in vm.pipelineOptions | anyFieldFilter: {name: $select.search }"
             >
-              <div><strong>{{pipeline.name}}</strong></div>
+              <div>
+                <strong>{{ pipeline.name }}</strong>
+              </div>
             </ui-select-choices>
           </ui-select>
         </div>
@@ -31,7 +36,7 @@
 
       <div class="form-group" ng-if="vm.command.pipeline">
         <div class="col-md-10">
-          <p>This will start a new run of <strong>{{vm.command.pipeline.name}}</strong>.</p>
+          <p>This will start a new run of <strong>{{ vm.command.pipeline.name }}</strong>.</p>
         </div>
       </div>
 
@@ -43,17 +48,17 @@
           </strong>
         </p>
         <div ng-repeat="execution in vm.currentlyRunningExecutions | limitTo: 1" class="pad-left">
-          <strong>Execution started: </strong>{{execution.startTime | timestamp }}
+          <strong>Execution started: </strong>{{ execution.startTime | timestamp }}
           <div>
             <strong>Current stage:</strong>
             <span ng-repeat="stage in execution.currentStages">
-              {{stage.name}}
+              {{ stage.name }}
             </span>
           </div>
         </div>
         <div ng-if="vm.currentlyRunningExecutions.length > 1">
           <em>
-            &hellip;and {{vm.currentlyRunningExecutions.length - 1}} other execution<span
+            &hellip;and {{ vm.currentlyRunningExecutions.length - 1 }} other execution<span
               ng-if="vm.currentlyRunningExecutions.length > 2"
               >s</span
             >
@@ -65,7 +70,7 @@
         <div class="form-group">
           <label class="col-md-4 sm-label-right">Trigger</label>
           <div class="col-md-6">
-            <p class="form-control-static" ng-if="vm.triggers.length === 1">{{vm.triggers[0].description}}</p>
+            <p class="form-control-static" ng-if="vm.triggers.length === 1">{{ vm.triggers[0].description }}</p>
             <select
               class="form-control input-sm"
               ng-if="vm.triggers.length > 1"
@@ -89,9 +94,9 @@
           ng-if="!vm.hiddenParameters.has(parameter.name)"
         >
           <div class="col-md-4 sm-label-right break-word">
-            {{parameter.label || parameter.name}}
+            {{ parameter.label || parameter.name }}
             <span ng-if="parameter.required">*</span>
-            <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
+            <help-field content="{{ parameter.description }}" ng-if="parameter.description"></help-field>
           </div>
           <div class="col-md-6" ng-if="!parameter.hasOptions && parameter.constraint === 'date'">
             <p class="input-group">
@@ -136,10 +141,12 @@
               class="form-control input-sm"
             >
               <ui-select-match>
-                <strong>{{$select.selected.value}}</strong>
+                <strong>{{ $select.selected.value }}</strong>
               </ui-select-match>
               <ui-select-choices repeat="option.value as option in parameter.options | filter: $select.search">
-                <div><strong>{{option.value}}</strong></div>
+                <div>
+                  <strong>{{ option.value }}</strong>
+                </div>
               </ui-select-choices>
             </ui-select>
           </div>
@@ -160,7 +167,7 @@
       <div class="form-group" ng-if="vm.command.trigger.artifacts.length > 0">
         <label class="col-md-4 sm-label-right">Artifacts</label>
         <div class="col-md-8">
-          <artifact-list artifacts="vm.command.trigger.artifacts" />
+          <artifact-list artifacts="vm.command.trigger.artifacts"></artifact-list>
         </div>
       </div>
 
@@ -180,7 +187,7 @@
           <div ng-if="vm.notifications.length > 1" class="small">
             There are
             <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom" popover-trigger="'mouseenter'"
-              >{{vm.notifications.length}} notifications</a
+              >{{ vm.notifications.length }} notifications</a
             >
             configured for this pipeline
           </div>

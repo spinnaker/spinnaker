@@ -51,7 +51,9 @@ describe('Controller: ManualPipelineExecution', function() {
           },
         };
 
+        spyOn(AppNotificationsService, 'getNotificationsForApplication').and.returnValue(this.$q.when({}));
         this.initializeController(application, application.pipelineConfigs.data[0]);
+        this.scope.$digest();
         expect(this.ctrl.currentlyRunningExecutions).toEqual([application.executions.data[1]]);
       });
 
@@ -75,7 +77,9 @@ describe('Controller: ManualPipelineExecution', function() {
           executions: { data: [] },
         };
 
+        spyOn(AppNotificationsService, 'getNotificationsForApplication').and.returnValue(this.$q.when({}));
         this.initializeController(application, application.pipelineConfigs.data[0]);
+        this.scope.$digest();
         expect(this.ctrl.parameters).toEqual({ foo: undefined, bar: 'mr. peanutbutter', baz: '', bojack: null });
       });
     });
@@ -153,6 +157,7 @@ describe('Controller: ManualPipelineExecution', function() {
       expect(this.ctrl.notifications).toEqual([notifications[1], notifications[0]]);
       this.ctrl.command.pipeline = application.pipelineConfigs.data[1];
       this.ctrl.pipelineSelected();
+      this.scope.$digest();
       expect(this.ctrl.notifications).toEqual([notifications[1], notifications[2]]);
     });
   });
@@ -209,7 +214,9 @@ describe('Controller: ManualPipelineExecution', function() {
         executions: { data: [] },
       };
 
+      spyOn(AppNotificationsService, 'getNotificationsForApplication').and.returnValue(this.$q.when({}));
       this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
+      this.scope.$digest();
       this.ctrl.execute();
       expect(this.command.trigger.parameters).toEqual({ bar: 'mr. peanutbutter' });
     });
