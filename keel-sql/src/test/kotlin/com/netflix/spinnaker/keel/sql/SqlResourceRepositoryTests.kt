@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import dev.minutest.rootContext
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -22,7 +21,7 @@ import strikt.assertions.isEqualTo
 import java.time.Clock
 
 internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceRepository>() {
-  private val testDatabase = initTcMysqlDatabase()
+  private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
 
   override fun factory(clock: Clock): SqlResourceRepository {
