@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import spock.lang.Specification
@@ -94,6 +95,32 @@ class KubernetesV2CredentialsSpec extends Specification {
     credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
   }
 
+  void "Kinds that are not available on the server are considered invalid"() {
+    when:
+    KubernetesV2Credentials credentials = buildCredentials(
+      new KubernetesConfigurationProperties.ManagedAccount(
+        namespaces: [NAMESPACE],
+        checkPermissionsOnStartup: true,
+      )
+    )
+    credentials.initialize()
+
+    then:
+
+    kubectlJobExecutor.apiResources(_) >> {
+      return [
+        new KubernetesKind.ScopedKind("Deployment", KubernetesApiGroup.APPS)
+      ]
+    }
+
+    kubectlJobExecutor.authCanINamespaced(_, _, "deployment", _) >> {
+      return true
+    }
+
+    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
+    credentials.isValidKind(KubernetesKind.REPLICA_SET) == false
+  }
+
   void "Kinds that are not readable are considered invalid"() {
     when:
     KubernetesV2Credentials credentials = buildCredentials(
@@ -105,12 +132,22 @@ class KubernetesV2CredentialsSpec extends Specification {
     credentials.initialize()
 
     then:
-    kubectlJobExecutor.list(_, { it.contains(KubernetesKind.DEPLOYMENT) }, _, _) >> {
-      throw new KubectlJobExecutor.KubectlException()
+
+    kubectlJobExecutor.apiResources(_) >> {
+      return [
+        new KubernetesKind.ScopedKind("Deployment", KubernetesApiGroup.APPS),
+        new KubernetesKind.ScopedKind("ReplicaSet", KubernetesApiGroup.APPS)
+      ]
     }
-    kubectlJobExecutor.list(_, { !it.contains(KubernetesKind.DEPLOYMENT) }, _, _) >> {
-      return Collections.emptyList()
+
+    kubectlJobExecutor.authCanINamespaced(_, _, "deployment", _) >> {
+      return false
     }
+
+    kubectlJobExecutor.authCanINamespaced(_, _, "replicaSet", _) >> {
+      return true
+    }
+
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
     credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
   }

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPod
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric.ContainerMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesApiResourceParser;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1DeleteOptions;
@@ -575,6 +576,51 @@ public class KubectlJobExecutor {
       throw new KubectlException("Could not fetch OAuth token: " + status.getError());
     }
     return status.getOutput();
+  }
+
+  public Set<KubernetesKind.ScopedKind> apiResources(KubernetesV2Credentials credentials) {
+    List<String> command = kubectlAuthPrefix(credentials);
+    command.add("api-resources");
+
+    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
+
+    // api-resources can return a non-zero status code but still return data
+    // log here as a warning
+    if (!status.getResult().equals(JobResult.Result.SUCCESS)) {
+      log.warn("There was an error reading api-resources. All available kinds may not be present.");
+    }
+
+    String output = status.getOutput().trim();
+    if (StringUtils.isEmpty(output)) {
+      return new HashSet<>();
+    }
+
+    return KubernetesApiResourceParser.parse(output);
+  }
+
+  public boolean authCanI(KubernetesV2Credentials credentials, String kind, String verb) {
+    List<String> command = kubectlAuthPrefix(credentials);
+    command.add("auth");
+    command.add("can-i");
+    command.add(verb);
+    command.add(kind);
+
+    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
+
+    return status.getResult() == JobResult.Result.SUCCESS;
+  }
+
+  public boolean authCanINamespaced(
+      KubernetesV2Credentials credentials, String namespace, String kind, String verb) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+    command.add("auth");
+    command.add("can-i");
+    command.add(verb);
+    command.add(kind);
+
+    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
+
+    return status.getResult() == JobResult.Result.SUCCESS;
   }
 
   public Collection<KubernetesPodMetric> topPod(

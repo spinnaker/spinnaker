@@ -365,6 +365,22 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     log.info(
         "Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
+    long startTime = System.nanoTime();
+
+    // compute list of kinds we explicitly know the server doesn't support
+    try {
+      Set<KubernetesKind.ScopedKind> availableResources = jobExecutor.apiResources(this);
+      Map<KubernetesKind, InvalidKindReason> unavailableKinds =
+          allKinds.stream()
+              .filter(k -> k != KubernetesKind.NONE)
+              .filter(k -> !availableResources.contains(k.getScopedKind()))
+              .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
+
+      omitKindsComputed.putAll(unavailableKinds);
+    } catch (Exception e) {
+      log.warn("Failed to evaluate kinds available on server. {}.", e.getMessage());
+    }
+
     Map<KubernetesKind, InvalidKindReason> unreadableKinds =
         allKinds
             .parallelStream()
@@ -372,6 +388,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
             .filter(k -> !omitKindsComputed.keySet().contains(k))
             .filter(k -> !canReadKind(k, checkNamespace))
             .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
+    long endTime = System.nanoTime();
+    long duration = (endTime - startTime) / 1000000;
+    log.info("determineOmitKinds for account {} took {} ms", accountName, duration);
     omitKindsComputed.putAll(unreadableKinds);
 
     if (metricsComputed) {
@@ -390,23 +409,24 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
-    try {
-      log.info("Checking if {} is readable in account '{}'...", kind, accountName);
-      if (kind.isNamespaced()) {
-        list(kind, checkNamespace);
-      } else {
-        list(kind, null);
-      }
-      return true;
-    } catch (Exception e) {
-      log.info(
-          "Kind '{}' will not be cached in account '{}' for reason: '{}'",
-          kind,
-          accountName,
-          e.getMessage());
-      log.debug("Reading kind '{}' in account '{}' failed with exception: ", kind, accountName, e);
-      return false;
+    log.info("Checking if {} is readable in account '{}'...", kind, accountName);
+    boolean allowed;
+    if (kind.isNamespaced()) {
+      allowed =
+          jobExecutor.authCanINamespaced(
+              this, checkNamespace, kind.getScopedKind().getName(), "list");
+    } else {
+      allowed = jobExecutor.authCanI(this, kind.getScopedKind().getName(), "list");
     }
+
+    if (!allowed) {
+      log.info(
+          "Kind {} will not be cached in account '{}' because it cannot be listed.",
+          kind,
+          accountName);
+    }
+
+    return allowed;
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
