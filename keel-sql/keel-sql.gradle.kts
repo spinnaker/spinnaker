@@ -7,11 +7,6 @@ plugins {
 }
 
 afterEvaluate {
-  tasks.getByName("generateJooqMetamodel") {
-    inputs.files("$projectDir/src/main/resources")
-    outputs.dirs("$projectDir/src/generated/java")
-  }
-
   tasks.getByName("compileKotlin").dependsOn("generateJooqMetamodel")
 }
 
