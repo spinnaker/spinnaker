@@ -72,7 +72,7 @@ subprojects {
   }
 
   configurations.all {
-    exclude("javax.servlet","servlet-api")
+    exclude("javax.servlet", "servlet-api")
   }
 }
 

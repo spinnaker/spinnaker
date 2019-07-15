@@ -25,6 +25,8 @@ dependencies {
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
   implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
 
+  implementation("net.logstash.logback:logstash-logback-encoder")
+
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-spring-test-support"))
