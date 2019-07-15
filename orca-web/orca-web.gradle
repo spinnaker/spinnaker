@@ -48,6 +48,7 @@ dependencies {
   implementation(project(":orca-webhook"))
   implementation(project(":orca-eureka"))
   implementation(project(":orca-queue-redis"))
+  implementation(project(":orca-queue-sql"))
   implementation(project(":orca-pipelinetemplate"))
   implementation(project(":orca-keel"))
   implementation(project(":orca-qos"))

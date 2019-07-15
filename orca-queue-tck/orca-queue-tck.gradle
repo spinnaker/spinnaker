@@ -15,6 +15,7 @@
  */
 
 apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
   api(project(":orca-queue"))
@@ -30,4 +31,8 @@ dependencies {
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("junit:junit")
   implementation("org.springframework:spring-test")
+
+  implementation("org.jetbrains.spek:spek-api")
+  implementation("org.jetbrains.spek:spek-subject-extension")
+
 }

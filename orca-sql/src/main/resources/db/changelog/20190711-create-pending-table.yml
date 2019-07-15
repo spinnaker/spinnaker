@@ -1,0 +1,51 @@
+databaseChangeLog:
+- changeSet:
+    id: create-pending-table
+    author: afeldman
+    changes:
+    - createTable:
+        tableName: pending_executions
+        columns:
+        - column:
+            name: id
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: config_id
+            type: char(36)
+            constraints:
+              nullable: false
+        - column:
+            name: shard
+            type: varchar(32)
+        - column:
+            name: message
+            type: longtext
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+      - dropTable:
+          tableName: pending_executions
+
+- changeSet:
+    id: create-pending-indices
+    author: afeldman
+    changes:
+    - createIndex:
+        tableName: pending_executions
+        indexName: config_partition_id_idx
+        columns:
+        - column:
+            name: config_id
+        - column:
+            name: shard
+        - column:
+            name: id
+    rollback:
+    - dropIndex:
+        indexName: config_partition_id_idx
+        tableName: pending_executions

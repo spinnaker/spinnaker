@@ -1,0 +1,21 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spock.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+
+dependencies {
+  implementation(project(":orca-core"))
+  implementation(project(":orca-queue"))
+  implementation(project(":orca-sql"))
+  implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+  implementation("org.jooq:jooq")
+
+  testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
+  testImplementation(project(":orca-queue-tck"))
+  testImplementation(project(":orca-sql"))
+  testImplementation("org.testcontainers:mysql")
+
+  testRuntimeOnly("mysql:mysql-connector-java")
+}
