@@ -18,3 +18,4 @@ export * from './manualExecution/TriggerTemplate';
 export * from './service/execution.service';
 export * from './service/ExecutionsTransformer';
 export * from './config/stages/FormikStageConfig';
+export * from './config/stages/pipeline/PipelineStageExecutionDetails';
