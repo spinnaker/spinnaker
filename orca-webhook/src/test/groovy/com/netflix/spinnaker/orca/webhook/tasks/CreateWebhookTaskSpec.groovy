@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -241,7 +240,7 @@ class CreateWebhookTaskSpec extends Specification {
       payload: [:],
       customHeaders: [:]
     ])
-    
+
     HttpStatus statusCode = HttpStatus.BAD_REQUEST
 
     createWebhookTask.webhookService = Stub(WebhookService) {
@@ -569,6 +568,46 @@ class CreateWebhookTaskSpec extends Specification {
         statusCode: HttpStatus.OK,
         statusCodeValue: HttpStatus.OK.value(),
       ]
+    ]
+  }
+
+  def "should inject artifacts from response"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "post",
+      payload: [payload1: "Hello Spinnaker!"],
+      expectedArtifacts: [[matchArtifact: [ name: "overrides", type: "github/file" ]]
+      ]
+    ])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.POST,
+        "https://my-service.io/api/",
+        [payload1: "Hello Spinnaker!"],
+        null
+      ) >> new ResponseEntity<Map>([
+        artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
+      ], HttpStatus.OK)
+
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.OK,
+      buildInfo: [ artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]],
+      webhook: [
+        statusCode: HttpStatus.OK,
+        statusCodeValue: HttpStatus.OK.value(),
+        body: [ artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]]
+      ],
+      artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
     ]
   }
 
