@@ -86,7 +86,7 @@ class SqlPendingExecutionService(
               .apply {
                 isCanceled = true
                 canceledBy = "spinnaker"
-                cancellationReason = "Too many pending executions ($queued) for pipelineId"
+                cancellationReason = "Too many executions ($queued) already waiting to start"
                 status = ExecutionStatus.CANCELED
               }
             repository.store(execution)
