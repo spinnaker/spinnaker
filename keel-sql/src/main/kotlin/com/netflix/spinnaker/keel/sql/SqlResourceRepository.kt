@@ -13,11 +13,11 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import java.sql.Timestamp
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
@@ -30,7 +30,7 @@ class SqlResourceRepository(
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
-      .select(UID, API_VERSION, KIND, NAME)
+      .select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
       .from(RESOURCE)
       .fetch()
       .map { (uid, apiVersion, kind, name) ->
@@ -41,9 +41,9 @@ class SqlResourceRepository(
 
   override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
-      .select(API_VERSION, KIND, METADATA, SPEC)
+      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
-      .where(UID.eq(uid.toString()))
+      .where(RESOURCE.UID.eq(uid.toString()))
       .fetchOne()
       ?.let { (apiVersion, kind, metadata, spec) ->
         Resource(
@@ -57,9 +57,9 @@ class SqlResourceRepository(
 
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
-      .select(API_VERSION, KIND, METADATA, SPEC)
+      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
-      .where(NAME.eq(name.value))
+      .where(RESOURCE.NAME.eq(name.value))
       .fetchOne()
       ?.let { (apiVersion, kind, metadata, spec) ->
         Resource(
@@ -75,13 +75,13 @@ class SqlResourceRepository(
     jooq.inTransaction {
       val uid = resource.uid.toString()
       val updatePairs = mapOf(
-        API_VERSION to resource.apiVersion.toString(),
-        KIND to resource.kind,
-        NAME to resource.name.value,
-        METADATA to objectMapper.writeValueAsString(resource.metadata),
-        SPEC to objectMapper.writeValueAsString(resource.spec)
+        RESOURCE.API_VERSION to resource.apiVersion.toString(),
+        RESOURCE.KIND to resource.kind,
+        RESOURCE.NAME to resource.name.value,
+        RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata),
+        RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec)
       )
-      val insertPairs = updatePairs + (UID to uid)
+      val insertPairs = updatePairs + (RESOURCE.UID to uid)
       insertInto(
         RESOURCE,
         *insertPairs.keys.toTypedArray()
@@ -95,10 +95,10 @@ class SqlResourceRepository(
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
     jooq
-      .select(JSON)
+      .select(RESOURCE_EVENT.JSON)
       .from(RESOURCE_EVENT)
-      .where(UID.eq(uid.toString()))
-      .orderBy(TIMESTAMP.desc())
+      .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+      .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
       .fetch()
       .map { (json) ->
         objectMapper.readValue<ResourceEvent>(json)
@@ -110,10 +110,10 @@ class SqlResourceRepository(
   override fun appendHistory(event: ResourceEvent) {
     jooq.inTransaction {
       insertInto(RESOURCE_EVENT)
-        .columns(UID, TIMESTAMP, JSON)
+        .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
         .values(
           event.uid.toString(),
-          event.timestamp.let(Timestamp::from),
+          event.timestamp.atZone(clock.zone).toLocalDateTime(),
           objectMapper.writeValueAsString(event)
         )
         .execute()
@@ -122,37 +122,37 @@ class SqlResourceRepository(
 
   override fun delete(name: ResourceName) {
     jooq.inTransaction {
-      val uid = select(UID)
+      val uid = select(RESOURCE.UID)
         .from(RESOURCE)
-        .where(NAME.eq(name.value))
-        .fetchOne(UID)
+        .where(RESOURCE.NAME.eq(name.value))
+        .fetchOne(RESOURCE.UID)
         ?.let(ULID::parseULID)
         ?: throw NoSuchResourceName(name)
       deleteFrom(RESOURCE)
-        .where(UID.eq(uid.toString()))
+        .where(RESOURCE.UID.eq(uid.toString()))
         .execute()
       deleteFrom(RESOURCE_EVENT)
-        .where(UID.eq(uid.toString()))
+        .where(RESOURCE_EVENT.UID.eq(uid.toString()))
         .execute()
     }
   }
 
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).let(Timestamp::from)
+    val cutoff = now.minus(minTimeSinceLastCheck).atZone(clock.zone).toLocalDateTime()
     return jooq.inTransaction {
-      select(UID, API_VERSION, KIND, NAME)
+      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
         .from(RESOURCE)
-        .where(LAST_CHECKED.lessOrEqual(cutoff))
-        .orderBy(LAST_CHECKED)
+        .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
+        .orderBy(RESOURCE.LAST_CHECKED)
         .limit(limit)
         .forUpdate()
         .fetch()
         .also {
           it.forEach { (uid, _, _, _) ->
             update(RESOURCE)
-              .set(mapOf(LAST_CHECKED to now))
-              .where(UID.eq(uid))
+              .set(mapOf(RESOURCE.LAST_CHECKED to now))
+              .where(RESOURCE.UID.eq(uid))
               .execute()
           }
         }
@@ -166,25 +166,10 @@ class SqlResourceRepository(
     jooq.inTransaction {
       update(RESOURCE)
         // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
-        .set(mapOf(LAST_CHECKED to EPOCH.plusSeconds(1).let(Timestamp::from)))
-        .where(UID.eq(resource.uid.toString()))
+        .set(mapOf(RESOURCE.LAST_CHECKED to EPOCH.plusSeconds(1).atZone(clock.zone).toLocalDateTime()))
+        .where(RESOURCE.UID.eq(resource.uid.toString()))
         .execute()
     }
-  }
-
-  companion object {
-    private val RESOURCE = table("resource")
-    private val RESOURCE_EVENT = table("resource_event")
-
-    private val UID = field<String>("uid")
-    private val API_VERSION = field<String>("api_version")
-    private val KIND = field<String>("kind")
-    private val NAME = field<String>("name")
-    private val METADATA = field<String>("metadata")
-    private val SPEC = field<String>("spec")
-    private val LAST_CHECKED = field<Timestamp>("last_checked")
-    private val JSON = field<String>("json")
-    private val TIMESTAMP = field<Timestamp>("timestamp")
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
