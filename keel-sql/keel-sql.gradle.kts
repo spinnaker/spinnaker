@@ -54,7 +54,7 @@ jooqModelator {
   migrationsPaths = listOf("$projectDir/src/main/resources/db")
   dockerTag = "mysql/mysql-server:5.7"
   dockerEnv = listOf("MYSQL_ROOT_PASSWORD=sa", "MYSQL_ROOT_HOST=%", "MYSQL_DATABASE=keel")
-  dockerHostPort = 3306
+  dockerHostPort = 6603
   dockerContainerPort = 3306
 }
 

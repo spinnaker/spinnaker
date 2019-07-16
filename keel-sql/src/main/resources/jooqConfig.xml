@@ -2,7 +2,7 @@
 <configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
   <jdbc>
     <driver>com.mysql.cj.jdbc.Driver</driver>
-    <url>jdbc:mysql://127.0.0.1:3306/keel?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
+    <url>jdbc:mysql://127.0.0.1:6603/keel?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
     <user>root</user>
     <password>sa</password>
   </jdbc>
