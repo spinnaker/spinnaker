@@ -35,12 +35,7 @@ public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
           "Listen {%deck-host%}:{%deck-port%}",
           "",
           "<IfModule ssl_module>",
-          "  Listen 443",
           "  SSLPassPhraseDialog exec:/etc/apache2/passphrase",
-          "</IfModule>",
-          "",
-          "<IfModule mod_gnutls.c>",
-          "  Listen 443",
           "</IfModule>");
 
   @Override
