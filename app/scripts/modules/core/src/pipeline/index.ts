@@ -6,7 +6,7 @@ export * from './config/stages/common';
 export * from './config/stages/FormikStageConfig';
 export * from './config/stages/stageConstants';
 export * from './config/stages/templates';
-export * from './config/templates/v2/pipelineTemplateV2.service';
+export * from './config/templates';
 export * from './config/triggers/BaseTrigger';
 export * from './config/triggers/RunAsUser';
 export * from './config/validation/PipelineConfigValidator';

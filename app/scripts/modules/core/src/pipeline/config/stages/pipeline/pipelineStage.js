@@ -10,6 +10,8 @@ import { Registry } from 'core/registry';
 import { ExecutionDetailsTasks } from '../common';
 import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';
 import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
+import { SETTINGS } from 'core/config';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.pipelineStage', [])
@@ -90,40 +92,54 @@ module.exports = angular
 
         if ($scope.stage && $scope.stage.application && pipeline) {
           const config = _.find($scope.pipelines, pipeline => pipeline.id === $scope.stage.pipeline);
-          if (config && config.parameterConfig) {
-            if (!$scope.stage.pipelineParameters) {
-              $scope.stage.pipelineParameters = {};
-            }
-            $scope.pipelineParameters = config.parameterConfig;
-            $scope.pipelineParameters.forEach(parameterConfig => {
-              if (
-                parameterConfig.default &&
-                parameterConfig.options &&
-                !parameterConfig.options.some(option => option.value === parameterConfig.default)
-              ) {
-                parameterConfig.options.unshift({ value: parameterConfig.default });
-              }
-            });
-            $scope.userSuppliedParameters = $scope.stage.pipelineParameters;
-
-            if ($scope.pipelineParameters) {
-              const acceptedPipelineParams = $scope.pipelineParameters.map(param => param.name);
-              $scope.invalidParameters = pickBy(
-                $scope.userSuppliedParameters,
-                (value, name) => !acceptedPipelineParams.includes(name),
-              );
-            }
-
-            $scope.hasInvalidParameters = () => Object.keys($scope.invalidParameters || {}).length;
-            $scope.useDefaultParameters = {};
-            _.each($scope.pipelineParameters, function(property) {
-              if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
-                $scope.useDefaultParameters[property.name] = true;
-              }
-            });
+          if (
+            SETTINGS.feature.managedPipelineTemplatesV2UI &&
+            config &&
+            PipelineTemplateV2Service.isV2PipelineConfig(config)
+          ) {
+            PipelineTemplateReader.getPipelinePlan(config)
+              .then(plan => applyPipelineConfigParameters(plan))
+              .catch(() => clearParams());
           } else {
-            clearParams();
+            applyPipelineConfigParameters(config);
           }
+        } else {
+          clearParams();
+        }
+      }
+
+      function applyPipelineConfigParameters(config) {
+        if (config && config.parameterConfig) {
+          if (!$scope.stage.pipelineParameters) {
+            $scope.stage.pipelineParameters = {};
+          }
+          $scope.pipelineParameters = config.parameterConfig;
+          $scope.pipelineParameters.forEach(parameterConfig => {
+            if (
+              parameterConfig.default &&
+              parameterConfig.options &&
+              !parameterConfig.options.some(option => option.value === parameterConfig.default)
+            ) {
+              parameterConfig.options.unshift({ value: parameterConfig.default });
+            }
+          });
+          $scope.userSuppliedParameters = $scope.stage.pipelineParameters;
+
+          if ($scope.pipelineParameters) {
+            const acceptedPipelineParams = $scope.pipelineParameters.map(param => param.name);
+            $scope.invalidParameters = pickBy(
+              $scope.userSuppliedParameters,
+              (value, name) => !acceptedPipelineParams.includes(name),
+            );
+          }
+
+          $scope.hasInvalidParameters = () => Object.keys($scope.invalidParameters || {}).length;
+          $scope.useDefaultParameters = {};
+          _.each($scope.pipelineParameters, function(property) {
+            if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
+              $scope.useDefaultParameters[property.name] = true;
+            }
+          });
         } else {
           clearParams();
         }
