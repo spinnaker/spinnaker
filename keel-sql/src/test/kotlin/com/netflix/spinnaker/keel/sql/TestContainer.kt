@@ -14,7 +14,7 @@ private val mySQLContainer = MySQLContainerProvider()
   .newInstance("5.7.22")
   .withDatabaseName("keel")
   .withUsername("keel_service")
-  .withUsername("whatever")
+  .withPassword("whatever")
   .also { it.start() }
 
 @Suppress("UsePropertyAccessSyntax")
