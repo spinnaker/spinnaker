@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
 class KubernetesV2ProviderSynchronizableSpec extends Specification {

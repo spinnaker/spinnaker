@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import static lombok.EqualsAndHashCode.Include;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -191,12 +191,12 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
     private String getKubeconfigFile(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       if (StringUtils.isNotEmpty(managedAccount.getKubeconfigFile())) {
-        return configFileService.getLocalPath(managedAccount.getKubeconfigFile(), "kube", "config");
+        return configFileService.getLocalPath(managedAccount.getKubeconfigFile());
       }
 
       if (StringUtils.isNotEmpty(managedAccount.getKubeconfigContents())) {
         return configFileService.getLocalPathForContents(
-            managedAccount.getKubeconfigContents(), "kube", "config");
+            managedAccount.getKubeconfigContents(), managedAccount.getName());
       }
 
       return System.getProperty("user.home") + "/.kube/config";

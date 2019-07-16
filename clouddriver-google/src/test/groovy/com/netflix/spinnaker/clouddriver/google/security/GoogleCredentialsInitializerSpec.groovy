@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.security
 
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService
+
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
 class GoogleCredentialsInitializerSpec extends Specification {

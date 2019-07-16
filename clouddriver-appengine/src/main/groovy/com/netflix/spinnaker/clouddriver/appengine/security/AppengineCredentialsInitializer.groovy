@@ -19,9 +19,10 @@ package com.netflix.spinnaker.clouddriver.appengine.security
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService
+
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
 import org.springframework.context.annotation.Bean

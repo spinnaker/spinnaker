@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService
+
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.config.GoogleConfiguration.DeployDefaults
@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean

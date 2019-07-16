@@ -17,19 +17,14 @@
 package com.netflix.spinnaker.clouddriver.cache;
 
 import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider;
-import com.netflix.spinnaker.clouddriver.data.ConfigFileService;
 import com.netflix.spinnaker.clouddriver.refresh.CloudConfigRefreshScheduler;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import com.netflix.spinnaker.kork.configserver.autoconfig.RemoteConfigSourceConfigured;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.config.server.EnableConfigServer;
-import org.springframework.cloud.config.server.environment.EnvironmentRepository;
-import org.springframework.cloud.config.server.resource.ResourceRepository;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.context.annotation.*;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Create a {@link CloudConfigRefreshScheduler} to refresh the Spring Cloud Config Server from an
@@ -44,12 +39,6 @@ public class CloudConfigRefreshConfig {
   @EnableConfigServer
   static class RemoteConfigSourceConfiguration {
     @Bean
-    ConfigFileService configFileService(
-        ResourceRepository resourceRepository, EnvironmentRepository environmentRepository) {
-      return new ConfigFileService(resourceRepository, environmentRepository);
-    }
-
-    @Bean
     @ConditionalOnBean(DefaultAgentIntervalProvider.class)
     public CloudConfigRefreshScheduler intervalProviderConfigRefreshScheduler(
         ContextRefresher contextRefresher, DefaultAgentIntervalProvider agentIntervalProvider) {
@@ -62,35 +51,5 @@ public class CloudConfigRefreshConfig {
         ContextRefresher contextRefresher) {
       return new CloudConfigRefreshScheduler(contextRefresher, 60);
     }
-  }
-
-  @Configuration
-  static class DefaultConfiguration {
-    @Bean
-    @ConditionalOnMissingBean(ConfigFileService.class)
-    ConfigFileService configFileService() {
-      return new ConfigFileService();
-    }
-  }
-}
-
-class RemoteConfigSourceConfigured implements Condition {
-  @Override
-  public boolean matches(ConditionContext context, @NotNull AnnotatedTypeMetadata metadata) {
-    ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
-    if (beanFactory != null) {
-      return
-      // beans added via Spring Cloud Config profile activation
-      beanFactory.containsBean("defaultEnvironmentRepository")
-          || beanFactory.containsBean("vaultEnvironmentRepository")
-          || beanFactory.containsBean("jdbcEnvironmentRepository")
-          || beanFactory.containsBean("credhubEnvironmentRepository")
-          // beans added via composite Spring Cloud Config profile
-          || beanFactory.containsBean("git-env-repo0")
-          || beanFactory.containsBean("vault-env-repo0")
-          || beanFactory.containsBean("jdbc-env-repo0")
-          || beanFactory.containsBean("credhub-env-repo0");
-    }
-    return false;
   }
 }
