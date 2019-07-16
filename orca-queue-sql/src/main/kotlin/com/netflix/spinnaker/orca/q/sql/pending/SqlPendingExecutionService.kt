@@ -5,6 +5,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -86,6 +87,7 @@ class SqlPendingExecutionService(
                 isCanceled = true
                 canceledBy = "spinnaker"
                 cancellationReason = "Too many pending executions ($queued) for pipelineId"
+                status = ExecutionStatus.CANCELED
               }
             repository.store(execution)
           } catch (e: ExecutionNotFoundException) {
