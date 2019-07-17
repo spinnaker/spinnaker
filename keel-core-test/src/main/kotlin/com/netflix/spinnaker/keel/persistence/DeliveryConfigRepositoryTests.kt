@@ -9,8 +9,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -19,14 +17,17 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.succeeded
 
-abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUnit5Minutests {
+abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository> :
+  JUnit5Minutests {
 
-  abstract fun factory(resourceTypeIdentifier: ResourceTypeIdentifier): T
+  abstract fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): T
+  abstract fun createResourceRepository(): R
 
   open fun flush() {}
 
-  data class Fixture<T : DeliveryConfigRepository>(
-    val factory: (ResourceTypeIdentifier) -> T,
+  data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository>(
+    val deliveryConfigRepositoryProvider: (ResourceTypeIdentifier) -> T,
+    val resourceRepositoryProvider: () -> R,
     val deliveryConfig: DeliveryConfig = DeliveryConfig("keel", "keel")
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
@@ -40,7 +41,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
         }
       }
 
-    private val repository: T = factory(resourceTypeIdentifier)
+    private val repository: T = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
+    private val resourceRepository: R = resourceRepositoryProvider()
 
     fun getByName() = expectCatching {
       repository.get(deliveryConfig.name)
@@ -49,11 +51,20 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
     fun store() {
       repository.store(deliveryConfig)
     }
+
+    fun storeResources() {
+      deliveryConfig.environments.flatMap { it.resources }.forEach {
+        resourceRepository.store(it)
+      }
+    }
   }
 
-  fun tests() = rootContext<Fixture<T>>() {
+  fun tests() = rootContext<Fixture<T, R>>() {
     fixture {
-      Fixture(factory = this@DeliveryConfigRepositoryTests::factory)
+      Fixture(
+        deliveryConfigRepositoryProvider = this@DeliveryConfigRepositoryTests::createDeliveryConfigRepository,
+        resourceRepositoryProvider = this@DeliveryConfigRepositoryTests::createResourceRepository
+      )
     }
 
     after {
@@ -122,6 +133,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
       }
 
       before {
+        storeResources()
         store()
       }
 
@@ -144,25 +156,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository> : JUn
         getByName()
           .succeeded()
           .get { environments }.isEqualTo(deliveryConfig.environments)
-      }
-
-      SKIP - context("updating resources contained in the delivery config") {
-        deriveFixture {
-          // TODO: boy this is ugly
-          copy(
-            deliveryConfig = deliveryConfig.copy(
-              environments = setOf(deliveryConfig.environments.first().copy(
-                resources = deliveryConfig.environments.first().resources.map {
-                  (it as Resource<Map<String, Any?>>).copy(spec = randomData())
-                }.toSet()
-              )
-              ))
-          )
-        }
-
-        before {
-          store()
-        }
       }
     }
   }

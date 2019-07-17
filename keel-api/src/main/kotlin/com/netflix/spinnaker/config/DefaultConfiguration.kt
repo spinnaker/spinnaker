@@ -23,7 +23,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-import org.springframework.core.Ordered
+import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import java.time.Clock
 
 @EnableFiatAutoConfig
@@ -52,10 +52,9 @@ class DefaultConfiguration {
   @Bean
   @ConditionalOnMissingBean
   fun deliveryConfigRepository(
-    resourceRepository: ResourceRepository,
     artifactRepository: ArtifactRepository
   ): DeliveryConfigRepository =
-    InMemoryDeliveryConfigRepository(resourceRepository, artifactRepository)
+    InMemoryDeliveryConfigRepository(artifactRepository)
 
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
@@ -76,9 +75,7 @@ class DefaultConfiguration {
     }
 
   @Bean
-  fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> {
-    val frb = FilterRegistrationBean(AuthenticatedRequestFilter(true))
-    frb.order = Ordered.HIGHEST_PRECEDENCE
-    return frb
-  }
+  fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =
+    FilterRegistrationBean(AuthenticatedRequestFilter(true))
+      .apply { order = HIGHEST_PRECEDENCE }
 }

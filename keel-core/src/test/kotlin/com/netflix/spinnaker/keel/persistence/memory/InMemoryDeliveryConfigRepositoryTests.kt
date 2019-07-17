@@ -3,11 +3,13 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 
-internal class InMemoryDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<InMemoryDeliveryConfigRepository>() {
+internal class InMemoryDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<InMemoryDeliveryConfigRepository, InMemoryResourceRepository>() {
 
-  val resourceRepository = InMemoryResourceRepository()
-  val artifactRepository = InMemoryArtifactRepository()
+  private val artifactRepository = InMemoryArtifactRepository()
 
-  override fun factory(resourceTypeIdentifier: ResourceTypeIdentifier): InMemoryDeliveryConfigRepository =
-    InMemoryDeliveryConfigRepository(resourceRepository, artifactRepository)
+  override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): InMemoryDeliveryConfigRepository =
+    InMemoryDeliveryConfigRepository(artifactRepository)
+
+  override fun createResourceRepository(): InMemoryResourceRepository =
+    InMemoryResourceRepository()
 }

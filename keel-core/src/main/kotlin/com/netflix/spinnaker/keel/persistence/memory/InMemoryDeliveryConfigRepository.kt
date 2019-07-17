@@ -1,14 +1,11 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 
 class InMemoryDeliveryConfigRepository(
-  private val resourceRepository: ResourceRepository,
   private val artifactRepository: ArtifactRepository
 ) : DeliveryConfigRepository {
   private val configs = mutableMapOf<String, DeliveryConfig>()
@@ -24,7 +21,6 @@ class InMemoryDeliveryConfigRepository(
           artifactRepository.register(it)
         }
       }
-      environments.flatMap(Environment::resources).forEach(resourceRepository::store)
     }
   }
 }

@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -61,15 +60,6 @@ class SqlDeliveryConfigRepository(
             .onDuplicateKeyIgnore()
             .execute()
           environment.resources.forEach { resource ->
-            insertInto(RESOURCE)
-              .set(RESOURCE.UID, resource.uid.toString())
-              .set(RESOURCE.API_VERSION, resource.apiVersion.toString())
-              .set(RESOURCE.KIND, resource.kind)
-              .set(RESOURCE.NAME, resource.name.value)
-              .set(RESOURCE.METADATA, mapper.writeValueAsString(resource.metadata))
-              .set(RESOURCE.SPEC, mapper.writeValueAsString(resource.spec))
-              .onDuplicateKeyIgnore()
-              .execute()
             insertInto(ENVIRONMENT_RESOURCE)
               .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
               .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, resource.uid.toString())

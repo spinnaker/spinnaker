@@ -2,15 +2,20 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import org.junit.jupiter.api.AfterAll
+import java.time.Clock
 
-internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository>() {
+internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
 
-  override fun factory(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository {
-    return SqlDeliveryConfigRepository(jooq, resourceTypeIdentifier)
+  override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
+    SqlDeliveryConfigRepository(jooq, resourceTypeIdentifier)
+
+  override fun createResourceRepository(): SqlResourceRepository {
+    return SqlResourceRepository(jooq, Clock.systemDefaultZone(), configuredObjectMapper())
   }
 
   override fun flush() {
