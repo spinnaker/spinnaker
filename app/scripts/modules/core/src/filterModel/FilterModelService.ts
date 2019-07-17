@@ -47,25 +47,18 @@ export class FilterModelService {
 
   // Maps router param values to sortFilter values, applying known default values if the parameter is missing
   public static mapRouterParamsToSortFilter(filterModel: IFilterModel, params: any) {
-    const getValueIfNill = (filterType: string) => {
-      switch (filterType) {
-        case 'trueKeyObject':
-          return {};
-        case 'string':
-          return '';
-        case 'boolean':
-          return false;
-        case 'inverse-boolean':
-          return true;
-      }
-      return undefined;
+    const filterTypeDefaults: { [key: string]: any } = {
+      trueKeyObject: {},
+      string: '',
+      boolean: false,
+      'inverse-boolean': true,
     };
 
     const iFilterConfigs = filterModel.config;
 
     return iFilterConfigs.reduce(
       (acc, filter) => {
-        const valueIfNil = getValueIfNill(filter.type);
+        const valueIfNil = filterTypeDefaults[filter.type];
         const rawValue = params[filter.param];
         const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
         // Clone deep so angularjs mutations happen on a different object reference
