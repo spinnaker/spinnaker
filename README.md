@@ -22,3 +22,16 @@ To start the JVM in debug mode, set the Java system property `DEBUG=true`:
 The JVM will then listen for a debugger to be attached on port 8191.  The JVM will _not_ wait for the debugger
 to be attached before starting Kayenta; the relevant JVM arguments can be seen and modified as needed in `build.gradle`.
 
+### Running Standalone Kayenta Locally
+
+You can run a standalone kayenta instance locally with docker compose.
+
+```
+# Copy and edit example config to edit to your needs
+cp kayenta-web/config/kayenta.yml ~/.spinnaker/kayenta.yml
+
+# Build/Start Kayenta
+docker-compose up
+```
+
+You should then be able to access your local kayenta instance at http://localhost:8090/swagger-ui.html

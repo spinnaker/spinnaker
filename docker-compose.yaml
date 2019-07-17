@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  redis:
+    image: redis:latest
+  kayenta:
+    build: .
+    ports:
+      - 8090:8090
+    volumes:
+      - "~/.spinnaker/kayenta.yml:/opt/kayenta/config/kayenta.yml"
+    depends_on:
+      - redis
