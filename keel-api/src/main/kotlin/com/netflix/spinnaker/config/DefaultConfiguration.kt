@@ -3,13 +3,18 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.supporting
+import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
@@ -45,12 +50,30 @@ class DefaultConfiguration {
   fun artifactRepository(): ArtifactRepository = InMemoryArtifactRepository()
 
   @Bean
+  @ConditionalOnMissingBean
+  fun deliveryConfigRepository(
+    resourceRepository: ResourceRepository,
+    artifactRepository: ArtifactRepository
+  ): DeliveryConfigRepository =
+    InMemoryDeliveryConfigRepository(resourceRepository, artifactRepository)
+
+  @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
   @ConditionalOnMissingBean(ResolvableResourceHandler::class)
   fun noResourcePlugins(): List<ResolvableResourceHandler<*, *>> = emptyList()
+
+  @Bean
+  fun resourceTypeIdentifier(
+    handlers: List<ResolvableResourceHandler<*, *>>
+  ): ResourceTypeIdentifier =
+    object : ResourceTypeIdentifier {
+      override fun identify(apiVersion: ApiVersion, kind: String): Class<*> {
+        return handlers.supporting(apiVersion, kind).supportedKind.second
+      }
+    }
 
   @Bean
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> {

@@ -59,15 +59,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   data class Fixture<T : ResourceRepository>(
     val subject: T,
-    val callback: (ResourceHeader) -> Unit
+    val callback: (ResourceHeader) -> Unit = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
   )
 
   fun tests() = rootContext<Fixture<T>> {
     fixture {
-      Fixture(
-        subject = factory(clock),
-        callback = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
-      )
+      Fixture(subject = factory(clock))
     }
 
     after { confirmVerified(callback) }

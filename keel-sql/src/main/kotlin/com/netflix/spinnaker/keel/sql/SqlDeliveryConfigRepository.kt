@@ -18,12 +18,13 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
+import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
 
 class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
-  private val resourceTypeIdentifier: (String) -> Class<*>
+  private val resourceTypeIdentifier: ResourceTypeIdentifier
 ) : DeliveryConfigRepository {
 
   private val mapper = configuredObjectMapper()
@@ -125,7 +126,7 @@ class SqlDeliveryConfigRepository(
                       ApiVersion(apiVersion),
                       kind,
                       mapper.readValue(metadata),
-                      mapper.readValue(spec, resourceTypeIdentifier(kind))
+                      mapper.readValue(spec, resourceTypeIdentifier.identify(ApiVersion(apiVersion), kind))
                     )
                   }
                   .let { resources ->

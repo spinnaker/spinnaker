@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
@@ -63,6 +64,9 @@ class KeelApplication {
   lateinit var resourceRepository: ResourceRepository
 
   @Autowired
+  lateinit var deliveryConfigRepository: DeliveryConfigRepository
+
+  @Autowired
   lateinit var resourceVersionTracker: ResourceVersionTracker
 
   @Autowired
@@ -76,6 +80,7 @@ class KeelApplication {
     sequenceOf(
       ArtifactRepository::class to artifactRepository.javaClass,
       ResourceRepository::class to resourceRepository.javaClass,
+      DeliveryConfigRepository::class to deliveryConfigRepository.javaClass,
       ResourceVersionTracker::class to resourceVersionTracker.javaClass,
       InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
