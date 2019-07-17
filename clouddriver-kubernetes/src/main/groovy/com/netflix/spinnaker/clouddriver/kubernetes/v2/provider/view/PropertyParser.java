@@ -40,6 +40,11 @@ public class PropertyParser {
       if (MAGIC_SEARCH_PATTERN.matcher(line).find()) {
         log.debug("Identified: " + line);
         String[] splittedLine = line.split("=");
+        // if the split line doesn't match our expected length it cannot
+        // be parsed so we should skip it.
+        if (splittedLine.length != 2) {
+          continue;
+        }
         final String key = splittedLine[0].replaceFirst(MAGIC_SEARCH_STRING, "").toLowerCase();
         final String value = splittedLine[1].trim();
         log.debug(key + ":" + value);

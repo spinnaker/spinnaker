@@ -80,4 +80,14 @@ class PropertyParserSpec extends Specification {
         then:
         properties.size() == 0
     }
+
+    def "Does not attempt to parse properties with empty values"() {
+      String buildLog = "SPINNAKER_PROPERTY_FOO="
+
+      when:
+      Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+      then:
+      properties.size() == 0
+    }
 }
