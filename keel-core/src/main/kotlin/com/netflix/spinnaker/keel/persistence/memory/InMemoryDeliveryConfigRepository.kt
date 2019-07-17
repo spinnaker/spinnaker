@@ -23,4 +23,8 @@ class InMemoryDeliveryConfigRepository(
       }
     }
   }
+
+  fun dropAll() {
+    configs.clear()
+  }
 }
