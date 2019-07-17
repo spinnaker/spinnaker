@@ -57,7 +57,7 @@ class WebhookService {
     )
     HttpHeaders headers = buildHttpHeaders(customHeaders)
     HttpEntity<Object> payloadEntity = new HttpEntity<>(payload, headers)
-    return restTemplateProvider.getRestTemplate().exchange(validatedUri, httpMethod, payloadEntity, Object)
+    return restTemplateProvider.getRestTemplate(url).exchange(validatedUri, httpMethod, payloadEntity, Object)
   }
 
   ResponseEntity<Object> getStatus(String url, Object customHeaders) {

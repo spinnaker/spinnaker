@@ -35,5 +35,5 @@ public interface RestTemplateProvider {
   }
 
   /** @return a configured {@code RestTemplate} */
-  RestTemplate getRestTemplate();
+  RestTemplate getRestTemplate(String targetUrl);
 }

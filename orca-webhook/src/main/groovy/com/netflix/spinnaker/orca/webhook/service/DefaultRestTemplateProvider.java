@@ -37,7 +37,7 @@ public class DefaultRestTemplateProvider implements RestTemplateProvider {
   }
 
   @Override
-  public RestTemplate getRestTemplate() {
+  public RestTemplate getRestTemplate(String targetUrl) {
     return restTemplate;
   }
 }
