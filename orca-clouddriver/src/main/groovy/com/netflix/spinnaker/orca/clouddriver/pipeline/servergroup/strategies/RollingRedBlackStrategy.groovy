@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -40,7 +40,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   final String name = "rollingredblack"
 
   @Autowired
-  DisableClusterStage disableClusterStage
+  DisableServerGroupStage disableServerGroupStage
 
   @Autowired
   ResizeServerGroupStage resizeServerGroupStage
@@ -185,17 +185,16 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       // only generate the "disable p% of traffic" stages if we have something to disable
       if (source) {
         def disableContext = baseContext + [
-          desiredPercentage           : p,
-          remainingEnabledServerGroups: 1,
-          preferLargerOverNewer       : false
+          desiredPercentage : p,
+          serverGroupName   : source.serverGroupName
         ]
 
         log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext [executionId=${stage.execution.id}]")
 
         stages << newStage(
           stage.execution,
-          disableClusterStage.type,
-          "Disable $p% of Traffic",
+          disableServerGroupStage.type,
+          "Disable $p% of Traffic on ${source.serverGroupName}",
           disableContext,
           stage,
           SyntheticStageOwner.STAGE_AFTER

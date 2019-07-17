@@ -31,7 +31,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -82,7 +81,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
                                                   clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
       if (stage.context.continueIfClusterNotFound) {
-        return TaskResult.SUCCEEDED;
+        return TaskResult.SUCCEEDED
       }
       return missingClusterResult(stage, clusterSelection)
     }
@@ -92,7 +91,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
 
     if (!serverGroups) {
       if (stage.context.continueIfClusterNotFound) {
-        return TaskResult.SUCCEEDED;
+        return TaskResult.SUCCEEDED
       }
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }

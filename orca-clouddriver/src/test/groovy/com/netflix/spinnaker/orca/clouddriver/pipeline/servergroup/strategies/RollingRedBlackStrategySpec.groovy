@@ -3,8 +3,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
-import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
@@ -24,7 +24,7 @@ class RollingRedBlackStrategySpec extends Specification {
   def config = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
   def dynamicConfigService = Mock(DynamicConfigService)
   def trafficGuard = Mock(TrafficGuard)
-  def disableClusterStage = new DisableClusterStage(trafficGuard, config, dynamicConfigService)
+  def disableServerGroupStage = new DisableServerGroupStage(dynamicConfigService)
   def scaleDownClusterStage = new ScaleDownClusterStage(trafficGuard, config, dynamicConfigService)
   def resizeServerGroupStage = new ResizeServerGroupStage()
   def waitStage = new WaitStage()
@@ -86,7 +86,7 @@ class RollingRedBlackStrategySpec extends Specification {
 
     def strat = new RollingRedBlackStrategy(
       scaleDownClusterStage: scaleDownClusterStage,
-      disableClusterStage: disableClusterStage,
+      disableServerGroupStage: disableServerGroupStage,
       resizeServerGroupStage: resizeServerGroupStage,
       waitStage: waitStage,
       pipelineStage: pipelineStage,
