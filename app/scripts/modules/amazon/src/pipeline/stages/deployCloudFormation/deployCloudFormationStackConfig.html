@@ -47,48 +47,25 @@
       command="stage"
     >
     </cloud-formation-template-entry>
-    <stage-config-field
-      label="Expected Artifact"
-      help-key="aws.cloudformation.expectedArtifact"
-      field-columns="8"
+    <stage-artifact-selector-delegate
       ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+      artifact="stage.stackArtifact"
+      excluded-artifact-type-patterns="[]"
+      expected-artifact-id="stage.stackArtifactId"
+      field-columns="8"
+      help-key="'aws.cloudformation.expectedArtifact'"
+      label="'Expected Artifact'"
+      on-artifact-edited="ctrl.onStackArtifactEdited"
+      on-expected-artifact-selected="ctrl.onStackArtifactSelected"
+      pipeline="pipeline"
+      selected-artifact-account="stage.stackArtifactAccount"
+      selected-artifact-id="stage.stackArtifactId"
+      set-artifact-account="ctrl.onStackArtifactAccountSelected"
+      set-artifact-id="ctrl.onChangeStackArtifactId"
+      stage="stage"
+      update-pipeline="ctrl.updatePipeline"
     >
-      <expected-artifact-selector-react
-        expected-artifacts="ctrl.$scope.expectedArtifacts"
-        selected="ctrl.cloudFormationStackArtifactDelegate.getSelectedExpectedArtifact()"
-        on-change="ctrl.cloudFormationStackArtifactController.onArtifactChange"
-        on-request-create="ctrl.cloudFormationStackArtifactController.onRequestCreate"
-        excluded-artifact-types="ctrl.cloudFormationStackArtifactDelegate.getExcludedArtifactTypes()"
-        requesting-new="ctrl.$scope.showCreateArtifactForm"
-      >
-      </expected-artifact-selector-react>
-    </stage-config-field>
-    <stage-config-field label="Artifact Account" field-columns="8" ng-if="ctrl.canShowAccountSelect()">
-      <artifact-account-selector-react
-        accounts="ctrl.cloudFormationStackArtifactController.accountsForArtifact"
-        selected="ctrl.cloudFormationStackArtifactDelegate.getSelectedAccount()"
-        on-change="ctrl.cloudFormationStackArtifactController.onAccountChange"
-      >
-      </artifact-account-selector-react>
-    </stage-config-field>
-    <expected-artifact-editor-react
-      ng-if="stage.source === ctrl.artifactSource && ctrl.$scope.showCreateArtifactForm"
-      kinds="ctrl.cloudFormationStackArtifactDelegate.getSupportedArtifactKinds()"
-      sources="ctrl.cloudFormationStackArtifactDelegate.getExpectedArtifactSources()"
-      accounts="ctrl.cloudFormationStackArtifactDelegate.getExpectedArtifactAccounts()"
-      on-save="ctrl.cloudFormationStackArtifactController.onArtifactCreated"
-    >
-    </expected-artifact-editor-react>
-    <expected-artifact-multi-selector
-      ng-if="stage.source === ctrl.artifactSource && ctrl.$scope.showCreateArtifactForm"
-      command="ctrl.$scope.stage"
-      ids-field="requiredArtifactIds"
-      artifact-label="Req. Artifacts To Bind"
-      expected-artifacts="ctrl.$scope.expectedArtifacts"
-      help-field-key="amazon.cloudformation.requiredArtifactsToBind"
-      show-icons="true"
-    >
-    </expected-artifact-multi-selector>
+    </stage-artifact-selector-delegate>
     <hr />
     <stage-config-field label="Parameters" field-columns="6">
       <map-editor model="ctrl.$scope.stage.parameters" add-button-label="Add parameter"></map-editor>
