@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
@@ -42,7 +42,7 @@ public class ResizeStrategySupport {
                                          StageData stageData,
                                          Map baseContext) {
     if (StageData.EMPTY_SOURCE.equals(stageData.source)) {
-      return null;
+      return null
     }
 
     if (stageData.source) {

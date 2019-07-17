@@ -37,8 +37,6 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
-import javax.annotation.Nonnull
-
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup.Support.locationFromStageData
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage

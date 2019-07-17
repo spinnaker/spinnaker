@@ -338,21 +338,59 @@ public class Stage implements Serializable {
     return tasks.stream().filter(it -> it.getId().equals(taskId)).findFirst().orElse(null);
   }
 
-  /** Gets all ancestor stages, including the current stage. */
+  /**
+   * Gets all ancestor stages, including the current stage.
+   *
+   * <p>Ancestors include: <br>
+   * - stages this stage depends on (via requisiteStageRefIds) <br>
+   * - parent stages of this stage <br>
+   * - synthetic stages that share a parent with this stage & occur prior to current stage <br>
+   */
   public List<Stage> ancestors() {
     if (execution != null) {
       Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
-      return ImmutableList.<Stage>builder().add(this).addAll(ancestorsOnly(visited)).build();
+      return ImmutableList.<Stage>builder()
+          .add(this)
+          .addAll(getAncestorsImpl(visited, false))
+          .build();
     } else {
       return emptyList();
     }
   }
 
-  private List<Stage> ancestorsOnly(Set<String> visited) {
+  /**
+   * Gets all ancestor stages that are direct parents, including the current stage.
+   *
+   * <p>Ancestors include: <br>
+   * - parent stages of this stage <br>
+   * - synthetic stages that share a parent with this stage & occur prior to current stage
+   */
+  public List<Stage> directAncestors() {
+    if (execution != null) {
+      Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
+      return ImmutableList.<Stage>builder()
+          .add(this)
+          .addAll(getAncestorsImpl(visited, true))
+          .build();
+    } else {
+      return emptyList();
+    }
+  }
+
+  /**
+   * Worker method to get the list of all ancestors (parents and, optionally, prerequisite stages)
+   * of the current stage.
+   *
+   * @param visited list of visited nodes
+   * @param directParentOnly true to only include direct parents of the stage, false to also include
+   *     stages this stage depends on (via requisiteRefIds)
+   * @return list of ancestor stages
+   */
+  private List<Stage> getAncestorsImpl(Set<String> visited, boolean directParentOnly) {
     visited.add(this.refId);
 
-    if (!requisiteStageRefIds.isEmpty()) {
-      // Get parent stages, but exclude already visited ones.
+    if (!requisiteStageRefIds.isEmpty() && !directParentOnly) {
+      // Get stages this stage depends on via requisiteStageRefIds:
       List<Stage> previousStages =
           execution.getStages().stream()
               .filter(it -> requisiteStageRefIds.contains(it.refId))
@@ -371,10 +409,12 @@ public class Stage implements Serializable {
           .addAll(syntheticStages)
           .addAll(
               previousStages.stream()
-                  .flatMap(it -> it.ancestorsOnly(visited).stream())
+                  .flatMap(it -> it.getAncestorsImpl(visited, directParentOnly).stream())
                   .collect(toList()))
           .build();
     } else if (parentStageId != null && !visited.contains(parentStageId)) {
+      // Get parent stages, but exclude already visited ones:
+
       List<Stage> ancestors = new ArrayList<>();
       if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
         ancestors.addAll(
@@ -394,7 +434,7 @@ public class Stage implements Serializable {
                   parent ->
                       ImmutableList.<Stage>builder()
                           .add(parent)
-                          .addAll(parent.ancestorsOnly(visited))
+                          .addAll(parent.getAncestorsImpl(visited, directParentOnly))
                           .build())
               .orElse(emptyList()));
 
@@ -405,9 +445,16 @@ public class Stage implements Serializable {
   }
 
   /**
-   * Computes all ancestor stages, including those of parent pipelines
+   * Find the ancestor stage that satisfies the given predicate (including traversing the parent
+   * execution graphs)
    *
-   * @return list of ancestor stages
+   * <p>Ancestor stages include: <br>
+   * - stages this stage depends on (via requisiteStageRefIds) <br>
+   * - parent stages of this stage <br>
+   * - synthetic stages that share a parent with this stage & occur prior to current stage <br>
+   * - stages in parent execution that satisfy above criteria <br>
+   *
+   * @return the first stage that matches the predicate, or null
    */
   public Stage findAncestor(Predicate<Stage> predicate) {
     return Stage.findAncestor(this, this.execution, predicate);

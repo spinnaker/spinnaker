@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -159,7 +160,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       }
       def pipeline = executionRepository.retrieve(PIPELINE, pipelineStage.context.executionId as String)
       deployStage = pipeline.stages.find {
-        it.context.type == "createServerGroup" && it.context.containsKey("deploy.server.groups")
+        it.context.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE && it.context.containsKey("deploy.server.groups")
       }
     }
 

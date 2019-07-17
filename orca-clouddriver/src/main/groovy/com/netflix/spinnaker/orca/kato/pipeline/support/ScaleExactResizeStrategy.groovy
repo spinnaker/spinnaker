@@ -54,18 +54,21 @@ class ScaleExactResizeStrategy implements ResizeStrategy {
   }
 
   static Capacity mergeConfiguredCapacityWithCurrent(Capacity configured, Capacity current) {
-    boolean minConfigured = configured.min != null;
-    boolean desiredConfigured = configured.desired != null;
-    boolean maxConfigured = configured.max != null;
+    boolean minConfigured = configured.min != null
+    boolean desiredConfigured = configured.desired != null
+    boolean maxConfigured = configured.max != null
+
     Capacity result = new Capacity(
       min: minConfigured ? configured.min : current.min,
     )
+
     if (maxConfigured) {
       result.max = configured.max
       result.min = Math.min(result.min, configured.max)
     } else {
       result.max = Math.max(result.min, current.max)
     }
+
     if (desiredConfigured) {
       result.desired = configured.desired
     } else {
