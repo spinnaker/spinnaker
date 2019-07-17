@@ -73,7 +73,7 @@ public class NodeIdentity {
         try {
           socket = new Socket();
           socket.bind(new InetSocketAddress(address, 0));
-          socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
+          socket.connect(new InetSocketAddress(validationHost, validationPort), 500);
           return address.getHostName();
         } catch (IOException ignored) {
           // ignored
