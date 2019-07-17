@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InfluxDbQueryBuilder {
   
   private static final String ALL_FIELDS = "*::field";
-  private static final String SCOPE_INVALID_FORMAT_MSG = "Scope expected in the format of 'name:value'. e.g. autoscaling_group:myapp-prod-v002";
+  private static final String SCOPE_INVALID_FORMAT_MSG = "Scope expected in the format of 'name:value'. e.g. autoscaling_group:myapp-prod-v002, received: ";
 
   //TODO(joerajeev): update to accept tags and groupby fields
   //TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params, https://docs.influxdata.com/influxdb/v1.5/tools/api/
@@ -46,9 +46,10 @@ public class InfluxDbQueryBuilder {
     addBaseQuery(queryConfig.getMetricName(), handleFields(queryConfig), query);
     addTimeRangeFilter(canaryScope, query);
     addScopeFilter(canaryScope, query);
-    
-    log.debug("Built query: {}", query.toString());
-    return query.toString();
+
+    String builtQuery = query.toString();
+    log.debug("Built query: {} config: {} scope: {}", builtQuery, queryConfig, canaryScope);
+    return builtQuery;
   }
 
   private void validateManadtoryParams(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
@@ -92,11 +93,11 @@ public class InfluxDbQueryBuilder {
 
   private String[] validateAndExtractScope(String scope) {
     if (!scope.contains(":")) {
-      throw new IllegalArgumentException(SCOPE_INVALID_FORMAT_MSG);
+      throw new IllegalArgumentException(SCOPE_INVALID_FORMAT_MSG + scope);
     }
     String[] scopeParts = scope.split(":");
     if (scopeParts.length != 2) {
-      throw new IllegalArgumentException(SCOPE_INVALID_FORMAT_MSG);
+      throw new IllegalArgumentException(SCOPE_INVALID_FORMAT_MSG + scope);
     }
     return scopeParts;
   }

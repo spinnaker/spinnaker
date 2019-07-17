@@ -120,6 +120,12 @@ kayenta:
 #    endpoint:
 #      baseUrl: http://remotejudge.example.com/path/to/service
 
+# Retry configuration for metrics fetching from metrics storage (see: MetricsRetryConfigurationProperties)
+  metrics:
+    retry:
+      series: SERVER_ERROR
+      statuses: REQUEST_TIMEOUT, TOO_MANY_REQUESTS
+      attempts: 10
 
 management.endpoints.web.exposure.include: '*'
 management.endpoint.health.show-details: always

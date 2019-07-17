@@ -24,6 +24,7 @@ import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MapBackedMetricsServiceRepository;
 import com.netflix.kayenta.metrics.MetricSetMixerService;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
+import com.netflix.kayenta.metrics.MetricsRetryConfigurationProperties;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +56,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
   "com.netflix.kayenta.persistence.config",
   "com.netflix.kayenta.retrofit.config"
 })
+@EnableConfigurationProperties(MetricsRetryConfigurationProperties.class)
 public class KayentaConfiguration {
 
   @Bean
