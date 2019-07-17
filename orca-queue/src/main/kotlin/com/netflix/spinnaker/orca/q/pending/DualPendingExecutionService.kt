@@ -70,6 +70,7 @@ class DualPendingExecutionService(
     val message = previous.popOldest(pipelineConfigId)
     return if (message != null) {
       registry.counter(hitFromSecondaryId).increment()
+      log.debug("Found message from previous PendingExecutionService (${previous.javaClass}) for $pipelineConfigId")
       message
     } else {
       primary.popOldest(pipelineConfigId)
