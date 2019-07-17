@@ -2,11 +2,17 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -28,7 +34,9 @@ import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -57,9 +65,80 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var resourceRepository: InMemoryResourceRepository
 
-  fun tests() = rootContext<ResultActions> {
-    val yamlPayload =
-      """---
+  @Autowired
+  lateinit var resourcePersister: ResourcePersister
+
+  fun tests() = rootContext {
+    after {
+      deliveryConfigRepository.dropAll()
+      resourceRepository.dropAll()
+    }
+
+    context("getting a delivery config manifest") {
+      before {
+        deliveryConfigRepository.store(
+          DeliveryConfig(
+            name = "keel-manifest",
+            application = "keel",
+            artifacts = setOf(DeliveryArtifact(
+              name = "keel",
+              type = DEB
+            )),
+            environments = setOf(
+              Environment(
+                name = "test",
+                resources = setOf(Resource(
+                  apiVersion = SPINNAKER_API_V1.subApi("test"),
+                  kind = "whatever",
+                  metadata = mapOf(
+                    "uid" to randomUID(),
+                    "name" to "resource-in-test",
+                    "serviceAccount" to "keel@spinnaker"
+                  ),
+                  spec = "resource in test"
+                ))
+              ),
+              Environment(
+                name = "prod",
+                resources = setOf(Resource(
+                  apiVersion = SPINNAKER_API_V1.subApi("test"),
+                  kind = "whatever",
+                  metadata = mapOf(
+                    "uid" to randomUID(),
+                    "name" to "resource-in-prod",
+                    "serviceAccount" to "keel@spinnaker"
+                  ),
+                  spec = "resource in prod"
+                ))
+              )
+            )
+          )
+        )
+      }
+
+      setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { contentType ->
+        derivedContext<ResultActions>("getting a delivery config as $contentType") {
+          fixture {
+            val request = get("/delivery-configs/keel-manifest")
+              .accept(contentType)
+
+            mvc.perform(request)
+          }
+
+          test("the request is successful") {
+            andExpect(status().isOk)
+          }
+
+          test("the response content type is correct") {
+            andExpect(content().contentTypeCompatibleWith(contentType))
+          }
+        }
+      }
+    }
+
+    context("submitting a delivery config manifest") {
+      val yamlPayload =
+        """---
         |name: keel-manifest
         |application: keel
         |artifacts:
@@ -81,10 +160,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      serviceAccount: keel@spinnaker
         |    spec: resource in prod
         |"""
-        .trimMargin()
+          .trimMargin()
 
-    val jsonPayload =
-      """{
+      val jsonPayload =
+        """{
         |  "name": "keel-manifest",
         |  "application": "keel",
         |  "artifacts": [
@@ -122,38 +201,34 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |    }
         |  ]
         |}"""
-        .trimMargin()
+          .trimMargin()
 
-    mapOf(
-      APPLICATION_YAML to yamlPayload,
-      APPLICATION_JSON to jsonPayload
-    ).forEach { (contentType, payload) ->
-      context("persisting a delivery config as YAML") {
-        fixture {
-          val request = post("/delivery-configs")
-            .accept(contentType)
-            .contentType(contentType)
-            .content(payload)
+      mapOf(
+        APPLICATION_YAML to yamlPayload,
+        APPLICATION_JSON to jsonPayload
+      ).forEach { (contentType, payload) ->
+        derivedContext<ResultActions>("persisting a delivery config as $contentType") {
+          fixture {
+            val request = post("/delivery-configs")
+              .accept(contentType)
+              .contentType(contentType)
+              .content(payload)
 
-          mvc.perform(request)
-        }
+            mvc.perform(request)
+          }
 
-        after {
-          deliveryConfigRepository.dropAll()
-          resourceRepository.dropAll()
-        }
+          test("the request is successful") {
+            andExpect(status().isOk)
+          }
 
-        test("the request is successful") {
-          andExpect(status().isOk)
-        }
+          test("the manifest is persisted") {
+            expectCatching { deliveryConfigRepository.get("keel-manifest") }
+              .succeeded()
+          }
 
-        test("the manifest is persisted") {
-          expectCatching { deliveryConfigRepository.get("keel-manifest") }
-            .succeeded()
-        }
-
-        test("each individual resource is persisted") {
-          expectThat(resourceRepository.size()).isEqualTo(2)
+          test("each individual resource is persisted") {
+            expectThat(resourceRepository.size()).isEqualTo(2)
+          }
         }
       }
     }

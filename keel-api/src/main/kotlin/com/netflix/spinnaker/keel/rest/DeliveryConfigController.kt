@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -41,6 +43,13 @@ class DeliveryConfigController(
       .also {
         deliveryConfigRepository.store(it)
       }
+
+  @GetMapping(
+    path = ["/{name}"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun get(@PathVariable("name") name: String): DeliveryConfig =
+    deliveryConfigRepository.get(name)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
