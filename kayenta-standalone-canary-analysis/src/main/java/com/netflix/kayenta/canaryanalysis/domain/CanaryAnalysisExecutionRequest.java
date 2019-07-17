@@ -72,9 +72,9 @@ public class CanaryAnalysisExecutionRequest {
   @ApiModelProperty(value =
       "If this optional value is supplied, then the canary analysis execution will perform judgements on a sliding time window. " +
       "The judgements will be from endTime - lookbackMins to startTime + (judgementNumber * interval). " +
-      "If lookbackMins is not exactly equal to interval, then the metrics analyzed will be overlapping or discontiguous.\n" +
+      "If lookbackMins is not exactly equal to interval, then the metrics analyzed will be overlapping or discontinuous.\n" +
       "If this field is omitted, the judgements will be performed on a growing time window, " +
-      "from startTime + (judgementNumber - 1 * interval) to startTime + (judgementNumber * interval).\n")
+      "from startTime + to startTime + (judgementNumber * interval).\n")
   private Long lookbackMins = 0L;
 
   @ApiModelProperty(value =

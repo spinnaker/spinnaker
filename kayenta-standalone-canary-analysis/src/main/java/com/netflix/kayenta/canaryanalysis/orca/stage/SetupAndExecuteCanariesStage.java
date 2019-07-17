@@ -221,7 +221,7 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
   }
 
   /**
-   * Calculates the start and end timestamps that will be used when quering the metrics sources when doing the
+   * Calculates the start and end timestamps that will be used when querying the metrics sources when doing the
    * canary judgements for each judgement interval.
    *
    * @param judgementNumber The judgement number / index for the canary analysis execution
