@@ -21,6 +21,7 @@ apply plugin: 'spinnaker.project'
 apply plugin: 'nebula.ospackage'
 apply plugin: 'com.moowork.node'
 apply plugin: 'java'
+apply plugin: 'com.github.hierynomus.license'
 
 jar {
   dependsOn('webpack')
@@ -124,4 +125,10 @@ buildRpm {
 
 buildDeb {
   requires('apache2', '2.4.7', Flags.GREATER | Flags.EQUAL)
+}
+
+allprojects {
+  downloadLicenses {
+      includeProjectDependencies = true
+  }
 }
