@@ -17,7 +17,6 @@
 package com.netflix.kayenta.influxdb.security;
 
 import java.util.Optional;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -25,7 +24,8 @@ import lombok.Data;
 @Data
 public class InfluxdbCredentials {
   private static String applicationVersion =
-    Optional.ofNullable(InfluxdbCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(InfluxdbCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 
   private String dbName;
 }

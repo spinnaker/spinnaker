@@ -21,6 +21,8 @@ import com.netflix.kayenta.google.security.GoogleJsonCredentials;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import java.io.IOException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,9 +31,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.util.List;
 
 @Configuration
 @ConditionalOnProperty("kayenta.google.enabled")
@@ -46,28 +45,34 @@ public class GoogleConfiguration {
   }
 
   @Bean
-  boolean registerGoogleCredentials(GoogleConfigurationProperties googleConfigurationProperties,
-                                    AccountCredentialsRepository accountCredentialsRepository) throws IOException {
+  boolean registerGoogleCredentials(
+      GoogleConfigurationProperties googleConfigurationProperties,
+      AccountCredentialsRepository accountCredentialsRepository)
+      throws IOException {
     for (GoogleManagedAccount googleManagedAccount : googleConfigurationProperties.getAccounts()) {
       String name = googleManagedAccount.getName();
       String project = googleManagedAccount.getProject();
       List<AccountCredentials.Type> supportedTypes = googleManagedAccount.getSupportedTypes();
 
-      log.info("Registering Google account {} for project {} with supported types {}.", name, project, supportedTypes);
+      log.info(
+          "Registering Google account {} for project {} with supported types {}.",
+          name,
+          project,
+          supportedTypes);
 
       try {
         String jsonKey = googleManagedAccount.getJsonKey();
         GoogleCredentials googleCredentials =
-          StringUtils.hasLength(jsonKey)
-          ? new GoogleJsonCredentials(project, jsonKey)
-          : new GoogleCredentials(project);
+            StringUtils.hasLength(jsonKey)
+                ? new GoogleJsonCredentials(project, jsonKey)
+                : new GoogleCredentials(project);
 
-        GoogleNamedAccountCredentials.GoogleNamedAccountCredentialsBuilder googleNamedAccountCredentialsBuilder =
-          GoogleNamedAccountCredentials
-            .builder()
-            .name(name)
-            .project(project)
-            .credentials(googleCredentials);
+        GoogleNamedAccountCredentials.GoogleNamedAccountCredentialsBuilder
+            googleNamedAccountCredentialsBuilder =
+                GoogleNamedAccountCredentials.builder()
+                    .name(name)
+                    .project(project)
+                    .credentials(googleCredentials);
 
         if (!CollectionUtils.isEmpty(supportedTypes)) {
           if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
@@ -79,15 +84,18 @@ public class GoogleConfiguration {
             String rootFolder = googleManagedAccount.getRootFolder();
 
             if (StringUtils.isEmpty(bucket)) {
-              throw new IllegalArgumentException("Google/GCS account " + name + " is required to specify a bucket.");
+              throw new IllegalArgumentException(
+                  "Google/GCS account " + name + " is required to specify a bucket.");
             }
 
             if (StringUtils.isEmpty(rootFolder)) {
-              throw new IllegalArgumentException("Google/GCS account " + name + " is required to specify a rootFolder.");
+              throw new IllegalArgumentException(
+                  "Google/GCS account " + name + " is required to specify a rootFolder.");
             }
 
             googleNamedAccountCredentialsBuilder.bucket(bucket);
-            googleNamedAccountCredentialsBuilder.bucketLocation(googleManagedAccount.getBucketLocation());
+            googleNamedAccountCredentialsBuilder.bucketLocation(
+                googleManagedAccount.getBucketLocation());
             googleNamedAccountCredentialsBuilder.rootFolder(rootFolder);
             googleNamedAccountCredentialsBuilder.storage(googleCredentials.getStorage());
           }
@@ -95,7 +103,8 @@ public class GoogleConfiguration {
           googleNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
         }
 
-        GoogleNamedAccountCredentials googleNamedAccountCredentials = googleNamedAccountCredentialsBuilder.build();
+        GoogleNamedAccountCredentials googleNamedAccountCredentials =
+            googleNamedAccountCredentialsBuilder.build();
         accountCredentialsRepository.save(name, googleNamedAccountCredentials);
       } catch (Throwable t) {
         log.error("Could not load Google account " + name + ".", t);

@@ -19,16 +19,15 @@ package com.netflix.kayenta.atlas.orca;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 
 @Component
 public class AtlasFetchStage {
 
   @Bean
-  StageDefinitionBuilder atlasFetchStageBuilder(){
+  StageDefinitionBuilder atlasFetchStageBuilder() {
     return new StageDefinitionBuilder() {
       @Override
       public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {

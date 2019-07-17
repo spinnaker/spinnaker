@@ -15,12 +15,10 @@
  */
 package com.netflix.kayenta.wavefront.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class WavefrontConfigurationProperties {
-    @Getter
-    private List<WavefrontManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<WavefrontManagedAccount> accounts = new ArrayList<>();
 }

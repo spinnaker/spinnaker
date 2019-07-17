@@ -19,6 +19,8 @@ package com.netflix.kayenta.signalfx;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.Main;
 import com.netflix.kayenta.canary.CanaryConfig;
+import java.io.IOException;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -27,14 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.IOException;
-import java.time.Instant;
-
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = Main.class
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Main.class)
 @Slf4j
 public abstract class BaseSignalFxIntegrationTest {
 
@@ -47,17 +43,13 @@ public abstract class BaseSignalFxIntegrationTest {
 
   protected CanaryConfig integrationTestCanaryConfig;
 
-  @Autowired
-  protected ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired protected ObjectMapper objectMapper = new ObjectMapper();
 
-  @Autowired
-  protected String testId;
+  @Autowired protected String testId;
 
-  @Autowired
-  protected Instant metricsReportingStartTime;
+  @Autowired protected Instant metricsReportingStartTime;
 
-  @LocalServerPort
-  protected int serverPort;
+  @LocalServerPort protected int serverPort;
 
   protected String getUriTemplate() {
     return "http://localhost:" + serverPort + "%s";
@@ -66,8 +58,12 @@ public abstract class BaseSignalFxIntegrationTest {
   @Before
   public void before() {
     try {
-      integrationTestCanaryConfig = objectMapper.readValue(getClass().getClassLoader()
-          .getResourceAsStream("integration-test-canary-config.json"), CanaryConfig.class);
+      integrationTestCanaryConfig =
+          objectMapper.readValue(
+              getClass()
+                  .getClassLoader()
+                  .getResourceAsStream("integration-test-canary-config.json"),
+              CanaryConfig.class);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to load SignalFx integration test canary config");
     }

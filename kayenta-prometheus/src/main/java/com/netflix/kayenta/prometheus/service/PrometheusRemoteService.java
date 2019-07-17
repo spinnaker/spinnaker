@@ -18,19 +18,19 @@ package com.netflix.kayenta.prometheus.service;
 
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
+import java.util.List;
 import retrofit.http.GET;
 import retrofit.http.Query;
-
-import java.util.List;
 
 public interface PrometheusRemoteService {
 
   // See https://prometheus.io/docs/querying/api/#range-queries
   @GET("/api/v1/query_range")
-  List<PrometheusResults> rangeQuery(@Query("query") String query,
-                                     @Query("start") String start,
-                                     @Query("end") String end,
-                                     @Query("step") Long step);
+  List<PrometheusResults> rangeQuery(
+      @Query("query") String query,
+      @Query("start") String start,
+      @Query("end") String end,
+      @Query("step") Long step);
 
   // See https://prometheus.io/docs/querying/api/#querying-label-values
   @GET("/api/v1/label/__name__/values")

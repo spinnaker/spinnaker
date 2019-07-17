@@ -21,8 +21,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -30,21 +28,12 @@ public class StackdriverCanaryScope extends CanaryScope {
 
   private String project;
 
-  /**
-   * @deprecated Use resourceType on StackdriverCanaryMetricSetQueryConfig instead.
-   */
-  @Deprecated
-  private String resourceType;
+  /** @deprecated Use resourceType on StackdriverCanaryMetricSetQueryConfig instead. */
+  @Deprecated private String resourceType;
 
-  /**
-   * @deprecated Use crossSeriesReducer on StackdriverCanaryMetricSetQueryConfig instead.
-   */
-  @Deprecated
-  private String crossSeriesReducer;
+  /** @deprecated Use crossSeriesReducer on StackdriverCanaryMetricSetQueryConfig instead. */
+  @Deprecated private String crossSeriesReducer;
 
-  /**
-   * @deprecated Use perSeriesAligner on StackdriverCanaryMetricSetQueryConfig instead.
-   */
-  @Deprecated
-  private String perSeriesAligner;
+  /** @deprecated Use perSeriesAligner on StackdriverCanaryMetricSetQueryConfig instead. */
+  @Deprecated private String perSeriesAligner;
 }

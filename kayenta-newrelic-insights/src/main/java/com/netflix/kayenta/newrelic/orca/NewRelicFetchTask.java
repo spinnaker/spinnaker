@@ -44,9 +44,10 @@ public class NewRelicFetchTask implements RetryableTask {
   private final SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  public NewRelicFetchTask(ObjectMapper kayentaObjectMapper,
-    AccountCredentialsRepository accountCredentialsRepository,
-    SynchronousQueryProcessor synchronousQueryProcessor) {
+  public NewRelicFetchTask(
+      ObjectMapper kayentaObjectMapper,
+      AccountCredentialsRepository accountCredentialsRepository,
+      SynchronousQueryProcessor synchronousQueryProcessor) {
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
@@ -69,34 +70,31 @@ public class NewRelicFetchTask implements RetryableTask {
     CanaryScope canaryScope;
 
     try {
-      canaryScope = kayentaObjectMapper
-        .readValue((String) context.get("canaryScope"), NewRelicCanaryScope.class);
+      canaryScope =
+          kayentaObjectMapper.readValue(
+              (String) context.get("canaryScope"), NewRelicCanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
     }
 
     String resolvedMetricsAccountName =
-      CredentialsHelper.resolveAccountByNameOrType(
-        (String) context.get("metricsAccountName"),
-        AccountCredentials.Type.METRICS_STORE,
-        accountCredentialsRepository
-      );
+        CredentialsHelper.resolveAccountByNameOrType(
+            (String) context.get("metricsAccountName"),
+            AccountCredentials.Type.METRICS_STORE,
+            accountCredentialsRepository);
 
     String resolvedStorageAccountName =
-      CredentialsHelper.resolveAccountByNameOrType(
-        (String) context.get("storageAccountName"),
-        AccountCredentials.Type.OBJECT_STORE,
-        accountCredentialsRepository
-      );
+        CredentialsHelper.resolveAccountByNameOrType(
+            (String) context.get("storageAccountName"),
+            AccountCredentials.Type.OBJECT_STORE,
+            accountCredentialsRepository);
 
     return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
-      resolvedMetricsAccountName,
-      resolvedStorageAccountName,
-      kayentaObjectMapper
-        .convertValue(context.get("canaryConfig"), CanaryConfig.class),
-      (Integer) stage.getContext().get("metricIndex"),
-      canaryScope
-    );
+        resolvedMetricsAccountName,
+        resolvedStorageAccountName,
+        kayentaObjectMapper.convertValue(context.get("canaryConfig"), CanaryConfig.class),
+        (Integer) stage.getContext().get("metricIndex"),
+        canaryScope);
   }
 }

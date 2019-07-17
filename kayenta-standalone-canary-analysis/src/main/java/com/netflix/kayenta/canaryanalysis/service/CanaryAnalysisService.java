@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.canaryanalysis.service;
 
+import static com.netflix.kayenta.canaryanalysis.orca.task.GenerateCanaryAnalysisResultTask.CANARY_ANALYSIS_EXECUTION_RESULT;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -31,19 +33,14 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.netflix.kayenta.canaryanalysis.orca.task.GenerateCanaryAnalysisResultTask.CANARY_ANALYSIS_EXECUTION_RESULT;
-
-/**
- * Service that handles starting and mapping Canary Analysis Stage pipelines.
- */
+/** Service that handles starting and mapping Canary Analysis Stage pipelines. */
 @Slf4j
 @Component
 public class CanaryAnalysisService {
@@ -56,9 +53,10 @@ public class CanaryAnalysisService {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
-  public CanaryAnalysisService(ExecutionLauncher executionLauncher,
-                               ExecutionRepository executionRepository,
-                               ObjectMapper kayentaObjectMapper) {
+  public CanaryAnalysisService(
+      ExecutionLauncher executionLauncher,
+      ExecutionRepository executionRepository,
+      ObjectMapper kayentaObjectMapper) {
 
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
@@ -71,19 +69,20 @@ public class CanaryAnalysisService {
    * @param canaryAnalysisConfig The configuration for the canary analysis execution.
    * @return Wrapper object around the execution id.
    */
-  public CanaryAnalysisExecutionResponse initiateCanaryAnalysisExecution(CanaryAnalysisConfig canaryAnalysisConfig) {
+  public CanaryAnalysisExecutionResponse initiateCanaryAnalysisExecution(
+      CanaryAnalysisConfig canaryAnalysisConfig) {
 
     String application = canaryAnalysisConfig.getApplication();
 
-    PipelineBuilder pipelineBuilder = new PipelineBuilder(application)
-        .withName(CANARY_ANALYSIS_PIPELINE_NAME)
-        .withPipelineConfigId(application + "-canary-analysis-referee-pipeline")
-        .withStage(
-            SetupAndExecuteCanariesStage.STAGE_TYPE,
-            SetupAndExecuteCanariesStage.STAGE_DESCRIPTION,
-            Maps.newHashMap(ImmutableMap.of(
-                CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, canaryAnalysisConfig
-            )));
+    PipelineBuilder pipelineBuilder =
+        new PipelineBuilder(application)
+            .withName(CANARY_ANALYSIS_PIPELINE_NAME)
+            .withPipelineConfigId(application + "-canary-analysis-referee-pipeline")
+            .withStage(
+                SetupAndExecuteCanariesStage.STAGE_TYPE,
+                SetupAndExecuteCanariesStage.STAGE_DESCRIPTION,
+                Maps.newHashMap(
+                    ImmutableMap.of(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, canaryAnalysisConfig)));
 
     Execution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
     executionRepository.store(pipeline);
@@ -95,11 +94,15 @@ public class CanaryAnalysisService {
       handleStartupFailure(pipeline, t);
       throw new RuntimeException("Failed to start the canary analysis pipeline execution");
     }
-    return CanaryAnalysisExecutionResponse.builder().canaryAnalysisExecutionId(pipeline.getId()).build();
+    return CanaryAnalysisExecutionResponse.builder()
+        .canaryAnalysisExecutionId(pipeline.getId())
+        .build();
   }
 
-  public CanaryAnalysisExecutionStatusResponse getCanaryAnalysisExecution(String canaryAnalysisExecutionId) {
-    Execution execution = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryAnalysisExecutionId);
+  public CanaryAnalysisExecutionStatusResponse getCanaryAnalysisExecution(
+      String canaryAnalysisExecutionId) {
+    Execution execution =
+        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryAnalysisExecutionId);
     return fromExecution(execution);
   }
 
@@ -123,41 +126,56 @@ public class CanaryAnalysisService {
 
     boolean isComplete = pipeline.getStatus().isComplete();
     ExecutionStatus pipelineStatus = pipeline.getStatus();
-    CanaryAnalysisExecutionStatusResponse.CanaryAnalysisExecutionStatusResponseBuilder responseBuilder =
-        CanaryAnalysisExecutionStatusResponse.builder()
-        .application(pipeline.getApplication())
-        .pipelineId(pipeline.getId())
-        .stageStatus(pipeline.getStages()
-            .stream()
-            .map(stage -> new StageMetadata(stage.getType(), stage.getName(), stage.getStatus()))
-            .collect(Collectors.toList()))
-        .complete(isComplete)
-        .executionStatus(pipelineStatus);
+    CanaryAnalysisExecutionStatusResponse.CanaryAnalysisExecutionStatusResponseBuilder
+        responseBuilder =
+            CanaryAnalysisExecutionStatusResponse.builder()
+                .application(pipeline.getApplication())
+                .pipelineId(pipeline.getId())
+                .stageStatus(
+                    pipeline.getStages().stream()
+                        .map(
+                            stage ->
+                                new StageMetadata(
+                                    stage.getType(), stage.getName(), stage.getStatus()))
+                        .collect(Collectors.toList()))
+                .complete(isComplete)
+                .executionStatus(pipelineStatus);
 
     // Add the request and config info if possible
     pipeline.getStages().stream()
         .filter(stage -> stage.getType().equals(SetupAndExecuteCanariesStage.STAGE_TYPE))
         .findFirst()
-        .ifPresent(stage -> Optional
-            .ofNullable(stage.getContext().getOrDefault(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, null))
-            .ifPresent(data -> {
-              CanaryAnalysisConfig canaryAnalysisConfig = kayentaObjectMapper.convertValue(data, CanaryAnalysisConfig.class);
-              responseBuilder.user(canaryAnalysisConfig.getUser());
-              responseBuilder.application(canaryAnalysisConfig.getApplication());
-              responseBuilder.canaryConfigId(canaryAnalysisConfig.getCanaryConfigId());
-              responseBuilder.canaryAnalysisExecutionRequest(canaryAnalysisConfig.getExecutionRequest());
-              responseBuilder.canaryConfig(canaryAnalysisConfig.getCanaryConfig());
-            }));
+        .ifPresent(
+            stage ->
+                Optional.ofNullable(
+                        stage.getContext().getOrDefault(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY, null))
+                    .ifPresent(
+                        data -> {
+                          CanaryAnalysisConfig canaryAnalysisConfig =
+                              kayentaObjectMapper.convertValue(data, CanaryAnalysisConfig.class);
+                          responseBuilder.user(canaryAnalysisConfig.getUser());
+                          responseBuilder.application(canaryAnalysisConfig.getApplication());
+                          responseBuilder.canaryConfigId(canaryAnalysisConfig.getCanaryConfigId());
+                          responseBuilder.canaryAnalysisExecutionRequest(
+                              canaryAnalysisConfig.getExecutionRequest());
+                          responseBuilder.canaryConfig(canaryAnalysisConfig.getCanaryConfig());
+                        }));
 
     // Add the canary analysis execution result if present
     pipeline.getStages().stream()
         .filter(stage -> stage.getType().equals(GenerateCanaryAnalysisResultStage.STAGE_TYPE))
         .findFirst()
-        .ifPresent(generateCanaryAnalysisResultStage -> Optional
-            .ofNullable(generateCanaryAnalysisResultStage.getOutputs()
-                .getOrDefault(CANARY_ANALYSIS_EXECUTION_RESULT, null))
-        .ifPresent(data -> responseBuilder.canaryAnalysisExecutionResult(kayentaObjectMapper.convertValue(data,
-            CanaryAnalysisExecutionResult.class))));
+        .ifPresent(
+            generateCanaryAnalysisResultStage ->
+                Optional.ofNullable(
+                        generateCanaryAnalysisResultStage
+                            .getOutputs()
+                            .getOrDefault(CANARY_ANALYSIS_EXECUTION_RESULT, null))
+                    .ifPresent(
+                        data ->
+                            responseBuilder.canaryAnalysisExecutionResult(
+                                kayentaObjectMapper.convertValue(
+                                    data, CanaryAnalysisExecutionResult.class))));
 
     // Propagate first exception.
     pipeline.getStages().stream()
@@ -167,23 +185,17 @@ public class CanaryAnalysisService {
 
     Long buildTime = pipeline.getBuildTime();
     if (buildTime != null) {
-      responseBuilder
-          .buildTimeMillis(buildTime)
-          .buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
+      responseBuilder.buildTimeMillis(buildTime).buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
     }
 
     Long startTime = pipeline.getStartTime();
     if (startTime != null) {
-      responseBuilder
-          .startTimeMillis(startTime)
-          .startTimeIso(Instant.ofEpochMilli(startTime) + "");
+      responseBuilder.startTimeMillis(startTime).startTimeIso(Instant.ofEpochMilli(startTime) + "");
     }
 
     Long endTime = pipeline.getEndTime();
     if (endTime != null) {
-      responseBuilder
-          .endTimeMillis(endTime)
-          .endTimeIso(Instant.ofEpochMilli(endTime) + "");
+      responseBuilder.endTimeMillis(endTime).endTimeIso(Instant.ofEpochMilli(endTime) + "");
     }
 
     return responseBuilder.build();

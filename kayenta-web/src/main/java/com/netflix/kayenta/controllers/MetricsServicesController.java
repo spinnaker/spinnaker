@@ -16,20 +16,19 @@
 
 package com.netflix.kayenta.controllers;
 
+import static com.netflix.kayenta.security.AccountCredentials.Type.METRICS_STORE;
+
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.netflix.kayenta.security.AccountCredentials.Type.METRICS_STORE;
 
 @RestController
 @RequestMapping("/metricsServices")
@@ -45,18 +44,18 @@ public class MetricsServicesController {
   @ApiOperation(value = "Retrieve a list of all configured metrics services")
   @RequestMapping(method = RequestMethod.GET)
   List<MetricsServiceDetail> list() {
-    Set<AccountCredentials> metricAccountCredentials = CredentialsHelper.getAllAccountsOfType(METRICS_STORE, accountCredentialsRepository);
+    Set<AccountCredentials> metricAccountCredentials =
+        CredentialsHelper.getAllAccountsOfType(METRICS_STORE, accountCredentialsRepository);
 
-    return metricAccountCredentials
-      .stream()
-      .map(account ->
-        MetricsServiceDetail
-          .builder()
-          .name(account.getName())
-          .type(account.getType())
-          .locations(account.getLocations())
-          .recommendedLocations(account.getRecommendedLocations())
-          .build())
-      .collect(Collectors.toList());
+    return metricAccountCredentials.stream()
+        .map(
+            account ->
+                MetricsServiceDetail.builder()
+                    .name(account.getName())
+                    .type(account.getType())
+                    .locations(account.getLocations())
+                    .recommendedLocations(account.getRecommendedLocations())
+                    .build())
+        .collect(Collectors.toList());
   }
 }

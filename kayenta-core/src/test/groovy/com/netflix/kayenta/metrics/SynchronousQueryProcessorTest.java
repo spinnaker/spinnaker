@@ -16,30 +16,6 @@
 
 package com.netflix.kayenta.metrics;
 
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.storage.ObjectType;
-import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spectator.api.Registry;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpStatus;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -56,108 +32,199 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.LOCKED;
 
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.storage.ObjectType;
+import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.spectator.api.Registry;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 @RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class SynchronousQueryProcessorTest {
 
-    private static final String METRICS = "metrics-account";
-    private static final String STORAGE = "storage-account";
-    private static final int ATTEMPTS = 5;
-    @Mock
-    MetricsRetryConfigurationProperties retryConfiguration;
+  private static final String METRICS = "metrics-account";
+  private static final String STORAGE = "storage-account";
+  private static final int ATTEMPTS = 5;
+  @Mock MetricsRetryConfigurationProperties retryConfiguration;
 
-    @Mock
-    MetricsService metricsService;
-    @Mock
-    StorageService storageService;
+  @Mock MetricsService metricsService;
+  @Mock StorageService storageService;
 
-    @Mock
-    MetricsServiceRepository metricsServiceRepository;
+  @Mock MetricsServiceRepository metricsServiceRepository;
 
-    @Mock
-    StorageServiceRepository storageServiceRepository;
+  @Mock StorageServiceRepository storageServiceRepository;
 
-    @Mock(answer = RETURNS_DEEP_STUBS)
-    Registry registry;
+  @Mock(answer = RETURNS_DEEP_STUBS)
+  Registry registry;
 
-    @InjectMocks
-    SynchronousQueryProcessor processor;
+  @InjectMocks SynchronousQueryProcessor processor;
 
-    @Before
-    public void setUp() {
-        when(metricsServiceRepository.getOne(METRICS)).thenReturn(Optional.of(metricsService));
-        when(storageServiceRepository.getOne(STORAGE)).thenReturn(Optional.of(storageService));
-        when(retryConfiguration.getAttempts()).thenReturn(ATTEMPTS);
-        when(retryConfiguration.getSeries()).thenReturn(new HashSet<>(Arrays.asList(HttpStatus.Series.SERVER_ERROR, HttpStatus.Series.REDIRECTION)));
-        when(retryConfiguration.getStatuses()).thenReturn(new HashSet<>(Arrays.asList(LOCKED)));
-    }
+  @Before
+  public void setUp() {
+    when(metricsServiceRepository.getOne(METRICS)).thenReturn(Optional.of(metricsService));
+    when(storageServiceRepository.getOne(STORAGE)).thenReturn(Optional.of(storageService));
+    when(retryConfiguration.getAttempts()).thenReturn(ATTEMPTS);
+    when(retryConfiguration.getSeries())
+        .thenReturn(
+            new HashSet<>(
+                Arrays.asList(HttpStatus.Series.SERVER_ERROR, HttpStatus.Series.REDIRECTION)));
+    when(retryConfiguration.getStatuses()).thenReturn(new HashSet<>(Arrays.asList(LOCKED)));
+  }
 
-    @Test
-    public void retriesRetryableHttpSeriesTillMaxAttemptsAndThrowsException() throws IOException {
-        when(metricsService.queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class)))
-                .thenThrow(getRetrofitErrorWithHttpStatus(INTERNAL_SERVER_ERROR.value()));
+  @Test
+  public void retriesRetryableHttpSeriesTillMaxAttemptsAndThrowsException() throws IOException {
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(getRetrofitErrorWithHttpStatus(INTERNAL_SERVER_ERROR.value()));
 
-        assertThatThrownBy(() -> processor.executeQuery(METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class)))
-                .isInstanceOf(RetrofitError.class);
+    assertThatThrownBy(
+            () ->
+                processor.executeQuery(
+                    METRICS,
+                    STORAGE,
+                    mock(CanaryConfig.class, RETURNS_DEEP_STUBS),
+                    1,
+                    mock(CanaryScope.class)))
+        .isInstanceOf(RetrofitError.class);
 
-        verify(metricsService, times(ATTEMPTS)).queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class));
-        verifyZeroInteractions(storageService);
-    }
+    verify(metricsService, times(ATTEMPTS))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verifyZeroInteractions(storageService);
+  }
 
-    @Test
-    public void retriesRetryableHttpSeriesAndReturnsSuccessfulResponse() throws IOException {
-        List response = asList(mock(MetricSet.class));
-        when(metricsService.queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class)))
-                .thenThrow(getRetrofitErrorWithHttpStatus(INTERNAL_SERVER_ERROR.value()))
-                .thenThrow(getRetrofitErrorWithHttpStatus(BAD_GATEWAY.value()))
-                .thenThrow(getRetrofitErrorWithHttpStatus(HttpStatus.TEMPORARY_REDIRECT.value()))
-                .thenReturn(response);
+  @Test
+  public void retriesRetryableHttpSeriesAndReturnsSuccessfulResponse() throws IOException {
+    List response = asList(mock(MetricSet.class));
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(getRetrofitErrorWithHttpStatus(INTERNAL_SERVER_ERROR.value()))
+        .thenThrow(getRetrofitErrorWithHttpStatus(BAD_GATEWAY.value()))
+        .thenThrow(getRetrofitErrorWithHttpStatus(HttpStatus.TEMPORARY_REDIRECT.value()))
+        .thenReturn(response);
 
-        processor.executeQuery(METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class));
+    processor.executeQuery(
+        METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class));
 
-        verify(metricsService, times(4)).queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class));
-        verify(storageService).storeObject(eq(STORAGE), eq(ObjectType.METRIC_SET_LIST), any(), eq(response));
-    }
+    verify(metricsService, times(4))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verify(storageService)
+        .storeObject(eq(STORAGE), eq(ObjectType.METRIC_SET_LIST), any(), eq(response));
+  }
 
-    @Test
-    public void retriesRetryableHttpStatusAndReturnsSuccessfulResponse() throws IOException {
-        List response = asList(mock(MetricSet.class));
-        when(metricsService.queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class)))
-                .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
-                .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
-                .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
-                .thenReturn(response);
+  @Test
+  public void retriesRetryableHttpStatusAndReturnsSuccessfulResponse() throws IOException {
+    List response = asList(mock(MetricSet.class));
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
+        .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
+        .thenThrow(getRetrofitErrorWithHttpStatus(LOCKED.value()))
+        .thenReturn(response);
 
-        processor.executeQuery(METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class));
+    processor.executeQuery(
+        METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class));
 
-        verify(metricsService, times(4)).queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class));
-        verify(storageService).storeObject(eq(STORAGE), eq(ObjectType.METRIC_SET_LIST), any(), eq(response));
-    }
+    verify(metricsService, times(4))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verify(storageService)
+        .storeObject(eq(STORAGE), eq(ObjectType.METRIC_SET_LIST), any(), eq(response));
+  }
 
-    @Test
-    public void doesNotRetryNonRetryableHttpStatusAndThrowsException() throws IOException {
-        when(metricsService.queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class)))
-                .thenThrow(getRetrofitErrorWithHttpStatus(BAD_REQUEST.value()));
+  @Test
+  public void doesNotRetryNonRetryableHttpStatusAndThrowsException() throws IOException {
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(getRetrofitErrorWithHttpStatus(BAD_REQUEST.value()));
 
-        assertThatThrownBy(() -> processor.executeQuery(METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class)))
-                .isInstanceOf(RetrofitError.class);
+    assertThatThrownBy(
+            () ->
+                processor.executeQuery(
+                    METRICS,
+                    STORAGE,
+                    mock(CanaryConfig.class, RETURNS_DEEP_STUBS),
+                    1,
+                    mock(CanaryScope.class)))
+        .isInstanceOf(RetrofitError.class);
 
-        verify(metricsService, times(1)).queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class));
-        verifyZeroInteractions(storageService);
-    }
+    verify(metricsService, times(1))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verifyZeroInteractions(storageService);
+  }
 
-    @Test
-    public void retriesIoExceptionTillMaxAttemptsAndThrowsException() throws IOException {
-        when(metricsService.queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class)))
-                .thenThrow(new IOException());
+  @Test
+  public void retriesIoExceptionTillMaxAttemptsAndThrowsException() throws IOException {
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(new IOException());
 
-        assertThatThrownBy(() -> processor.executeQuery(METRICS, STORAGE, mock(CanaryConfig.class, RETURNS_DEEP_STUBS), 1, mock(CanaryScope.class)))
-                .isInstanceOf(IOException.class);
+    assertThatThrownBy(
+            () ->
+                processor.executeQuery(
+                    METRICS,
+                    STORAGE,
+                    mock(CanaryConfig.class, RETURNS_DEEP_STUBS),
+                    1,
+                    mock(CanaryScope.class)))
+        .isInstanceOf(IOException.class);
 
-        verify(metricsService, times(ATTEMPTS)).queryMetrics(anyString(), any(CanaryConfig.class), any(CanaryMetricConfig.class), any(CanaryScope.class));
-        verifyZeroInteractions(storageService);
-    }
+    verify(metricsService, times(ATTEMPTS))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verifyZeroInteractions(storageService);
+  }
 
-    private RetrofitError getRetrofitErrorWithHttpStatus(int status) {
-        return RetrofitError.httpError("url", new Response("url", status, "reason", Collections.emptyList(), null), null, null);
-    }
+  private RetrofitError getRetrofitErrorWithHttpStatus(int status) {
+    return RetrofitError.httpError(
+        "url", new Response("url", status, "reason", Collections.emptyList(), null), null, null);
+  }
 }

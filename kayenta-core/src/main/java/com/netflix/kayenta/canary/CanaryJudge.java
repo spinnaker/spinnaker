@@ -18,7 +18,6 @@ package com.netflix.kayenta.canary;
 
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
-
 import java.util.List;
 
 public abstract class CanaryJudge {
@@ -26,8 +25,10 @@ public abstract class CanaryJudge {
     return false;
   }
 
-  abstract public String getName();
-  abstract public CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                                          CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
-                                          List<MetricSetPair> metricSetPairList);
+  public abstract String getName();
+
+  public abstract CanaryJudgeResult judge(
+      CanaryConfig canaryConfig,
+      CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
+      List<MetricSetPair> metricSetPairList);
 }

@@ -20,9 +20,9 @@ import org.apache.commons.math3.util.Precision;
 
 public class BrentSolver {
 
-  static private final int MAX_ITERATIONS = 1000;
-  static private final double TOLERANCE = 1E-4;
-  static private final double EPSILON = 2.220446049250313E-16;
+  private static final int MAX_ITERATIONS = 1000;
+  private static final double TOLERANCE = 1E-4;
+  private static final double EPSILON = 2.220446049250313E-16;
 
   /**
    * Search for a zero inside the provided interval.
@@ -34,10 +34,7 @@ public class BrentSolver {
    * @param func The function we are finding roots of.
    * @return the value where the function is zero.
    */
-
-  static double solve(double ax, double bx, double fa, double fb,
-                      UnivariateFunction func)
-  {
+  static double solve(double ax, double bx, double fa, double fb, UnivariateFunction func) {
     double a, b, c, fc;
     int iteration = MAX_ITERATIONS + 1;
 
@@ -54,7 +51,7 @@ public class BrentSolver {
       return b;
     }
 
-    while (iteration-- > 0)	{
+    while (iteration-- > 0) {
       double prev_step = b - a;
       double tol_act;
       double p;
@@ -76,34 +73,30 @@ public class BrentSolver {
         return b;
       }
 
-      if (Math.abs(prev_step) >= tol_act && Math.abs(fa) > Math.abs(fb) ) {
+      if (Math.abs(prev_step) >= tol_act && Math.abs(fa) > Math.abs(fb)) {
         double t1, cb, t2;
         cb = c - b;
         if (a == c) {
           t1 = fb / fa;
           p = cb * t1;
           q = 1.0 - t1;
-        } else {			// Quadric inverse interpolation
+        } else { // Quadric inverse interpolation
           q = fa / fc;
           t1 = fb / fc;
           t2 = fb / fa;
           p = t2 * (cb * q * (q - t1) - (b - a) * (t1 - 1.0));
           q = (q - 1.0) * (t1 - 1.0) * (t2 - 1.0);
         }
-        if (p > 0.0)
-          q = -q;
-        else
-          p = -p;
+        if (p > 0.0) q = -q;
+        else p = -p;
 
         if (p < (0.75 * cb * q - Math.abs(tol_act * q) / 2) && p < Math.abs(prev_step * q / 2))
           new_step = p / q;
       }
 
       if (Math.abs(new_step) < tol_act) {
-        if (new_step > 0)
-          new_step = tol_act;
-        else
-          new_step = -tol_act;
+        if (new_step > 0) new_step = tol_act;
+        else new_step = -tol_act;
       }
       a = b;
       fa = fb;

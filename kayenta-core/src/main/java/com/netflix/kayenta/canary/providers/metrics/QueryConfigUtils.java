@@ -24,11 +24,6 @@ import com.netflix.kayenta.canary.CanaryScope;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -43,17 +38,24 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 public class QueryConfigUtils {
 
   @VisibleForTesting
-  public static String expandCustomFilter(CanaryConfig canaryConfig,
-                                          CanaryMetricSetQueryConfig metricSetQuery,
-                                          CanaryScope canaryScope,
-                                          String[] baseScopeAttributes) throws IOException {
+  public static String expandCustomFilter(
+      CanaryConfig canaryConfig,
+      CanaryMetricSetQueryConfig metricSetQuery,
+      CanaryScope canaryScope,
+      String[] baseScopeAttributes)
+      throws IOException {
     if (metricSetQuery.getCustomFilter() != null) {
-      throw new IllegalArgumentException("CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.customInlineTemplate instead.");
+      throw new IllegalArgumentException(
+          "CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.customInlineTemplate instead.");
     }
 
     String customInlineTemplate = metricSetQuery.getCustomInlineTemplate();
@@ -75,10 +77,14 @@ public class QueryConfigUtils {
 
       // TODO(duftler): Handle this as a config validation step instead.
       if (CollectionUtils.isEmpty(templates)) {
-        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was referenced, " +
-                                           "but no templates were defined.");
+        throw new IllegalArgumentException(
+            "Custom filter template '"
+                + customFilterTemplate
+                + "' was referenced, "
+                + "but no templates were defined.");
       } else if (!templates.containsKey(customFilterTemplate)) {
-        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was not found.");
+        throw new IllegalArgumentException(
+            "Custom filter template '" + customFilterTemplate + "' was not found.");
       }
       templateToExpand = unescapeTemplate(templates.get(customFilterTemplate));
     }
@@ -99,7 +105,8 @@ public class QueryConfigUtils {
 
       log.debug("templateBindings={}", templateBindings);
 
-      expandedTemplate = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
+      expandedTemplate =
+          FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
     } catch (TemplateException e) {
       throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
     }
@@ -109,10 +116,11 @@ public class QueryConfigUtils {
     return expandedTemplate;
   }
 
-  private static void populateTemplateBindings(Object bean,
-                                               String[] baseScopeAttributes,
-                                               Map<String, String> templateBindings,
-                                               boolean lenient) {
+  private static void populateTemplateBindings(
+      Object bean,
+      String[] baseScopeAttributes,
+      Map<String, String> templateBindings,
+      boolean lenient) {
     BeanInfo beanInfo;
 
     try {
@@ -125,19 +133,21 @@ public class QueryConfigUtils {
 
     for (String baseScopeAttribute : baseScopeAttributes) {
       try {
-        Optional<PropertyDescriptor> propertyDescriptor = Stream.of(propertyDescriptors)
-          .filter(p -> p.getName().equals(baseScopeAttribute))
-          .findFirst();
+        Optional<PropertyDescriptor> propertyDescriptor =
+            Stream.of(propertyDescriptors)
+                .filter(p -> p.getName().equals(baseScopeAttribute))
+                .findFirst();
 
         if (!propertyDescriptor.isPresent()) {
           if (lenient) {
             continue;
           } else {
-            throw new IllegalArgumentException("Unable to find property '" + baseScopeAttribute + "'.");
+            throw new IllegalArgumentException(
+                "Unable to find property '" + baseScopeAttribute + "'.");
           }
         }
 
-        String propertyValue = (String)propertyDescriptor.get().getReadMethod().invoke(bean);
+        String propertyValue = (String) propertyDescriptor.get().getReadMethod().invoke(bean);
 
         if (!StringUtils.isEmpty(propertyValue)) {
           templateBindings.put(baseScopeAttribute, propertyValue);
@@ -158,10 +168,8 @@ public class QueryConfigUtils {
 
     if (!CollectionUtils.isEmpty(canaryConfig.getTemplates())) {
       escapedTemplates =
-        canaryConfig.getTemplates()
-          .entrySet()
-          .stream()
-          .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().replace("${", "$\\{")));
+          canaryConfig.getTemplates().entrySet().stream()
+              .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().replace("${", "$\\{")));
     } else {
       escapedTemplates = Collections.emptyMap();
     }
@@ -170,16 +178,21 @@ public class QueryConfigUtils {
 
     if (!CollectionUtils.isEmpty(canaryConfig.getMetrics())) {
       escapedMetrics =
-        canaryConfig.getMetrics()
-          .stream()
-          .map(m -> m.toBuilder().query(m.getQuery().cloneWithEscapedInlineTemplate()).build())
-          .collect(Collectors.toList());
+          canaryConfig.getMetrics().stream()
+              .map(m -> m.toBuilder().query(m.getQuery().cloneWithEscapedInlineTemplate()).build())
+              .collect(Collectors.toList());
     } else {
       escapedMetrics = Collections.emptyList();
     }
 
     if (escapedTemplates != null || escapedMetrics != null) {
-      canaryConfig = canaryConfig.toBuilder().templates(escapedTemplates).clearMetrics().metrics(escapedMetrics).build();
+      canaryConfig =
+          canaryConfig
+              .toBuilder()
+              .templates(escapedTemplates)
+              .clearMetrics()
+              .metrics(escapedMetrics)
+              .build();
     }
 
     return canaryConfig;

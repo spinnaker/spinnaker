@@ -23,28 +23,23 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Singular;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Builder
 public class MemoryStorageService implements StorageService {
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired AccountCredentialsRepository accountCredentialsRepository;
 
   @Override
   public boolean servicesAccount(String accountName) {
@@ -52,16 +47,22 @@ public class MemoryStorageService implements StorageService {
   }
 
   private MemoryNamedAccountCredentials getCredentials(String accountName, ObjectType objectType) {
-    MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    MemoryNamedAccountCredentials credentials =
+        (MemoryNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     credentials.getObjects().putIfAbsent(objectType, new ConcurrentHashMap<>());
     credentials.getMetadata().putIfAbsent(objectType, new ConcurrentHashMap<>());
     return credentials;
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey)
+      throws IllegalArgumentException {
     MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
     Object entry = credentials.getObjects().get(objectType).get(objectKey);
 
@@ -69,11 +70,17 @@ public class MemoryStorageService implements StorageService {
       throw new NotFoundException("No such object named " + objectKey);
     }
 
-    return (T)entry;
+    return (T) entry;
   }
 
   @Override
-  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
+  public <T> void storeObject(
+      String accountName,
+      ObjectType objectType,
+      String objectKey,
+      T obj,
+      String filename,
+      boolean isAnUpdate) {
     MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
 
     long currentTimestamp = System.currentTimeMillis();
@@ -83,7 +90,7 @@ public class MemoryStorageService implements StorageService {
     objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(currentTimestamp).toString());
 
     if (objectType == ObjectType.CANARY_CONFIG) {
-      CanaryConfig canaryConfig = (CanaryConfig)obj;
+      CanaryConfig canaryConfig = (CanaryConfig) obj;
 
       checkForDuplicateCanaryConfig(accountName, objectType, canaryConfig, objectKey);
 
@@ -95,19 +102,28 @@ public class MemoryStorageService implements StorageService {
     credentials.getMetadata().get(objectType).put(objectKey, objectMetadataMap);
   }
 
-  private void checkForDuplicateCanaryConfig(String accountName, ObjectType objectType, CanaryConfig canaryConfig, String canaryConfigId) {
+  private void checkForDuplicateCanaryConfig(
+      String accountName, ObjectType objectType, CanaryConfig canaryConfig, String canaryConfigId) {
     String canaryConfigName = canaryConfig.getName();
     List<String> applications = canaryConfig.getApplications();
-    List<Map<String, Object>> canaryConfigSummaries = listObjectKeys(accountName, objectType, applications, false);
-    Map<String, Object> existingCanaryConfigSummary = canaryConfigSummaries
-      .stream()
-      .filter(it -> it.get("name").equals(canaryConfigName))
-      .findFirst()
-      .orElse(null);
+    List<Map<String, Object>> canaryConfigSummaries =
+        listObjectKeys(accountName, objectType, applications, false);
+    Map<String, Object> existingCanaryConfigSummary =
+        canaryConfigSummaries.stream()
+            .filter(it -> it.get("name").equals(canaryConfigName))
+            .findFirst()
+            .orElse(null);
 
-    // We want to avoid creating a naming collision due to the renaming of an existing canary config.
-    if (existingCanaryConfigSummary != null && !existingCanaryConfigSummary.get("id").equals(canaryConfigId)) {
-      throw new IllegalArgumentException("Canary config with name '" + canaryConfigName + "' already exists in the scope of applications " + applications + ".");
+    // We want to avoid creating a naming collision due to the renaming of an existing canary
+    // config.
+    if (existingCanaryConfigSummary != null
+        && !existingCanaryConfigSummary.get("id").equals(canaryConfigId)) {
+      throw new IllegalArgumentException(
+          "Canary config with name '"
+              + canaryConfigName
+              + "' already exists in the scope of applications "
+              + applications
+              + ".");
     }
   }
 
@@ -124,7 +140,8 @@ public class MemoryStorageService implements StorageService {
   }
 
   @Override
-  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
+  public List<Map<String, Object>> listObjectKeys(
+      String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
     MemoryNamedAccountCredentials credentials = getCredentials(accountName, objectType);
 
     boolean filterOnApplications = applications != null && applications.size() > 0;
@@ -134,7 +151,7 @@ public class MemoryStorageService implements StorageService {
       String entryKey = entry.getKey();
       if (objectType == ObjectType.CANARY_CONFIG) {
         if (filterOnApplications) {
-          CanaryConfig canaryConfig = (CanaryConfig)entry.getValue();
+          CanaryConfig canaryConfig = (CanaryConfig) entry.getValue();
 
           if (CanaryConfigIndex.haveCommonElements(applications, canaryConfig.getApplications())) {
             result.add(credentials.getMetadata().get(objectType).get(entryKey));

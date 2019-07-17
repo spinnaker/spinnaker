@@ -16,17 +16,13 @@
 
 package com.netflix.kayenta.retrofit.config;
 
+import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-
 @ToString
 public class RemoteService {
 
-  @NotNull
-  @Getter
-  @Setter
-  private String baseUrl;
+  @NotNull @Getter @Setter private String baseUrl;
 }

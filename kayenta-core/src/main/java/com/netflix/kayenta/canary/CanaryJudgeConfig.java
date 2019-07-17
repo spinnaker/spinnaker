@@ -17,10 +17,9 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -29,12 +28,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryJudgeConfig {
 
-  @NotNull
-  @Getter
-  private String name;
+  @NotNull @Getter private String name;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, Object> judgeConfigurations;
+  @NotNull @Singular @Getter private Map<String, Object> judgeConfigurations;
 }

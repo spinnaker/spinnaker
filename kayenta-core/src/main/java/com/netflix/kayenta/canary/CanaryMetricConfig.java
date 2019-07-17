@@ -17,11 +17,10 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder(toBuilder = true)
 @ToString
@@ -30,24 +29,13 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryMetricConfig {
 
-  @NotNull
-  @Getter
-  private String name;
+  @NotNull @Getter private String name;
 
-  @NotNull
-  @Getter
-  private CanaryMetricSetQueryConfig query;
+  @NotNull @Getter private CanaryMetricSetQueryConfig query;
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> groups;
+  @NotNull @Singular @Getter private List<String> groups;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, Map> analysisConfigurations;
+  @NotNull @Singular @Getter private Map<String, Map> analysisConfigurations;
 
-  @Getter
-  private String scopeName;
+  @Getter private String scopeName;
 }

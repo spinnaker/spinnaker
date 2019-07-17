@@ -16,13 +16,11 @@
 
 package com.netflix.kayenta.configbin.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class ConfigBinConfigurationProperties {
 
-  @Getter
-  private List<ConfigBinManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<ConfigBinManagedAccount> accounts = new ArrayList<>();
 }

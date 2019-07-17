@@ -35,20 +35,22 @@ public class GcsConfiguration {
 
   @Bean
   @DependsOn({"registerGoogleCredentials"})
-  public GcsStorageService gcsStorageService(AccountCredentialsRepository accountCredentialsRepository) {
-    GcsStorageService.GcsStorageServiceBuilder gcsStorageServiceBuilder = GcsStorageService.builder();
+  public GcsStorageService gcsStorageService(
+      AccountCredentialsRepository accountCredentialsRepository) {
+    GcsStorageService.GcsStorageServiceBuilder gcsStorageServiceBuilder =
+        GcsStorageService.builder();
 
-    accountCredentialsRepository
-      .getAll()
-      .stream()
-      .filter(c -> c instanceof GoogleNamedAccountCredentials)
-      .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
-      .map(c -> c.getName())
-      .forEach(gcsStorageServiceBuilder::accountName);
+    accountCredentialsRepository.getAll().stream()
+        .filter(c -> c instanceof GoogleNamedAccountCredentials)
+        .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
+        .map(c -> c.getName())
+        .forEach(gcsStorageServiceBuilder::accountName);
 
     GcsStorageService gcsStorageService = gcsStorageServiceBuilder.build();
 
-    log.info("Populated GcsStorageService with {} Google accounts.", gcsStorageService.getAccountNames().size());
+    log.info(
+        "Populated GcsStorageService with {} Google accounts.",
+        gcsStorageService.getAccountNames().size());
 
     return gcsStorageService;
   }

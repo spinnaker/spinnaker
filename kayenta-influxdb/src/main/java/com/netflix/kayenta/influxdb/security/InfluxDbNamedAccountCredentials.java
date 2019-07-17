@@ -21,34 +21,27 @@ import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQuery
 import com.netflix.kayenta.influxdb.service.InfluxDbRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
-import javax.validation.constraints.NotNull;
-import java.util.List;
-
 @Builder
 @Data
 public class InfluxDbNamedAccountCredentials implements AccountCredentials<InfluxdbCredentials> {
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull
-  private InfluxdbCredentials credentials;
+  @NotNull private InfluxdbCredentials credentials;
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   @Override
   public String getType() {
     return InfluxdbCanaryMetricSetQueryConfig.SERVICE_TYPE;
   }
 
-  @JsonIgnore
-  InfluxDbRemoteService influxDbRemoteService;
+  @JsonIgnore InfluxDbRemoteService influxDbRemoteService;
 }

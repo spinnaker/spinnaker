@@ -17,16 +17,14 @@
 package com.netflix.kayenta.aws.config;
 
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class AwsManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
   private String bucket;
   private String region;
@@ -46,6 +44,5 @@ public class AwsManagedAccount {
     String accessKey;
     String secretKey;
     String sessionToken;
-
   }
 }

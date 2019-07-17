@@ -31,12 +31,11 @@ package com.netflix.kayenta.atlas.model;
  * limitations under the License.
  */
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -45,38 +44,22 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class Backend {
 
-  @NotNull
-  @Getter
-  private String cname;
+  @NotNull @Getter private String cname;
 
-  @NotNull
-  @Getter
-  private String target;
+  @NotNull @Getter private String target;
 
-  @NotNull
-  @Getter
-  private String deployment;
+  @NotNull @Getter private String deployment;
 
-  @NotNull
-  @Getter
-  private String dataset;
+  @NotNull @Getter private String dataset;
 
-  @NotNull
-  @Getter
-  private List<String> environments;
+  @NotNull @Getter private List<String> environments;
 
-  @NotNull
-  @Getter
-  private List<String> regions;
+  @NotNull @Getter private List<String> regions;
 
   // TODO: Should be a Duration (but that can't parse the minute format PT1M)
-  @NotNull
-  @Getter
-  private String step;
+  @NotNull @Getter private String step;
 
-  @NotNull
-  @Getter
-  private String description;
+  @NotNull @Getter private String description;
 
   public List<String> getTargets() {
     ArrayList<String> ret = new ArrayList<>();
@@ -106,12 +89,14 @@ public class Backend {
     return ret.stream().distinct().collect(Collectors.toList());
   }
 
-  public String getUri(String scheme, String deployment, String dataset, String region, String environment) {
-    String relativeReference = cname
-      .replace("$(deployment)", deployment)
-      .replace("$(dataset)", dataset)
-      .replace("$(region)", region)
-      .replace("$(env)", environment);
+  public String getUri(
+      String scheme, String deployment, String dataset, String region, String environment) {
+    String relativeReference =
+        cname
+            .replace("$(deployment)", deployment)
+            .replace("$(dataset)", dataset)
+            .replace("$(region)", region)
+            .replace("$(env)", environment);
 
     return scheme + "://" + relativeReference;
   }

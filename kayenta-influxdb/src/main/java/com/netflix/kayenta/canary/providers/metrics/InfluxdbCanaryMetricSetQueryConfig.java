@@ -16,13 +16,10 @@
 
 package com.netflix.kayenta.canary.providers.metrics;
 
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,15 +32,12 @@ import lombok.ToString;
 @AllArgsConstructor
 @JsonTypeName("influxdb")
 public class InfluxdbCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
-  
+
   public static final String SERVICE_TYPE = "influxdb";
 
-  @NotNull
-  @Getter
-  private String metricName;
-  
-  @Getter
-  private List<String> fields;
+  @NotNull @Getter private String metricName;
+
+  @Getter private List<String> fields;
 
   @Override
   public String getServiceType() {

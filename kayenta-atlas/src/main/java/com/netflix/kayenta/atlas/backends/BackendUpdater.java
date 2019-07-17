@@ -22,37 +22,38 @@ import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RetrofitError;
 import retrofit.converter.JacksonConverter;
 
-import javax.validation.constraints.NotNull;
-import java.util.List;
-
 @Slf4j
 @Builder
 public class BackendUpdater {
-  @Getter
-  private final BackendDatabase backendDatabase = new BackendDatabase();
+  @Getter private final BackendDatabase backendDatabase = new BackendDatabase();
 
-  @NotNull
-  private String uri;
+  @NotNull private String uri;
 
   // If we have retrieved backends.json at least once, we will keep using it forever
   // even if we fail later.  It doesn't really change much over time, so this
   // is likely safe enough.
-  @Builder.Default
-  private boolean succeededAtLeastOnce = false;
+  @Builder.Default private boolean succeededAtLeastOnce = false;
 
-  boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+  boolean run(
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      OkHttpClient okHttpClient) {
     RemoteService remoteService = new RemoteService();
     remoteService.setBaseUrl(uri);
-    BackendsRemoteService backendsRemoteService = retrofitClientFactory.createClient(BackendsRemoteService.class,
-                                                                                     new JacksonConverter(objectMapper),
-                                                                                     remoteService,
-                                                                                     okHttpClient);
+    BackendsRemoteService backendsRemoteService =
+        retrofitClientFactory.createClient(
+            BackendsRemoteService.class,
+            new JacksonConverter(objectMapper),
+            remoteService,
+            okHttpClient);
     try {
       List<Backend> backends = AuthenticatedRequest.allowAnonymous(backendsRemoteService::fetch);
       backendDatabase.update(backends);

@@ -27,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 public class NewRelicCredentials {
 
   private static String applicationVersion =
-    Optional.ofNullable(NewRelicCredentials.class.getPackage().getImplementationVersion())
-      .orElse("Unknown");
+      Optional.ofNullable(NewRelicCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 
   private String apiKey;
   private String applicationKey;

@@ -32,19 +32,14 @@ import lombok.ToString;
 @JsonTypeName("newrelic")
 public class NewRelicCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
-  @Getter
-  private String q;
+  @Getter private String q;
 
-  @NotNull
-  @Getter
-  private String select;
+  @NotNull @Getter private String select;
 
-  @Getter
-  private String resolution;
+  @Getter private String resolution;
 
   @Override
   public String getServiceType() {
     return "newrelic";
   }
-
 }

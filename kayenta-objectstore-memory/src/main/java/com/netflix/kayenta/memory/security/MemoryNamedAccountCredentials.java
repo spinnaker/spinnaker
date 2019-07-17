@@ -18,33 +18,26 @@ package com.netflix.kayenta.memory.security;
 
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.storage.ObjectType;
+import java.util.List;
+import java.util.Map;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
 @Builder
 @Data
 public class MemoryNamedAccountCredentials implements AccountCredentials<MemoryAccountCredentials> {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull
-  private MemoryAccountCredentials credentials;
+  @NotNull private MemoryAccountCredentials credentials;
 
-  @NotNull
-  private Map<ObjectType, Map<String, Object>> objects;
+  @NotNull private Map<ObjectType, Map<String, Object>> objects;
 
-  @NotNull
-  private Map<ObjectType, Map<String, Map<String, Object>>> metadata;
+  @NotNull private Map<ObjectType, Map<String, Map<String, Object>>> metadata;
 
   @Override
   public String getType() {

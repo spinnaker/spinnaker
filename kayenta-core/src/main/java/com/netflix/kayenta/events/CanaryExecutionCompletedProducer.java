@@ -29,9 +29,10 @@ public class CanaryExecutionCompletedProducer extends AbstractExecutionCompleteE
   private final ExecutionMapper executionMapper;
 
   @Autowired
-  public CanaryExecutionCompletedProducer(ApplicationEventPublisher applicationEventPublisher,
-                                          ExecutionRepository executionRepository,
-                                          ExecutionMapper executionMapper) {
+  public CanaryExecutionCompletedProducer(
+      ApplicationEventPublisher applicationEventPublisher,
+      ExecutionRepository executionRepository,
+      ExecutionMapper executionMapper) {
 
     super(applicationEventPublisher, executionRepository);
     this.executionMapper = executionMapper;
@@ -44,8 +45,10 @@ public class CanaryExecutionCompletedProducer extends AbstractExecutionCompleteE
 
   @Override
   public void processCompletedPipelineExecution(Execution execution) {
-    CanaryExecutionStatusResponse canaryExecutionStatusResponse = executionMapper.fromExecution(execution);
-    CanaryExecutionCompletedEvent canaryExecutionCompletedEvent = new CanaryExecutionCompletedEvent(this, canaryExecutionStatusResponse);
+    CanaryExecutionStatusResponse canaryExecutionStatusResponse =
+        executionMapper.fromExecution(execution);
+    CanaryExecutionCompletedEvent canaryExecutionCompletedEvent =
+        new CanaryExecutionCompletedEvent(this, canaryExecutionStatusResponse);
     applicationEventPublisher.publishEvent(canaryExecutionCompletedEvent);
   }
 }

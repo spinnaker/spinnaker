@@ -19,6 +19,14 @@ package com.netflix.kayenta.prometheus.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,15 +36,6 @@ import retrofit.converter.Converter;
 import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -57,9 +56,10 @@ public class PrometheusResponseConverter implements Converter {
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
         String json = reader.readLine();
         Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
-        Map data = (Map)responseMap.get("data");
-        List<Map> resultList = (List<Map>)data.get("result");
-        List<PrometheusResults> prometheusResultsList = new ArrayList<PrometheusResults>(resultList.size());
+        Map data = (Map) responseMap.get("data");
+        List<Map> resultList = (List<Map>) data.get("result");
+        List<PrometheusResults> prometheusResultsList =
+            new ArrayList<PrometheusResults>(resultList.size());
 
         if (CollectionUtils.isEmpty(resultList)) {
           log.warn("Received no data from Prometheus.");
@@ -67,24 +67,29 @@ public class PrometheusResponseConverter implements Converter {
         }
 
         for (Map elem : resultList) {
-          Map<String, String> tags = (Map<String, String>)elem.get("metric");
+          Map<String, String> tags = (Map<String, String>) elem.get("metric");
           String id = tags.remove("__name__");
-          List<List> values = (List<List>)elem.get("values");
+          List<List> values = (List<List>) elem.get("values");
           List<Double> dataValues = new ArrayList<Double>(values.size());
 
           for (List tuple : values) {
-            dataValues.add(Double.valueOf((String)tuple.get(1)));
+            dataValues.add(Double.valueOf((String) tuple.get(1)));
           }
 
-          long startTimeMillis = doubleTimestampSecsToLongTimestampMillis(values.get(0).get(0) + "");
+          long startTimeMillis =
+              doubleTimestampSecsToLongTimestampMillis(values.get(0).get(0) + "");
           // If there aren't at least two data points, consider the step size to be zero.
           long stepSecs =
-            values.size() > 1
-            ? TimeUnit.MILLISECONDS.toSeconds(doubleTimestampSecsToLongTimestampMillis(values.get(1).get(0) + "") - startTimeMillis)
-            : 0;
+              values.size() > 1
+                  ? TimeUnit.MILLISECONDS.toSeconds(
+                      doubleTimestampSecsToLongTimestampMillis(values.get(1).get(0) + "")
+                          - startTimeMillis)
+                  : 0;
           long endTimeMillis = startTimeMillis + values.size() * stepSecs * 1000;
 
-          prometheusResultsList.add(new PrometheusResults(id, startTimeMillis, stepSecs, endTimeMillis, tags, dataValues));
+          prometheusResultsList.add(
+              new PrometheusResults(
+                  id, startTimeMillis, stepSecs, endTimeMillis, tags, dataValues));
         }
 
         return prometheusResultsList;
@@ -97,7 +102,7 @@ public class PrometheusResponseConverter implements Converter {
   }
 
   private static long doubleTimestampSecsToLongTimestampMillis(String doubleTimestampSecsAsString) {
-    return (long)(Double.parseDouble(doubleTimestampSecsAsString) * 1000);
+    return (long) (Double.parseDouble(doubleTimestampSecsAsString) * 1000);
   }
 
   @Override

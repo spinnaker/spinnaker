@@ -18,9 +18,8 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import lombok.*;
-
 import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -31,9 +30,7 @@ public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConf
 
   public static final String SERVICE_TYPE = "atlas";
 
-  @NotNull
-  @Getter
-  private String q;
+  @NotNull @Getter private String q;
 
   @Override
   public String getServiceType() {

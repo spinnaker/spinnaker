@@ -26,18 +26,15 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
-
+import java.io.IOException;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
@@ -45,57 +42,62 @@ import retrofit.converter.JacksonConverter;
 @ComponentScan({"com.netflix.kayenta.graphite"})
 @Slf4j
 public class GraphiteConfiguration {
-    @Bean
-    @ConfigurationProperties("kayenta.graphite")
-    GraphiteConfigurationProperties graphiteConfigurationProperties() {
-        return new GraphiteConfigurationProperties();
-    }
+  @Bean
+  @ConfigurationProperties("kayenta.graphite")
+  GraphiteConfigurationProperties graphiteConfigurationProperties() {
+    return new GraphiteConfigurationProperties();
+  }
 
-    @Bean
-    @ConfigurationProperties("kayenta.graphite.test-controller-defaults")
-    GraphiteConfigurationTestControllerDefaultProperties graphiteConfigurationTestControllerDefaultProperties() {
-        return new GraphiteConfigurationTestControllerDefaultProperties();
-    }
+  @Bean
+  @ConfigurationProperties("kayenta.graphite.test-controller-defaults")
+  GraphiteConfigurationTestControllerDefaultProperties
+      graphiteConfigurationTestControllerDefaultProperties() {
+    return new GraphiteConfigurationTestControllerDefaultProperties();
+  }
 
-    @Bean
-    MetricsService graphiteMetricsService(GraphiteConfigurationProperties graphiteConfigurationProperties,
-        RetrofitClientFactory retrofitClientFactory,
-        ObjectMapper objectMapper,
-        OkHttpClient okHttpClient,
-        AccountCredentialsRepository accountCredentialsRepository) throws IOException {
-        GraphiteMetricsService.GraphiteMetricsServiceBuilder graphiteMetricsServiceBuilder =
-            GraphiteMetricsService.builder();
+  @Bean
+  MetricsService graphiteMetricsService(
+      GraphiteConfigurationProperties graphiteConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository)
+      throws IOException {
+    GraphiteMetricsService.GraphiteMetricsServiceBuilder graphiteMetricsServiceBuilder =
+        GraphiteMetricsService.builder();
 
-        for (GraphiteManagedAccount account : graphiteConfigurationProperties.getAccounts()) {
-            String accountName = account.getName();
-            List<AccountCredentials.Type> supportedTypes = account.getSupportedTypes();
+    for (GraphiteManagedAccount account : graphiteConfigurationProperties.getAccounts()) {
+      String accountName = account.getName();
+      List<AccountCredentials.Type> supportedTypes = account.getSupportedTypes();
 
-            GraphiteCredentials credentials = GraphiteCredentials.builder().build();
+      GraphiteCredentials credentials = GraphiteCredentials.builder().build();
 
-            GraphiteNamedAccountCredentials.GraphiteNamedAccountCredentialsBuilder accountCredentialsBuilder =
-                GraphiteNamedAccountCredentials
-                    .builder()
-                    .name(accountName)
-                    .endpoint(account.getEndpoint())
-                    .credentials(credentials);
-            if (!CollectionUtils.isEmpty(supportedTypes)) {
-                if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-                    accountCredentialsBuilder
-                        .graphiteRemoteService(
-                            retrofitClientFactory.createClient(GraphiteRemoteService.class,
-                                new JacksonConverter(objectMapper), account.getEndpoint(), okHttpClient));
-                }
-
-                accountCredentialsBuilder.supportedTypes(supportedTypes);
-            }
-
-            accountCredentialsRepository.save(accountName, accountCredentialsBuilder.build());
-            graphiteMetricsServiceBuilder.accountName(accountName);
-
+      GraphiteNamedAccountCredentials.GraphiteNamedAccountCredentialsBuilder
+          accountCredentialsBuilder =
+              GraphiteNamedAccountCredentials.builder()
+                  .name(accountName)
+                  .endpoint(account.getEndpoint())
+                  .credentials(credentials);
+      if (!CollectionUtils.isEmpty(supportedTypes)) {
+        if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+          accountCredentialsBuilder.graphiteRemoteService(
+              retrofitClientFactory.createClient(
+                  GraphiteRemoteService.class,
+                  new JacksonConverter(objectMapper),
+                  account.getEndpoint(),
+                  okHttpClient));
         }
 
-        log.info("Populated GraphiteMetricsService with {} Graphite accounts.",
-            graphiteConfigurationProperties.getAccounts().size());
-        return graphiteMetricsServiceBuilder.build();
+        accountCredentialsBuilder.supportedTypes(supportedTypes);
+      }
+
+      accountCredentialsRepository.save(accountName, accountCredentialsBuilder.build());
+      graphiteMetricsServiceBuilder.accountName(accountName);
     }
+
+    log.info(
+        "Populated GraphiteMetricsService with {} Graphite accounts.",
+        graphiteConfigurationProperties.getAccounts().size());
+    return graphiteMetricsServiceBuilder.build();
+  }
 }

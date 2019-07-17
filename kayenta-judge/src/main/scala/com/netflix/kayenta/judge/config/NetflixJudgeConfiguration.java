@@ -30,9 +30,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan({
-  "com.netflix.kayenta.judge"
-})
+@ComponentScan({"com.netflix.kayenta.judge"})
 public class NetflixJudgeConfiguration {
 
   @Bean
@@ -44,24 +42,24 @@ public class NetflixJudgeConfiguration {
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository.class)
   AccountCredentialsRepository accountCredentialsRepository() {
-        return new MapBackedAccountCredentialsRepository();
-    }
+    return new MapBackedAccountCredentialsRepository();
+  }
 
   @Bean
   @ConditionalOnMissingBean(MetricsServiceRepository.class)
   MetricsServiceRepository metricsServiceRepository() {
-        return new MapBackedMetricsServiceRepository();
-    }
+    return new MapBackedMetricsServiceRepository();
+  }
 
   @Bean
   @ConditionalOnMissingBean
   MetricSetMixerService metricSetMixerService() {
-        return new MetricSetMixerService();
-    }
+    return new MetricSetMixerService();
+  }
 
   @Bean
   @ConditionalOnMissingBean(StorageServiceRepository.class)
   StorageServiceRepository storageServiceRepository() {
-        return new MapBackedStorageServiceRepository();
-    }
+    return new MapBackedStorageServiceRepository();
+  }
 }

@@ -16,38 +16,31 @@
 package com.netflix.kayenta.wavefront.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
+import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @Data
 public class WavefrontNamedAccountCredentials implements AccountCredentials<WavefrontCredentials> {
 
-    @NotNull
-    private String name;
+  @NotNull private String name;
 
-    @NotNull
-    @Singular
-    private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-    @NotNull
-    private WavefrontCredentials credentials;
+  @NotNull private WavefrontCredentials credentials;
 
-    @NotNull
-    private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
-    @Override
-    public String getType() {
-        return "wavefront";
-    }
+  @Override
+  public String getType() {
+    return "wavefront";
+  }
 
-    @JsonIgnore
-    WavefrontRemoteService wavefrontRemoteService;
+  @JsonIgnore WavefrontRemoteService wavefrontRemoteService;
 }

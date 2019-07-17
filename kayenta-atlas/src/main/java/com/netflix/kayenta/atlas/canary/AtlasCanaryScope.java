@@ -17,34 +17,31 @@
 package com.netflix.kayenta.atlas.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class AtlasCanaryScope extends CanaryScope {
 
-  @NotNull
-  private String type;
+  @NotNull private String type;
 
-  @NotNull
-  private String deployment;
+  @NotNull private String deployment;
 
-  @NotNull
-  private String dataset;
+  @NotNull private String dataset;
 
-  @NotNull
-  private String environment;
+  @NotNull private String environment;
 
-  private String accountId; // AWS or other account ID we will use to look up the atlas back-end for.
+  private String
+      accountId; // AWS or other account ID we will use to look up the atlas back-end for.
 
   public String cq() {
     if (type == null) {
-      throw new IllegalArgumentException("Atlas canary scope requires 'type' to be asg, cluster, or query.");
+      throw new IllegalArgumentException(
+          "Atlas canary scope requires 'type' to be asg, cluster, or query.");
     }
 
     switch (type) {

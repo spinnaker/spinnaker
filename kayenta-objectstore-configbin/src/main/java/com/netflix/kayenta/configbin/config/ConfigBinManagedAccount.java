@@ -18,25 +18,20 @@ package com.netflix.kayenta.configbin.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class ConfigBinManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
-  @NotNull
-  private String ownerApp;
+  @NotNull private String ownerApp;
 
-  @NotNull
-  private String configType;
+  @NotNull private String configType;
 
   private List<AccountCredentials.Type> supportedTypes;
 }

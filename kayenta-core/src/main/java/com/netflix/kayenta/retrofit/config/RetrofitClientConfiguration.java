@@ -50,7 +50,8 @@ public class RetrofitClientConfiguration {
     return okHttpClient;
   }
 
-  @Bean @Order(Ordered.HIGHEST_PRECEDENCE)
+  @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
   RetrofitExceptionHandler retrofitExceptionHandler() {
     return new RetrofitExceptionHandler();
   }

@@ -15,11 +15,10 @@
  */
 package com.netflix.kayenta.atlas.model;
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -28,17 +27,11 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AtlasStorage {
 
-  @NotNull
-  @Getter
-  private String global;
+  @NotNull @Getter private String global;
 
-  @NotNull
-  @Getter
-  private String regional;
+  @NotNull @Getter private String regional;
 
-  @NotNull
-  @Getter
-  private List<String> regions;
+  @NotNull @Getter private List<String> regions;
 
   public Optional<String> getRegionalCnameForRegion(String region) {
     if (regions.contains(region)) {

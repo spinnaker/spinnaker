@@ -17,16 +17,14 @@
 package com.netflix.kayenta.memory.config;
 
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class MemoryManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
   private List<AccountCredentials.Type> supportedTypes;
 }

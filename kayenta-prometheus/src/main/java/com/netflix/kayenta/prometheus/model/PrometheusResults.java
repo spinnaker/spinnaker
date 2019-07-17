@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.prometheus.model;
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -29,27 +28,15 @@ import java.util.Map;
 @AllArgsConstructor
 public class PrometheusResults {
 
-  @NotNull
-  @Getter
-  private String id;
+  @NotNull @Getter private String id;
 
-  @NotNull
-  @Getter
-  private long startTimeMillis;
+  @NotNull @Getter private long startTimeMillis;
 
-  @NotNull
-  @Getter
-  private long stepSecs;
+  @NotNull @Getter private long stepSecs;
 
-  @NotNull
-  @Getter
-  private long endTimeMillis;
+  @NotNull @Getter private long endTimeMillis;
 
-  @NotNull
-  @Getter
-  private Map<String, String> tags;
+  @NotNull @Getter private Map<String, String> tags;
 
-  @NotNull
-  @Getter
-  private List<Double> values;
+  @NotNull @Getter private List<Double> values;
 }

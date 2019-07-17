@@ -19,10 +19,7 @@ package com.netflix.kayenta.judge.service;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.judge.model.RemoteJudgeRequest;
 import retrofit.http.Body;
-import retrofit.http.GET;
 import retrofit.http.POST;
-
-import java.util.Map;
 
 public interface RemoteJudgeService {
 

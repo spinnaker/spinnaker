@@ -19,27 +19,26 @@ package com.netflix.kayenta.storage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
-import com.netflix.kayenta.canary.results.CanaryResult;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetPair;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @AllArgsConstructor
 public enum ObjectType {
   CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
   METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
-  METRIC_SET_PAIR_LIST(new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
-  CANARY_RESULT_ARCHIVE(new TypeReference<CanaryExecutionStatusResponse>() {}, "canary_archive", "canary_archive.json");
+  METRIC_SET_PAIR_LIST(
+      new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
+  CANARY_RESULT_ARCHIVE(
+      new TypeReference<CanaryExecutionStatusResponse>() {},
+      "canary_archive",
+      "canary_archive.json");
 
-  @Getter
-  final TypeReference typeReference;
+  @Getter final TypeReference typeReference;
 
-  @Getter
-  final String group;
+  @Getter final String group;
 
-  @Getter
-  final String defaultFilename;
+  @Getter final String defaultFilename;
 }

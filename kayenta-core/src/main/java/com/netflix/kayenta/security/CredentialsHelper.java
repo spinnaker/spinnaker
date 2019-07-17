@@ -16,37 +16,44 @@
 
 package com.netflix.kayenta.security;
 
-import org.springframework.util.StringUtils;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 public class CredentialsHelper {
 
-  public static String resolveAccountByNameOrType(String accountName,
-                                                  AccountCredentials.Type accountType,
-                                                  AccountCredentialsRepository accountCredentialsRepository) {
+  public static String resolveAccountByNameOrType(
+      String accountName,
+      AccountCredentials.Type accountType,
+      AccountCredentialsRepository accountCredentialsRepository) {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {
-      credentials = accountCredentialsRepository
-        .getOne(accountName)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+      credentials =
+          accountCredentialsRepository
+              .getOne(accountName)
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Unable to resolve account " + accountName + "."));
     } else {
-      credentials = accountCredentialsRepository
-        .getOne(accountType)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account of type " + accountType + "."));
+      credentials =
+          accountCredentialsRepository
+              .getOne(accountType)
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Unable to resolve account of type " + accountType + "."));
     }
 
     return credentials.getName();
   }
 
-  public static Set<AccountCredentials> getAllAccountsOfType(AccountCredentials.Type accountType,
-                                                             AccountCredentialsRepository accountCredentialsRepository) {
-    return accountCredentialsRepository
-      .getAll()
-      .stream()
-      .filter(credentials -> credentials.getSupportedTypes().contains(accountType))
-      .collect(Collectors.toSet());
+  public static Set<AccountCredentials> getAllAccountsOfType(
+      AccountCredentials.Type accountType,
+      AccountCredentialsRepository accountCredentialsRepository) {
+    return accountCredentialsRepository.getAll().stream()
+        .filter(credentials -> credentials.getSupportedTypes().contains(accountType))
+        .collect(Collectors.toSet());
   }
 }

@@ -15,15 +15,12 @@
  */
 package com.netflix.kayenta.canary;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class CanaryAdhocExecutionRequest {
-  @NotNull
-  protected CanaryConfig canaryConfig;
+  @NotNull protected CanaryConfig canaryConfig;
 
-  @NotNull
-  protected CanaryExecutionRequest executionRequest;
+  @NotNull protected CanaryExecutionRequest executionRequest;
 }

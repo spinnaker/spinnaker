@@ -16,10 +16,9 @@
 package com.netflix.kayenta.canary;
 
 import com.netflix.kayenta.canary.results.CanaryResult;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Data
 @Builder
@@ -30,21 +29,17 @@ public class CanaryExecutionStatusResponse {
 
   protected String parentPipelineExecutionId;
 
-  @NotNull
-  protected String pipelineId;
+  @NotNull protected String pipelineId;
 
   public String getPipelineId() {
     return pipelineId;
   }
 
-  @NotNull
-  protected Map<String, String> stageStatus;
+  @NotNull protected Map<String, String> stageStatus;
 
-  @NotNull
-  protected Boolean complete;
+  @NotNull protected Boolean complete;
 
-  @NotNull
-  protected String status;
+  @NotNull protected String status;
 
   protected Object exception;
 

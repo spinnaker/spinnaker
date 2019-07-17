@@ -27,6 +27,5 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class NewRelicCanaryScope extends CanaryScope {
 
-  @NotNull
-  private String scopeKey;
+  @NotNull private String scopeKey;
 }

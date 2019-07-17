@@ -17,6 +17,12 @@
 package com.netflix.kayenta.configbin.config;
 
 import com.squareup.okhttp.RequestBody;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import okio.Buffer;
 import org.springframework.stereotype.Component;
@@ -24,13 +30,6 @@ import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
@@ -57,20 +56,29 @@ public class ConfigBinResponseConverter implements Converter {
 
   @Override
   public TypedOutput toBody(Object object) {
-    RequestBody requestBody = (RequestBody)object;
+    RequestBody requestBody = (RequestBody) object;
     return new StringTypedOutput(requestBody);
   }
 
   private static class StringTypedOutput implements TypedOutput {
     private final RequestBody string;
 
-    StringTypedOutput(RequestBody s) { this.string = s; }
+    StringTypedOutput(RequestBody s) {
+      this.string = s;
+    }
 
-    @Override public String fileName() { return null; }
+    @Override
+    public String fileName() {
+      return null;
+    }
 
-    @Override public String mimeType() { return "application/json; charset=UTF-8"; }
+    @Override
+    public String mimeType() {
+      return "application/json; charset=UTF-8";
+    }
 
-    @Override public long length() {
+    @Override
+    public long length() {
       try {
         return string.contentLength();
       } catch (IOException e) {
@@ -79,7 +87,8 @@ public class ConfigBinResponseConverter implements Converter {
       }
     }
 
-    @Override public void writeTo(OutputStream out) throws IOException {
+    @Override
+    public void writeTo(OutputStream out) throws IOException {
       Buffer buffer = new Buffer();
       string.writeTo(buffer);
       buffer.writeTo(out);

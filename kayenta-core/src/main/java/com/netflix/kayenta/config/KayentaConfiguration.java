@@ -16,6 +16,9 @@
 
 package com.netflix.kayenta.config;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -23,13 +26,14 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MapBackedMetricsServiceRepository;
 import com.netflix.kayenta.metrics.MetricSetMixerService;
-import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.metrics.MetricsRetryConfigurationProperties;
+import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,11 +42,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import java.util.List;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Configuration
 @Slf4j
@@ -87,8 +86,11 @@ public class KayentaConfiguration {
   // Configure subtypes of CanaryMetricSetQueryConfig, all of which must be
   // defined in the package com.netflix.kayenta.canary.providers
   //
-  @Bean public ObjectMapperSubtypeConfigurer.ClassSubtypeLocator assetSpecSubTypeLocator() {
-    return new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(CanaryMetricSetQueryConfig.class, ImmutableList.of("com.netflix.kayenta.canary.providers.metrics"));
+  @Bean
+  public ObjectMapperSubtypeConfigurer.ClassSubtypeLocator assetSpecSubTypeLocator() {
+    return new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(
+        CanaryMetricSetQueryConfig.class,
+        ImmutableList.of("com.netflix.kayenta.canary.providers.metrics"));
   }
 
   @Primary
@@ -98,20 +100,24 @@ public class KayentaConfiguration {
   }
 
   @Autowired
-  public void objectMapper(ObjectMapper mapper, List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
+  public void objectMapper(
+      ObjectMapper mapper, List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
     configureObjectMapper(mapper, subtypeLocators);
   }
 
-  static public void configureObjectMapperFeatures(ObjectMapper objectMapper) {
-    objectMapper.setSerializationInclusion(NON_NULL)
-      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-      .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+  public static void configureObjectMapperFeatures(ObjectMapper objectMapper) {
+    objectMapper
+        .setSerializationInclusion(NON_NULL)
+        .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     JavaTimeModule module = new JavaTimeModule();
     objectMapper.registerModule(module);
   }
 
-  private void configureObjectMapper(ObjectMapper objectMapper, List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
+  private void configureObjectMapper(
+      ObjectMapper objectMapper,
+      List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
     new ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators);
     configureObjectMapperFeatures(objectMapper);
   }

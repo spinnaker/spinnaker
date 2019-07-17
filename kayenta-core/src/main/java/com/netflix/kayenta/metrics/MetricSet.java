@@ -17,72 +17,50 @@
 package com.netflix.kayenta.metrics;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
-import org.springframework.util.StringUtils;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import lombok.*;
+import org.springframework.util.StringUtils;
 
 @Builder
 @ToString
 @NoArgsConstructor
 public class MetricSet {
 
-  @NotNull
-  @Getter
-  @Setter
-  private String name;
+  @NotNull @Getter @Setter private String name;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, String> tags;
+  @NotNull @Singular @Getter private Map<String, String> tags;
 
-  @NotNull
-  @Getter
-  private long startTimeMillis;
+  @NotNull @Getter private long startTimeMillis;
 
-  @NotNull
-  @Getter
-  private String startTimeIso;
+  @NotNull @Getter private String startTimeIso;
 
-  @NotNull
-  @Getter
-  private long endTimeMillis;
+  @NotNull @Getter private long endTimeMillis;
 
-  @NotNull
-  @Getter
-  private String endTimeIso;
+  @NotNull @Getter private String endTimeIso;
 
-  @NotNull
-  @Getter
-  private long stepMillis;
+  @NotNull @Getter private long stepMillis;
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<Double> values;
+  @NotNull @Singular @Getter private List<Double> values;
 
-  @Singular
-  @Getter
-  private Map<String, String> attributes;
+  @Singular @Getter private Map<String, String> attributes;
 
-  @JsonIgnore
-  private String metricSetKey;
+  @JsonIgnore private String metricSetKey;
 
-  public MetricSet(String name,
-                   Map<String, String> tags,
-                   long startTimeMillis,
-                   String startTimeIso,
-                   long endTimeMillis,
-                   String endTimeIso,
-                   long stepMillis,
-                   List<Double> values,
-                   Map<String, String> attributes,
-                   String metricSetKey) {
+  public MetricSet(
+      String name,
+      Map<String, String> tags,
+      long startTimeMillis,
+      String startTimeIso,
+      long endTimeMillis,
+      String endTimeIso,
+      long stepMillis,
+      List<Double> values,
+      Map<String, String> attributes,
+      String metricSetKey) {
     this.name = name;
     this.tags = tags;
     this.startTimeMillis = startTimeMillis;
@@ -104,12 +82,13 @@ public class MetricSet {
 
       TreeMap<String, String> tagMap = new TreeMap<>(tags);
 
-      metricSetKey = name + " -> {" +
-        tagMap
-          .entrySet()
-          .stream()
-          .map(entry -> entry.getKey() + ":" + entry.getValue())
-          .collect(Collectors.joining(", ")) + "}";
+      metricSetKey =
+          name
+              + " -> {"
+              + tagMap.entrySet().stream()
+                  .map(entry -> entry.getKey() + ":" + entry.getValue())
+                  .collect(Collectors.joining(", "))
+              + "}";
     }
 
     return metricSetKey;

@@ -54,45 +54,49 @@ public class NewRelicConfiguration {
 
   @Bean
   @ConfigurationProperties("kayenta.newrelic.test-controller-defaults")
-  NewRelicConfigurationTestControllerDefaultProperties newrelicConfigurationTestControllerDefaultProperties() {
+  NewRelicConfigurationTestControllerDefaultProperties
+      newrelicConfigurationTestControllerDefaultProperties() {
     return new NewRelicConfigurationTestControllerDefaultProperties();
   }
 
   @Bean
   MetricsService newrelicMetricsService(
-    NewRelicConfigurationProperties newrelicConfigurationProperties,
-    RetrofitClientFactory retrofitClientFactory,
-    ObjectMapper objectMapper,
-    OkHttpClient okHttpClient,
-    AccountCredentialsRepository accountCredentialsRepository) throws IOException {
+      NewRelicConfigurationProperties newrelicConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository)
+      throws IOException {
     NewRelicMetricsService.NewRelicMetricsServiceBuilder metricsServiceBuilder =
-      NewRelicMetricsService.builder();
+        NewRelicMetricsService.builder();
 
     for (NewRelicManagedAccount account : newrelicConfigurationProperties.getAccounts()) {
       String name = account.getName();
       List<AccountCredentials.Type> supportedTypes = account.getSupportedTypes();
 
-      NewRelicCredentials credentials = NewRelicCredentials.builder()
-        .apiKey(account.getApiKey())
-        .applicationKey(account.getApplicationKey())
-        .build();
+      NewRelicCredentials credentials =
+          NewRelicCredentials.builder()
+              .apiKey(account.getApiKey())
+              .applicationKey(account.getApplicationKey())
+              .build();
 
       RemoteService remoteService = new RemoteService().setBaseUrl(NEWRELIC_INSIGHTS_ENDPOINT);
 
-      NewRelicNamedAccountCredentials.NewRelicNamedAccountCredentialsBuilder accountCredentialsBuilder =
-        NewRelicNamedAccountCredentials.builder()
-          .name(name)
-          .endpoint(remoteService)
-          .credentials(credentials);
+      NewRelicNamedAccountCredentials.NewRelicNamedAccountCredentialsBuilder
+          accountCredentialsBuilder =
+              NewRelicNamedAccountCredentials.builder()
+                  .name(name)
+                  .endpoint(remoteService)
+                  .credentials(credentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-          accountCredentialsBuilder.newRelicRemoteService(retrofitClientFactory.createClient(
-            NewRelicRemoteService.class,
-            new JacksonConverter(objectMapper),
-            remoteService,
-            okHttpClient
-          ));
+          accountCredentialsBuilder.newRelicRemoteService(
+              retrofitClientFactory.createClient(
+                  NewRelicRemoteService.class,
+                  new JacksonConverter(objectMapper),
+                  remoteService,
+                  okHttpClient));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }
@@ -101,9 +105,9 @@ public class NewRelicConfiguration {
       metricsServiceBuilder.accountName(name);
     }
 
-    log.info("Populated NewRelicMetricsService with {} NewRelic accounts.",
-      newrelicConfigurationProperties.getAccounts().size());
+    log.info(
+        "Populated NewRelicMetricsService with {} NewRelic accounts.",
+        newrelicConfigurationProperties.getAccounts().size());
     return metricsServiceBuilder.build();
   }
 }
-

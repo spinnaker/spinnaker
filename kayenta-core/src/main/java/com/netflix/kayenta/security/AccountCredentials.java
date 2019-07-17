@@ -17,7 +17,6 @@
 package com.netflix.kayenta.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.Collections;
 import java.util.List;
 

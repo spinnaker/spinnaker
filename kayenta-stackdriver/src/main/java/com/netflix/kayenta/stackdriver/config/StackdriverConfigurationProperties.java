@@ -16,14 +16,11 @@
 
 package com.netflix.kayenta.stackdriver.config;
 
+import java.time.Duration;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Duration;
-
 public class StackdriverConfigurationProperties {
 
-  @Getter
-  @Setter
-  private long metadataCachingIntervalMS = Duration.ofSeconds(60).toMillis();
+  @Getter @Setter private long metadataCachingIntervalMS = Duration.ofSeconds(60).toMillis();
 }

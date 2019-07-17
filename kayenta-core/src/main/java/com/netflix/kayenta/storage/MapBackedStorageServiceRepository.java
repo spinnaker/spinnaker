@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.storage;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class MapBackedStorageServiceRepository implements StorageServiceRepository {
 
@@ -29,9 +28,6 @@ public class MapBackedStorageServiceRepository implements StorageServiceReposito
 
   @Override
   public Optional<StorageService> getOne(String accountName) {
-    return storageServices
-      .stream()
-      .filter(s -> s.servicesAccount(accountName))
-      .findFirst();
+    return storageServices.stream().filter(s -> s.servicesAccount(accountName)).findFirst();
   }
 }

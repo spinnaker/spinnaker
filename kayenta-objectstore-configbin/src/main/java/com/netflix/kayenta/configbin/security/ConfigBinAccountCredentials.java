@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.configbin.security;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @Builder
 @Data
@@ -28,5 +27,6 @@ import java.util.Optional;
 public class ConfigBinAccountCredentials {
   // ConfigBin does not currently require authentication, so we do not need anything here.
   private static String applicationVersion =
-    Optional.ofNullable(ConfigBinAccountCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(ConfigBinAccountCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 }

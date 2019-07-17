@@ -25,14 +25,11 @@ import lombok.Data;
 @Data
 public class NewRelicManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
   private String apiKey;
   private String applicationKey;
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   private List<AccountCredentials.Type> supportedTypes;
 }
-

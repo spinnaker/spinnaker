@@ -25,6 +25,8 @@ import com.netflix.kayenta.wavefront.security.WavefrontCredentials;
 import com.netflix.kayenta.wavefront.security.WavefrontNamedAccountCredentials;
 import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
 import com.squareup.okhttp.OkHttpClient;
+import java.io.IOException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,66 +36,69 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 import retrofit.converter.JacksonConverter;
 
-import java.io.IOException;
-import java.util.List;
-
 @Configuration
 @ConditionalOnProperty("kayenta.wavefront.enabled")
 @ComponentScan({"com.netflix.kayenta.wavefront"})
 @Slf4j
 public class WavefrontConfiguration {
-    @Bean
-    @ConfigurationProperties("kayenta.wavefront")
-    WavefrontConfigurationProperties wavefrontConfigurationProperties() {
-        return new WavefrontConfigurationProperties();
-    }
+  @Bean
+  @ConfigurationProperties("kayenta.wavefront")
+  WavefrontConfigurationProperties wavefrontConfigurationProperties() {
+    return new WavefrontConfigurationProperties();
+  }
 
-    @Bean
-    MetricsService WavefrontMetricsService(WavefrontConfigurationProperties wavefrontConfigurationProperties,
-                                         RetrofitClientFactory retrofitClientFactory,
-                                         ObjectMapper objectMapper,
-                                         OkHttpClient okHttpClient,
-                                         AccountCredentialsRepository accountCredentialsRepository) throws IOException {
-        WavefrontMetricsService.WavefrontMetricsServiceBuilder wavefrontMetricsServiceBuilder = WavefrontMetricsService.builder();
+  @Bean
+  MetricsService WavefrontMetricsService(
+      WavefrontConfigurationProperties wavefrontConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository)
+      throws IOException {
+    WavefrontMetricsService.WavefrontMetricsServiceBuilder wavefrontMetricsServiceBuilder =
+        WavefrontMetricsService.builder();
 
-        for (WavefrontManagedAccount wavefrontManagedAccount : wavefrontConfigurationProperties.getAccounts()) {
-            String name = wavefrontManagedAccount.getName();
-            List<AccountCredentials.Type> supportedTypes = wavefrontManagedAccount.getSupportedTypes();
+    for (WavefrontManagedAccount wavefrontManagedAccount :
+        wavefrontConfigurationProperties.getAccounts()) {
+      String name = wavefrontManagedAccount.getName();
+      List<AccountCredentials.Type> supportedTypes = wavefrontManagedAccount.getSupportedTypes();
 
-            log.info("Registering Wavefront account {} with supported types {}.", name, supportedTypes);
+      log.info("Registering Wavefront account {} with supported types {}.", name, supportedTypes);
 
-            WavefrontCredentials wavefrontCredentials =
-                    WavefrontCredentials
-                            .builder()
-                            .apiToken(wavefrontManagedAccount.getApiToken())
-                            .build();
-            WavefrontNamedAccountCredentials.WavefrontNamedAccountCredentialsBuilder wavefrontNamedAccountCredentialsBuilder =
-                    WavefrontNamedAccountCredentials
-                            .builder()
-                            .name(name)
-                            .endpoint(wavefrontManagedAccount.getEndpoint())
-                            .credentials(wavefrontCredentials);
+      WavefrontCredentials wavefrontCredentials =
+          WavefrontCredentials.builder().apiToken(wavefrontManagedAccount.getApiToken()).build();
+      WavefrontNamedAccountCredentials.WavefrontNamedAccountCredentialsBuilder
+          wavefrontNamedAccountCredentialsBuilder =
+              WavefrontNamedAccountCredentials.builder()
+                  .name(name)
+                  .endpoint(wavefrontManagedAccount.getEndpoint())
+                  .credentials(wavefrontCredentials);
 
-            if (!CollectionUtils.isEmpty(supportedTypes)) {
-                if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-                    WavefrontRemoteService wavefrontRemoteService = retrofitClientFactory.createClient(WavefrontRemoteService.class,
-                            new JacksonConverter(objectMapper),
-                            wavefrontManagedAccount.getEndpoint(),
-                            okHttpClient);
+      if (!CollectionUtils.isEmpty(supportedTypes)) {
+        if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+          WavefrontRemoteService wavefrontRemoteService =
+              retrofitClientFactory.createClient(
+                  WavefrontRemoteService.class,
+                  new JacksonConverter(objectMapper),
+                  wavefrontManagedAccount.getEndpoint(),
+                  okHttpClient);
 
-                    wavefrontNamedAccountCredentialsBuilder.wavefrontRemoteService(wavefrontRemoteService);
-                }
-
-                wavefrontNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
-            }
-
-            WavefrontNamedAccountCredentials wavefrontNamedAccountCredentials = wavefrontNamedAccountCredentialsBuilder.build();
-            accountCredentialsRepository.save(name, wavefrontNamedAccountCredentials);
-            wavefrontMetricsServiceBuilder.accountName(name);
+          wavefrontNamedAccountCredentialsBuilder.wavefrontRemoteService(wavefrontRemoteService);
         }
 
-        WavefrontMetricsService wavefrontMetricsService = wavefrontMetricsServiceBuilder.build();
-        log.info("Populated WavefrontMetricsService with {} Wavefront accounts.", wavefrontMetricsService.getAccountNames().size());
-        return wavefrontMetricsService;
+        wavefrontNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
+      }
+
+      WavefrontNamedAccountCredentials wavefrontNamedAccountCredentials =
+          wavefrontNamedAccountCredentialsBuilder.build();
+      accountCredentialsRepository.save(name, wavefrontNamedAccountCredentials);
+      wavefrontMetricsServiceBuilder.accountName(name);
     }
+
+    WavefrontMetricsService wavefrontMetricsService = wavefrontMetricsServiceBuilder.build();
+    log.info(
+        "Populated WavefrontMetricsService with {} Wavefront accounts.",
+        wavefrontMetricsService.getAccountNames().size());
+    return wavefrontMetricsService;
+  }
 }

@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.memory.security;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @Builder
 @Data
@@ -29,5 +28,6 @@ import java.util.Optional;
 public class MemoryAccountCredentials {
 
   private static String applicationVersion =
-    Optional.ofNullable(MemoryAccountCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(MemoryAccountCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 }

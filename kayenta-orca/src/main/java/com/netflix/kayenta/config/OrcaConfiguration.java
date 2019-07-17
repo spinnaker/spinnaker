@@ -22,12 +22,11 @@ import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
+import java.net.InetAddress;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.context.annotation.*;
-
-import java.net.InetAddress;
-import java.util.UUID;
 
 @Configuration
 @Import({

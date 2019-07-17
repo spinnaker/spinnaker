@@ -16,31 +16,21 @@
 
 package com.netflix.kayenta.index.config;
 
+import java.time.Duration;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Duration;
-
 public class IndexConfigurationProperties {
 
-  @Getter
-  @Setter
-  private long heartbeatIntervalMS = Duration.ofSeconds(5).toMillis();
+  @Getter @Setter private long heartbeatIntervalMS = Duration.ofSeconds(5).toMillis();
 
-  @Getter
-  @Setter
+  @Getter @Setter
   // The initial delay is to give an instance some time to first record its heartbeat.
   private long indexingInitialDelayMS = Duration.ofSeconds(5).toMillis();
 
-  @Getter
-  @Setter
-  private long indexingIntervalMS = Duration.ofMinutes(15).toMillis();
+  @Getter @Setter private long indexingIntervalMS = Duration.ofMinutes(15).toMillis();
 
-  @Getter
-  @Setter
-  private int indexingLockTTLSec = (int)Duration.ofMinutes(15).getSeconds();
+  @Getter @Setter private int indexingLockTTLSec = (int) Duration.ofMinutes(15).getSeconds();
 
-  @Getter
-  @Setter
-  private long pendingUpdateStaleEntryThresholdMS = Duration.ofHours(1).toMillis();
+  @Getter @Setter private long pendingUpdateStaleEntryThresholdMS = Duration.ofHours(1).toMillis();
 }

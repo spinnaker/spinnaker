@@ -18,9 +18,8 @@ package com.netflix.kayenta.prometheus.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
@@ -31,7 +30,7 @@ public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(CanaryScope canaryScope){
+  public CanaryScope buildCanaryScope(CanaryScope canaryScope) {
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
     prometheusCanaryScope.setScope(canaryScope.getScope());
     prometheusCanaryScope.setLocation(canaryScope.getLocation());

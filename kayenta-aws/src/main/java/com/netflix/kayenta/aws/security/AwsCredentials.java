@@ -16,15 +16,15 @@
 
 package com.netflix.kayenta.aws.security;
 
+import java.util.Optional;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @ToString
 @Slf4j
 public class AwsCredentials {
 
   private static String applicationVersion =
-    Optional.ofNullable(AwsCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(AwsCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 }

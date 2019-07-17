@@ -17,17 +17,12 @@
 
 package com.netflix.kayenta.config;
 
+import static com.netflix.kayenta.signalfx.EndToEndCanaryIntegrationTests.CANARY_WINDOW_IN_MINUTES;
+import static io.restassured.RestAssured.given;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.Header;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -38,16 +33,22 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static com.netflix.kayenta.signalfx.EndToEndCanaryIntegrationTests.CANARY_WINDOW_IN_MINUTES;
-import static io.restassured.RestAssured.given;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 /**
- * Spring Test Config for the SignalFx Integration Tests.
- * Creates NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER number of threads for a mock service with three clusters (control, healthy experiment and a unhealthy experiment)
- * These mock clusters will report metrics in their background threads to SignalFx for the IntegrationTest suite to integrate with.
- * <p>
- * The metrics that get sent from this config, should align with what is defined in integration-test-canary-config.json in the integration source set resources dir.
+ * Spring Test Config for the SignalFx Integration Tests. Creates
+ * NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER number of threads for a mock service with three clusters
+ * (control, healthy experiment and a unhealthy experiment) These mock clusters will report metrics
+ * in their background threads to SignalFx for the IntegrationTest suite to integrate with.
+ *
+ * <p>The metrics that get sent from this config, should align with what is defined in
+ * integration-test-canary-config.json in the integration source set resources dir.
  */
 @TestConfiguration
 @Slf4j
@@ -59,8 +60,10 @@ public class SignalFxMockServiceReportingConfig {
 
   public static final String SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME = "canary-scope";
   public static final String SIGNAL_FX_LOCATION_IDENTIFYING_DIMENSION_NAME = "location";
-  public static final String KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME = "kayenta.integration-test.cpu.avg";
-  public static final String KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME = "kayenta.integration-test.request.count";
+  public static final String KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME =
+      "kayenta.integration-test.cpu.avg";
+  public static final String KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME =
+      "kayenta.integration-test.request.count";
   public static final String CONTROL_SCOPE_NAME = "control";
   public static final String HEALTHY_EXPERIMENT_SCOPE_NAME = "healthy-experiment";
   public static final String UNHEALTHY_EXPERIMENT_SCOPE_NAME = "unhealthy-experiment";
@@ -71,7 +74,8 @@ public class SignalFxMockServiceReportingConfig {
   private String testId;
   private Instant metricsReportingStartTime;
 
-  public SignalFxMockServiceReportingConfig(@Value("${kayenta.signalfx.api-key}") final String signalFxApiToken) {
+  public SignalFxMockServiceReportingConfig(
+      @Value("${kayenta.signalfx.api-key}") final String signalFxApiToken) {
     executorService = Executors.newFixedThreadPool(9);
     this.signalFxApiToken = signalFxApiToken;
   }
@@ -90,41 +94,54 @@ public class SignalFxMockServiceReportingConfig {
   public void start() {
     testId = UUID.randomUUID().toString();
 
-    ImmutableList.of(CONTROL_SCOPE_NAME, HEALTHY_EXPERIMENT_SCOPE_NAME).forEach(scope -> {
-      for (int i = 0; i < NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER; i++) {
-        executorService.submit(createMetricReportingMockService(scope, ImmutableMap.of(
-            KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME, new Metric(10),
-            KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME, new Metric(0,
-                ImmutableMap.of(
-                    "uri", "/v1/some-endpoint",
-                    "status_code", "400"
-                )
-            )
-        ), UUID.randomUUID().toString()));
-      }
-    });
+    ImmutableList.of(CONTROL_SCOPE_NAME, HEALTHY_EXPERIMENT_SCOPE_NAME)
+        .forEach(
+            scope -> {
+              for (int i = 0; i < NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER; i++) {
+                executorService.submit(
+                    createMetricReportingMockService(
+                        scope,
+                        ImmutableMap.of(
+                            KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME, new Metric(10),
+                            KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME,
+                                new Metric(
+                                    0,
+                                    ImmutableMap.of(
+                                        "uri", "/v1/some-endpoint",
+                                        "status_code", "400"))),
+                        UUID.randomUUID().toString()));
+              }
+            });
 
-    ImmutableList.of(UNHEALTHY_EXPERIMENT_SCOPE_NAME).forEach(scope -> {
-      for (int i = 0; i < NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER; i++) {
-        executorService.submit(createMetricReportingMockService(scope, ImmutableMap.of(
-            KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME, new Metric(12),
-            KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME, new Metric(50,
-                ImmutableMap.of(
-                    "uri", "/v1/some-endpoint",
-                    "status_code", "400"
-                )
-            )
-        ), UUID.randomUUID().toString()));
-      }
-    });
+    ImmutableList.of(UNHEALTHY_EXPERIMENT_SCOPE_NAME)
+        .forEach(
+            scope -> {
+              for (int i = 0; i < NUMBER_OF_INSTANCES_PER_MOCK_CLUSTER; i++) {
+                executorService.submit(
+                    createMetricReportingMockService(
+                        scope,
+                        ImmutableMap.of(
+                            KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME, new Metric(12),
+                            KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME,
+                                new Metric(
+                                    50,
+                                    ImmutableMap.of(
+                                        "uri", "/v1/some-endpoint",
+                                        "status_code", "400"))),
+                        UUID.randomUUID().toString()));
+              }
+            });
 
     metricsReportingStartTime = Instant.now();
 
     if (Boolean.valueOf(System.getProperty("block.for.metrics", "true"))) {
       // Wait for the mock services to send data, before allowing the tests to run
       try {
-        long pause = TimeUnit.MINUTES.toMillis(CANARY_WINDOW_IN_MINUTES) + TimeUnit.SECONDS.toMillis(15);
-        log.info("Waiting for {} milliseconds for mock data to flow through SignalFx, before letting the integration tests run", pause);
+        long pause =
+            TimeUnit.MINUTES.toMillis(CANARY_WINDOW_IN_MINUTES) + TimeUnit.SECONDS.toMillis(15);
+        log.info(
+            "Waiting for {} milliseconds for mock data to flow through SignalFx, before letting the integration tests run",
+            pause);
         Thread.sleep(pause);
       } catch (InterruptedException e) {
         log.error("Failed to wait to send metrics", e);
@@ -138,28 +155,31 @@ public class SignalFxMockServiceReportingConfig {
     executorService.shutdownNow();
   }
 
-  private Runnable createMetricReportingMockService(String scopeName, Map<String, Metric> metrics, String uuid) {
+  private Runnable createMetricReportingMockService(
+      String scopeName, Map<String, Metric> metrics, String uuid) {
     return () -> {
       while (!Thread.currentThread().isInterrupted()) {
         try {
           List<Map<String, Object>> signalfxMetrics = new LinkedList<>();
-          metrics.forEach((metricName, metric) -> signalfxMetrics.add(
-              ImmutableMap.of(
-                  "metric", metricName,
-                  "dimensions", ImmutableMap.builder()
-                      .putAll(metric.getDimensions())
-                      .put(SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME, scopeName)
-                      .put(SIGNAL_FX_LOCATION_IDENTIFYING_DIMENSION_NAME, "us-west-2")
-                      .put("env", "integration")
-                      .put("test-id", testId)
-                      .put("uuid", uuid)
-                      .build(),
-                  "value", metric.getValue() + new Random().nextInt(6)
-              )
-          ));
-          Map<String, List<Map<String, Object>>> signalfxRequest = ImmutableMap.of(
-              "gauge", signalfxMetrics
-          );
+          metrics.forEach(
+              (metricName, metric) ->
+                  signalfxMetrics.add(
+                      ImmutableMap.of(
+                          "metric",
+                          metricName,
+                          "dimensions",
+                          ImmutableMap.builder()
+                              .putAll(metric.getDimensions())
+                              .put(SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME, scopeName)
+                              .put(SIGNAL_FX_LOCATION_IDENTIFYING_DIMENSION_NAME, "us-west-2")
+                              .put("env", "integration")
+                              .put("test-id", testId)
+                              .put("uuid", uuid)
+                              .build(),
+                          "value",
+                          metric.getValue() + new Random().nextInt(6))));
+          Map<String, List<Map<String, Object>>> signalfxRequest =
+              ImmutableMap.of("gauge", signalfxMetrics);
 
           given()
               .header(new Header("X-SF-TOKEN", signalFxApiToken))

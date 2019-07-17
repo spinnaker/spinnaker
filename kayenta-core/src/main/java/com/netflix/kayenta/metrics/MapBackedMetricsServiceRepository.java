@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.metrics;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class MapBackedMetricsServiceRepository implements MetricsServiceRepository {
 
@@ -29,9 +28,6 @@ public class MapBackedMetricsServiceRepository implements MetricsServiceReposito
 
   @Override
   public Optional<MetricsService> getOne(String accountName) {
-    return metricsServices
-      .stream()
-      .filter(m -> m.servicesAccount(accountName))
-      .findFirst();
+    return metricsServices.stream().filter(m -> m.servicesAccount(accountName)).findFirst();
   }
 }

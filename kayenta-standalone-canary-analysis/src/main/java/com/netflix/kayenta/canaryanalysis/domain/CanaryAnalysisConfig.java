@@ -17,16 +17,15 @@
 package com.netflix.kayenta.canaryanalysis.domain;
 
 import com.netflix.kayenta.canary.CanaryConfig;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-
 /**
- * Internal wrapper object for passing all the data received from the canary analysis endpoints as a single object for
- * cleaner method signatures and Orca stage contexts.
+ * Internal wrapper object for passing all the data received from the canary analysis endpoints as a
+ * single object for cleaner method signatures and Orca stage contexts.
  */
 @Data
 @Builder
@@ -34,28 +33,21 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class CanaryAnalysisConfig {
 
-  @NotNull
-  @Builder.Default
-  private String user = "anonymous";
+  @NotNull @Builder.Default private String user = "anonymous";
 
-  @NotNull
-  private String application;
+  @NotNull private String application;
 
   private String parentPipelineExecutionId;
 
   private String canaryConfigId;
 
-  @NotNull
-  private String metricsAccountName;
+  @NotNull private String metricsAccountName;
 
-  @NotNull
-  private String storageAccountName;
+  @NotNull private String storageAccountName;
 
   private String configurationAccountName;
 
-  @NotNull
-  private CanaryAnalysisExecutionRequest executionRequest;
+  @NotNull private CanaryAnalysisExecutionRequest executionRequest;
 
-  @NotNull
-  private CanaryConfig canaryConfig;
+  @NotNull private CanaryConfig canaryConfig;
 }

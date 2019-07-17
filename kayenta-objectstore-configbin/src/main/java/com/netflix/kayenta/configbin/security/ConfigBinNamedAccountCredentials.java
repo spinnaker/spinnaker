@@ -20,39 +20,31 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.configbin.service.ConfigBinRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @Data
-public class ConfigBinNamedAccountCredentials implements AccountCredentials<ConfigBinAccountCredentials> {
+public class ConfigBinNamedAccountCredentials
+    implements AccountCredentials<ConfigBinAccountCredentials> {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull
-  private ConfigBinAccountCredentials credentials;
+  @NotNull private ConfigBinAccountCredentials credentials;
 
-  @NotNull
-  @Getter
-  @Setter
-  private RemoteService endpoint;
+  @NotNull @Getter @Setter private RemoteService endpoint;
 
-  @NotNull
-  private String ownerApp;
+  @NotNull private String ownerApp;
 
-  @NotNull
-  private String configType;
+  @NotNull private String configType;
 
   @Override
-  public String getType() { return "configbin"; }
+  public String getType() {
+    return "configbin";
+  }
 
-  @JsonIgnore
-  private ConfigBinRemoteService remoteService;
+  @JsonIgnore private ConfigBinRemoteService remoteService;
 }

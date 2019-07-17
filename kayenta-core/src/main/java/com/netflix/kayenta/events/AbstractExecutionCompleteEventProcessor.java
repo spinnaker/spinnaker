@@ -23,13 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 
-public abstract class AbstractExecutionCompleteEventProcessor implements ApplicationListener<ExecutionComplete> {
+public abstract class AbstractExecutionCompleteEventProcessor
+    implements ApplicationListener<ExecutionComplete> {
   protected final ApplicationEventPublisher applicationEventPublisher;
   private final ExecutionRepository executionRepository;
 
   @Autowired
-  public AbstractExecutionCompleteEventProcessor(ApplicationEventPublisher applicationEventPublisher,
-                                                 ExecutionRepository executionRepository) {
+  public AbstractExecutionCompleteEventProcessor(
+      ApplicationEventPublisher applicationEventPublisher,
+      ExecutionRepository executionRepository) {
 
     this.applicationEventPublisher = applicationEventPublisher;
     this.executionRepository = executionRepository;
@@ -40,7 +42,8 @@ public abstract class AbstractExecutionCompleteEventProcessor implements Applica
     if (event.getExecutionType() != Execution.ExecutionType.PIPELINE) {
       return;
     }
-    Execution execution = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, event.getExecutionId());
+    Execution execution =
+        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, event.getExecutionId());
     if (shouldProcessExecution(execution)) {
       processCompletedPipelineExecution(execution);
     }

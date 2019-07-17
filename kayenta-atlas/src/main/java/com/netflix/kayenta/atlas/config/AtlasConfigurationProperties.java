@@ -16,22 +16,16 @@
 
 package com.netflix.kayenta.atlas.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AtlasConfigurationProperties {
 
-  @Getter
-  @Setter
-  private int maxBackoffPeriodSeconds = 32;
+  @Getter @Setter private int maxBackoffPeriodSeconds = 32;
 
-  @Getter
-  @Setter
-  private int stageTimeoutMinutes = 3;
+  @Getter @Setter private int stageTimeoutMinutes = 3;
 
-  @Getter
-  private List<AtlasManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<AtlasManagedAccount> accounts = new ArrayList<>();
 }

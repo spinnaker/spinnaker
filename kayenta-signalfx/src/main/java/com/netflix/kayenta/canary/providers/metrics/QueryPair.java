@@ -21,10 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Can be used for Dimensions, Tags or Properties.
- * For Tags, use 'tag' as the key.
- */
+/** Can be used for Dimensions, Tags or Properties. For Tags, use 'tag' as the key. */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

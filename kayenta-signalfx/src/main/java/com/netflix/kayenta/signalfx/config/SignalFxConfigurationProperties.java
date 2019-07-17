@@ -17,13 +17,11 @@
 
 package com.netflix.kayenta.signalfx.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class SignalFxConfigurationProperties {
 
-  @Getter
-  private List<SignalFxManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<SignalFxManagedAccount> accounts = new ArrayList<>();
 }

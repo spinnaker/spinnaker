@@ -16,15 +16,13 @@
 
 package com.netflix.kayenta.canary;
 
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
 public class CanaryConfigUpdateResponse {
 
-  @NotNull
-  protected String canaryConfigId;
+  @NotNull protected String canaryConfigId;
 }

@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.prometheus.security;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @Builder
 @Data
@@ -28,7 +27,8 @@ import java.util.Optional;
 public class PrometheusCredentials {
 
   private static String applicationVersion =
-    Optional.ofNullable(PrometheusCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(PrometheusCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 
   private String username;
 

@@ -17,12 +17,11 @@
 package com.netflix.kayenta.datadog.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
@@ -30,7 +29,7 @@ public class DatadogTimeSeries {
   private List<DatadogSeriesEntry> series;
 
   @Data
-  static public class DatadogSeriesEntry {
+  public static class DatadogSeriesEntry {
     private String scope;
     private Long start;
     private Long interval;
@@ -42,8 +41,8 @@ public class DatadogTimeSeries {
     // Since Kayenta's MetricSet is storing a simple array, we need to
     // convert this sparse list to a full array, and make sure we slot the
     // values into the correct array indices.
-    @JsonIgnore
-    private List<Double> adjustedPointList;
+    @JsonIgnore private List<Double> adjustedPointList;
+
     @JsonIgnore
     private List<Double> getAdjustedPointList() {
       if ((this.adjustedPointList != null) && (this.adjustedPointList.size() != 0)) {

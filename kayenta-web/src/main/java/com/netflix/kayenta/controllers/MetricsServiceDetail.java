@@ -17,9 +17,8 @@
 package com.netflix.kayenta.controllers;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Builder
 @ToString
@@ -27,21 +26,13 @@ import java.util.List;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MetricsServiceDetail {
-  @Getter
-  @NonNull
-  String name;
+  @Getter @NonNull String name;
 
-  @Getter
-  @NonNull
-  String type;
+  @Getter @NonNull String type;
 
   // See comment in kayenta-core AccountCredentials
-  @Getter
-  @NonNull
-  List<String> recommendedLocations;
+  @Getter @NonNull List<String> recommendedLocations;
 
   // See comment in kayenta-core AccountCredentials
-  @Getter
-  @NonNull
-  List<String> locations;
+  @Getter @NonNull List<String> locations;
 }

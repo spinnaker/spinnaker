@@ -16,6 +16,12 @@
 
 package com.netflix.kayenta.signalfx;
 
+import static com.netflix.kayenta.config.SignalFxMockServiceReportingConfig.CONTROL_SCOPE_NAME;
+import static com.netflix.kayenta.config.SignalFxMockServiceReportingConfig.HEALTHY_EXPERIMENT_SCOPE_NAME;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.is;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
@@ -28,14 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.netflix.kayenta.config.SignalFxMockServiceReportingConfig.CONTROL_SCOPE_NAME;
-import static com.netflix.kayenta.config.SignalFxMockServiceReportingConfig.HEALTHY_EXPERIMENT_SCOPE_NAME;
-import static com.netflix.kayenta.config.SignalFxMockServiceReportingConfig.SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME;
-import static com.netflix.kayenta.signalfx.canary.SignalFxCanaryScopeFactory.SCOPE_KEY_KEY;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.is;
-
 @Slf4j
 public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignalFxIntegrationTest {
 
@@ -45,30 +43,30 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
   }
 
   @Test
-  public void test_that_a_canary_analysis_execution_can_be_created_healthy() throws InterruptedException {
+  public void test_that_a_canary_analysis_execution_can_be_created_healthy()
+      throws InterruptedException {
 
     CanaryAnalysisAdhocExecutionRequest request = new CanaryAnalysisAdhocExecutionRequest();
 
     request.setCanaryConfig(integrationTestCanaryConfig);
 
-    CanaryAnalysisExecutionRequest executionRequest = CanaryAnalysisExecutionRequest.builder()
-        .scopes(ImmutableList.of(
-            CanaryAnalysisExecutionRequestScope.builder()
-                .controlScope(CONTROL_SCOPE_NAME)
-                .controlLocation(LOCATION)
-                .experimentScope(HEALTHY_EXPERIMENT_SCOPE_NAME)
-                .experimentLocation(LOCATION)
-                .extendedScopeParams(ImmutableMap.of(
-                    TEST_ID, testId
-                ))
-                .startTimeIso(metricsReportingStartTime.toString())
-                .step(1L)
-                .build()
-        ))
-        .thresholds(CanaryClassifierThresholdsConfig.builder().marginal(50D).pass(75D).build())
-        .lifetimeDurationMins(3L)
-        .analysisIntervalMins(1L)
-        .build();
+    CanaryAnalysisExecutionRequest executionRequest =
+        CanaryAnalysisExecutionRequest.builder()
+            .scopes(
+                ImmutableList.of(
+                    CanaryAnalysisExecutionRequestScope.builder()
+                        .controlScope(CONTROL_SCOPE_NAME)
+                        .controlLocation(LOCATION)
+                        .experimentScope(HEALTHY_EXPERIMENT_SCOPE_NAME)
+                        .experimentLocation(LOCATION)
+                        .extendedScopeParams(ImmutableMap.of(TEST_ID, testId))
+                        .startTimeIso(metricsReportingStartTime.toString())
+                        .step(1L)
+                        .build()))
+            .thresholds(CanaryClassifierThresholdsConfig.builder().marginal(50D).pass(75D).build())
+            .lifetimeDurationMins(3L)
+            .analysisIntervalMins(1L)
+            .build();
 
     request.setExecutionRequest(executionRequest);
 
@@ -79,23 +77,35 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
             .queryParam(METRICS_ACCOUNT_NAME_QUERY_KEY, METRICS_ACCOUNT_NAME)
             .queryParam(STORAGE_ACCOUNT_NAME_QUERY_KEY, STORAGE_ACCOUNT_NAME)
             .body(request)
-        .when()
-            .log().all(true)
+            .when()
+            .log()
+            .all(true)
             .post(String.format(getUriTemplate(), "/standalone_canary_analysis"))
-        .then()
-            .log().all()
+            .then()
+            .log()
+            .all()
             .statusCode(200);
 
-    String canaryAnalysisExecutionId = canaryAnalysisExRes.extract().body().jsonPath().getString("canaryAnalysisExecutionId");
+    String canaryAnalysisExecutionId =
+        canaryAnalysisExRes.extract().body().jsonPath().getString("canaryAnalysisExecutionId");
 
     // poll for the stage to complete
     ValidatableResponse response;
     do {
-      response = when().get(String.format(getUriTemplate(), "/standalone_canary_analysis/" + canaryAnalysisExecutionId))
-          .then().statusCode(200);
+      response =
+          when()
+              .get(
+                  String.format(
+                      getUriTemplate(), "/standalone_canary_analysis/" + canaryAnalysisExecutionId))
+              .then()
+              .statusCode(200);
       Thread.sleep(5000);
       log.info("Stage Status");
-      response.extract().body().jsonPath().getList("stageStatus", StageMetadata.class)
+      response
+          .extract()
+          .body()
+          .jsonPath()
+          .getList("stageStatus", StageMetadata.class)
           .forEach(stage -> log.info(stage.toString()));
     } while (!response.extract().body().jsonPath().getBoolean("complete"));
 

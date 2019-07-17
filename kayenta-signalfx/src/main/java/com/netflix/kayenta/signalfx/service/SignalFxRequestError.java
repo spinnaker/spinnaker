@@ -17,18 +17,30 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import java.util.Optional;
-
 public class SignalFxRequestError extends RuntimeException {
 
   private static final String MSG_TEMPLATE =
-      "An error occurred when trying to execute a SignalFlow program " +
-          "with program='%s', startMs='%s', endMs='%s', resolution='%s' for accountName: %s. Received error response: %s";
+      "An error occurred when trying to execute a SignalFlow program "
+          + "with program='%s', startMs='%s', endMs='%s', resolution='%s' for accountName: %s. Received error response: %s";
 
-  public SignalFxRequestError(ErrorResponse errorResponse, String program, long start, long end,
-                              long resolution, String accountName) {
+  public SignalFxRequestError(
+      ErrorResponse errorResponse,
+      String program,
+      long start,
+      long end,
+      long resolution,
+      String accountName) {
 
-    super(String.format(MSG_TEMPLATE, program, start, end, resolution, accountName,
-        errorResponse != null ? errorResponse.toString() : "no response received from Signal Fx"));
+    super(
+        String.format(
+            MSG_TEMPLATE,
+            program,
+            start,
+            end,
+            resolution,
+            accountName,
+            errorResponse != null
+                ? errorResponse.toString()
+                : "no response received from Signal Fx"));
   }
 }

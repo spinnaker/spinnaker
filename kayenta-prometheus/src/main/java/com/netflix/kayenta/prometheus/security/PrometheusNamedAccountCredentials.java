@@ -20,36 +20,30 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
-import javax.validation.constraints.NotNull;
-import java.util.List;
-
 @Builder
 @Data
-public class PrometheusNamedAccountCredentials implements AccountCredentials<PrometheusCredentials> {
+public class PrometheusNamedAccountCredentials
+    implements AccountCredentials<PrometheusCredentials> {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull
-  private PrometheusCredentials credentials;
+  @NotNull private PrometheusCredentials credentials;
 
   // The prometheus server location.
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   @Override
   public String getType() {
     return "prometheus";
   }
 
-  @JsonIgnore
-  PrometheusRemoteService prometheusRemoteService;
+  @JsonIgnore PrometheusRemoteService prometheusRemoteService;
 }

@@ -16,30 +16,34 @@
 
 package com.netflix.kayenta.canary.util;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
+import org.apache.commons.lang.StringUtils;
 
 public class FetchControllerUtils {
 
-  public static String determineDefaultProperty(String passedPropertyValue, String propertyName, Object defaultProperties) {
+  public static String determineDefaultProperty(
+      String passedPropertyValue, String propertyName, Object defaultProperties) {
     if (!StringUtils.isEmpty(passedPropertyValue)) {
       return passedPropertyValue;
     }
 
     try {
       BeanInfo beanInfo = Introspector.getBeanInfo(defaultProperties.getClass());
-      PropertyDescriptor propertyDescriptor = Stream.of(beanInfo.getPropertyDescriptors())
-        .filter(p -> p.getName().equals(propertyName))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Unable to find property '" + propertyName + "'."));
+      PropertyDescriptor propertyDescriptor =
+          Stream.of(beanInfo.getPropertyDescriptors())
+              .filter(p -> p.getName().equals(propertyName))
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Unable to find property '" + propertyName + "'."));
 
-      return (String)propertyDescriptor.getReadMethod().invoke(defaultProperties);
+      return (String) propertyDescriptor.getReadMethod().invoke(defaultProperties);
     } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
       throw new IllegalArgumentException(e);
     }

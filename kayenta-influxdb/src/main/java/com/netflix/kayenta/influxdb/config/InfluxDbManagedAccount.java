@@ -16,24 +16,19 @@
 
 package com.netflix.kayenta.influxdb.config;
 
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class InfluxDbManagedAccount {
-  @NotNull
-  private String name;
+  @NotNull private String name;
   private String apiKey;
   private String applicationKey;
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   private List<AccountCredentials.Type> supportedTypes;
 }

@@ -16,11 +16,10 @@
 
 package com.netflix.kayenta.atlas.security;
 
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 @Builder
 @Data
@@ -28,5 +27,6 @@ import java.util.Optional;
 public class AtlasCredentials {
 
   private static String applicationVersion =
-    Optional.ofNullable(AtlasCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+      Optional.ofNullable(AtlasCredentials.class.getPackage().getImplementationVersion())
+          .orElse("Unknown");
 }

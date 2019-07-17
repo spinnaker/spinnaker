@@ -20,42 +20,35 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.atlas.backends.AtlasStorageUpdater;
 import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.security.AccountCredentials;
+import java.util.Collections;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
-
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.List;
 
 @Builder
 @Data
 public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCredentials> {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
   @Override
   public String getType() {
     return "atlas";
   }
 
-  @NotNull
-  private AtlasCredentials credentials;
+  @NotNull private AtlasCredentials credentials;
 
   private String fetchId;
 
   private List<String> recommendedLocations;
 
-  @JsonIgnore
-  private BackendUpdater backendUpdater;
+  @JsonIgnore private BackendUpdater backendUpdater;
 
-  @JsonIgnore
-  private AtlasStorageUpdater atlasStorageUpdater;
+  @JsonIgnore private AtlasStorageUpdater atlasStorageUpdater;
 
   @Override
   public List<String> getLocations() {
@@ -70,5 +63,4 @@ public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCre
       return recommendedLocations;
     }
   }
-
 }

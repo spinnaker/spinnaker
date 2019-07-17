@@ -39,16 +39,6 @@ import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationProperties;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Singular;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -60,27 +50,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Builder
 @Slf4j
 public class StackdriverMetricsService implements MetricsService {
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  private final AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private final Registry registry;
+  @Autowired private final Registry registry;
 
-  @Autowired
-  private final StackdriverConfigurationProperties stackdriverConfigurationProperties;
+  @Autowired private final StackdriverConfigurationProperties stackdriverConfigurationProperties;
 
-  @Builder.Default
-  private List<MetricDescriptor> metricDescriptorsCache = Collections.emptyList();
+  @Builder.Default private List<MetricDescriptor> metricDescriptorsCache = Collections.emptyList();
 
   @Override
   public String getType() {
@@ -93,61 +85,81 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  public String buildQuery(String metricsAccountName,
-                           CanaryConfig canaryConfig,
-                           CanaryMetricConfig canaryMetricConfig,
-                           CanaryScope canaryScope) throws IOException {
-    StackdriverCanaryMetricSetQueryConfig queryConfig = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
-    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
+  public String buildQuery(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
+    StackdriverCanaryMetricSetQueryConfig queryConfig =
+        (StackdriverCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope) canaryScope;
     String projectId = determineProjectId(metricsAccountName, stackdriverCanaryScope);
     String location = stackdriverCanaryScope.getLocation();
     String scope = stackdriverCanaryScope.getScope();
     String resourceType =
-      StringUtils.hasText(queryConfig.getResourceType())
-      ? queryConfig.getResourceType()
-      : stackdriverCanaryScope.getResourceType();
+        StringUtils.hasText(queryConfig.getResourceType())
+            ? queryConfig.getResourceType()
+            : stackdriverCanaryScope.getResourceType();
 
-    String customFilter = QueryConfigUtils.expandCustomFilter(
-      canaryConfig,
+    String customFilter =
+        QueryConfigUtils.expandCustomFilter(
+            canaryConfig,
             queryConfig,
-      stackdriverCanaryScope,
-      new String[]{"project", "resourceType", "scope", "location"});
-    String filter = "metric.type=\"" + queryConfig.getMetricType() + "\"" +
-                    " AND resource.type=" + resourceType;
+            stackdriverCanaryScope,
+            new String[] {"project", "resourceType", "scope", "location"});
+    String filter =
+        "metric.type=\""
+            + queryConfig.getMetricType()
+            + "\""
+            + " AND resource.type="
+            + resourceType;
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
-    // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
+    // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource
+    // type.
     if (StringUtils.isEmpty(customFilter)) {
       if ("gce_instance".equals(resourceType)) {
         if (StringUtils.isEmpty(location)) {
-          throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'gce_instance'.");
+          throw new IllegalArgumentException(
+              "Location (i.e. region) is required when resourceType is 'gce_instance'.");
         }
 
         if (StringUtils.isEmpty(scope)) {
-          throw new IllegalArgumentException("Scope is required when resourceType is 'gce_instance'.");
+          throw new IllegalArgumentException(
+              "Scope is required when resourceType is 'gce_instance'.");
         }
 
-        filter += " AND project=" + projectId +
-                  " AND metadata.user_labels.\"spinnaker-region\"=" + location +
-                  " AND metadata.user_labels.\"spinnaker-server-group\"=" + scope;
+        filter +=
+            " AND project="
+                + projectId
+                + " AND metadata.user_labels.\"spinnaker-region\"="
+                + location
+                + " AND metadata.user_labels.\"spinnaker-server-group\"="
+                + scope;
       } else if ("aws_ec2_instance".equals(resourceType)) {
         if (StringUtils.isEmpty(location)) {
-          throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
+          throw new IllegalArgumentException(
+              "Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
         }
 
         if (StringUtils.isEmpty(scope)) {
-          throw new IllegalArgumentException("Scope is required when resourceType is 'aws_ec2_instance'.");
+          throw new IllegalArgumentException(
+              "Scope is required when resourceType is 'aws_ec2_instance'.");
         }
 
-        filter += " AND resource.labels.region=\"aws:" + location + "\"" +
-                  " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + scope;
+        filter +=
+            " AND resource.labels.region=\"aws:"
+                + location
+                + "\""
+                + " AND metadata.user_labels.\"aws:autoscaling:groupname\"="
+                + scope;
       } else if ("gae_app".equals(resourceType)) {
         if (StringUtils.isEmpty(scope)) {
           throw new IllegalArgumentException("Scope is required when resourceType is 'gae_app'.");
         }
 
-        filter += " AND project=" + projectId +
-                  " AND resource.labels.version_id=" + scope;
+        filter += " AND project=" + projectId + " AND resource.labels.version_id=" + scope;
 
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
@@ -155,19 +167,32 @@ public class StackdriverMetricsService implements MetricsService {
           filter += " AND resource.labels.module_id=" + extendedScopeParams.get("service");
         }
       } else if (Arrays.asList("k8s_container", "k8s_pod", "k8s_node").contains(resourceType)) {
-        // TODO(duftler): Figure out where it makes sense to use 'scope'. It is available as a template variable binding,
-        // and maps to the control and experiment scopes. Will probably be useful to use expressions in those fields in
+        // TODO(duftler): Figure out where it makes sense to use 'scope'. It is available as a
+        // template variable binding,
+        // and maps to the control and experiment scopes. Will probably be useful to use expressions
+        // in those fields in
         // the ui, and then map 'scope' to some user label value in a custom filter template.
         // TODO(duftler): Should cluster_name be automatically included or required?
         filter += " AND project=" + projectId;
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
         if (extendedScopeParams != null) {
-          List<String> resourceLabelKeys = Arrays.asList("location", "node_name", "cluster_name", "pod_name", "container_name", "namespace_name");
+          List<String> resourceLabelKeys =
+              Arrays.asList(
+                  "location",
+                  "node_name",
+                  "cluster_name",
+                  "pod_name",
+                  "container_name",
+                  "namespace_name");
 
           for (String resourceLabelKey : resourceLabelKeys) {
             if (extendedScopeParams.containsKey(resourceLabelKey)) {
-              filter += " AND resource.labels." + resourceLabelKey + "=" + extendedScopeParams.get(resourceLabelKey);
+              filter +=
+                  " AND resource.labels."
+                      + resourceLabelKey
+                      + "="
+                      + extendedScopeParams.get(resourceLabelKey);
             }
           }
 
@@ -175,7 +200,12 @@ public class StackdriverMetricsService implements MetricsService {
             if (extendedScopeParamsKey.startsWith("user_labels.")) {
               String userLabelKey = extendedScopeParamsKey.substring(12);
 
-              filter += " AND metadata.user_labels.\"" + userLabelKey + "\"=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
+              filter +=
+                  " AND metadata.user_labels.\""
+                      + userLabelKey
+                      + "\"=\""
+                      + extendedScopeParams.get(extendedScopeParamsKey)
+                      + "\"";
             }
           }
         }
@@ -184,11 +214,22 @@ public class StackdriverMetricsService implements MetricsService {
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
         if (extendedScopeParams != null) {
-          List<String> resourceLabelKeys = Arrays.asList("cluster_name", "namespace_id", "instance_id", "pod_id", "container_name", "zone");
+          List<String> resourceLabelKeys =
+              Arrays.asList(
+                  "cluster_name",
+                  "namespace_id",
+                  "instance_id",
+                  "pod_id",
+                  "container_name",
+                  "zone");
 
           for (String resourceLabelKey : resourceLabelKeys) {
             if (extendedScopeParams.containsKey(resourceLabelKey)) {
-              filter += " AND resource.labels." + resourceLabelKey + "=" + extendedScopeParams.get(resourceLabelKey);
+              filter +=
+                  " AND resource.labels."
+                      + resourceLabelKey
+                      + "="
+                      + extendedScopeParams.get(resourceLabelKey);
             }
           }
 
@@ -196,13 +237,21 @@ public class StackdriverMetricsService implements MetricsService {
             if (extendedScopeParamsKey.startsWith("user_labels.")) {
               String userLabelKey = extendedScopeParamsKey.substring(12);
 
-              filter += " AND metadata.user_labels.\"" + userLabelKey + "\"=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
+              filter +=
+                  " AND metadata.user_labels.\""
+                      + userLabelKey
+                      + "\"=\""
+                      + extendedScopeParams.get(extendedScopeParamsKey)
+                      + "\"";
             }
           }
         }
       } else if (!"global".equals(resourceType)) {
-        throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet explicitly supported. If you employ a " +
-          "custom filter, you may use any resource type you like.");
+        throw new IllegalArgumentException(
+            "Resource type '"
+                + resourceType
+                + "' not yet explicitly supported. If you employ a "
+                + "custom filter, you may use any resource type you like.");
       }
     } else {
       filter += " AND " + customFilter;
@@ -214,40 +263,50 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String metricsAccountName,
-                                      CanaryConfig canaryConfig,
-                                      CanaryMetricConfig canaryMetricConfig,
-                                      CanaryScope canaryScope) throws IOException {
+  public List<MetricSet> queryMetrics(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
     if (!(canaryScope instanceof StackdriverCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope +
-                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
-                                         "neglecting to explicitly specify which account to use for a given request.");
+      throw new IllegalArgumentException(
+          "Canary scope not instance of StackdriverCanaryScope: "
+              + canaryScope
+              + ". One common cause is having multiple METRICS_STORE accounts configured but "
+              + "neglecting to explicitly specify which account to use for a given request.");
     }
 
-    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
-    GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(metricsAccountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
+    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope) canaryScope;
+    GoogleNamedAccountCredentials stackdriverCredentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(metricsAccountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + metricsAccountName + "."));
     Monitoring monitoring = stackdriverCredentials.getMonitoring();
-    StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+    StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery =
+        (StackdriverCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
     String projectId = determineProjectId(metricsAccountName, stackdriverCanaryScope);
     String location = stackdriverCanaryScope.getLocation();
     String resourceType =
-      StringUtils.hasText(stackdriverMetricSetQuery.getResourceType())
-      ? stackdriverMetricSetQuery.getResourceType()
-      : stackdriverCanaryScope.getResourceType();
+        StringUtils.hasText(stackdriverMetricSetQuery.getResourceType())
+            ? stackdriverMetricSetQuery.getResourceType()
+            : stackdriverCanaryScope.getResourceType();
     String crossSeriesReducer =
-      StringUtils.hasText(stackdriverMetricSetQuery.getCrossSeriesReducer())
-      ? stackdriverMetricSetQuery.getCrossSeriesReducer()
-      : StringUtils.hasText(stackdriverCanaryScope.getCrossSeriesReducer())
-        ? stackdriverCanaryScope.getCrossSeriesReducer()
-        : "REDUCE_MEAN";
+        StringUtils.hasText(stackdriverMetricSetQuery.getCrossSeriesReducer())
+            ? stackdriverMetricSetQuery.getCrossSeriesReducer()
+            : StringUtils.hasText(stackdriverCanaryScope.getCrossSeriesReducer())
+                ? stackdriverCanaryScope.getCrossSeriesReducer()
+                : "REDUCE_MEAN";
     String perSeriesAligner =
-      StringUtils.hasText(stackdriverMetricSetQuery.getPerSeriesAligner())
-      ? stackdriverMetricSetQuery.getPerSeriesAligner()
-      : StringUtils.hasText(stackdriverCanaryScope.getPerSeriesAligner())
-        ? stackdriverCanaryScope.getPerSeriesAligner()
-        : "ALIGN_MEAN";
+        StringUtils.hasText(stackdriverMetricSetQuery.getPerSeriesAligner())
+            ? stackdriverMetricSetQuery.getPerSeriesAligner()
+            : StringUtils.hasText(stackdriverCanaryScope.getPerSeriesAligner())
+                ? stackdriverCanaryScope.getPerSeriesAligner()
+                : "ALIGN_MEAN";
 
     if (StringUtils.isEmpty(projectId)) {
       projectId = stackdriverCredentials.getProject();
@@ -268,16 +327,17 @@ public class StackdriverMetricsService implements MetricsService {
     String filter = buildQuery(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
 
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
-    Monitoring.Projects.TimeSeries.List list = monitoring
-      .projects()
-      .timeSeries()
-      .list("projects/" + stackdriverCredentials.getProject())
-      .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
-      .setAggregationCrossSeriesReducer(crossSeriesReducer)
-      .setAggregationPerSeriesAligner(perSeriesAligner)
-      .setFilter(filter)
-      .setIntervalStartTime(stackdriverCanaryScope.getStart().toString())
-      .setIntervalEndTime(stackdriverCanaryScope.getEnd().toString());
+    Monitoring.Projects.TimeSeries.List list =
+        monitoring
+            .projects()
+            .timeSeries()
+            .list("projects/" + stackdriverCredentials.getProject())
+            .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
+            .setAggregationCrossSeriesReducer(crossSeriesReducer)
+            .setAggregationPerSeriesAligner(perSeriesAligner)
+            .setFilter(filter)
+            .setIntervalStartTime(stackdriverCanaryScope.getStart().toString())
+            .setIntervalEndTime(stackdriverCanaryScope.getEnd().toString());
 
     List<String> groupByFields = stackdriverMetricSetQuery.getGroupByFields();
 
@@ -292,7 +352,8 @@ public class StackdriverMetricsService implements MetricsService {
       response = list.execute();
     } finally {
       long endTime = registry.clock().monotonicTime();
-      Id stackdriverFetchTimerId = registry.createId("stackdriver.fetchTime").withTag("project", projectId);
+      Id stackdriverFetchTimerId =
+          registry.createId("stackdriver.fetchTime").withTag("project", projectId);
 
       if (!StringUtils.isEmpty(location)) {
         stackdriverFetchTimerId = stackdriverFetchTimerId.withTag("location", location);
@@ -315,7 +376,9 @@ public class StackdriverMetricsService implements MetricsService {
 
     if (timeSeriesList == null || timeSeriesList.size() == 0) {
       // Add placeholder metric set.
-      timeSeriesList = Collections.singletonList(new TimeSeries().setMetric(new Metric()).setPoints(new ArrayList<>()));
+      timeSeriesList =
+          Collections.singletonList(
+              new TimeSeries().setMetric(new Metric()).setPoints(new ArrayList<>()));
     }
 
     List<MetricSet> metricSetList = new ArrayList<>();
@@ -326,40 +389,41 @@ public class StackdriverMetricsService implements MetricsService {
       if (points.size() != numIntervals) {
         String pointOrPoints = numIntervals == 1 ? "point" : "points";
 
-        log.warn("Expected {} data {}, but received {}.", numIntervals, pointOrPoints, points.size());
+        log.warn(
+            "Expected {} data {}, but received {}.", numIntervals, pointOrPoints, points.size());
       }
 
       Collections.reverse(points);
 
       Instant responseStartTimeInstant =
-        points.size() > 0
-        ? Instant.parse(points.get(0).getInterval().getStartTime())
-        : stackdriverCanaryScope.getStart();
+          points.size() > 0
+              ? Instant.parse(points.get(0).getInterval().getStartTime())
+              : stackdriverCanaryScope.getStart();
       long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
 
       Instant responseEndTimeInstant =
-        points.size() > 0
-          ? Instant.parse(points.get(points.size() - 1).getInterval().getEndTime())
-          : stackdriverCanaryScope.getEnd();
+          points.size() > 0
+              ? Instant.parse(points.get(points.size() - 1).getInterval().getEndTime())
+              : stackdriverCanaryScope.getEnd();
 
       // TODO(duftler): What if there are no data points?
       List<Double> pointValues =
-        points
-          .stream()
-          .map(point -> point.getValue().getDoubleValue())
-          .collect(Collectors.toList());
+          points.stream()
+              .map(point -> point.getValue().getDoubleValue())
+              .collect(Collectors.toList());
 
       MetricSet.MetricSetBuilder metricSetBuilder =
-        MetricSet.builder()
-          .name(canaryMetricConfig.getName())
-          .startTimeMillis(responseStartTimeMillis)
-          .startTimeIso(responseStartTimeInstant.toString())
-          .endTimeMillis(responseEndTimeInstant.toEpochMilli())
-          .endTimeIso(responseEndTimeInstant.toString())
-          .stepMillis(alignmentPeriodSec * 1000)
-          .values(pointValues);
+          MetricSet.builder()
+              .name(canaryMetricConfig.getName())
+              .startTimeMillis(responseStartTimeMillis)
+              .startTimeIso(responseStartTimeInstant.toString())
+              .endTimeMillis(responseEndTimeInstant.toEpochMilli())
+              .endTimeIso(responseEndTimeInstant.toString())
+              .stepMillis(alignmentPeriodSec * 1000)
+              .values(pointValues);
 
-      // TODO(duftler): Still not quite sure whether this is right or if we should use timeSeries.getMetric().getLabels() instead.
+      // TODO(duftler): Still not quite sure whether this is right or if we should use
+      // timeSeries.getMetric().getLabels() instead.
       MonitoredResource monitoredResource = timeSeries.getResource();
 
       if (monitoredResource != null) {
@@ -382,14 +446,19 @@ public class StackdriverMetricsService implements MetricsService {
     return metricSetList;
   }
 
-  private String determineProjectId(String metricsAccountName,
-                                    StackdriverCanaryScope stackdriverCanaryScope) {
+  private String determineProjectId(
+      String metricsAccountName, StackdriverCanaryScope stackdriverCanaryScope) {
     String projectId = stackdriverCanaryScope.getProject();
 
     if (StringUtils.isEmpty(projectId)) {
-      GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-              .getOne(metricsAccountName)
-              .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
+      GoogleNamedAccountCredentials stackdriverCredentials =
+          (GoogleNamedAccountCredentials)
+              accountCredentialsRepository
+                  .getOne(metricsAccountName)
+                  .orElseThrow(
+                      () ->
+                          new IllegalArgumentException(
+                              "Unable to resolve account " + metricsAccountName + "."));
 
       projectId = stackdriverCredentials.getProject();
     }
@@ -402,41 +471,49 @@ public class StackdriverMetricsService implements MetricsService {
     if (!StringUtils.isEmpty(filter)) {
       String lowerCaseFilter = filter.toLowerCase();
 
-      return metricDescriptorsCache
-        .stream()
-        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream()
+          .filter(
+              metricDescriptor ->
+                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+          .collect(Collectors.toList());
     } else {
-      return metricDescriptorsCache
-        .stream()
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream().collect(Collectors.toList());
     }
   }
 
   @Scheduled(fixedDelayString = "#{@stackdriverConfigurationProperties.metadataCachingIntervalMS}")
   public void updateMetricDescriptorsCache() throws IOException {
     Set<AccountCredentials> accountCredentialsSet =
-      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+        CredentialsHelper.getAllAccountsOfType(
+            AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
 
     for (AccountCredentials credentials : accountCredentialsSet) {
       if (credentials instanceof GoogleNamedAccountCredentials) {
-        GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)credentials;
+        GoogleNamedAccountCredentials stackdriverCredentials =
+            (GoogleNamedAccountCredentials) credentials;
         ListMetricDescriptorsResponse listMetricDescriptorsResponse =
-          stackdriverCredentials
-            .getMonitoring()
-            .projects()
-            .metricDescriptors()
-            .list("projects/" + stackdriverCredentials.getProject())
-            .execute();
-        List<MetricDescriptor> metricDescriptors = listMetricDescriptorsResponse.getMetricDescriptors();
+            stackdriverCredentials
+                .getMonitoring()
+                .projects()
+                .metricDescriptors()
+                .list("projects/" + stackdriverCredentials.getProject())
+                .execute();
+        List<MetricDescriptor> metricDescriptors =
+            listMetricDescriptorsResponse.getMetricDescriptors();
 
         if (!CollectionUtils.isEmpty(metricDescriptors)) {
-          // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
+          // TODO(duftler): Should we instead be building the union across all accounts? This
+          // doesn't seem quite right yet.
           metricDescriptorsCache = metricDescriptors;
 
-          log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptors.size(), stackdriverCredentials.getName());
+          log.debug(
+              "Updated cache with {} metric descriptors via account {}.",
+              metricDescriptors.size(),
+              stackdriverCredentials.getName());
         } else {
-          log.debug("While updating cache, found no metric descriptors via account {}.", stackdriverCredentials.getName());
+          log.debug(
+              "While updating cache, found no metric descriptors via account {}.",
+              stackdriverCredentials.getName());
         }
       }
     }

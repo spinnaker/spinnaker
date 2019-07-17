@@ -22,6 +22,5 @@ import lombok.Getter;
 
 public class NewRelicConfigurationProperties {
 
-  @Getter
-  private List<NewRelicManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<NewRelicManagedAccount> accounts = new ArrayList<>();
 }

@@ -28,6 +28,9 @@ import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -35,10 +38,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
 
 @Slf4j
 public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
@@ -60,13 +59,14 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
   private int cyclesInitiated = 0;
   private int cyclesCompleted = 0;
 
-  public CanaryConfigIndexingAgent(String currentInstanceId,
-                                   JedisPool jedisPool,
-                                   AccountCredentialsRepository accountCredentialsRepository,
-                                   StorageServiceRepository storageServiceRepository,
-                                   ObjectMapper kayentaObjectMapper,
-                                   CanaryConfigIndex canaryConfigIndex,
-                                   IndexConfigurationProperties indexConfigurationProperties) {
+  public CanaryConfigIndexingAgent(
+      String currentInstanceId,
+      JedisPool jedisPool,
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository,
+      ObjectMapper kayentaObjectMapper,
+      CanaryConfigIndex canaryConfigIndex,
+      IndexConfigurationProperties indexConfigurationProperties) {
     this.currentInstanceId = currentInstanceId;
     this.jedisPool = jedisPool;
     this.accountCredentialsRepository = accountCredentialsRepository;
@@ -85,7 +85,9 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
     }
   }
 
-  @Scheduled(initialDelayString = "#{@indexConfigurationProperties.indexingInitialDelayMS}", fixedDelayString = "#{@indexConfigurationProperties.indexingIntervalMS}")
+  @Scheduled(
+      initialDelayString = "#{@indexConfigurationProperties.indexingInitialDelayMS}",
+      fixedDelayString = "#{@indexConfigurationProperties.indexingIntervalMS}")
   public void indexCanaryConfigs() {
     cyclesInitiated++;
 
@@ -94,43 +96,60 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
 
     try (Jedis jedis = jedisPool.getResource()) {
       long startTime = System.currentTimeMillis();
-      String acquiredIndexingLock = jedis.set(INDEXING_INSTANCE_KEY, currentInstanceId, "NX", "EX", indexingLockTTLSec);
+      String acquiredIndexingLock =
+          jedis.set(INDEXING_INSTANCE_KEY, currentInstanceId, "NX", "EX", indexingLockTTLSec);
 
       if (!"OK".equals(acquiredIndexingLock)) {
         String lockHolderInstanceId = jedis.get(INDEXING_INSTANCE_KEY);
 
         if (lockHolderInstanceId != null) {
-          // If the instance holding the indexing lock is not showing a heartbeat, we can appropriate the lock.
+          // If the instance holding the indexing lock is not showing a heartbeat, we can
+          // appropriate the lock.
           if (!jedis.exists(HEARTBEAT_KEY_PREFIX + lockHolderInstanceId)) {
-            log.info("Purloining indexing lock from instance " + lockHolderInstanceId + " because that instance has no heartbeat.");
+            log.info(
+                "Purloining indexing lock from instance "
+                    + lockHolderInstanceId
+                    + " because that instance has no heartbeat.");
 
-            acquiredIndexingLock = jedis.setex(INDEXING_INSTANCE_KEY, indexingLockTTLSec, currentInstanceId);
+            acquiredIndexingLock =
+                jedis.setex(INDEXING_INSTANCE_KEY, indexingLockTTLSec, currentInstanceId);
           }
         }
       }
 
       if ("OK".equals(acquiredIndexingLock)) {
         Set<AccountCredentials> accountCredentialsSet =
-          CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.CONFIGURATION_STORE, accountCredentialsRepository);
+            CredentialsHelper.getAllAccountsOfType(
+                AccountCredentials.Type.CONFIGURATION_STORE, accountCredentialsRepository);
 
         for (AccountCredentials credentials : accountCredentialsSet) {
           String accountName = credentials.getName();
 
           try {
-            String pendingUpdatesKey = "kayenta:" + credentials.getType() + ":" + accountName + PENDING_UPDATES_KEY_SUFFIX;
+            String pendingUpdatesKey =
+                "kayenta:" + credentials.getType() + ":" + accountName + PENDING_UPDATES_KEY_SUFFIX;
 
-            // We atomically capture all of the current entries in the pending updates queue here to avoid flushing entries
-            // that appeared after we already began scanning the storage system (since that could allow us to flush an
-            // un-indexed change). This approach also allows for open start entries to disappear from the pending updates
-            // queue while a re-indexing is underway (this can happen if a storage service operation fails prior to closing
+            // We atomically capture all of the current entries in the pending updates queue here to
+            // avoid flushing entries
+            // that appeared after we already began scanning the storage system (since that could
+            // allow us to flush an
+            // un-indexed change). This approach also allows for open start entries to disappear
+            // from the pending updates
+            // queue while a re-indexing is underway (this can happen if a storage service operation
+            // fails prior to closing
             // an open start entry by recording the matching finish entry).
             List<String> updatesThroughCheckpoint = jedis.lrange(pendingUpdatesKey, 0, -1);
             StorageService configurationService =
-              storageServiceRepository
-                .getOne(accountName)
-                .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to index configurations."));
+                storageServiceRepository
+                    .getOne(accountName)
+                    .orElseThrow(
+                        () ->
+                            new IllegalArgumentException(
+                                "No storage service was configured; unable to index configurations."));
 
-            List<Map<String, Object>> canaryConfigObjectKeys = configurationService.listObjectKeys(accountName, ObjectType.CANARY_CONFIG, null, true);
+            List<Map<String, Object>> canaryConfigObjectKeys =
+                configurationService.listObjectKeys(
+                    accountName, ObjectType.CANARY_CONFIG, null, true);
             Map<String, List<Map>> applicationToCanaryConfigListMap = new HashMap<>();
 
             for (Map<String, Object> canaryConfigSummary : canaryConfigObjectKeys) {
@@ -138,14 +157,17 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
                 String canaryConfigId = (String) canaryConfigSummary.get("id");
                 String canaryConfigName = (String) canaryConfigSummary.get("name");
                 Long updatedTimestamp = (Long) canaryConfigSummary.get("updatedTimestamp");
-                String updatedTimestampIso = (String) canaryConfigSummary.get("updatedTimestampIso");
+                String updatedTimestampIso =
+                    (String) canaryConfigSummary.get("updatedTimestampIso");
 
                 if (updatedTimestamp == null) {
                   updatedTimestamp = canaryConfigIndex.getRedisTime();
                   updatedTimestampIso = Instant.ofEpochMilli(updatedTimestamp).toString();
                 }
 
-                CanaryConfig canaryConfig = configurationService.loadObject(accountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+                CanaryConfig canaryConfig =
+                    configurationService.loadObject(
+                        accountName, ObjectType.CANARY_CONFIG, canaryConfigId);
                 List<String> applications = canaryConfig.getApplications();
 
                 for (String application : applications) {
@@ -157,51 +179,71 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
                   }
 
                   canaryConfigList.add(
-                    new ImmutableMap.Builder<String, Object>()
-                      .put("id", canaryConfigId)
-                      .put("name", canaryConfigName)
-                      .put("updatedTimestamp", updatedTimestamp)
-                      .put("updatedTimestampIso", updatedTimestampIso)
-                      .put("applications", applications)
-                      .build());
+                      new ImmutableMap.Builder<String, Object>()
+                          .put("id", canaryConfigId)
+                          .put("name", canaryConfigName)
+                          .put("updatedTimestamp", updatedTimestamp)
+                          .put("updatedTimestampIso", updatedTimestampIso)
+                          .put("applications", applications)
+                          .build());
                 }
               } catch (NotFoundException e) {
-                // This can happen if a re-indexing is underway and we attempt to retrieve a canary config that has been
+                // This can happen if a re-indexing is underway and we attempt to retrieve a canary
+                // config that has been
                 // deleted. Don't need to take any action.
               }
             }
 
-            Map<String, String> applicationToSerializedCanaryConfigListMap = new HashMap<String, String>();
+            Map<String, String> applicationToSerializedCanaryConfigListMap =
+                new HashMap<String, String>();
 
             for (Map.Entry<String, List<Map>> entry : applicationToCanaryConfigListMap.entrySet()) {
               try {
-                applicationToSerializedCanaryConfigListMap.put(entry.getKey(), kayentaObjectMapper.writeValueAsString(entry.getValue()));
+                applicationToSerializedCanaryConfigListMap.put(
+                    entry.getKey(), kayentaObjectMapper.writeValueAsString(entry.getValue()));
               } catch (JsonProcessingException e) {
-                log.error("Problem serializing applicationToCanaryConfigListMap entry -> {}: {}", entry.getValue(), e);
+                log.error(
+                    "Problem serializing applicationToCanaryConfigListMap entry -> {}: {}",
+                    entry.getValue(),
+                    e);
               }
             }
 
-            String mapByApplicationKey = "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
+            String mapByApplicationKey =
+                "kayenta:"
+                    + credentials.getType()
+                    + ":"
+                    + accountName
+                    + MAP_BY_APPLICATION_KEY_SUFFIX;
             Set<String> oldMapByApplicationKeys = jedis.hkeys(mapByApplicationKey);
             Set<String> byApplicationKeysToDelete = new HashSet<>();
-            // Application keys to delete should be all the original applications minus all the currently-observed applications.
+            // Application keys to delete should be all the original applications minus all the
+            // currently-observed applications.
             byApplicationKeysToDelete.addAll(oldMapByApplicationKeys);
-            byApplicationKeysToDelete.removeAll(applicationToSerializedCanaryConfigListMap.keySet());
+            byApplicationKeysToDelete.removeAll(
+                applicationToSerializedCanaryConfigListMap.keySet());
 
             if (applicationToSerializedCanaryConfigListMap.size() > 0) {
               jedis.hmset(mapByApplicationKey, applicationToSerializedCanaryConfigListMap);
             }
 
             if (byApplicationKeysToDelete.size() > 0) {
-              jedis.hdel(mapByApplicationKey, byApplicationKeysToDelete.toArray(new String[byApplicationKeysToDelete.size()]));
+              jedis.hdel(
+                  mapByApplicationKey,
+                  byApplicationKeysToDelete.toArray(new String[byApplicationKeysToDelete.size()]));
             }
 
-            // We do this so we can distinguish between a completely empty index and an unavailable/missing index.
+            // We do this so we can distinguish between a completely empty index and an
+            // unavailable/missing index.
             if (!jedis.exists(mapByApplicationKey)) {
-              jedis.hset(mapByApplicationKey, "not-a-real-application:" + currentInstanceId, NO_INDEXED_CONFIGS_SENTINEL_VALUE);
+              jedis.hset(
+                  mapByApplicationKey,
+                  "not-a-real-application:" + currentInstanceId,
+                  NO_INDEXED_CONFIGS_SENTINEL_VALUE);
             }
 
-            // Now that we've scanned all of the canary configs in the storage system and updated the index, we can flush
+            // Now that we've scanned all of the canary configs in the storage system and updated
+            // the index, we can flush
             // the pending updates queue entries subsumed by the up-to-date index.
             if (updatesThroughCheckpoint.size() > 0) {
               long currentTimestamp = canaryConfigIndex.getRedisTime();
@@ -220,13 +262,15 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
                   String startOrFinish = updateTokens[2];
                   String updateId = updateTokens[3];
 
-                  if (startOrFinish.equals("finish") && encounteredUpdateStarts.containsKey("start:" + updateId)) {
+                  if (startOrFinish.equals("finish")
+                      && encounteredUpdateStarts.containsKey("start:" + updateId)) {
                     // Mark matching start/finish entries for removal.
                     updatesToFlush.add(encounteredUpdateStarts.get("start:" + updateId));
                     updatesToFlush.add(updateDescriptor);
                     encounteredUpdateStarts.remove("start:" + updateId);
                   } else if (startOrFinish.equals("start")) {
-                    // Note that we've seen this start entry so that we can potentially match it up with its finish entry.
+                    // Note that we've seen this start entry so that we can potentially match it up
+                    // with its finish entry.
                     encounteredUpdateStarts.put("start:" + updateId, updateDescriptor);
                   }
                 }
@@ -244,7 +288,8 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
         jedis.del(INDEXING_INSTANCE_KEY);
 
         long endTime = System.currentTimeMillis();
-        Duration duration = Duration.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime));
+        Duration duration =
+            Duration.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime));
 
         log.info("Re-indexed canary configs in " + duration + ".");
       } else {
@@ -260,13 +305,15 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
   @Override
   protected void doHealthCheck(Health.Builder builder) throws Exception {
     Set<AccountCredentials> configurationStoreAccountCredentialsSet =
-      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.CONFIGURATION_STORE, accountCredentialsRepository);
+        CredentialsHelper.getAllAccountsOfType(
+            AccountCredentials.Type.CONFIGURATION_STORE, accountCredentialsRepository);
     int existingByApplicationIndexCount = 0;
 
     try (Jedis jedis = jedisPool.getResource()) {
       for (AccountCredentials credentials : configurationStoreAccountCredentialsSet) {
         String accountName = credentials.getName();
-        String mapByApplicationKey = "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
+        String mapByApplicationKey =
+            "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
 
         if (jedis.exists(mapByApplicationKey)) {
           existingByApplicationIndexCount++;
@@ -275,8 +322,10 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
     }
 
     int expectedByApplicationIndexCount = configurationStoreAccountCredentialsSet.size();
-    // So long as this instance has performed an indexing, or failed to acquire the lock since another instance was in
-    // the process of indexing, the index should be available. We also verify that the number of by-application index
+    // So long as this instance has performed an indexing, or failed to acquire the lock since
+    // another instance was in
+    // the process of indexing, the index should be available. We also verify that the number of
+    // by-application index
     // keys matches the number of configured configuration store accounts.
     if (cyclesCompleted > 0 && existingByApplicationIndexCount == expectedByApplicationIndexCount) {
       builder.up();

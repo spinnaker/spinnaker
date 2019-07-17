@@ -1,5 +1,7 @@
 package com.netflix.kayenta.controllers;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+
 import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.config.WebConfiguration;
@@ -22,52 +24,37 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-
 @SpringBootTest(
-        classes = BaseControllerTest.TestControllersConfiguration.class,
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK
-)
+    classes = BaseControllerTest.TestControllersConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @RunWith(SpringRunner.class)
 public abstract class BaseControllerTest {
 
-    @MockBean
-    AccountCredentialsRepository accountCredentialsRepository;
-    @MockBean
-    StorageServiceRepository storageServiceRepository;
+  @MockBean AccountCredentialsRepository accountCredentialsRepository;
+  @MockBean StorageServiceRepository storageServiceRepository;
 
-    @MockBean
-    ExecutionRepository executionRepository;
-    @MockBean
-    ExecutionMapper executionMapper;
+  @MockBean ExecutionRepository executionRepository;
+  @MockBean ExecutionMapper executionMapper;
 
-    @MockBean
-    MetricsServiceRepository metricsServiceRepository;
+  @MockBean MetricsServiceRepository metricsServiceRepository;
 
-    @MockBean(answer = Answers.RETURNS_MOCKS)
-    Registry registry;
+  @MockBean(answer = Answers.RETURNS_MOCKS)
+  Registry registry;
 
-    @MockBean
-    CanaryJudge canaryJudge;
+  @MockBean CanaryJudge canaryJudge;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    protected MockMvc mockMvc;
+  protected MockMvc mockMvc;
 
-    @Before
-    public void setUp() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
-                .alwaysDo(print())
-                .build();
-    }
+  @Before
+  public void setUp() {
+    this.mockMvc =
+        MockMvcBuilders.webAppContextSetup(this.webApplicationContext).alwaysDo(print()).build();
+  }
 
-    @EnableWebMvc
-    @Import(WebConfiguration.class)
-    @Configuration
-    public static class TestControllersConfiguration {
-
-
-    }
-
+  @EnableWebMvc
+  @Import(WebConfiguration.class)
+  @Configuration
+  public static class TestControllersConfiguration {}
 }

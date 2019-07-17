@@ -16,19 +16,18 @@
 
 package com.netflix.kayenta.index;
 
+import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentials;
+import java.io.IOException;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
-import java.io.IOException;
-import java.util.*;
-
-import static com.netflix.kayenta.index.CanaryConfigIndexingAgent.*;
 
 @Slf4j
 public class CanaryConfigIndex {
@@ -36,76 +35,94 @@ public class CanaryConfigIndex {
   private final JedisPool jedisPool;
   private final ObjectMapper kayentaObjectMapper;
 
-  public CanaryConfigIndex(JedisPool jedisPool,
-                           ObjectMapper kayentaObjectMapper) {
+  public CanaryConfigIndex(JedisPool jedisPool, ObjectMapper kayentaObjectMapper) {
     this.jedisPool = jedisPool;
     this.kayentaObjectMapper = kayentaObjectMapper;
   }
 
-  // Build a list of canary config summaries, including the current persisted index plus entries in the pending updates queue.
-  public Set<Map<String, Object>> getCanaryConfigSummarySet(AccountCredentials credentials, List<String> applications) {
+  // Build a list of canary config summaries, including the current persisted index plus entries in
+  // the pending updates queue.
+  public Set<Map<String, Object>> getCanaryConfigSummarySet(
+      AccountCredentials credentials, List<String> applications) {
     String accountName = credentials.getName();
-    String mapByApplicationKey = "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
+    String mapByApplicationKey =
+        "kayenta:" + credentials.getType() + ":" + accountName + MAP_BY_APPLICATION_KEY_SUFFIX;
     Set<Map<String, Object>> canaryConfigSummarySet = new HashSet<>();
 
     try (Jedis jedis = jedisPool.getResource()) {
       if (jedis.exists(mapByApplicationKey)) {
         if (applications != null && applications.size() > 0) {
-          // If any applications were specified, populate the response with all of the canary configs scoped to those applications.
+          // If any applications were specified, populate the response with all of the canary
+          // configs scoped to those applications.
           for (String application : applications) {
             String appScopedCanaryConfigListJson = jedis.hget(mapByApplicationKey, application);
 
-            populateCanaryConfigSummarySet(mapByApplicationKey, canaryConfigSummarySet, appScopedCanaryConfigListJson);
+            populateCanaryConfigSummarySet(
+                mapByApplicationKey, canaryConfigSummarySet, appScopedCanaryConfigListJson);
           }
         } else {
-          // No applications were specified so populate the response with all persisted canary configs.
+          // No applications were specified so populate the response with all persisted canary
+          // configs.
           List<String> allAppScopedCanaryConfigListJson = jedis.hvals(mapByApplicationKey);
 
           for (String appScopedCanaryConfigListJson : allAppScopedCanaryConfigListJson) {
-            populateCanaryConfigSummarySet(mapByApplicationKey, canaryConfigSummarySet, appScopedCanaryConfigListJson);
+            populateCanaryConfigSummarySet(
+                mapByApplicationKey, canaryConfigSummarySet, appScopedCanaryConfigListJson);
           }
         }
       } else {
         throw new IllegalArgumentException("Canary config index not ready.");
       }
 
-      populateWithPendingUpdates(credentials, accountName, jedis, canaryConfigSummarySet, applications);
+      populateWithPendingUpdates(
+          credentials, accountName, jedis, canaryConfigSummarySet, applications);
     }
 
     return canaryConfigSummarySet;
   }
 
-  // Populate the response with the canary configs scoped to the application, while deduping based on canary config id.
-  private void populateCanaryConfigSummarySet(String mapByApplicationKey, Set<Map<String, Object>> canaryConfigSummarySet, String appScopedCanaryConfigSetJson) {
+  // Populate the response with the canary configs scoped to the application, while deduping based
+  // on canary config id.
+  private void populateCanaryConfigSummarySet(
+      String mapByApplicationKey,
+      Set<Map<String, Object>> canaryConfigSummarySet,
+      String appScopedCanaryConfigSetJson) {
     if (!StringUtils.isEmpty(appScopedCanaryConfigSetJson)) {
       if (appScopedCanaryConfigSetJson.equals(NO_INDEXED_CONFIGS_SENTINEL_VALUE)) {
         return;
       }
 
       try {
-        List<Map<String, Object>> appScopedCanaryConfigList = kayentaObjectMapper.readValue(appScopedCanaryConfigSetJson, new TypeReference<List<Map<String, Object>>>() {});
+        List<Map<String, Object>> appScopedCanaryConfigList =
+            kayentaObjectMapper.readValue(
+                appScopedCanaryConfigSetJson, new TypeReference<List<Map<String, Object>>>() {});
 
         for (Map<String, Object> canaryConfigSummary : appScopedCanaryConfigList) {
-          String canaryConfigId = (String)canaryConfigSummary.get("id");
+          String canaryConfigId = (String) canaryConfigSummary.get("id");
           boolean alreadyInList =
-            canaryConfigSummarySet
-              .stream()
-              .filter(it -> it.get("id").equals(canaryConfigId))
-              .findFirst()
-              .isPresent();
+              canaryConfigSummarySet.stream()
+                  .filter(it -> it.get("id").equals(canaryConfigId))
+                  .findFirst()
+                  .isPresent();
 
           if (!alreadyInList) {
             canaryConfigSummarySet.add(canaryConfigSummary);
           }
         }
       } catch (IOException e) {
-        throw new IllegalArgumentException("Unable to parse index '" + mapByApplicationKey + "': " + e.getMessage(), e);
+        throw new IllegalArgumentException(
+            "Unable to parse index '" + mapByApplicationKey + "': " + e.getMessage(), e);
       }
     }
   }
 
   // Populate the response with canary config summaries from the pending updates queue.
-  private void populateWithPendingUpdates(AccountCredentials credentials, String accountName, Jedis jedis, Set<Map<String, Object>> canaryConfigSummarySet, List<String> applications) {
+  private void populateWithPendingUpdates(
+      AccountCredentials credentials,
+      String accountName,
+      Jedis jedis,
+      Set<Map<String, Object>> canaryConfigSummarySet,
+      List<String> applications) {
     String pendingUpdatesKey = buildMapPendingUpdatesByApplicationKey(credentials, accountName);
 
     if (jedis.exists(pendingUpdatesKey)) {
@@ -118,35 +135,48 @@ public class CanaryConfigIndex {
             CanaryConfigIndexAction action = CanaryConfigIndexAction.valueOf(updateTokens[1]);
             String startOrFinish = updateTokens[2];
 
-            // In-flight operations are considered already completed as far as the index is concerned.
+            // In-flight operations are considered already completed as far as the index is
+            // concerned.
             if (startOrFinish.equals("start")) {
               pendingUpdateCanaryConfigSummaryJson = updateTokens[4];
 
-              Map<String, Object> pendingUpdateCanaryConfigSummary = kayentaObjectMapper.readValue(pendingUpdateCanaryConfigSummaryJson, new TypeReference<Map<String, Object>>() {});
-              String pendingUpdateCanaryConfigId = (String)pendingUpdateCanaryConfigSummary.get("id");
+              Map<String, Object> pendingUpdateCanaryConfigSummary =
+                  kayentaObjectMapper.readValue(
+                      pendingUpdateCanaryConfigSummaryJson,
+                      new TypeReference<Map<String, Object>>() {});
+              String pendingUpdateCanaryConfigId =
+                  (String) pendingUpdateCanaryConfigSummary.get("id");
               Map<String, Object> existingCanaryConfigSummary =
-                canaryConfigSummarySet
-                  .stream()
-                  .filter(it -> it.get("id").equals(pendingUpdateCanaryConfigId))
-                  .findFirst()
-                  .orElse(null);
+                  canaryConfigSummarySet.stream()
+                      .filter(it -> it.get("id").equals(pendingUpdateCanaryConfigId))
+                      .findFirst()
+                      .orElse(null);
 
               // Remove any existing matching summary from the response.
               if (existingCanaryConfigSummary != null) {
                 canaryConfigSummarySet.remove(existingCanaryConfigSummary);
               }
 
-              // If the pending update represents an update action, as opposed to a delete, populate the response with the updated summary.
+              // If the pending update represents an update action, as opposed to a delete, populate
+              // the response with the updated summary.
               if (action == CanaryConfigIndexAction.UPDATE) {
-                // Populate the response with the canary config summary if either no applications were specified in the request or if the canary config is scoped to at
+                // Populate the response with the canary config summary if either no applications
+                // were specified in the request or if the canary config is scoped to at
                 // least one of the specified applications.
-                if (applications == null || applications.size() == 0 || haveCommonElements(applications, (List<String>)pendingUpdateCanaryConfigSummary.get("applications"))) {
+                if (applications == null
+                    || applications.size() == 0
+                    || haveCommonElements(
+                        applications,
+                        (List<String>) pendingUpdateCanaryConfigSummary.get("applications"))) {
                   canaryConfigSummarySet.add(pendingUpdateCanaryConfigSummary);
                 }
               }
             }
           } catch (IOException e) {
-            log.error("Problem deserializing pendingUpdateCanaryConfigSummaryJson -> {}: {}", pendingUpdateCanaryConfigSummaryJson, e);
+            log.error(
+                "Problem deserializing pendingUpdateCanaryConfigSummaryJson -> {}: {}",
+                pendingUpdateCanaryConfigSummaryJson,
+                e);
           }
         }
       }
@@ -161,34 +191,35 @@ public class CanaryConfigIndex {
     return tempList.size() > 0;
   }
 
-  public String getIdFromName(AccountCredentials credentials, String canaryConfigName, List<String> applications) {
-    Set<Map<String, Object>> canaryConfigSummarySet = getCanaryConfigSummarySet(credentials, applications);
+  public String getIdFromName(
+      AccountCredentials credentials, String canaryConfigName, List<String> applications) {
+    Set<Map<String, Object>> canaryConfigSummarySet =
+        getCanaryConfigSummarySet(credentials, applications);
 
     if (canaryConfigSummarySet != null) {
       Map<String, Object> canaryConfigSummary =
-        canaryConfigSummarySet
-          .stream()
-          .filter(it -> it.get("name").equals(canaryConfigName))
-          .findFirst()
-          .orElse(null);
+          canaryConfigSummarySet.stream()
+              .filter(it -> it.get("name").equals(canaryConfigName))
+              .findFirst()
+              .orElse(null);
 
       if (canaryConfigSummary != null) {
-        return (String)canaryConfigSummary.get("id");
+        return (String) canaryConfigSummary.get("id");
       }
     }
 
     return null;
   }
 
-  public Map<String, Object> getSummaryFromId(AccountCredentials credentials, String canaryConfigId) {
+  public Map<String, Object> getSummaryFromId(
+      AccountCredentials credentials, String canaryConfigId) {
     Set<Map<String, Object>> canaryConfigSummarySet = getCanaryConfigSummarySet(credentials, null);
 
     if (canaryConfigSummarySet != null) {
-      return canaryConfigSummarySet
-        .stream()
-        .filter(it -> it.get("id").equals(canaryConfigId))
-        .findFirst()
-        .orElse(null);
+      return canaryConfigSummarySet.stream()
+          .filter(it -> it.get("id").equals(canaryConfigId))
+          .findFirst()
+          .orElse(null);
     }
 
     return null;
@@ -198,38 +229,73 @@ public class CanaryConfigIndex {
     try (Jedis jedis = jedisPool.getResource()) {
       List<String> redisTimeList = jedis.time();
 
-      return Long.parseLong(redisTimeList.get(0)) * 1000 + Long.parseLong(redisTimeList.get(1)) / 1000;
+      return Long.parseLong(redisTimeList.get(0)) * 1000
+          + Long.parseLong(redisTimeList.get(1)) / 1000;
     }
   }
 
-  public void startPendingUpdate(AccountCredentials credentials, String updatedTimestamp, CanaryConfigIndexAction action, String correlationId, String canaryConfigSummaryJson) {
+  public void startPendingUpdate(
+      AccountCredentials credentials,
+      String updatedTimestamp,
+      CanaryConfigIndexAction action,
+      String correlationId,
+      String canaryConfigSummaryJson) {
     String accountName = credentials.getName();
-    String mapPendingUpdatesByApplicationKey = buildMapPendingUpdatesByApplicationKey(credentials, accountName);
+    String mapPendingUpdatesByApplicationKey =
+        buildMapPendingUpdatesByApplicationKey(credentials, accountName);
 
     try (Jedis jedis = jedisPool.getResource()) {
-      jedis.rpush(mapPendingUpdatesByApplicationKey, updatedTimestamp + ":" + action + ":start:" + correlationId + ":" + canaryConfigSummaryJson);
+      jedis.rpush(
+          mapPendingUpdatesByApplicationKey,
+          updatedTimestamp
+              + ":"
+              + action
+              + ":start:"
+              + correlationId
+              + ":"
+              + canaryConfigSummaryJson);
     }
   }
 
-  public void finishPendingUpdate(AccountCredentials credentials, CanaryConfigIndexAction action, String correlationId) {
+  public void finishPendingUpdate(
+      AccountCredentials credentials, CanaryConfigIndexAction action, String correlationId) {
     String accountName = credentials.getName();
-    String mapPendingUpdatesByApplicationKey = buildMapPendingUpdatesByApplicationKey(credentials, accountName);
+    String mapPendingUpdatesByApplicationKey =
+        buildMapPendingUpdatesByApplicationKey(credentials, accountName);
 
     try (Jedis jedis = jedisPool.getResource()) {
-      jedis.rpush(mapPendingUpdatesByApplicationKey, getRedisTime() + ":" + action + ":finish:" + correlationId);
+      jedis.rpush(
+          mapPendingUpdatesByApplicationKey,
+          getRedisTime() + ":" + action + ":finish:" + correlationId);
     }
   }
 
-  public void removeFailedPendingUpdate(AccountCredentials credentials, String updatedTimestamp, CanaryConfigIndexAction action, String correlationId, String canaryConfigSummaryJson) {
+  public void removeFailedPendingUpdate(
+      AccountCredentials credentials,
+      String updatedTimestamp,
+      CanaryConfigIndexAction action,
+      String correlationId,
+      String canaryConfigSummaryJson) {
     String accountName = credentials.getName();
-    String mapPendingUpdatesByApplicationKey = buildMapPendingUpdatesByApplicationKey(credentials, accountName);
+    String mapPendingUpdatesByApplicationKey =
+        buildMapPendingUpdatesByApplicationKey(credentials, accountName);
 
     try (Jedis jedis = jedisPool.getResource()) {
-      jedis.lrem(mapPendingUpdatesByApplicationKey, 1, updatedTimestamp + ":" + action + ":start:" + correlationId + ":" + canaryConfigSummaryJson);
+      jedis.lrem(
+          mapPendingUpdatesByApplicationKey,
+          1,
+          updatedTimestamp
+              + ":"
+              + action
+              + ":start:"
+              + correlationId
+              + ":"
+              + canaryConfigSummaryJson);
     }
   }
 
-  private String buildMapPendingUpdatesByApplicationKey(AccountCredentials credentials, String accountName) {
+  private String buildMapPendingUpdatesByApplicationKey(
+      AccountCredentials credentials, String accountName) {
     return "kayenta:" + credentials.getType() + ":" + accountName + PENDING_UPDATES_KEY_SUFFIX;
   }
 }

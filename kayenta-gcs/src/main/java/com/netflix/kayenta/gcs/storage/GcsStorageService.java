@@ -35,6 +35,11 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.*;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -42,42 +47,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
-import javax.validation.constraints.NotNull;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.time.Instant;
-import java.util.*;
-
 @Builder
 @Slf4j
 public class GcsStorageService implements StorageService {
 
-  @Autowired
-  private ObjectMapper kayentaObjectMapper;
+  @Autowired private ObjectMapper kayentaObjectMapper;
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  private AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private CanaryConfigIndex canaryConfigIndex;
+  @Autowired private CanaryConfigIndex canaryConfigIndex;
 
   @Override
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }
 
-  /**
-   * Check to see if the bucket exists, creating it if it is not there.
-   */
+  /** Check to see if the bucket exists, creating it if it is not there. */
   public void ensureBucketExists(String accountName) {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    GoogleNamedAccountCredentials credentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
     String projectName = credentials.getProject();
     String bucketName = credentials.getBucket();
@@ -115,10 +111,16 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException, NotFoundException {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey)
+      throws IllegalArgumentException, NotFoundException {
+    GoogleNamedAccountCredentials credentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
     String bucketName = credentials.getBucket();
     StorageObject item;
@@ -135,8 +137,13 @@ public class GcsStorageService implements StorageService {
       return deserialize(storage, storageObject, objectType.getTypeReference());
     } catch (IOException e) {
       if (e instanceof HttpResponseException) {
-        HttpResponseException hre = (HttpResponseException)e;
-        log.error("Failed to load {} {}: {} {}", objectType.getGroup(), objectKey, hre.getStatusCode(), hre.getStatusMessage());
+        HttpResponseException hre = (HttpResponseException) e;
+        log.error(
+            "Failed to load {} {}: {} {}",
+            objectType.getGroup(),
+            objectKey,
+            hre.getStatusCode(),
+            hre.getStatusMessage());
         if (hre.getStatusCode() == 404) {
           throw new NotFoundException("No file at path " + item.getName() + ".");
         }
@@ -145,7 +152,12 @@ public class GcsStorageService implements StorageService {
     }
   }
 
-  private StorageObject resolveSingularItem(ObjectType objectType, String objectKey, GoogleNamedAccountCredentials credentials, Storage storage, String bucketName) {
+  private StorageObject resolveSingularItem(
+      ObjectType objectType,
+      String objectKey,
+      GoogleNamedAccountCredentials credentials,
+      Storage storage,
+      String bucketName) {
     String rootFolder = daoRoot(credentials, objectType.getGroup()) + "/" + objectKey;
 
     try {
@@ -156,14 +168,23 @@ public class GcsStorageService implements StorageService {
       if (items != null && items.size() == 1) {
         return items.get(0);
       } else {
-        throw new IllegalArgumentException("Unable to resolve singular " + objectType + " at " + daoRoot(credentials, objectType.getGroup()) + '/' + objectKey + ".");
+        throw new IllegalArgumentException(
+            "Unable to resolve singular "
+                + objectType
+                + " at "
+                + daoRoot(credentials, objectType.getGroup())
+                + '/'
+                + objectKey
+                + ".");
       }
     } catch (IOException e) {
-      throw new IllegalArgumentException("Could not fetch items from Google Cloud Storage: " + e.getMessage(), e);
+      throw new IllegalArgumentException(
+          "Could not fetch items from Google Cloud Storage: " + e.getMessage(), e);
     }
   }
 
-  private <T> T deserialize(Storage storage, StorageObject object, TypeReference typeReference) throws IOException {
+  private <T> T deserialize(Storage storage, StorageObject object, TypeReference typeReference)
+      throws IOException {
     ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
     Storage.Objects.Get getter = storage.objects().get(object.getBucket(), object.getName());
     getter.executeMediaAndDownloadTo(output);
@@ -173,10 +194,21 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj, String filename, boolean isAnUpdate) {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  public <T> void storeObject(
+      String accountName,
+      ObjectType objectType,
+      String objectKey,
+      T obj,
+      String filename,
+      boolean isAnUpdate) {
+    GoogleNamedAccountCredentials credentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
     String bucketName = credentials.getBucket();
     String path = keyToPath(credentials, objectType, objectKey, filename);
@@ -191,38 +223,40 @@ public class GcsStorageService implements StorageService {
     if (objectType == ObjectType.CANARY_CONFIG) {
       updatedTimestamp = canaryConfigIndex.getRedisTime();
 
-      CanaryConfig canaryConfig = (CanaryConfig)obj;
+      CanaryConfig canaryConfig = (CanaryConfig) obj;
 
       checkForDuplicateCanaryConfig(canaryConfig, objectKey, credentials);
 
       if (isAnUpdate) {
-        // Storing a canary config while not checking for naming collisions can only be a PUT (i.e. an update to an existing config).
+        // Storing a canary config while not checking for naming collisions can only be a PUT (i.e.
+        // an update to an existing config).
         originalItem = resolveSingularItem(objectType, objectKey, credentials, storage, bucketName);
       }
 
       correlationId = UUID.randomUUID().toString();
 
-      Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
-        .put("id", objectKey)
-        .put("name", canaryConfig.getName())
-        .put("updatedTimestamp", updatedTimestamp)
-        .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
-        .put("applications", canaryConfig.getApplications())
-        .build();
+      Map<String, Object> canaryConfigSummary =
+          new ImmutableMap.Builder<String, Object>()
+              .put("id", objectKey)
+              .put("name", canaryConfig.getName())
+              .put("updatedTimestamp", updatedTimestamp)
+              .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+              .put("applications", canaryConfig.getApplications())
+              .build();
 
       try {
         canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
       } catch (JsonProcessingException e) {
-        throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
+        throw new IllegalArgumentException(
+            "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
       }
 
       canaryConfigIndex.startPendingUpdate(
-        credentials,
-        updatedTimestamp + "",
-        CanaryConfigIndexAction.UPDATE,
-        correlationId,
-        canaryConfigSummaryJson
-      );
+          credentials,
+          updatedTimestamp + "",
+          CanaryConfigIndexAction.UPDATE,
+          correlationId,
+          canaryConfigSummaryJson);
     }
 
     try {
@@ -238,44 +272,59 @@ public class GcsStorageService implements StorageService {
           storage.objects().delete(bucketName, originalItem.getName()).execute();
         }
 
-        canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.UPDATE, correlationId);
+        canaryConfigIndex.finishPendingUpdate(
+            credentials, CanaryConfigIndexAction.UPDATE, correlationId);
       }
     } catch (IOException e) {
       log.error("Update failed on path {}: {}", path, e);
 
       if (objectType == ObjectType.CANARY_CONFIG) {
         canaryConfigIndex.removeFailedPendingUpdate(
-          credentials,
-          updatedTimestamp + "",
-          CanaryConfigIndexAction.UPDATE,
-          correlationId,
-          canaryConfigSummaryJson
-        );
+            credentials,
+            updatedTimestamp + "",
+            CanaryConfigIndexAction.UPDATE,
+            correlationId,
+            canaryConfigSummaryJson);
       }
 
       throw new IllegalArgumentException(e);
     }
   }
 
-  private void checkForDuplicateCanaryConfig(CanaryConfig canaryConfig, String canaryConfigId, GoogleNamedAccountCredentials credentials) {
+  private void checkForDuplicateCanaryConfig(
+      CanaryConfig canaryConfig, String canaryConfigId, GoogleNamedAccountCredentials credentials) {
     String canaryConfigName = canaryConfig.getName();
     List<String> applications = canaryConfig.getApplications();
-    String existingCanaryConfigId = canaryConfigIndex.getIdFromName(credentials, canaryConfigName, applications);
+    String existingCanaryConfigId =
+        canaryConfigIndex.getIdFromName(credentials, canaryConfigName, applications);
 
-    // We want to avoid creating a naming collision due to the renaming of an existing canary config.
-    if (!StringUtils.isEmpty(existingCanaryConfigId) && !existingCanaryConfigId.equals(canaryConfigId)) {
-      throw new IllegalArgumentException("Canary config with name '" + canaryConfigName + "' already exists in the scope of applications " + applications + ".");
+    // We want to avoid creating a naming collision due to the renaming of an existing canary
+    // config.
+    if (!StringUtils.isEmpty(existingCanaryConfigId)
+        && !existingCanaryConfigId.equals(canaryConfigId)) {
+      throw new IllegalArgumentException(
+          "Canary config with name '"
+              + canaryConfigName
+              + "' already exists in the scope of applications "
+              + applications
+              + ".");
     }
   }
 
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    GoogleNamedAccountCredentials credentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
     String bucketName = credentials.getBucket();
-    StorageObject item = resolveSingularItem(objectType, objectKey, credentials, storage, bucketName);
+    StorageObject item =
+        resolveSingularItem(objectType, objectKey, credentials, storage, bucketName);
 
     long updatedTimestamp = -1;
     String correlationId = null;
@@ -284,35 +333,37 @@ public class GcsStorageService implements StorageService {
     if (objectType == ObjectType.CANARY_CONFIG) {
       updatedTimestamp = canaryConfigIndex.getRedisTime();
 
-      Map<String, Object> existingCanaryConfigSummary = canaryConfigIndex.getSummaryFromId(credentials, objectKey);
+      Map<String, Object> existingCanaryConfigSummary =
+          canaryConfigIndex.getSummaryFromId(credentials, objectKey);
 
       if (existingCanaryConfigSummary != null) {
-        String canaryConfigName = (String)existingCanaryConfigSummary.get("name");
-        List<String> applications = (List<String>)existingCanaryConfigSummary.get("applications");
+        String canaryConfigName = (String) existingCanaryConfigSummary.get("name");
+        List<String> applications = (List<String>) existingCanaryConfigSummary.get("applications");
 
         correlationId = UUID.randomUUID().toString();
 
-        Map<String, Object> canaryConfigSummary = new ImmutableMap.Builder<String, Object>()
-          .put("id", objectKey)
-          .put("name", canaryConfigName)
-          .put("updatedTimestamp", updatedTimestamp)
-          .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
-          .put("applications", applications)
-          .build();
+        Map<String, Object> canaryConfigSummary =
+            new ImmutableMap.Builder<String, Object>()
+                .put("id", objectKey)
+                .put("name", canaryConfigName)
+                .put("updatedTimestamp", updatedTimestamp)
+                .put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString())
+                .put("applications", applications)
+                .build();
 
         try {
           canaryConfigSummaryJson = kayentaObjectMapper.writeValueAsString(canaryConfigSummary);
         } catch (JsonProcessingException e) {
-          throw new IllegalArgumentException("Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
+          throw new IllegalArgumentException(
+              "Problem serializing canaryConfigSummary -> " + canaryConfigSummary, e);
         }
 
         canaryConfigIndex.startPendingUpdate(
-          credentials,
-          updatedTimestamp + "",
-          CanaryConfigIndexAction.DELETE,
-          correlationId,
-          canaryConfigSummaryJson
-        );
+            credentials,
+            updatedTimestamp + "",
+            CanaryConfigIndexAction.DELETE,
+            correlationId,
+            canaryConfigSummaryJson);
       }
     }
 
@@ -320,12 +371,14 @@ public class GcsStorageService implements StorageService {
       storage.objects().delete(bucketName, item.getName()).execute();
 
       if (correlationId != null) {
-        canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);
+        canaryConfigIndex.finishPendingUpdate(
+            credentials, CanaryConfigIndexAction.DELETE, correlationId);
       }
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
         if (correlationId != null) {
-          canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);
+          canaryConfigIndex.finishPendingUpdate(
+              credentials, CanaryConfigIndexAction.DELETE, correlationId);
         }
 
         return;
@@ -333,12 +386,11 @@ public class GcsStorageService implements StorageService {
 
       if (correlationId != null) {
         canaryConfigIndex.removeFailedPendingUpdate(
-          credentials,
-          updatedTimestamp + "",
-          CanaryConfigIndexAction.DELETE,
-          correlationId,
-          canaryConfigSummaryJson
-        );
+            credentials,
+            updatedTimestamp + "",
+            CanaryConfigIndexAction.DELETE,
+            correlationId,
+            canaryConfigSummaryJson);
       }
 
       throw new IllegalArgumentException(e);
@@ -347,12 +399,11 @@ public class GcsStorageService implements StorageService {
 
       if (correlationId != null) {
         canaryConfigIndex.removeFailedPendingUpdate(
-          credentials,
-          updatedTimestamp + "",
-          CanaryConfigIndexAction.DELETE,
-          correlationId,
-          canaryConfigSummaryJson
-        );
+            credentials,
+            updatedTimestamp + "",
+            CanaryConfigIndexAction.DELETE,
+            correlationId,
+            canaryConfigSummaryJson);
       }
 
       throw new IllegalArgumentException(ioex);
@@ -360,13 +411,20 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  public List<Map<String, Object>> listObjectKeys(
+      String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
+    GoogleNamedAccountCredentials credentials =
+        (GoogleNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
 
     if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
-      Set<Map<String, Object>> canaryConfigSet = canaryConfigIndex.getCanaryConfigSummarySet(credentials, applications);
+      Set<Map<String, Object>> canaryConfigSet =
+          canaryConfigIndex.getCanaryConfigSummarySet(credentials, applications);
 
       return Lists.newArrayList(canaryConfigSet);
     } else {
@@ -376,7 +434,7 @@ public class GcsStorageService implements StorageService {
 
       ensureBucketExists(accountName);
 
-      int skipToOffset = rootFolder.length() + 1;  // + Trailing slash
+      int skipToOffset = rootFolder.length() + 1; // + Trailing slash
       List<Map<String, Object>> result = new ArrayList<>();
 
       log.debug("Listing {}", objectType.getGroup());
@@ -398,7 +456,8 @@ public class GcsStorageService implements StorageService {
 
               objectMetadataMap.put("id", itemName.substring(skipToOffset, indexOfLastSlash));
               objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
-              objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
+              objectMetadataMap.put(
+                  "updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
 
               if (objectType == ObjectType.CANARY_CONFIG) {
                 String name = itemName.substring(indexOfLastSlash + 1);
@@ -428,7 +487,11 @@ public class GcsStorageService implements StorageService {
     return credentials.getRootFolder() + '/' + daoTypeName;
   }
 
-  private String keyToPath(GoogleNamedAccountCredentials credentials, ObjectType objectType, String objectKey, String filename) {
+  private String keyToPath(
+      GoogleNamedAccountCredentials credentials,
+      ObjectType objectType,
+      String objectKey,
+      String filename) {
     if (filename == null) {
       filename = objectType.getDefaultFilename();
     }

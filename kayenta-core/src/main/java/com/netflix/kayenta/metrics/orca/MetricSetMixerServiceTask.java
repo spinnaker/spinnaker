@@ -32,14 +32,13 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MetricSetMixerServiceTask implements RetryableTask {
@@ -50,10 +49,11 @@ public class MetricSetMixerServiceTask implements RetryableTask {
   private final ExecutionMapper executionMapper;
 
   @Autowired
-  public MetricSetMixerServiceTask(AccountCredentialsRepository accountCredentialsRepository,
-                                   StorageServiceRepository storageServiceRepository,
-                                   MetricSetMixerService metricSetMixerService,
-                                   ExecutionMapper executionMapper) {
+  public MetricSetMixerServiceTask(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository,
+      MetricSetMixerService metricSetMixerService,
+      ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.metricSetMixerService = metricSetMixerService;
@@ -76,16 +76,21 @@ public class MetricSetMixerServiceTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    String storageAccountName = (String)context.get("storageAccountName");
-    List<String> controlMetricSetListIds = getMetricSetListIds(stage.getExecution(), (String)context.get("controlRefidPrefix"));
-    List<String> experimentMetricSetListIds = getMetricSetListIds(stage.getExecution(), (String)context.get("experimentRefidPrefix"));
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+    String storageAccountName = (String) context.get("storageAccountName");
+    List<String> controlMetricSetListIds =
+        getMetricSetListIds(stage.getExecution(), (String) context.get("controlRefidPrefix"));
+    List<String> experimentMetricSetListIds =
+        getMetricSetListIds(stage.getExecution(), (String) context.get("experimentRefidPrefix"));
+    String resolvedAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
+        storageServiceRepository
+            .getOne(resolvedAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to load metric set lists."));
 
     CanaryConfig canaryConfig = executionMapper.getCanaryConfig(stage.getExecution());
 
@@ -93,50 +98,72 @@ public class MetricSetMixerServiceTask implements RetryableTask {
     int experimentMetricSetListIdsSize = experimentMetricSetListIds.size();
 
     if (controlMetricSetListIdsSize != experimentMetricSetListIdsSize) {
-      throw new IllegalArgumentException("Size of controlMetricSetListIds (" + controlMetricSetListIdsSize + ") does not " +
-                                         "match size of experimentMetricSetListIds (" + experimentMetricSetListIdsSize + ").");
+      throw new IllegalArgumentException(
+          "Size of controlMetricSetListIds ("
+              + controlMetricSetListIdsSize
+              + ") does not "
+              + "match size of experimentMetricSetListIds ("
+              + experimentMetricSetListIdsSize
+              + ").");
     }
 
-    List<MetricSet> controlMetricSetList = controlMetricSetListIds.stream()
-      .map((id) -> (List<MetricSet>)storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
-      .flatMap(Collection::stream)
-      .collect(Collectors.toList());
+    List<MetricSet> controlMetricSetList =
+        controlMetricSetListIds.stream()
+            .map(
+                (id) ->
+                    (List<MetricSet>)
+                        storageService.loadObject(
+                            resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    List<MetricSet> experimentMetricSetList = experimentMetricSetListIds.stream()
-      .map((id) -> (List<MetricSet>)storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
-      .flatMap(Collection::stream)
-      .collect(Collectors.toList());
+    List<MetricSet> experimentMetricSetList =
+        experimentMetricSetListIds.stream()
+            .map(
+                (id) ->
+                    (List<MetricSet>)
+                        storageService.loadObject(
+                            resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-    List<MetricSetPair> aggregatedMetricSetPairList = metricSetMixerService.mixAll(canaryConfig.getMetrics(),
-                                                                                   controlMetricSetList,
-                                                                                   experimentMetricSetList);
+    List<MetricSetPair> aggregatedMetricSetPairList =
+        metricSetMixerService.mixAll(
+            canaryConfig.getMetrics(), controlMetricSetList, experimentMetricSetList);
 
     String aggregatedMetricSetPairListId = UUID.randomUUID() + "";
 
-    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, aggregatedMetricSetPairListId, aggregatedMetricSetPairList);
+    storageService.storeObject(
+        resolvedAccountName,
+        ObjectType.METRIC_SET_PAIR_LIST,
+        aggregatedMetricSetPairListId,
+        aggregatedMetricSetPairList);
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).output("metricSetPairListId", aggregatedMetricSetPairListId).build();
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .output("metricSetPairListId", aggregatedMetricSetPairListId)
+        .build();
   }
 
   private List<String> getMetricSetListIds(Execution execution, String stagePrefix) {
     List<Stage> stages = execution.getStages();
     return stages.stream()
-      .filter(stage -> {
-        String refId = stage.getRefId();
-        return refId != null && refId.startsWith(stagePrefix);
-      })
-      .map(stage -> resolveMetricSetListId(stage))
-      .collect(Collectors.toList());
+        .filter(
+            stage -> {
+              String refId = stage.getRefId();
+              return refId != null && refId.startsWith(stagePrefix);
+            })
+        .map(stage -> resolveMetricSetListId(stage))
+        .collect(Collectors.toList());
   }
 
   private static String resolveMetricSetListId(Stage stage) {
     Map<String, Object> outputs = stage.getOutputs();
-    String metricSetListId = (String)outputs.get("metricSetListId");
+    String metricSetListId = (String) outputs.get("metricSetListId");
 
     // TODO(duftler): Remove this once the risk of operating on out-of-date pipelines is low.
     if (StringUtils.isEmpty(metricSetListId)) {
       // Fallback to the older key name.
-      metricSetListId = (String)outputs.get("metricSetId");
+      metricSetListId = (String) outputs.get("metricSetId");
     }
 
     return metricSetListId;

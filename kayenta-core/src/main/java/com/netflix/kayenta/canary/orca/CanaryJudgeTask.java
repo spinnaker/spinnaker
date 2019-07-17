@@ -30,16 +30,14 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -52,11 +50,12 @@ public class CanaryJudgeTask implements RetryableTask {
   private final ExecutionMapper executionMapper;
 
   @Autowired
-  public CanaryJudgeTask(AccountCredentialsRepository accountCredentialsRepository,
-                         StorageServiceRepository storageServiceRepository,
-                         List<CanaryJudge> canaryJudges,
-                         ObjectMapper kayentaObjectMapper,
-                         ExecutionMapper executionMapper) {
+  public CanaryJudgeTask(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository,
+      List<CanaryJudge> canaryJudges,
+      ObjectMapper kayentaObjectMapper,
+      ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.canaryJudges = canaryJudges;
@@ -80,35 +79,47 @@ public class CanaryJudgeTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    String storageAccountName = (String)context.get("storageAccountName");
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
-    String metricSetPairListId = (String)context.get("metricSetPairListId");
-    Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
-    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = objectMapper.convertValue(orchestratorScoreThresholdsMap,
-                                                                                             CanaryClassifierThresholdsConfig.class);
+    String storageAccountName = (String) context.get("storageAccountName");
+    String resolvedStorageAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+    String metricSetPairListId = (String) context.get("metricSetPairListId");
+    Map<String, String> orchestratorScoreThresholdsMap =
+        (Map<String, String>) context.get("orchestratorScoreThresholds");
+    CanaryClassifierThresholdsConfig orchestratorScoreThresholds =
+        objectMapper.convertValue(
+            orchestratorScoreThresholdsMap, CanaryClassifierThresholdsConfig.class);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedStorageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
+        storageServiceRepository
+            .getOne(resolvedStorageAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to load metric set lists."));
 
     CanaryConfig canaryConfig = executionMapper.getCanaryConfig(stage.getExecution());
-    List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedStorageAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    List<MetricSetPair> metricSetPairList =
+        storageService.loadObject(
+            resolvedStorageAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
     CanaryJudgeConfig canaryJudgeConfig = canaryConfig.getJudge();
     CanaryJudge canaryJudge = null;
 
     if (canaryJudgeConfig != null) {
-      String overrideJudgeName = (String)context.get("overrideJudgeName");
-      String judgeName = StringUtils.isNotEmpty(overrideJudgeName) ? overrideJudgeName : canaryJudgeConfig.getName();
+      String overrideJudgeName = (String) context.get("overrideJudgeName");
+      String judgeName =
+          StringUtils.isNotEmpty(overrideJudgeName)
+              ? overrideJudgeName
+              : canaryJudgeConfig.getName();
 
       if (!StringUtils.isEmpty(judgeName)) {
         canaryJudge =
-          canaryJudges
-            .stream()
-            .filter(c -> c.getName().equals(judgeName))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary judge '" + judgeName + "'."));
+            canaryJudges.stream()
+                .filter(c -> c.getName().equals(judgeName))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve canary judge '" + judgeName + "'."));
       }
     }
 
@@ -116,9 +127,9 @@ public class CanaryJudgeTask implements RetryableTask {
       canaryJudge = canaryJudges.get(0);
     }
 
-    CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
+    CanaryJudgeResult result =
+        canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).output("result", result).build();
-
   }
 }

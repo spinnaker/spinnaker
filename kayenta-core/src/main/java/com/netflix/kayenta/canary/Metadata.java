@@ -21,16 +21,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Metadata {
-  @Getter
-  @NonNull
-  protected String name;
+  @Getter @NonNull protected String name;
 
-  @Getter
-  @NonNull
-  protected String value;
+  @Getter @NonNull protected String value;
 
   // 'hidden' is a UI-hint to show or not show this value by default in the UI,
   // likely in a generic way.
-  @Getter
-  protected Boolean hidden = false;
+  @Getter protected Boolean hidden = false;
 }

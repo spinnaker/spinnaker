@@ -28,6 +28,10 @@ import com.netflix.kayenta.signalfx.security.SignalFxNamedAccountCredentials;
 import com.netflix.kayenta.signalfx.service.SignalFxConverter;
 import com.netflix.kayenta.signalfx.service.SignalFxSignalFlowRemoteService;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -35,11 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("kayenta.signalfx.enabled")
@@ -56,46 +55,55 @@ public class SignalFxConfiguration {
   }
 
   @Bean
-  Map<String, SignalFxScopeConfiguration> signalFxScopeConfigurationMap(SignalFxConfigurationProperties signalFxConfigurationProperties) {
+  Map<String, SignalFxScopeConfiguration> signalFxScopeConfigurationMap(
+      SignalFxConfigurationProperties signalFxConfigurationProperties) {
     return signalFxConfigurationProperties.getAccounts().stream()
-        .collect(Collectors.toMap(SignalFxManagedAccount::getName,
-            accountConfig -> SignalFxScopeConfiguration.builder()
-                .defaultScopeKey(accountConfig.getDefaultScopeKey())
-                .defaultLocationKey(accountConfig.getDefaultLocationKey())
-                .build()));
+        .collect(
+            Collectors.toMap(
+                SignalFxManagedAccount::getName,
+                accountConfig ->
+                    SignalFxScopeConfiguration.builder()
+                        .defaultScopeKey(accountConfig.getDefaultScopeKey())
+                        .defaultLocationKey(accountConfig.getDefaultLocationKey())
+                        .build()));
   }
 
   @Bean
-  MetricsService signalFxMetricService(SignalFxConfigurationProperties signalFxConfigurationProperties,
-                                       RetrofitClientFactory retrofitClientFactory,
-                                       OkHttpClient okHttpClient,
-                                       AccountCredentialsRepository accountCredentialsRepository) {
+  MetricsService signalFxMetricService(
+      SignalFxConfigurationProperties signalFxConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository) {
 
-    SignalFxMetricsService.SignalFxMetricsServiceBuilder metricsServiceBuilder = SignalFxMetricsService.builder();
+    SignalFxMetricsService.SignalFxMetricsServiceBuilder metricsServiceBuilder =
+        SignalFxMetricsService.builder();
 
-    for (SignalFxManagedAccount signalFxManagedAccount : signalFxConfigurationProperties.getAccounts()) {
+    for (SignalFxManagedAccount signalFxManagedAccount :
+        signalFxConfigurationProperties.getAccounts()) {
       String name = signalFxManagedAccount.getName();
       List<AccountCredentials.Type> supportedTypes = signalFxManagedAccount.getSupportedTypes();
-      SignalFxCredentials signalFxCredentials = new SignalFxCredentials(signalFxManagedAccount.getAccessToken());
+      SignalFxCredentials signalFxCredentials =
+          new SignalFxCredentials(signalFxManagedAccount.getAccessToken());
 
-      final RemoteService signalFxSignalFlowEndpoint = Optional.ofNullable(signalFxManagedAccount.getEndpoint())
-          .orElse(new RemoteService().setBaseUrl(SIGNAL_FX_SIGNAL_FLOW_ENDPOINT_URI));
+      final RemoteService signalFxSignalFlowEndpoint =
+          Optional.ofNullable(signalFxManagedAccount.getEndpoint())
+              .orElse(new RemoteService().setBaseUrl(SIGNAL_FX_SIGNAL_FLOW_ENDPOINT_URI));
 
-      SignalFxNamedAccountCredentials.SignalFxNamedAccountCredentialsBuilder accountCredentialsBuilder =
-          SignalFxNamedAccountCredentials
-              .builder()
-              .name(name)
-              .endpoint(signalFxSignalFlowEndpoint)
-              .credentials(signalFxCredentials);
+      SignalFxNamedAccountCredentials.SignalFxNamedAccountCredentialsBuilder
+          accountCredentialsBuilder =
+              SignalFxNamedAccountCredentials.builder()
+                  .name(name)
+                  .endpoint(signalFxSignalFlowEndpoint)
+                  .credentials(signalFxCredentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-          accountCredentialsBuilder.signalFlowService(retrofitClientFactory.createClient(
-              SignalFxSignalFlowRemoteService.class,
-              new SignalFxConverter(),
-              signalFxSignalFlowEndpoint,
-              okHttpClient
-          ));
+          accountCredentialsBuilder.signalFlowService(
+              retrofitClientFactory.createClient(
+                  SignalFxSignalFlowRemoteService.class,
+                  new SignalFxConverter(),
+                  signalFxSignalFlowEndpoint,
+                  okHttpClient));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }
@@ -104,9 +112,13 @@ public class SignalFxConfiguration {
       metricsServiceBuilder.accountName(name);
     }
 
-    log.info("Configured the SignalFx Metrics Service with the following accounts: {}",
-        String.join(",", signalFxConfigurationProperties.getAccounts().stream()
-            .map(SignalFxManagedAccount::getName).collect(Collectors.toList())));
+    log.info(
+        "Configured the SignalFx Metrics Service with the following accounts: {}",
+        String.join(
+            ",",
+            signalFxConfigurationProperties.getAccounts().stream()
+                .map(SignalFxManagedAccount::getName)
+                .collect(Collectors.toList())));
 
     return metricsServiceBuilder.build();
   }

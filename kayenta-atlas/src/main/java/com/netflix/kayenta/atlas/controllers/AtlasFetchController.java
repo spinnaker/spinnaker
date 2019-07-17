@@ -25,17 +25,16 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiParam;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/fetch/atlas")
@@ -46,40 +45,42 @@ public class AtlasFetchController {
   private final SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  public AtlasFetchController(AccountCredentialsRepository accountCredentialsRepository, SynchronousQueryProcessor synchronousQueryProcessor) {
+  public AtlasFetchController(
+      AccountCredentialsRepository accountCredentialsRepository,
+      SynchronousQueryProcessor synchronousQueryProcessor) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
   }
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
-  public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
-                          @RequestParam(required = false) final String storageAccountName,
-                          @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
-                          @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                          @ApiParam(defaultValue = "cluster") @RequestParam String type,
-                          @RequestParam String scope,
-                          @ApiParam(defaultValue = "us-east-1") @RequestParam String location,
-                          @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
-                          @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
-                          @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
-    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
-                                                                                     AccountCredentials.Type.METRICS_STORE,
-                                                                                     accountCredentialsRepository);
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
+  public Map queryMetrics(
+      @RequestParam(required = false) final String metricsAccountName,
+      @RequestParam(required = false) final String storageAccountName,
+      @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
+      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+      @ApiParam(defaultValue = "cluster") @RequestParam String type,
+      @RequestParam String scope,
+      @ApiParam(defaultValue = "us-east-1") @RequestParam String location,
+      @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
+      @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
+      @ApiParam(defaultValue = "300") @RequestParam Long step)
+      throws IOException {
+    String resolvedMetricsAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            metricsAccountName,
+            AccountCredentials.Type.METRICS_STORE,
+            accountCredentialsRepository);
+    String resolvedStorageAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
 
     AtlasCanaryMetricSetQueryConfig atlasCanaryMetricSetQueryConfig =
-      AtlasCanaryMetricSetQueryConfig
-        .builder()
-        .q(q)
-        .build();
+        AtlasCanaryMetricSetQueryConfig.builder().q(q).build();
     CanaryMetricConfig canaryMetricConfig =
-      CanaryMetricConfig
-        .builder()
-        .name(metricSetName)
-        .query(atlasCanaryMetricSetQueryConfig)
-        .build();
+        CanaryMetricConfig.builder()
+            .name(metricSetName)
+            .query(atlasCanaryMetricSetQueryConfig)
+            .build();
 
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setType(type);
@@ -89,11 +90,13 @@ public class AtlasFetchController {
     atlasCanaryScope.setEnd(end);
     atlasCanaryScope.setStep(step);
 
-    String metricSetListId = synchronousQueryProcessor.executeQuery(resolvedMetricsAccountName,
-                                                                    resolvedStorageAccountName,
-                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                    0,
-                                                                    atlasCanaryScope);
+    String metricSetListId =
+        synchronousQueryProcessor.executeQuery(
+            resolvedMetricsAccountName,
+            resolvedStorageAccountName,
+            CanaryConfig.builder().metric(canaryMetricConfig).build(),
+            0,
+            atlasCanaryScope);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }

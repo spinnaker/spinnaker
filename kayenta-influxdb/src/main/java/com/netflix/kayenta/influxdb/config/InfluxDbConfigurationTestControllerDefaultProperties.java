@@ -24,15 +24,9 @@ import lombok.Setter;
  */
 public class InfluxDbConfigurationTestControllerDefaultProperties {
 
-    @Getter
-    @Setter
-    private String scope;
+  @Getter @Setter private String scope;
 
-    @Getter
-    @Setter
-    private String start;
+  @Getter @Setter private String start;
 
-    @Getter
-    @Setter
-    private String end;
+  @Getter @Setter private String end;
 }

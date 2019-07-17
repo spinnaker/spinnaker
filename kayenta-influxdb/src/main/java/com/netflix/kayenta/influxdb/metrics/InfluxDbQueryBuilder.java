@@ -16,32 +16,31 @@
 
 package com.netflix.kayenta.influxdb.metrics;
 
+import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
-
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component
 public class InfluxDbQueryBuilder {
-  
-  private static final String ALL_FIELDS = "*::field";
-  private static final String SCOPE_INVALID_FORMAT_MSG = "Scope expected in the format of 'name:value'. e.g. autoscaling_group:myapp-prod-v002, received: ";
 
-  //TODO(joerajeev): update to accept tags and groupby fields
-  //TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params, https://docs.influxdata.com/influxdb/v1.5/tools/api/
+  private static final String ALL_FIELDS = "*::field";
+  private static final String SCOPE_INVALID_FORMAT_MSG =
+      "Scope expected in the format of 'name:value'. e.g. autoscaling_group:myapp-prod-v002, received: ";
+
+  // TODO(joerajeev): update to accept tags and groupby fields
+  // TODO(joerajeev): protect against injection. Influxdb is supposed to support binding params,
+  // https://docs.influxdata.com/influxdb/v1.5/tools/api/
   public String build(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
-   
+
     validateManadtoryParams(queryConfig, canaryScope);
-    
+
     StringBuilder query = new StringBuilder();
     addBaseQuery(queryConfig.getMetricName(), handleFields(queryConfig), query);
     addTimeRangeFilter(canaryScope, query);
@@ -52,7 +51,8 @@ public class InfluxDbQueryBuilder {
     return builtQuery;
   }
 
-  private void validateManadtoryParams(InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
+  private void validateManadtoryParams(
+      InfluxdbCanaryMetricSetQueryConfig queryConfig, CanaryScope canaryScope) {
     if (StringUtils.isEmpty(queryConfig.getMetricName())) {
       throw new IllegalArgumentException("Measurement is required to query metrics");
     }
@@ -67,7 +67,7 @@ public class InfluxDbQueryBuilder {
   private List<String> handleFields(InfluxdbCanaryMetricSetQueryConfig queryConfig) {
     List<String> fields = queryConfig.getFields();
     if (CollectionUtils.isEmpty(fields)) {
-      if(fields == null) {
+      if (fields == null) {
         fields = new ArrayList<>();
       }
       fields.add(ALL_FIELDS);
@@ -87,7 +87,7 @@ public class InfluxDbQueryBuilder {
     if (scope != null) {
       String[] scopeParts = validateAndExtractScope(scope);
       sb.append(" AND ");
-      sb.append(scopeParts[0] + "='" + scopeParts[1] +"'");
+      sb.append(scopeParts[0] + "='" + scopeParts[1] + "'");
     }
   }
 

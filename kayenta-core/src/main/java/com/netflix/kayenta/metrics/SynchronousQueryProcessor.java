@@ -26,18 +26,17 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Component
 @Slf4j
@@ -48,32 +47,44 @@ public class SynchronousQueryProcessor {
   private final MetricsRetryConfigurationProperties retryConfiguration;
 
   @Autowired
-  public SynchronousQueryProcessor(MetricsServiceRepository metricsServiceRepository,
-                                   StorageServiceRepository storageServiceRepository,
-                                   Registry registry,
-                                   MetricsRetryConfigurationProperties retryConfiguration) {
+  public SynchronousQueryProcessor(
+      MetricsServiceRepository metricsServiceRepository,
+      StorageServiceRepository storageServiceRepository,
+      Registry registry,
+      MetricsRetryConfigurationProperties retryConfiguration) {
     this.metricsServiceRepository = metricsServiceRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.registry = registry;
     this.retryConfiguration = retryConfiguration;
   }
 
-  public String executeQuery(String metricsAccountName,
-                             String storageAccountName,
-                             CanaryConfig canaryConfig,
-                             int metricIndex,
-                             CanaryScope canaryScope) throws IOException {
+  public String executeQuery(
+      String metricsAccountName,
+      String storageAccountName,
+      CanaryConfig canaryConfig,
+      int metricIndex,
+      CanaryScope canaryScope)
+      throws IOException {
     MetricsService metricsService =
-      metricsServiceRepository
-        .getOne(metricsAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
+        metricsServiceRepository
+            .getOne(metricsAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No metrics service was configured; unable to read from metrics store."));
 
     StorageService storageService =
-      storageServiceRepository
-        .getOne(storageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list."));
+        storageServiceRepository
+            .getOne(storageAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to write metric set list."));
 
-    Id queryId = registry.createId("canary.telemetry.query").withTag("metricsStore", metricsService.getType());
+    Id queryId =
+        registry
+            .createId("canary.telemetry.query")
+            .withTag("metricsStore", metricsService.getType());
 
     CanaryMetricConfig canaryMetricConfig = canaryConfig.getMetrics().get(metricIndex);
     List<MetricSet> metricSetList = null;
@@ -85,7 +96,9 @@ public class SynchronousQueryProcessor {
     while (!success) {
       try {
         registry.counter(queryId.withTag("retries", retries + "")).increment();
-        metricSetList = metricsService.queryMetrics(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
+        metricSetList =
+            metricsService.queryMetrics(
+                metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
         success = true;
       } catch (RetrofitError e) {
 
@@ -95,8 +108,11 @@ public class SynchronousQueryProcessor {
           if (retries >= retryConfiguration.getAttempts()) {
             throw e;
           }
-          log.warn("Got {} http status when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
-                  e.getResponse().getStatus(), retries, retryConfiguration.getAttempts());
+          log.warn(
+              "Got {} http status when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
+              e.getResponse().getStatus(),
+              retries,
+              retryConfiguration.getAttempts());
         } else {
           throw e;
         }
@@ -105,73 +121,82 @@ public class SynchronousQueryProcessor {
         if (retries >= retryConfiguration.getAttempts()) {
           throw e;
         }
-        log.warn("Got error when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
-                retries, retryConfiguration.getAttempts(), e);
+        log.warn(
+            "Got error when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
+            retries,
+            retryConfiguration.getAttempts(),
+            e);
       }
     }
     String metricSetListId = UUID.randomUUID() + "";
 
-    storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+    storageService.storeObject(
+        storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return metricSetListId;
   }
 
   private boolean isRetryable(RetrofitError e) {
     HttpStatus responseStatus = HttpStatus.resolve(e.getResponse().getStatus());
-    if(responseStatus == null) {
+    if (responseStatus == null) {
       return false;
     }
-    return retryConfiguration.getStatuses().contains(responseStatus) ||
-            retryConfiguration.getSeries().contains(responseStatus.series());
+    return retryConfiguration.getStatuses().contains(responseStatus)
+        || retryConfiguration.getSeries().contains(responseStatus.series());
   }
 
-  public Map<String, ?> processQueryAndReturnMap(String metricsAccountName,
-                                                 String storageAccountName,
-                                                 CanaryConfig canaryConfig,
-                                                 CanaryMetricConfig canaryMetricConfig,
-                                                 int metricIndex,
-                                                 CanaryScope canaryScope,
-                                                 boolean dryRun) throws IOException {
+  public Map<String, ?> processQueryAndReturnMap(
+      String metricsAccountName,
+      String storageAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      int metricIndex,
+      CanaryScope canaryScope,
+      boolean dryRun)
+      throws IOException {
     if (canaryConfig == null) {
       canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build();
     }
 
     if (dryRun) {
       MetricsService metricsService =
-        metricsServiceRepository
-          .getOne(metricsAccountName)
-          .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
+          metricsServiceRepository
+              .getOne(metricsAccountName)
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "No metrics service was configured; unable to read from metrics store."));
 
-      String query = metricsService.buildQuery(metricsAccountName,
-                                               canaryConfig,
-                                               canaryMetricConfig,
-                                               canaryScope);
+      String query =
+          metricsService.buildQuery(
+              metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
 
       return Collections.singletonMap("query", query);
     } else {
-      String metricSetListId = executeQuery(metricsAccountName,
-                                            storageAccountName,
-                                            canaryConfig,
-                                            metricIndex,
-                                            canaryScope);
+      String metricSetListId =
+          executeQuery(
+              metricsAccountName, storageAccountName, canaryConfig, metricIndex, canaryScope);
 
       return Collections.singletonMap("metricSetListId", metricSetListId);
     }
   }
 
-  public TaskResult executeQueryAndProduceTaskResult(String metricsAccountName,
-                                                     String storageAccountName,
-                                                     CanaryConfig canaryConfig,
-                                                     int metricIndex,
-                                                     CanaryScope canaryScope) {
+  public TaskResult executeQueryAndProduceTaskResult(
+      String metricsAccountName,
+      String storageAccountName,
+      CanaryConfig canaryConfig,
+      int metricIndex,
+      CanaryScope canaryScope) {
     try {
-      Map<String, ?> outputs = processQueryAndReturnMap(metricsAccountName,
-                                                        storageAccountName,
-                                                        canaryConfig,
-                                                        null /* canaryMetricConfig */,
-                                                        metricIndex,
-                                                        canaryScope,
-                                                        false /* dryRun */);
+      Map<String, ?> outputs =
+          processQueryAndReturnMap(
+              metricsAccountName,
+              storageAccountName,
+              canaryConfig,
+              null /* canaryMetricConfig */,
+              metricIndex,
+              canaryScope,
+              false /* dryRun */);
 
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
 

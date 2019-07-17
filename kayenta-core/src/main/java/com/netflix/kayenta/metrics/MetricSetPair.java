@@ -16,50 +16,35 @@
 
 package com.netflix.kayenta.metrics;
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
 @NoArgsConstructor
 public class MetricSetPair {
 
-  @NotNull
-  @Getter
-  private String name;
+  @NotNull @Getter private String name;
 
-  @NotNull
-  @Getter
-  private String id;
+  @NotNull @Getter private String id;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, String> tags;
+  @NotNull @Singular @Getter private Map<String, String> tags;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, List<Double>> values;
+  @NotNull @Singular @Getter private Map<String, List<Double>> values;
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, MetricSetScope> scopes;
+  @NotNull @Singular @Getter private Map<String, MetricSetScope> scopes;
 
-  @Getter
-  @Singular
-  private Map<String, Map<String, String>> attributes;
+  @Getter @Singular private Map<String, Map<String, String>> attributes;
 
-  public MetricSetPair(String name,
-                       String id,
-                       Map<String, String> tags,
-                       Map<String, List<Double>> values,
-                       Map<String, MetricSetScope> scopes,
-                       Map<String, Map<String, String>> attributes) {
+  public MetricSetPair(
+      String name,
+      String id,
+      Map<String, String> tags,
+      Map<String, List<Double>> values,
+      Map<String, MetricSetScope> scopes,
+      Map<String, Map<String, String>> attributes) {
     this.name = name;
     this.id = id;
     this.tags = tags;
@@ -74,16 +59,10 @@ public class MetricSetPair {
   @NoArgsConstructor
   public static class MetricSetScope {
 
-    @NotNull
-    @Getter
-    private String startTimeIso;
+    @NotNull @Getter private String startTimeIso;
 
-    @NotNull
-    @Getter
-    private long startTimeMillis;
+    @NotNull @Getter private long startTimeMillis;
 
-    @NotNull
-    @Getter
-    private long stepMillis;
+    @NotNull @Getter private long stepMillis;
   }
 }

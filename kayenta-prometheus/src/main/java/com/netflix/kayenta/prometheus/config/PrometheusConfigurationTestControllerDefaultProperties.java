@@ -24,27 +24,15 @@ import lombok.Setter;
  */
 public class PrometheusConfigurationTestControllerDefaultProperties {
 
-  @Getter
-  @Setter
-  private String project;
+  @Getter @Setter private String project;
 
-  @Getter
-  @Setter
-  private String resourceType;
+  @Getter @Setter private String resourceType;
 
-  @Getter
-  @Setter
-  private String location;
+  @Getter @Setter private String location;
 
-  @Getter
-  @Setter
-  private String scope;
+  @Getter @Setter private String scope;
 
-  @Getter
-  @Setter
-  private String start;
+  @Getter @Setter private String start;
 
-  @Getter
-  @Setter
-  private String end;
+  @Getter @Setter private String end;
 }

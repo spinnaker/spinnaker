@@ -22,39 +22,41 @@ import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.Map;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RetrofitError;
 import retrofit.converter.JacksonConverter;
 
-import javax.validation.constraints.NotNull;
-import java.util.Map;
-
 @Slf4j
 @Builder
 public class AtlasStorageUpdater {
-  @Getter
-  private final AtlasStorageDatabase atlasStorageDatabase = new AtlasStorageDatabase();
+  @Getter private final AtlasStorageDatabase atlasStorageDatabase = new AtlasStorageDatabase();
 
-  @NotNull
-  private String uri;
+  @NotNull private String uri;
 
   // If we have retrieved backends.json at least once, we will keep using it forever
   // even if we fail later.  It doesn't really change much over time, so this
   // is likely safe enough.
-  @Builder.Default
-  private boolean succeededAtLeastOnce = false;
+  @Builder.Default private boolean succeededAtLeastOnce = false;
 
-  boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+  boolean run(
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      OkHttpClient okHttpClient) {
     RemoteService remoteService = new RemoteService();
     remoteService.setBaseUrl(uri);
-    AtlasStorageRemoteService atlasStorageRemoteService = retrofitClientFactory.createClient(AtlasStorageRemoteService.class,
-                                                                                             new JacksonConverter(objectMapper),
-                                                                                             remoteService,
-                                                                                             okHttpClient);
+    AtlasStorageRemoteService atlasStorageRemoteService =
+        retrofitClientFactory.createClient(
+            AtlasStorageRemoteService.class,
+            new JacksonConverter(objectMapper),
+            remoteService,
+            okHttpClient);
     try {
-      Map<String, Map<String, AtlasStorage>> atlasStorageMap = AuthenticatedRequest.allowAnonymous(atlasStorageRemoteService::fetch);
+      Map<String, Map<String, AtlasStorage>> atlasStorageMap =
+          AuthenticatedRequest.allowAnonymous(atlasStorageRemoteService::fetch);
       atlasStorageDatabase.update(atlasStorageMap);
     } catch (RetrofitError e) {
       log.warn("While fetching atlas backends from " + uri, e);

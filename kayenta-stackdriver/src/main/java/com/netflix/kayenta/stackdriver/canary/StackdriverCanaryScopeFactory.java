@@ -19,9 +19,8 @@ package com.netflix.kayenta.stackdriver.canary;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
@@ -32,7 +31,7 @@ public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(CanaryScope canaryScope){
+  public CanaryScope buildCanaryScope(CanaryScope canaryScope) {
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
     stackdriverCanaryScope.setScope(canaryScope.getScope());
     stackdriverCanaryScope.setLocation(canaryScope.getLocation());

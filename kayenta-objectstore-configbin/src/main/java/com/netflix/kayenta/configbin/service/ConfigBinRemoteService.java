@@ -22,22 +22,24 @@ import retrofit.http.*;
 
 public interface ConfigBinRemoteService {
   @GET("/{ownerApp}/{configType}")
-  String list(@Path("ownerApp") String ownerApp,
-              @Path("configType") String configType);
+  String list(@Path("ownerApp") String ownerApp, @Path("configType") String configType);
 
   @DELETE("/{ownerApp}/{configType}/{configName}")
-  Response delete(@Path("ownerApp") String ownerApp,
-              @Path("configType") String configType,
-              @Path("configName") String configName);
+  Response delete(
+      @Path("ownerApp") String ownerApp,
+      @Path("configType") String configType,
+      @Path("configName") String configName);
 
   @GET("/payload/{ownerApp}/{configType}/{configName}")
-  String get(@Path("ownerApp") String ownerApp,
-             @Path("configType") String configType,
-             @Path("configName") String configName);
+  String get(
+      @Path("ownerApp") String ownerApp,
+      @Path("configType") String configType,
+      @Path("configName") String configName);
 
   @POST("/{ownerApp}/{configType}/{configName}")
-  Response post(@Path("ownerApp") String ownerApp,
-                @Path("configType") String configType,
-                @Path("configName") String configName,
-                @Body RequestBody config);
+  Response post(
+      @Path("ownerApp") String ownerApp,
+      @Path("configType") String configType,
+      @Path("configName") String configName,
+      @Body RequestBody config);
 }

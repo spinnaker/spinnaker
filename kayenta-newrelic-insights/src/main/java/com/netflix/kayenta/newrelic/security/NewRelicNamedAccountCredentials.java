@@ -30,24 +30,18 @@ import lombok.Singular;
 @Data
 public class NewRelicNamedAccountCredentials implements AccountCredentials<NewRelicCredentials> {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  @Singular
-  private List<Type> supportedTypes;
+  @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull
-  private NewRelicCredentials credentials;
+  @NotNull private NewRelicCredentials credentials;
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
   @Override
   public String getType() {
     return "newrelic";
   }
 
-  @JsonIgnore
-  NewRelicRemoteService newRelicRemoteService;
+  @JsonIgnore NewRelicRemoteService newRelicRemoteService;
 }

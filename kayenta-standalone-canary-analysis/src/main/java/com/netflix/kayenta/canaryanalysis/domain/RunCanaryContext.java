@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScopePair;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,11 +28,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
 
-import java.util.Map;
-
-/**
- * Internal model used in the canary analysis pipeline execution stages
- */
+/** Internal model used in the canary analysis pipeline execution stages */
 @Data
 @Builder
 @ToString
@@ -47,10 +44,7 @@ public class RunCanaryContext {
   private String metricsAccountName;
   private String storageAccountName;
   private Map<String, Object> siteLocal;
-  @NonNull
-  private CanaryConfig canaryConfig;
-  @NonNull
-  private Map<String, CanaryScopePair> scopes;
-  @NonNull
-  private CanaryClassifierThresholdsConfig scoreThresholds;
+  @NonNull private CanaryConfig canaryConfig;
+  @NonNull private Map<String, CanaryScopePair> scopes;
+  @NonNull private CanaryClassifierThresholdsConfig scoreThresholds;
 }

@@ -37,25 +37,26 @@ public class IndexConfiguration {
   }
 
   @Bean
-  CanaryConfigIndexingAgent canaryConfigIndexingAgent(String currentInstanceId,
-                                                      JedisPool jedisPool,
-                                                      AccountCredentialsRepository accountCredentialsRepository,
-                                                      StorageServiceRepository storageServiceRepository,
-                                                      ObjectMapper kayentaObjectMapper,
-                                                      CanaryConfigIndex canaryConfigIndex,
-                                                      IndexConfigurationProperties indexConfigurationProperties) {
-    return new CanaryConfigIndexingAgent(currentInstanceId,
-                                         jedisPool,
-                                         accountCredentialsRepository,
-                                         storageServiceRepository,
-                                         kayentaObjectMapper,
-                                         canaryConfigIndex,
-                                         indexConfigurationProperties);
+  CanaryConfigIndexingAgent canaryConfigIndexingAgent(
+      String currentInstanceId,
+      JedisPool jedisPool,
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository,
+      ObjectMapper kayentaObjectMapper,
+      CanaryConfigIndex canaryConfigIndex,
+      IndexConfigurationProperties indexConfigurationProperties) {
+    return new CanaryConfigIndexingAgent(
+        currentInstanceId,
+        jedisPool,
+        accountCredentialsRepository,
+        storageServiceRepository,
+        kayentaObjectMapper,
+        canaryConfigIndex,
+        indexConfigurationProperties);
   }
 
   @Bean
-  CanaryConfigIndex canaryConfigIndex(JedisPool jedisPool,
-                                      ObjectMapper kayentaObjectMapper) {
+  CanaryConfigIndex canaryConfigIndex(JedisPool jedisPool, ObjectMapper kayentaObjectMapper) {
     return new CanaryConfigIndex(jedisPool, kayentaObjectMapper);
   }
 

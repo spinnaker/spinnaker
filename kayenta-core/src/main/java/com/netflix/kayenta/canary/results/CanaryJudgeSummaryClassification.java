@@ -16,9 +16,8 @@
 package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
 import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -27,10 +26,7 @@ import javax.validation.constraints.NotNull;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryJudgeSummaryClassification {
 
-  @NotNull
-  @Getter
-  private String name;
+  @NotNull @Getter private String name;
 
-  @Getter
-  private int count;
+  @Getter private int count;
 }

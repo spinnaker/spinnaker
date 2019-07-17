@@ -28,9 +28,6 @@ public class PrometheusCanaryScope extends CanaryScope {
 
   private String project;
 
-  /**
-   * @deprecated Use resourceType on PrometheusCanaryMetricSetQueryConfig instead.
-   */
-  @Deprecated
-  private String resourceType;
+  /** @deprecated Use resourceType on PrometheusCanaryMetricSetQueryConfig instead. */
+  @Deprecated private String resourceType;
 }

@@ -18,10 +18,9 @@ package com.netflix.kayenta.atlas.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
@@ -32,7 +31,7 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(CanaryScope canaryScope){
+  public CanaryScope buildCanaryScope(CanaryScope canaryScope) {
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setScope(canaryScope.getScope());
     atlasCanaryScope.setLocation(canaryScope.getLocation());

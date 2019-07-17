@@ -15,14 +15,13 @@
  */
 package com.netflix.kayenta.canary;
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Data
 @Builder
@@ -30,12 +29,9 @@ import java.util.Set;
 @AllArgsConstructor
 public class CanaryExecutionRequest {
 
-  @Singular
-  @NotNull
-  protected Map<String, CanaryScopePair> scopes;
+  @Singular @NotNull protected Map<String, CanaryScopePair> scopes;
 
-  @NotNull
-  protected CanaryClassifierThresholdsConfig thresholds;
+  @NotNull protected CanaryClassifierThresholdsConfig thresholds;
 
   protected List<Metadata> metadata;
 
@@ -45,16 +41,17 @@ public class CanaryExecutionRequest {
     Set<Duration> durationsFound = new HashSet<>();
 
     if (scopes != null) {
-      scopes.values().forEach(scope -> {
-        durationsFound.add(scope.controlScope.calculateDuration());
-        durationsFound.add(scope.experimentScope.calculateDuration());
-      });
+      scopes
+          .values()
+          .forEach(
+              scope -> {
+                durationsFound.add(scope.controlScope.calculateDuration());
+                durationsFound.add(scope.experimentScope.calculateDuration());
+              });
     }
     if (durationsFound.size() == 1) {
-      return durationsFound.stream()
-        .findFirst()
-        .orElse(null);
+      return durationsFound.stream().findFirst().orElse(null);
     }
-    return null;  // cannot find a single duration to represent this data
+    return null; // cannot find a single duration to represent this data
   }
 }

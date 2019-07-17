@@ -22,6 +22,10 @@ import com.google.common.collect.ImmutableList;
 import com.signalfx.signalflow.ChannelMessage;
 import com.signalfx.signalflow.ServerSentEventsTransport;
 import com.signalfx.signalflow.StreamMessage;
+import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
@@ -29,31 +33,25 @@ import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
 import retrofit.mime.TypedString;
 
-import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * The SignalFx SignalFlow api returns Mime-Type: "text/plain" with a custom body with messages in it.
- * This Converter knows how to parse those responses and return typed Objects
+ * The SignalFx SignalFlow api returns Mime-Type: "text/plain" with a custom body with messages in
+ * it. This Converter knows how to parse those responses and return typed Objects
  */
 @Slf4j
 public class SignalFxConverter implements Converter {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final List<Type> CONVERTIBLE_TYPES = ImmutableList.of(
-      SignalFlowExecutionResult.class,
-      ErrorResponse.class
-  );
+  private static final List<Type> CONVERTIBLE_TYPES =
+      ImmutableList.of(SignalFlowExecutionResult.class, ErrorResponse.class);
 
   @Override
   public Object fromBody(TypedInput body, Type type) throws ConversionException {
 
     if (!CONVERTIBLE_TYPES.contains(type)) {
       throw new ConversionException(
-          String.format("The SignalFxConverter Retrofit converter can only handle Types: [ %s ], received: %s",
+          String.format(
+              "The SignalFxConverter Retrofit converter can only handle Types: [ %s ], received: %s",
               CONVERTIBLE_TYPES.stream().map(Type::getTypeName).collect(Collectors.joining(", ")),
               type.getTypeName()));
     }
@@ -71,13 +69,13 @@ public class SignalFxConverter implements Converter {
     } catch (Exception e) {
       throw new ConversionException("Failed to parse error response", e);
     }
-
   }
 
-  private SignalFlowExecutionResult getSignalFlowExecutionResultFromBody(TypedInput body) throws ConversionException {
+  private SignalFlowExecutionResult getSignalFlowExecutionResultFromBody(TypedInput body)
+      throws ConversionException {
     List<ChannelMessage> messages = new LinkedList<>();
     try (ServerSentEventsTransport.TransportEventStreamParser parser =
-             new ServerSentEventsTransport.TransportEventStreamParser(body.in())) {
+        new ServerSentEventsTransport.TransportEventStreamParser(body.in())) {
 
       while (parser.hasNext()) {
         StreamMessage streamMessage = parser.next();

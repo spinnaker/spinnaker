@@ -34,17 +34,16 @@ public class AtlasResultsHelper {
     AtlasResults firstAtlasResults = atlasResultsList.get(0);
     AtlasResults lastAtlasResults = atlasResultsList.get(atlasResultsList.size() - 1);
     AtlasResults.AtlasResultsBuilder atlasResultsBuilder =
-      AtlasResults
-        .builder()
-        .type(firstAtlasResults.getType())
-        .id(firstAtlasResults.getId())
-        .query(firstAtlasResults.getQuery())
-        .label(firstAtlasResults.getLabel())
-        .start(firstAtlasResults.getStart())
-        .step(firstAtlasResults.getStep())
-        .end(lastAtlasResults.getEnd())
-        .tags(firstAtlasResults.getTags())
-        .groupByKeys(firstAtlasResults.getGroupByKeys());
+        AtlasResults.builder()
+            .type(firstAtlasResults.getType())
+            .id(firstAtlasResults.getId())
+            .query(firstAtlasResults.getQuery())
+            .label(firstAtlasResults.getLabel())
+            .start(firstAtlasResults.getStart())
+            .step(firstAtlasResults.getStep())
+            .end(lastAtlasResults.getEnd())
+            .tags(firstAtlasResults.getTags())
+            .groupByKeys(firstAtlasResults.getGroupByKeys());
     List<Double> values = new ArrayList<>();
     Long lastTimestamp = null;
 
@@ -53,11 +52,10 @@ public class AtlasResultsHelper {
         long nextTimestamp = atlasResults.getStart();
         long offset = (nextTimestamp - lastTimestamp) / atlasResults.getStep();
         List<Double> padding =
-          DoubleStream
-            .generate(() -> Double.NaN)
-            .limit(offset)
-            .boxed()
-            .collect(Collectors.toList());
+            DoubleStream.generate(() -> Double.NaN)
+                .limit(offset)
+                .boxed()
+                .collect(Collectors.toList());
 
         values.addAll(padding);
       }
@@ -66,16 +64,21 @@ public class AtlasResultsHelper {
       lastTimestamp = atlasResults.getEnd();
     }
 
-    return atlasResultsBuilder.data(TimeseriesData.builder().values(values).type(firstAtlasResults.getData().getType()).build()).build();
+    return atlasResultsBuilder
+        .data(
+            TimeseriesData.builder()
+                .values(values)
+                .type(firstAtlasResults.getData().getType())
+                .build())
+        .build();
   }
 
   public static Map<String, AtlasResults> merge(List<AtlasResults> atlasResultsList) {
-    return atlasResultsList
-      .stream()
-      .filter(atlasResults -> atlasResults.getType().equals("timeseries"))
-      .collect(Collectors.groupingBy(AtlasResults::getId))
-      .entrySet()
-      .stream()
-      .collect(Collectors.toMap(Map.Entry::getKey, e -> mergeByTime(e.getValue())));
+    return atlasResultsList.stream()
+        .filter(atlasResults -> atlasResults.getType().equals("timeseries"))
+        .collect(Collectors.groupingBy(AtlasResults::getId))
+        .entrySet()
+        .stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> mergeByTime(e.getValue())));
   }
 }

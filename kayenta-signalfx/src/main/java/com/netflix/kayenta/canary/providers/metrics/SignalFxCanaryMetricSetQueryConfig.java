@@ -19,14 +19,13 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @ToString
@@ -37,15 +36,11 @@ public class SignalFxCanaryMetricSetQueryConfig implements CanaryMetricSetQueryC
 
   public static final String SERVICE_TYPE = "signalfx";
 
-  @NotNull
-  @Getter
-  private String metricName;
+  @NotNull @Getter private String metricName;
 
-  @Getter
-  private List<QueryPair> queryPairs;
+  @Getter private List<QueryPair> queryPairs;
 
-  @Getter
-  private String aggregationMethod;
+  @Getter private String aggregationMethod;
 
   @Override
   public String getServiceType() {

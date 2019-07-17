@@ -16,14 +16,13 @@
 
 package com.netflix.kayenta.metrics;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.http.HttpStatus;
+import static java.util.Arrays.asList;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static java.util.Arrays.asList;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.HttpStatus;
 
 /**
  * Retry configuration for metrics fetching from metrics storage
@@ -34,11 +33,11 @@ import static java.util.Arrays.asList;
 @ConfigurationProperties("kayenta.metrics.retry")
 public class MetricsRetryConfigurationProperties {
 
-    //TODO: with java 11 replace with Set.of
-    private Set<HttpStatus.Series> series = new HashSet<>(asList(HttpStatus.Series.SERVER_ERROR));
+  // TODO: with java 11 replace with Set.of
+  private Set<HttpStatus.Series> series = new HashSet<>(asList(HttpStatus.Series.SERVER_ERROR));
 
-    private Set<HttpStatus> statuses = new HashSet<>(asList(HttpStatus.REQUEST_TIMEOUT, HttpStatus.TOO_MANY_REQUESTS));
+  private Set<HttpStatus> statuses =
+      new HashSet<>(asList(HttpStatus.REQUEST_TIMEOUT, HttpStatus.TOO_MANY_REQUESTS));
 
-    private int attempts = 10;
-
+  private int attempts = 10;
 }

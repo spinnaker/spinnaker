@@ -16,12 +16,11 @@
 
 package com.netflix.kayenta.persistence.config;
 
+import java.net.URI;
 import lombok.Builder;
 import lombok.Data;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.JedisURIHelper;
-
-import java.net.URI;
 
 @Builder
 @Data
@@ -42,6 +41,12 @@ public class RedisConnectionInfo {
     String password = JedisURIHelper.getPassword(redisConnection);
     boolean ssl = connection.startsWith(REDIS_SSL_SCHEME);
 
-    return RedisConnectionInfo.builder().host(host).port(port).database(database).password(password).ssl(ssl).build();
+    return RedisConnectionInfo.builder()
+        .host(host)
+        .port(port)
+        .database(database)
+        .password(password)
+        .ssl(ssl)
+        .build();
   }
 }

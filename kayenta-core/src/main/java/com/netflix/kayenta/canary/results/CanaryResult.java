@@ -17,11 +17,8 @@
 package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.canary.CanaryExecutionRequest;
-import lombok.*;
-
 import java.time.Duration;
+import lombok.*;
 
 @Builder
 @ToString
@@ -30,9 +27,7 @@ import java.time.Duration;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryResult {
 
-  @Getter
-  CanaryJudgeResult judgeResult;
+  @Getter CanaryJudgeResult judgeResult;
 
-  @Getter
-  Duration canaryDuration;
+  @Getter Duration canaryDuration;
 }

@@ -32,6 +32,14 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spectator.api.Registry;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -41,28 +49,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import javax.validation.constraints.NotNull;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @Builder
 @Slf4j
 public class DatadogMetricsService implements MetricsService {
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  private final AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private final Registry registry;
+  @Autowired private final Registry registry;
 
   @Builder.Default
   private List<DatadogMetricDescriptor> metricDescriptorsCache = Collections.emptyList();
@@ -78,20 +72,31 @@ public class DatadogMetricsService implements MetricsService {
   }
 
   @Override
-  public String buildQuery(String metricsAccountName,
-                           CanaryConfig canaryConfig,
-                           CanaryMetricConfig canaryMetricConfig,
-                           CanaryScope canaryScope) {
-    DatadogCanaryMetricSetQueryConfig queryConfig = (DatadogCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+  public String buildQuery(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope) {
+    DatadogCanaryMetricSetQueryConfig queryConfig =
+        (DatadogCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
 
     return queryConfig.getMetricName() + "{" + canaryScope.getScope() + "}";
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName, CanaryConfig canaryConfig, CanaryMetricConfig canaryMetricConfig, CanaryScope canaryScope) {
-    DatadogNamedAccountCredentials accountCredentials = (DatadogNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  public List<MetricSet> queryMetrics(
+      String accountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope) {
+    DatadogNamedAccountCredentials accountCredentials =
+        (DatadogNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
 
     DatadogCredentials credentials = accountCredentials.getCredentials();
     DatadogRemoteService remoteService = accountCredentials.getDatadogRemoteService();
@@ -104,49 +109,44 @@ public class DatadogMetricsService implements MetricsService {
       throw new IllegalArgumentException("End time is required.");
     }
 
-    String query = buildQuery(accountName,
-                              canaryConfig,
-                              canaryMetricConfig,
-                              canaryScope);
-    DatadogTimeSeries timeSeries = remoteService.getTimeSeries(
-      credentials.getApiKey(),
-      credentials.getApplicationKey(),
-      (int)canaryScope.getStart().getEpochSecond(),
-      (int)canaryScope.getEnd().getEpochSecond(),
-      query
-    );
+    String query = buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope);
+    DatadogTimeSeries timeSeries =
+        remoteService.getTimeSeries(
+            credentials.getApiKey(),
+            credentials.getApplicationKey(),
+            (int) canaryScope.getStart().getEpochSecond(),
+            (int) canaryScope.getEnd().getEpochSecond(),
+            query);
 
     List<MetricSet> ret = new ArrayList<MetricSet>();
 
     for (DatadogTimeSeries.DatadogSeriesEntry series : timeSeries.getSeries()) {
       ret.add(
-        MetricSet.builder()
-          .name(canaryMetricConfig.getName())
-          .startTimeMillis(series.getStart())
-          .startTimeIso(Instant.ofEpochMilli(series.getStart()).toString())
-          .endTimeMillis(series.getEnd())
-          .endTimeIso(Instant.ofEpochMilli(series.getEnd()).toString())
-          .stepMillis(series.getInterval() * 1000)
-          .values(series.getDataPoints().collect(Collectors.toList()))
-          .attribute("query", query)
-          .build()
-      );
+          MetricSet.builder()
+              .name(canaryMetricConfig.getName())
+              .startTimeMillis(series.getStart())
+              .startTimeIso(Instant.ofEpochMilli(series.getStart()).toString())
+              .endTimeMillis(series.getEnd())
+              .endTimeIso(Instant.ofEpochMilli(series.getEnd()).toString())
+              .stepMillis(series.getInterval() * 1000)
+              .values(series.getDataPoints().collect(Collectors.toList()))
+              .attribute("query", query)
+              .build());
     }
 
     if (ret.isEmpty()) {
       // Add placeholder metric set.
       ret.add(
-        MetricSet.builder()
-          .name(canaryMetricConfig.getName())
-          .startTimeMillis(canaryScope.getStart().toEpochMilli())
-          .startTimeIso(canaryScope.getStart().toString())
-          .endTimeMillis(canaryScope.getEnd().toEpochMilli())
-          .endTimeIso(canaryScope.getEnd().toString())
-          .stepMillis(1000)
-          .values(new ArrayList<>())
-          .attribute("query", query)
-          .build()
-      );
+          MetricSet.builder()
+              .name(canaryMetricConfig.getName())
+              .startTimeMillis(canaryScope.getStart().toEpochMilli())
+              .startTimeIso(canaryScope.getStart().toString())
+              .endTimeMillis(canaryScope.getEnd().toEpochMilli())
+              .endTimeIso(canaryScope.getEnd().toString())
+              .stepMillis(1000)
+              .values(new ArrayList<>())
+              .attribute("query", query)
+              .build());
     }
 
     return ret;
@@ -157,53 +157,61 @@ public class DatadogMetricsService implements MetricsService {
     if (!StringUtils.isEmpty(filter)) {
       String lowerCaseFilter = filter.toLowerCase();
 
-      return metricDescriptorsCache
-        .stream()
-        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
-        .map(metricDescriptor -> metricDescriptor.getMap())
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream()
+          .filter(
+              metricDescriptor ->
+                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+          .map(metricDescriptor -> metricDescriptor.getMap())
+          .collect(Collectors.toList());
     } else {
-      return metricDescriptorsCache
-        .stream()
-        .map(metricDescriptor -> metricDescriptor.getMap())
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream()
+          .map(metricDescriptor -> metricDescriptor.getMap())
+          .collect(Collectors.toList());
     }
   }
 
   @Scheduled(fixedDelayString = "#{@datadogConfigurationProperties.metadataCachingIntervalMS}")
   public void updateMetricDescriptorsCache() {
     Set<AccountCredentials> accountCredentialsSet =
-      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+        CredentialsHelper.getAllAccountsOfType(
+            AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
 
     for (AccountCredentials credentials : accountCredentialsSet) {
       if (credentials instanceof DatadogNamedAccountCredentials) {
-        DatadogNamedAccountCredentials datadogCredentials = (DatadogNamedAccountCredentials)credentials;
+        DatadogNamedAccountCredentials datadogCredentials =
+            (DatadogNamedAccountCredentials) credentials;
         DatadogRemoteService datadogRemoteService = datadogCredentials.getDatadogRemoteService();
         DatadogCredentials ddCredentials = datadogCredentials.getCredentials();
         // Retrieve all metrics actively reporting in the last hour.
         long from = Instant.now().getEpochSecond() - 60 * 60;
         DatadogMetricDescriptorsResponse datadogMetricDescriptorsResponse =
-          datadogRemoteService.getMetrics(ddCredentials.getApiKey(),
-                                          ddCredentials.getApplicationKey(),
-                                          from);
+            datadogRemoteService.getMetrics(
+                ddCredentials.getApiKey(), ddCredentials.getApplicationKey(), from);
 
         if (datadogMetricDescriptorsResponse != null) {
           List<String> metrics = datadogMetricDescriptorsResponse.getMetrics();
 
           if (!CollectionUtils.isEmpty(metrics)) {
-            // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
+            // TODO(duftler): Should we instead be building the union across all accounts? This
+            // doesn't seem quite right yet.
             metricDescriptorsCache =
-              metrics
-                .stream()
-                .map(metricName -> new DatadogMetricDescriptor(metricName))
-                .collect(Collectors.toList());
+                metrics.stream()
+                    .map(metricName -> new DatadogMetricDescriptor(metricName))
+                    .collect(Collectors.toList());
 
-            log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptorsCache.size(), datadogCredentials.getName());
+            log.debug(
+                "Updated cache with {} metric descriptors via account {}.",
+                metricDescriptorsCache.size(),
+                datadogCredentials.getName());
           } else {
-            log.debug("While updating cache, found no metric descriptors via account {}.", datadogCredentials.getName());
+            log.debug(
+                "While updating cache, found no metric descriptors via account {}.",
+                datadogCredentials.getName());
           }
         } else {
-          log.debug("While updating cache, found no metric descriptors via account {}.", datadogCredentials.getName());
+          log.debug(
+              "While updating cache, found no metric descriptors via account {}.",
+              datadogCredentials.getName());
         }
       }
     }

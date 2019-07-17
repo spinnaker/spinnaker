@@ -27,30 +27,25 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class AtlasFetchTask implements RetryableTask {
 
-  @Autowired
-  private ObjectMapper kayentaObjectMapper;
+  @Autowired private ObjectMapper kayentaObjectMapper;
 
-  @Autowired
-  private AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private SynchronousQueryProcessor synchronousQueryProcessor;
+  @Autowired private SynchronousQueryProcessor synchronousQueryProcessor;
 
-  @Autowired
-  private AtlasConfigurationProperties atlasConfigurationProperties;
+  @Autowired private AtlasConfigurationProperties atlasConfigurationProperties;
 
   @Override
   public long getBackoffPeriod() {
@@ -68,7 +63,9 @@ public class AtlasFetchTask implements RetryableTask {
     int floorLog = 63 - numZeros;
     // If the first iteration fails quickly, we still want a one second backoff period.
     int exponent = Math.max(floorLog, 0);
-    int backoffPeriodSeconds = Math.min(atlasConfigurationProperties.getMaxBackoffPeriodSeconds(), (int)Math.pow(2, exponent));
+    int backoffPeriodSeconds =
+        Math.min(
+            atlasConfigurationProperties.getMaxBackoffPeriodSeconds(), (int) Math.pow(2, exponent));
 
     return Duration.ofSeconds(backoffPeriodSeconds).toMillis();
   }
@@ -77,12 +74,13 @@ public class AtlasFetchTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    String metricsAccountName = (String)context.get("metricsAccountName");
-    String storageAccountName = (String)context.get("storageAccountName");
-    Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
-    CanaryConfig canaryConfig = kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
-    String scopeJson = (String)context.get("canaryScope");
-    int metricIndex = (Integer)context.get("metricIndex");
+    String metricsAccountName = (String) context.get("metricsAccountName");
+    String storageAccountName = (String) context.get("storageAccountName");
+    Map<String, Object> canaryConfigMap = (Map<String, Object>) context.get("canaryConfig");
+    CanaryConfig canaryConfig =
+        kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
+    String scopeJson = (String) context.get("canaryScope");
+    int metricIndex = (Integer) context.get("metricIndex");
     AtlasCanaryScope atlasCanaryScope;
     try {
       atlasCanaryScope = kayentaObjectMapper.readValue(scopeJson, AtlasCanaryScope.class);
@@ -90,17 +88,20 @@ public class AtlasFetchTask implements RetryableTask {
       log.error("Unable to parse JSON scope: " + scopeJson, e);
       throw new RuntimeException(e);
     }
-    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
-                                                                                     AccountCredentials.Type.METRICS_STORE,
-                                                                                     accountCredentialsRepository);
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
+    String resolvedMetricsAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            metricsAccountName,
+            AccountCredentials.Type.METRICS_STORE,
+            accountCredentialsRepository);
+    String resolvedStorageAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
 
-    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(resolvedMetricsAccountName,
-                                                                      resolvedStorageAccountName,
-                                                                      canaryConfig,
-                                                                      metricIndex,
-                                                                      atlasCanaryScope);
+    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
+        resolvedMetricsAccountName,
+        resolvedStorageAccountName,
+        canaryConfig,
+        metricIndex,
+        atlasCanaryScope);
   }
 }

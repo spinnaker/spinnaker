@@ -9,15 +9,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @Import({
-        KayentaConfiguration.class,
-        WebConfiguration.class,
+  KayentaConfiguration.class,
+  WebConfiguration.class,
 })
 @ComponentScan({
-        "com.netflix.spinnaker.config",
-        "com.netflix.spinnaker.endpoint",
+  "com.netflix.spinnaker.config",
+  "com.netflix.spinnaker.endpoint",
 })
 @EnableAutoConfiguration
 @EnableAsync
 @EnableScheduling
-public class ApplicationConfiguration {
-}
+public class ApplicationConfiguration {}

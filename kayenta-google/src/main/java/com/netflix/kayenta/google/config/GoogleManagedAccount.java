@@ -19,21 +19,18 @@ package com.netflix.kayenta.google.config;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-import org.springframework.util.StringUtils;
-
-import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
+import org.springframework.util.StringUtils;
 
 @Data
 public class GoogleManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
-  @NotNull
-  private String project;
+  @NotNull private String project;
   private String jsonPath;
 
   private String bucket;
@@ -57,6 +54,8 @@ public class GoogleManagedAccount {
   public String getJsonKey() throws IOException {
     InputStream inputStream = getInputStream();
 
-    return inputStream != null ? CharStreams.toString(new InputStreamReader(inputStream, Charsets.UTF_8)) : null;
+    return inputStream != null
+        ? CharStreams.toString(new InputStreamReader(inputStream, Charsets.UTF_8))
+        : null;
   }
 }

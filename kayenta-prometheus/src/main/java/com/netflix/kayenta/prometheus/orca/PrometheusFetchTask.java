@@ -27,14 +27,13 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -45,7 +44,10 @@ public class PrometheusFetchTask implements RetryableTask {
   private final SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Autowired
-  public PrometheusFetchTask(ObjectMapper kayentaObjectMapper, AccountCredentialsRepository accountCredentialsRepository, SynchronousQueryProcessor synchronousQueryProcessor) {
+  public PrometheusFetchTask(
+      ObjectMapper kayentaObjectMapper,
+      AccountCredentialsRepository accountCredentialsRepository,
+      SynchronousQueryProcessor synchronousQueryProcessor) {
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
@@ -69,29 +71,35 @@ public class PrometheusFetchTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    String metricsAccountName = (String)context.get("metricsAccountName");
-    String storageAccountName = (String)context.get("storageAccountName");
-    Map<String, Object> canaryConfigMap = (Map<String, Object>)context.get("canaryConfig");
-    CanaryConfig canaryConfig = kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
-    int metricIndex = (Integer)stage.getContext().get("metricIndex");
+    String metricsAccountName = (String) context.get("metricsAccountName");
+    String storageAccountName = (String) context.get("storageAccountName");
+    Map<String, Object> canaryConfigMap = (Map<String, Object>) context.get("canaryConfig");
+    CanaryConfig canaryConfig =
+        kayentaObjectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
+    int metricIndex = (Integer) stage.getContext().get("metricIndex");
     CanaryScope canaryScope;
     try {
-      canaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("canaryScope"), PrometheusCanaryScope.class);
+      canaryScope =
+          kayentaObjectMapper.readValue(
+              (String) stage.getContext().get("canaryScope"), PrometheusCanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
     }
-    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
-                                                                                     AccountCredentials.Type.METRICS_STORE,
-                                                                                     accountCredentialsRepository);
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
+    String resolvedMetricsAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            metricsAccountName,
+            AccountCredentials.Type.METRICS_STORE,
+            accountCredentialsRepository);
+    String resolvedStorageAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
 
-    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(resolvedMetricsAccountName,
-                                                                      resolvedStorageAccountName,
-                                                                      canaryConfig,
-                                                                      metricIndex,
-                                                                      canaryScope);
+    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
+        resolvedMetricsAccountName,
+        resolvedStorageAccountName,
+        canaryConfig,
+        metricIndex,
+        canaryScope);
   }
 }

@@ -16,13 +16,11 @@
 
 package com.netflix.kayenta.aws.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class AwsConfigurationProperties {
 
-  @Getter
-  private List<AwsManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<AwsManagedAccount> accounts = new ArrayList<>();
 }

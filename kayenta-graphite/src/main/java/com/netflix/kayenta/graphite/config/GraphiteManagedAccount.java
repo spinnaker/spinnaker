@@ -18,20 +18,15 @@ package com.netflix.kayenta.graphite.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-
 import java.util.List;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.Data;
 
 @Data
 public class GraphiteManagedAccount {
-    @NotNull
-    private String name;
+  @NotNull private String name;
 
-    @NotNull
-    private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 
-    private List<AccountCredentials.Type> supportedTypes;
+  private List<AccountCredentials.Type> supportedTypes;
 }

@@ -17,15 +17,13 @@
 package com.netflix.kayenta.judge.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 @Validated
 public class RemoteJudgeConfigurationProperties {
 
-  @NotNull
-  private RemoteService endpoint;
+  @NotNull private RemoteService endpoint;
 }

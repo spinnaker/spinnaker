@@ -22,29 +22,31 @@ import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
-/**
- * Retrofit interface for SignalFx API calls.
- */
+/** Retrofit interface for SignalFx API calls. */
 public interface SignalFxSignalFlowRemoteService {
 
   /**
    * Executes a signal flow program.
    *
-   * @param accessToken     The SignalFx API Access token associated with the organization that you are querying.
+   * @param accessToken The SignalFx API Access token associated with the organization that you are
+   *     querying.
    * @param startEpochMilli (Optional) start timestamp in milliseconds since epoch
-   * @param endEpochMilli   (Optional) stop timestamp in milliseconds since epoch
-   * @param resolution      (Optional) the minimum desired data resolution, in milliseconds
-   * @param maxDelay        (Optional) desired maximum data delay, in milliseconds between 0 (for automatic maximum delay) and 900000
-   * @param immediate       (Optional) whether to adjust the stop timestamp so that the computation doesn't wait for future data to be available
-   * @param program         The signal flow program to execute
+   * @param endEpochMilli (Optional) stop timestamp in milliseconds since epoch
+   * @param resolution (Optional) the minimum desired data resolution, in milliseconds
+   * @param maxDelay (Optional) desired maximum data delay, in milliseconds between 0 (for automatic
+   *     maximum delay) and 900000
+   * @param immediate (Optional) whether to adjust the stop timestamp so that the computation
+   *     doesn't wait for future data to be available
+   * @param program The signal flow program to execute
    * @return The list of channel messages from the signal flow output
    */
   @POST("/v2/signalflow/execute")
-  SignalFlowExecutionResult executeSignalFlowProgram(@Header("X-SF-TOKEN") String accessToken,
-                                                     @Query("start") long startEpochMilli,
-                                                     @Query("stop") long endEpochMilli,
-                                                     @Query("resolution") long resolution,
-                                                     @Query("maxDelay") long maxDelay,
-                                                     @Query("immediate") boolean immediate,
-                                                     @Body String program);
+  SignalFlowExecutionResult executeSignalFlowProgram(
+      @Header("X-SF-TOKEN") String accessToken,
+      @Query("start") long startEpochMilli,
+      @Query("stop") long endEpochMilli,
+      @Query("resolution") long resolution,
+      @Query("maxDelay") long maxDelay,
+      @Query("immediate") boolean immediate,
+      @Body String program);
 }

@@ -35,19 +35,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ComponentScan({"com.netflix.kayenta.controllers"})
 public class WebConfiguration implements WebMvcConfigurer {
 
-  @Autowired
-  Registry registry;
+  @Autowired Registry registry;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
-      new MetricsInterceptor(
-        this.registry,
-        "controller.invocations",
-        ImmutableList.of("accountName", "configurationAccountName", "metricsAccountName", "storageAccountName", "application"),
-        ImmutableList.of("BasicErrorController")
-      )
-    );
+        new MetricsInterceptor(
+            this.registry,
+            "controller.invocations",
+            ImmutableList.of(
+                "accountName",
+                "configurationAccountName",
+                "metricsAccountName",
+                "storageAccountName",
+                "application"),
+            ImmutableList.of("BasicErrorController")));
   }
 
   @Bean

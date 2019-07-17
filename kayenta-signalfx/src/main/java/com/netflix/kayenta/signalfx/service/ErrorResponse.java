@@ -17,9 +17,8 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import lombok.Data;
-
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class ErrorResponse {

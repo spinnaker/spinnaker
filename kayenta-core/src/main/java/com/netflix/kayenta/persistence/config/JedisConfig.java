@@ -29,8 +29,9 @@ import redis.clients.jedis.JedisPool;
 public class JedisConfig {
 
   @Bean
-  JedisPool jedisPool(@Value("${redis.connection:redis://localhost:6379}") String connection,
-                      @Value("${redis.timeout:2000}") int timeout) {
+  JedisPool jedisPool(
+      @Value("${redis.connection:redis://localhost:6379}") String connection,
+      @Value("${redis.timeout:2000}") int timeout) {
     RedisConnectionInfo connectionInfo = RedisConnectionInfo.parseConnectionUri(connection);
     GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
@@ -38,14 +39,15 @@ public class JedisConfig {
     poolConfig.setMinIdle(25);
     poolConfig.setMaxIdle(100);
 
-    return new JedisPool(poolConfig,
-                         connectionInfo.getHost(),
-                         connectionInfo.getPort(),
-                         timeout,
-                         connectionInfo.getPassword(),
-                         connectionInfo.getDatabase(),
-                         null /* clientName */,
-                         connectionInfo.isSsl());
+    return new JedisPool(
+        poolConfig,
+        connectionInfo.getHost(),
+        connectionInfo.getPort(),
+        timeout,
+        connectionInfo.getPassword(),
+        connectionInfo.getDatabase(),
+        null /* clientName */,
+        connectionInfo.isSsl());
   }
 
   @Bean

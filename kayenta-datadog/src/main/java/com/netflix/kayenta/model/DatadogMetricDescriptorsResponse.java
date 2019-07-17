@@ -16,15 +16,14 @@
 
 package com.netflix.kayenta.model;
 
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @ToString
@@ -33,7 +32,5 @@ import java.util.List;
 @AllArgsConstructor
 public class DatadogMetricDescriptorsResponse {
 
-  @NotNull
-  @Getter
-  private List<String> metrics;
+  @NotNull @Getter private List<String> metrics;
 }

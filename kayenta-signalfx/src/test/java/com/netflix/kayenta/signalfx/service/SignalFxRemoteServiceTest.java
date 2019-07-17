@@ -17,28 +17,31 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import com.google.common.io.ByteStreams;
-import org.junit.Test;
-import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
-
-import java.io.InputStream;
-
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+
+import com.google.common.io.ByteStreams;
+import java.io.InputStream;
+import org.junit.Test;
+import retrofit.mime.TypedByteArray;
+import retrofit.mime.TypedInput;
 
 public class SignalFxRemoteServiceTest {
 
   @Test
   public void test_that_a_signalfx_signal_flow_response_can_be_parsed() throws Exception {
-    InputStream response = getClass().getClassLoader().getResourceAsStream("signalfx-signalflow-response.text");
+    InputStream response =
+        getClass().getClassLoader().getResourceAsStream("signalfx-signalflow-response.text");
     SignalFxConverter converter = new SignalFxConverter();
     TypedInput typedInput = new TypedByteArray("text/plain", ByteStreams.toByteArray(response));
-    SignalFlowExecutionResult signalFlowExecutionResult = (SignalFlowExecutionResult) converter.fromBody(typedInput, SignalFlowExecutionResult.class);
+    SignalFlowExecutionResult signalFlowExecutionResult =
+        (SignalFlowExecutionResult) converter.fromBody(typedInput, SignalFlowExecutionResult.class);
 
     assertNotNull(signalFlowExecutionResult);
-    assertThat("The signalFlowExecutionResult contains the channel messages",
-        signalFlowExecutionResult.getChannelMessages().size(), greaterThan(1));
+    assertThat(
+        "The signalFlowExecutionResult contains the channel messages",
+        signalFlowExecutionResult.getChannelMessages().size(),
+        greaterThan(1));
   }
 }

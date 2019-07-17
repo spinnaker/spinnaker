@@ -24,12 +24,10 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(description="Wrapper object around the canary analysis execution id.")
+@ApiModel(description = "Wrapper object around the canary analysis execution id.")
 public class CanaryAnalysisExecutionResponse {
 
   @NonNull
-  @ApiModelProperty(
-      value = "The id of the execution",
-      example = "01CYZCD53RBX2KR2Q9GY0218TV")
+  @ApiModelProperty(value = "The id of the execution", example = "01CYZCD53RBX2KR2Q9GY0218TV")
   protected String canaryAnalysisExecutionId;
 }

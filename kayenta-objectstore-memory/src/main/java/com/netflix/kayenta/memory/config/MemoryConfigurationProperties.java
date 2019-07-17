@@ -16,13 +16,11 @@
 
 package com.netflix.kayenta.memory.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class MemoryConfigurationProperties {
 
-  @Getter
-  private List<MemoryManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<MemoryManagedAccount> accounts = new ArrayList<>();
 }

@@ -37,27 +37,28 @@ import org.springframework.context.annotation.DependsOn;
 @Slf4j
 public class S3Configuration {
 
-  @Autowired
-  ObjectMapper kayentaObjectMapper;
+  @Autowired ObjectMapper kayentaObjectMapper;
 
   @Bean
   @DependsOn({"registerAwsCredentials"})
-  public S3StorageService s3StorageService(AccountCredentialsRepository accountCredentialsRepository) {
+  public S3StorageService s3StorageService(
+      AccountCredentialsRepository accountCredentialsRepository) {
     AmazonObjectMapperConfigurer.configure(kayentaObjectMapper);
     kayentaObjectMapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, true);
     S3StorageService.S3StorageServiceBuilder s3StorageServiceBuilder = S3StorageService.builder();
 
-    accountCredentialsRepository
-      .getAll()
-      .stream()
-      .filter(c -> c instanceof AwsNamedAccountCredentials)
-      .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
-      .map(c -> c.getName())
-      .forEach(s3StorageServiceBuilder::accountName);
+    accountCredentialsRepository.getAll().stream()
+        .filter(c -> c instanceof AwsNamedAccountCredentials)
+        .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
+        .map(c -> c.getName())
+        .forEach(s3StorageServiceBuilder::accountName);
 
-    S3StorageService s3StorageService = s3StorageServiceBuilder.objectMapper(kayentaObjectMapper).build();
+    S3StorageService s3StorageService =
+        s3StorageServiceBuilder.objectMapper(kayentaObjectMapper).build();
 
-    log.info("Populated S3StorageService with {} AWS accounts.", s3StorageService.getAccountNames().size());
+    log.info(
+        "Populated S3StorageService with {} AWS accounts.",
+        s3StorageService.getAccountNames().size());
 
     return s3StorageService;
   }

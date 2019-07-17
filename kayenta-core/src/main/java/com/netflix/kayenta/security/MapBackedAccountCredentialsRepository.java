@@ -24,7 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MapBackedAccountCredentialsRepository implements AccountCredentialsRepository {
 
-  private final Map<String, AccountCredentials> accountNameToCredentialsMap = new ConcurrentHashMap<>();
+  private final Map<String, AccountCredentials> accountNameToCredentialsMap =
+      new ConcurrentHashMap<>();
 
   @Override
   public Optional<AccountCredentials> getOne(String accountName) {
@@ -33,11 +34,9 @@ public class MapBackedAccountCredentialsRepository implements AccountCredentials
 
   @Override
   public Optional<AccountCredentials> getOne(AccountCredentials.Type credentialsType) {
-    return accountNameToCredentialsMap
-      .values()
-      .stream()
-      .filter(a -> a.getSupportedTypes().contains(credentialsType))
-      .findFirst();
+    return accountNameToCredentialsMap.values().stream()
+        .filter(a -> a.getSupportedTypes().contains(credentialsType))
+        .findFirst();
   }
 
   @Override

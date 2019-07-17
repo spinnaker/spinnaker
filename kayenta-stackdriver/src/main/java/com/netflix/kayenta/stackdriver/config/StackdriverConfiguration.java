@@ -43,26 +43,29 @@ public class StackdriverConfiguration {
 
   @Bean
   @ConfigurationProperties("kayenta.stackdriver.test-controller-defaults")
-  StackdriverConfigurationTestControllerDefaultProperties stackdriverConfigurationTestControllerDefaultProperties() {
+  StackdriverConfigurationTestControllerDefaultProperties
+      stackdriverConfigurationTestControllerDefaultProperties() {
     return new StackdriverConfigurationTestControllerDefaultProperties();
   }
 
   @Bean
   @DependsOn({"registerGoogleCredentials"})
-  MetricsService stackdriverMetricsService(AccountCredentialsRepository accountCredentialsRepository) {
-    StackdriverMetricsService.StackdriverMetricsServiceBuilder stackdriverMetricsServiceBuilder = StackdriverMetricsService.builder();
+  MetricsService stackdriverMetricsService(
+      AccountCredentialsRepository accountCredentialsRepository) {
+    StackdriverMetricsService.StackdriverMetricsServiceBuilder stackdriverMetricsServiceBuilder =
+        StackdriverMetricsService.builder();
 
-    accountCredentialsRepository
-      .getAll()
-      .stream()
-      .filter(c -> c instanceof GoogleNamedAccountCredentials)
-      .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.METRICS_STORE))
-      .map(c -> c.getName())
-      .forEach(stackdriverMetricsServiceBuilder::accountName);
+    accountCredentialsRepository.getAll().stream()
+        .filter(c -> c instanceof GoogleNamedAccountCredentials)
+        .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.METRICS_STORE))
+        .map(c -> c.getName())
+        .forEach(stackdriverMetricsServiceBuilder::accountName);
 
     StackdriverMetricsService stackdriverMetricsService = stackdriverMetricsServiceBuilder.build();
 
-    log.info("Populated StackdriverMetricsService with {} Google accounts.", stackdriverMetricsService.getAccountNames().size());
+    log.info(
+        "Populated StackdriverMetricsService with {} Google accounts.",
+        stackdriverMetricsService.getAccountNames().size());
 
     return stackdriverMetricsService;
   }

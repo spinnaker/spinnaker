@@ -48,16 +48,11 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class NewRelicMetricsService implements MetricsService {
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  private final AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private final Registry registry;
+  @Autowired private final Registry registry;
 
   @Override
   public String getType() {
@@ -70,13 +65,17 @@ public class NewRelicMetricsService implements MetricsService {
   }
 
   @Override
-  public String buildQuery(String metricsAccountName, CanaryConfig canaryConfig, CanaryMetricConfig canaryMetricConfig,
-    CanaryScope canaryScope) throws IOException {
+  public String buildQuery(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
 
     NewRelicCanaryScope newRelicCanaryScope = (NewRelicCanaryScope) canaryScope;
 
     NewRelicCanaryMetricSetQueryConfig queryConfig =
-      (NewRelicCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+        (NewRelicCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
 
     // Example for a query produced by this class:
     // SELECT count(*) FROM Transaction TIMESERIES MAX SINCE 1540382125 UNTIL 1540392125
@@ -103,7 +102,8 @@ public class NewRelicMetricsService implements MetricsService {
       query.append(" AND ");
     }
 
-    for (Map.Entry<String, String> extendedParam : newRelicCanaryScope.getExtendedScopeParams().entrySet()) {
+    for (Map.Entry<String, String> extendedParam :
+        newRelicCanaryScope.getExtendedScopeParams().entrySet()) {
       if (extendedParam.getKey().startsWith("_")) {
         continue;
       }
@@ -123,29 +123,32 @@ public class NewRelicMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName,
-    CanaryConfig canaryConfig,
-    CanaryMetricConfig canaryMetricConfig, CanaryScope canaryScope)
-    throws IOException {
+  public List<MetricSet> queryMetrics(
+      String accountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
     NewRelicNamedAccountCredentials accountCredentials =
-      (NewRelicNamedAccountCredentials) accountCredentialsRepository
-        .getOne(accountName)
-        .orElseThrow(() -> new IllegalArgumentException(
-          "Unable to resolve account " + accountName + "."));
+        (NewRelicNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
 
     NewRelicCredentials credentials = accountCredentials.getCredentials();
     NewRelicRemoteService remoteService = accountCredentials.getNewRelicRemoteService();
 
-    NewRelicTimeSeries timeSeries = remoteService.getTimeSeries(
-      credentials.getApiKey(),
-      credentials.getApplicationKey(),
-      buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString()
-    );
+    NewRelicTimeSeries timeSeries =
+        remoteService.getTimeSeries(
+            credentials.getApiKey(),
+            credentials.getApplicationKey(),
+            buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString());
 
-    Instant begin =
-      Instant.ofEpochMilli(timeSeries.getMetadata().getBeginTimeMillis());
-    Instant end =
-      Instant.ofEpochMilli(timeSeries.getMetadata().getEndTimeMillis());
+    Instant begin = Instant.ofEpochMilli(timeSeries.getMetadata().getBeginTimeMillis());
+    Instant end = Instant.ofEpochMilli(timeSeries.getMetadata().getEndTimeMillis());
 
     Duration stepDuration = Duration.ofSeconds(canaryScope.getStep());
     if (stepDuration.isZero()) {
@@ -153,21 +156,21 @@ public class NewRelicMetricsService implements MetricsService {
     }
 
     return Arrays.asList(
-      MetricSet.builder()
-        .name(canaryMetricConfig.getName())
-        .startTimeMillis(begin.toEpochMilli())
-        .startTimeIso(begin.toString())
-        .stepMillis(stepDuration.toMillis())
-        .endTimeMillis(end.toEpochMilli())
-        .endTimeIso(end.toString())
-        .values(timeSeries.getDataPoints().collect(Collectors.toList()))
-        .build()
-    );
+        MetricSet.builder()
+            .name(canaryMetricConfig.getName())
+            .startTimeMillis(begin.toEpochMilli())
+            .startTimeIso(begin.toString())
+            .stepMillis(stepDuration.toMillis())
+            .endTimeMillis(end.toEpochMilli())
+            .endTimeIso(end.toString())
+            .values(timeSeries.getDataPoints().collect(Collectors.toList()))
+            .build());
   }
 
   /**
-   * identifies the stepDuration based on the timeseries. With 'TIMESERIES MAX' New Relic returns the maximum possible
-   * resolution we need to determine the step size.
+   * identifies the stepDuration based on the timeseries. With 'TIMESERIES MAX' New Relic returns
+   * the maximum possible resolution we need to determine the step size.
+   *
    * @param timeSeries to identify stepsize for
    * @return step size
    */

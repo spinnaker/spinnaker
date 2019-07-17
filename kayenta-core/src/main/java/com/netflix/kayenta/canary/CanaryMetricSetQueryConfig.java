@@ -20,26 +20,27 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.NonNull;
 
-@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {
 
-  /**
-   * @deprecated Use getCustomInlineTemplate instead.
-   */
+  /** @deprecated Use getCustomInlineTemplate instead. */
   @Deprecated
   default String getCustomFilter() {
     return null;
   }
 
-  // Optionally defines a metric-specific query template. Takes precedence over customFilterTemplate.
+  // Optionally defines a metric-specific query template. Takes precedence over
+  // customFilterTemplate.
   // It is expanded by using the key/value pairs in extendedScopeParams as the variable bindings.
   default String getCustomInlineTemplate() {
     return null;
   }
 
-  // Optionally refers by name to a FreeMarker template defined in the canary config top-level 'templates' map. It is
-  // expanded by using the key/value pairs in extendedScopeParams as the variable bindings. Once expanded, the
+  // Optionally refers by name to a FreeMarker template defined in the canary config top-level
+  // 'templates' map. It is
+  // expanded by using the key/value pairs in extendedScopeParams as the variable bindings. Once
+  // expanded, the
   // resulting filter is used when composing the query.
   default String getCustomFilterTemplate() {
     return null;
@@ -49,5 +50,6 @@ public interface CanaryMetricSetQueryConfig {
     return this;
   }
 
-  @NonNull String getServiceType();
+  @NonNull
+  String getServiceType();
 }

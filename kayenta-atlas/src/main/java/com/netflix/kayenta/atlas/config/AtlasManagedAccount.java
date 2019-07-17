@@ -17,21 +17,18 @@
 package com.netflix.kayenta.atlas.config;
 
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class AtlasManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
   private List<AccountCredentials.Type> supportedTypes;
 
-  @NotNull
-  private String backendsJsonBaseUrl;
+  @NotNull private String backendsJsonBaseUrl;
 
   private String fetchId;
 

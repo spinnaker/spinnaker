@@ -27,13 +27,12 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SetupCanaryTask implements RetryableTask {
@@ -42,7 +41,9 @@ public class SetupCanaryTask implements RetryableTask {
   private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  public SetupCanaryTask(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+  public SetupCanaryTask(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
   }
@@ -67,19 +68,26 @@ public class SetupCanaryTask implements RetryableTask {
     Map<String, ?> outputs;
 
     if (context.containsKey("canaryConfig")) {
-      Map<String, ?> canaryConfigMap = (Map<String, ?>)context.get("canaryConfig");
+      Map<String, ?> canaryConfigMap = (Map<String, ?>) context.get("canaryConfig");
       outputs = Collections.singletonMap("canaryConfig", canaryConfigMap);
     } else {
       String canaryConfigId = (String) context.get("canaryConfigId");
       String configurationAccountName = (String) context.get("configurationAccountName");
-      String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
-                                                                                             AccountCredentials.Type.CONFIGURATION_STORE,
-                                                                                             accountCredentialsRepository);
+      String resolvedConfigurationAccountName =
+          CredentialsHelper.resolveAccountByNameOrType(
+              configurationAccountName,
+              AccountCredentials.Type.CONFIGURATION_STORE,
+              accountCredentialsRepository);
       StorageService configurationService =
-        storageServiceRepository
-          .getOne(resolvedConfigurationAccountName)
-          .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured; unable to load configurations."));
-      CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+          storageServiceRepository
+              .getOne(resolvedConfigurationAccountName)
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "No configuration service was configured; unable to load configurations."));
+      CanaryConfig canaryConfig =
+          configurationService.loadObject(
+              resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
       outputs = Collections.singletonMap("canaryConfig", canaryConfig);
     }
 

@@ -46,7 +46,8 @@ public class Retry {
           throw e;
         }
 
-        long timeout = !exponential ? retryBackoffMillis : (long) Math.pow(2, retries) * retryBackoffMillis;
+        long timeout =
+            !exponential ? retryBackoffMillis : (long) Math.pow(2, retries) * retryBackoffMillis;
         sleep(timeout);
 
         retries++;
@@ -54,7 +55,8 @@ public class Retry {
     }
   }
 
-  private <T> T retry(Supplier<T> fn, int maxRetries, long retryBackoffMillis, boolean exponential) {
+  private <T> T retry(
+      Supplier<T> fn, int maxRetries, long retryBackoffMillis, boolean exponential) {
     int retries = 0;
     while (true) {
       try {
@@ -64,7 +66,8 @@ public class Retry {
           throw e;
         }
 
-        long timeout = !exponential ? retryBackoffMillis : (long) Math.pow(2, retries) * retryBackoffMillis;
+        long timeout =
+            !exponential ? retryBackoffMillis : (long) Math.pow(2, retries) * retryBackoffMillis;
         sleep(timeout);
 
         retries++;
@@ -72,9 +75,7 @@ public class Retry {
     }
   }
 
-  /**
-   * Overridable by test cases to avoid Thread.sleep()
-   */
+  /** Overridable by test cases to avoid Thread.sleep() */
   void sleep(long duration) {
     try {
       Thread.sleep(duration);

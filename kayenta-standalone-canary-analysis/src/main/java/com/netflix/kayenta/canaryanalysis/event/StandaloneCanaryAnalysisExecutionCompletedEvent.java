@@ -22,8 +22,8 @@ import org.springframework.context.ApplicationEvent;
 public class StandaloneCanaryAnalysisExecutionCompletedEvent extends ApplicationEvent {
   private final CanaryAnalysisExecutionStatusResponse canaryAnalysisExecutionStatusResponse;
 
-  public StandaloneCanaryAnalysisExecutionCompletedEvent(Object source,
-                                                         CanaryAnalysisExecutionStatusResponse canaryAnalysisExecutionStatusResponse) {
+  public StandaloneCanaryAnalysisExecutionCompletedEvent(
+      Object source, CanaryAnalysisExecutionStatusResponse canaryAnalysisExecutionStatusResponse) {
 
     super(source);
     this.canaryAnalysisExecutionStatusResponse = canaryAnalysisExecutionStatusResponse;

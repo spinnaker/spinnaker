@@ -18,11 +18,10 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.util.StringUtils;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder(toBuilder = true)
 @ToString
@@ -33,38 +32,29 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   public static final String SERVICE_TYPE = "prometheus";
 
-  @Getter
-  private String resourceType;
+  @Getter private String resourceType;
 
-  @NotNull
-  @Getter
-  private String metricName;
+  @NotNull @Getter private String metricName;
 
-  @Getter
-  private List<String> labelBindings;
+  @Getter private List<String> labelBindings;
 
-  @Getter
-  private List<String> groupByFields;
+  @Getter private List<String> groupByFields;
 
-  /**
-   * @deprecated Use customInlineTemplate instead.
-   */
-  @Deprecated
-  @Getter
-  private String customFilter;
+  /** @deprecated Use customInlineTemplate instead. */
+  @Deprecated @Getter private String customFilter;
 
-  @Getter
-  private String customInlineTemplate;
+  @Getter private String customInlineTemplate;
 
-  @Getter
-  private String customFilterTemplate;
+  @Getter private String customFilterTemplate;
 
   @Override
   public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
     if (StringUtils.isEmpty(customInlineTemplate)) {
       return this;
     } else {
-      return this.toBuilder().customInlineTemplate(customInlineTemplate.replace("${", "$\\{")).build();
+      return this.toBuilder()
+          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
+          .build();
     }
   }
 

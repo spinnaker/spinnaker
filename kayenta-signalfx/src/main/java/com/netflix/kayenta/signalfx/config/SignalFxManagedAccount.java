@@ -19,28 +19,23 @@ package com.netflix.kayenta.signalfx.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
-
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class SignalFxManagedAccount {
 
-  @NotNull
-  private String name;
+  @NotNull private String name;
 
   private String accessToken;
 
   private List<AccountCredentials.Type> supportedTypes;
 
-  @Nullable
-  private RemoteService endpoint;
+  @Nullable private RemoteService endpoint;
 
-  @Nullable
-  private String defaultScopeKey;
+  @Nullable private String defaultScopeKey;
 
-  @Nullable
-  private String defaultLocationKey;
+  @Nullable private String defaultLocationKey;
 }

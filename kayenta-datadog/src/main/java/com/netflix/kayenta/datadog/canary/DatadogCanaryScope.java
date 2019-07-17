@@ -21,10 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class DatadogCanaryScope extends CanaryScope {
-}
+public class DatadogCanaryScope extends CanaryScope {}

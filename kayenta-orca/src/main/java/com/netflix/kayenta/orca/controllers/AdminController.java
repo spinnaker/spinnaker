@@ -16,22 +16,21 @@
 
 package com.netflix.kayenta.orca.controllers;
 
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.config.validation.ValidationException;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
-
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
 @RestController
 @RequestMapping("/admin/orca")
@@ -44,7 +43,10 @@ public class AdminController {
     this.publisher = publisher;
   }
 
-  @RequestMapping(value = "/instance/enabled", consumes = "application/json", method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/instance/enabled",
+      consumes = "application/json",
+      method = RequestMethod.POST)
   void setInstanceEnabled(@RequestBody Map<String, Boolean> enabledWrapper) {
     Boolean enabled = enabledWrapper.get("enabled");
 
@@ -59,6 +61,7 @@ public class AdminController {
     InstanceInfo.InstanceStatus currentStatus = enabled ? UP : OUT_OF_SERVICE;
     InstanceInfo.InstanceStatus previousStatus = currentStatus == OUT_OF_SERVICE ? UP : UNKNOWN;
 
-    publisher.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, currentStatus)));
+    publisher.publishEvent(
+        new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, currentStatus)));
   }
 }

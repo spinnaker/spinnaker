@@ -20,6 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.metrics.FatalQueryException;
 import com.netflix.kayenta.metrics.RetryableQueryException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,22 +37,14 @@ import retrofit.converter.Converter;
 import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 @Component
 @Slf4j
 // Atlas returns one json stanza per line; we rely on that here.
 // We are not implementing full, proper SSE handling here.
 public class AtlasSSEConverter implements Converter {
 
-  private static final List<String> EXPECTED_RESULTS_TYPE_LIST = Arrays.asList("timeseries", "close");
+  private static final List<String> EXPECTED_RESULTS_TYPE_LIST =
+      Arrays.asList("timeseries", "close");
 
   private final ObjectMapper kayentaObjectMapper;
 
@@ -65,28 +65,31 @@ public class AtlasSSEConverter implements Converter {
 
   protected List<AtlasResults> processInput(BufferedReader reader) {
     List<String[]> tokenizedLines =
-      reader
-        .lines()
-        .filter(line -> !StringUtils.isEmpty(line))
-        .map(line -> line.split(": ", 2))
-        .collect(Collectors.toList());
+        reader
+            .lines()
+            .filter(line -> !StringUtils.isEmpty(line))
+            .map(line -> line.split(": ", 2))
+            .collect(Collectors.toList());
 
-    tokenizedLines
-      .stream()
-      .map(tokenizedLine -> tokenizedLine[0])
-      .filter(openingToken -> !openingToken.equals("data"))
-      .forEach(nonDataOpeningToken -> log.info("Received opening token other than 'data' from Atlas: {}", nonDataOpeningToken));
+    tokenizedLines.stream()
+        .map(tokenizedLine -> tokenizedLine[0])
+        .filter(openingToken -> !openingToken.equals("data"))
+        .forEach(
+            nonDataOpeningToken ->
+                log.info(
+                    "Received opening token other than 'data' from Atlas: {}",
+                    nonDataOpeningToken));
 
     List<AtlasResults> atlasResultsList =
-      tokenizedLines
-        .stream()
-        .map(this::convertTokenizedLineToAtlasResults)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        tokenizedLines.stream()
+            .map(this::convertTokenizedLineToAtlasResults)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
     if (!atlasResultsList.get(atlasResultsList.size() - 1).getType().equals("close")) {
       log.error("Received data from Atlas that did not terminate with a 'close'.");
-      throw new RetryableQueryException("Atlas response did not end in a 'close', we cannot guarantee all data was received.");
+      throw new RetryableQueryException(
+          "Atlas response did not end in a 'close', we cannot guarantee all data was received.");
     }
 
     return atlasResultsList;
@@ -94,10 +97,12 @@ public class AtlasSSEConverter implements Converter {
 
   protected AtlasResults convertTokenizedLineToAtlasResults(String[] tokenizedLine) {
     try {
-      AtlasResults atlasResults = kayentaObjectMapper.readValue(tokenizedLine[1], AtlasResults.class);
+      AtlasResults atlasResults =
+          kayentaObjectMapper.readValue(tokenizedLine[1], AtlasResults.class);
       String atlasResultsType = atlasResults.getType();
 
-      if (StringUtils.isEmpty(atlasResultsType) || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
+      if (StringUtils.isEmpty(atlasResultsType)
+          || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
         if (atlasResultsType.equals("error")) {
           if (atlasResults.getMessage().contains("IllegalStateException")) {
             throw new FatalQueryException("Atlas query failed: " + atlasResults.getMessage());
@@ -105,7 +110,9 @@ public class AtlasSSEConverter implements Converter {
             throw new RetryableQueryException("Atlas query failed: " + atlasResults.getMessage());
           }
         }
-        log.info("Received results of type other than 'timeseries' or 'close' from Atlas: {}", atlasResults);
+        log.info(
+            "Received results of type other than 'timeseries' or 'close' from Atlas: {}",
+            atlasResults);
 
         return null;
       }

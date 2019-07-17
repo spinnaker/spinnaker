@@ -17,9 +17,7 @@
 package com.netflix.kayenta.atlas.backends;
 
 import com.netflix.kayenta.atlas.model.Backend;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,28 +26,26 @@ public class BackendDatabase {
 
   private List<Backend> backends = new ArrayList<>();
 
-  private boolean matches(Backend backend, String deployment, String dataset, String region, String environment) {
+  private boolean matches(
+      Backend backend, String deployment, String dataset, String region, String environment) {
     // return false if it doesn't match the deployment.
-    if (!backend.getDeployment().equals(deployment))
-      return false;
+    if (!backend.getDeployment().equals(deployment)) return false;
 
     // return false if it doesn't match the dataset.
-    if (!backend.getDataset().equals(dataset))
-      return false;
+    if (!backend.getDataset().equals(dataset)) return false;
 
     // return false if it doesn't match the region.
-    if (backend.getRegions() != null && !backend.getRegions().contains(region))
-      return false;
+    if (backend.getRegions() != null && !backend.getRegions().contains(region)) return false;
 
     // return false if it doesn't match the environment.
     return backend.getEnvironments() == null || backend.getEnvironments().contains(environment);
   }
 
-  public synchronized Optional<Backend> getOne(String deployment, String dataset, String region, String environment) {
-    return backends
-      .stream()
-      .filter(a -> matches(a, deployment, dataset, region, environment))
-      .findFirst();
+  public synchronized Optional<Backend> getOne(
+      String deployment, String dataset, String region, String environment) {
+    return backends.stream()
+        .filter(a -> matches(a, deployment, dataset, region, environment))
+        .findFirst();
   }
 
   public synchronized void update(List<Backend> newBackends) {
@@ -68,8 +64,7 @@ public class BackendDatabase {
   public synchronized String getUriForLocation(String scheme, String location) {
     for (Backend backend : backends) {
       String cname = backend.getUriForLocation(scheme, location);
-      if (cname != null)
-        return cname;
+      if (cname != null) return cname;
     }
     return null;
   }

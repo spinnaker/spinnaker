@@ -19,12 +19,13 @@ package com.netflix.kayenta.canaryanalysis.domain;
 import com.netflix.kayenta.canary.CanaryConfig;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
-
 @Data
-@ApiModel(description="Wrapper object around canary config and execution request for the ad-hoc endpoint.")
+@ApiModel(
+    description =
+        "Wrapper object around canary config and execution request for the ad-hoc endpoint.")
 public class CanaryAnalysisAdhocExecutionRequest {
 
   @NotNull

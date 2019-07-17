@@ -20,13 +20,10 @@ package com.netflix.kayenta.signalfx.metrics;
 import com.netflix.kayenta.canary.providers.metrics.QueryPair;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
 import com.netflix.kayenta.signalfx.config.SignalFxScopeConfiguration;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Builds simple signal flow programs.
- */
+/** Builds simple signal flow programs. */
 public class SimpleSignalFlowProgramBuilder {
 
   public static final String FILTER_TEMPLATE = "filter('%s', '%s')";
@@ -38,7 +35,8 @@ public class SimpleSignalFlowProgramBuilder {
   private List<String> filterSegments;
   private List<String> scopeKeys;
 
-  private SimpleSignalFlowProgramBuilder(String metricName, String aggregationMethod, SignalFxScopeConfiguration scopeConfiguration) {
+  private SimpleSignalFlowProgramBuilder(
+      String metricName, String aggregationMethod, SignalFxScopeConfiguration scopeConfiguration) {
     this.metricName = metricName;
     this.aggregationMethod = aggregationMethod;
     this.scopeConfiguration = scopeConfiguration;
@@ -47,9 +45,8 @@ public class SimpleSignalFlowProgramBuilder {
     scopeKeys = new LinkedList<>();
   }
 
-  public static SimpleSignalFlowProgramBuilder create(String metricName,
-                                                      String aggregationMethod,
-                                                      SignalFxScopeConfiguration scopeConfiguration) {
+  public static SimpleSignalFlowProgramBuilder create(
+      String metricName, String aggregationMethod, SignalFxScopeConfiguration scopeConfiguration) {
 
     return new SimpleSignalFlowProgramBuilder(metricName, aggregationMethod, scopeConfiguration);
   }
@@ -65,20 +62,32 @@ public class SimpleSignalFlowProgramBuilder {
   }
 
   public SimpleSignalFlowProgramBuilder withScope(SignalFxCanaryScope canaryScope) {
-    scopeKeys.addAll(Optional.ofNullable(canaryScope.getExtendedScopeParams()).orElse(new HashMap<>())
-        .keySet().stream().filter(key -> !key.startsWith("_")).collect(Collectors.toList()));
+    scopeKeys.addAll(
+        Optional.ofNullable(canaryScope.getExtendedScopeParams()).orElse(new HashMap<>()).keySet()
+            .stream()
+            .filter(key -> !key.startsWith("_"))
+            .collect(Collectors.toList()));
 
-    canaryScope.setScopeKey(Optional.ofNullable(canaryScope.getScopeKey())
-        .orElseGet(() -> Optional.ofNullable(scopeConfiguration.getDefaultScopeKey())
-            .orElseThrow(() -> new IllegalArgumentException("The SignalFx account must define a default scope key or " +
-                "it must be supplied in the extendedScopeParams in the `_scope_key` key"))));
+    canaryScope.setScopeKey(
+        Optional.ofNullable(canaryScope.getScopeKey())
+            .orElseGet(
+                () ->
+                    Optional.ofNullable(scopeConfiguration.getDefaultScopeKey())
+                        .orElseThrow(
+                            () ->
+                                new IllegalArgumentException(
+                                    "The SignalFx account must define a default scope key or "
+                                        + "it must be supplied in the extendedScopeParams in the `_scope_key` key"))));
 
-    Optional.ofNullable(Optional.ofNullable(canaryScope.getLocationKey())
-        .orElse(Optional.ofNullable(scopeConfiguration.getDefaultLocationKey()).orElse(null)))
-        .ifPresent( locationKey -> {
-          canaryScope.setLocationKey(locationKey);
-          scopeKeys.add(locationKey);
-        });
+    Optional.ofNullable(
+            Optional.ofNullable(canaryScope.getLocationKey())
+                .orElse(
+                    Optional.ofNullable(scopeConfiguration.getDefaultLocationKey()).orElse(null)))
+        .ifPresent(
+            locationKey -> {
+              canaryScope.setLocationKey(locationKey);
+              scopeKeys.add(locationKey);
+            });
 
     scopeKeys.add(canaryScope.getScopeKey());
     filterSegments.add(buildFilterSegmentFromScope(canaryScope));
@@ -87,18 +96,22 @@ public class SimpleSignalFlowProgramBuilder {
 
   private String buildFilterSegmentFromScope(SignalFxCanaryScope canaryScope) {
     List<String> filters = new LinkedList<>();
-    Map<String, String> extendedScopeParams = Optional.ofNullable(canaryScope.getExtendedScopeParams())
-        .orElse(new HashMap<>());
+    Map<String, String> extendedScopeParams =
+        Optional.ofNullable(canaryScope.getExtendedScopeParams()).orElse(new HashMap<>());
 
     filters.add(String.format(FILTER_TEMPLATE, canaryScope.getScopeKey(), canaryScope.getScope()));
-    Optional.ofNullable(canaryScope.getLocationKey()).ifPresent(locationKey ->
-        filters.add(String.format(FILTER_TEMPLATE, locationKey, canaryScope.getLocation())));
+    Optional.ofNullable(canaryScope.getLocationKey())
+        .ifPresent(
+            locationKey ->
+                filters.add(
+                    String.format(FILTER_TEMPLATE, locationKey, canaryScope.getLocation())));
 
     if (extendedScopeParams.size() > 0) {
-      filters.addAll(extendedScopeParams.entrySet().stream()
-          .filter(entry -> !entry.getKey().startsWith("_")) // filter out keys that start with _
-          .map(entry -> String.format(FILTER_TEMPLATE, entry.getKey(), entry.getValue()))
-          .collect(Collectors.toList()));
+      filters.addAll(
+          extendedScopeParams.entrySet().stream()
+              .filter(entry -> !entry.getKey().startsWith("_")) // filter out keys that start with _
+              .map(entry -> String.format(FILTER_TEMPLATE, entry.getKey(), entry.getValue()))
+              .collect(Collectors.toList()));
     }
 
     return String.join(" and ", filters);
@@ -110,9 +123,10 @@ public class SimpleSignalFlowProgramBuilder {
     List<String> filters = new LinkedList<>();
 
     if (queryPairs.size() > 0) {
-      filters.add(queryPairs.stream()
-          .map(qp -> String.format(FILTER_TEMPLATE, qp.getKey(), qp.getValue()))
-          .collect(Collectors.joining(" and ")));
+      filters.add(
+          queryPairs.stream()
+              .map(qp -> String.format(FILTER_TEMPLATE, qp.getKey(), qp.getValue()))
+              .collect(Collectors.joining(" and ")));
     }
     filters.addAll(filterSegments);
 
@@ -122,7 +136,9 @@ public class SimpleSignalFlowProgramBuilder {
 
     program.append(")");
 
-    program.append('.').append(aggregationMethod)
+    program
+        .append('.')
+        .append(aggregationMethod)
         .append("(by=['")
         .append(String.join("', '", scopeKeys))
         .append("'])");

@@ -16,12 +16,11 @@
 
 package com.netflix.kayenta.atlas.model;
 
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -30,16 +29,13 @@ import java.util.stream.DoubleStream;
 @AllArgsConstructor
 public class TimeseriesData {
 
-  @NotNull
-  @Getter
-  private String type;
+  @NotNull @Getter private String type;
 
-  @NotNull
-  @Getter
-  private List<Double> values;
+  @NotNull @Getter private List<Double> values;
 
   public static TimeseriesData dummy(String type, long count) {
-    List<Double> values = DoubleStream.iterate(1.0, d -> d + 1.0).limit(count).boxed().collect(Collectors.toList());
+    List<Double> values =
+        DoubleStream.iterate(1.0, d -> d + 1.0).limit(count).boxed().collect(Collectors.toList());
     return TimeseriesData.builder().type(type).values(values).build();
   }
 }

@@ -25,6 +25,7 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,8 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-
-import java.util.List;
 
 @Configuration
 @ConditionalOnProperty("kayenta.configbin.enabled")
@@ -48,15 +47,18 @@ public class ConfigBinConfiguration {
   }
 
   @Bean
-  ConfigBinStorageService configBinStorageService(ConfigBinResponseConverter configBinConverter,
-                                                  ConfigBinConfigurationProperties configBinConfigurationProperties,
-                                                  RetrofitClientFactory retrofitClientFactory,
-                                                  OkHttpClient okHttpClient,
-                                                  AccountCredentialsRepository accountCredentialsRepository) {
+  ConfigBinStorageService configBinStorageService(
+      ConfigBinResponseConverter configBinConverter,
+      ConfigBinConfigurationProperties configBinConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository) {
     log.debug("Created a ConfigBin StorageService");
-    ConfigBinStorageService.ConfigBinStorageServiceBuilder configbinStorageServiceBuilder = ConfigBinStorageService.builder();
+    ConfigBinStorageService.ConfigBinStorageServiceBuilder configbinStorageServiceBuilder =
+        ConfigBinStorageService.builder();
 
-    for (ConfigBinManagedAccount configBinManagedAccount : configBinConfigurationProperties.getAccounts()) {
+    for (ConfigBinManagedAccount configBinManagedAccount :
+        configBinConfigurationProperties.getAccounts()) {
       String name = configBinManagedAccount.getName();
       String ownerApp = configBinManagedAccount.getOwnerApp();
       String configType = configBinManagedAccount.getConfigType();
@@ -65,34 +67,41 @@ public class ConfigBinConfiguration {
 
       log.info("Registering ConfigBin account {} with supported types {}.", name, supportedTypes);
 
-      ConfigBinAccountCredentials configbinAccountCredentials = ConfigBinAccountCredentials.builder().build();
-      ConfigBinNamedAccountCredentials.ConfigBinNamedAccountCredentialsBuilder configBinNamedAccountCredentialsBuilder =
-        ConfigBinNamedAccountCredentials.builder()
-          .name(name)
-          .ownerApp(ownerApp)
-          .configType(configType)
-          .endpoint(endpoint)
-          .credentials(configbinAccountCredentials);
+      ConfigBinAccountCredentials configbinAccountCredentials =
+          ConfigBinAccountCredentials.builder().build();
+      ConfigBinNamedAccountCredentials.ConfigBinNamedAccountCredentialsBuilder
+          configBinNamedAccountCredentialsBuilder =
+              ConfigBinNamedAccountCredentials.builder()
+                  .name(name)
+                  .ownerApp(ownerApp)
+                  .configType(configType)
+                  .endpoint(endpoint)
+                  .credentials(configbinAccountCredentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.CONFIGURATION_STORE)) {
-          ConfigBinRemoteService configBinRemoteService = retrofitClientFactory.createClient(ConfigBinRemoteService.class,
-                                                                                             configBinConverter,
-                                                                                             configBinManagedAccount.getEndpoint(),
-                                                                                             okHttpClient);
+          ConfigBinRemoteService configBinRemoteService =
+              retrofitClientFactory.createClient(
+                  ConfigBinRemoteService.class,
+                  configBinConverter,
+                  configBinManagedAccount.getEndpoint(),
+                  okHttpClient);
           configBinNamedAccountCredentialsBuilder.remoteService(configBinRemoteService);
         }
         configBinNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
       }
 
-      ConfigBinNamedAccountCredentials configbinNamedAccountCredentials = configBinNamedAccountCredentialsBuilder.build();
+      ConfigBinNamedAccountCredentials configbinNamedAccountCredentials =
+          configBinNamedAccountCredentialsBuilder.build();
       accountCredentialsRepository.save(name, configbinNamedAccountCredentials);
       configbinStorageServiceBuilder.accountName(name);
     }
 
     ConfigBinStorageService configbinStorageService = configbinStorageServiceBuilder.build();
 
-    log.info("Populated ConfigBinStorageService with {} ConfigBin accounts.", configbinStorageService.getAccountNames().size());
+    log.info(
+        "Populated ConfigBinStorageService with {} ConfigBin accounts.",
+        configbinStorageService.getAccountNames().size());
 
     return configbinStorageService;
   }

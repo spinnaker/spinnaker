@@ -16,13 +16,11 @@
 
 package com.netflix.kayenta.google.config;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 
 public class GoogleConfigurationProperties {
 
-  @Getter
-  private List<GoogleManagedAccount> accounts = new ArrayList<>();
+  @Getter private List<GoogleManagedAccount> accounts = new ArrayList<>();
 }

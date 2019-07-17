@@ -24,9 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-/**
- * Internal model used in the canary analysis pipeline execution stages
- */
+/** Internal model used in the canary analysis pipeline execution stages */
 @Data
 @Builder
 @ToString

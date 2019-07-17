@@ -25,6 +25,8 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
+import java.io.IOException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,9 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.util.List;
 
 @Configuration
 @ConditionalOnProperty("kayenta.prometheus.enabled")
@@ -50,20 +49,25 @@ public class PrometheusConfiguration {
 
   @Bean
   @ConfigurationProperties("kayenta.prometheus.test-controller-defaults")
-  PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties() {
+  PrometheusConfigurationTestControllerDefaultProperties
+      prometheusConfigurationTestControllerDefaultProperties() {
     return new PrometheusConfigurationTestControllerDefaultProperties();
   }
 
   @Bean
-  MetricsService prometheusMetricsService(PrometheusResponseConverter prometheusConverter,
-                                          PrometheusConfigurationProperties prometheusConfigurationProperties,
-                                          RetrofitClientFactory retrofitClientFactory,
-                                          OkHttpClient okHttpClient,
-                                          AccountCredentialsRepository accountCredentialsRepository) throws IOException {
-    PrometheusMetricsService.PrometheusMetricsServiceBuilder prometheusMetricsServiceBuilder = PrometheusMetricsService.builder();
+  MetricsService prometheusMetricsService(
+      PrometheusResponseConverter prometheusConverter,
+      PrometheusConfigurationProperties prometheusConfigurationProperties,
+      RetrofitClientFactory retrofitClientFactory,
+      OkHttpClient okHttpClient,
+      AccountCredentialsRepository accountCredentialsRepository)
+      throws IOException {
+    PrometheusMetricsService.PrometheusMetricsServiceBuilder prometheusMetricsServiceBuilder =
+        PrometheusMetricsService.builder();
     prometheusMetricsServiceBuilder.scopeLabel(prometheusConfigurationProperties.getScopeLabel());
 
-    for (PrometheusManagedAccount prometheusManagedAccount : prometheusConfigurationProperties.getAccounts()) {
+    for (PrometheusManagedAccount prometheusManagedAccount :
+        prometheusConfigurationProperties.getAccounts()) {
       String name = prometheusManagedAccount.getName();
       List<AccountCredentials.Type> supportedTypes = prometheusManagedAccount.getSupportedTypes();
 
@@ -71,36 +75,39 @@ public class PrometheusConfiguration {
 
       try {
         PrometheusCredentials prometheusCredentials =
-          PrometheusCredentials
-            .builder()
-            .username(prometheusManagedAccount.getUsername())
-            .password(prometheusManagedAccount.getPassword())
-            .usernamePasswordFile(prometheusManagedAccount.getUsernamePasswordFile())
-            .build();
-        PrometheusNamedAccountCredentials.PrometheusNamedAccountCredentialsBuilder prometheusNamedAccountCredentialsBuilder =
-          PrometheusNamedAccountCredentials
-            .builder()
-            .name(name)
-            .endpoint(prometheusManagedAccount.getEndpoint())
-            .credentials(prometheusCredentials);
+            PrometheusCredentials.builder()
+                .username(prometheusManagedAccount.getUsername())
+                .password(prometheusManagedAccount.getPassword())
+                .usernamePasswordFile(prometheusManagedAccount.getUsernamePasswordFile())
+                .build();
+        PrometheusNamedAccountCredentials.PrometheusNamedAccountCredentialsBuilder
+            prometheusNamedAccountCredentialsBuilder =
+                PrometheusNamedAccountCredentials.builder()
+                    .name(name)
+                    .endpoint(prometheusManagedAccount.getEndpoint())
+                    .credentials(prometheusCredentials);
 
         if (!CollectionUtils.isEmpty(supportedTypes)) {
           if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-            PrometheusRemoteService prometheusRemoteService = retrofitClientFactory.createClient(PrometheusRemoteService.class,
-                                                                                                 prometheusConverter,
-                                                                                                 prometheusManagedAccount.getEndpoint(),
-                                                                                                 okHttpClient,
-                                                                                                 prometheusManagedAccount.getUsername(),
-                                                                                                 prometheusManagedAccount.getPassword(),
-                                                                                                 prometheusManagedAccount.getUsernamePasswordFile());
+            PrometheusRemoteService prometheusRemoteService =
+                retrofitClientFactory.createClient(
+                    PrometheusRemoteService.class,
+                    prometheusConverter,
+                    prometheusManagedAccount.getEndpoint(),
+                    okHttpClient,
+                    prometheusManagedAccount.getUsername(),
+                    prometheusManagedAccount.getPassword(),
+                    prometheusManagedAccount.getUsernamePasswordFile());
 
-            prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(prometheusRemoteService);
+            prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(
+                prometheusRemoteService);
           }
 
           prometheusNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
         }
 
-        PrometheusNamedAccountCredentials prometheusNamedAccountCredentials = prometheusNamedAccountCredentialsBuilder.build();
+        PrometheusNamedAccountCredentials prometheusNamedAccountCredentials =
+            prometheusNamedAccountCredentialsBuilder.build();
         accountCredentialsRepository.save(name, prometheusNamedAccountCredentials);
         prometheusMetricsServiceBuilder.accountName(name);
       } catch (IOException e) {
@@ -110,7 +117,9 @@ public class PrometheusConfiguration {
 
     PrometheusMetricsService prometheusMetricsService = prometheusMetricsServiceBuilder.build();
 
-    log.info("Populated PrometheusMetricsService with {} Prometheus accounts.", prometheusMetricsService.getAccountNames().size());
+    log.info(
+        "Populated PrometheusMetricsService with {} Prometheus accounts.",
+        prometheusMetricsService.getAccountNames().size());
 
     return prometheusMetricsService;
   }

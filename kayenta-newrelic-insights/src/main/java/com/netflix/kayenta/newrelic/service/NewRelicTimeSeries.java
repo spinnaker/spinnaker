@@ -31,7 +31,7 @@ public class NewRelicTimeSeries {
   private NewresultResultMetadata metadata;
 
   @Data
-  static public class NewRelicSeriesEntry {
+  public static class NewRelicSeriesEntry {
 
     private Long beginTimeSeconds;
     private Long inspectedCount;
@@ -59,7 +59,7 @@ public class NewRelicTimeSeries {
   }
 
   @Data
-  static public class NewresultResultMetadata {
+  public static class NewresultResultMetadata {
 
     private Long beginTimeMillis;
     private Long endTimeMillis;

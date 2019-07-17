@@ -18,9 +18,7 @@ package com.netflix.kayenta.influxdb.model;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -35,23 +33,13 @@ import lombok.ToString;
 @AllArgsConstructor
 public class InfluxDbResult {
 
-  @NotNull
-  @Getter
-  private String id;
+  @NotNull @Getter private String id;
 
-  @NotNull
-  @Getter
-  private long startTimeMillis;
+  @NotNull @Getter private long startTimeMillis;
 
-  @NotNull
-  @Getter
-  private long stepMillis;
+  @NotNull @Getter private long stepMillis;
 
-  @NotNull
-  @Getter
-  private Map<String, String> tags;
+  @NotNull @Getter private Map<String, String> tags;
 
-  @NotNull
-  @Getter
-  private List<Double> values;
+  @NotNull @Getter private List<Double> values;
 }

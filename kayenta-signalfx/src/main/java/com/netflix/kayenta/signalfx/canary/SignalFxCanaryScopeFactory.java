@@ -17,13 +17,12 @@
 
 package com.netflix.kayenta.signalfx.canary;
 
+import static com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig.SERVICE_TYPE;
+
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
-
-import static com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig.SERVICE_TYPE;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SignalFxCanaryScopeFactory implements CanaryScopeFactory {
@@ -46,11 +45,14 @@ public class SignalFxCanaryScopeFactory implements CanaryScopeFactory {
     signalFxCanaryScope.setEnd(canaryScope.getEnd());
     signalFxCanaryScope.setStep(canaryScope.getStep());
 
-    Optional.ofNullable(canaryScope.getExtendedScopeParams()).ifPresent(extendedParameters -> {
-      signalFxCanaryScope.setScopeKey(extendedParameters.getOrDefault(SCOPE_KEY_KEY, null));
-      signalFxCanaryScope.setLocationKey(extendedParameters.getOrDefault(LOCATION_KEY_KEY, null));
-      signalFxCanaryScope.setExtendedScopeParams(extendedParameters);
-    });
+    Optional.ofNullable(canaryScope.getExtendedScopeParams())
+        .ifPresent(
+            extendedParameters -> {
+              signalFxCanaryScope.setScopeKey(extendedParameters.getOrDefault(SCOPE_KEY_KEY, null));
+              signalFxCanaryScope.setLocationKey(
+                  extendedParameters.getOrDefault(LOCATION_KEY_KEY, null));
+              signalFxCanaryScope.setExtendedScopeParams(extendedParameters);
+            });
 
     return signalFxCanaryScope;
   }

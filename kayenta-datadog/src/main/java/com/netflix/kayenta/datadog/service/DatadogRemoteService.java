@@ -22,16 +22,18 @@ import retrofit.http.Query;
 
 public interface DatadogRemoteService {
 
-  //See https://docs.datadoghq.com/api/?lang=python#query-time-series-points
+  // See https://docs.datadoghq.com/api/?lang=python#query-time-series-points
   @GET("/api/v1/query")
-  DatadogTimeSeries getTimeSeries(@Query("api_key") String apiKey,
-                                  @Query("application_key") String applicationKey,
-                                  @Query("from") int startTimestamp,
-                                  @Query("to") int endTimestamp,
-                                  @Query("query") String query);
+  DatadogTimeSeries getTimeSeries(
+      @Query("api_key") String apiKey,
+      @Query("application_key") String applicationKey,
+      @Query("from") int startTimestamp,
+      @Query("to") int endTimestamp,
+      @Query("query") String query);
 
   @GET("/api/v1/metrics")
-  DatadogMetricDescriptorsResponse getMetrics(@Query("api_key") String apiKey,
-                                              @Query("application_key") String applicationKey,
-                                              @Query("from") long from);
+  DatadogMetricDescriptorsResponse getMetrics(
+      @Query("api_key") String apiKey,
+      @Query("application_key") String applicationKey,
+      @Query("from") long from);
 }

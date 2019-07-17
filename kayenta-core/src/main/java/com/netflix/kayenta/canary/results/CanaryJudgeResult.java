@@ -17,10 +17,9 @@
 package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -29,19 +28,11 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryJudgeResult {
 
-  @NotNull
-  @Getter
-  private String judgeName;
+  @NotNull @Getter private String judgeName;
 
-  @NotNull
-  @Getter
-  private List<CanaryAnalysisResult> results;
+  @NotNull @Getter private List<CanaryAnalysisResult> results;
 
-  @NotNull
-  @Getter
-  private List<CanaryJudgeGroupScore> groupScores;
+  @NotNull @Getter private List<CanaryJudgeGroupScore> groupScores;
 
-  @NotNull
-  @Getter
-  private CanaryJudgeScore score;
+  @NotNull @Getter private CanaryJudgeScore score;
 }

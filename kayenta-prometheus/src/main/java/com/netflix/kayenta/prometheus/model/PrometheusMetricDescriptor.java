@@ -33,7 +33,8 @@ public class PrometheusMetricDescriptor {
     return name;
   }
 
-  // This is so we can efficiently serialize to json without having to construct the intermediate map object on each query.
+  // This is so we can efficiently serialize to json without having to construct the intermediate
+  // map object on each query.
   public Map<String, String> getMap() {
     return map;
   }

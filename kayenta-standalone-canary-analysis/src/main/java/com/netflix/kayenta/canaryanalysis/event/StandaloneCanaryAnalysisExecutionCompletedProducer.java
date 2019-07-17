@@ -25,13 +25,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StandaloneCanaryAnalysisExecutionCompletedProducer extends AbstractExecutionCompleteEventProcessor {
+public class StandaloneCanaryAnalysisExecutionCompletedProducer
+    extends AbstractExecutionCompleteEventProcessor {
 
   private final CanaryAnalysisService canaryAnalysisService;
 
-  public StandaloneCanaryAnalysisExecutionCompletedProducer(ApplicationEventPublisher applicationEventPublisher,
-                                                            ExecutionRepository executionRepository,
-                                                            CanaryAnalysisService canaryAnalysisService) {
+  public StandaloneCanaryAnalysisExecutionCompletedProducer(
+      ApplicationEventPublisher applicationEventPublisher,
+      ExecutionRepository executionRepository,
+      CanaryAnalysisService canaryAnalysisService) {
 
     super(applicationEventPublisher, executionRepository);
     this.canaryAnalysisService = canaryAnalysisService;
@@ -44,8 +46,9 @@ public class StandaloneCanaryAnalysisExecutionCompletedProducer extends Abstract
 
   @Override
   public void processCompletedPipelineExecution(Execution execution) {
-    CanaryAnalysisExecutionStatusResponse canaryAnalysisExecution = canaryAnalysisService
-        .getCanaryAnalysisExecution(execution.getId());
-    applicationEventPublisher.publishEvent(new StandaloneCanaryAnalysisExecutionCompletedEvent(this, canaryAnalysisExecution));
+    CanaryAnalysisExecutionStatusResponse canaryAnalysisExecution =
+        canaryAnalysisService.getCanaryAnalysisExecution(execution.getId());
+    applicationEventPublisher.publishEvent(
+        new StandaloneCanaryAnalysisExecutionCompletedEvent(this, canaryAnalysisExecution));
   }
 }

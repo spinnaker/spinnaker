@@ -27,115 +27,156 @@ import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/canaryResultArchive")
-@Api(value = "/canaryResultArchive", description = "Manipulate the archived canary result object store.  This should be used only for Kayenta maintenance.  Use the /canary endpoints for canary results.")
+@Api(
+    value = "/canaryResultArchive",
+    description =
+        "Manipulate the archived canary result object store.  This should be used only for Kayenta maintenance.  Use the /canary endpoints for canary results.")
 @Slf4j
 public class CanaryResultArchiveController {
-  
+
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  public CanaryResultArchiveController(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+  public CanaryResultArchiveController(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
   }
 
   @ApiOperation(value = "Retrieve an archived canary result from object storage")
   @RequestMapping(value = "/{pipelineId:.+}", method = RequestMethod.GET)
-  public CanaryExecutionStatusResponse loadArchivedCanaryResult(@RequestParam(required = false) final String storageAccountName,
-                                                                @PathVariable String pipelineId) {
+  public CanaryExecutionStatusResponse loadArchivedCanaryResult(
+      @RequestParam(required = false) final String storageAccountName,
+      @PathVariable String pipelineId) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService = getStorageService(resolvedConfigurationAccountName, "retrieve archived canary result");
+    StorageService storageService =
+        getStorageService(resolvedConfigurationAccountName, "retrieve archived canary result");
 
-    return storageService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
+    return storageService.loadObject(
+        resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
   }
 
   @ApiOperation(value = "Create an archived canary result to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public CanaryArchiveResultUpdateResponse storeArchivedCanaryResult(@RequestParam(required = false) final String storageAccountName,
-                                                                     @RequestParam(required = false) String pipelineId,
-                                                                     @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse) throws IOException {
+  public CanaryArchiveResultUpdateResponse storeArchivedCanaryResult(
+      @RequestParam(required = false) final String storageAccountName,
+      @RequestParam(required = false) String pipelineId,
+      @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse)
+      throws IOException {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService = getStorageService(resolvedConfigurationAccountName, "create archived canary result");
-    
+    StorageService storageService =
+        getStorageService(resolvedConfigurationAccountName, "create archived canary result");
+
     if (pipelineId == null) {
       pipelineId = UUID.randomUUID() + "";
     }
-    
+
     try {
-      storageService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
+      storageService.loadObject(
+          resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
     } catch (NotFoundException e) {
-      storageService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId, canaryExecutionStatusResponse, pipelineId + ".json", false);
+      storageService.storeObject(
+          resolvedConfigurationAccountName,
+          ObjectType.CANARY_RESULT_ARCHIVE,
+          pipelineId,
+          canaryExecutionStatusResponse,
+          pipelineId + ".json",
+          false);
 
       return CanaryArchiveResultUpdateResponse.builder().pipelineId(pipelineId).build();
     }
 
-    throw new IllegalArgumentException("Archived canary result '" + pipelineId + "' already exists.");
+    throw new IllegalArgumentException(
+        "Archived canary result '" + pipelineId + "' already exists.");
   }
 
   @ApiOperation(value = "Update an archived canary result in object storage")
-  @RequestMapping(value = "/{pipelineId:.+}", consumes = "application/json", method = RequestMethod.PUT)
-  public CanaryArchiveResultUpdateResponse updateArchivedCanaryResult(@RequestParam(required = false) final String storageAccountName,
-                                                                      @PathVariable String pipelineId,
-                                                                      @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse) throws IOException {
+  @RequestMapping(
+      value = "/{pipelineId:.+}",
+      consumes = "application/json",
+      method = RequestMethod.PUT)
+  public CanaryArchiveResultUpdateResponse updateArchivedCanaryResult(
+      @RequestParam(required = false) final String storageAccountName,
+      @PathVariable String pipelineId,
+      @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse)
+      throws IOException {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService = getStorageService(resolvedConfigurationAccountName, "update archived canary result");
+    StorageService storageService =
+        getStorageService(resolvedConfigurationAccountName, "update archived canary result");
 
     try {
-      storageService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
+      storageService.loadObject(
+          resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
     } catch (Exception e) {
-      throw new IllegalArgumentException("Archived canary result '" + pipelineId + "' does not exist.");
+      throw new IllegalArgumentException(
+          "Archived canary result '" + pipelineId + "' does not exist.");
     }
 
-    storageService.storeObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId, canaryExecutionStatusResponse, pipelineId + ".json", true);
+    storageService.storeObject(
+        resolvedConfigurationAccountName,
+        ObjectType.CANARY_RESULT_ARCHIVE,
+        pipelineId,
+        canaryExecutionStatusResponse,
+        pipelineId + ".json",
+        true);
 
     return CanaryArchiveResultUpdateResponse.builder().pipelineId(pipelineId).build();
   }
 
   @ApiOperation(value = "Delete an archived canary result from object storage")
   @RequestMapping(value = "/{pipelineId:.+}", method = RequestMethod.DELETE)
-  public void deleteArchivedCanaryResult(@RequestParam(required = false) final String storageAccountName,
-                                         @PathVariable String pipelineId,
-                                         HttpServletResponse response) {
+  public void deleteArchivedCanaryResult(
+      @RequestParam(required = false) final String storageAccountName,
+      @PathVariable String pipelineId,
+      HttpServletResponse response) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService = getStorageService(resolvedConfigurationAccountName, "delete archived canary result.");
+    StorageService storageService =
+        getStorageService(resolvedConfigurationAccountName, "delete archived canary result.");
 
-    storageService.deleteObject(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
+    storageService.deleteObject(
+        resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
   @ApiOperation(value = "Retrieve a list of archived canary result ids in object storage")
   @RequestMapping(method = RequestMethod.GET)
-  public List<Map<String, Object>> listAllCanaryArchivedResults(@RequestParam(required = false) final String storageAccountName) {
+  public List<Map<String, Object>> listAllCanaryArchivedResults(
+      @RequestParam(required = false) final String storageAccountName) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService = getStorageService(resolvedConfigurationAccountName, "list all archived canary results");
+    StorageService storageService =
+        getStorageService(resolvedConfigurationAccountName, "list all archived canary results");
 
-    return storageService.listObjectKeys(resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE);
+    return storageService.listObjectKeys(
+        resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE);
   }
 
   private String resolveStorageAccountName(String storageAccountName) {
-    return CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                        AccountCredentials.Type.OBJECT_STORE,
-                                                        accountCredentialsRepository);
+    return CredentialsHelper.resolveAccountByNameOrType(
+        storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
   }
 
-  private StorageService getStorageService(String resolvedStorageAccountName, String contextMessage) {
+  private StorageService getStorageService(
+      String resolvedStorageAccountName, String contextMessage) {
     return storageServiceRepository
-      .getOne(resolvedStorageAccountName)
-      .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to " + contextMessage + "."));
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No storage service was configured; unable to " + contextMessage + "."));
   }
 }

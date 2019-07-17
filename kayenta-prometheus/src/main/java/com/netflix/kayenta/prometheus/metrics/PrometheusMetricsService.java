@@ -34,16 +34,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Singular;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,24 +44,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Builder
 @Slf4j
 public class PrometheusMetricsService implements MetricsService {
 
-  @NotNull
-  private String scopeLabel;
+  @NotNull private String scopeLabel;
 
-  @NotNull
-  @Singular
-  @Getter
-  private List<String> accountNames;
+  @NotNull @Singular @Getter private List<String> accountNames;
 
-  @Autowired
-  private final AccountCredentialsRepository accountCredentialsRepository;
+  @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired
-  private final Registry registry;
+  @Autowired private final Registry registry;
 
   @Builder.Default
   private List<PrometheusMetricDescriptor> metricDescriptorsCache = Collections.emptyList();
@@ -86,11 +79,12 @@ public class PrometheusMetricsService implements MetricsService {
     return accountNames.contains(accountName);
   }
 
-  private StringBuilder addScopeFilter(StringBuilder queryBuilder,
-                                       PrometheusCanaryScope prometheusCanaryScope,
-                                       String resourceType,
-                                       PrometheusCanaryMetricSetQueryConfig queryConfig,
-                                       String customFilter) {
+  private StringBuilder addScopeFilter(
+      StringBuilder queryBuilder,
+      PrometheusCanaryScope prometheusCanaryScope,
+      String resourceType,
+      PrometheusCanaryMetricSetQueryConfig queryConfig,
+      String customFilter) {
     String scope = prometheusCanaryScope.getScope();
     String projectId = prometheusCanaryScope.getProject();
     String location = prometheusCanaryScope.getLocation();
@@ -105,11 +99,15 @@ public class PrometheusMetricsService implements MetricsService {
       } else if ("aws_ec2_instance".equals(resourceType)) {
         addEC2Filters("asg_groupName", scope, location, filters);
       } else if (!StringUtils.isEmpty(resourceType)) {
-        throw new IllegalArgumentException("There is no explicit support for resourceType '" + resourceType + "'. " +
-                                           "You may build whatever query makes sense for your environment via label " +
-                                           "bindings and custom filter templates.");
+        throw new IllegalArgumentException(
+            "There is no explicit support for resourceType '"
+                + resourceType
+                + "'. "
+                + "You may build whatever query makes sense for your environment via label "
+                + "bindings and custom filter templates.");
       } else {
-        throw new IllegalArgumentException("Either a resource type or a custom filter is required.");
+        throw new IllegalArgumentException(
+            "Either a resource type or a custom filter is required.");
       }
     } else {
       List<String> customFilterTokens = Arrays.asList(customFilter.split(","));
@@ -132,9 +130,11 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder;
   }
 
-  private static void addGCEFilters(String scopeLabel, String scope, String projectId, String location, List<String> filters) {
+  private static void addGCEFilters(
+      String scopeLabel, String scope, String projectId, String location, List<String> filters) {
     if (StringUtils.isEmpty(location)) {
-      throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'gce_instance'.");
+      throw new IllegalArgumentException(
+          "Location (i.e. region) is required when resourceType is 'gce_instance'.");
     }
 
     if (!StringUtils.isEmpty(scope)) {
@@ -153,9 +153,11 @@ public class PrometheusMetricsService implements MetricsService {
     filters.add("zone=~\"" + zoneRegex + "\"");
   }
 
-  private static void addEC2Filters(String scopeLabel, String scope, String location, List<String> filters) {
+  private static void addEC2Filters(
+      String scopeLabel, String scope, String location, List<String> filters) {
     if (StringUtils.isEmpty(location)) {
-      throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
+      throw new IllegalArgumentException(
+          "Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
     }
 
     if (!StringUtils.isEmpty(scope)) {
@@ -169,7 +171,8 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder.insert(0, "avg(").append(")");
   }
 
-  private static StringBuilder addGroupByQuery(StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
+  private static StringBuilder addGroupByQuery(
+      StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
     List<String> groupByFields = queryConfig.getGroupByFields();
 
     if (!CollectionUtils.isEmpty(groupByFields)) {
@@ -186,23 +189,26 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
-  public String buildQuery(String metricsAccountName,
-                           CanaryConfig canaryConfig,
-                           CanaryMetricConfig canaryMetricConfig,
-                           CanaryScope canaryScope) throws IOException {
-    PrometheusCanaryMetricSetQueryConfig queryConfig = (PrometheusCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
-    PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope)canaryScope;
+  public String buildQuery(
+      String metricsAccountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
+    PrometheusCanaryMetricSetQueryConfig queryConfig =
+        (PrometheusCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope) canaryScope;
     String resourceType =
-      StringUtils.hasText(queryConfig.getResourceType())
-      ? queryConfig.getResourceType()
-      : prometheusCanaryScope.getResourceType();
+        StringUtils.hasText(queryConfig.getResourceType())
+            ? queryConfig.getResourceType()
+            : prometheusCanaryScope.getResourceType();
 
-    String customFilter = QueryConfigUtils.expandCustomFilter(
-      canaryConfig,
-      queryConfig,
-      prometheusCanaryScope,
-      new String[]{"project", "resourceType", "scope", "location"});
-
+    String customFilter =
+        QueryConfigUtils.expandCustomFilter(
+            canaryConfig,
+            queryConfig,
+            prometheusCanaryScope,
+            new String[] {"project", "resourceType", "scope", "location"});
 
     if (!StringUtils.isEmpty(customFilter) && customFilter.startsWith("PromQL:")) {
       String promQlExpr = customFilter.substring(7);
@@ -213,7 +219,9 @@ public class PrometheusMetricsService implements MetricsService {
     } else {
       StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
 
-      queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
+      queryBuilder =
+          addScopeFilter(
+              queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
       queryBuilder = addAvgQuery(queryBuilder);
       queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
 
@@ -224,19 +232,28 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName,
-                                      CanaryConfig canaryConfig,
-                                      CanaryMetricConfig canaryMetricConfig,
-                                      CanaryScope canaryScope) throws IOException {
+  public List<MetricSet> queryMetrics(
+      String accountName,
+      CanaryConfig canaryConfig,
+      CanaryMetricConfig canaryMetricConfig,
+      CanaryScope canaryScope)
+      throws IOException {
     if (!(canaryScope instanceof PrometheusCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope +
-                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
-                                         "neglecting to explicitly specify which account to use for a given request.");
+      throw new IllegalArgumentException(
+          "Canary scope not instance of PrometheusCanaryScope: "
+              + canaryScope
+              + ". One common cause is having multiple METRICS_STORE accounts configured but "
+              + "neglecting to explicitly specify which account to use for a given request.");
     }
 
-    PrometheusNamedAccountCredentials credentials = (PrometheusNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    PrometheusNamedAccountCredentials credentials =
+        (PrometheusNamedAccountCredentials)
+            accountCredentialsRepository
+                .getOne(accountName)
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Unable to resolve account " + accountName + "."));
     PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
 
     if (StringUtils.isEmpty(canaryScope.getStart())) {
@@ -247,16 +264,19 @@ public class PrometheusMetricsService implements MetricsService {
       throw new IllegalArgumentException("End time is required.");
     }
 
-    String query = buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString();
+    String query =
+        buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString();
 
     long startTime = registry.clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
 
     try {
-      prometheusResultsList = prometheusRemoteService.rangeQuery(query,
-                                                                 canaryScope.getStart().toString(),
-                                                                 canaryScope.getEnd().toString(),
-                                                                 canaryScope.getStep());
+      prometheusResultsList =
+          prometheusRemoteService.rangeQuery(
+              query,
+              canaryScope.getStart().toString(),
+              canaryScope.getEnd().toString(),
+              canaryScope.getStep());
     } finally {
       long endTime = registry.clock().monotonicTime();
       // TODO(ewiseblatt/duftler): Add appropriate tags.
@@ -269,17 +289,18 @@ public class PrometheusMetricsService implements MetricsService {
 
     if (!CollectionUtils.isEmpty(prometheusResultsList)) {
       for (PrometheusResults prometheusResults : prometheusResultsList) {
-        Instant responseStartTimeInstant = Instant.ofEpochMilli(prometheusResults.getStartTimeMillis());
+        Instant responseStartTimeInstant =
+            Instant.ofEpochMilli(prometheusResults.getStartTimeMillis());
         Instant responseEndTimeInstant = Instant.ofEpochMilli(prometheusResults.getEndTimeMillis());
         MetricSet.MetricSetBuilder metricSetBuilder =
-          MetricSet.builder()
-            .name(canaryMetricConfig.getName())
-            .startTimeMillis(prometheusResults.getStartTimeMillis())
-            .startTimeIso(responseStartTimeInstant.toString())
-            .endTimeMillis(prometheusResults.getEndTimeMillis())
-            .endTimeIso(responseEndTimeInstant.toString())
-            .stepMillis(TimeUnit.SECONDS.toMillis(prometheusResults.getStepSecs()))
-            .values(prometheusResults.getValues());
+            MetricSet.builder()
+                .name(canaryMetricConfig.getName())
+                .startTimeMillis(prometheusResults.getStartTimeMillis())
+                .startTimeIso(responseStartTimeInstant.toString())
+                .endTimeMillis(prometheusResults.getEndTimeMillis())
+                .endTimeIso(responseEndTimeInstant.toString())
+                .stepMillis(TimeUnit.SECONDS.toMillis(prometheusResults.getStepSecs()))
+                .values(prometheusResults.getValues());
 
         Map<String, String> tags = prometheusResults.getTags();
 
@@ -293,14 +314,14 @@ public class PrometheusMetricsService implements MetricsService {
       }
     } else {
       MetricSet.MetricSetBuilder metricSetBuilder =
-        MetricSet.builder()
-          .name(canaryMetricConfig.getName())
-          .startTimeMillis(canaryScope.getStart().toEpochMilli())
-          .startTimeIso(canaryScope.getStart().toString())
-          .endTimeMillis(canaryScope.getEnd().toEpochMilli())
-          .endTimeIso(canaryScope.getEnd().toString())
-          .stepMillis(TimeUnit.SECONDS.toMillis(canaryScope.getStep()))
-          .values(Collections.emptyList());
+          MetricSet.builder()
+              .name(canaryMetricConfig.getName())
+              .startTimeMillis(canaryScope.getStart().toEpochMilli())
+              .startTimeIso(canaryScope.getStart().toString())
+              .endTimeMillis(canaryScope.getEnd().toEpochMilli())
+              .endTimeIso(canaryScope.getEnd().toString())
+              .stepMillis(TimeUnit.SECONDS.toMillis(canaryScope.getStep()))
+              .values(Collections.emptyList());
 
       metricSetBuilder.attribute("query", query);
 
@@ -315,47 +336,59 @@ public class PrometheusMetricsService implements MetricsService {
     if (!StringUtils.isEmpty(filter)) {
       String lowerCaseFilter = filter.toLowerCase();
 
-      return metricDescriptorsCache
-        .stream()
-        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
-        .map(metricDescriptor -> metricDescriptor.getMap())
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream()
+          .filter(
+              metricDescriptor ->
+                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+          .map(metricDescriptor -> metricDescriptor.getMap())
+          .collect(Collectors.toList());
     } else {
-      return metricDescriptorsCache
-        .stream()
-        .map(metricDescriptor -> metricDescriptor.getMap())
-        .collect(Collectors.toList());
+      return metricDescriptorsCache.stream()
+          .map(metricDescriptor -> metricDescriptor.getMap())
+          .collect(Collectors.toList());
     }
   }
 
   @Scheduled(fixedDelayString = "#{@prometheusConfigurationProperties.metadataCachingIntervalMS}")
   public void updateMetricDescriptorsCache() {
     Set<AccountCredentials> accountCredentialsSet =
-      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+        CredentialsHelper.getAllAccountsOfType(
+            AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
 
     for (AccountCredentials credentials : accountCredentialsSet) {
       if (credentials instanceof PrometheusNamedAccountCredentials) {
-        PrometheusNamedAccountCredentials prometheusCredentials = (PrometheusNamedAccountCredentials)credentials;
-        PrometheusRemoteService prometheusRemoteService = prometheusCredentials.getPrometheusRemoteService();
-        PrometheusMetricDescriptorsResponse prometheusMetricDescriptorsResponse = prometheusRemoteService.listMetricDescriptors();
+        PrometheusNamedAccountCredentials prometheusCredentials =
+            (PrometheusNamedAccountCredentials) credentials;
+        PrometheusRemoteService prometheusRemoteService =
+            prometheusCredentials.getPrometheusRemoteService();
+        PrometheusMetricDescriptorsResponse prometheusMetricDescriptorsResponse =
+            prometheusRemoteService.listMetricDescriptors();
 
-        if (prometheusMetricDescriptorsResponse != null && prometheusMetricDescriptorsResponse.getStatus().equals("success")) {
+        if (prometheusMetricDescriptorsResponse != null
+            && prometheusMetricDescriptorsResponse.getStatus().equals("success")) {
           List<String> data = prometheusMetricDescriptorsResponse.getData();
 
           if (!CollectionUtils.isEmpty(data)) {
-            // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
+            // TODO(duftler): Should we instead be building the union across all accounts? This
+            // doesn't seem quite right yet.
             metricDescriptorsCache =
-              data
-                .stream()
-                .map(metricName -> new PrometheusMetricDescriptor(metricName))
-                .collect(Collectors.toList());
+                data.stream()
+                    .map(metricName -> new PrometheusMetricDescriptor(metricName))
+                    .collect(Collectors.toList());
 
-            log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptorsCache.size(), prometheusCredentials.getName());
+            log.debug(
+                "Updated cache with {} metric descriptors via account {}.",
+                metricDescriptorsCache.size(),
+                prometheusCredentials.getName());
           } else {
-            log.debug("While updating cache, found no metric descriptors via account {}.", prometheusCredentials.getName());
+            log.debug(
+                "While updating cache, found no metric descriptors via account {}.",
+                prometheusCredentials.getName());
           }
         } else {
-          log.debug("While updating cache, found no metric descriptors via account {}.", prometheusCredentials.getName());
+          log.debug(
+              "While updating cache, found no metric descriptors via account {}.",
+              prometheusCredentials.getName());
         }
       }
     }

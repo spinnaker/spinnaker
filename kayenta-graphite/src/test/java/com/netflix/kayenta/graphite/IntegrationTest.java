@@ -26,7 +26,22 @@ import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.graphite.canary.GraphiteCanaryScope;
 import com.netflix.kayenta.graphite.model.GraphiteResults;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,31 +52,9 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-
-import javax.validation.constraints.NotNull;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
 @Configuration
-@ComponentScan({
-    "com.netflix.kayenta.retrofit.config"
-})
-class TestConfig {
-}
+@ComponentScan({"com.netflix.kayenta.retrofit.config"})
+class TestConfig {}
 
 @Builder
 @ToString
@@ -69,93 +62,99 @@ class TestConfig {
 @NoArgsConstructor
 @AllArgsConstructor
 class CanaryMetricConfigWithResults {
-    @NotNull
-    @Getter
-    private CanaryMetricConfig canaryMetricConfig;
+  @NotNull @Getter private CanaryMetricConfig canaryMetricConfig;
 
-    @NotNull
-    @Getter
-    private List<GraphiteResults> graphiteResults;
+  @NotNull @Getter private List<GraphiteResults> graphiteResults;
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
 public class IntegrationTest {
 
-    @Autowired
-    private ResourceLoader resourceLoader;
+  @Autowired private ResourceLoader resourceLoader;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    private void configureObjectMapper(ObjectMapper objectMapper) {
-        objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+  private void configureObjectMapper(ObjectMapper objectMapper) {
+    objectMapper.registerSubtypes(GraphiteCanaryMetricSetQueryConfig.class);
+  }
+
+  private String getFileContent(String filename) throws IOException {
+    try (InputStream inputStream =
+        resourceLoader.getResource("classpath:" + filename).getInputStream()) {
+      return IOUtils.toString(inputStream, Charsets.UTF_8.name());
     }
+  }
 
-    private String getFileContent(String filename) throws IOException {
-        try (InputStream inputStream = resourceLoader.getResource("classpath:" + filename).getInputStream()) {
-            return IOUtils.toString(inputStream, Charsets.UTF_8.name());
-        }
-    }
+  private CanaryConfig getConfig(String filename) throws IOException {
+    String contents = getFileContent(filename);
+    configureObjectMapper(objectMapper);
+    return objectMapper.readValue(contents, CanaryConfig.class);
+  }
 
-    private CanaryConfig getConfig(String filename) throws IOException {
-        String contents = getFileContent(filename);
-        configureObjectMapper(objectMapper);
-        return objectMapper.readValue(contents, CanaryConfig.class);
-    }
+  private CanaryMetricConfigWithResults queryMetric(
+      CanaryMetricConfig metric, GraphiteCanaryScope scope) {
+    Long step = 10L;
+    Long start = scope.getStart().getEpochSecond() / step * step;
+    Long end = scope.getEnd().getEpochSecond() / step * step;
+    Long count = (end - start) / step;
 
-    private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, GraphiteCanaryScope scope) {
-        Long step = 10L;
-        Long start = scope.getStart().getEpochSecond() / step * step;
-        Long end = scope.getEnd().getEpochSecond() / step * step;
-        Long count = (end - start) / step;
+    GraphiteCanaryMetricSetQueryConfig graphiteMetricSetQuery =
+        (GraphiteCanaryMetricSetQueryConfig) metric.getQuery();
 
-        GraphiteCanaryMetricSetQueryConfig graphiteMetricSetQuery =
-            (GraphiteCanaryMetricSetQueryConfig) metric.getQuery();
+    List<List<Double>> dataPoints = new LinkedList<>();
+    LongStream.range(0, count)
+        .forEach(
+            i -> {
+              Long time = (start + i * step);
+              dataPoints.add(Lists.newArrayList((double) i, time.doubleValue()));
+            });
 
-        List<List<Double>> dataPoints = new LinkedList<>();
-        LongStream.range(0, count).forEach(i -> {
-            Long time = (start + i * step);
-            dataPoints.add(Lists.newArrayList((double) i, time.doubleValue()));
-        });
-
-        GraphiteResults graphiteResults = GraphiteResults.builder()
+    GraphiteResults graphiteResults =
+        GraphiteResults.builder()
             .target(graphiteMetricSetQuery.getMetricName() + "." + scope.getScope())
-            .datapoints(dataPoints).build();
-
-        return CanaryMetricConfigWithResults.builder()
-            .canaryMetricConfig(metric)
-            .graphiteResults(Collections.singletonList(graphiteResults))
+            .datapoints(dataPoints)
             .build();
-    }
 
-    @Test
-    public void loadConfig() throws Exception {
-        CanaryConfig config = getConfig("com/netflix/kayenta/controllers/sample-config.json");
+    return CanaryMetricConfigWithResults.builder()
+        .canaryMetricConfig(metric)
+        .graphiteResults(Collections.singletonList(graphiteResults))
+        .build();
+  }
 
-        GraphiteCanaryScope experiment = new GraphiteCanaryScope();
-        experiment.setStart(Instant.parse("2000-01-01T00:11:22Z"));
-        experiment.setEnd(Instant.parse("2000-01-01T00:15:22Z"));
-        experiment.setScope("staging");
+  @Test
+  public void loadConfig() throws Exception {
+    CanaryConfig config = getConfig("com/netflix/kayenta/controllers/sample-config.json");
 
-        GraphiteCanaryScope control = new GraphiteCanaryScope();
-        control.setStart(Instant.parse("2000-01-01T00:11:22Z"));
-        control.setEnd(Instant.parse("2000-01-01T00:15:22Z"));
-        control.setScope("prod");
+    GraphiteCanaryScope experiment = new GraphiteCanaryScope();
+    experiment.setStart(Instant.parse("2000-01-01T00:11:22Z"));
+    experiment.setEnd(Instant.parse("2000-01-01T00:15:22Z"));
+    experiment.setScope("staging");
 
-        Map<CanaryMetricConfig, List<GraphiteResults>> experimentMetrics = config.getMetrics().stream()
+    GraphiteCanaryScope control = new GraphiteCanaryScope();
+    control.setStart(Instant.parse("2000-01-01T00:11:22Z"));
+    control.setEnd(Instant.parse("2000-01-01T00:15:22Z"));
+    control.setScope("prod");
+
+    Map<CanaryMetricConfig, List<GraphiteResults>> experimentMetrics =
+        config.getMetrics().stream()
             .map((metric) -> queryMetric(metric, experiment))
-            .collect(Collectors.toMap(CanaryMetricConfigWithResults::getCanaryMetricConfig,
-                CanaryMetricConfigWithResults::getGraphiteResults));
+            .collect(
+                Collectors.toMap(
+                    CanaryMetricConfigWithResults::getCanaryMetricConfig,
+                    CanaryMetricConfigWithResults::getGraphiteResults));
 
-        Map<CanaryMetricConfig, List<GraphiteResults>> controlMetrics = config.getMetrics().stream()
+    Map<CanaryMetricConfig, List<GraphiteResults>> controlMetrics =
+        config.getMetrics().stream()
             .map((metric) -> queryMetric(metric, control))
-            .collect(Collectors.toMap(CanaryMetricConfigWithResults::getCanaryMetricConfig,
-                CanaryMetricConfigWithResults::getGraphiteResults));
+            .collect(
+                Collectors.toMap(
+                    CanaryMetricConfigWithResults::getCanaryMetricConfig,
+                    CanaryMetricConfigWithResults::getGraphiteResults));
 
-        GraphiteResults experimentResult = Lists.newArrayList(experimentMetrics.values()).get(0).get(0);
-        assertEquals(946685480L, experimentResult.getStart().longValue());
-        assertEquals(10, experimentResult.getInterval().longValue());
-        assertEquals(24, experimentResult.getDataPoints().collect(Collectors.toList()).size());
-    }
+    GraphiteResults experimentResult = Lists.newArrayList(experimentMetrics.values()).get(0).get(0);
+    assertEquals(946685480L, experimentResult.getStart().longValue());
+    assertEquals(10, experimentResult.getInterval().longValue());
+    assertEquals(24, experimentResult.getDataPoints().collect(Collectors.toList()).size());
+  }
 }

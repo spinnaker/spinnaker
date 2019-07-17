@@ -21,19 +21,18 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description="The canary analysis execution status response.")
+@ApiModel(description = "The canary analysis execution status response.")
 public class CanaryAnalysisExecutionStatusResponse {
 
   @NotNull
@@ -41,7 +40,8 @@ public class CanaryAnalysisExecutionStatusResponse {
   protected String application;
 
   @NotNull
-  @ApiModelProperty(value = "This is the initiating user. If none was supplied this will be anonymous.")
+  @ApiModelProperty(
+      value = "This is the initiating user. If none was supplied this will be anonymous.")
   protected String user;
 
   @ApiModelProperty(value = "This is the parent pipeline execution id if one was provided.")
@@ -52,19 +52,26 @@ public class CanaryAnalysisExecutionStatusResponse {
   protected String pipelineId;
 
   @NotNull
-  @ApiModelProperty(value = "This is a map of stage statuses which is useful for gaining insight into progress of the execution.")
+  @ApiModelProperty(
+      value =
+          "This is a map of stage statuses which is useful for gaining insight into progress of the execution.")
   protected List<StageMetadata> stageStatus;
 
   @NotNull
-  @ApiModelProperty(value = "This indicates that the task/stage/pipeline has finished its work, independent of whether it was successful.")
+  @ApiModelProperty(
+      value =
+          "This indicates that the task/stage/pipeline has finished its work, independent of whether it was successful.")
   protected Boolean complete;
 
   @NotNull
-  @ApiModelProperty(value = "This is the Orca Execution Status for the Canary Analysis Pipeline Execution.")
+  @ApiModelProperty(
+      value = "This is the Orca Execution Status for the Canary Analysis Pipeline Execution.")
   protected ExecutionStatus executionStatus;
 
   @JsonProperty("status")
-  @ApiModelProperty(value = "This is the lowercased serialized Orca status which is similar to the status in the /canary endpoints.")
+  @ApiModelProperty(
+      value =
+          "This is the lowercased serialized Orca status which is similar to the status in the /canary endpoints.")
   public String status() {
     return executionStatus.toString().toLowerCase();
   }
@@ -72,7 +79,9 @@ public class CanaryAnalysisExecutionStatusResponse {
   @ApiModelProperty(value = "This shows the first exception if any occurred.")
   protected Object exception;
 
-  @ApiModelProperty(value = "This is the actual result of the canary analysis execution which will be present when complete is true.")
+  @ApiModelProperty(
+      value =
+          "This is the actual result of the canary analysis execution which will be present when complete is true.")
   protected CanaryAnalysisExecutionResult canaryAnalysisExecutionResult;
 
   @ApiModelProperty(value = "The supplied request configuration.")
@@ -87,21 +96,33 @@ public class CanaryAnalysisExecutionStatusResponse {
   // (startTime - buildTime) should indicate the time it was in the queue before starting.
   // (endTime - buildTime) should indicate the total time it took from request to result.
   // (endTime - startTime) should be the amount of time the canary was actually running.
-  @ApiModelProperty(value = "buildTimeMillis is in epoch millis time and refers to the time the pipeline was first created.")
+  @ApiModelProperty(
+      value =
+          "buildTimeMillis is in epoch millis time and refers to the time the pipeline was first created.")
   protected Long buildTimeMillis;
 
-  @ApiModelProperty(value = "buildTimeIso is an ISO 8061 string and refers to the time the pipeline was first created.")
+  @ApiModelProperty(
+      value =
+          "buildTimeIso is an ISO 8061 string and refers to the time the pipeline was first created.")
   protected String buildTimeIso;
 
-  @ApiModelProperty(value = "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
+  @ApiModelProperty(
+      value =
+          "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected Long startTimeMillis;
 
-  @ApiModelProperty(value = "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
+  @ApiModelProperty(
+      value =
+          "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected String startTimeIso;
 
-  @ApiModelProperty(value = "endTimeMillis is in epoch millis time and refers to the time the pipeline ended, either successfully or unsuccessfully.")
+  @ApiModelProperty(
+      value =
+          "endTimeMillis is in epoch millis time and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected Long endTimeMillis;
 
-  @ApiModelProperty(value = "endTimeIso is an ISO 8061 string and refers to the time the pipeline ended, either successfully or unsuccessfully.")
+  @ApiModelProperty(
+      value =
+          "endTimeIso is an ISO 8061 string and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected String endTimeIso;
 }

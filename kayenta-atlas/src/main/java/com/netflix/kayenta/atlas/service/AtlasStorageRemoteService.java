@@ -16,9 +16,8 @@
 package com.netflix.kayenta.atlas.service;
 
 import com.netflix.kayenta.atlas.model.AtlasStorage;
-import retrofit.http.GET;
-
 import java.util.Map;
+import retrofit.http.GET;
 
 public interface AtlasStorageRemoteService {
 

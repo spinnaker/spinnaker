@@ -16,23 +16,24 @@
 
 package com.netflix.kayenta.canaryanalysis.orca.stage;
 
+import com.netflix.kayenta.canaryanalysis.orca.task.GenerateCanaryAnalysisResultTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.kayenta.canaryanalysis.orca.task.GenerateCanaryAnalysisResultTask;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
-
 /**
- * The finalizer stage that is intended to run regardless of whether or not there are upstream failures.
- * This stage will generate the aggregated results of the individual canary runs or bubble up errors that occurred.
+ * The finalizer stage that is intended to run regardless of whether or not there are upstream
+ * failures. This stage will generate the aggregated results of the individual canary runs or bubble
+ * up errors that occurred.
  */
 @Component
 public class GenerateCanaryAnalysisResultStage implements StageDefinitionBuilder {
 
   public static final String STAGE_TYPE = "generateCanaryAnalysisResultStage";
-  public static final String STAGE_DESCRIPTION = "Aggregates and evaluates the canary executions and generates the final results.";
+  public static final String STAGE_DESCRIPTION =
+      "Aggregates and evaluates the canary executions and generates the final results.";
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {

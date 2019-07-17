@@ -23,6 +23,9 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -30,10 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @ConditionalOnProperty("kayenta.memory.enabled")
@@ -48,9 +47,11 @@ public class MemoryConfiguration {
   }
 
   @Bean
-  StorageService storageService(MemoryConfigurationProperties memoryConfigurationProperties,
-                                AccountCredentialsRepository accountCredentialsRepository) {
-    MemoryStorageService.MemoryStorageServiceBuilder memoryStorageServiceBuilder = MemoryStorageService.builder();
+  StorageService storageService(
+      MemoryConfigurationProperties memoryConfigurationProperties,
+      AccountCredentialsRepository accountCredentialsRepository) {
+    MemoryStorageService.MemoryStorageServiceBuilder memoryStorageServiceBuilder =
+        MemoryStorageService.builder();
 
     for (MemoryManagedAccount memoryManagedAccount : memoryConfigurationProperties.getAccounts()) {
       String name = memoryManagedAccount.getName();
@@ -58,11 +59,13 @@ public class MemoryConfiguration {
 
       log.info("Registering Memory account {} with supported types {}.", name, supportedTypes);
 
-      MemoryAccountCredentials memoryAccountCredentials = MemoryAccountCredentials.builder().build();
-      MemoryNamedAccountCredentials.MemoryNamedAccountCredentialsBuilder memoryNamedAccountCredentialsBuilder =
-        MemoryNamedAccountCredentials.builder()
-          .name(name)
-          .credentials(memoryAccountCredentials);
+      MemoryAccountCredentials memoryAccountCredentials =
+          MemoryAccountCredentials.builder().build();
+      MemoryNamedAccountCredentials.MemoryNamedAccountCredentialsBuilder
+          memoryNamedAccountCredentialsBuilder =
+              MemoryNamedAccountCredentials.builder()
+                  .name(name)
+                  .credentials(memoryAccountCredentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         memoryNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
@@ -74,14 +77,17 @@ public class MemoryConfiguration {
       Map<ObjectType, Map<String, Map<String, Object>>> metadataStorage = new ConcurrentHashMap<>();
       memoryNamedAccountCredentialsBuilder.metadata(metadataStorage);
 
-      MemoryNamedAccountCredentials memoryNamedAccountCredentials = memoryNamedAccountCredentialsBuilder.build();
+      MemoryNamedAccountCredentials memoryNamedAccountCredentials =
+          memoryNamedAccountCredentialsBuilder.build();
       accountCredentialsRepository.save(name, memoryNamedAccountCredentials);
       memoryStorageServiceBuilder.accountName(name);
     }
 
     MemoryStorageService memoryStorageService = memoryStorageServiceBuilder.build();
 
-    log.info("Populated MemoryStorageService with {} in-memory accounts.", memoryStorageService.getAccountNames().size());
+    log.info(
+        "Populated MemoryStorageService with {} in-memory accounts.",
+        memoryStorageService.getAccountNames().size());
 
     return memoryStorageService;
   }

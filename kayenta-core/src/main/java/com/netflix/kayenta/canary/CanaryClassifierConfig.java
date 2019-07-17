@@ -17,10 +17,9 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-
-import javax.validation.constraints.NotNull;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Builder
 @ToString
@@ -29,11 +28,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryClassifierConfig {
 
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, Double> groupWeights;
+  @NotNull @Singular @Getter private Map<String, Double> groupWeights;
 
-  @Getter
-  private CanaryClassifierThresholdsConfig scoreThresholds;
+  @Getter private CanaryClassifierThresholdsConfig scoreThresholds;
 }

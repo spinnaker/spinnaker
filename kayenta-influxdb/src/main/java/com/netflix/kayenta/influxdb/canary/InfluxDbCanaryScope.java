@@ -17,7 +17,6 @@
 package com.netflix.kayenta.influxdb.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -25,5 +24,4 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class InfluxDbCanaryScope extends CanaryScope {
-}
+public class InfluxDbCanaryScope extends CanaryScope {}

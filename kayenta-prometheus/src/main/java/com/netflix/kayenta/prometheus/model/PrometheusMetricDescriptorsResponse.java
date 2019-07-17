@@ -16,15 +16,14 @@
 
 package com.netflix.kayenta.prometheus.model;
 
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @ToString
@@ -33,11 +32,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PrometheusMetricDescriptorsResponse {
 
-  @NotNull
-  @Getter
-  private String status;
+  @NotNull @Getter private String status;
 
-  @NotNull
-  @Getter
-  private List<String> data;
+  @NotNull @Getter private List<String> data;
 }

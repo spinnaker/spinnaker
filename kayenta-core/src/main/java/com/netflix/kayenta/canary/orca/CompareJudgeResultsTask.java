@@ -26,15 +26,14 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -47,11 +46,12 @@ public class CompareJudgeResultsTask implements RetryableTask {
   private final ExecutionMapper executionMapper;
 
   @Autowired
-  public CompareJudgeResultsTask(AccountCredentialsRepository accountCredentialsRepository,
-                                 StorageServiceRepository storageServiceRepository,
-                                 List<CanaryJudge> canaryJudges,
-                                 ObjectMapper kayentaObjectMapper,
-                                 ExecutionMapper executionMapper) {
+  public CompareJudgeResultsTask(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository,
+      List<CanaryJudge> canaryJudges,
+      ObjectMapper kayentaObjectMapper,
+      ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.canaryJudges = canaryJudges;
@@ -75,15 +75,15 @@ public class CompareJudgeResultsTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    Map judge1Result = (Map)context.get("judge1Result");
-    Map judge2Result = (Map)context.get("judge2Result");
+    Map judge1Result = (Map) context.get("judge1Result");
+    Map judge2Result = (Map) context.get("judge2Result");
 
     // TODO: Now that the plumbing works, perform some kind of actual comparison.
     Map<String, Map> comparisonResult =
-      ImmutableMap.<String, Map>builder()
-        .put("judge1Result", judge1Result)
-        .put("judge2Result", judge2Result)
-        .build();
+        ImmutableMap.<String, Map>builder()
+            .put("judge1Result", judge1Result)
+            .put("judge2Result", judge2Result)
+            .build();
     Map<String, Map> outputs = Collections.singletonMap("comparisonResult", comparisonResult);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();

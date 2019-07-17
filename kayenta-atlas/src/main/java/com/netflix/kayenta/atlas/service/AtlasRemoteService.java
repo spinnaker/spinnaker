@@ -17,19 +17,18 @@
 package com.netflix.kayenta.atlas.service;
 
 import com.netflix.kayenta.atlas.model.AtlasResults;
+import java.util.List;
 import retrofit.http.GET;
 import retrofit.http.Query;
-
-import java.time.Instant;
-import java.util.List;
 
 public interface AtlasRemoteService {
 
   @GET("/api/v2/fetch")
-  List<AtlasResults> fetch(@Query("q") String q,
-                           @Query("s") Long start,
-                           @Query("e") Long end,
-                           @Query("step") String step,
-                           @Query("id") String id,
-                           @Query("kayentaQueryUUID") String kayentaQueryUUID);
+  List<AtlasResults> fetch(
+      @Query("q") String q,
+      @Query("s") Long start,
+      @Query("e") Long end,
+      @Query("step") String step,
+      @Query("id") String id,
+      @Query("kayentaQueryUUID") String kayentaQueryUUID);
 }

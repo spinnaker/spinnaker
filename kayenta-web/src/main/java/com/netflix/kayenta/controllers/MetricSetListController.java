@@ -24,17 +24,16 @@ import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/metricSetList")
@@ -45,56 +44,73 @@ public class MetricSetListController {
   private final StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  public MetricSetListController(AccountCredentialsRepository accountCredentialsRepository, StorageServiceRepository storageServiceRepository) {
+  public MetricSetListController(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
   }
 
   @ApiOperation(value = "Retrieve a metric set list from object storage")
   @RequestMapping(value = "/{metricSetListId:.+}", method = RequestMethod.GET)
-  public List<MetricSet> loadMetricSetList(@RequestParam(required = false) final String accountName,
-                                           @PathVariable String metricSetListId) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+  public List<MetricSet> loadMetricSetList(
+      @RequestParam(required = false) final String accountName,
+      @PathVariable String metricSetListId) {
+    String resolvedAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read metric set list from bucket."));
+        storageServiceRepository
+            .getOne(resolvedAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to read metric set list from bucket."));
 
-    return storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
+    return storageService.loadObject(
+        resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
   }
 
   @ApiOperation(value = "Write a metric set list to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public Map storeMetricSetList(@RequestParam(required = false) final String accountName,
-                                @RequestBody List<MetricSet> metricSetList) throws IOException {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+  public Map storeMetricSetList(
+      @RequestParam(required = false) final String accountName,
+      @RequestBody List<MetricSet> metricSetList)
+      throws IOException {
+    String resolvedAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list to bucket."));
+        storageServiceRepository
+            .getOne(resolvedAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to write metric set list to bucket."));
     String metricSetListId = UUID.randomUUID() + "";
 
-    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+    storageService.storeObject(
+        resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }
 
   @ApiOperation(value = "Delete a metric set list")
   @RequestMapping(value = "/{metricSetListId:.+}", method = RequestMethod.DELETE)
-  public void deleteMetricSetList(@RequestParam(required = false) final String accountName,
-                                  @PathVariable String metricSetListId,
-                                  HttpServletResponse response) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+  public void deleteMetricSetList(
+      @RequestParam(required = false) final String accountName,
+      @PathVariable String metricSetListId,
+      HttpServletResponse response) {
+    String resolvedAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete metric set list."));
+        storageServiceRepository
+            .getOne(resolvedAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to delete metric set list."));
 
     storageService.deleteObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
 
@@ -103,14 +119,18 @@ public class MetricSetListController {
 
   @ApiOperation(value = "Retrieve a list of metric set list ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
-  public List<Map<String, Object>> listAllMetricSetLists(@RequestParam(required = false) final String accountName) {
-    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
-                                                                              AccountCredentials.Type.OBJECT_STORE,
-                                                                              accountCredentialsRepository);
+  public List<Map<String, Object>> listAllMetricSetLists(
+      @RequestParam(required = false) final String accountName) {
+    String resolvedAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
     StorageService storageService =
-      storageServiceRepository
-        .getOne(resolvedAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all metric set lists."));
+        storageServiceRepository
+            .getOne(resolvedAccountName)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No storage service was configured; unable to list all metric set lists."));
 
     return storageService.listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_LIST);
   }

@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.stackdriver.controllers;
 
+import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefaultProperty;
+
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig;
@@ -27,6 +29,10 @@ import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScopeFactory;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationTestControllerDefaultProperties;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -37,13 +43,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-
-import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefaultProperty;
-
 @RestController
 @RequestMapping("/fetch/stackdriver")
 @Slf4j
@@ -51,62 +50,94 @@ public class StackdriverFetchController {
 
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final SynchronousQueryProcessor synchronousQueryProcessor;
-  private final StackdriverConfigurationTestControllerDefaultProperties stackdriverConfigurationTestControllerDefaultProperties;
+  private final StackdriverConfigurationTestControllerDefaultProperties
+      stackdriverConfigurationTestControllerDefaultProperties;
 
   @Autowired
-  public StackdriverFetchController(AccountCredentialsRepository accountCredentialsRepository,
-                                    SynchronousQueryProcessor synchronousQueryProcessor,
-                                    StackdriverConfigurationTestControllerDefaultProperties stackdriverConfigurationTestControllerDefaultProperties) {
+  public StackdriverFetchController(
+      AccountCredentialsRepository accountCredentialsRepository,
+      SynchronousQueryProcessor synchronousQueryProcessor,
+      StackdriverConfigurationTestControllerDefaultProperties
+          stackdriverConfigurationTestControllerDefaultProperties) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
-    this.stackdriverConfigurationTestControllerDefaultProperties = stackdriverConfigurationTestControllerDefaultProperties;
+    this.stackdriverConfigurationTestControllerDefaultProperties =
+        stackdriverConfigurationTestControllerDefaultProperties;
   }
 
-  @ApiOperation(value = "Exercise the Stackdriver Metrics Service directly, without any orchestration or judging")
+  @ApiOperation(
+      value =
+          "Exercise the Stackdriver Metrics Service directly, without any orchestration or judging")
   @RequestMapping(value = "/query", method = RequestMethod.POST)
-  public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
-                          @RequestParam(required = false) final String storageAccountName,
-                          @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                          @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
-                          @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
-                          @RequestParam(required = false) String project,
-                          @ApiParam(value = "Used to identify the type of the resource being queried, " +
-                                            "e.g. aws_ec2_instance, gce_instance.")
-                            @RequestParam(required = false) String resourceType,
-                          @ApiParam(value = "The location to use when scoping the query. Valid choices depend on what cloud " +
-                                            "platform the query relates to (could be a region, a namespace, or something else).")
-                            @RequestParam(required = false) String location,
-                          @ApiParam(value = "The name of the resource to use when scoping the query. " +
-                                            "The most common use-case is to provide a server group name.")
-                            @RequestParam(required = false) String scope,
-                          @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:48:00Z")
-                            @RequestParam(required = false) String startTimeIso,
-                          @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:51:00Z")
-                            @RequestParam(required = false) String endTimeIso,
-                          @ApiParam(example = "60", value = "seconds") @RequestParam Long step,
-                          @RequestParam(required = false) final String customFilter,
-                          @ApiParam @RequestBody final Map<String, String> extendedScopeParams,
-                          @ApiParam(defaultValue = "false")
-                            @RequestParam(required = false) final boolean dryRun) throws IOException {
+  public Map queryMetrics(
+      @RequestParam(required = false) final String metricsAccountName,
+      @RequestParam(required = false) final String storageAccountName,
+      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+      @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam
+          String metricType,
+      @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
+      @RequestParam(required = false) String project,
+      @ApiParam(
+              value =
+                  "Used to identify the type of the resource being queried, "
+                      + "e.g. aws_ec2_instance, gce_instance.")
+          @RequestParam(required = false)
+          String resourceType,
+      @ApiParam(
+              value =
+                  "The location to use when scoping the query. Valid choices depend on what cloud "
+                      + "platform the query relates to (could be a region, a namespace, or something else).")
+          @RequestParam(required = false)
+          String location,
+      @ApiParam(
+              value =
+                  "The name of the resource to use when scoping the query. "
+                      + "The most common use-case is to provide a server group name.")
+          @RequestParam(required = false)
+          String scope,
+      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:48:00Z")
+          @RequestParam(required = false)
+          String startTimeIso,
+      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:51:00Z")
+          @RequestParam(required = false)
+          String endTimeIso,
+      @ApiParam(example = "60", value = "seconds") @RequestParam Long step,
+      @RequestParam(required = false) final String customFilter,
+      @ApiParam @RequestBody final Map<String, String> extendedScopeParams,
+      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      throws IOException {
     // Apply defaults.
-    project = determineDefaultProperty(project, "project", stackdriverConfigurationTestControllerDefaultProperties);
-    resourceType = determineDefaultProperty(resourceType, "resourceType", stackdriverConfigurationTestControllerDefaultProperties);
-    location = determineDefaultProperty(location, "location", stackdriverConfigurationTestControllerDefaultProperties);
-    scope = determineDefaultProperty(scope, "scope", stackdriverConfigurationTestControllerDefaultProperties);
-    startTimeIso = determineDefaultProperty(startTimeIso, "start", stackdriverConfigurationTestControllerDefaultProperties);
-    endTimeIso = determineDefaultProperty(endTimeIso, "end", stackdriverConfigurationTestControllerDefaultProperties);
+    project =
+        determineDefaultProperty(
+            project, "project", stackdriverConfigurationTestControllerDefaultProperties);
+    resourceType =
+        determineDefaultProperty(
+            resourceType, "resourceType", stackdriverConfigurationTestControllerDefaultProperties);
+    location =
+        determineDefaultProperty(
+            location, "location", stackdriverConfigurationTestControllerDefaultProperties);
+    scope =
+        determineDefaultProperty(
+            scope, "scope", stackdriverConfigurationTestControllerDefaultProperties);
+    startTimeIso =
+        determineDefaultProperty(
+            startTimeIso, "start", stackdriverConfigurationTestControllerDefaultProperties);
+    endTimeIso =
+        determineDefaultProperty(
+            endTimeIso, "end", stackdriverConfigurationTestControllerDefaultProperties);
 
-    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
-                                                                                     AccountCredentials.Type.METRICS_STORE,
-                                                                                     accountCredentialsRepository);
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
+    String resolvedMetricsAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            metricsAccountName,
+            AccountCredentials.Type.METRICS_STORE,
+            accountCredentialsRepository);
+    String resolvedStorageAccountName =
+        CredentialsHelper.resolveAccountByNameOrType(
+            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
 
-    StackdriverCanaryMetricSetQueryConfig.StackdriverCanaryMetricSetQueryConfigBuilder stackdriverCanaryMetricSetQueryConfigBuilder =
-      StackdriverCanaryMetricSetQueryConfig
-        .builder()
-        .metricType(metricType);
+    StackdriverCanaryMetricSetQueryConfig.StackdriverCanaryMetricSetQueryConfigBuilder
+        stackdriverCanaryMetricSetQueryConfigBuilder =
+            StackdriverCanaryMetricSetQueryConfig.builder().metricType(metricType);
 
     if (!StringUtils.isEmpty(resourceType)) {
       stackdriverCanaryMetricSetQueryConfigBuilder.resourceType(resourceType);
@@ -121,11 +152,10 @@ public class StackdriverFetchController {
     }
 
     CanaryMetricConfig canaryMetricConfig =
-      CanaryMetricConfig
-        .builder()
-        .name(metricSetName)
-        .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
-        .build();
+        CanaryMetricConfig.builder()
+            .name(metricSetName)
+            .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
+            .build();
 
     CanaryScope canaryScope = new CanaryScope();
     canaryScope.setScope(scope);
@@ -140,14 +170,16 @@ public class StackdriverFetchController {
 
     canaryScope.setExtendedScopeParams(extendedScopeParams);
 
-    CanaryScope stackdriverCanaryScope = new StackdriverCanaryScopeFactory().buildCanaryScope(canaryScope);
+    CanaryScope stackdriverCanaryScope =
+        new StackdriverCanaryScopeFactory().buildCanaryScope(canaryScope);
 
-    return synchronousQueryProcessor.processQueryAndReturnMap(resolvedMetricsAccountName,
-                                                              resolvedStorageAccountName,
-                                                              null,
-                                                              canaryMetricConfig,
-                                                              0,
-                                                              stackdriverCanaryScope,
-                                                              dryRun);
+    return synchronousQueryProcessor.processQueryAndReturnMap(
+        resolvedMetricsAccountName,
+        resolvedStorageAccountName,
+        null,
+        canaryMetricConfig,
+        0,
+        stackdriverCanaryScope,
+        dryRun);
   }
 }
