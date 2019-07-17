@@ -25,7 +25,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
 
 @Service
 class WebhookService {
@@ -40,7 +39,7 @@ class WebhookService {
   ];
 
   @Autowired
-  private RestTemplate restTemplate
+  private List<RestTemplateProvider> restTemplateProviders = []
 
   @Autowired
   private UserConfiguredUrlRestrictions userConfiguredUrlRestrictions
@@ -49,17 +48,29 @@ class WebhookService {
   private WebhookProperties preconfiguredWebhookProperties
 
   ResponseEntity<Object> exchange(HttpMethod httpMethod, String url, Object payload, Object customHeaders) {
-    URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
+    def restTemplateProvider = restTemplateProviders.find {
+      it.supports(url)
+    }
+
+    URI validatedUri = userConfiguredUrlRestrictions.validateURI(
+      restTemplateProvider.getTargetUrl(url)
+    )
     HttpHeaders headers = buildHttpHeaders(customHeaders)
     HttpEntity<Object> payloadEntity = new HttpEntity<>(payload, headers)
-    return restTemplate.exchange(validatedUri, httpMethod, payloadEntity, Object)
+    return restTemplateProvider.getRestTemplate().exchange(validatedUri, httpMethod, payloadEntity, Object)
   }
 
   ResponseEntity<Object> getStatus(String url, Object customHeaders) {
-    URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
+    def restTemplateProvider = restTemplateProviders.find {
+      it.supports(url)
+    }
+
+    URI validatedUri = userConfiguredUrlRestrictions.validateURI(
+      restTemplateProvider.getTargetUrl(url)
+    )
     HttpHeaders headers = buildHttpHeaders(customHeaders)
     HttpEntity<Object> httpEntity = new HttpEntity<>(headers)
-    return restTemplate.exchange(validatedUri, HttpMethod.GET, httpEntity, Object)
+    return restTemplateProvider.getRestTemplate().exchange(validatedUri, HttpMethod.GET, httpEntity, Object)
   }
 
   List<WebhookProperties.PreconfiguredWebhook> getPreconfiguredWebhooks() {
