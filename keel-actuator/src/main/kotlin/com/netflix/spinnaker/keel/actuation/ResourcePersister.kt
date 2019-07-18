@@ -1,7 +1,10 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -9,6 +12,8 @@ import com.netflix.spinnaker.keel.events.CreateEvent
 import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
@@ -21,19 +26,42 @@ import java.time.Clock
 
 @Component
 class ResourcePersister(
+  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val artifactRepository: ArtifactRepository,
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher
 ) {
+  fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
+    DeliveryConfig(
+      name = deliveryConfig.name,
+      application = deliveryConfig.application,
+      artifacts = deliveryConfig.artifacts,
+      environments = deliveryConfig.environments.map { env ->
+        Environment(
+          name = env.name,
+          resources = env.resources.map { resource ->
+            upsert(resource as SubmittedResource<Any>)
+          }.toSet()
+        )
+      }.toSet()
+    )
+      .also {
+        it.artifacts.forEach { artifact ->
+          artifactRepository.register(artifact)
+        }
+        deliveryConfigRepository.store(it)
+      }
+
   fun upsert(resource: SubmittedResource<Any>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
-      .also {
+      .let {
         if (it.name.isRegistered()) {
-          return update(it.name, resource)
+          update(it.name, resource)
         } else {
-          return create(resource)
+          create(resource)
         }
       }
 
@@ -77,14 +105,13 @@ class ResourcePersister(
         publisher.publishEvent(DeleteEvent(name))
       }
 
-  private fun ResourceName.isRegistered(): Boolean {
+  private fun ResourceName.isRegistered(): Boolean =
     try {
       resourceRepository.get(this, Any::class.java)
-      return true
+      true
     } catch (e: NoSuchResourceException) {
-      return false
+      false
     }
-  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

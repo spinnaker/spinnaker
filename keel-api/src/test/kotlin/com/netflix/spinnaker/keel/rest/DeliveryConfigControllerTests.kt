@@ -6,13 +6,15 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.api.SubmittedMetadata
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -66,18 +68,22 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   lateinit var resourceRepository: InMemoryResourceRepository
 
   @Autowired
+  lateinit var artifactRepository: InMemoryArtifactRepository
+
+  @Autowired
   lateinit var resourcePersister: ResourcePersister
 
   fun tests() = rootContext {
     after {
       deliveryConfigRepository.dropAll()
       resourceRepository.dropAll()
+      artifactRepository.dropAll()
     }
 
     context("getting a delivery config manifest") {
       before {
-        deliveryConfigRepository.store(
-          DeliveryConfig(
+        resourcePersister.upsert(
+          SubmittedDeliveryConfig(
             name = "keel-manifest",
             application = "keel",
             artifacts = setOf(DeliveryArtifact(
@@ -85,29 +91,21 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
               type = DEB
             )),
             environments = setOf(
-              Environment(
+              SubmittedEnvironment(
                 name = "test",
-                resources = setOf(Resource(
+                resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = mapOf(
-                    "uid" to randomUID(),
-                    "name" to "resource-in-test",
-                    "serviceAccount" to "keel@spinnaker"
-                  ),
+                  metadata = SubmittedMetadata("keel@spinnaker"),
                   spec = "resource in test"
                 ))
               ),
-              Environment(
+              SubmittedEnvironment(
                 name = "prod",
-                resources = setOf(Resource(
+                resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = mapOf(
-                    "uid" to randomUID(),
-                    "name" to "resource-in-prod",
-                    "serviceAccount" to "keel@spinnaker"
-                  ),
+                  metadata = SubmittedMetadata("keel@spinnaker"),
                   spec = "resource in prod"
                 ))
               )

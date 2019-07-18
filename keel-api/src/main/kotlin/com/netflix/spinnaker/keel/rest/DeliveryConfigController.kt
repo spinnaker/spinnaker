@@ -1,10 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
@@ -27,22 +25,7 @@ class DeliveryConfigController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun upsert(@RequestBody deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
-    DeliveryConfig(
-      name = deliveryConfig.name,
-      application = deliveryConfig.application,
-      artifacts = deliveryConfig.artifacts,
-      environments = deliveryConfig.environments.map { env ->
-        Environment(
-          name = env.name,
-          resources = env.resources.map { resource ->
-            resourcePersister.upsert(resource)
-          }.toSet()
-        )
-      }.toSet()
-    )
-      .also {
-        deliveryConfigRepository.store(it)
-      }
+    resourcePersister.upsert(deliveryConfig)
 
   @GetMapping(
     path = ["/{name}"],
@@ -53,15 +36,3 @@ class DeliveryConfigController(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
-
-data class SubmittedDeliveryConfig(
-  val name: String,
-  val application: String,
-  val artifacts: Set<DeliveryArtifact> = emptySet(),
-  val environments: Set<SubmittedEnvironment> = emptySet()
-)
-
-data class SubmittedEnvironment(
-  val name: String,
-  val resources: Set<SubmittedResource<Any>>
-)

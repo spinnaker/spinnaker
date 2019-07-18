@@ -39,12 +39,6 @@ class SqlDeliveryConfigRepository(
           .onDuplicateKeyIgnore()
           .execute()
         artifacts.forEach { artifact ->
-          insertInto(DELIVERY_ARTIFACT)
-            .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
-            .set(DELIVERY_ARTIFACT.NAME, artifact.name)
-            .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
-            .onDuplicateKeyIgnore()
-            .execute()
           insertInto(DELIVERY_CONFIG_ARTIFACT)
             .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
             .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, select(DELIVERY_ARTIFACT.UID).from(DELIVERY_ARTIFACT).where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)))

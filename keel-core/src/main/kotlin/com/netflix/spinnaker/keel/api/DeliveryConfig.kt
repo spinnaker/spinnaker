@@ -6,3 +6,15 @@ data class DeliveryConfig(
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<Environment> = emptySet()
 )
+
+data class SubmittedDeliveryConfig(
+  val name: String,
+  val application: String,
+  val artifacts: Set<DeliveryArtifact> = emptySet(),
+  val environments: Set<SubmittedEnvironment> = emptySet()
+)
+
+data class SubmittedEnvironment(
+  val name: String,
+  val resources: Set<SubmittedResource<*>>
+)

@@ -2,10 +2,15 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
@@ -13,6 +18,8 @@ import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.get
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
@@ -24,34 +31,40 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isTrue
+import strikt.assertions.succeeded
 import java.time.Clock
 import java.time.Duration
 
 @AutoConfigureMockMvc
 internal class ResourcePersisterTests : JUnit5Minutests {
 
-  data class Fixture(
-    val repository: InMemoryResourceRepository = InMemoryResourceRepository(),
-    val handler: ResourceHandler<DummyResourceSpec> = DummyResourceHandler(),
-    val clock: Clock = Clock.systemDefaultZone(),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
-    val subject: ResourcePersister = ResourcePersister(repository, listOf(handler), clock, publisher)
-  ) {
+  object Fixture {
+    val artifactRepository: InMemoryArtifactRepository = InMemoryArtifactRepository()
+    val deliveryConfigRepository: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
+    val resourceRepository: InMemoryResourceRepository = InMemoryResourceRepository()
+    private val handler: ResourceHandler<DummyResourceSpec> = DummyResourceHandler()
+    private val clock: Clock = Clock.systemDefaultZone()
+    private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val subject: ResourcePersister = ResourcePersister(deliveryConfigRepository, artifactRepository, resourceRepository, listOf(handler), clock, publisher)
+
     lateinit var resource: Resource<DummyResourceSpec>
+    lateinit var deliveryConfig: DeliveryConfig
 
     @Suppress("UNCHECKED_CAST")
-    fun create(submittedResource: SubmittedResource<Any>) {
+    fun createResource(submittedResource: SubmittedResource<Any>) {
       resource = subject.upsert(submittedResource) as Resource<DummyResourceSpec>
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun update(updatedSpec: Any) {
+    fun updateResource(updatedSpec: Any) {
       resource = subject.upsert(SubmittedResource(
         metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
@@ -61,100 +74,164 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     }
 
     fun resourcesDueForCheck() =
-      repository.nextResourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
+      resourceRepository.nextResourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
 
     fun eventHistory() =
-      repository.eventHistory(resource.uid)
+      resourceRepository.eventHistory(resource.uid)
+
+    fun createDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig) {
+      deliveryConfig = subject.upsert(submittedDeliveryConfig)
+    }
   }
 
-  @Suppress("UNCHECKED_CAST")
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture() }
+    fixture { Fixture }
 
-    after {
-      repository.dropAll()
-    }
+    context("persisting individual resources") {
 
-    context("resource lifecycle") {
-      context("creation") {
-        before {
-          create(SubmittedResource(
-            metadata = SubmittedMetadata("keel@spinnaker"),
-            apiVersion = SPINNAKER_API_V1.subApi("test"),
-            kind = "whatever",
-            spec = DummyResourceSpec("o hai")
-          ))
-        }
+      after {
+        deliveryConfigRepository.dropAll()
+        artifactRepository.dropAll()
+        resourceRepository.dropAll()
+      }
 
-        test("stores the normalized resource") {
-          val persistedResource = repository.get<DummyResourceSpec>(resource.name)
-          expectThat(persistedResource) {
-            get { name.value }.isEqualTo("test:whatever:o hai")
-            get { spec.state }.isEqualTo("o hai")
-          }
-        }
-
-        test("records that the resource was created") {
-          expectThat(eventHistory())
-            .hasSize(1)
-            .first()
-            .isA<ResourceCreated>()
-        }
-
-        test("checks the resource") {
-          expectThat(resourcesDueForCheck())
-            .hasSize(1)
-            .first()
-            .get { uid }.isEqualTo(resource.uid)
-        }
-
-        context("after an update") {
+      context("resource lifecycle") {
+        context("creation") {
           before {
-            resourcesDueForCheck()
-            subject.upsert(SubmittedResource(
+            createResource(SubmittedResource(
               metadata = SubmittedMetadata("keel@spinnaker"),
-              apiVersion = resource.apiVersion,
-              kind = resource.kind,
-              spec = DummyResourceSpec("o hai", "kthxbye")
+              apiVersion = SPINNAKER_API_V1.subApi("test"),
+              kind = "whatever",
+              spec = DummyResourceSpec("o hai")
             ))
           }
 
-          test("stores the updated resource") {
-            expectThat(repository.get<DummyResourceSpec>(resource.name))
-              .get { spec.data }
-              .isEqualTo("kthxbye")
+          test("stores the normalized resource") {
+            val persistedResource = resourceRepository.get<DummyResourceSpec>(resource.name)
+            expectThat(persistedResource) {
+              get { name.value }.isEqualTo("test:whatever:o hai")
+              get { spec.state }.isEqualTo("o hai")
+            }
           }
 
-          test("records that the resource was updated") {
+          test("records that the resource was created") {
             expectThat(eventHistory())
-              .hasSize(2)
+              .hasSize(1)
               .first()
-              .isA<ResourceUpdated>()
+              .isA<ResourceCreated>()
           }
 
-          test("checks the resource again") {
+          test("will check the resource") {
             expectThat(resourcesDueForCheck())
               .hasSize(1)
               .first()
               .get { uid }.isEqualTo(resource.uid)
           }
+
+          context("after an update") {
+            before {
+              resourcesDueForCheck()
+              subject.upsert(SubmittedResource<Any>(
+                metadata = SubmittedMetadata("keel@spinnaker"),
+                apiVersion = resource.apiVersion,
+                kind = resource.kind,
+                spec = DummyResourceSpec("o hai", "kthxbye")
+              ))
+            }
+
+            test("stores the updated resource") {
+              expectThat(resourceRepository.get<DummyResourceSpec>(resource.name))
+                .get { spec.data }
+                .isEqualTo("kthxbye")
+            }
+
+            test("records that the resource was updated") {
+              expectThat(eventHistory())
+                .hasSize(2)
+                .first()
+                .isA<ResourceUpdated>()
+            }
+
+            test("will check the resource again") {
+              expectThat(resourcesDueForCheck())
+                .hasSize(1)
+                .first()
+                .get { uid }.isEqualTo(resource.uid)
+            }
+          }
+
+          context("after a no-op update") {
+            before {
+              resourcesDueForCheck()
+              updateResource(resource.spec)
+            }
+
+            test("does not record that the resource was updated") {
+              expectThat(eventHistory())
+                .hasSize(1)
+            }
+
+            test("will not check the resource again") {
+              expectThat(resourcesDueForCheck())
+                .isEmpty()
+            }
+          }
+        }
+      }
+    }
+
+    context("persisting delivery config manifests") {
+      after {
+        deliveryConfigRepository.dropAll()
+        artifactRepository.dropAll()
+        resourceRepository.dropAll()
+      }
+
+      context("a delivery config is persisted") {
+        before {
+          createDeliveryConfig(
+            SubmittedDeliveryConfig(
+              name = "keel-manifest",
+              application = "keel",
+              artifacts = setOf(DeliveryArtifact(
+                name = "keel",
+                type = DEB
+              )),
+              environments = setOf(
+                SubmittedEnvironment(
+                  name = "test",
+                  resources = setOf(SubmittedResource(
+                    apiVersion = SPINNAKER_API_V1.subApi("test"),
+                    kind = "whatever",
+                    metadata = SubmittedMetadata("keel@spinnaker"),
+                    spec = DummyResourceSpec("resource in test")
+                  ))
+                ),
+                SubmittedEnvironment(
+                  name = "prod",
+                  resources = setOf(SubmittedResource(
+                    apiVersion = SPINNAKER_API_V1.subApi("test"),
+                    kind = "whatever",
+                    metadata = SubmittedMetadata("keel@spinnaker"),
+                    spec = DummyResourceSpec("resource in prod")
+                  ))
+                )
+              )
+            )
+          )
         }
 
-        context("after a no-op update") {
-          before {
-            resourcesDueForCheck()
-            update(resource.spec)
-          }
+        test("delivery config is persisted") {
+          expectCatching { deliveryConfigRepository.get(deliveryConfig.name) }
+            .succeeded()
+        }
 
-          test("does not record that the resource was updated") {
-            expectThat(eventHistory())
-              .hasSize(1)
-          }
+        test("delivery config is persisted") {
+          expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
+        }
 
-          test("does not check the resource again") {
-            expectThat(resourcesDueForCheck())
-              .isEmpty()
-          }
+        test("individual resources are persisted") {
+          expectThat(resourceRepository.size()).isEqualTo(2)
         }
       }
     }

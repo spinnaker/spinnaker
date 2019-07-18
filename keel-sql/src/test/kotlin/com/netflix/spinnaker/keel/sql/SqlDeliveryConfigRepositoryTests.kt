@@ -7,16 +7,18 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import org.junit.jupiter.api.AfterAll
 import java.time.Clock
 
-internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository>() {
+internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
 
   override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
     SqlDeliveryConfigRepository(jooq, resourceTypeIdentifier)
 
-  override fun createResourceRepository(): SqlResourceRepository {
-    return SqlResourceRepository(jooq, Clock.systemDefaultZone(), configuredObjectMapper())
-  }
+  override fun createResourceRepository(): SqlResourceRepository =
+    SqlResourceRepository(jooq, Clock.systemDefaultZone(), configuredObjectMapper())
+
+  override fun createArtifactRepository(): SqlArtifactRepository =
+    SqlArtifactRepository(jooq)
 
   override fun flush() {
     cleanupDb(jooq)

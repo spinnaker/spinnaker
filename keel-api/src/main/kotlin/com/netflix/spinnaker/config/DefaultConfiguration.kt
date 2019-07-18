@@ -54,7 +54,7 @@ class DefaultConfiguration {
   fun deliveryConfigRepository(
     artifactRepository: ArtifactRepository
   ): DeliveryConfigRepository =
-    InMemoryDeliveryConfigRepository(artifactRepository)
+    InMemoryDeliveryConfigRepository()
 
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)

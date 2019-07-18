@@ -17,17 +17,19 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.succeeded
 
-abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository> :
+abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
   JUnit5Minutests {
 
   abstract fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): T
   abstract fun createResourceRepository(): R
+  abstract fun createArtifactRepository(): A
 
   open fun flush() {}
 
-  data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository>(
+  data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository>(
     val deliveryConfigRepositoryProvider: (ResourceTypeIdentifier) -> T,
     val resourceRepositoryProvider: () -> R,
+    val artifactRepositoryProvider: () -> A,
     val deliveryConfig: DeliveryConfig = DeliveryConfig("keel", "keel")
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
@@ -43,6 +45,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
     private val repository: T = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
     private val resourceRepository: R = resourceRepositoryProvider()
+    private val artifactRepository: A = artifactRepositoryProvider()
 
     fun getByName() = expectCatching {
       repository.get(deliveryConfig.name)
@@ -57,13 +60,20 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         resourceRepository.store(it)
       }
     }
+
+    fun storeArtifacts() {
+      deliveryConfig.artifacts.forEach {
+        artifactRepository.register(it)
+      }
+    }
   }
 
-  fun tests() = rootContext<Fixture<T, R>>() {
+  fun tests() = rootContext<Fixture<T, R, A>>() {
     fixture {
       Fixture(
         deliveryConfigRepositoryProvider = this@DeliveryConfigRepositoryTests::createDeliveryConfigRepository,
-        resourceRepositoryProvider = this@DeliveryConfigRepositoryTests::createResourceRepository
+        resourceRepositoryProvider = this@DeliveryConfigRepositoryTests::createResourceRepository,
+        artifactRepositoryProvider = this@DeliveryConfigRepositoryTests::createArtifactRepository
       )
     }
 
@@ -133,6 +143,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
 
       before {
+        storeArtifacts()
         storeResources()
         store()
       }

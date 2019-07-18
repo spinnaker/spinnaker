@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
@@ -76,7 +77,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    every { resourcePersister.upsert(any()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
@@ -95,12 +96,12 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match { it.spec == "o hai" }) }
+    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "o hai" }) }
   }
 
   @Test
   fun `can create a resource as JSON`() {
-    every { resourcePersister.upsert(any()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
@@ -121,7 +122,7 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match { it.spec == "o hai" }) }
+    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "o hai" }) }
   }
 
   @Test
@@ -149,7 +150,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can update a resource`() {
-    every { resourcePersister.upsert(any()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
@@ -168,12 +169,12 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match { it.spec == "kthxbye" }) }
+    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "kthxbye" }) }
   }
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.upsert(any()) } throws NoSuchResourceName(resource.name)
+    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } throws NoSuchResourceName(resource.name)
     every { authorizationSupport.userCanModifySpec("keel@spinnaker") } returns true
 
     val request = post("/resources")
