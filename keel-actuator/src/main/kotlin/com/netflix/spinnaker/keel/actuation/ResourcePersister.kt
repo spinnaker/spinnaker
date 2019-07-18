@@ -38,18 +38,20 @@ class ResourcePersister(
       name = deliveryConfig.name,
       application = deliveryConfig.application,
       artifacts = deliveryConfig.artifacts,
-      environments = deliveryConfig.environments.map { env ->
+      environments = deliveryConfig.environments.mapTo(mutableSetOf()) { env ->
         Environment(
           name = env.name,
-          resources = env.resources.map { resource ->
+          resources = env.resources.mapTo(mutableSetOf()) { resource ->
             upsert(resource as SubmittedResource<Any>)
-          }.toSet()
+          }
         )
-      }.toSet()
+      }
     )
       .also {
         it.artifacts.forEach { artifact ->
-          artifactRepository.register(artifact)
+          if (!artifactRepository.isRegistered(artifact.name, artifact.type)) {
+            artifactRepository.register(artifact)
+          }
         }
         deliveryConfigRepository.store(it)
       }

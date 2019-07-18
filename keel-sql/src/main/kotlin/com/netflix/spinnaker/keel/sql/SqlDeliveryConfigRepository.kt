@@ -86,6 +86,7 @@ class SqlDeliveryConfigRepository(
           .fetch { (name, type) ->
             DeliveryArtifact(name, ArtifactType.valueOf(type))
           }
+          .toSet()
           .let { artifacts ->
             jooq
               .select(ENVIRONMENT.UID, ENVIRONMENT.NAME)
@@ -94,7 +95,7 @@ class SqlDeliveryConfigRepository(
               .fetch { (environmentUid, name) ->
                 environmentUid to Environment(name, emptySet())
               }
-              .map { (environmentUid, environment) ->
+              .mapTo(mutableSetOf()) { (environmentUid, environment) ->
                 jooq
                   .select(
                     RESOURCE.API_VERSION,
@@ -119,8 +120,8 @@ class SqlDeliveryConfigRepository(
               }
               .let { environments ->
                 deliveryConfig.copy(
-                  artifacts = artifacts.toSet(),
-                  environments = environments.toSet()
+                  artifacts = artifacts,
+                  environments = environments
                 )
               }
           }

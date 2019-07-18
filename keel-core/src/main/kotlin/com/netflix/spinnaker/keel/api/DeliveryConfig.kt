@@ -18,3 +18,6 @@ data class SubmittedEnvironment(
   val name: String,
   val resources: Set<SubmittedResource<*>>
 )
+
+val DeliveryConfig.resources: Set<Resource<*>>
+  get() = environments.flatMapTo(mutableSetOf()) { it.resources }

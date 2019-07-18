@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
@@ -39,6 +40,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import strikt.assertions.startsWith
 import strikt.assertions.succeeded
 import java.time.Clock
 import java.time.Duration
@@ -50,10 +52,16 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     val artifactRepository: InMemoryArtifactRepository = InMemoryArtifactRepository()
     val deliveryConfigRepository: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val resourceRepository: InMemoryResourceRepository = InMemoryResourceRepository()
-    private val handler: ResourceHandler<DummyResourceSpec> = DummyResourceHandler()
     private val clock: Clock = Clock.systemDefaultZone()
     private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val subject: ResourcePersister = ResourcePersister(deliveryConfigRepository, artifactRepository, resourceRepository, listOf(handler), clock, publisher)
+    val subject: ResourcePersister = ResourcePersister(
+      deliveryConfigRepository,
+      artifactRepository,
+      resourceRepository,
+      listOf(DummyResourceHandler),
+      clock,
+      publisher
+    )
 
     lateinit var resource: Resource<DummyResourceSpec>
     lateinit var deliveryConfig: DeliveryConfig
@@ -187,7 +195,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         resourceRepository.dropAll()
       }
 
-      context("a delivery config is persisted") {
+      context("a delivery config with new artifacts and resources is persisted") {
         before {
           createDeliveryConfig(
             SubmittedDeliveryConfig(
@@ -204,7 +212,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
-                    spec = DummyResourceSpec("resource in test")
+                    spec = DummyResourceSpec("test", "resource in test")
                   ))
                 ),
                 SubmittedEnvironment(
@@ -213,7 +221,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
-                    spec = DummyResourceSpec("resource in prod")
+                    spec = DummyResourceSpec("prod", "resource in prod")
                   ))
                 )
               )
@@ -226,19 +234,94 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             .succeeded()
         }
 
-        test("delivery config is persisted") {
+        test("artifacts are persisted") {
           expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
         }
 
         test("individual resources are persisted") {
           expectThat(resourceRepository.size()).isEqualTo(2)
+
+          deliveryConfig.resources.map { it.uid }.forEach { uid ->
+            expectCatching {
+              resourceRepository.get<DummyResourceSpec>(uid)
+            }.succeeded()
+          }
+        }
+      }
+
+      context("a delivery config with existing artifacts and resources is persisted") {
+        before {
+          val artifact = DeliveryArtifact(
+            name = "keel",
+            type = DEB
+          ).also {
+            artifactRepository.register(it)
+          }
+
+          val resource1 = SubmittedResource(
+            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            kind = "whatever",
+            metadata = SubmittedMetadata("keel@spinnaker"),
+            spec = DummyResourceSpec("test", "resource in test")
+          ).also {
+            createResource(it as SubmittedResource<Any>)
+          }
+            .copy(spec = DummyResourceSpec("test", "updated resource in test"))
+
+          val resource2 = SubmittedResource(
+            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            kind = "whatever",
+            metadata = SubmittedMetadata("keel@spinnaker"),
+            spec = DummyResourceSpec("prod", "resource in prod")
+          ).also {
+            createResource(it as SubmittedResource<Any>)
+          }
+            .copy(spec = DummyResourceSpec("prod", "updated resource in prod"))
+
+          createDeliveryConfig(
+            SubmittedDeliveryConfig(
+              name = "keel-manifest",
+              application = "keel",
+              artifacts = setOf(artifact),
+              environments = setOf(
+                SubmittedEnvironment(
+                  name = "test",
+                  resources = setOf(resource1)
+                ),
+                SubmittedEnvironment(
+                  name = "prod",
+                  resources = setOf(resource2)
+                )
+              )
+            )
+          )
+        }
+
+        test("delivery config is persisted") {
+          expectCatching { deliveryConfigRepository.get(deliveryConfig.name) }
+            .succeeded()
+        }
+
+        test("resources are not duplicated") {
+          expectThat(resourceRepository.size()).isEqualTo(2)
+        }
+
+        test("resources are updated") {
+          deliveryConfig.resources.forEach { resource ->
+            expectThat(resourceRepository.get<Any>(resource.uid))
+              .get { spec }
+              .isEqualTo(resource.spec)
+              .isA<DummyResourceSpec>()
+              .get { data }
+              .startsWith("updated")
+          }
         }
       }
     }
   }
 }
 
-internal class DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
+internal object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
   override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =
