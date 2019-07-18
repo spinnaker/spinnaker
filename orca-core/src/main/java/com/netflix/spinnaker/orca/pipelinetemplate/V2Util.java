@@ -75,4 +75,9 @@ public class V2Util {
 
     return spelEvaluatedPipeline;
   }
+
+  public static boolean isV2Pipeline(Map<String, Object> pipelineConfig) {
+    return pipelineConfig.getOrDefault("type", "").equals("templatedPipeline")
+        && pipelineConfig.getOrDefault("schema", "").equals("v2");
+  }
 }

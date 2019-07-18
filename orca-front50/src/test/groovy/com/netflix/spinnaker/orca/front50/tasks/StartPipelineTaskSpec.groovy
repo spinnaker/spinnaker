@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,9 +33,11 @@ class StartPipelineTaskSpec extends Specification {
 
   Front50Service front50Service = Mock(Front50Service)
   DependentPipelineStarter dependentPipelineStarter = Stub(DependentPipelineStarter)
+  ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  List<ExecutionPreprocessor> executionPreprocessors
+
   @Subject
-  StartPipelineTask task = new StartPipelineTask(front50Service: front50Service,
-    dependentPipelineStarter: dependentPipelineStarter)
+  StartPipelineTask task = new StartPipelineTask(Optional.of(front50Service), dependentPipelineStarter, contextParameterProcessor, Optional.ofNullable(executionPreprocessors))
 
   @Unroll
   def "should trigger the dependent pipeline with the correct context and parentPipelineStageId"() {
