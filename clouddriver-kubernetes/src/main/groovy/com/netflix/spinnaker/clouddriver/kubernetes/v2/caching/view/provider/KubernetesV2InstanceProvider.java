@@ -121,6 +121,13 @@ public class KubernetesV2InstanceProvider
 
     List<ContainerLog> result = new ArrayList();
 
+    // Short-circuit if pod cannot be found
+    if (pod == null) {
+      result.add(
+          new ContainerLog("Error", "Failed to retrieve pod data; pod may have been deleted."));
+      return result;
+    }
+
     // Make live calls rather than abuse the cache for storing all logs
     for (V1Container container : pod.getSpec().getContainers()) {
       ContainerLog log = new ContainerLog();
