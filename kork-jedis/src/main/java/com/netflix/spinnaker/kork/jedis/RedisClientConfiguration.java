@@ -18,13 +18,20 @@ package com.netflix.spinnaker.kork.jedis;
 import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.REDIS;
 
 import com.netflix.spinnaker.kork.jedis.exception.RedisClientFactoryNotFound;
+import java.net.URI;
 import java.util.*;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.Protocol;
 
 /**
  * Offers a standardized Spring configuration for a named redis clients, as well as primary and
@@ -45,8 +52,17 @@ import org.springframework.context.annotation.Configuration;
 })
 public class RedisClientConfiguration {
 
-  @Autowired List<RedisClientDelegateFactory> clientDelegateFactories;
+  private final List<RedisClientDelegateFactory> clientDelegateFactories;
 
+  @Autowired
+  RedisClientConfiguration(Optional<List<RedisClientDelegateFactory>> clientDelegateFactories) {
+    this.clientDelegateFactories = clientDelegateFactories.orElse(Collections.emptyList());
+  }
+
+  @ConditionalOnProperty(
+      value = "redis.cluster-enabled",
+      havingValue = "false",
+      matchIfMissing = true)
   @Bean("namedRedisClients")
   public List<RedisClientDelegate> redisClientDelegates(
       ClientConfigurationWrapper redisClientConfigurations,
@@ -148,6 +164,10 @@ public class RedisClientConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      value = "redis.cluster-enabled",
+      havingValue = "false",
+      matchIfMissing = true)
   public RedisClientSelector redisClientSelector(
       @Qualifier("namedRedisClients") List<RedisClientDelegate> redisClientDelegates) {
     return new RedisClientSelector(redisClientDelegates);
@@ -185,6 +205,39 @@ public class RedisClientConfiguration {
     }
   }
 
+  @Bean("jedisCluster")
+  @ConditionalOnProperty(value = "redis.cluster-enabled")
+  @Primary
+  public JedisCluster jedisCluster(
+      GenericObjectPoolConfig objectPoolConfig, ClientConfigurationWrapper config) {
+    URI cx = URI.create(config.connection);
+    return getJedisCluster(objectPoolConfig, config, cx);
+  }
+
+  @Bean("previousJedisCluster")
+  @ConditionalOnProperty(value = "redis.previous-cluster-enabled")
+  public JedisCluster previousJedisCluster(
+      GenericObjectPoolConfig objectPoolConfig, ClientConfigurationWrapper config) {
+    URI cx = URI.create(config.connectionPrevious);
+    return getJedisCluster(objectPoolConfig, config, cx);
+  }
+
+  private JedisCluster getJedisCluster(
+      GenericObjectPoolConfig objectPoolConfig, ClientConfigurationWrapper config, URI cx) {
+    int port = cx.getPort() == -1 ? Protocol.DEFAULT_PORT : cx.getPort();
+    String password =
+        (cx.getUserInfo() != null && cx.getUserInfo().contains(":"))
+            ? cx.getUserInfo().substring(cx.getUserInfo().indexOf(":"))
+            : null;
+
+    return new JedisCluster(
+        new HostAndPort(cx.getHost(), port),
+        config.getTimeoutMs(),
+        config.getTimeoutMs(),
+        config.getMaxAttempts(),
+        objectPoolConfig);
+  }
+
   @ConfigurationProperties(prefix = "redis")
   public static class ClientConfigurationWrapper {
     Map<String, DualClientConfiguration> clients = new HashMap<>();
@@ -196,7 +249,14 @@ public class RedisClientConfiguration {
     String connectionPrevious;
 
     /** Backwards compatibility of pre-kork config format */
-    Integer timeoutMs;
+    Integer timeoutMs = 2000;
+
+    /** For Redis Cluster only */
+    Integer maxAttempts = 5;
+
+    Boolean clusterEnabled;
+
+    Boolean previousClusterEnabled;
 
     public Map<String, DualClientConfiguration> getClients() {
       return clients;
@@ -220,6 +280,30 @@ public class RedisClientConfiguration {
 
     public void setTimeoutMs(Integer timeoutMs) {
       this.timeoutMs = timeoutMs;
+    }
+
+    public Integer getMaxAttempts() {
+      return maxAttempts;
+    }
+
+    public void setMaxAttempts(Integer maxAttempts) {
+      this.maxAttempts = maxAttempts;
+    }
+
+    public Boolean getClusterEnabled() {
+      return clusterEnabled;
+    }
+
+    public void setClusterEnabled(Boolean clusterEnabled) {
+      this.clusterEnabled = clusterEnabled;
+    }
+
+    public Boolean getPreviousClusterEnabled() {
+      return previousClusterEnabled;
+    }
+
+    public void setPreviousClusterEnabled(Boolean previousClusterEnabled) {
+      this.previousClusterEnabled = previousClusterEnabled;
     }
   }
 

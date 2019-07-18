@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,12 +46,20 @@ public class JedisClientConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      value = "redis.cluster-enabled",
+      havingValue = "false",
+      matchIfMissing = true)
   public JedisClientDelegateFactory jedisClientDelegateFactory(
       Registry registry, ObjectMapper objectMapper, GenericObjectPoolConfig redisPoolConfig) {
     return new JedisClientDelegateFactory(registry, objectMapper, redisPoolConfig);
   }
 
   @Bean
+  @ConditionalOnProperty(
+      value = "redis.cluster-enabled",
+      havingValue = "false",
+      matchIfMissing = true)
   public List<HealthIndicator> jedisClientHealthIndicators(
       List<RedisClientDelegate> redisClientDelegates) {
     return redisClientDelegates.stream()
