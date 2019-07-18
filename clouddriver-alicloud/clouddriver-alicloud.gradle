@@ -1,0 +1,28 @@
+dependencies {
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-eureka")
+  implementation project(":clouddriver-security")
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.frigga:frigga"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+
+  implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
+  implementation 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
+  implementation 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
+  implementation 'com.aliyun:aliyun-java-sdk-core:4.4.2'
+  implementation 'com.aliyun:aliyun-java-sdk-slb:3.2.9'
+  implementation 'com.aliyun:aliyun-java-sdk-vpc:3.0.6'
+  implementation 'com.aliyun:aliyun-java-sdk-ecs:4.16.10'
+  implementation 'com.aliyun:aliyun-java-sdk-ess:2.3.0'
+}
