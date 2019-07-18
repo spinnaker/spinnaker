@@ -63,16 +63,16 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       publisher
     )
 
-    lateinit var resource: Resource<DummyResourceSpec>
+    lateinit var resource: Resource<*>
     lateinit var deliveryConfig: DeliveryConfig
 
     @Suppress("UNCHECKED_CAST")
-    fun createResource(submittedResource: SubmittedResource<Any>) {
-      resource = subject.upsert(submittedResource) as Resource<DummyResourceSpec>
+    fun create(submittedResource: SubmittedResource<*>) {
+      resource = subject.upsert(submittedResource)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun updateResource(updatedSpec: Any) {
+    fun update(updatedSpec: Any) {
       resource = subject.upsert(SubmittedResource(
         metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
@@ -87,7 +87,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     fun eventHistory() =
       resourceRepository.eventHistory(resource.uid)
 
-    fun createDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig) {
+    fun create(submittedDeliveryConfig: SubmittedDeliveryConfig) {
       deliveryConfig = subject.upsert(submittedDeliveryConfig)
     }
   }
@@ -106,7 +106,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       context("resource lifecycle") {
         context("creation") {
           before {
-            createResource(SubmittedResource(
+            create(SubmittedResource(
               metadata = SubmittedMetadata("keel@spinnaker"),
               apiVersion = SPINNAKER_API_V1.subApi("test"),
               kind = "whatever",
@@ -171,7 +171,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           context("after a no-op update") {
             before {
               resourcesDueForCheck()
-              updateResource(resource.spec)
+              update(resource.spec)
             }
 
             test("does not record that the resource was updated") {
@@ -197,7 +197,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
       context("a delivery config with new artifacts and resources is persisted") {
         before {
-          createDeliveryConfig(
+          create(
             SubmittedDeliveryConfig(
               name = "keel-manifest",
               application = "keel",
@@ -264,7 +264,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             metadata = SubmittedMetadata("keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test")
           ).also {
-            createResource(it as SubmittedResource<Any>)
+            create(it)
           }
             .copy(spec = DummyResourceSpec("test", "updated resource in test"))
 
@@ -274,11 +274,11 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             metadata = SubmittedMetadata("keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod")
           ).also {
-            createResource(it as SubmittedResource<Any>)
+            create(it)
           }
             .copy(spec = DummyResourceSpec("prod", "updated resource in prod"))
 
-          createDeliveryConfig(
+          create(
             SubmittedDeliveryConfig(
               name = "keel-manifest",
               application = "keel",

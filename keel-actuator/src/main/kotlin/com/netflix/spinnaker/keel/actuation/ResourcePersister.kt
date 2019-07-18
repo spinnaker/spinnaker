@@ -42,7 +42,7 @@ class ResourcePersister(
         Environment(
           name = env.name,
           resources = env.resources.mapTo(mutableSetOf()) { resource ->
-            upsert(resource as SubmittedResource<Any>)
+            upsert(resource)
           }
         )
       }
@@ -56,7 +56,7 @@ class ResourcePersister(
         deliveryConfigRepository.store(it)
       }
 
-  fun upsert(resource: SubmittedResource<Any>): Resource<out Any> =
+  fun upsert(resource: SubmittedResource<*>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .let {
@@ -67,7 +67,7 @@ class ResourcePersister(
         }
       }
 
-  fun create(resource: SubmittedResource<Any>): Resource<out Any> =
+  fun create(resource: SubmittedResource<*>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .also {
@@ -77,7 +77,7 @@ class ResourcePersister(
         publisher.publishEvent(CreateEvent(it.name))
       }
 
-  fun update(name: ResourceName, updated: SubmittedResource<Any>): Resource<out Any> {
+  fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out Any> {
     log.debug("Updating $name")
     val handler = handlers.supporting(updated.apiVersion, updated.kind)
     val existing = resourceRepository.get(name, Any::class.java)
