@@ -30,14 +30,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.Docker
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -51,13 +48,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
-  @Autowired private SecretSessionManager secretSessionManager;
-
   @Override
   public void validate(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     DeploymentConfiguration deploymentConfiguration;
@@ -198,13 +192,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     // TODO(lwander) find a good resource / list of resources for generating kubeconfig files to
     // link to here.
     try {
-      String kubeconfigContents;
-      if (EncryptedSecret.isEncryptedSecret(account.getKubeconfigFile())) {
-        kubeconfigContents = secretSessionManager.decrypt(account.getKubeconfigFile());
-      } else {
-        kubeconfigContents = ValidatingFileReader.contents(psBuilder, account.getKubeconfigFile());
-      }
-
+      String kubeconfigContents = validatingFileDecrypt(psBuilder, account.getKubeconfigFile());
       if (kubeconfigContents == null) {
         return;
       }
@@ -215,7 +203,6 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       return;
     }
 
-    System.out.println(context);
     if (context != null && !context.isEmpty()) {
       Optional<NamedContext> namedContext =
           kubeconfig.getContexts().stream().filter(c -> c.getName().equals(context)).findFirst();

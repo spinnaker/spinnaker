@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.halyard;
 
 import com.netflix.spinnaker.config.ResolvedEnvironmentConfigurationProperties;
-import java.util.Collections;
-import java.util.HashMap;
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
+import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cloud.config.server.EnableConfigServer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,22 +32,12 @@ import org.springframework.context.annotation.Import;
 @ComponentScan(value = {"com.netflix.spinnaker.halyard", "com.netflix.spinnaker.endpoint"})
 @EnableAutoConfiguration
 @Import(ResolvedEnvironmentConfigurationProperties.class)
+@EnableConfigServer
 public class Main extends SpringBootServletInitializer {
-  private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
-
-  private static Map<String, Object> buildDefaults() {
-    Map<String, String> defaults = new HashMap<>();
-    defaults.put("netflix.environment", "test");
-    defaults.put("netflix.account", "${netflix.environment}");
-    defaults.put("netflix.stack", "test");
-    defaults.put("spring.config.node", "${user.home}/.spinnaker/");
-    defaults.put("spring.application.name", "halyard");
-    defaults.put("spring.config.name", "${spring.application.name}");
-    defaults.put("spring.profiles.active", "${netflix.environment},local");
-    return Collections.unmodifiableMap(defaults);
-  }
+  private static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build();
 
   public static void main(String... args) {
+    ConfigServerBootstrap.systemProperties("halyard");
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main.class).run(args);
   }
 

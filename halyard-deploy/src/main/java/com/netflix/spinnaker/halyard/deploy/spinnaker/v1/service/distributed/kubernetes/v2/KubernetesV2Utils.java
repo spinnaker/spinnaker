@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,7 +40,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -47,9 +47,17 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 @Slf4j
 @Component
 public class KubernetesV2Utils {
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
-  @Autowired private SecretSessionManager secretSessionManager;
+  private final SecretSessionManager secretSessionManager;
+
+  private final ConfigFileService configFileService;
+
+  public KubernetesV2Utils(
+      SecretSessionManager secretSessionManager, ConfigFileService configFileService) {
+    this.secretSessionManager = secretSessionManager;
+    this.configFileService = configFileService;
+  }
 
   public List<String> kubectlPrefix(KubernetesAccount account) {
     List<String> command = new ArrayList<>();
@@ -66,10 +74,11 @@ public class KubernetesV2Utils {
     }
 
     String kubeconfig;
-    if (EncryptedSecret.isEncryptedSecret(account.getKubeconfigFile())) {
-      kubeconfig = secretSessionManager.decryptAsFile(account.getKubeconfigFile());
+    String kubeconfigFile = account.getKubeconfigFile();
+    if (EncryptedSecret.isEncryptedSecret(kubeconfigFile)) {
+      kubeconfig = secretSessionManager.decryptAsFile(kubeconfigFile);
     } else {
-      kubeconfig = account.getKubeconfigFile();
+      kubeconfig = configFileService.getLocalPath(kubeconfigFile);
     }
     if (kubeconfig != null && !kubeconfig.isEmpty()) {
       command.add("--kubeconfig");

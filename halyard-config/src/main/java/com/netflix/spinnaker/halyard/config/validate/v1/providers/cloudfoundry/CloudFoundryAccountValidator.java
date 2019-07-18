@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.cloudfoundry;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -60,13 +61,13 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
 
     if (StringUtils.isEmpty(apiHost)) {
       problemSetBuilder.addProblem(
-          Problem.Severity.ERROR, "You must provide a CF api endpoint host");
+          Problem.Severity.ERROR, "You must provide a CF API endpoint host");
     }
 
     if (appsManagerUrl == null) {
       problemSetBuilder.addProblem(
           Problem.Severity.WARNING,
-          "To be able to link server groups to CF Appsmanager a URL is required: " + accountName);
+          "To be able to link server groups to CF Apps Manager a URI is required");
     } else if (!isHttp(appsManagerUrl.getProtocol())) {
       problemSetBuilder.addProblem(
           Severity.ERROR,
@@ -76,7 +77,7 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
     if (metricsUrl == null) {
       problemSetBuilder.addProblem(
           Problem.Severity.WARNING,
-          "To be able to link server groups to CF Metrics a URL is required: " + accountName);
+          "To be able to link server groups to CF Metrics a URL is required");
     } else if (!isHttp(metricsUrl.getProtocol())) {
       problemSetBuilder.addProblem(
           Severity.ERROR, "Metrics URL scheme must be HTTP or HTTPS for account: " + accountName);
@@ -85,8 +86,14 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
     if (skipSslValidation) {
       problemSetBuilder.addProblem(
           Problem.Severity.WARNING,
-          "SKIPPING SSL server certificate validation of the CloudFoundry API endpoint for account: "
-              + accountName);
+          "SKIPPING SSL server certificate validation of the Cloud Foundry API endpoint");
+    }
+
+    if (PropertyUtils.anyContainPlaceholder(apiHost, user, password)) {
+      problemSetBuilder.addProblem(
+          Problem.Severity.WARNING,
+          "Skipping connection validation because one or more credential contains a placeholder value");
+      return;
     }
 
     CloudFoundryCredentials cloudFoundryCredentials =

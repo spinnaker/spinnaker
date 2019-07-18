@@ -22,6 +22,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -180,7 +181,11 @@ public abstract class Node implements Validatable {
     while (clazz != null) {
       res.addAll(
           Arrays.stream(clazz.getDeclaredFields())
-              .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null && !isSecretFile(f))
+              .filter(
+                  f ->
+                      f.getDeclaredAnnotation(LocalFile.class) != null
+                          && !isSecretFile(f)
+                          && !isConfigServerResource(f))
               .collect(Collectors.toList()));
       clazz = clazz.getSuperclass();
     }
@@ -188,17 +193,27 @@ public abstract class Node implements Validatable {
     return res;
   }
 
-  public boolean isSecretFile(Field field) {
+  private boolean isSecretFile(Field field) {
     if (field.getDeclaredAnnotation(SecretFile.class) != null) {
       try {
         field.setAccessible(true);
         String val = (String) field.get(this);
-        return val != null && EncryptedSecret.isEncryptedSecret(val);
+        return EncryptedSecret.isEncryptedSecret(val);
       } catch (IllegalAccessException e) {
         return false;
       }
     }
     return false;
+  }
+
+  private boolean isConfigServerResource(Field field) {
+    try {
+      field.setAccessible(true);
+      String val = (String) field.get(this);
+      return PropertyUtils.isConfigServerResource(val);
+    } catch (IllegalAccessException e) {
+      return false;
+    }
   }
 
   public void stageLocalFiles(Path outputPath) {

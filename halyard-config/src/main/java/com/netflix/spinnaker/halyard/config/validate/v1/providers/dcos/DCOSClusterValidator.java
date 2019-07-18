@@ -7,15 +7,12 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /** TODO: use clouddriver components for full validation */
 @Component
 public class DCOSClusterValidator extends Validator<DCOSCluster> {
-  @Autowired private SecretSessionManager secretSessionManager;
-
   @Override
   public void validate(final ConfigProblemSetBuilder problems, final DCOSCluster cluster) {
 
@@ -27,7 +24,10 @@ public class DCOSClusterValidator extends Validator<DCOSCluster> {
 
     if (!Strings.isNullOrEmpty(cluster.getCaCertFile())) {
       String resolvedServiceKey = validatingFileDecrypt(problems, cluster.getCaCertFile());
-      if (Strings.isNullOrEmpty(resolvedServiceKey)) {
+      if (resolvedServiceKey == null) {
+        return;
+      }
+      if (StringUtils.isEmpty(resolvedServiceKey)) {
         problems
             .addProblem(ERROR, "The supplied CA certificate file does not exist or is empty.")
             .setRemediation("Supply a valid CA certificate file.");

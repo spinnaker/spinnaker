@@ -24,7 +24,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersis
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -34,8 +33,6 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
   @Autowired private AccountService accountService;
 
   @Autowired private Registry registry;
-
-  @Autowired private SecretSessionManager secretSessionManager;
 
   @Autowired TaskScheduler taskScheduler;
 

@@ -35,8 +35,6 @@ import org.springframework.scheduling.TaskScheduler;
 @EqualsAndHashCode(callSuper = false)
 public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
 
-  private SecretSessionManager secretSessionManager;
-
   private String halyardVersion;
 
   private Registry registry;
@@ -49,6 +47,10 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
   private long retryIntervalBase = 2;
   private long jitterMultiplier = 1000;
   private long maxRetries = 10;
+
+  GoogleCanaryAccountValidator(SecretSessionManager secretSessionManager) {
+    this.secretSessionManager = secretSessionManager;
+  }
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {

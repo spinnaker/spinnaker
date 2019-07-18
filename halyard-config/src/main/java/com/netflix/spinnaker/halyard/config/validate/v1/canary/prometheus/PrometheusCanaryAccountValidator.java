@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
 
-import com.google.common.base.Strings;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -55,7 +54,7 @@ public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
     if (StringUtils.isNotEmpty(usernamePasswordFile)) {
       String usernamePassword = validatingFileDecrypt(p, usernamePasswordFile);
 
-      if (Strings.isNullOrEmpty(usernamePassword)) {
+      if (StringUtils.isEmpty(usernamePassword)) {
         p.addProblem(ERROR, "The supplied username password file does not exist or is empty.")
             .setRemediation("Supply a valid username password file.");
       } else if (!usernamePassword.contains(":")) {

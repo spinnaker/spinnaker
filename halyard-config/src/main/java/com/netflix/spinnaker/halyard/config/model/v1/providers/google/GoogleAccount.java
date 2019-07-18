@@ -24,10 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -49,20 +46,11 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
 
   @JsonIgnore
   public GoogleNamedAccountCredentials getNamedAccountCredentials(
-      String version, SecretSessionManager secretSessionManager, ConfigProblemSetBuilder p) {
-    String jsonKey = null;
-    if (!StringUtils.isEmpty(getJsonPath())) {
-      if (secretSessionManager != null && EncryptedSecret.isEncryptedSecret(getJsonPath())) {
-        jsonKey = secretSessionManager.decrypt(getJsonPath());
-      } else {
-        jsonKey = ValidatingFileReader.contents(p, getJsonPath());
-      }
-
-      if (jsonKey == null) {
-        return null;
-      } else if (jsonKey.isEmpty()) {
-        p.addProblem(Problem.Severity.WARNING, "The supplied credentials file is empty.");
-      }
+      String version, String jsonKey, ConfigProblemSetBuilder p) {
+    if (jsonKey == null) {
+      return null;
+    } else if (jsonKey.isEmpty()) {
+      p.addProblem(Problem.Severity.WARNING, "The supplied credentials file is empty.");
     }
 
     if (StringUtils.isEmpty(getProject())) {

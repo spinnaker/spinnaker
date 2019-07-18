@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
@@ -26,9 +25,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,18 +35,30 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
 @Component
 @Slf4j
 public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFactory {
-  @Autowired ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-  @Autowired Yaml yamlParser;
+  private final Yaml yamlParser;
 
-  @Autowired SecretSessionManager secretSessionManager;
+  private final SecretSessionManager secretSessionManager;
+
+  private final ConfigFileService configFileService;
+
+  public KubernetesV2ClouddriverProfileFactory(
+      ObjectMapper objectMapper,
+      Yaml yamlParser,
+      SecretSessionManager secretSessionManager,
+      ConfigFileService configFileService) {
+    this.objectMapper = objectMapper;
+    this.yamlParser = yamlParser;
+    this.secretSessionManager = secretSessionManager;
+    this.configFileService = configFileService;
+  }
 
   @Override
   protected void processProviders(Providers providers) {
@@ -69,16 +79,9 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
       if (EncryptedSecret.isEncryptedSecret(kubeconfigFile)) {
         kubeconfigContents = secretSessionManager.decrypt(kubeconfigFile);
       } else {
-        kubeconfigContents = IOUtils.toString(new FileInputStream(kubeconfigFile));
+        kubeconfigContents = configFileService.getContents(kubeconfigFile);
       }
-    } catch (FileNotFoundException e) {
-      throw new IllegalStateException(
-          "No kubeconfig file '"
-              + kubeconfigFile
-              + "' found, but validation passed: "
-              + e.getMessage(),
-          e);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new IllegalStateException(
           "Failed to read kubeconfig file '"
               + kubeconfigFile

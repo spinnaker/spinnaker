@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
@@ -38,15 +37,24 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
 
   private final String halyardVersion;
 
-  private final SecretSessionManager secretSessionManager;
+  public GoogleAccountValidator(
+      List<GoogleNamedAccountCredentials> credentialsList,
+      String halyardVersion,
+      SecretSessionManager secretSessionManager) {
+    this.credentialsList = credentialsList;
+    this.halyardVersion = halyardVersion;
+    this.secretSessionManager = secretSessionManager;
+  }
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleAccount n) {
     DaemonTaskHandler.message(
         "Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
 
+    String jsonKey = getJsonKey(p, n);
+
     GoogleNamedAccountCredentials credentials =
-        n.getNamedAccountCredentials(halyardVersion, secretSessionManager, p);
+        n.getNamedAccountCredentials(halyardVersion, jsonKey, p);
     if (credentials == null) {
       return;
     } else {
@@ -67,13 +75,21 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
           "Failed to load project \"" + n.getProject() + "\": " + e.getMessage() + ".");
     }
 
-    String userDataFile = null;
-    if (!StringUtils.isEmpty(n.getUserDataFile())) {
-      userDataFile = ValidatingFileReader.contents(p, n.getUserDataFile());
+    validateUserDataFile(p, n);
+  }
 
-      if (userDataFile == null) {
-        return;
-      } else if (userDataFile.isEmpty()) {
+  private String getJsonKey(ConfigProblemSetBuilder p, GoogleAccount n) {
+    if (!StringUtils.isEmpty(n.getJsonPath())) {
+      return validatingFileDecrypt(p, n.getJsonPath());
+    }
+    return null;
+  }
+
+  private void validateUserDataFile(ConfigProblemSetBuilder p, GoogleAccount n) {
+    if (!StringUtils.isEmpty(n.getUserDataFile())) {
+      String userDataFile = validatingFileDecrypt(p, n.getUserDataFile());
+
+      if (userDataFile != null && userDataFile.isEmpty()) {
         p.addProblem(Severity.WARNING, "The supplied user data file is empty.");
       }
     }

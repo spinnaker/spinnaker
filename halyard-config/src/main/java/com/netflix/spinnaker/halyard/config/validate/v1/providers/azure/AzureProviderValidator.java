@@ -34,7 +34,7 @@ public class AzureProviderValidator extends Validator<AzureProvider> {
     List<AzureCredentials> credentialsList = new ArrayList<>();
 
     AzureAccountValidator azureAccountValidator =
-        new AzureAccountValidator(credentialsList, halyardVersion);
+        new AzureAccountValidator(credentialsList, halyardVersion, secretSessionManager);
 
     n.getAccounts().forEach(account -> azureAccountValidator.validate(p, account));
 

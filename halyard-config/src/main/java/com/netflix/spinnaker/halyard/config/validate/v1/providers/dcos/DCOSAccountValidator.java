@@ -13,18 +13,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.Docker
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /** TODO: use clouddriver components for full validation (e.g. account name)) */
 @Component
 public class DCOSAccountValidator extends Validator<DCOSAccount> {
-  @Autowired private SecretSessionManager secretSessionManager;
-
   @Override
   public void validate(final ConfigProblemSetBuilder problems, final DCOSAccount account) {
     DeploymentConfiguration deploymentConfiguration;
@@ -124,6 +120,9 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
 
               if (StringUtils.isNotEmpty(c.getServiceKeyFile())) {
                 String resolvedServiceKey = validatingFileDecrypt(problems, c.getServiceKeyFile());
+                if (resolvedServiceKey == null) {
+                  return;
+                }
 
                 if (StringUtils.isEmpty(resolvedServiceKey)) {
                   problems

@@ -32,19 +32,20 @@ import org.springframework.util.CollectionUtils;
 
 public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegration> {
 
-  @Setter private SecretSessionManager secretSessionManager;
-
   @Setter private String halyardVersion;
 
   @Setter private Registry registry;
 
   @Setter TaskScheduler taskScheduler;
 
+  public GoogleCanaryValidator(SecretSessionManager secretSessionManager) {
+    this.secretSessionManager = secretSessionManager;
+  }
+
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleCanaryServiceIntegration n) {
     GoogleCanaryAccountValidator googleCanaryAccountValidator =
-        new GoogleCanaryAccountValidator()
-            .setSecretSessionManager(secretSessionManager)
+        new GoogleCanaryAccountValidator(secretSessionManager)
             .setHalyardVersion(halyardVersion)
             .setRegistry(registry)
             .setTaskScheduler(taskScheduler);

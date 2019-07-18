@@ -33,6 +33,7 @@ dependencies {
   implementation 'org.lognet:grpc-spring-boot-starter:2.3.2'
   implementation 'org.codehaus.groovy:groovy'
   implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spinnaker.kork:kork-config"
 
   implementation project(':halyard-backup')
   // halyard-cli is required as a dependency even though it is not used directly by halyard-web

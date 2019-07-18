@@ -20,13 +20,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
-import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyStore;
 import java.util.Collections;
@@ -34,13 +30,10 @@ import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SamlValidator extends Validator<Saml> {
-  @Autowired private SecretSessionManager secretSessionManager;
-
   @Override
   public void validate(ConfigProblemSetBuilder p, Saml saml) {
     if (!saml.isEnabled()) {
@@ -85,38 +78,26 @@ public class SamlValidator extends Validator<Saml> {
       p.addProblem(Problem.Severity.ERROR, "No keystore alias specified.");
     }
 
-    InputStream is = null;
     try {
-      if (EncryptedSecret.isEncryptedSecret(saml.getKeyStore())) {
-        is = new ByteArrayInputStream(secretSessionManager.decrypt(saml.getKeyStore()).getBytes());
-      } else {
-        File f = new File(new URI("file:" + saml.getKeyStore()));
-        is = new FileInputStream(f);
+      String keyStore = validatingFileDecrypt(p, saml.getKeyStore());
+      if (keyStore != null) {
+        val keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+
+        // will throw an exception if `keyStorePassword` is invalid
+        keystore.load(
+            new ByteArrayInputStream(keyStore.getBytes()),
+            secretSessionManager.decrypt(saml.getKeyStorePassword()).toCharArray());
+
+        Collections.list(keystore.aliases()).stream()
+            .filter(alias -> alias.equalsIgnoreCase(saml.getKeyStoreAliasName()))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Keystore does not contain alias " + saml.getKeyStoreAliasName()));
       }
-
-      val keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-
-      // will throw an exception if `keyStorePassword` is invalid
-      keystore.load(is, secretSessionManager.decrypt(saml.getKeyStorePassword()).toCharArray());
-
-      Collections.list(keystore.aliases()).stream()
-          .filter(alias -> alias.equalsIgnoreCase(saml.getKeyStoreAliasName()))
-          .findFirst()
-          .orElseThrow(
-              () ->
-                  new RuntimeException(
-                      "Keystore does not contain alias " + saml.getKeyStoreAliasName()));
-
     } catch (Exception e) {
       p.addProblem(Problem.Severity.ERROR, "Keystore validation problem: " + e.getMessage());
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (Exception e) {
-          // ignored.
-        }
-      }
     }
 
     if (saml.getServiceAddress() == null) {

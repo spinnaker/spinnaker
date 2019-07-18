@@ -28,7 +28,6 @@ import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -37,7 +36,14 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
 
   private final String halyardVersion;
 
-  @Autowired private SecretSessionManager secretSessionManager;
+  public AzureAccountValidator(
+      List<AzureCredentials> credentialsList,
+      String halyardVersion,
+      SecretSessionManager secretSessionManager) {
+    this.credentialsList = credentialsList;
+    this.halyardVersion = halyardVersion;
+    this.secretSessionManager = secretSessionManager;
+  }
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AzureAccount n) {

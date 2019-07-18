@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.validate.v1.util;
+package com.netflix.spinnaker.halyard.config.model.v1.util;
 
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -26,30 +26,39 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ValidatingFileReader {
+
+  private static final String NO_ACCESS_REMEDIATION =
+      "Halyard is running as user "
+          + System.getProperty("user.name")
+          + ". Make sure that user can read the requested file.";
+
   public static String contents(ConfigProblemSetBuilder ps, String path) {
-    String noAccessRemediation =
-        "Halyard is running as user "
-            + System.getProperty("user.name")
-            + ". Make sure that user can read the requested file.";
+    if (PropertyUtils.isConfigServerResource(path)) {
+      return null;
+    } else {
+      return readFromLocalFilesystem(ps, path);
+    }
+  }
+
+  private static String readFromLocalFilesystem(ConfigProblemSetBuilder ps, String path) {
     try {
       return IOUtils.toString(new FileInputStream(path));
     } catch (FileNotFoundException e) {
-      ConfigProblemBuilder problemBuilder =
-          ps.addProblem(
-              Problem.Severity.FATAL, "Cannot find provided path: " + e.getMessage() + ".");
-      if (e.getMessage().contains("denied")) {
-        problemBuilder.setRemediation(noAccessRemediation);
-      }
-      return null;
+      buildProblem(ps, "Cannot find provided path: " + e.getMessage() + ".", e);
     } catch (IOException e) {
-      ConfigProblemBuilder problemBuilder =
-          ps.addProblem(
-              Problem.Severity.FATAL,
-              "Failed to read path \"" + path + "\": " + e.getMessage() + ".");
-      if (e.getMessage().contains("denied")) {
-        problemBuilder.setRemediation(noAccessRemediation);
-      }
-      return null;
+      buildProblem(ps, "Failed to read path \"" + path + "\".", e);
+    }
+
+    return null;
+  }
+
+  private static void buildProblem(
+      ConfigProblemSetBuilder ps, String message, Exception exception) {
+    ConfigProblemBuilder problemBuilder =
+        ps.addProblem(Problem.Severity.FATAL, message + ": " + exception.getMessage() + ".");
+
+    if (exception.getMessage().contains("denied")) {
+      problemBuilder.setRemediation(ValidatingFileReader.NO_ACCESS_REMEDIATION);
     }
   }
 }
