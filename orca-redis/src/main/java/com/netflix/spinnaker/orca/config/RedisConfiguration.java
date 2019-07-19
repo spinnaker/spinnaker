@@ -19,6 +19,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
+import com.netflix.spinnaker.orca.notifications.RedisClusterNotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
+import redis.clients.jedis.JedisCluster;
 import rx.Scheduler;
 
 @Configuration
@@ -61,9 +63,19 @@ public class RedisConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      value = "redis.cluster-enabled",
+      havingValue = "false",
+      matchIfMissing = true)
   public NotificationClusterLock redisNotificationClusterLock(
       RedisClientSelector redisClientSelector) {
     return new RedisNotificationClusterLock(redisClientSelector);
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = "redis.cluster-enabled")
+  public NotificationClusterLock redisClusterNotificationClusterLock(JedisCluster cluster) {
+    return new RedisClusterNotificationClusterLock(cluster);
   }
 
   @Bean

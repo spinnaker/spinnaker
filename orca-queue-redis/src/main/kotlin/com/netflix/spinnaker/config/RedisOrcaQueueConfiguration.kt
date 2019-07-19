@@ -27,6 +27,8 @@ import com.netflix.spinnaker.orca.q.redis.migration.TaskTypeDeserializer
 import com.netflix.spinnaker.orca.q.redis.pending.RedisPendingExecutionService
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
+import com.netflix.spinnaker.q.redis.RedisClusterDeadMessageHandler
+import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +38,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCluster
 import redis.clients.util.Pool
 import java.time.Clock
 import java.util.Optional
@@ -68,7 +71,9 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Bean fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
 
-  @Bean override fun queue(
+  @Bean
+  @ConditionalOnProperty(value = ["redis.cluster-enabled"], havingValue = "false", matchIfMissing = true)
+  override fun queue(
     @Qualifier("queueRedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
@@ -78,6 +83,28 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     serializationMigrator: Optional<SerializationMigrator>
   ): RedisQueue {
     return super.queue(redisPool, redisQueueProperties, clock, deadMessageHandler, publisher, mapper, serializationMigrator)
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = ["redis.cluster-enabled"])
+  override fun clusterQueue(
+    @Qualifier("queueRedisCluster") cluster: JedisCluster,
+    redisQueueProperties: RedisQueueProperties,
+    clock: Clock,
+    @Qualifier("queueEventPublisher") deadMessageHandler: RedisClusterDeadMessageHandler,
+    publisher: EventPublisher,
+    redisQueueObjectMapper: ObjectMapper,
+    serializationMigrator: Optional<SerializationMigrator>
+  ): RedisClusterQueue {
+    return super.clusterQueue(
+      cluster,
+      redisQueueProperties,
+      clock,
+      deadMessageHandler,
+      publisher,
+      redisQueueObjectMapper,
+      serializationMigrator
+    )
   }
 
   @Bean
