@@ -4,7 +4,7 @@ import { get } from 'lodash';
 
 import { Application, ApplicationModelBuilder } from 'core/application';
 import { IPagerDutyService, PagerDutyWriter } from 'core/pagerDuty';
-import { NgReact } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
 import { SubmitButton } from 'core/modal';
 import { TaskMonitor } from 'core/task';
@@ -40,8 +40,15 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
   }
 
   private getDefaultState(props: IPageModalProps): IPageModalState {
-    const defaultSubject = get(SETTINGS, 'pagerDuty.defaultSubject', 'Urgent Issue');
-    const defaultDetails = get(SETTINGS, 'pagerDuty.defaultDetails', '');
+    const {
+      $uiRouter: {
+        globals: {
+          params: { subject, details },
+        },
+      },
+    } = ReactInjector;
+    const defaultSubject = subject || get(SETTINGS, 'pagerDuty.defaultSubject', 'Urgent Issue');
+    const defaultDetails = details || get(SETTINGS, 'pagerDuty.defaultDetails', '');
 
     return {
       accountName: (SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName) || '',
@@ -61,11 +68,13 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   private handleSubjectChanged = (event: any): void => {
     const value = event.target.value;
+    ReactInjector.$state.go('.', { subject: value }, { location: 'replace' });
     this.setState({ subject: value });
   };
 
   private handleDetailsChanged = (event: any): void => {
     const value = event.target.value;
+    ReactInjector.$state.go('.', { details: value }, { location: 'replace' });
     this.setState({ details: value });
   };
 

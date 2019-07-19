@@ -10,7 +10,7 @@ module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config([
   'stateConfigProvider',
   (stateConfigProvider: StateConfigProvider) => {
     const pageState: INestedState = {
-      url: '/page?app&q&keys&by&direction&hideNoApps',
+      url: '/page?app&q&keys&by&direction&hideNoApps&subject&&details',
       name: 'page',
       views: {
         'main@': { component: Pager, $type: 'react' },
@@ -23,6 +23,18 @@ module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config([
           squash: true,
         },
         q: {
+          dynamic: true,
+          type: 'string',
+          value: '',
+          squash: true,
+        },
+        subject: {
+          dynamic: true,
+          type: 'string',
+          value: '',
+          squash: true,
+        },
+        details: {
           dynamic: true,
           type: 'string',
           value: '',
