@@ -20,21 +20,18 @@ export interface ITriggerProps {
   updateTrigger: (index: number, changes: { [key: string]: any }) => void;
 }
 
-export interface ITriggerState {
-  type: string;
-  triggerConfig?: ITriggerTypeConfig;
-}
-
-export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
+export class Trigger extends React.Component<ITriggerProps> {
   private disableAutoTriggering = SETTINGS.disableAutoTriggering || [];
   private triggerTypes = Registry.pipeline.getTriggerTypes();
 
-  constructor(props: ITriggerProps) {
-    super(props);
-    const type = props.trigger.type || '';
-    const triggerConfig = this.triggerTypes.find(triggerType => triggerType.key === type);
-    this.state = { type, triggerConfig };
-  }
+  private getSelectedTriggerType = (): string => {
+    return this.props.trigger.type || '';
+  };
+
+  private getTriggerConfig = (): ITriggerTypeConfig => {
+    const selectedTriggerType = this.getSelectedTriggerType();
+    return this.triggerTypes.find(triggerType => triggerType.key === selectedTriggerType);
+  };
 
   private handleTriggerEnabled = () => {
     const enabled = !this.props.trigger.enabled;
@@ -43,8 +40,7 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
 
   private handleTypeChange = (option: Option<string>) => {
     const type = option.value;
-    const triggerConfig = this.triggerTypes.find(config => config.key === type);
-    this.setState({ type, triggerConfig });
+    this.triggerUpdated({ type });
     if (this.disableAutoTriggering.includes(type)) {
       this.triggerUpdated({ enabled: false });
     }
@@ -55,7 +51,7 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
   };
 
   private TriggerContents = () => {
-    const { triggerConfig } = this.state;
+    const triggerConfig = this.getTriggerConfig();
     if (triggerConfig) {
       const TriggerComponent = triggerConfig.component;
       const componentProps = {
@@ -110,7 +106,8 @@ export class Trigger extends React.Component<ITriggerProps, ITriggerState> {
   };
 
   public render() {
-    const { triggerConfig, type } = this.state;
+    const type = this.getSelectedTriggerType();
+    const triggerConfig = this.getTriggerConfig();
     const { pipeline, trigger } = this.props;
     const { TriggerContents } = this;
     const fieldSetClassName = classNames({ 'templated-pipeline-item': trigger.inherited });
