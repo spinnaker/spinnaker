@@ -72,6 +72,9 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
 
   private sourceChanged = (event: any) => {
     this.props.updateStageField({ consumeArtifactSource: event.value });
+    if (event.value === 'none') {
+      this.props.updateStageField({ propertyFile: null });
+    }
   };
 
   private updateArtifactId(artifactId: string) {
