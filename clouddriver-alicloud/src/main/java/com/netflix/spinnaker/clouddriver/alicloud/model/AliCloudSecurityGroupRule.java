@@ -20,10 +20,6 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
 import java.util.Map;
 import java.util.SortedSet;
 
-/**
- * @author: luoguan
- * @create: 2019-07-12 11:15
- */
 public class AliCloudSecurityGroupRule implements Rule {
 
   private String protocol;

@@ -22,10 +22,6 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
 import java.util.Set;
 
-/**
- * @author: luoguan
- * @create: 2019-06-11 09:29
- */
 public class AliCloudSecurityGroup implements SecurityGroup {
 
   String type = AliCloudProvider.ID;

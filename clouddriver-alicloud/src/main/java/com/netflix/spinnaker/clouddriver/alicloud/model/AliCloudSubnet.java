@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.alicloud.model;
 import com.netflix.spinnaker.clouddriver.model.Subnet;
 import lombok.Data;
 
-/**
- * @author: luoguan
- * @create: 2019-06-03 14:49
- */
 @Data
 public class AliCloudSubnet implements Subnet {
 

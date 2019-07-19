@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.alicloud.model;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.KeyPair;
 
-/**
- * @author: luoguan
- * @create: 2019-06-11 15:23
- */
 public class AliCloudKeyPair implements KeyPair {
 
   String account;

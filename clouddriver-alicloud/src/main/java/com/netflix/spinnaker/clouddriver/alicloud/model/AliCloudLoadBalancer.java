@@ -25,10 +25,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author: luoguan
- * @create: 2019-05-15 11:13
- */
 public class AliCloudLoadBalancer implements LoadBalancer {
 
   String account;

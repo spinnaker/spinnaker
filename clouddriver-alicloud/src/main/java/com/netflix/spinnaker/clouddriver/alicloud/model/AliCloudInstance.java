@@ -21,10 +21,6 @@ import com.netflix.spinnaker.clouddriver.model.Instance;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: luoguan
- * @create: 2019-06-18 16:51
- */
 public class AliCloudInstance implements Instance {
 
   private String name;

@@ -20,10 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.alicloud.model.alienum.ListenerType;
 import lombok.Data;
 
-/**
- * @author: luoguan
- * @create: 2019-05-10 14:59
- */
 @Data
 public class Listener {
 

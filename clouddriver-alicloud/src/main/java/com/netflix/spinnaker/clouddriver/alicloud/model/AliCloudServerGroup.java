@@ -21,10 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Data;
 
-/**
- * @author: luoguan
- * @create: 2019-06-18 16:45
- */
 @Data
 public class AliCloudServerGroup implements ServerGroup {
 

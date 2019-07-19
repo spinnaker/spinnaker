@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.alicloud.model;
 
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 
-/**
- * @author: luoguan
- * @create: 2019-06-11 09:54
- */
 public class AliCloudSecurityGroupSummary implements SecurityGroupSummary {
 
   String name;

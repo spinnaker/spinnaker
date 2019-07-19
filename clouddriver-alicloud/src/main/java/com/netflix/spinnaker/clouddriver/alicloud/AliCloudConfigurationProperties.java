@@ -16,8 +16,4 @@
 
 package com.netflix.spinnaker.clouddriver.alicloud;
 
-/**
- * @author: luoguan
- * @create: 2019-05-16 09:49
- */
 public class AliCloudConfigurationProperties {}
