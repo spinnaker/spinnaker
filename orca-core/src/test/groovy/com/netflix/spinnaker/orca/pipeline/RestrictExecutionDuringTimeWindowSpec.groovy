@@ -192,7 +192,7 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     restrictExecutionDuringTimeWindow.taskGraph(restrictExecutionStage, builder)
 
     then:
-    if (jitterEnabled && max != null) {
+    if (jitterEnabled && max > 0) {
       assert restrictExecutionStage.context.waitTime != null
       assert (restrictExecutionStage.context.waitTime >= min && restrictExecutionStage.context.waitTime <= max)
     } else {
@@ -203,10 +203,9 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     where:
     jitterEnabled | min  | max  | waitTaskCount
     true          | 60   | 600  | 1
-    true          | null | 600  | 1
-    true          | null | null | 0
+    true          | 0    | 600  | 1
+    true          | 0    | 0    | 0
     false         | 60   | 600  | 0
-    false         | null | null | 0
   }
 
   private hourMinute(String hourMinuteStr) {
