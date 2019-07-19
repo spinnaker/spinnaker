@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -49,9 +50,7 @@ class ResourcePersister(
     )
       .also {
         it.artifacts.forEach { artifact ->
-          if (!artifactRepository.isRegistered(artifact.name, artifact.type)) {
-            artifactRepository.register(artifact)
-          }
+          artifact.register()
         }
         deliveryConfigRepository.store(it)
       }
@@ -114,6 +113,12 @@ class ResourcePersister(
     } catch (e: NoSuchResourceException) {
       false
     }
+
+  private fun DeliveryArtifact.register() {
+    if (!artifactRepository.isRegistered(name, type)) {
+      artifactRepository.register(this)
+    }
+  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

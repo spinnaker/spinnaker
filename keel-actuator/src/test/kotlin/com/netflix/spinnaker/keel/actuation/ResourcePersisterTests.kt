@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,11 +36,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import strikt.assertions.startsWith
 import strikt.assertions.succeeded
@@ -48,10 +52,11 @@ import java.time.Duration
 @AutoConfigureMockMvc
 internal class ResourcePersisterTests : JUnit5Minutests {
 
-  object Fixture {
-    val artifactRepository: InMemoryArtifactRepository = InMemoryArtifactRepository()
+  data class Fixture(
+    val artifactRepository: InMemoryArtifactRepository = InMemoryArtifactRepository(),
+    val resourceRepository: InMemoryResourceRepository = InMemoryResourceRepository(),
     val deliveryConfigRepository: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
-    val resourceRepository: InMemoryResourceRepository = InMemoryResourceRepository()
+  ) {
     private val clock: Clock = Clock.systemDefaultZone()
     private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val subject: ResourcePersister = ResourcePersister(
@@ -93,7 +98,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
   }
 
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
+    fixture { Fixture() }
 
     context("persisting individual resources") {
 
@@ -315,6 +320,117 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               .get { data }
               .startsWith("updated")
           }
+        }
+      }
+
+      context("a resource attached to the delivery config fails to persist") {
+        deriveFixture {
+          copy(resourceRepository = mockk())
+        }
+
+        before {
+          // the mock signature looks weird here due to https://github.com/mockk/mockk/issues/152
+          every { resourceRepository.get(ResourceName(any()), eq(Any::class.java)) } answers {
+            throw NoSuchResourceName(ResourceName(firstArg()))
+          }
+          every { resourceRepository.store(any()) } throws IllegalStateException("o noes")
+
+          expectCatching {
+            create(
+              SubmittedDeliveryConfig(
+                name = "keel-manifest",
+                application = "keel",
+                artifacts = setOf(DeliveryArtifact(
+                  name = "keel",
+                  type = DEB
+                )),
+                environments = setOf(
+                  SubmittedEnvironment(
+                    name = "test",
+                    resources = setOf(SubmittedResource(
+                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      kind = "whatever",
+                      metadata = SubmittedMetadata("keel@spinnaker"),
+                      spec = DummyResourceSpec("test", "resource in test")
+                    ))
+                  ),
+                  SubmittedEnvironment(
+                    name = "prod",
+                    resources = setOf(SubmittedResource(
+                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      kind = "whatever",
+                      metadata = SubmittedMetadata("keel@spinnaker"),
+                      spec = DummyResourceSpec("prod", "resource in prod")
+                    ))
+                  )
+                )
+              )
+            )
+          }
+            .failed()
+            .isA<IllegalStateException>()
+        }
+
+        test("the artifacts are not persisted") {
+          expectThat(artifactRepository.isRegistered("keel", DEB)).isFalse()
+        }
+
+        test("the delivery config is not persisted") {
+          expectCatching { deliveryConfigRepository.get("keel-manifest") }.failed()
+        }
+      }
+
+      context("an artifact attached to the delivery config fails to persist") {
+        deriveFixture {
+          copy(artifactRepository = mockk())
+        }
+
+        before {
+          every { artifactRepository.isRegistered(any(), any()) } returns false
+          every { artifactRepository.register(any()) } throws IllegalStateException("o noes")
+
+          expectCatching {
+            create(
+              SubmittedDeliveryConfig(
+                name = "keel-manifest",
+                application = "keel",
+                artifacts = setOf(DeliveryArtifact(
+                  name = "keel",
+                  type = DEB
+                )),
+                environments = setOf(
+                  SubmittedEnvironment(
+                    name = "test",
+                    resources = setOf(SubmittedResource(
+                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      kind = "whatever",
+                      metadata = SubmittedMetadata("keel@spinnaker"),
+                      spec = DummyResourceSpec("test", "resource in test")
+                    ))
+                  ),
+                  SubmittedEnvironment(
+                    name = "prod",
+                    resources = setOf(SubmittedResource(
+                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      kind = "whatever",
+                      metadata = SubmittedMetadata("keel@spinnaker"),
+                      spec = DummyResourceSpec("prod", "resource in prod")
+                    ))
+                  )
+                )
+              )
+            )
+          }
+            .failed()
+            .isA<IllegalStateException>()
+        }
+
+        test("the resources are not persisted") {
+          expectThat(resourceRepository.size()).isEqualTo(0)
+        }
+
+        test("the delivery config is not persisted") {
+          expectCatching { deliveryConfigRepository.get("keel-manifest") }.failed()
         }
       }
     }
