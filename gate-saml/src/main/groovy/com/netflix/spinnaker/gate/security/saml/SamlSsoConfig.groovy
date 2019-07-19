@@ -43,6 +43,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.extensions.saml2.config.SAMLConfigurer
+import org.springframework.security.saml.websso.WebSSOProfileConsumerImpl
 import org.springframework.security.saml.SAMLCredential
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService
 import org.springframework.security.web.authentication.RememberMeServices
@@ -89,6 +90,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
     List<String> requiredRoles
     UserAttributeMapping userAttributeMapping = new UserAttributeMapping()
+    long maxAuthenticationAge = 7200
 
     /**
      * Ensure that the keystore exists and can be accessed with the given keyStorePassword and keyStoreAliasName
@@ -149,6 +151,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
           .discoveryEnabled(false)
           .and()
+        .webSSOProfileConsumer(getWebSSOProfileConsumerImpl())
         .serviceProvider()
           .entityId(samlSecurityConfigProperties.issuerId)
           .protocol(samlSecurityConfigProperties.redirectProtocol)
@@ -168,6 +171,12 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
   void configure(WebSecurity web) throws Exception {
     authConfig.configure(web)
+  }
+
+  public WebSSOProfileConsumerImpl getWebSSOProfileConsumerImpl() {
+    WebSSOProfileConsumerImpl profileConsumer = new WebSSOProfileConsumerImpl();
+    profileConsumer.setMaxAuthenticationAge(samlSecurityConfigProperties.maxAuthenticationAge);
+    return profileConsumer;
   }
 
   @Bean
