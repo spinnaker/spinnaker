@@ -51,6 +51,8 @@ public class WebhookProperties {
   private List<PreconfiguredWebhook> preconfigured = new ArrayList<>();
   private TrustSettings trust;
 
+  private boolean verifyRedirects = true;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {

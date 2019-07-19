@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.webhook.config;
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.*;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -83,11 +85,28 @@ public class WebhookConfiguration {
 
   @Bean
   public ClientHttpRequestFactory webhookRequestFactory(
-      OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
+      OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
+      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
     X509TrustManager trustManager = webhookX509TrustManager();
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory(trustManager);
     OkHttpClient client =
-        new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
+        new OkHttpClient.Builder()
+            .sslSocketFactory(sslSocketFactory, trustManager)
+            .addNetworkInterceptor(
+                chain -> {
+                  Response response = chain.proceed(chain.request());
+
+                  if (webhookProperties.isVerifyRedirects() && response.isRedirect()) {
+                    // verify that we are not redirecting to a restricted url
+                    String redirectLocation = response.header("Location");
+                    if (redirectLocation != null && !redirectLocation.trim().startsWith("/")) {
+                      userConfiguredUrlRestrictions.validateURI(redirectLocation);
+                    }
+                  }
+
+                  return response;
+                })
+            .build();
     OkHttp3ClientHttpRequestFactory requestFactory = new OkHttp3ClientHttpRequestFactory(client);
     requestFactory.setReadTimeout(
         Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));

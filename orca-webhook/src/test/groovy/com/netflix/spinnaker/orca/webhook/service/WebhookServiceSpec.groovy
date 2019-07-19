@@ -49,13 +49,16 @@ class WebhookServiceSpec extends Specification {
   def webhookConfiguration = new WebhookConfiguration(webhookProperties)
 
   @Shared
-  def requestFactory = webhookConfiguration.webhookRequestFactory(okHttpClientConfigurationProperties)
+  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
+
+  @Shared
+  def requestFactory = webhookConfiguration.webhookRequestFactory(
+    okHttpClientConfigurationProperties,
+    userConfiguredUrlRestrictions
+  )
 
   @Shared
   def restTemplateProvider = new DefaultRestTemplateProvider(webhookConfiguration.restTemplate(requestFactory))
-
-  @Shared
-  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
 
   def preconfiguredWebhookProperties = new WebhookProperties()
 
