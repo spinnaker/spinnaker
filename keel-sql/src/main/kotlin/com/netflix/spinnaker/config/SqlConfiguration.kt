@@ -7,16 +7,32 @@ import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import org.jooq.DSLContext
+import org.jooq.impl.DefaultConfiguration
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.Clock
+import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @Import(DefaultSqlConfiguration::class)
 class SqlConfiguration {
+
+  @Autowired
+  lateinit var jooqConfiguration: DefaultConfiguration
+
+  // This allows us to run tests with a testcontainers database that has a different schema name to
+  // the real one used by the JOOQ code generator. It _is_ possible to change the schema used by
+  // testcontainers but not when initializing the database with just the JDBC connection string
+  // which is super convenient, especially for Spring integration tests.
+  @PostConstruct
+  fun tweakJooqConfiguration() {
+    jooqConfiguration.settings().isRenderSchema = false
+  }
+
   @Bean
   fun resourceRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper) =
     SqlResourceRepository(jooq, clock, objectMapper)

@@ -23,6 +23,8 @@ import com.netflix.spinnaker.keel.plugin.supporting
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Propagation.REQUIRED
+import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 
 @Component
@@ -34,6 +36,7 @@ class ResourcePersister(
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher
 ) {
+  @Transactional(propagation = REQUIRED)
   fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
     DeliveryConfig(
       name = deliveryConfig.name,

@@ -18,11 +18,13 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import org.springframework.transaction.annotation.Propagation.REQUIRED
+import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
 
-class SqlResourceRepository(
+open class SqlResourceRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val objectMapper: ObjectMapper
@@ -71,26 +73,25 @@ class SqlResourceRepository(
       } ?: throw NoSuchResourceName(name)
   }
 
+  @Transactional(propagation = REQUIRED)
   override fun store(resource: Resource<*>) {
-    jooq.inTransaction {
-      val uid = resource.uid.toString()
-      val updatePairs = mapOf(
-        RESOURCE.API_VERSION to resource.apiVersion.toString(),
-        RESOURCE.KIND to resource.kind,
-        RESOURCE.NAME to resource.name.value,
-        RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata),
-        RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec)
-      )
-      val insertPairs = updatePairs + (RESOURCE.UID to uid)
-      insertInto(
-        RESOURCE,
-        *insertPairs.keys.toTypedArray()
-      )
-        .values(*insertPairs.values.toTypedArray())
-        .onDuplicateKeyUpdate()
-        .set(updatePairs)
-        .execute()
-    }
+    val uid = resource.uid.toString()
+    val updatePairs = mapOf(
+      RESOURCE.API_VERSION to resource.apiVersion.toString(),
+      RESOURCE.KIND to resource.kind,
+      RESOURCE.NAME to resource.name.value,
+      RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata),
+      RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec)
+    )
+    val insertPairs = updatePairs + (RESOURCE.UID to uid)
+    jooq.insertInto(
+      RESOURCE,
+      *insertPairs.keys.toTypedArray()
+    )
+      .values(*insertPairs.values.toTypedArray())
+      .onDuplicateKeyUpdate()
+      .set(updatePairs)
+      .execute()
   }
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
@@ -107,69 +108,65 @@ class SqlResourceRepository(
         throw NoSuchResourceUID(uid)
       }
 
+  @Transactional(propagation = REQUIRED)
   override fun appendHistory(event: ResourceEvent) {
-    jooq.inTransaction {
-      insertInto(RESOURCE_EVENT)
-        .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
-        .values(
-          event.uid.toString(),
-          event.timestamp.atZone(clock.zone).toLocalDateTime(),
-          objectMapper.writeValueAsString(event)
-        )
-        .execute()
-    }
+    jooq.insertInto(RESOURCE_EVENT)
+      .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
+      .values(
+        event.uid.toString(),
+        event.timestamp.atZone(clock.zone).toLocalDateTime(),
+        objectMapper.writeValueAsString(event)
+      )
+      .execute()
   }
 
+  @Transactional(propagation = REQUIRED)
   override fun delete(name: ResourceName) {
-    jooq.inTransaction {
-      val uid = select(RESOURCE.UID)
-        .from(RESOURCE)
-        .where(RESOURCE.NAME.eq(name.value))
-        .fetchOne(RESOURCE.UID)
-        ?.let(ULID::parseULID)
-        ?: throw NoSuchResourceName(name)
-      deleteFrom(RESOURCE)
-        .where(RESOURCE.UID.eq(uid.toString()))
-        .execute()
-      deleteFrom(RESOURCE_EVENT)
-        .where(RESOURCE_EVENT.UID.eq(uid.toString()))
-        .execute()
-    }
+    val uid = jooq.select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.NAME.eq(name.value))
+      .fetchOne(RESOURCE.UID)
+      ?.let(ULID::parseULID)
+      ?: throw NoSuchResourceName(name)
+    jooq.deleteFrom(RESOURCE)
+      .where(RESOURCE.UID.eq(uid.toString()))
+      .execute()
+    jooq.deleteFrom(RESOURCE_EVENT)
+      .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+      .execute()
   }
 
+  @Transactional(propagation = REQUIRED)
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).atZone(clock.zone).toLocalDateTime()
-    return jooq.inTransaction {
-      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
-        .from(RESOURCE)
-        .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
-        .orderBy(RESOURCE.LAST_CHECKED)
-        .limit(limit)
-        .forUpdate()
-        .fetch()
-        .also {
-          it.forEach { (uid, _, _, _) ->
-            update(RESOURCE)
-              .set(mapOf(RESOURCE.LAST_CHECKED to now))
-              .where(RESOURCE.UID.eq(uid))
-              .execute()
-          }
+    return jooq.select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
+      .from(RESOURCE)
+      .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
+      .orderBy(RESOURCE.LAST_CHECKED)
+      .limit(limit)
+      .forUpdate()
+      .fetch()
+      .also {
+        it.forEach { (uid, _, _, _) ->
+          jooq.update(RESOURCE)
+            .set(mapOf(RESOURCE.LAST_CHECKED to now))
+            .where(RESOURCE.UID.eq(uid))
+            .execute()
         }
-        .map { (uid, apiVersion, kind, name) ->
-          ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
-        }
-    }
+      }
+      .map { (uid, apiVersion, kind, name) ->
+        ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
+      }
   }
 
+  @Transactional(propagation = REQUIRED)
   override fun markCheckDue(resource: Resource<*>) {
-    jooq.inTransaction {
-      update(RESOURCE)
-        // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
-        .set(mapOf(RESOURCE.LAST_CHECKED to EPOCH.plusSeconds(1).atZone(clock.zone).toLocalDateTime()))
-        .where(RESOURCE.UID.eq(resource.uid.toString()))
-        .execute()
-    }
+    jooq.update(RESOURCE)
+      // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
+      .set(mapOf(RESOURCE.LAST_CHECKED to EPOCH.plusSeconds(1).atZone(clock.zone).toLocalDateTime()))
+      .where(RESOURCE.UID.eq(resource.uid.toString()))
+      .execute()
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

@@ -10,39 +10,40 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT_VERSION
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import org.springframework.transaction.annotation.Propagation.REQUIRED
+import org.springframework.transaction.annotation.Transactional
 
-class SqlArtifactRepository(
+open class SqlArtifactRepository(
   private val jooq: DSLContext
 ) : ArtifactRepository {
+  @Transactional(propagation = REQUIRED)
   override fun register(artifact: DeliveryArtifact) {
-    jooq.inTransaction {
-      insertInto(DELIVERY_ARTIFACT)
-        .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
-        .set(DELIVERY_ARTIFACT.NAME, artifact.name)
-        .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
-        .onDuplicateKeyIgnore()
-        .execute()
-        .also { count ->
-          if (count == 0) throw ArtifactAlreadyRegistered(artifact)
-        }
-    }
+    jooq.insertInto(DELIVERY_ARTIFACT)
+      .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
+      .set(DELIVERY_ARTIFACT.NAME, artifact.name)
+      .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
+      .onDuplicateKeyIgnore()
+      .execute()
+      .also { count ->
+        if (count == 0) throw ArtifactAlreadyRegistered(artifact)
+      }
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String): Boolean =
-    jooq.inTransaction {
-      val uid = select(DELIVERY_ARTIFACT.UID)
-        .from(DELIVERY_ARTIFACT)
-        .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .fetchOne()
-        ?: throw NoSuchArtifactException(artifact)
+  @Transactional(propagation = REQUIRED)
+  override fun store(artifact: DeliveryArtifact, version: String): Boolean {
+    val uid = jooq.select(DELIVERY_ARTIFACT.UID)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+      .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+      .fetchOne()
+      ?: throw NoSuchArtifactException(artifact)
 
-      insertInto(DELIVERY_ARTIFACT_VERSION)
-        .set(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID, uid.value1())
-        .set(DELIVERY_ARTIFACT_VERSION.VERSION, version)
-        .onDuplicateKeyIgnore()
-        .execute() == 1
-    }
+    return jooq.insertInto(DELIVERY_ARTIFACT_VERSION)
+      .set(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID, uid.value1())
+      .set(DELIVERY_ARTIFACT_VERSION.VERSION, version)
+      .onDuplicateKeyIgnore()
+      .execute() == 1
+  }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
     jooq

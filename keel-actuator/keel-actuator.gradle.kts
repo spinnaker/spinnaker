@@ -8,6 +8,7 @@ dependencies {
   api(project(":keel-plugin"))
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("org.springframework:spring-tx")
 
   testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
   testImplementation("dev.minutest:minutest")

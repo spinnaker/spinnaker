@@ -20,46 +20,47 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
+import org.springframework.transaction.annotation.Propagation.REQUIRED
+import org.springframework.transaction.annotation.Transactional
 
-class SqlDeliveryConfigRepository(
+open class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
   private val resourceTypeIdentifier: ResourceTypeIdentifier
 ) : DeliveryConfigRepository {
 
   private val mapper = configuredObjectMapper()
 
+  @Transactional(propagation = REQUIRED)
   override fun store(deliveryConfig: DeliveryConfig) {
-    jooq.inTransaction {
-      val uid = randomUID().toString()
-      with(deliveryConfig) {
-        insertInto(DELIVERY_CONFIG)
-          .set(DELIVERY_CONFIG.UID, uid)
-          .set(DELIVERY_CONFIG.NAME, name)
-          .set(DELIVERY_CONFIG.APPLICATION, application)
+    val uid = randomUID().toString()
+    with(deliveryConfig) {
+      jooq.insertInto(DELIVERY_CONFIG)
+        .set(DELIVERY_CONFIG.UID, uid)
+        .set(DELIVERY_CONFIG.NAME, name)
+        .set(DELIVERY_CONFIG.APPLICATION, application)
+        .onDuplicateKeyIgnore()
+        .execute()
+      artifacts.forEach { artifact ->
+        jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)
+          .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
+          .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, jooq.select(DELIVERY_ARTIFACT.UID).from(DELIVERY_ARTIFACT).where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)))
           .onDuplicateKeyIgnore()
           .execute()
-        artifacts.forEach { artifact ->
-          insertInto(DELIVERY_CONFIG_ARTIFACT)
-            .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
-            .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, select(DELIVERY_ARTIFACT.UID).from(DELIVERY_ARTIFACT).where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)))
+      }
+      environments.forEach { environment ->
+        val environmentUID = randomUID().toString()
+        jooq.insertInto(ENVIRONMENT)
+          .set(ENVIRONMENT.UID, environmentUID)
+          .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
+          .set(ENVIRONMENT.NAME, environment.name)
+          .onDuplicateKeyIgnore()
+          .execute()
+        environment.resources.forEach { resource ->
+          jooq.insertInto(ENVIRONMENT_RESOURCE)
+            .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
+            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, resource.uid.toString())
             .onDuplicateKeyIgnore()
             .execute()
-        }
-        environments.forEach { environment ->
-          val environmentUID = randomUID().toString()
-          insertInto(ENVIRONMENT)
-            .set(ENVIRONMENT.UID, environmentUID)
-            .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
-            .set(ENVIRONMENT.NAME, environment.name)
-            .onDuplicateKeyIgnore()
-            .execute()
-          environment.resources.forEach { resource ->
-            insertInto(ENVIRONMENT_RESOURCE)
-              .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
-              .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, resource.uid.toString())
-              .onDuplicateKeyIgnore()
-              .execute()
-          }
         }
       }
     }
