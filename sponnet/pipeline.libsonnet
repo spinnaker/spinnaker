@@ -151,6 +151,8 @@
       withProject(project):: self + { project: project },
       withSlug(slug):: self + { slug: slug },
       withSource(source):: self + { source: source },
+      withSecret(secret):: self + { secret: secret },
+      withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
     },
     webhook(name):: trigger(name, 'webhook') {
       payloadConstraints: {},
