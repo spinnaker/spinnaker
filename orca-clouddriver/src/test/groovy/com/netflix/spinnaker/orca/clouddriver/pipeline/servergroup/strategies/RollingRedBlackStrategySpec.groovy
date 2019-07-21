@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
@@ -56,8 +57,6 @@ class RollingRedBlackStrategySpec extends Specification {
             moniker                      : moniker,
             cloudProvider                : "aws",
             region                       : "north",
-            availabilityZones            : [north: ["pole-1a"]],
-            source                       : [:],  // pretend there is no pre-existing server group
             capacity                     : fallbackCapacity,
             targetHealthyDeployPercentage: 90
           ]
@@ -74,11 +73,30 @@ class RollingRedBlackStrategySpec extends Specification {
             moniker                      : moniker,
             cloudProvider                : "aws",
             region                       : "north",
-            availabilityZones            : [north: ["pole-1a"]],
-            source                       : [:],  // pretend there is no pre-existing server group
             capacity                     : fallbackCapacity,
             targetHealthyDeployPercentage: 90,
             targetPercentages            : [50]
+          ]
+        }
+
+        stage {
+          refId = "2-deploy3"
+          parent
+          context = [
+            refId                        : "stage",
+            account                      : "testAccount",
+            application                  : "unit",
+            stack                        : "tests",
+            moniker                      : moniker,
+            cloudProvider                : "aws",
+            region                       : "north",
+            capacity                     : fallbackCapacity,
+            targetHealthyDeployPercentage: 90,
+            targetPercentages            : [50, 100],
+            pipelineBeforeCleanup        : [
+              application: "serverlabmvulfson",
+              pipelineId: "d054a10b-79fd-498b-8b0d-52b339e5643e"
+            ]
           ]
         }
       }
@@ -93,9 +111,16 @@ class RollingRedBlackStrategySpec extends Specification {
       determineTargetServerGroupStage: determineTargetServerGroupStage,
     )
 
-    when: 'planning with no targetPercentages'
+    when: 'planning without having run createServerGroup'
     def stage = pipeline.stageByRef("2-deploy1")
     def syntheticStages = strat.composeFlow(stage)
+
+    then:
+    syntheticStages.size() == 0
+
+    when: 'planning with no targetPercentages'
+    pipeline.stageByRef("1-create").status = ExecutionStatus.RUNNING
+    syntheticStages = strat.composeFlow(stage)
     def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
     def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
@@ -139,5 +164,16 @@ class RollingRedBlackStrategySpec extends Specification {
     afterStages.get(2).context.action == ResizeStrategy.ResizeAction.scale_exact
     afterStages.get(2).context.capacity == fallbackCapacity
 
+    when: 'planning with cleanup pipeline'
+    stage = pipeline.stageByRef("2-deploy3")
+    syntheticStages = strat.composeFlow(stage)
+    afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+
+    then:
+    noExceptionThrown()
+    afterStages.size() == 5
+    afterStages.first().type == determineTargetServerGroupStage.type
+    afterStages[2].type == pipelineStage.type
+    afterStages[4].type == pipelineStage.type
   }
 }
