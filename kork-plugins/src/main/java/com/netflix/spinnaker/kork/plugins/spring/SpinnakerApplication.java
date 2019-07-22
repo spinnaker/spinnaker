@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins.spring;
 
+import com.google.common.annotations.Beta;
 import java.util.Map;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -24,6 +25,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * Projects that want to support plugins should extend SpinnakerApplication instead of
  * SpringBootServletInitializer.
  */
+@Beta
 public class SpinnakerApplication extends SpringBootServletInitializer {
 
   /**

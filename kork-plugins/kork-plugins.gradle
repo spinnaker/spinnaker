@@ -7,6 +7,8 @@ dependencies {
   api project(":kork-exceptions")
 
   api "org.springframework.boot:spring-boot-starter-web"
+  implementation("com.google.guava:guava")
+
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 
   testImplementation "org.codehaus.groovy:groovy-all"

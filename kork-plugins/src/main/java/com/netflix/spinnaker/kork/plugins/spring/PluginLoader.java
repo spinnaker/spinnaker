@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.annotations.Beta;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
  * initialization, plugins are able to be autowired. The PluginLoader config file's location is
  * configurable itself, via an environment variable.
  */
+@Beta
 public class PluginLoader {
 
   static final String DEFAULT_PLUGIN_CONFIG_PATH = "/opt/spinnaker/config/plugins.yml";
