@@ -119,11 +119,11 @@ module.exports = angular
         });
       };
 
-      $scope.updateTrigger = function(index, changes) {
+      $scope.updateTrigger = function(index, updatedTrigger) {
         $scope.$applyAsync(() => {
-          PipelineConfigValidator.validatePipeline($scope.pipeline);
           $scope.pipeline.triggers = $scope.pipeline.triggers.slice(0);
-          extend($scope.pipeline.triggers[index], changes);
+          $scope.pipeline.triggers[index] = updatedTrigger;
+          PipelineConfigValidator.validatePipeline($scope.pipeline);
           if (SETTINGS.feature['artifactsRewrite']) {
             $scope.removeUnusedExpectedArtifacts($scope.pipeline);
           }
