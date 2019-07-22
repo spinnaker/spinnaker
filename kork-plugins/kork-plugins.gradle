@@ -1,0 +1,18 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  api project(":kork-exceptions")
+
+  api "org.springframework.boot:spring-boot-starter-web"
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+
+  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation("org.mockito:mockito-core")
+  testImplementation "org.spockframework:spock-core"
+
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+}

@@ -29,6 +29,7 @@ include(
   "kork-jedis",
   "kork-jedis-test",
   "kork-manageddelivery",
+  "kork-plugins",
   "kork-secrets",
   "kork-secrets-aws",
   "kork-security",
