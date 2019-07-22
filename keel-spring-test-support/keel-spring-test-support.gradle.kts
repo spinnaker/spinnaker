@@ -8,5 +8,5 @@ dependencies {
   api("org.springframework.security:spring-security-test")
   api("org.springframework.security:spring-security-config")
   api("com.netflix.eureka:eureka-client")
-  api("com.ninja-squad:springmockk:1.1.0")
+  api("com.ninja-squad:springmockk")
 }
