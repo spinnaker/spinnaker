@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

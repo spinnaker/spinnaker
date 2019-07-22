@@ -53,8 +53,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
 
     /**
      * I'd like to have this test in the superclass but the in-memory implementation is not designed
-     * to be thread safe and the Redis implementation needs too much work to make it thread safe
-     * given it's not our preferred target.
+     * to be thread safe.
      */
     context("many threads are checking simultaneously") {
       before {
