@@ -78,7 +78,7 @@ export function FormField(props: IFormFieldProps) {
 
   const controlledInputProps: IControlledInputProps = {
     value: props.value,
-    name: props.name || noop,
+    name: props.name || '',
     onChange: props.onChange || noop,
     onBlur: (e: React.FocusEvent) => {
       setHasBlurred(true);

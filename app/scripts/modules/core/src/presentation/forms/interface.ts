@@ -19,11 +19,11 @@ export interface IFieldLayoutProps extends IFieldLayoutPropsWithoutInput {
 
 /**
  * These props are used by controlled components, such as <input> or Input components like TextInput
- * The typings reference the typings supplied by formik FieldProps
+ * Some of the typings reference the typings supplied by formik FieldProps
  */
 export interface IControlledInputProps {
   value: FieldProps['field']['value'];
-  onChange: FieldProps['field']['onChange'];
+  onChange(e: React.ChangeEvent<any>): void;
   onBlur: FieldProps['field']['onBlur'];
   name: FieldProps['field']['name'];
 }
