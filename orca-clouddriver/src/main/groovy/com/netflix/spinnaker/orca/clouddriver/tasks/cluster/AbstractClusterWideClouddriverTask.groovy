@@ -142,6 +142,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     ]).build()
   }
 
+  // TOOD: mvulfson: this is technically not needed since RRB doesn't call DisableCluster anymore
   private static boolean shouldSkipTrafficGuardCheck(List<Map<String, Map>> katoOps) {
     // if any operation has a non-null desiredPercentage that indicates an entire server group is not going away
     // (e.g. in the case of rolling red/black), let's bypass the traffic guard check
