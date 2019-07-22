@@ -57,7 +57,6 @@ public class PluginLoader {
    * jar paths to the classpath in order for plugins to load.
    *
    * @param source The parent class loader for delegation
-   * @return EncryptedSecret object
    */
   public void loadPlugins(Class source) {
     URL[] urls;

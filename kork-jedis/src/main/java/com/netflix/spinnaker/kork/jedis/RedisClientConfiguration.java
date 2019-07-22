@@ -274,6 +274,14 @@ public class RedisClientConfiguration {
       this.connection = connection;
     }
 
+    public String getConnectionPrevious() {
+      return connectionPrevious;
+    }
+
+    public void setConnectionPrevious(String connectionPrevious) {
+      this.connectionPrevious = connectionPrevious;
+    }
+
     public Integer getTimeoutMs() {
       return timeoutMs;
     }
