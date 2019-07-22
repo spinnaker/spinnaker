@@ -134,24 +134,26 @@ class SqlResourceRepository(
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).atZone(clock.zone).toLocalDateTime()
-    return jooq.select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
-      .from(RESOURCE)
-      .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
-      .orderBy(RESOURCE.LAST_CHECKED)
-      .limit(limit)
-      .forUpdate()
-      .fetch()
-      .also {
-        it.forEach { (uid, _, _, _) ->
-          jooq.update(RESOURCE)
-            .set(mapOf(RESOURCE.LAST_CHECKED to now))
-            .where(RESOURCE.UID.eq(uid))
-            .execute()
+    return jooq.inTransaction {
+      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
+        .from(RESOURCE)
+        .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
+        .orderBy(RESOURCE.LAST_CHECKED)
+        .limit(limit)
+        .forUpdate()
+        .fetch()
+        .also {
+          it.forEach { (uid, _, _, _) ->
+            update(RESOURCE)
+              .set(mapOf(RESOURCE.LAST_CHECKED to now))
+              .where(RESOURCE.UID.eq(uid))
+              .execute()
+          }
         }
-      }
-      .map { (uid, apiVersion, kind, name) ->
-        ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
-      }
+        .map { (uid, apiVersion, kind, name) ->
+          ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
+        }
+    }
   }
 
   override fun markCheckDue(resource: Resource<*>) {
