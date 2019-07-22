@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.util.Pool
@@ -73,6 +74,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Bean
   @ConditionalOnProperty(value = ["redis.cluster-enabled"], havingValue = "false", matchIfMissing = true)
+  @Primary
   override fun queue(
     @Qualifier("queueRedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
@@ -87,6 +89,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Bean
   @ConditionalOnProperty(value = ["redis.cluster-enabled"])
+  @Primary
   override fun clusterQueue(
     @Qualifier("queueRedisCluster") cluster: JedisCluster,
     redisQueueProperties: RedisQueueProperties,

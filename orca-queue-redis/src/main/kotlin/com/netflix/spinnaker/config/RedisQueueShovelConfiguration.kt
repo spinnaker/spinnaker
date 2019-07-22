@@ -21,9 +21,11 @@ import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
+import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
-import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
+import com.netflix.spinnaker.q.redis.AbstractRedisQueue
+import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisQueue
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.BeanInitializationException
@@ -31,11 +33,14 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCluster
+import redis.clients.jedis.Protocol
 import redis.clients.util.Pool
+import java.net.URI
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
@@ -45,7 +50,9 @@ import java.util.Optional
 class RedisQueueShovelConfiguration {
 
   @Bean
-  @ConditionalOnProperty("redis.connection-previous")
+  @ConditionalOnExpression(
+    "'\${redis.connection-previous:#{null}}' != null && '\${redis.previous-cluster-enabled:false}' == false"
+  )
   fun previousQueueJedisPool(
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
@@ -68,12 +75,42 @@ class RedisQueueShovelConfiguration {
     )
   }
 
+  @Bean
+  @ConditionalOnExpression(
+    "'\${redis.connection-previous:#{null}}' != null && '\${redis.previous-cluster-enabled:false}' == true"
+  )
+  fun previousJedisCluster(
+    @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
+    @Value("\${redis.connection-previous}") previousConnection: String,
+    @Value("\${redis.timeout:2000}") timeout: Int,
+    @Value("\${redis.maxattempts:4}") maxAttempts: Int,
+    redisPoolConfig: GenericObjectPoolConfig<*>,
+    registry: Registry
+  ): JedisCluster {
+    if (mainConnection == previousConnection) {
+      throw BeanInitializationException("previous Redis connection must not be the same as current connection")
+    }
+    URI.create(previousConnection).let { cx ->
+      val port = if (cx.port == -1) Protocol.DEFAULT_PORT else cx.port
+      val password = cx.userInfo?.substringAfter(":")
+      return JedisCluster(
+        HostAndPort(cx.host, port),
+        timeout,
+        timeout,
+        maxAttempts,
+        password,
+        redisPoolConfig
+      )
+    }
+  }
+
   @Bean(name = ["previousQueue"])
-  @ConditionalOnBean(name = ["previousQueueJedisPool"]) fun previousRedisQueue(
+  @ConditionalOnBean(name = ["previousQueueJedisPool"])
+  fun previousRedisQueue(
     @Qualifier("previousQueueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
-    deadMessageHandler: RedisDeadMessageHandler,
+    deadMessageHandler: DeadMessageCallback,
     publisher: EventPublisher,
     redisQueueObjectMapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>
@@ -89,10 +126,48 @@ class RedisQueueShovelConfiguration {
       serializationMigrator = serializationMigrator
     )
 
+  @Bean(name = ["previousClusterQueue"])
+  @ConditionalOnBean(name = ["previousJedisCluster"])
+  fun previousRedisClusterQueue(
+    @Qualifier("previousJedisCluster") cluster: JedisCluster,
+    redisQueueProperties: RedisQueueProperties,
+    clock: Clock,
+    deadMessageHandler: DeadMessageCallback,
+    publisher: EventPublisher,
+    redisQueueObjectMapper: ObjectMapper,
+    serializationMigrator: Optional<SerializationMigrator>
+  ) =
+    RedisClusterQueue(
+      queueName = redisQueueProperties.queueName,
+      jedisCluster = cluster,
+      clock = clock,
+      mapper = redisQueueObjectMapper,
+      deadMessageHandlers = listOf(deadMessageHandler),
+      publisher = publisher,
+      ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong()),
+      serializationMigrator = serializationMigrator
+    )
+
   @Bean
-  @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) fun redisQueueShovel(
-    queue: RedisQueue,
+  @ConditionalOnBean(name = ["previousQueueJedisPool"])
+  fun redisQueueShovel(
+    queue: AbstractRedisQueue,
     @Qualifier("previousQueue") previousQueueImpl: RedisQueue,
+    registry: Registry,
+    discoveryActivator: Activator
+  ) =
+    QueueShovel(
+      queue = queue,
+      previousQueue = previousQueueImpl,
+      registry = registry,
+      activator = discoveryActivator
+    )
+
+  @Bean
+  @ConditionalOnBean(name = ["previousClusterQueue"])
+  fun priorRedisClusterQueueShovel(
+    queue: AbstractRedisQueue,
+    @Qualifier("previousClusterQueue") previousQueueImpl: AbstractRedisQueue,
     registry: Registry,
     discoveryActivator: Activator
   ) =
