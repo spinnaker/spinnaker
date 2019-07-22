@@ -20,17 +20,14 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
-import org.springframework.transaction.annotation.Propagation.REQUIRED
-import org.springframework.transaction.annotation.Transactional
 
-open class SqlDeliveryConfigRepository(
+class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
   private val resourceTypeIdentifier: ResourceTypeIdentifier
 ) : DeliveryConfigRepository {
 
   private val mapper = configuredObjectMapper()
 
-  @Transactional(propagation = REQUIRED)
   override fun store(deliveryConfig: DeliveryConfig) {
     val uid = randomUID().toString()
     with(deliveryConfig) {

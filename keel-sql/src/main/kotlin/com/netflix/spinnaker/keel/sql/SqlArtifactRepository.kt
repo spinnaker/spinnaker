@@ -10,13 +10,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT_VERSION
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
-import org.springframework.transaction.annotation.Propagation.REQUIRED
-import org.springframework.transaction.annotation.Transactional
 
-open class SqlArtifactRepository(
+class SqlArtifactRepository(
   private val jooq: DSLContext
 ) : ArtifactRepository {
-  @Transactional(propagation = REQUIRED)
   override fun register(artifact: DeliveryArtifact) {
     jooq.insertInto(DELIVERY_ARTIFACT)
       .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
@@ -29,7 +26,6 @@ open class SqlArtifactRepository(
       }
   }
 
-  @Transactional(propagation = REQUIRED)
   override fun store(artifact: DeliveryArtifact, version: String): Boolean {
     val uid = jooq.select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)

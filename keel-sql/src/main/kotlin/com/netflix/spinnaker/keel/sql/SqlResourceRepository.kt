@@ -18,13 +18,11 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
-import org.springframework.transaction.annotation.Propagation.REQUIRED
-import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.EPOCH
 
-open class SqlResourceRepository(
+class SqlResourceRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val objectMapper: ObjectMapper
@@ -73,7 +71,6 @@ open class SqlResourceRepository(
       } ?: throw NoSuchResourceName(name)
   }
 
-  @Transactional(propagation = REQUIRED)
   override fun store(resource: Resource<*>) {
     val uid = resource.uid.toString()
     val updatePairs = mapOf(
@@ -108,7 +105,6 @@ open class SqlResourceRepository(
         throw NoSuchResourceUID(uid)
       }
 
-  @Transactional(propagation = REQUIRED)
   override fun appendHistory(event: ResourceEvent) {
     jooq.insertInto(RESOURCE_EVENT)
       .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
@@ -120,7 +116,6 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  @Transactional(propagation = REQUIRED)
   override fun delete(name: ResourceName) {
     val uid = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
@@ -136,7 +131,6 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  @Transactional(propagation = REQUIRED)
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).atZone(clock.zone).toLocalDateTime()
@@ -160,7 +154,6 @@ open class SqlResourceRepository(
       }
   }
 
-  @Transactional(propagation = REQUIRED)
   override fun markCheckDue(resource: Resource<*>) {
     jooq.update(RESOURCE)
       // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
