@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Option } from 'react-select';
 
 import { StageArtifactSelectorDelegate } from 'core/artifact';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
@@ -111,8 +110,8 @@ export class BakeManifestStageForm extends React.Component<
           >
             <ReactSelectInput
               clearable={false}
-              onChange={(o: Option<string>) => {
-                this.props.formik.setFieldValue('templateRenderer', o.value);
+              onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                this.props.formik.setFieldValue('templateRenderer', o.target.value);
               }}
               value={stage.templateRenderer}
               stringOptions={this.templateRenderers}
