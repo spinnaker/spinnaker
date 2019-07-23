@@ -35,6 +35,7 @@ if (project.plugins.hasPlugin('spinnaker.package')) {
     }
 
     configurationFile('/opt/rosco/config/rosco.yml')
+    configurationFile('/opt/rosco/config/packer/alicloud.json')
     configurationFile('/opt/rosco/config/packer/aws-chroot.json')
     configurationFile('/opt/rosco/config/packer/aws-ebs.json')
     configurationFile('/opt/rosco/config/packer/azure-linux.json')

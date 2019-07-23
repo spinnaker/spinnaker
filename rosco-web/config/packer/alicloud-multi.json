@@ -1,0 +1,83 @@
+{
+  "variables": {
+    "alicloud_access_key": "",
+    "alicloud_secret_key": "",
+    "alicloud_vswitch_id": "{{env `ALICLOUD_VSWITCH_ID`}}",
+    "alicloud_vpc_id": "{{env `ALICLOUD_VPC_ID`}}",
+    "alicloud_region": null,
+    "alicloud_ssh_username": null,
+    "alicloud_instance_type": null,
+    "alicloud_source_image": null,
+    "alicloud_target_image": null,
+    "alicloud_internet_charge_type": "PayByTraffic",
+    "alicloud_internet_max_bandwidth_out": "10",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null,
+    "share_with_1": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_2": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_3": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_4": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_5": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_6": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_7": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_8": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_9": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "share_with_10": "{{env `SPINNAKER_ALICLOUD_DEFAULT_ACCOUNT`}}",
+    "copy_to_1": "{{env `SPINNAKER_ALICLOUD_DEFAULT_REGION`}}",
+    "copy_to_2": "{{env `SPINNAKER_ALICLOUD_DEFAULT_REGION`}}",
+    "copy_to_3": "{{env `SPINNAKER_ALICLOUD_DEFAULT_REGION`}}",
+    "copy_to_4": "{{env `SPINNAKER_ALICLOUD_DEFAULT_REGION`}}",
+    "copy_to_5": "{{env `SPINNAKER_ALICLOUD_DEFAULT_REGION`}}"
+  },
+  "builders": [{
+    "type":"alicloud-ecs",
+    "access_key": "{{user `alicloud_access_key`}}",
+    "secret_key": "{{user `alicloud_secret_key`}}",
+    "region": "{{user `alicloud_region`}}",
+    "source_image": "{{user `alicloud_source_image`}}",
+    "image_name": "{{user `alicloud_target_image`}}",
+    "vswitch_id": "{{user `alicloud_vswitch_id`}}",
+    "vpc_id": "{{user `alicloud_vpc_id`}}",
+    "ssh_username": "{{user `alicloud_ssh_username`}}",
+    "instance_type": "{{user `alicloud_instance_type`}}",
+    "internet_charge_type": "{{user `alicloud_internet_charge_type`}}",
+    "internet_max_bandwidth_out": "{{user `alicloud_internet_max_bandwidth_out`}}",
+    "io_optimized": "true",
+    "instance_name": "spinnaker-build-{{user `alicloud_target_image`}}",
+    "image_share_account": [
+      "{{user `share_with_1`}}",
+      "{{user `share_with_2`}}",
+      "{{user `share_with_3`}}",
+      "{{user `share_with_4`}}",
+      "{{user `share_with_5`}}",
+      "{{user `share_with_6`}}",
+      "{{user `share_with_7`}}",
+      "{{user `share_with_8`}}",
+      "{{user `share_with_9`}}",
+      "{{user `share_with_10`}}"
+    ],
+    "image_copy_regions": [
+      "{{user `copy_to_1`}}",
+      "{{user `copy_to_2`}}",
+      "{{user `copy_to_3`}}",
+      "{{user `copy_to_4`}}",
+      "{{user `copy_to_5`}}"
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository={{user `repository`}}",
+      "package_type={{user `package_type`}}",
+      "packages={{user `packages`}}",
+      "upgrade={{user `upgrade`}}"
+    ],
+    "pause_before": "30s"
+  }]
+}
