@@ -56,7 +56,7 @@ export const BitbucketDefault: IArtifactKindConfig = {
       return (
         <StageConfigField label="Object path" helpKey="pipeline.config.expectedArtifact.defaultDocker.reference">
           <SpelText
-            placeholder="gcr.io/project/image@sha256:9efcc2818c9..."
+            placeholder="https://api.bitbucket.com/repos/$ORG/$REPO/contents/$FILEPATH"
             value={this.props.artifact.reference}
             onChange={this.onReferenceChanged}
             pipeline={this.props.pipeline}
