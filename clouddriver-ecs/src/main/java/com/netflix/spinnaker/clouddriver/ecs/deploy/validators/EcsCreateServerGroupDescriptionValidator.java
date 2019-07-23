@@ -122,6 +122,18 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       } else {
         rejectValue(errors, "reservedMemory", "not.nullable");
       }
+    } else {
+      // Verify load balanced services w/ an artifact specify which container to load balance on
+      boolean hasTargetGroup =
+          createServerGroupDescription.getTargetGroup() != null
+              && !createServerGroupDescription.getTargetGroup().isEmpty();
+      boolean hasLoadBalancedContainer =
+          createServerGroupDescription.getLoadBalancedContainer() != null
+              && !createServerGroupDescription.getLoadBalancedContainer().isEmpty();
+
+      if (hasTargetGroup && !hasLoadBalancedContainer) {
+        rejectValue(errors, "loadBalancedContainer", "not.nullable");
+      }
     }
 
     if (createServerGroupDescription.getContainerPort() != null) {
