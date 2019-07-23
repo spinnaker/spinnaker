@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.HostAndPort
@@ -46,13 +47,12 @@ import java.time.Duration
 import java.util.Optional
 
 @Configuration
-@ConditionalOnExpression("\${queue.redis.enabled:true}")
+@ConditionalOnProperty(value = ["queue.redis.enabled"], matchIfMissing = true)
 class RedisQueueShovelConfiguration {
 
   @Bean
-  @ConditionalOnExpression(
-    "'\${redis.connection-previous:#{null}}' != null && '\${redis.previous-cluster-enabled:false}' == false"
-  )
+  @ConditionalOnProperty("redis.connection-previous")
+  @ConditionalOnExpression("\${redis.previous-cluster-enabled:false} == false")
   fun previousQueueJedisPool(
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connection-previous:#{null}}") previousConnection: String?,
@@ -76,9 +76,8 @@ class RedisQueueShovelConfiguration {
   }
 
   @Bean
-  @ConditionalOnExpression(
-    "'\${redis.connection-previous:#{null}}' != null && '\${redis.previous-cluster-enabled:false}' == true"
-  )
+  @ConditionalOnProperty("redis.connection-previous")
+  @ConditionalOnExpression("\${redis.previous-cluster-enabled:false} == true")
   fun previousJedisCluster(
     @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
     @Value("\${redis.connection-previous}") previousConnection: String,
