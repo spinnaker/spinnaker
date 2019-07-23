@@ -13,6 +13,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.assertions.failed
+import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.succeeded
@@ -142,31 +143,48 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         )
       }
 
-      before {
-        storeArtifacts()
-        storeResources()
-        store()
+      context("the environments did not previously exist") {
+        before {
+          storeArtifacts()
+          storeResources()
+          store()
+        }
+
+        test("the config can be retrieved by name") {
+          getByName()
+            .succeeded()
+            .and {
+              get { name }.isEqualTo(deliveryConfig.name)
+              get { application }.isEqualTo(deliveryConfig.application)
+            }
+        }
+
+        test("artifacts are attached") {
+          getByName()
+            .succeeded()
+            .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
+        }
+
+        test("environments are attached") {
+          getByName()
+            .succeeded()
+            .get { environments }.isEqualTo(deliveryConfig.environments)
+        }
       }
 
-      test("the config can be retrieved by name") {
-        getByName()
-          .succeeded()
-          .and {
-            get { name }.isEqualTo(deliveryConfig.name)
-            get { application }.isEqualTo(deliveryConfig.application)
-          }
-      }
+      context("environments already existed") {
+        before {
+          storeArtifacts()
+          storeResources()
+          store()
+          store()
+        }
 
-      test("artifacts are attached") {
-        getByName()
-          .succeeded()
-          .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
-      }
-
-      test("environments are attached") {
-        getByName()
-          .succeeded()
-          .get { environments }.isEqualTo(deliveryConfig.environments)
+        test("the environments are not duplicated") {
+          getByName()
+            .succeeded()
+            .get { environments }.hasSize(deliveryConfig.environments.size)
+        }
       }
     }
   }

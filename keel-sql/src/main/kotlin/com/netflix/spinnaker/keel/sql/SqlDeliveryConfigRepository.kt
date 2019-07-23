@@ -29,8 +29,13 @@ class SqlDeliveryConfigRepository(
   private val mapper = configuredObjectMapper()
 
   override fun store(deliveryConfig: DeliveryConfig) {
-    val uid = randomUID().toString()
     with(deliveryConfig) {
+      val uid = jooq
+        .select(DELIVERY_CONFIG.UID)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.NAME.eq(name))
+        .fetchOne(DELIVERY_CONFIG.UID)
+        ?: randomUID().toString()
       jooq.insertInto(DELIVERY_CONFIG)
         .set(DELIVERY_CONFIG.UID, uid)
         .set(DELIVERY_CONFIG.NAME, name)
@@ -45,13 +50,19 @@ class SqlDeliveryConfigRepository(
           .execute()
       }
       environments.forEach { environment ->
-        val environmentUID = randomUID().toString()
-        jooq.insertInto(ENVIRONMENT)
-          .set(ENVIRONMENT.UID, environmentUID)
-          .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
-          .set(ENVIRONMENT.NAME, environment.name)
-          .onDuplicateKeyIgnore()
-          .execute()
+        val environmentUID = jooq
+          .select(ENVIRONMENT.UID)
+          .from(ENVIRONMENT)
+          .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+          .and(ENVIRONMENT.NAME.eq(environment.name))
+          .fetchOne(ENVIRONMENT.UID)
+          ?: randomUID().toString().also {
+            jooq.insertInto(ENVIRONMENT)
+              .set(ENVIRONMENT.UID, it)
+              .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
+              .set(ENVIRONMENT.NAME, environment.name)
+              .execute()
+          }
         environment.resources.forEach { resource ->
           jooq.insertInto(ENVIRONMENT_RESOURCE)
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)

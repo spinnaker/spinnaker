@@ -17,6 +17,7 @@ databaseChangeLog:
                   type: varchar(255)
                   constraints:
                     nullable: false
+                    unique: true
               - column:
                   name: application
                   type: varchar(255)
@@ -96,3 +97,19 @@ databaseChangeLog:
         - dropPrimaryKey:
             constraintName: delivery_config_artifact_pk
             tableName: delivery_config_artifact
+  - changeSet:
+      id: create-delivery-config-indices
+      author: fletch
+      changes:
+        - addUniqueConstraint:
+            constraintName: environment_delivery_config_name_idx
+            tableName: environment
+            columnNames: delivery_config_uid, name
+        - addUniqueConstraint:
+            constraintName: environment_resource_unique_idx
+            tableName: environment_resource
+            columnNames: environment_uid, resource_uid
+        - addUniqueConstraint:
+            constraintName: delivery_config_artifact_unique_idx
+            tableName: delivery_config_artifact
+            columnNames: delivery_config_uid, artifact_uid
