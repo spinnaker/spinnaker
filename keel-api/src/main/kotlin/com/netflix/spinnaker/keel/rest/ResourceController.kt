@@ -64,7 +64,7 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount)")
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
   fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out Any> {
     log.debug("Upserting: $resource")
     return resourcePersister.upsert(resource)

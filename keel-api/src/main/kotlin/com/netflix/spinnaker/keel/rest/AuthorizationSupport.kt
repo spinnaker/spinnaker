@@ -19,9 +19,12 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -31,21 +34,32 @@ class AuthorizationSupport(
   private val permissionEvaluator: FiatPermissionEvaluator,
   private val resourceRepository: ResourceRepository
 ) {
+  val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+
   fun userCanModifyResource(name: String): Boolean {
     try {
       val resource = resourceRepository.get(ResourceName(name), Any::class.java)
-      return userCanModifySpec(resource.serviceAccount)
+      return userCanModifySpec(resource.serviceAccount, resource.name)
     } catch (e: NoSuchResourceException) {
       // If resource doesn't exist return true so a 404 is propagated from the controller.
       return true
     }
   }
 
-  fun userCanModifySpec(serviceAccount: String): Boolean {
+  fun userCanModifySpec(serviceAccount: String, specOrName: Any): Boolean {
     val auth = SecurityContextHolder.getContext().authentication
-    return userCanAccessServiceAccount(auth, serviceAccount)
+    return userCanAccessServiceAccount(auth, serviceAccount, specOrName)
   }
 
-  fun userCanAccessServiceAccount(auth: Authentication, serviceAccount: String): Boolean =
-    permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored-svcAcct-auth")
+  fun userCanAccessServiceAccount(auth: Authentication, serviceAccount: String, specOrName: Any): Boolean {
+    val hasPermission = permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored-svcAcct-auth")
+    log.debug(
+      "[AUTH] {} is trying to access service account {}. They{} have permission. Resource: {}",
+      auth.principal,
+      serviceAccount,
+      if (hasPermission) "" else " DO NOT",
+      specOrName
+    )
+    return hasPermission
+  }
 }
