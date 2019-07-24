@@ -82,7 +82,7 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
 }
 
 function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage; firstScopeName: string }) {
-  const toolTipText = 'Copy timestamp to clipboard';
+  const toolTipText = 'Copy timestamp to clipboard as UTC instant in ISO-8601 format';
   return (
     <section className="small">
       <ul className="list-unstyled">

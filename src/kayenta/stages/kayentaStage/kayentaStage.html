@@ -72,6 +72,7 @@
       <stage-config-field label="Start Time"
                           help-key="pipeline.config.canary.startTimeIso">
         <input
+          required
           class="form-control input-sm"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].startTimeIso"
           type="text"/>
@@ -80,6 +81,7 @@
       <stage-config-field label="End Time"
                           help-key="pipeline.config.canary.endTimeIso">
         <input
+          required
           class="form-control input-sm"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
           type="text"/>
