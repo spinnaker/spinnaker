@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,8 @@ public class PrometheusMetricsService implements MetricsService {
   @Autowired private final Registry registry;
 
   @Builder.Default
-  private List<PrometheusMetricDescriptor> metricDescriptorsCache = Collections.emptyList();
+  private Map<String, List<PrometheusMetricDescriptor>> metricDescriptorsCache =
+      Collections.emptyMap();
 
   @Override
   public String getType() {
@@ -333,17 +335,24 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Override
   public List<Map> getMetadata(String metricsAccountName, String filter) {
-    if (!StringUtils.isEmpty(filter)) {
-      String lowerCaseFilter = filter.toLowerCase();
+    List<PrometheusMetricDescriptor> accountSpecificMetricDescriptorsCache =
+        metricDescriptorsCache.get(metricsAccountName);
 
-      return metricDescriptorsCache.stream()
-          .filter(
-              metricDescriptor ->
-                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+    if (CollectionUtils.isEmpty(accountSpecificMetricDescriptorsCache)) {
+      return Collections.emptyList();
+    }
+
+    if (StringUtils.isEmpty(filter)) {
+      return accountSpecificMetricDescriptorsCache.stream()
           .map(metricDescriptor -> metricDescriptor.getMap())
           .collect(Collectors.toList());
     } else {
-      return metricDescriptorsCache.stream()
+      String lowerCaseFilter = filter.toLowerCase();
+
+      return accountSpecificMetricDescriptorsCache.stream()
+          .filter(
+              metricDescriptor ->
+                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
           .map(metricDescriptor -> metricDescriptor.getMap())
           .collect(Collectors.toList());
     }
@@ -354,6 +363,7 @@ public class PrometheusMetricsService implements MetricsService {
     Set<AccountCredentials> accountCredentialsSet =
         CredentialsHelper.getAllAccountsOfType(
             AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+    Map<String, List<PrometheusMetricDescriptor>> updatedMetricDescriptorsCache = new HashMap<>();
 
     for (AccountCredentials credentials : accountCredentialsSet) {
       if (credentials instanceof PrometheusNamedAccountCredentials) {
@@ -369,16 +379,17 @@ public class PrometheusMetricsService implements MetricsService {
           List<String> data = prometheusMetricDescriptorsResponse.getData();
 
           if (!CollectionUtils.isEmpty(data)) {
-            // TODO(duftler): Should we instead be building the union across all accounts? This
-            // doesn't seem quite right yet.
-            metricDescriptorsCache =
+            List<PrometheusMetricDescriptor> accountSpecificMetricDescriptorsCache =
                 data.stream()
                     .map(metricName -> new PrometheusMetricDescriptor(metricName))
                     .collect(Collectors.toList());
 
+            updatedMetricDescriptorsCache.put(
+                prometheusCredentials.getName(), accountSpecificMetricDescriptorsCache);
+
             log.debug(
                 "Updated cache with {} metric descriptors via account {}.",
-                metricDescriptorsCache.size(),
+                accountSpecificMetricDescriptorsCache.size(),
                 prometheusCredentials.getName());
           } else {
             log.debug(
@@ -392,5 +403,7 @@ public class PrometheusMetricsService implements MetricsService {
         }
       }
     }
+
+    metricDescriptorsCache = updatedMetricDescriptorsCache;
   }
 }
