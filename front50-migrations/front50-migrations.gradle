@@ -18,6 +18,7 @@ dependencies {
   implementation project(":front50-core")
 
   implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
 
   testImplementation project(":front50-test")

@@ -39,6 +39,12 @@ allprojects { project ->
     apply plugin: "spinnaker.project"
   }
 
+  if ([korkVersion, fiatVersion].find { it.endsWith("-SNAPSHOT") }) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
   if (name != "front50-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
