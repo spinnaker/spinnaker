@@ -36,7 +36,7 @@ module.exports = angular
         this.namespaces = namespaces;
       });
 
-      AccountService.listAccounts('kubernetes').then(accounts => {
+      AccountService.listAccounts('kubernetes', 'v1').then(accounts => {
         this.accounts = accounts;
       });
 
