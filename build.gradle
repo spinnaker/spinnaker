@@ -38,6 +38,12 @@ allprojects {
     apply plugin: 'spinnaker.project'
   }
 
+  if ([korkVersion].find { it.endsWith("-SNAPSHOT") }) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
   if (name != "fiat-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
