@@ -47,6 +47,7 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.apache.commons:commons-lang3")
+  implementation("org.apache.httpcomponents:httpclient")
   implementation("javax.servlet:javax.servlet-api:4.0.1")
   implementation("com.jayway.jsonpath:json-path:2.2.0")
   implementation("org.yaml:snakeyaml")

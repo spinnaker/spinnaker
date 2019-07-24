@@ -4,6 +4,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-kotlin"))
   implementation(project(":orca-retrofit"))
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
 
   testImplementation(project(":orca-core-tck"))
 }

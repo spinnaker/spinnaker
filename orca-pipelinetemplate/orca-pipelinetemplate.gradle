@@ -21,6 +21,7 @@ dependencies {
   implementation("com.netflix.frigga:frigga")
   implementation("com.netflix.spinnaker.kork:kork-exceptions")
   implementation("com.squareup.okhttp3:okhttp")
+  implementation("commons-codec:commons-codec")
   implementation("javax.validation:validation-api")
 
   compileOnly("org.projectlombok:lombok")

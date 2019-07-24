@@ -32,6 +32,7 @@ dependencies {
 
   implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("org.apache.httpcomponents:httpclient")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")
   implementation("org.springframework.security:spring-security-web")

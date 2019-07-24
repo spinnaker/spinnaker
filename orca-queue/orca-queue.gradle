@@ -24,6 +24,7 @@ dependencies {
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("org.threeten:threeten-extra")
   implementation("org.funktionale:funktionale-partials")
+  implementation("org.springframework:spring-web")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("javax.ws.rs:jsr311-api:1.1.1")

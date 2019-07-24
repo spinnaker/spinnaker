@@ -17,7 +17,9 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("org.springframework:spring-web")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
 }
