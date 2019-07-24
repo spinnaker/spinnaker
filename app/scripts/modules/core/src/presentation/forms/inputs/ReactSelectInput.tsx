@@ -1,17 +1,17 @@
 import * as React from 'react';
 import Select, { Option, ReactSelectProps } from 'react-select';
+import VirtualizedSelect from 'react-virtualized-select';
 
 import { noop } from 'core/utils';
 
 import { StringsAsOptions } from './StringsAsOptions';
 import { TetheredSelect } from '../../TetheredSelect';
-
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
 interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
   stringOptions?: string[];
-  tethered?: boolean;
+  mode?: 'TETHERED' | 'VIRTUALIZED' | 'PLAIN';
 }
 
 // TODO: use standard css classes (from style guide?)
@@ -28,7 +28,7 @@ export const reactSelectValidationErrorStyle = {
  */
 export const reactSelectOnChangeAdapter = (name: string, onChange: IReactSelectInputProps['onChange']) => {
   return (selectedOption: Option) => {
-    const target = { name, value: selectedOption.value };
+    const target = { name, value: selectedOption ? selectedOption.value : null };
     const event = createFakeReactSyntheticEvent(target);
     return (onChange || noop)(event);
   };
@@ -55,7 +55,7 @@ export const reactSelectOnBlurAdapter = (name: string, value: any, onBlur: IReac
  */
 export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
   public static defaultProps: Partial<IReactSelectInputProps> = {
-    tethered: true,
+    mode: 'TETHERED',
   };
 
   public render() {
@@ -64,7 +64,7 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
       onChange,
       onBlur,
       value,
-      tethered,
+      mode,
       validation,
       stringOptions,
       options: optionOptions,
@@ -82,8 +82,17 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
     };
 
     const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
-      tethered ? (
+      mode === 'TETHERED' ? (
         <TetheredSelect className={className} style={style} options={options} {...fieldProps} {...otherProps} />
+      ) : mode === 'VIRTUALIZED' ? (
+        <VirtualizedSelect
+          className={className}
+          style={style}
+          options={options}
+          {...fieldProps}
+          {...otherProps}
+          optionRenderer={null}
+        />
       ) : (
         <Select className={className} style={style} options={options} {...fieldProps} {...otherProps} />
       );
