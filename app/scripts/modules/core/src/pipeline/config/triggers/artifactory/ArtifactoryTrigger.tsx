@@ -3,7 +3,6 @@ import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import { IArtifactoryTrigger } from 'core/domain/ITrigger';
-import { BaseTrigger } from 'core/pipeline';
 import { FormField, ReactSelectInput } from 'core/presentation';
 import { Application } from 'core/application';
 
@@ -53,7 +52,7 @@ export class ArtifactoryTrigger extends React.Component<
       });
   };
 
-  private ArtifactoryTriggerContents = () => {
+  public render() {
     const { artifactorySearchNames } = this.state;
     const { artifactorySearchName } = this.props.trigger;
 
@@ -72,10 +71,5 @@ export class ArtifactoryTrigger extends React.Component<
         )}
       />
     );
-  };
-
-  public render() {
-    const { ArtifactoryTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<ArtifactoryTriggerContents />} />;
   }
 }

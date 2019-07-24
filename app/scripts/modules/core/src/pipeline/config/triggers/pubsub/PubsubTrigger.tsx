@@ -3,7 +3,6 @@ import { IPubsubSubscription, IPubsubTrigger } from 'core/domain';
 import { MapEditor } from 'core/forms';
 import { HelpField } from 'core/help';
 
-import { BaseTrigger } from 'core/pipeline';
 import { FormField, ReactSelectInput } from 'core/presentation';
 import { PubsubSubscriptionReader } from 'core/pubsub';
 import { Spinner } from 'core/widgets';
@@ -64,7 +63,7 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
       });
   };
 
-  public PubSubTriggerContents = () => {
+  public render() {
     const { pubsubSubscriptions, subscriptionsLoaded } = this.state;
     const { trigger } = this.props;
     const a = trigger.attributeConstraints || {};
@@ -141,10 +140,5 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
         </div>
       );
     }
-  };
-
-  public render() {
-    const { PubSubTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<PubSubTriggerContents />} />;
   }
 }

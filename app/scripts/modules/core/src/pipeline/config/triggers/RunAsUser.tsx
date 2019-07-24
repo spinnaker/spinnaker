@@ -1,42 +1,19 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
 
-import { HelpField } from 'core/help/HelpField';
+import { IFormInputProps, ReactSelectInput } from 'core/presentation';
+import { useLatestPromise } from 'core/presentation/forms/useLatestPromise';
+import { ServiceAccountReader } from 'core/serviceAccount';
 
-export interface IRunAsUserProps {
-  serviceAccounts: string[];
-  value: string;
-  onChange: (value: string) => void;
-  selectClasses?: string;
-  selectColumns?: number;
-}
+export function RunAsUserInput(props: IFormInputProps) {
+  const [serviceAccounts, status] = useLatestPromise(() => ServiceAccountReader.getServiceAccounts(), []);
+  const isLoading = status === 'PENDING';
 
-export class RunAsUser extends React.Component<IRunAsUserProps> {
-  public static defaultProps = {
-    selectClasses: 'form-control input-sm',
-    selectColumns: 9,
-  };
-
-  public render() {
-    const { serviceAccounts, onChange, value, selectClasses, selectColumns } = this.props;
-
-    const serviceAccountOptions = serviceAccounts.map(a => ({ label: a, value: a }));
-    return (
-      <div>
-        <div className="col-md-3 sm-label-right">
-          <span className="label-text">Run As User </span>
-          <HelpField id="pipeline.config.trigger.runAsUser" />
-        </div>
-        <div className={'col-md-' + selectColumns}>
-          <Select
-            className={selectClasses}
-            options={serviceAccountOptions}
-            value={value || ''}
-            onChange={(o: Option<string>) => onChange(o ? o.value : undefined)}
-            placeholder="Select Run As User"
-          />
-        </div>
-      </div>
-    );
-  }
+  return (
+    <ReactSelectInput
+      {...props}
+      isLoading={isLoading}
+      stringOptions={serviceAccounts || []}
+      placeholder="Select Run As User"
+    />
+  );
 }

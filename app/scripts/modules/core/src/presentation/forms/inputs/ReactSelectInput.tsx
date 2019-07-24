@@ -81,20 +81,15 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
       onChange: reactSelectOnChangeAdapter(name, onChange),
     };
 
+    const commonProps = { className, style, ...fieldProps, ...otherProps };
+
     const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
       mode === 'TETHERED' ? (
-        <TetheredSelect className={className} style={style} options={options} {...fieldProps} {...otherProps} />
+        <TetheredSelect {...commonProps} options={options} />
       ) : mode === 'VIRTUALIZED' ? (
-        <VirtualizedSelect
-          className={className}
-          style={style}
-          options={options}
-          {...fieldProps}
-          {...otherProps}
-          optionRenderer={null}
-        />
+        <VirtualizedSelect {...commonProps} options={options} optionRenderer={null} />
       ) : (
-        <Select className={className} style={style} options={options} {...fieldProps} {...otherProps} />
+        <Select {...commonProps} options={options} />
       );
 
     if (isStringArray(stringOptions)) {

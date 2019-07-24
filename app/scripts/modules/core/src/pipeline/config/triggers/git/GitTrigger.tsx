@@ -2,7 +2,6 @@ import * as React from 'react';
 import { has } from 'lodash';
 
 import { Application } from 'core/application';
-import { BaseTrigger } from 'core/pipeline';
 import { HelpField } from 'core/help';
 import { IGitTrigger } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
@@ -72,7 +71,7 @@ export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
       });
   };
 
-  private GitTriggerContents = () => {
+  public render() {
     const { trigger } = this.props;
     const { branch, project, secret, slug, source } = trigger;
     const displayText = this.displayText[source ? source : 'github'];
@@ -133,10 +132,5 @@ export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
         )}
       </>
     );
-  };
-
-  public render() {
-    const { GitTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<GitTriggerContents />} />;
   }
 }

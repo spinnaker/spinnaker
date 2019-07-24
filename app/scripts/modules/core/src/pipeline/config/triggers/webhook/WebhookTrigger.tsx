@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { BaseTrigger } from 'core/pipeline';
 import { HelpField } from 'core/help';
 import { MapEditor } from 'core/forms';
 import { IWebhookTrigger } from 'core/domain';
@@ -13,7 +12,15 @@ export interface IWebhookTriggerProps {
 }
 
 export class WebhookTrigger extends React.Component<IWebhookTriggerProps> {
-  private WebhookTriggerContents = () => {
+  private onUpdateTrigger = (update: any) => {
+    this.props.triggerUpdated &&
+      this.props.triggerUpdated({
+        ...this.props.trigger,
+        ...update,
+      });
+  };
+
+  public render() {
     const { trigger } = this.props;
     const { source, type } = trigger;
     const p = trigger.payloadConstraints || {};
@@ -45,18 +52,5 @@ export class WebhookTrigger extends React.Component<IWebhookTriggerProps> {
         />
       </>
     );
-  };
-
-  private onUpdateTrigger = (update: any) => {
-    this.props.triggerUpdated &&
-      this.props.triggerUpdated({
-        ...this.props.trigger,
-        ...update,
-      });
-  };
-
-  public render() {
-    const { WebhookTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<WebhookTriggerContents />} />;
   }
 }

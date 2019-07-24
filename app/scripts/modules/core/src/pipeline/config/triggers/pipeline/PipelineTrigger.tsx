@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import { Application, ApplicationReader } from 'core/application';
-import { BaseTrigger, PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from 'core/pipeline';
 import { IPipeline, IPipelineTrigger } from 'core/domain';
 import { ChecklistInput, FormField, Omit, ReactSelectInput } from 'core/presentation';
 
@@ -79,7 +79,7 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
       });
   };
 
-  private PipelineTriggerContents = () => {
+  public render() {
     const { application, pipeline, status } = this.props.trigger;
     const { applications, pipelines, pipelinesLoaded } = this.state;
 
@@ -122,10 +122,5 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
         />
       </>
     );
-  };
-
-  public render() {
-    const { PipelineTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<PipelineTriggerContents />} />;
   }
 }

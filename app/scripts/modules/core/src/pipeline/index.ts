@@ -8,7 +8,6 @@ export * from './config/stages/stageConstants';
 export * from './config/stages/templates';
 export * from './config/templates';
 export * from './config/triggers/baseBuild/BaseBuildTriggerTemplate';
-export * from './config/triggers/BaseTrigger';
 export * from './config/triggers/RunAsUser';
 export * from './config/validation/PipelineConfigValidator';
 export * from './create';

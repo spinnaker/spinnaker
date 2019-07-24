@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 import { Option } from 'react-select';
 
-import { BaseTrigger } from 'core/pipeline';
 import { IConcourseTrigger } from 'core/domain';
 import { BuildServiceType, IgorService } from 'core/ci';
 import { FormField, ReactSelectInput } from 'core/presentation';
@@ -143,7 +142,7 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
     }
   };
 
-  private ConcourseTriggerContents = () => {
+  public render() {
     const { jobName, team, project, master } = this.props.trigger;
     const { jobs, pipelines, teams, masters } = this.state;
     const pipeline = project && project.split('/').pop();
@@ -209,10 +208,5 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
         />
       </>
     );
-  };
-
-  public render() {
-    const { ConcourseTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<ConcourseTriggerContents />} />;
   }
 }

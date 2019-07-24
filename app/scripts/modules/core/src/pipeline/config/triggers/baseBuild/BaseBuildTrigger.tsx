@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 
-import { BaseTrigger } from 'core/pipeline';
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBuildTrigger } from 'core/domain';
 import { HelpField } from 'core/help';
@@ -116,7 +115,7 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
     }
   };
 
-  private BaseBuildTriggerContents = () => {
+  public render() {
     const { master, job, propertyFile, type } = this.props.trigger;
     const { jobsRefreshing, masters, mastersRefreshing } = this.state;
     return (
@@ -168,10 +167,5 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
         />
       </>
     );
-  };
-
-  public render() {
-    const { BaseBuildTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<BaseBuildTriggerContents />} />;
   }
 }

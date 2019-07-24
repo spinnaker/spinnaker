@@ -1,7 +1,5 @@
 import * as React from 'react';
 
-import { BaseTrigger } from '@spinnaker/core';
-
 import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '../../image';
 import { IDockerTrigger } from './IDockerTrigger';
 
@@ -29,7 +27,7 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
       });
   };
 
-  private DockerTriggerContents = () => {
+  public render() {
     const { trigger } = this.props;
     return (
       <div className="form-horizontal">
@@ -46,10 +44,5 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
         />
       </div>
     );
-  };
-
-  public render() {
-    const { DockerTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<DockerTriggerContents />} />;
   }
 }

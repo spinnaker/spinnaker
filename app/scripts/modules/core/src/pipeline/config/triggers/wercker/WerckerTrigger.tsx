@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import { Application } from 'core/application';
-import { BaseTrigger } from 'core/pipeline';
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBaseBuildTriggerConfigProps, IBaseBuildTriggerState } from '../baseBuild/BaseBuildTrigger';
 import { IWerckerTrigger } from 'core/domain';
@@ -163,7 +162,7 @@ export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, 
     this.props.triggerUpdated && this.props.triggerUpdated(update);
   };
 
-  public WerkerTriggerContents = () => {
+  public render() {
     const { app, master, pipeline } = this.props.trigger;
     const { apps, jobsRefreshing, masters, mastersRefreshing, pipelines } = this.state;
     return (
@@ -218,10 +217,5 @@ export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, 
         />
       </>
     );
-  };
-
-  public render() {
-    const { WerkerTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<WerkerTriggerContents />} />;
   }
 }

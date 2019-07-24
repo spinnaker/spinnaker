@@ -9,7 +9,6 @@ import { CronWeekly } from './CronWeekly';
 import { CronMonthly } from './CronMonthly';
 import { CronAdvance } from './CronAdvance';
 import { ICronTriggerConfigProps } from './cronConfig';
-import { BaseTrigger } from 'core/pipeline';
 
 import './cronTrigger.less';
 
@@ -78,7 +77,7 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
     }
   };
 
-  private CronTriggerContents = () => {
+  public render() {
     const { activeTab } = this.state;
 
     return (
@@ -98,10 +97,5 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
         )}
       />
     );
-  };
-
-  public render() {
-    const { CronTriggerContents } = this;
-    return <BaseTrigger {...this.props} triggerContents={<CronTriggerContents />} />;
   }
 }
