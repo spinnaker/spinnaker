@@ -1,4 +1,4 @@
-import { uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
+import { uniq, isNil, cloneDeep, intersection, memoize, defaults, get } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
@@ -31,7 +31,7 @@ export class PipelineRegistry {
 
   constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this), (stage: IStage) =>
-      [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'),
+      [stage ? stage.type : '', stage ? PipelineRegistry.resolveCloudProvider(stage) : ''].join(':'),
     );
   }
 
@@ -270,7 +270,7 @@ export class PipelineRegistry {
       case 1:
         return matches[0];
       default: {
-        const provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
+        const provider = PipelineRegistry.resolveCloudProvider(stage);
         const matchesForStageCloudProvider = matches.filter(stageType => {
           return stageType.cloudProvider === provider;
         });
@@ -286,6 +286,18 @@ export class PipelineRegistry {
         }
       }
     }
+  }
+
+  // IStage doesn't have a cloudProvider field yet many stage configs are setting it.
+  // Some stages (RunJob, ?) are only setting the cloudProvider field in stage.context.
+  private static resolveCloudProvider(stage: IStage): string {
+    return (
+      stage.cloudProvider ||
+      stage.cloudProviderType ||
+      get(stage, ['context', 'cloudProvider']) ||
+      get(stage, ['context', 'cloudProviderType']) ||
+      'aws'
+    );
   }
 
   private getManualExecutionComponent(
