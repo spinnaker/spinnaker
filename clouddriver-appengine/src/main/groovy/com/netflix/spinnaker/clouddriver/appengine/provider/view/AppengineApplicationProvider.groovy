@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.appengine.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.discovery.converters.Auto
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
