@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service
 import retrofit.client.Response
 
 import static net.logstash.logback.argument.StructuredArguments.*
-import static org.apache.commons.lang.WordUtils.capitalize
+import static org.apache.commons.lang3.text.WordUtils.capitalize
 
 
 @Slf4j

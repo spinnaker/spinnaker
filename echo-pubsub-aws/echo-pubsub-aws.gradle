@@ -19,7 +19,7 @@ dependencies {
   implementation project(':echo-core')
   implementation project(':echo-model')
   implementation project(':echo-pubsub-core')
-  implementation "com.amazonaws:aws-java-sdk" //eeesh
+  implementation "com.amazonaws:aws-java-sdk-sqs"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-aws"
   implementation "com.netflix.spectator:spectator-api"

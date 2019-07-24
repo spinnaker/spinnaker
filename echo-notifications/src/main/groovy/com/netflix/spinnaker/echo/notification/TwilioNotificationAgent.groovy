@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.twilio.TwilioService
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang.WordUtils
+import org.apache.commons.lang3.text.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

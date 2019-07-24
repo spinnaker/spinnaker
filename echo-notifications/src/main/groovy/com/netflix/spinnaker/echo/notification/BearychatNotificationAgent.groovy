@@ -23,7 +23,7 @@ import com.netflix.spinnaker.echo.bearychat.CreateP2PChannelResponse
 import com.netflix.spinnaker.echo.bearychat.SendMessagePara
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang.WordUtils
+import org.apache.commons.lang3.text.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

@@ -38,6 +38,12 @@ allprojects {
     apply plugin: "spinnaker.project"
   }
 
+  if ([korkVersion, fiatVersion].find { it.endsWith("-SNAPSHOT") }) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
   group = "com.netflix.spinnaker.echo"
   if (name != "echo-bom") {
     apply plugin: "java-library"
