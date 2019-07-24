@@ -1,12 +1,13 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
 
 import { Observable, Subject } from 'rxjs';
 
 import { IArtifactoryTrigger } from 'core/domain/ITrigger';
 import { BaseTrigger } from 'core/pipeline';
-import { ArtifactoryReaderService } from './artifactoryReader.service';
+import { FormField, ReactSelectInput } from 'core/presentation';
 import { Application } from 'core/application';
+
+import { ArtifactoryReaderService } from './artifactoryReader.service';
 
 export interface IArtifactoryTriggerConfigProps {
   trigger: IArtifactoryTrigger;
@@ -55,23 +56,21 @@ export class ArtifactoryTrigger extends React.Component<
   private ArtifactoryTriggerContents = () => {
     const { artifactorySearchNames } = this.state;
     const { artifactorySearchName } = this.props.trigger;
+
     return (
-      <>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            <span className="label-text">Artifactory Name</span>
-          </div>
-          <div className="col-md-6">
-            <Select
-              value={artifactorySearchName}
-              placeholder="Select Artifactory search name..."
-              onChange={(option: Option<string>) => this.onUpdateTrigger({ artifactorySearchName: option.value })}
-              options={artifactorySearchNames.map((name: string) => ({ label: name, value: name }))}
-              clearable={false}
-            />
-          </div>
-        </div>
-      </>
+      <FormField
+        label="Artifactory Name"
+        value={artifactorySearchName}
+        onChange={e => this.onUpdateTrigger({ artifactorySearchName: e.target.value })}
+        input={props => (
+          <ReactSelectInput
+            {...props}
+            placeholder="Select Artifactory search name..."
+            stringOptions={artifactorySearchNames}
+            clearable={false}
+          />
+        )}
+      />
     );
   };
 

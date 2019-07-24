@@ -9,7 +9,7 @@ import { TetheredSelect } from '../../TetheredSelect';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
-interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
+export interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
   stringOptions?: string[];
   mode?: 'TETHERED' | 'VIRTUALIZED' | 'PLAIN';
 }

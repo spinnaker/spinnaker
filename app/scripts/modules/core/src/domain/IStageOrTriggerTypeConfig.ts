@@ -12,7 +12,7 @@ export interface IStageOrTriggerTypeConfig {
   templateUrl?: string;
   controller?: string;
   controllerAs?: string;
-  component?: React.ComponentType;
+  component?: React.ComponentType<any>;
   providesVersionForBake?: boolean;
   validators?: IValidatorConfig[];
   validateFn?: IContextualValidator;

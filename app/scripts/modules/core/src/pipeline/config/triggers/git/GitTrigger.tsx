@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
 import { has } from 'lodash';
 
 import { Application } from 'core/application';
@@ -7,7 +6,7 @@ import { BaseTrigger } from 'core/pipeline';
 import { HelpField } from 'core/help';
 import { IGitTrigger } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
-import { TextInput } from 'core/presentation';
+import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
 
 export interface IGitTriggerConfigProps {
   trigger: IGitTrigger;
@@ -81,88 +80,56 @@ export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
     return (
       <>
         {this.gitTriggerTypes && this.gitTriggerTypes.length > 1 && (
-          <div className="form-group">
-            <label className="col-md-3 sm-label-right">
-              <span>Repo Type </span>
-            </label>
-            <div className="col-md-6">
-              <Select
-                className="form-control input-sm"
-                onChange={(option: Option<string>) => this.onUpdateTrigger({ source: option.value })}
-                options={this.gitTriggerTypes.map(type => ({ label: type, value: type }))}
+          <FormField
+            label="Repo Type"
+            value={source}
+            onChange={e => this.onUpdateTrigger({ source: e.target.value })}
+            input={props => (
+              <ReactSelectInput
+                {...props}
                 placeholder="Select Repo Type"
-                value={source}
+                stringOptions={this.gitTriggerTypes}
+                clearable={false}
               />
-            </div>
-          </div>
+            )}
+          />
         )}
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">
-            <span>{displayText['pipeline.config.git.project']} </span>
-          </label>
 
-          <div className="col-md-9">
-            <TextInput
-              className="form-control input-sm"
-              name="project"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                this.onUpdateTrigger({ project: event.target.value })
-              }
-              placeholder={displayText['project']}
-              required={true}
-              value={project}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">
-            <span>{displayText['pipeline.config.git.slug']} </span>
-          </label>
-          <div className="col-md-9">
-            <TextInput
-              className="form-control input-sm"
-              name="slug"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                this.onUpdateTrigger({ slug: event.target.value })
-              }
-              placeholder={displayText['slug']}
-              pattern="^((?!://).)*$"
-              required={true}
-              value={slug}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            <span className="label-text">Branch </span>
-            <HelpField id="pipeline.config.git.trigger.branch" />
-          </div>
-          <div className="col-md-9">
-            <TextInput
-              className="form-control input-sm"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                this.onUpdateTrigger({ branch: event.target.value })
-              }
-              value={branch}
-            />
-          </div>
-        </div>
+        <FormField
+          label={displayText['pipeline.config.git.project']}
+          value={project}
+          onChange={e => this.onUpdateTrigger({ project: e.target.value })}
+          required={true}
+          input={props => <TextInput {...props} placeholder={displayText['project']} />}
+        />
+
+        <FormField
+          label={displayText['pipeline.config.git.slug']}
+          value={slug}
+          onChange={e => this.onUpdateTrigger({ slug: e.target.value })}
+          required={true}
+          validate={(value: string, label) =>
+            value && value.match(/:\/\//) && `${label} is a simple name should not contain ://`
+          }
+          input={props => <TextInput {...props} placeholder={displayText['slug']} />}
+        />
+
+        <FormField
+          label="Branch"
+          help={<HelpField id="pipeline.config.git.trigger.branch" />}
+          value={branch}
+          onChange={e => this.onUpdateTrigger({ branch: e.target.value })}
+          input={props => <TextInput {...props} />}
+        />
+
         {'github' === source && (
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              <span>Secret </span>
-              <HelpField id="pipeline.config.git.trigger.githubSecret" />
-            </div>
-            <div className="col-md-9">
-              <TextInput
-                className="form-control input-sm"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  this.onUpdateTrigger({ secret: event.target.value })
-                }
-                value={secret}
-              />
-            </div>
-          </div>
+          <FormField
+            label="Secret"
+            help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
+            value={secret}
+            onChange={e => this.onUpdateTrigger({ secret: e.target.value })}
+            input={props => <TextInput {...props} />}
+          />
         )}
       </>
     );

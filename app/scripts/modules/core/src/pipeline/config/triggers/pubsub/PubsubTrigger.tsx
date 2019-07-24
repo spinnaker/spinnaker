@@ -1,15 +1,15 @@
-import * as React from 'react';
-import Select, { Option } from 'react-select';
-
-import { Observable, Subject } from 'rxjs';
-
-import { BaseTrigger } from 'core/pipeline';
-import { HelpField } from 'core/help';
+import { SETTINGS } from 'core/config/settings';
 import { IPubsubSubscription, IPubsubTrigger } from 'core/domain';
 import { MapEditor } from 'core/forms';
+import { HelpField } from 'core/help';
+
+import { BaseTrigger } from 'core/pipeline';
+import { FormField, ReactSelectInput } from 'core/presentation';
 import { PubsubSubscriptionReader } from 'core/pubsub';
 import { Spinner } from 'core/widgets';
-import { SETTINGS } from 'core/config/settings';
+import * as React from 'react';
+
+import { Observable, Subject } from 'rxjs';
 
 export interface IPubsubTriggerProps {
   trigger: IPubsubTrigger;
@@ -74,63 +74,64 @@ export class PubsubTrigger extends React.Component<IPubsubTriggerProps, IPubsubT
       .map(subscription => subscription.subscriptionName);
 
     if (subscriptionsLoaded) {
+      const systemsOptions = this.pubsubSystems.map(sys => ({ label: sys, value: sys }));
+      const subscriptionOptions = filteredPubsubSubscriptions.map(sub => ({ label: sub, value: sub }));
+
       return (
         <>
-          <div className="form-group">
-            <label className="col-md-3 sm-label-right">Pub/Sub System Type</label>
-            <div className="col-md-6">
-              <Select
-                className="form-control input-sm"
-                options={this.pubsubSystems.map(sys => ({ label: sys, value: sys }))}
-                onChange={(option: Option<string>) => this.onUpdateTrigger({ pubsubSystem: option.value })}
+          <FormField
+            label="Pub/Sub System Type"
+            value={trigger.pubsubSystem}
+            onChange={e => this.onUpdateTrigger({ pubsubSystem: e.target.value })}
+            input={props => (
+              <ReactSelectInput
+                {...props}
                 placeholder="Select Pub/Sub System"
-                value={trigger.pubsubSystem}
+                options={systemsOptions}
+                clearable={false}
               />
-            </div>
-          </div>
+            )}
+          />
 
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">Subscription Name</div>
-            <div className="col-md-6">
-              <Select
-                className="form-control input-sm"
-                onChange={(option: Option<string>) => this.onUpdateTrigger({ subscriptionName: option.value })}
-                options={filteredPubsubSubscriptions.map(sub => ({ label: sub, value: sub }))}
-                placeholder="Select Pub/Sub Subscription"
-                value={trigger.subscriptionName}
+          <FormField
+            label="Subscription Name"
+            value={trigger.subscriptionName}
+            onChange={e => this.onUpdateTrigger({ subscriptionName: e.target.value })}
+            input={props => (
+              <ReactSelectInput
+                {...props}
+                placeholder="Select Pub/Sub Subssription"
+                options={subscriptionOptions}
+                clearable={false}
               />
-            </div>
-          </div>
+            )}
+          />
 
           <hr />
 
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              <span>Payload Constraints </span>
-              <HelpField id="pipeline.config.trigger.pubsub.payloadConstraints" />
-            </div>
-            <div className="col-md-9">
+          <FormField
+            label="Payload Constraints"
+            help={<HelpField id="pipeline.config.trigger.pubsub.payloadConstraints" />}
+            input={() => (
               <MapEditor
                 addButtonLabel="Add payload constraint"
                 model={p}
                 onChange={(payloadConstraints: any) => this.onUpdateTrigger({ payloadConstraints })}
               />
-            </div>
-          </div>
+            )}
+          />
 
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              <span>Attribute Constraints </span>
-              <HelpField id="pipeline.config.trigger.pubsub.attributeConstraints" />
-            </div>
-            <div className="col-md-9">
+          <FormField
+            label="Attribute Constraints "
+            help={<HelpField id="pipeline.config.trigger.pubsub.attributeConstraints" />}
+            input={() => (
               <MapEditor
                 addButtonLabel="Add attribute constraint"
                 model={a}
                 onChange={(attributeConstraints: any) => this.onUpdateTrigger({ attributeConstraints })}
               />
-            </div>
-          </div>
+            )}
+          />
         </>
       );
     } else {

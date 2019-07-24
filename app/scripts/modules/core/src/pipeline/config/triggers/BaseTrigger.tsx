@@ -6,6 +6,9 @@ import { ITrigger } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { RunAsUser } from 'core/pipeline';
+import { LayoutProvider } from 'core/presentation';
+
+import { LegacyTriggerContentLayout } from './TriggerFieldLayout';
 
 export interface IBaseTriggerConfigProps {
   triggerContents: React.ReactNode;
@@ -70,10 +73,10 @@ export class BaseTrigger extends React.Component<IBaseTriggerConfigProps, IBaseT
     const { triggerContents } = this.props;
     const { renderRunAsUser } = this;
     return (
-      <>
+      <LayoutProvider value={LegacyTriggerContentLayout}>
         {triggerContents}
         {renderRunAsUser()}
-      </>
+      </LayoutProvider>
     );
   }
 }

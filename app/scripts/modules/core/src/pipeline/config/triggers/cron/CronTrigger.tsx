@@ -1,5 +1,6 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
+
+import { FormField, ReactSelectInput } from 'core/presentation';
 
 import { CronMinutes } from './CronMinutes';
 import { CronHourly } from './CronHourly';
@@ -79,28 +80,23 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
 
   private CronTriggerContents = () => {
     const { activeTab } = this.state;
+
     return (
-      <div className="form-group" style={{ marginTop: '10px' }}>
-        <label className="col-md-3 sm-label-right">Frequency</label>
-        <div className="col-md-9">
+      <FormField
+        label="Frequency"
+        value={activeTab}
+        onChange={e => this.setState({ activeTab: e.target.value })}
+        input={props => (
           <div className="cron-gen-main form-inline no-spel">
             <div className="row">
               <div className="col-md-6">
-                <Select
-                  className="form-control input-sm"
-                  value={activeTab}
-                  options={this.tabOptions}
-                  onChange={(option: Option<string>) => {
-                    this.setState({ activeTab: option.value });
-                  }}
-                  clearable={false}
-                />
+                <ReactSelectInput {...props} options={this.tabOptions} clearable={false} />
               </div>
             </div>
             {this.renderCronTypeContents(activeTab)}
           </div>
-        </div>
-      </div>
+        )}
+      />
     );
   };
 

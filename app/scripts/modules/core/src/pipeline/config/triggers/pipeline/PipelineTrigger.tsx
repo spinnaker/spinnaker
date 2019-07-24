@@ -1,12 +1,10 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
-
 import { Observable, Subject } from 'rxjs';
 
 import { Application, ApplicationReader } from 'core/application';
 import { BaseTrigger, PipelineConfigService } from 'core/pipeline';
 import { IPipeline, IPipelineTrigger } from 'core/domain';
-import { ChecklistInput, Omit } from 'core/presentation';
+import { ChecklistInput, FormField, Omit, ReactSelectInput } from 'core/presentation';
 
 type IPipelineTriggerConfig = Omit<IPipelineTrigger, 'parentExecution' | 'parentPipelineId' | 'user' | 'rebake'>;
 
@@ -84,51 +82,44 @@ export class PipelineTrigger extends React.Component<IPipelineTriggerConfigProps
   private PipelineTriggerContents = () => {
     const { application, pipeline, status } = this.props.trigger;
     const { applications, pipelines, pipelinesLoaded } = this.state;
+
     return (
       <>
-        <div className="form-horizontal">
-          <div className="form-group">
-            <label className="col-md-3 sm-label-right">Application</label>
-            <div className="col-md-6">
-              <Select
-                className="form-control input-sm"
-                options={applications.map(j => ({ label: j, value: j }))}
-                placeholder={'None'}
-                value={application}
-                onChange={(option: Option<string>) => {
-                  const a = option.value;
-                  this.onUpdateTrigger({ application: a });
-                  this.init(a);
-                }}
+        <FormField
+          label="Application"
+          value={application}
+          onChange={e => {
+            this.onUpdateTrigger({ application: e.target.value });
+            this.init(e.target.value);
+          }}
+          input={props => (
+            <ReactSelectInput {...props} mode="VIRTUALIZED" stringOptions={applications} placeholder="None" />
+          )}
+        />
+
+        <FormField
+          label="Pipeline"
+          value={pipeline}
+          onChange={e => this.onUpdateTrigger({ pipeline: e.target.value })}
+          input={props =>
+            application &&
+            pipelinesLoaded && (
+              <ReactSelectInput
+                {...props}
+                mode="VIRTUALIZED"
+                options={pipelines.map(p => ({ label: p.name, value: p.id }))}
+                placeholder="Select a pipeline..."
               />
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="col-md-3 sm-label-right">Pipeline</label>
-            <div className="col-md-6">
-              {application && pipelinesLoaded && (
-                <Select
-                  className="form-control input-sm"
-                  onChange={(option: Option<string>) => this.onUpdateTrigger({ pipeline: option.value })}
-                  options={pipelines.map(p => ({ label: p.name, value: p.id }))}
-                  placeholder={'Select a pipeline...'}
-                  value={pipeline}
-                />
-              )}
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="col-md-3 sm-label-right">Pipeline Status</label>
-            <div className="col-md-6">
-              <ChecklistInput
-                inline={true}
-                value={status}
-                stringOptions={this.statusOptions}
-                onChange={(e: React.ChangeEvent<any>) => this.onUpdateTrigger({ status: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
+            )
+          }
+        />
+
+        <FormField
+          label="Pipeline Status"
+          value={status}
+          onChange={e => this.onUpdateTrigger({ status: e.target.value })}
+          input={props => <ChecklistInput {...props} stringOptions={this.statusOptions} inline={true} />}
+        />
       </>
     );
   };

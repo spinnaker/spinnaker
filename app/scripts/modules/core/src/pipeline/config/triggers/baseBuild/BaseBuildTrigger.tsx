@@ -1,14 +1,13 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
-import VirtualizedSelect from 'react-virtualized-select';
 import { Observable, Subject } from 'rxjs';
 
 import { BaseTrigger } from 'core/pipeline';
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBuildTrigger } from 'core/domain';
 import { HelpField } from 'core/help';
-import { Spinner } from 'core/widgets';
-import { TextInput, Tooltip } from 'core/presentation';
+import { FormField, TextInput } from 'core/presentation';
+
+import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 
 export interface IBaseBuildTriggerConfigProps {
   buildTriggerType: BuildServiceType;
@@ -85,8 +84,7 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
     }
   };
 
-  private onMasterUpdated = (option: Option<string>) => {
-    const master = option.value;
+  private onMasterUpdated = (master: string) => {
     if (this.props.trigger.master !== master) {
       this.onUpdateTrigger({ master });
       this.updateJobsList(master);
@@ -118,91 +116,56 @@ export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigPro
     }
   };
 
-  private Jobs = () => {
-    const { job } = this.props.trigger;
-    const { jobs, jobsLoaded } = this.state;
-    return (
-      <>
-        {jobsLoaded && (
-          <VirtualizedSelect
-            className="form-control input-sm"
-            options={jobs.map(j => ({ label: j, value: j }))}
-            placeholder={'Select a job...'}
-            value={job}
-            onChange={(option: Option<string>) => this.onUpdateTrigger({ job: option.value })}
-          />
-        )}
-        {!jobsLoaded && (
-          <div className="horizontal center">
-            <div className="horizontal middle center">
-              <Spinner size={'small'} />
-            </div>
-          </div>
-        )}
-      </>
-    );
-  };
-
   private BaseBuildTriggerContents = () => {
-    const { Jobs } = this;
-    const { master, propertyFile, type } = this.props.trigger;
+    const { master, job, propertyFile, type } = this.props.trigger;
     const { jobsRefreshing, masters, mastersRefreshing } = this.state;
     return (
       <>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Master</label>
-          <div className="col-md-8">
-            <Select
-              className="form-control input-sm"
-              onChange={this.onMasterUpdated}
-              options={masters.map(m => ({ label: m, value: m }))}
-              placeholder={'Select a master...'}
-              value={master}
+        <FormField
+          label="Master"
+          value={master}
+          onChange={e => this.onMasterUpdated(e.target.value)}
+          input={props => (
+            <RefreshableReactSelectInput
+              {...props}
+              stringOptions={masters}
+              placeholder="Select a master..."
+              clearable={false}
+              isLoading={mastersRefreshing}
+              onRefreshClicked={this.refreshMasters}
+              refreshButtonTooltipText={mastersRefreshing ? 'Masters refreshing' : 'Refresh masters list'}
             />
-          </div>
-          <div className="col-md-1 text-center">
-            <Tooltip placement="right" value={mastersRefreshing ? 'Masters refreshing' : 'Refresh masters list'}>
-              <span
-                className={'fa fa-sync-alt ' + (mastersRefreshing ? 'fa-spin' : '')}
-                onClick={this.refreshMasters}
-                style={{ cursor: 'pointer' }}
-              />
-            </Tooltip>
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Job</label>
-          <div className="col-md-8">
-            {!master && <p className="form-control-static">(Select a master)</p>}
-            {master && <Jobs />}
-          </div>
-          <div className="col-md-1 text-center">
-            {master && (
-              <Tooltip placement="right" value={mastersRefreshing ? 'Jobs refreshing' : 'Refresh job list'}>
-                <span
-                  className={'fa fa-sync-alt ' + (jobsRefreshing ? 'fa-spin' : '')}
-                  onClick={this.refreshJobs}
-                  style={{ cursor: 'pointer' }}
-                />
-              </Tooltip>
-            )}
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            <span>Property File </span>
-            <HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />
-          </div>
-          <div className="col-md-6">
-            <TextInput
-              className="form-control input-sm"
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                this.onUpdateTrigger({ propertyFile: event.target.value })
-              }
-              value={propertyFile}
+          )}
+        />
+
+        <FormField
+          label="Job"
+          value={master}
+          onChange={e => this.onMasterUpdated(e.target.value)}
+          input={props => (
+            <RefreshableReactSelectInput
+              {...props}
+              mode="VIRTUALIZED"
+              value={job}
+              onChange={e => this.onUpdateTrigger({ job: e.target.value })}
+              options={this.state.jobs.map(j => ({ label: j, value: j }))}
+              disabled={!master}
+              placeholder={'Select a job...'}
+              clearable={true}
+              isLoading={mastersRefreshing || jobsRefreshing}
+              onRefreshClicked={this.refreshJobs}
+              refreshButtonTooltipText={mastersRefreshing || jobsRefreshing ? 'Jobs refreshing' : 'Refresh job list'}
             />
-          </div>
-        </div>
+          )}
+        />
+
+        <FormField
+          label="Property File"
+          help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
+          value={propertyFile}
+          onChange={e => this.onUpdateTrigger({ propertyFile: e.target.value })}
+          input={props => <TextInput {...props} />}
+        />
       </>
     );
   };

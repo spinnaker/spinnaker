@@ -1,12 +1,13 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
+import { Option } from 'react-select';
 
 import { BaseTrigger } from 'core/pipeline';
 import { IConcourseTrigger } from 'core/domain';
-import { Observable } from 'rxjs';
 import { BuildServiceType, IgorService } from 'core/ci';
+import { FormField, ReactSelectInput } from 'core/presentation';
+
 import { ConcourseService } from './concourse.service';
-import { Subject } from 'rxjs/Subject';
 
 export interface IConcourseTriggerConfigProps {
   trigger: IConcourseTrigger;
@@ -147,68 +148,65 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
     const { jobs, pipelines, teams, masters } = this.state;
     const pipeline = project && project.split('/').pop();
 
+    const jobOptions = jobs.map((name: string) => {
+      const jobNameOption = name.split('/').pop();
+      return { label: jobNameOption, value: jobNameOption };
+    });
+
     return (
       <>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Master</label>
-          <div className="col-md-8">
-            <Select
-              value={master}
-              placeholder="Select a master..."
-              onChange={this.onMasterChanged}
-              options={masters.map((name: string) => ({ label: name, value: name }))}
-              clearable={false}
-            />
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Team</label>
-          <div className="col-md-8">
-            {!master && <p className="form-control-static">(Select a master)</p>}
-            {master && (
-              <Select
-                value={team}
-                placeholder="Select a team..."
-                onChange={this.onTeamChanged}
-                options={teams.map((name: string) => ({ label: name, value: name }))}
-                clearable={false}
-              />
-            )}
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Pipeline</label>
-          <div className="col-md-8">
-            {!team && <p className="form-control-static">(Select a master and team)</p>}
-            {team && (
-              <Select
-                value={pipeline}
+        <FormField
+          label="Master"
+          value={master}
+          onChange={e => this.onMasterChanged(e.target.value)}
+          input={props => (
+            <ReactSelectInput {...props} placeholder="Select a master..." stringOptions={masters} clearable={false} />
+          )}
+        />
+
+        <FormField
+          label="Team"
+          value={team}
+          onChange={e => this.onTeamChanged(e.target.value)}
+          input={props =>
+            master ? (
+              <ReactSelectInput {...props} placeholder="Select a team..." stringOptions={teams} clearable={false} />
+            ) : (
+              <p className="form-control-static">(Select a master)</p>
+            )
+          }
+        />
+
+        <FormField
+          label="Pipeline"
+          value={pipeline}
+          onChange={e => this.onPipelineChanged(e.target.value)}
+          input={props =>
+            team ? (
+              <ReactSelectInput
+                {...props}
                 placeholder="Select a pipeline..."
-                onChange={this.onPipelineChanged}
-                options={pipelines.map((name: string) => ({ label: name, value: name }))}
+                stringOptions={pipelines}
                 clearable={false}
               />
-            )}
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-3 sm-label-right">Job</label>
-          <div className="col-md-8">
-            {!pipeline && <p className="form-control-static">(Select a master, team, and pipeline)</p>}
-            {pipeline && (
-              <Select
-                value={jobName}
-                placeholder="Select a job..."
-                onChange={this.onJobChanged}
-                options={jobs.map((name: string) => {
-                  const jobNameOption = name.split('/').pop();
-                  return { label: jobNameOption, value: jobNameOption };
-                })}
-                clearable={false}
-              />
-            )}
-          </div>
-        </div>
+            ) : (
+              <p className="form-control-static">(Select a master and team)</p>
+            )
+          }
+        />
+
+        <FormField
+          label="Job"
+          value={jobName}
+          onChange={e => this.onJobChanged(e.target.value)}
+          input={props =>
+            pipeline ? (
+              <ReactSelectInput {...props} placeholder="Select a job..." options={jobOptions} clearable={false} />
+            ) : (
+              <p className="form-control-static">(Select a master, team, and pipeline)</p>
+            )
+          }
+        />
       </>
     );
   };
