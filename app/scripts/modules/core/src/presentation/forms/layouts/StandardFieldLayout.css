@@ -1,3 +1,11 @@
-.StandardFieldLayout .sm-label-right {
+.StandardFieldLayout + .StandardFieldLayout {
+  margin-top: 6px;
+}
+
+.StandardFieldLayout .StandardFieldLayout_Label {
   min-width: 120px;
+}
+
+.StandardFieldLayout .StandardFieldLayout_Contents *:first-child {
+  flex: 1;
 }
