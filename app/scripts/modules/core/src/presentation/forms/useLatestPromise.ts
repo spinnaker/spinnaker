@@ -17,20 +17,22 @@ export function useLatestPromise<T>(
   callback: () => IPromise<T>,
   deps: DependencyList,
 ): [T, IRequestStatus, any, number] {
+  const mounted = useRef(false);
   const requestInFlight = useRef<IPromise<T>>();
   const [status, setStatus] = useState<IRequestStatus>('NONE');
   const [result, setResult] = useState<T>();
   const [error, setError] = useState<any>();
   const [requestId, setRequestId] = useState(0);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
+    mounted.current = true;
+    return () => (mounted.current = false);
   }, []);
 
   useEffect(() => {
     const promise = callback();
+    const isCurrent = () => mounted.current === true && promise === requestInFlight.current;
+
     // If no promise is returned from the callback, noop this effect.
     if (!promise) {
       return;
@@ -41,14 +43,14 @@ export function useLatestPromise<T>(
     requestInFlight.current = promise;
 
     const resolve = (newResult: T) => {
-      if (mounted && promise === requestInFlight.current) {
+      if (isCurrent()) {
         setResult(newResult);
         setStatus('RESOLVED');
       }
     };
 
     const reject = (rejection: any) => {
-      if (mounted && promise === requestInFlight.current) {
+      if (isCurrent()) {
         setError(rejection);
         setStatus('REJECTED');
       }
