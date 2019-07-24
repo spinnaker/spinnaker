@@ -140,4 +140,41 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     String kubernetesKind;
     int maxEntriesPerAgent;
   }
+
+  // These six methods exist for backwards compatibility. Versions of Halyard prior to 1.22 would
+  // write this field out twice: to 'oAuthScopes' and to 'oauthScopes'. Whichever came last in the
+  // file would end up taking precedence. These methods replicate that behavior during parsing, but
+  // will only write out 'oAuthScopes' during serialization. They can be deleted after a few months
+  // (at which point Lombok will generate the first four automatically). If you're reading this in
+  // 2020 or later, you can definitely delete these (and also: whoah, the future is probably so fun,
+  // how are those flying cars working out?)
+  @JsonProperty("oAuthScopes")
+  public List<String> getOAuthScopes() {
+    return oAuthScopes;
+  }
+
+  @JsonProperty("oAuthScopes")
+  public void setOAuthScopes(List<String> oAuthScopes) {
+    this.oAuthScopes = oAuthScopes;
+  }
+
+  @JsonProperty("oAuthServiceAccount")
+  public String getOAuthServiceAccount() {
+    return oAuthServiceAccount;
+  }
+
+  @JsonProperty("oAuthServiceAccount")
+  public void setOAuthServiceAccount(String oAuthServiceAccount) {
+    this.oAuthServiceAccount = oAuthServiceAccount;
+  }
+
+  @JsonProperty("oauthScopes")
+  public void setOauthScopes(List<String> oAuthScopes) {
+    this.oAuthScopes = oAuthScopes;
+  }
+
+  @JsonProperty("oauthServiceAccount")
+  public void setOauthServiceAccount(String oAuthServiceAccount) {
+    this.oAuthServiceAccount = oAuthServiceAccount;
+  }
 }

@@ -83,12 +83,8 @@ public class HalconfigParser {
    * @see Halconfig
    */
   Halconfig parseHalconfig(InputStream is) throws IllegalArgumentException {
-    try {
-      Object obj = yamlParser.load(is);
-      return objectMapper.convertValue(obj, Halconfig.class);
-    } catch (IllegalArgumentException e) {
-      throw e;
-    }
+    Object obj = yamlParser.load(is);
+    return objectMapper.convertValue(obj, Halconfig.class);
   }
 
   /**

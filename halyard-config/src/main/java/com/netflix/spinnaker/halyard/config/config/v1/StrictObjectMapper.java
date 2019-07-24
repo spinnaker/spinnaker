@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class StrictObjectMapper extends ObjectMapper {
-  StrictObjectMapper() {
+  public StrictObjectMapper() {
     super();
     this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
     this.setSerializationInclusion(JsonInclude.Include.NON_NULL);

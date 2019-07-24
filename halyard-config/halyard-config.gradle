@@ -32,6 +32,9 @@ dependencies {
 //  TODO: add clouddriverDCOS once that's merged
   implementation project(':halyard-core')
 
+  testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testImplementation 'org.junit.platform:junit-platform-runner'
   testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
   testImplementation 'org.springframework:spring-test'
   testImplementation 'org.codehaus.groovy:groovy'
