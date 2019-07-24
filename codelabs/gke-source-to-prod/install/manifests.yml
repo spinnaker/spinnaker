@@ -165,7 +165,6 @@ data:
             kinds: []
             omitKinds: []
             customResources: []
-            oauthScopes: []
             oAuthScopes: []
           primaryAccount: my-kubernetes-account
         oraclebmcs:
