@@ -75,7 +75,6 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
     const { stage } = this.props;
 
     if (cloudProvider === 'kubernetes') {
-      const manifest = get(stage, ['context', 'manifest'], null);
       const namespace = get<string>(stage, ['context', 'jobStatus', 'location']);
       const deployedJobs = get(this.props.stage, ['context', 'deploy.jobs']);
       const deployedName = get(deployedJobs, namespace, [])[0] || '';
@@ -85,7 +84,6 @@ export class PreconfiguredJobExecutionDetails extends React.Component<IExecution
       return (
         <div className="well">
           <JobStageExecutionLogs
-            manifest={manifest}
             deployedName={deployedName}
             account={this.props.stage.context.account}
             application={this.props.application}

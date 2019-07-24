@@ -2,7 +2,6 @@ import * as React from 'react';
 import { template, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
-import { IStageManifest } from '../ManifestService';
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { IManifest } from 'core/domain/IManifest';
 import { Application } from 'core/application';
@@ -10,7 +9,6 @@ import { IPodNameProvider } from '../PodNameProvider';
 import { ManifestReader } from 'core/manifest';
 
 interface IJobStageExecutionLogsProps {
-  manifest: IStageManifest;
   deployedName: string;
   account: string;
   application: Application;

@@ -6,23 +6,12 @@ import {
   ExecutionDetailsSection,
   AccountTag,
   JobStageExecutionLogs,
-  IStageManifest,
   DefaultPodNameProvider,
   IJobOwnedPodStatus,
 } from '@spinnaker/core';
 
-interface IStageDeployedJobs {
-  [namespace: string]: string[];
-}
-
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'runJobConfig';
-
-  private extractDeployedJobName(manifest: IStageManifest, deployedJobs: IStageDeployedJobs): string {
-    const namespace = get(manifest, ['metadata', 'namespace'], '');
-    const jobNames = get(deployedJobs, namespace, []);
-    return jobNames.length > 0 ? jobNames[0] : '';
-  }
 
   private mostRecentlyCreatedPodName(podsStatuses: IJobOwnedPodStatus[]): string {
     const sorted = sortBy(podsStatuses, (p: IJobOwnedPodStatus) => p.status.startTime);
@@ -34,12 +23,11 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
     const { stage, name, current } = this.props;
     const { context } = stage;
 
-    const { manifest } = context;
-    const deployedName = this.extractDeployedJobName(manifest, get(context, ['deploy.jobs']));
+    const namespace = get(stage, ['context', 'jobStatus', 'location'], '');
+    const deployedName = namespace ? get<string[]>(context, ['deploy.jobs', namespace])[0] : '';
     const externalLink = get<string>(stage, ['context', 'execution', 'logs']);
     const podName = this.mostRecentlyCreatedPodName(get(stage.context, ['jobStatus', 'pods'], []));
     const podNameProvider = new DefaultPodNameProvider(podName);
-    const namespace = get(stage, ['context', 'jobStatus', 'location'], '');
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
@@ -57,7 +45,6 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
                   <dt>Logs</dt>
                   <dd>
                     <JobStageExecutionLogs
-                      manifest={manifest}
                       deployedName={deployedName}
                       account={this.props.stage.context.account}
                       location={namespace}
