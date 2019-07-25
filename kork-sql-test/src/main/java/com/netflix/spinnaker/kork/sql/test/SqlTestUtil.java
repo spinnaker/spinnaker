@@ -22,6 +22,8 @@ import static org.jooq.impl.DSL.currentSchema;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.Closeable;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import liquibase.Liquibase;
 import liquibase.configuration.GlobalConfiguration;
@@ -40,6 +42,8 @@ import org.testcontainers.containers.MySQLContainer;
 
 public class SqlTestUtil {
 
+  public static String tcJdbcUrl = "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb";
+
   public static TestDatabase initDatabase() {
     return initDatabase("jdbc:h2:mem:test;MODE=MYSQL");
   }
@@ -51,10 +55,10 @@ public class SqlTestUtil {
   public static TestDatabase initTcMysqlDatabase() {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
     // overridden to "test" by the driver.
-    return initDatabase(
-        "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb", SQLDialect.MYSQL_5_7);
+    return initDatabase(tcJdbcUrl, SQLDialect.MYSQL_5_7);
   }
 
+  @Deprecated
   public static TestDatabase initPreviousTcMysqlDatabase() {
     MySQLContainer container =
         new MySQLContainer("mysql:5.7.22")
@@ -70,6 +74,46 @@ public class SqlTestUtil {
             container.getJdbcUrl(), container.getUsername(), container.getPassword());
 
     return initDatabase(jdbcUrl, SQLDialect.MYSQL_5_7, "previous");
+  }
+
+  public static TestDatabase initDualTcMysqlDatabases() {
+    MySQLContainer container =
+        new MySQLContainer("mysql:5.7.22")
+            .withDatabaseName("current")
+            .withUsername("test")
+            .withPassword("test");
+    container.start();
+
+    String rootJdbcUrl =
+        String.format(
+            "%s?user=%s&password=%s", container.getJdbcUrl(), "root", container.getPassword());
+
+    try {
+      Connection rootCon = DriverManager.getConnection(rootJdbcUrl);
+      rootCon.createStatement().executeUpdate("create database previous");
+      rootCon.createStatement().executeUpdate("grant all privileges on previous.* to 'test'@'%'");
+      rootCon.close();
+    } catch (SQLException e) {
+      throw new RuntimeException("Error setting up testcontainer database", e);
+    }
+
+    String currentJdbcUrl =
+        String.format(
+            "%s?user=%s&password=%s",
+            container.getJdbcUrl(), container.getUsername(), container.getPassword());
+
+    String previousJdbcUrl = currentJdbcUrl.replace("/current", "/previous");
+
+    TestDatabase currentTDB = initDatabase(currentJdbcUrl, SQLDialect.MYSQL_5_7, "current");
+    TestDatabase previousTDB = initDatabase(previousJdbcUrl, SQLDialect.MYSQL_5_7, "previous");
+
+    return new TestDatabase(
+        currentTDB.dataSource,
+        currentTDB.context,
+        currentTDB.liquibase,
+        previousTDB.dataSource,
+        previousTDB.context,
+        previousTDB.liquibase);
   }
 
   public static TestDatabase initDatabase(String jdbcUrl) {
@@ -135,13 +179,34 @@ public class SqlTestUtil {
 
   public static class TestDatabase implements Closeable {
     public final HikariDataSource dataSource;
+    public final HikariDataSource previousDataSource;
     public final DSLContext context;
+    public final DSLContext previousContext;
     public final Liquibase liquibase;
+    public final Liquibase previousLiquibase;
 
     TestDatabase(HikariDataSource dataSource, DSLContext context, Liquibase liquibase) {
       this.dataSource = dataSource;
       this.context = context;
       this.liquibase = liquibase;
+      this.previousDataSource = null;
+      this.previousContext = null;
+      this.previousLiquibase = null;
+    }
+
+    TestDatabase(
+        HikariDataSource dataSource,
+        DSLContext context,
+        Liquibase liquibase,
+        HikariDataSource previousDataSource,
+        DSLContext previousContext,
+        Liquibase previousLiquibase) {
+      this.dataSource = dataSource;
+      this.context = context;
+      this.liquibase = liquibase;
+      this.previousDataSource = previousDataSource;
+      this.previousContext = previousContext;
+      this.previousLiquibase = previousLiquibase;
     }
 
     @Override
