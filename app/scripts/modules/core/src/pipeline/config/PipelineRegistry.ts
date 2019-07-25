@@ -1,8 +1,9 @@
-import { uniq, isNil, cloneDeep, intersection, memoize, defaults, get } from 'lodash';
+import { get, uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
   IExecution,
+  INotificationTypeConfig,
   IStage,
   ITriggerTypeConfig,
   IStageTypeConfig,
@@ -26,6 +27,7 @@ export class PipelineRegistry {
   private triggerTypes: ITriggerTypeConfig[] = [];
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
+  private notificationTypes: INotificationTypeConfig[] = [];
   private artifactKinds: IArtifactKindConfig[] = artifactKindConfigs;
   private customArtifactKind: IArtifactKindConfig;
 
@@ -62,6 +64,22 @@ export class PipelineRegistry {
           }
         }
       });
+  }
+
+  public registerNotification(notificationConfig: INotificationTypeConfig): void {
+    if (SETTINGS.notifications) {
+      const notificationSetting: { enabled: boolean; botName?: string } = get(
+        SETTINGS.notifications,
+        notificationConfig.key,
+      );
+      if (notificationSetting && notificationSetting.enabled) {
+        const config = cloneDeep(notificationConfig);
+        config.config = { ...notificationSetting };
+        this.notificationTypes.push(config);
+      }
+    } else {
+      this.notificationTypes.push(notificationConfig);
+    }
   }
 
   public registerTrigger(triggerConfig: ITriggerTypeConfig): void {
@@ -106,6 +124,10 @@ export class PipelineRegistry {
 
   public getExecutionTransformers(): ITransformer[] {
     return this.transformers;
+  }
+
+  public getNotificationTypes(): INotificationTypeConfig[] {
+    return cloneDeep(this.notificationTypes);
   }
 
   public getTriggerTypes(): ITriggerTypeConfig[] {
@@ -203,6 +225,10 @@ export class PipelineRegistry {
     return this.getStageTypes().filter(stageType => {
       return stageType.provides && stageType.provides === baseKey;
     });
+  }
+
+  public getNotificationConfig(type: string): INotificationTypeConfig {
+    return this.getNotificationTypes().find(notificationType => notificationType.key === type);
   }
 
   public getTriggerConfig(type: string): ITriggerTypeConfig {

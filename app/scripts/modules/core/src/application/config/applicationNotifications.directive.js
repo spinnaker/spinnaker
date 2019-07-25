@@ -19,6 +19,7 @@ module.exports = angular
         bindToController: {
           application: '=',
           notifications: '=',
+          updateNotifications: '=',
         },
         controllerAs: 'vm',
         controller: angular.noop,

@@ -60,8 +60,6 @@ module(PIPELINE_MODULE, [
 
   BUILD_DISPLAY_NAME_FILTER,
 
-  require('./manualExecution/manualPipelineExecution.controller').name,
-
   STAGE_FAILURE_MESSAGE_COMPONENT,
   STEP_EXECUTION_DETAILS_COMPONENT,
   STAGE_SUMMARY_COMPONENT,

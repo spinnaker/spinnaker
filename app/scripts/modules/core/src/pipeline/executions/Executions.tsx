@@ -9,7 +9,8 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { IPipeline, IPipelineCommand } from 'core/domain';
-import { ModalInjector, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
+import { ManualExecutionModal } from 'core/pipeline';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
@@ -158,20 +159,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private triggerPipeline(pipeline: IPipeline = null): void {
     ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
-    // TODO: Convert the modal to react
-    ModalInjector.modalService
-      .open({
-        templateUrl: require('../manualExecution/manualPipelineExecution.html'),
-        controller: 'ManualPipelineExecutionCtrl as vm',
-        resolve: {
-          pipeline: () => pipeline,
-          trigger: () => null as any,
-          application: () => this.props.app,
-        },
+    ManualExecutionModal.show({
+      pipeline: pipeline,
+      application: this.props.app,
+    })
+      .then(command => {
+        this.startPipeline(command);
+        this.clearManualExecutionParam();
       })
-      .result.then(command => this.startPipeline(command))
-      .catch(() => {})
-      .finally(() => this.clearManualExecutionParam());
+      .catch(() => this.clearManualExecutionParam());
   }
 
   private clearManualExecutionParam(): void {

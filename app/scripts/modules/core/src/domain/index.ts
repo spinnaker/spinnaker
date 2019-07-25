@@ -1,4 +1,3 @@
-export * from './IAppNotification';
 export * from './IArtifact';
 export * from './IArtifactEditorProps';
 export * from './IArtifactExtractor';
@@ -34,6 +33,9 @@ export * from '../widgets/Keys';
 export * from './ILoadBalancer';
 
 export * from './IManifest';
+
+export * from './INotification';
+export * from './INotificationTypeConfig';
 
 export * from './IOrchestratedItem';
 

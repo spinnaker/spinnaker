@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { get, set } from 'lodash';
+import { get } from 'lodash';
 
 import { HelpField } from 'core/help/HelpField';
 import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
@@ -8,7 +8,7 @@ export class ManualExecutionBake extends React.Component<ITriggerTemplateCompone
   private handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const checked = target.checked;
-    set(this.props.command, 'trigger.rebake', checked);
+    this.props.updateCommand('trigger.rebake', checked);
     this.setState({});
   };
 

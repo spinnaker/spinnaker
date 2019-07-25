@@ -18,8 +18,8 @@ import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
-import { ModalInjector, ReactInjector } from 'core/reactShims';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { ReactInjector } from 'core/reactShims';
+import { PipelineTemplateV2Service, ManualExecutionModal } from 'core/pipeline';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
@@ -128,18 +128,13 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null, config = this.state.pipelineConfig): void {
-    ModalInjector.modalService
-      .open({
-        templateUrl: require('../../manualExecution/manualPipelineExecution.html'),
-        controller: 'ManualPipelineExecutionCtrl as vm',
-        resolve: {
-          pipeline: () => config,
-          application: () => this.props.application,
-          currentlyRunningExecutions: () => this.props.group.runningExecutions,
-          trigger: () => trigger,
-        },
-      })
-      .result.then(command => this.startPipeline(command))
+    ManualExecutionModal.show({
+      pipeline: config,
+      application: this.props.application,
+      trigger: trigger,
+      currentlyRunningExecutions: this.props.group.runningExecutions,
+    })
+      .then(command => this.startPipeline(command))
       .catch(() => {});
   }
 
@@ -203,6 +198,31 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: config.name });
     this.triggerPipeline(execution.trigger, config);
   };
+
+  private getDeploymentAccounts(): string[] {
+    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets)))
+      .sort()
+      .filter(a => !!a);
+  }
+
+  private renderExecutions() {
+    const { pipelineConfig } = this.state;
+    const { executions } = this.props.group;
+    const isConfigurable = !pipelineConfig || PipelineTemplateV2Service.isConfigurable(pipelineConfig);
+    return (
+      <>
+        {executions.map(execution => (
+          <Execution
+            key={execution.id}
+            execution={execution}
+            pipelineConfig={pipelineConfig}
+            application={this.props.application}
+            onRerun={pipelineConfig && isConfigurable ? this.rerunExecutionClicked : undefined}
+          />
+        ))}
+      </>
+    );
+  }
 
   public render(): React.ReactElement<ExecutionGroup> {
     const { group } = this.props;
@@ -345,30 +365,5 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
         )}
       </div>
     );
-  }
-
-  private renderExecutions() {
-    const { pipelineConfig } = this.state;
-    const { executions } = this.props.group;
-    const isConfigurable = !pipelineConfig || PipelineTemplateV2Service.isConfigurable(pipelineConfig);
-    return (
-      <>
-        {executions.map(execution => (
-          <Execution
-            key={execution.id}
-            execution={execution}
-            pipelineConfig={pipelineConfig}
-            application={this.props.application}
-            onRerun={pipelineConfig && isConfigurable ? this.rerunExecutionClicked : undefined}
-          />
-        ))}
-      </>
-    );
-  }
-
-  private getDeploymentAccounts(): string[] {
-    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets)))
-      .sort()
-      .filter(a => !!a);
   }
 }

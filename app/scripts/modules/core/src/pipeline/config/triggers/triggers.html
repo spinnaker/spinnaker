@@ -123,11 +123,11 @@
   >
     <notification-list
       ng-if="!pipeline.strategy"
-      level="pipeline"
+      level="'pipeline'"
+      stage-type="pipeline.type"
       notifications="pipeline.notifications"
-      parent="pipeline"
-    >
-    </notification-list>
+      update-notifications="updateNotifications"
+    ></notification-list>
   </page-section>
   <page-section key="description" label="Description" no-wrapper="true">
     <div class="row">

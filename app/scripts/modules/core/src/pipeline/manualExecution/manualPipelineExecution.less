@@ -1,16 +1,32 @@
-.manual-execution-parameters-description {
-  margin-top: 20px;
-}
-.notifications-list {
-  font-size: 90%;
-  padding-top: 7px;
-  text-align: left;
-  ul {
-    list-style-type: none;
-    padding-left: 20px;
+.manual-execution-dialog {
+  .modal-body-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    clear: both;
+    max-height: calc(~'100vh - 215px');
   }
-}
 
-.uib-datepicker-popup.dropdown-menu {
-  z-index: var(--layer-critical);
+  .modal-content {
+    overflow: visible;
+  }
+
+  .manual-execution-parameters-description {
+    margin-top: 20px;
+  }
+
+  .pipeline-select {
+    width: 100%;
+  }
+
+  .trigger-select {
+    width: 100%;
+  }
+
+  .trigger-template {
+    padding: 5px 0;
+  }
+
+  .parameter-option-select {
+    width: 100%;
+  }
 }

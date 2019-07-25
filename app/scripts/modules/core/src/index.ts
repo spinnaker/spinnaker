@@ -53,6 +53,8 @@ export * from './naming';
 export * from './navigation';
 export * from './network';
 
+export * from './notification';
+
 export * from './orchestratedItem';
 export * from './overrideRegistry';
 

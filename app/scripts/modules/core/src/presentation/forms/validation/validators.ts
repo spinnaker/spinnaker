@@ -2,6 +2,13 @@ import { IValidator } from './validation';
 
 const THIS_FIELD = 'This field';
 
+const emailValue = (message?: string): IValidator => {
+  return (val: string, label = THIS_FIELD) => {
+    message = message || `${label} is not a valid email address.`;
+    return val && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(val) && message;
+  };
+};
+
 const isRequired = (message?: string): IValidator => {
   return (val: any, label = THIS_FIELD) => {
     message = message || `${label} is required.`;
@@ -54,6 +61,7 @@ const skipIfUndefined = (actualValidator: IValidator): IValidator => {
  */
 export const Validators = {
   arrayNotEmpty,
+  emailValue,
   isRequired,
   maxValue,
   minValue,

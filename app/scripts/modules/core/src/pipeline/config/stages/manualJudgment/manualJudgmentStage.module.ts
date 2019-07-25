@@ -12,5 +12,4 @@ module(MANUAL_JUDGMENT_STAGE_MODULE, [
   MANUAL_JUDGMENT_SERVICE,
   STAGE_COMMON_MODULE,
   require('./manualJudgmentStage').name,
-  require('../../../../notification/modal/editNotification.controller.modal').name,
 ]);

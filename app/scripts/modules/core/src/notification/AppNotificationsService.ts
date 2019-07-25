@@ -1,11 +1,11 @@
 import { IPromise } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { IAppNotification } from 'core/domain';
+import { INotification } from 'core/domain';
 
 export interface IAppNotifications {
   application: string;
-  [key: string]: IAppNotification[] | string; // "| string" is just for application field
+  [key: string]: INotification[] | string; // "| string" is just for application field
 }
 
 export class AppNotificationsService {

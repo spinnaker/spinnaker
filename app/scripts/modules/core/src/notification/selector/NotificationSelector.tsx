@@ -1,0 +1,73 @@
+import * as React from 'react';
+import { Option } from 'react-select';
+
+import { INotificationTypeConfig } from 'core/domain';
+import { Registry } from 'core/registry';
+import { FormikFormField, ReactSelectInput } from 'core/presentation';
+
+import './notificationSelector.less';
+
+export interface INotificationSelectorProps {
+  fieldName?: string;
+  onNotificationTypeChange?: (type: string) => void;
+  type: string;
+}
+
+export interface INotificationSelectorState {
+  notificationTypes: Option[];
+}
+
+export class NotificationSelector extends React.Component<INotificationSelectorProps, INotificationSelectorState> {
+  constructor(props: INotificationSelectorProps) {
+    super(props);
+    this.state = {
+      notificationTypes: Registry.pipeline.getNotificationTypes().map((type: INotificationTypeConfig) => ({
+        label: type.label,
+        value: type.key,
+      })),
+    };
+  }
+
+  private NotificationDetailFields = (props: { type: string; fieldName?: string }) => {
+    const notificationConfig = Registry.pipeline.getNotificationConfig(props.type);
+    if (notificationConfig && notificationConfig.component) {
+      const notificationProps = {
+        botName: notificationConfig.config.botName,
+        fieldName: props.fieldName,
+      } as React.Attributes;
+      return React.createElement(notificationConfig.component, notificationProps);
+    }
+    return <></>;
+  };
+
+  public render() {
+    const { NotificationDetailFields } = this;
+    const { fieldName, onNotificationTypeChange, type } = this.props;
+    const { notificationTypes } = this.state;
+    return (
+      <>
+        <div className="sp-margin-m-bottom">
+          <div className={'form-group'}>
+            <label className={'col-md-4 sm-label-right'}>Notify via</label>
+            <div className="col-md-6">
+              <FormikFormField
+                name={fieldName ? `${fieldName}.type` : 'type'}
+                input={props => (
+                  <ReactSelectInput
+                    clearable={false}
+                    {...props}
+                    inputClassName={'notification-type-select'}
+                    options={notificationTypes}
+                  />
+                )}
+                onChange={onNotificationTypeChange}
+                required={true}
+              />
+            </div>
+          </div>
+        </div>
+        <NotificationDetailFields type={type} fieldName={fieldName} />
+      </>
+    );
+  }
+}

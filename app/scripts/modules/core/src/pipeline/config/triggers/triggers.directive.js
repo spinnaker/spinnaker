@@ -155,5 +155,10 @@ module.exports = angular
         $scope.pipeline.roles = roles;
         $scope.$digest();
       };
+
+      $scope.updateNotifications = function(notifications) {
+        $scope.pipeline.notifications = notifications;
+        $scope.$digest();
+      };
     },
   ]);

@@ -1,21 +1,14 @@
 'use strict';
 
-import { SPINNAKER_CORE_NOTIFICATION_TYPES_GITHUB_STATUS } from './types/githubstatus/githubstatus.notification.type.module';
+import './selector/types/bearychat/beary.notification';
+import './selector/types/email/email.notification';
+import './selector/types/githubstatus/githubstatus.notification';
+import './selector/types/googlechat/googlechat.notification';
+import './selector/types/pubsub/pubsub.notification';
+import './selector/types/slack/slack.notification';
+import './selector/types/sms/sms.notification';
+import { NOTIFICATION_LIST } from './notificationList.module';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notifications', [
-  require('./notificationTypeConfig.provider').name,
-  require('./selector/notificationSelector.directive').name,
-  require('./notificationList.directive').name,
-  require('./notificationType.service').name,
-  require('./modal/editNotification.controller.modal').name,
-  require('./notification.details.filter').name,
-  require('./types/bearychat/bearychat.notification.type.module').name,
-  require('./types/email/email.notification.type.module').name,
-  SPINNAKER_CORE_NOTIFICATION_TYPES_GITHUB_STATUS,
-  require('./types/googlechat/googlechat.notification.type.module').name,
-  require('./types/pubsub/pubsub.notification.type.module').name,
-  require('./types/slack/slack.notification.type.module').name,
-  require('./types/sms/sms.notification.type.module').name,
-]);
+module.exports = angular.module('spinnaker.core.notifications', [NOTIFICATION_LIST]);

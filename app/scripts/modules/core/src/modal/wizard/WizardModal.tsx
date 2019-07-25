@@ -183,7 +183,6 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
                     <div className="col-md-3 hidden-sm hidden-xs">
                       <ul className="steps-indicator wizard-navigation">{pageLabels}</ul>
                     </div>
-
                     <div className="col-md-9 col-sm-12">
                       <div className="steps" ref={this.stepsElement} onScroll={this.handleStepsScroll}>
                         {renderPageContents()}

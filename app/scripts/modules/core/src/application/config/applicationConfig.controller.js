@@ -57,5 +57,12 @@ module.exports = angular
             this.bannerConfigProps.saveError = true;
           });
       };
+
+      this.notifications = [];
+      this.updateNotifications = notifications => {
+        $scope.$applyAsync(() => {
+          this.notifications = notifications;
+        });
+      };
     },
   ]);

@@ -33,7 +33,7 @@ module.exports = angular
   .controller('ManualJudgmentStageCtrl', [
     '$scope',
     '$uibModal',
-    function($scope, $uibModal) {
+    function($scope) {
       $scope.authEnabled = SETTINGS.authEnabled;
       $scope.stage.notifications = $scope.stage.notifications || [];
       $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
@@ -46,54 +46,11 @@ module.exports = angular
             notification.level = 'stage';
             notification.when = ['manualJudgment'];
           });
-
           $scope.stage.sendNotifications = true;
         }
       };
 
       this.transformToNewStyleIfNecessary($scope.stage.notifications);
-
-      this.editNotification = function(notification) {
-        var modalInstance = $uibModal.open({
-          templateUrl: require('../../../../notification/modal/editNotification.html'),
-          controller: 'EditNotificationController',
-          controllerAs: 'editNotification',
-          resolve: {
-            notification: function() {
-              return notification;
-            },
-            level: function() {
-              return 'stage';
-            },
-            stageType: function() {
-              return 'manualJudgment';
-            },
-          },
-        });
-
-        modalInstance.result
-          .then(function(newNotification) {
-            if (!notification) {
-              $scope.stage.notifications.push(newNotification);
-            } else {
-              $scope.stage.notifications[$scope.stage.notifications.indexOf(notification)] = newNotification;
-            }
-          })
-          .catch(() => {});
-      };
-
-      this.addNotification = function() {
-        if ($scope.parent && !$scope.parent.notifications) {
-          $scope.parent.notifications = [];
-        }
-        this.editNotification(undefined);
-      };
-
-      this.removeNotification = function(notification) {
-        $scope.stage.notifications = $scope.stage.notifications.filter(function(el) {
-          return el !== notification;
-        });
-      };
 
       this.manageStateOnToggle = function() {
         if (!$scope.stage.sendNotifications) {
@@ -111,6 +68,14 @@ module.exports = angular
 
       this.removeJudgmentInput = function(idx) {
         $scope.stage.judgmentInputs.splice(idx, 1);
+      };
+
+      this.updateNotifications = function(notifications) {
+        if ($scope.parent && !$scope.parent.notifications) {
+          $scope.parent.notifications = [];
+        }
+        $scope.stage.notifications = notifications;
+        $scope.$digest();
       };
     },
   ]);

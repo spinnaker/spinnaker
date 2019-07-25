@@ -291,6 +291,18 @@ module.exports = angular
         });
       }
 
+      this.updateNotifications = function(notifications) {
+        $scope.$applyAsync(() => {
+          $scope.stage.notifications = notifications;
+        });
+      };
+
+      this.handleSendNotificationsChanged = function() {
+        $scope.$applyAsync(() => {
+          $scope.stage.sendNotifications = !$scope.stage.sendNotifications;
+        });
+      };
+
       $scope.$on('pipeline-reverted', this.selectStage);
       $scope.$on('pipeline-json-edited', this.selectStage);
       $scope.$watch('stage.type', this.selectStage);

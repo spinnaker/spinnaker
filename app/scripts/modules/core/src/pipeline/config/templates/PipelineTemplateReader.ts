@@ -45,7 +45,7 @@ export interface ITemplateStage {
 export interface IPipelineTemplateConfig extends Partial<IPipeline> {
   type: string;
   plan?: boolean;
-  config: {
+  config?: {
     schema: string;
     pipeline: {
       name: string;

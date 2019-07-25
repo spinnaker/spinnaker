@@ -68,49 +68,13 @@
   </stage-config-field>
   <div class="row" ng-if="stage.sendNotifications">
     <stage-config-field>
-      <table class="table table-condensed">
-        <thead ng-if="stage.notifications.length">
-          <tr>
-            <th>Type</th>
-            <th>Details</th>
-            <th>Notify When</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr ng-repeat="notification in stage.notifications">
-            <td>
-              {{notification.type|notificationType}}
-            </td>
-            <td>
-              {{notification|notificationDetails}}
-            </td>
-            <td>
-              <div ng-repeat="when in notification.when">{{when|notificationWhen:level:'manualJudgment'}}</div>
-            </td>
-            <td>
-              <a class="btn btn-xs btn-link" href ng-click="manualJudgmentStageCtrl.editNotification(notification)"
-                >Edit</a
-              >
-              <a
-                class="btn btn-xs btn-link pad-left"
-                href
-                ng-click="manualJudgmentStageCtrl.removeNotification(notification)"
-                >Remove</a
-              >
-            </td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="7">
-              <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
-                <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
-              </button>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+      <notification-list
+        level="'stage'"
+        stage-type="'manualJudgment'"
+        notifications="stage.notifications"
+        send-notifications="stage.sendNotifications"
+        update-notifications="manualJudgmentStageCtrl.updateNotifications"
+      ></notification-list>
     </stage-config-field>
   </div>
 </div>

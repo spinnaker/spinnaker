@@ -1,11 +1,11 @@
-import { INotification } from 'core/widgets/notifier/notifier.service';
-import * as DOMPurify from 'dompurify';
 import * as React from 'react';
+import * as DOMPurify from 'dompurify';
 import { Subscription } from 'rxjs';
-import { NotifierService } from './notifier.service';
+
+import { INotifier, NotifierService } from 'core/widgets';
 
 export interface INotifierState {
-  messages: INotification[];
+  messages: INotifier[];
 }
 
 export class Notifier extends React.Component<{}, INotifierState> {
@@ -40,7 +40,7 @@ export class Notifier extends React.Component<{}, INotifierState> {
     this.setState({ messages: this.state.messages.filter(m => m.key !== key) });
   }
 
-  private makeNotification = (message: INotification) => (
+  private makeNotification = (message: INotifier) => (
     <div key={message.key} className="user-notification horizontal space-around">
       <div
         className="message"
