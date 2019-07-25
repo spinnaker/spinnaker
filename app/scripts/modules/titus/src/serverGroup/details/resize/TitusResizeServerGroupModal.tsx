@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Form, Formik, FormikContext } from 'formik';
+import { Form, FormikContext } from 'formik';
 import { ITitusServerGroup } from 'titus/domain';
 import {
   Application,
@@ -13,6 +13,7 @@ import {
   NumberInput,
   PlatformHealthOverride,
   ReactInjector,
+  SpinFormik,
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
@@ -246,7 +247,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
     <>
       <TaskMonitorWrapper monitor={taskMonitor} />
 
-      <Formik<ITitusResizeServerGroupCommand>
+      <SpinFormik<ITitusResizeServerGroupCommand>
         initialValues={initialValues}
         validate={validateResizeCommand}
         onSubmit={submit}

@@ -1,6 +1,7 @@
 export * from './FormField';
 export * from './FormikForm';
 export * from './FormikFormField';
+export * from './SpinFormik';
 export * from './fields';
 export * from './inputs';
 export * from './interface';

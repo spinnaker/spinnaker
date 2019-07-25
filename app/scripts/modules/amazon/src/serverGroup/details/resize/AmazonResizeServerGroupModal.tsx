@@ -18,6 +18,7 @@ import {
   PlatformHealthOverride,
   ReactInjector,
   ReactModal,
+  SpinFormik,
   TaskMonitor,
   TaskReason,
   ValidationMessage,
@@ -396,7 +397,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
     return (
       <>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
-        <Formik<IAmazonResizeServerGroupValues>
+        <SpinFormik<IAmazonResizeServerGroupValues>
           ref={this.formikRef}
           initialValues={initialValues}
           validate={this.validate}

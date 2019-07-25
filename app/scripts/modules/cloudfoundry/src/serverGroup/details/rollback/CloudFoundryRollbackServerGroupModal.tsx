@@ -13,6 +13,7 @@ import {
   ReactInjector,
   ReactModal,
   ReactSelectInput,
+  SpinFormik,
   TaskMonitor,
   TaskReason,
 } from '@spinnaker/core';
@@ -110,7 +111,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
     return (
       <>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
-        <Formik<ICloudFoundryRollbackServerGroupValues>
+        <SpinFormik<ICloudFoundryRollbackServerGroupValues>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}

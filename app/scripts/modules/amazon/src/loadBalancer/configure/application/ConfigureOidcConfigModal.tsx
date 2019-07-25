@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Formik, Form, FormikErrors } from 'formik';
+import { Form, FormikErrors } from 'formik';
 
-import { TextInput, FormikFormField, ModalClose, ReactModal, SubmitButton, noop } from '@spinnaker/core';
+import { TextInput, FormikFormField, ModalClose, ReactModal, SpinFormik, SubmitButton, noop } from '@spinnaker/core';
 
 import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
 
@@ -69,7 +69,7 @@ export class ConfigureOidcConfigModal extends React.Component<
 
     return (
       <div className="configure-config-modal">
-        <Formik<IAuthenticateOidcActionConfig>
+        <SpinFormik<IAuthenticateOidcActionConfig>
           initialValues={initialValues}
           onSubmit={this.submit}
           validate={this.validate}

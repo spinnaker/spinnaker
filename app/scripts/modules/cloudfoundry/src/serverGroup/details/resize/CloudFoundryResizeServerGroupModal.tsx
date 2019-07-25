@@ -14,6 +14,7 @@ import {
   NumberInput,
   ReactInjector,
   ReactModal,
+  SpinFormik,
   TaskMonitor,
   TaskReason,
 } from '@spinnaker/core';
@@ -193,7 +194,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
     return (
       <>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
-        <Formik<ICloudFoundryResizeServerGroupValues>
+        <SpinFormik<ICloudFoundryResizeServerGroupValues>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}

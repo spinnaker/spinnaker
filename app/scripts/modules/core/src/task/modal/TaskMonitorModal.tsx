@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Form, Formik, FormikProps } from 'formik';
+import { Form, FormikProps } from 'formik';
 import { Modal } from 'react-bootstrap';
 
-import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout } from 'core/presentation';
+import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
 import { Application } from 'core/application';
 import { NgReact } from 'core/reactShims';
 import { SubmitButton } from 'core/modal';
@@ -80,7 +80,7 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
       <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
-        <Formik<T>
+        <SpinFormik<T>
           initialValues={this.props.initialValues}
           onSubmit={this.submitTask}
           render={formik => (

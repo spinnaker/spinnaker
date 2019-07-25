@@ -12,6 +12,7 @@ import {
   noop,
   ReactInjector,
   ReactModal,
+  SpinFormik,
   TaskMonitor,
 } from '@spinnaker/core';
 
@@ -101,7 +102,7 @@ export class CloudFoundryUnmapLoadBalancersModal extends React.Component<
     return (
       <>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
-        <Formik<ICloudFoundryLoadBalancerLinksModalValues>
+        <SpinFormik<ICloudFoundryLoadBalancerLinksModalValues>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.submit}

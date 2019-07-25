@@ -8,7 +8,7 @@ import { assign, clone, compact, extend, get, head, uniq, isArray } from 'lodash
 import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
 import { AuthenticationService } from 'core/authentication';
-import { buildValidators, IModalComponentProps, ReactModal } from 'core/presentation';
+import { buildValidators, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
 import {
   IExecution,
   IExecutionTrigger,
@@ -323,10 +323,9 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     const notifications = applicationNotifications.concat(pipelineNotifications);
     const pipelineCommand = this.generateInitialValues(pipeline);
     return (
-      <Formik<IPipelineCommand>
+      <SpinFormik<IPipelineCommand>
         ref={this.formikRef}
         initialValues={pipelineCommand}
-        isInitialValid={() => !(Object.keys(pipelineCommand).length > 0)}
         onSubmit={this.submit}
         validate={this.validate}
         render={formik => (

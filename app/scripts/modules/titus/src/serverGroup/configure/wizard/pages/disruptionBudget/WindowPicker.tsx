@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Formik, FormikProps } from 'formik';
+import { FormikProps } from 'formik';
 import { get } from 'lodash';
 
-import { FormikFormField, ChecklistInput, NumberInput, HelpField, ReactSelectInput } from '@spinnaker/core';
+import { FormikFormField, ChecklistInput, NumberInput, HelpField, ReactSelectInput, SpinFormik } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../serverGroupConfiguration.service';
 import { IJobTimeWindow } from 'titus/domain';
@@ -131,7 +131,7 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
       );
     }
     return (
-      <Formik<IJobTimeWindowForm>
+      <SpinFormik<IJobTimeWindowForm>
         initialValues={{
           days: [],
           startHour: 10,

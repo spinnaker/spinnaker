@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Formik, FormikProps, FormikErrors } from 'formik';
+import { FormikProps, FormikErrors } from 'formik';
 
 import { IStage, IPipeline, ITrigger } from 'core/domain';
 import { Application } from 'core/application';
-import { LayoutProvider, ResponsiveFieldLayout, WatchValue } from 'core/presentation';
+import { LayoutProvider, ResponsiveFieldLayout, WatchValue, SpinFormik } from 'core/presentation';
 
 export interface IFormikStageConfigInjectedProps {
   application: Application;
@@ -36,7 +36,7 @@ export class FormikStageConfig extends React.Component<IFormikStageConfigProps> 
   public render() {
     const { render, onChange, stage, validate, application, pipeline } = this.props;
     return (
-      <Formik<IStage>
+      <SpinFormik<IStage>
         validate={validate && decorate(validate, this.props)}
         initialValues={stage}
         onSubmit={() => {}}

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
-import { buildValidators, IModalComponentProps, ReactModal } from 'core/presentation';
+import { buildValidators, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
 import { INotification } from 'core/domain';
 import { SubmitButton, ModalClose } from 'core/modal';
 
@@ -37,10 +37,9 @@ export class EditNotificationModal extends React.Component<IEditNotificationModa
   public render(): React.ReactElement<EditNotificationModal> {
     const { dismissModal, level, notification, stageType } = this.props;
     return (
-      <Formik<INotification>
+      <SpinFormik<INotification>
         ref={this.formikRef}
         initialValues={notification}
-        isInitialValid={() => !(Object.keys(this.validate(notification)).length > 0)}
         onSubmit={this.submit}
         validate={this.validate}
         render={formik => (

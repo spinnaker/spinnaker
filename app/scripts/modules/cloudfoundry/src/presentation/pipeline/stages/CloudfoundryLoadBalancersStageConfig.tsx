@@ -9,6 +9,7 @@ import {
   IPipeline,
   IStageConfigProps,
   NgReact,
+  SpinFormik,
   StageConfigField,
   StageConstants,
 } from '@spinnaker/core';
@@ -99,7 +100,7 @@ export class CloudfoundryLoadBalancersStageConfig extends React.Component<
         <StageConfigField label="Target">
           <TargetSelect model={{ target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
         </StageConfigField>
-        <Formik<ICloudFoundryLoadBalancersValues>
+        <SpinFormik<ICloudFoundryLoadBalancersValues>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={null}

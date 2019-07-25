@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Formik } from 'formik';
 
 import {
   Application,
@@ -9,6 +8,7 @@ import {
   IModalComponentProps,
   ModalClose,
   SubmitButton,
+  SpinFormik,
   NgReact,
   ReactModal,
   TaskExecutor,
@@ -62,9 +62,8 @@ export class EditDisruptionBudgetModal extends React.Component<IEditDisruptionBu
     return (
       <>
         <TaskMonitorWrapper monitor={taskMonitor} />
-        <Formik<ITitusServerGroupCommand>
+        <SpinFormik<ITitusServerGroupCommand>
           initialValues={command}
-          isInitialValid={true}
           onSubmit={(values: ITitusServerGroupCommand) => this.submit(values, taskMonitor)}
           render={formik => (
             <>
