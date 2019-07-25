@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { capitalize, get, isEqual } from 'lodash';
+import { capitalize, get } from 'lodash';
 import { Option } from 'react-select';
 import { $q } from 'ngimport';
 import { IPromise } from 'angular';
@@ -124,12 +124,6 @@ export class BaseBuildTriggerTemplate extends React.Component<
 
   public componentWillUnmount(): void {
     this.destroy$.next();
-  }
-
-  public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {
-    if (!isEqual(nextProps.command, this.props.command)) {
-      this.initialize(nextProps.command);
-    }
   }
 
   private handleBuildChanged = (option: Option): void => {
