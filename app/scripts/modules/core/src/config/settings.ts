@@ -99,6 +99,7 @@ export interface ISpinnakerSettings {
   dockerInsights: IDockerInsightSettings;
   entityTags?: {
     maxUrlLength?: number;
+    maxResults?: number;
   };
   executionWindow?: {
     atlas?: {

@@ -53,6 +53,9 @@ window.spinnakerSettings = {
   defaultInstancePort: 80,
   defaultProviders: ['appengine', 'aws', 'azure', 'cloudfoundry', 'dcos', 'ecs', 'gce', 'kubernetes', 'oracle'],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
+  entityTags: {
+    maxResults: 5000,
+  },
   feature: {
     artifacts: artifactsEnabled,
     artifactsRewrite: artifactsRewriteEnabled,
