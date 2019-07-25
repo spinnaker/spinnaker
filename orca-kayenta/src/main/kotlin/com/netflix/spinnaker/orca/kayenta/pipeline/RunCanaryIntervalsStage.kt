@@ -103,7 +103,8 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
         canaryConfig.storageAccountName,
         canaryConfig.canaryConfigId,
         buildRequestScopes(canaryConfig, getDeployDetails(parent), i, canaryAnalysisInterval),
-        canaryConfig.scoreThresholds
+        canaryConfig.scoreThresholds,
+        canaryConfig.siteLocal
       )
 
       graph.append {

@@ -44,7 +44,7 @@ class RunKayentaCanaryTask(
       context.metricsAccountName,
       context.configurationAccountName,
       context.storageAccountName,
-      CanaryExecutionRequest(context.scopes, context.scoreThresholds)
+      CanaryExecutionRequest(context.scopes, context.scoreThresholds, context.siteLocal)
     )["canaryExecutionId"] as String
 
     return TaskResult.builder(SUCCEEDED).context("canaryPipelineExecutionId", canaryPipelineExecutionId).build()

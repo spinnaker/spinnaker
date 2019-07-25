@@ -29,8 +29,9 @@ data class KayentaCanaryContext(
   val canaryConfigId: String,
   val scopes: List<CanaryConfigScope> = emptyList(),
   val scoreThresholds: Thresholds = Thresholds(pass = 75, marginal = 50),
-  @Deprecated("Kept to support pipelines that haven't been updated to use lifetimeDuration")
+  val siteLocal: Map<String, Any> = emptyMap(),
 
+  @Deprecated("Kept to support pipelines that haven't been updated to use lifetimeDuration")
   @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val lifetimeHours: Int? = null,
 

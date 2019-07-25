@@ -58,7 +58,9 @@ interface KayentaService {
 
 data class CanaryExecutionRequest(
   val scopes: Map<String, CanaryScopes> = emptyMap(),
-  val thresholds: Thresholds
+  val thresholds: Thresholds,
+  // TODO: Remove all remnants of siteLocal when addressing https://github.com/spinnaker/kayenta/issues/600
+  val siteLocal: Map<String, Any> = emptyMap()
 )
 
 data class CanaryScopes(
