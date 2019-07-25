@@ -318,13 +318,6 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     Set<String> securityGroups = new HashSet<>();
 
     if (!instances.isEmpty()) {
-      String taskId = instances.iterator().next().getName();
-      String taskKey = Keys.getTaskKey(account, region, taskId);
-      Task task = taskCacheClient.get(taskKey);
-
-      com.amazonaws.services.ec2.model.Instance ec2Instance =
-          containerInformationService.getEc2Instance(account, region, task);
-
       if (eniSubnets != null
           && !eniSubnets.isEmpty()
           && eniSecurityGroups != null
@@ -340,12 +333,25 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
           vpcId = vpcIds.iterator().next();
         }
-      } else if (ec2Instance != null) {
-        vpcId = ec2Instance.getVpcId();
-        securityGroups =
-            ec2Instance.getSecurityGroups().stream()
-                .map(GroupIdentifier::getGroupId)
-                .collect(Collectors.toSet());
+      } else {
+        for (Instance instance : instances) {
+          String taskId = instance.getName();
+          String taskKey = Keys.getTaskKey(account, region, taskId);
+          Task task = taskCacheClient.get(taskKey);
+
+          if (task != null) {
+            com.amazonaws.services.ec2.model.Instance ec2Instance =
+                containerInformationService.getEc2Instance(account, region, task);
+            if (ec2Instance != null) {
+              vpcId = ec2Instance.getVpcId();
+              securityGroups =
+                  ec2Instance.getSecurityGroups().stream()
+                      .map(GroupIdentifier::getGroupId)
+                      .collect(Collectors.toSet());
+              break;
+            }
+          }
+        }
       }
     }
 

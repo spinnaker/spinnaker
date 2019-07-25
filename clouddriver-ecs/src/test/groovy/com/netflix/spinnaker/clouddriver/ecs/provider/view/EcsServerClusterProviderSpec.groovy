@@ -189,6 +189,7 @@ class EcsServerClusterProviderSpec extends Specification {
     cacheView.filterIdentifiers(_, _) >> ['key']
     cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [serviceCacheData, serviceCacheData2]
     cacheView.getAll(Keys.Namespace.TASKS.ns, _) >> [taskCacheData]
+    cacheView.get(Keys.Namespace.TASKS.ns, _) >> taskCacheData
   }
 
   def 'should produce an ecs cluster'() {
