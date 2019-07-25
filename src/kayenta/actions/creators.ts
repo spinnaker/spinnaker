@@ -111,7 +111,7 @@ export const loadMetricsServiceMetadataSuccess = createAction<{ data: IMetricsSe
 export const loadMetricsServiceMetadataFailure = createAction<{ error: Error }>(
   Actions.LOAD_METRICS_SERVICE_METADATA_FAILURE,
 );
-export const updatePrometheusMetricDescriptorFilter = createAction<{ filter: string }>(
+export const updatePrometheusMetricDescriptorFilter = createAction<{ filter: string; metricsAccountName: string }>(
   Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER,
 );
 export const updateGraphiteMetricDescriptorFilter = createAction<{ filter: string }>(

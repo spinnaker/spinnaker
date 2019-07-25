@@ -94,25 +94,15 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
       .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })));
   });
 
-const updatePrometheusMetricDescriptionFilterEpic = (
-  action$: Observable<Action & any>,
-  store: MiddlewareAPI<ICanaryState>,
-) =>
+const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER))
     .filter(action => action.payload.filter && action.payload.filter.length > 2)
     .debounceTime(200 /* milliseconds */)
     .map(action => {
-      const [metricsAccountName] = store
-        .getState()
-        .data.kayentaAccounts.data.filter(
-          account => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'prometheus',
-        )
-        .map(account => account.name);
-
       return Creators.loadMetricsServiceMetadataRequest({
         filter: action.payload.filter,
-        metricsAccountName,
+        metricsAccountName: action.payload.metricsAccountName,
       });
     });
 
