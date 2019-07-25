@@ -34,7 +34,7 @@ ext {
     spek          : "1.2.1",
     springBoot    : "2.1.6.RELEASE",
     springCloud   : "Greenwich.SR2",
-    swagger       : "2.7.0",
+    swagger       : "2.9.2",
     testcontainers: "1.11.2"
   ]
 }
