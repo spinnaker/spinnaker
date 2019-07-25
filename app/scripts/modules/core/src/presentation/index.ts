@@ -12,6 +12,7 @@ export * from './TetheredCreatable';
 export * from './Tooltip';
 export * from './WatchValue';
 export * from './collapsibleSection/CollapsibleSection';
+export * from './details/Details';
 export * from './forms';
 export * from './robotToHumanFilter/robotToHuman.filter';
 export * from './sortToggle';
