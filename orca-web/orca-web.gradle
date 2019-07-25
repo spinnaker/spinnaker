@@ -60,6 +60,7 @@ dependencies {
   implementation("com.netflix.spinnaker.kork:kork-exceptions")
   implementation("com.netflix.spinnaker.kork:kork-stackdriver")
   implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("com.netflix.spinnaker.kork:kork-plugins")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
