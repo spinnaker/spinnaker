@@ -328,6 +328,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     }
   }
 
+  // Prevents the form from reloading the page if the user hits enter on an input.
+  private handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => e.preventDefault();
+
   public render() {
     const { preselectedTemplate } = this.props;
     const hasSelectedATemplate = this.state.useTemplate || preselectedTemplate;
@@ -379,7 +382,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
               </div>
             )}
             {!(this.state.saveError || this.state.loadError) && (
-              <form role="form" name="form" className="clearfix">
+              <form role="form" name="form" className="clearfix" onSubmit={this.handleFormSubmit}>
                 {!preselectedTemplate && (
                   <div className="form-group clearfix">
                     <div className="col-md-3 sm-label-right">
