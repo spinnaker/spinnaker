@@ -6,6 +6,6 @@
   min-width: 120px;
 }
 
-.StandardFieldLayout .StandardFieldLayout_Contents *:first-child {
+.StandardFieldLayout .StandardFieldLayout_Contents > *:first-child {
   flex: 1;
 }
