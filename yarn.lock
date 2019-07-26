@@ -37,10 +37,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/kayenta@0.0.82":
-  version "0.0.82"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.82.tgz#82e17e39d9d0f1ff1903b4390c2b6fcdae84c129"
-  integrity sha512-CqFZbhptDPwS/A1dYI4e8PWKHoH/jNTbChIPzdz98RO7zX6PcMrlHBgTNdi73Ee2YHMehQJoF+Y8arLK7zlnbQ==
+"@spinnaker/kayenta@0.0.83":
+  version "0.0.83"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.83.tgz#c5a2898a262c91505176b9e751f4b3f00610f706"
+  integrity sha512-wbdwj3cmulyo6XG756vBdJSRt037iBh5iaolLV6znOKH1SC9soYuB8jrxJOoBxjlhD1YB7B2RYxvjV7v1fCQ1w==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
