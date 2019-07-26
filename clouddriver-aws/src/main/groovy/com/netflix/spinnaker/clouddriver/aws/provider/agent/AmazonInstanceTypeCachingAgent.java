@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +37,21 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -79,9 +93,8 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent {
   public Collection<AgentDataType> getProvidedDataTypes() {
     return Collections.unmodifiableList(
         Arrays.asList(
-            new AgentDataType(
-                Keys.Namespace.INSTANCE_TYPES.getNs(), AgentDataType.Authority.AUTHORITATIVE),
-            new AgentDataType(getAgentType(), AgentDataType.Authority.AUTHORITATIVE)));
+            AUTHORITATIVE.forType(Keys.Namespace.INSTANCE_TYPES.getNs()),
+            AUTHORITATIVE.forType(getAgentType())));
   }
 
   @Override

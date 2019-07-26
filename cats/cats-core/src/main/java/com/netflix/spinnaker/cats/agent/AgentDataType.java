@@ -25,7 +25,7 @@ package com.netflix.spinnaker.cats.agent;
  * complete set of data, so will not result in deletions when elements are no longer present.
  */
 public class AgentDataType {
-  public static enum Authority {
+  public enum Authority {
     AUTHORITATIVE,
     INFORMATIVE;
 
@@ -37,7 +37,7 @@ public class AgentDataType {
   private final String typeName;
   private final Authority authority;
 
-  public AgentDataType(String typeName, Authority authority) {
+  private AgentDataType(String typeName, Authority authority) {
     this.typeName = typeName;
     this.authority = authority;
   }
