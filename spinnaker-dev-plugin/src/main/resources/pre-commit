@@ -1,7 +1,14 @@
 #!/bin/sh
+
+if [[ "$SPOTLESS_SKIP" -eq "1" ]]; then
+  echo '[git hook] $SPOTLESS_SKIP set: Skipping spotlessApply'
+  exit 0
+fi
+
 echo '[git hook] executing gradle spotlessCheck before commit'
 
+STAGED=$(git diff --name-only --staged)
 ./gradlew spotlessApply
-git diff --name-only --staged | xargs git add
+echo ${STAGED} | xargs git add
 
 exit 0
