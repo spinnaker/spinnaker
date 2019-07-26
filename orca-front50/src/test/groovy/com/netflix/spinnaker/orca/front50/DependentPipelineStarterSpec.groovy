@@ -584,4 +584,140 @@ class DependentPipelineStarterSpec extends Specification {
     result.stages[0].refId == "wait1"
     result.stages[0].name == "Wait for 5 seconds"
   }
+
+  def "should trigger v1 templated pipelines with dynamic source using inherited expectedArtifacts"() {
+    given:
+    def triggeredPipelineConfig = [
+      id: "triggered",
+      type: "templatedPipeline",
+      config: [
+        configuration: [
+          inherit: ["expectedArtifacts", "triggers"]
+        ],
+        pipeline: [
+          application: "covfefe",
+          name: "Templated pipeline",
+          template: [
+            source: "{% for artifact in trigger.artifacts %}{% if artifact.type == 'spinnaker-pac' && artifact.name == 'wait' %}{{ artifact.reference }}{% endif %}{% endfor %}"
+          ]
+        ],
+        schema: "1"
+      ]
+    ]
+    def triggeredPipelineTemplate = mapper.convertValue([
+      schema: "1",
+      id: "barebones",
+      configuration: [
+        expectedArtifacts: [[
+                              defaultArtifact: [
+                                customKind: true
+                              ],
+                              id: "helm-chart",
+                              displayName: "helm-chart",
+                              matchArtifact: [
+                                customKind: true,
+                                type: "http/file",
+                                name: "artifact-name"
+                              ],
+                              useDefaultArtifact: false,
+                              usePriorArtifact: false
+        ]]
+      ],
+      stages: [[
+                 id: "bake-manifest",
+                 type: "bakeManifest",
+                 name: "Bake manifest",
+                 config: [
+                   templateRenderer: "HELM2",
+                   inputArtifacts: [[
+                                      account: "my-account",
+                                      id: "helm-chart"
+                                    ]],
+                   expectedArtifacts: [[
+                                         id: "baked-manifest",
+                                         matchArtifact: [
+                                           kind: "base64",
+                                           name: "baked-manifest",
+                                           type: "embedded/base64"
+                                         ],
+                                         useDefaultArtifact: false
+                                       ]],
+                   namespace: "a-namespace",
+                   outputName: "baked-manifest"
+                 ]
+               ]]
+
+    ], PipelineTemplate)
+
+    Artifact testArtifact = new Artifact(
+      type: "http/file",
+      name: "artifact-name",
+      customKind: true,
+      reference: "a-reference"
+    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact])
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def templateLoader = Mock(TemplateLoader)
+    def applicationContext = new StaticApplicationContext()
+    def renderer = new JinjaRenderer(mapper, Mock(Front50Service), [])
+    def registry = new NoopRegistry()
+    def parameterProcessor = new ContextParameterProcessor()
+    def pipelineTemplatePreprocessor = new PipelineTemplatePreprocessor(
+      mapper,
+      new SchemaVersionHandler(
+        new V1SchemaHandlerGroup(
+          templateLoader,
+          renderer,
+          mapper,
+          registry),
+        Mock(V2SchemaHandlerGroup)),
+      new PipelineTemplateErrorHandler(),
+      registry)
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      applicationContext,
+      mapper,
+      parameterProcessor,
+      Optional.of([pipelineTemplatePreprocessor] as List<ExecutionPreprocessor>),
+      Optional.of(artifactResolver),
+      registry
+    )
+
+    and:
+    def execution
+    1 * executionLauncher.start(*_) >> {
+      execution = it[0]
+      execution = mapper.readValue(it[1], Map)
+      return pipeline {
+        JavaType type = mapper.getTypeFactory().constructCollectionType(List, Stage)
+        trigger = mapper.convertValue(execution.trigger, Trigger)
+        stages.addAll(mapper.convertValue(execution.stages, type))
+      }
+    }
+    1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource) >> [triggeredPipelineTemplate]
+
+    artifactResolver.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<>()
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null /*user*/,
+      parentPipeline,
+      [:],
+      null,
+      buildAuthenticatedUser("user", [])
+    )
+
+    then:
+    execution.expectedArtifacts.size() == 1
+    execution.expectedArtifacts[0].id == "helm-chart"
+    result.trigger.resolvedExpectedArtifacts.size() == 1
+    result.trigger.resolvedExpectedArtifacts[0].id == "helm-chart"
+  }
 }

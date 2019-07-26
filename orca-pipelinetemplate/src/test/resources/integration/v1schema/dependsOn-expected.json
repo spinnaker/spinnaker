@@ -52,5 +52,6 @@
   "notifications": [],
   "parameterConfig": [],
   "id": "unknown",
-  "triggers": []
+  "triggers": [],
+  "expectedArtifacts": []
 }

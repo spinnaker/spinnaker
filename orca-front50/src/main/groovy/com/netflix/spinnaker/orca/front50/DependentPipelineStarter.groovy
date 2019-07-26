@@ -100,7 +100,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     def trigger = pipelineConfig.trigger
     //keep the trigger as the preprocessor removes it.
-    def expectedArtifacts = pipelineConfig.expectedArtifacts
 
     if (parentPipelineStageId != null) {
       pipelineConfig.receivedArtifacts = artifactResolver?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
@@ -108,12 +107,8 @@ class DependentPipelineStarter implements ApplicationContextAware {
       pipelineConfig.receivedArtifacts = artifactResolver?.getAllArtifacts(parentPipeline)
     }
 
-    def artifactError = null
-    try {
-      artifactResolver?.resolveArtifacts(pipelineConfig)
-    } catch (Exception e) {
-      artifactError = e
-    }
+    // This is required for template source with jinja expressions
+    trigger.artifacts = pipelineConfig.receivedArtifacts
 
     for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
       it.supports(pipelineConfig, ExecutionPreprocessor.Type.PIPELINE)
@@ -121,12 +116,19 @@ class DependentPipelineStarter implements ApplicationContextAware {
       pipelineConfig = preprocessor.process(pipelineConfig)
     }
 
+    pipelineConfig.trigger = trigger
+
+    def artifactError = null
+
+    try {
+      artifactResolver?.resolveArtifacts(pipelineConfig)
+    } catch (Exception e) {
+      artifactError = e
+    }
+
     if (pipelineConfig.errors != null) {
       throw new ValidationException("Pipeline template is invalid", pipelineConfig.errors as List<Map<String, Object>>)
     }
-
-    pipelineConfig.trigger = trigger
-    pipelineConfig.expectedArtifacts = expectedArtifacts
 
     // Process the raw trigger to resolve any expressions before converting it to a Trigger object, which will not be
     // processed by the contextParameterProcessor (it only handles Maps, Lists, and Strings)

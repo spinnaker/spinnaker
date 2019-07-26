@@ -36,5 +36,6 @@
   "id": "unknown",
   "notifications": [],
   "parameterConfig": [],
-  "triggers": []
+  "triggers": [],
+  "expectedArtifacts": []
 }

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.*
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -47,7 +48,7 @@ import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEqua
 
 class V1SchemaIntegrationSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
   def oortService = Mock(OortService)
 
   TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)])
@@ -97,7 +98,7 @@ class V1SchemaIntegrationSpec extends Specification {
   private static class IntegrationTestDataProvider {
 
     Yaml yaml = new Yaml(new SafeConstructor())
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
     List<IntegrationTest> provide() {
       Resource[] resources = new PathMatchingResourcePatternResolver().getResources("/integration/v1schema/**")

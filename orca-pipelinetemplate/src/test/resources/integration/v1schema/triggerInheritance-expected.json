@@ -14,5 +14,6 @@
       "master": "mymaster",
       "job": "myjob"
     }
-  ]
+  ],
+  "expectedArtifacts": []
 }

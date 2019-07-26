@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +26,7 @@ public class TemplatedPipelineRequest {
   String id;
   String schema;
   String type;
-  List<ExpectedArtifact> expectedArtifacts;
+  List<Map<String, Object>> expectedArtifacts;
   Map<String, Object> trigger = new HashMap<>();
   Map<String, Object> config;
   Map<String, Object> template;
@@ -130,11 +129,11 @@ public class TemplatedPipelineRequest {
     return keepWaitingPipelines;
   }
 
-  public void setExpectedArtifacts(List<ExpectedArtifact> expectedArtifacts) {
+  public void setExpectedArtifacts(List<Map<String, Object>> expectedArtifacts) {
     this.expectedArtifacts = expectedArtifacts;
   }
 
-  public List<ExpectedArtifact> getExpectedArtifacts() {
+  public List<Map<String, Object>> getExpectedArtifacts() {
     return this.expectedArtifacts;
   }
 }

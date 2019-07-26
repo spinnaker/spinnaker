@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
 import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator
+
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration
@@ -114,6 +115,79 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     []                || ['email-from-configuration@spinnaker.io']
   }
 
+  @Unroll
+  def "should set expected artifacts in execution json"() {
+    given:
+    PipelineTemplate template = getPipelineTemplate()
+    template.configuration.setExpectedArtifacts([createExpectedArtifact('artifact-from-template')])
+
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      pipeline: new PipelineDefinition([application: 'orca', pipelineConfigId: 'pipelineConfigId']),
+      configuration: new TemplateConfiguration.PipelineConfiguration(
+        inherit: inherit,
+        expectedArtifacts: [
+          createExpectedArtifact('artifact-from-configuration')
+        ]
+      )
+    )
+
+    when:
+    def request = new TemplatedPipelineRequest(id: "pipelineConfigId")
+    if (artifactInRequest) {
+      request.setExpectedArtifacts([createExpectedArtifact('artifact-from-request')])
+    }
+    def result = subject.generate(template, configuration, request)
+
+
+    then:
+    result.expectedArtifacts*.id == expectedArtifactIds
+
+    where:
+    inherit               | artifactInRequest || expectedArtifactIds
+    ['expectedArtifacts'] | false             || ['artifact-from-template', 'artifact-from-configuration']
+    []                    | false             || ['artifact-from-configuration']
+    []                    | true              || ['artifact-from-request', 'artifact-from-configuration']
+    ['expectedArtifacts'] | true              || ['artifact-from-template', 'artifact-from-request', 'artifact-from-configuration']
+  }
+
+  @Unroll
+  def "should override expected artifacts in execution json"() {
+    given:
+    PipelineTemplate template = getPipelineTemplate()
+    if (artifactInTemplate) {
+      template.configuration.setExpectedArtifacts([createExpectedArtifact('artifact', 'from-template')])
+    }
+
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      pipeline: new PipelineDefinition([application: 'orca', pipelineConfigId: 'pipelineConfigId']),
+      configuration: new TemplateConfiguration.PipelineConfiguration(
+        inherit: ['expectedArtifacts']
+      )
+    )
+
+    if (artifactInConfiguration) {
+      configuration.getConfiguration().setExpectedArtifacts([createExpectedArtifact('artifact', 'from-configuration')])
+    }
+
+    when:
+    def request = new TemplatedPipelineRequest(id: "pipelineConfigId")
+    if (artifactInRequest) {
+      request.setExpectedArtifacts([createExpectedArtifact('artifact', 'from-request')])
+    }
+    def result = subject.generate(template, configuration, request)
+
+
+    then:
+    result.expectedArtifacts*.displayName == expectedArtifactNames
+
+    where:
+    artifactInTemplate | artifactInConfiguration | artifactInRequest || expectedArtifactNames
+    true               | true                    | true              || ['from-request']
+    true               | true                    | false             || ['from-configuration']
+    true               | false                   | true              || ['from-request']
+    false              | true                    | true              || ['from-request']
+  }
+
   private PipelineTemplate getPipelineTemplate() {
     new PipelineTemplate(
       id: 'simpleTemplate',
@@ -161,5 +235,17 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
         )
       ]
     )
+  }
+
+  private HashMap<String, Object> createExpectedArtifact(String id, String name = null) {
+    def effectiveName = name ?: id
+    return [
+      id: id,
+      displayName: effectiveName,
+      defaultArtifact: [customKind: true],
+      matchArtifact: [customKind: true, type: 'http/file', name: effectiveName],
+      useDefaultArtifact: false,
+      usePriorArtifact: false
+    ]
   }
 }

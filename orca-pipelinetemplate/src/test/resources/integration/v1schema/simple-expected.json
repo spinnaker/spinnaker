@@ -7,5 +7,6 @@
   "stages": [],
   "notifications": [],
   "parameterConfig": [],
-  "triggers": []
+  "triggers": [],
+  "expectedArtifacts": []
 }

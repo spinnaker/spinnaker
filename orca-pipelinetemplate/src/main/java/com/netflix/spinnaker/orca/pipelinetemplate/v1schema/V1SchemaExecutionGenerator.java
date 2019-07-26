@@ -68,6 +68,7 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     addNotifications(pipeline, template, configuration);
     addParameters(pipeline, template, configuration);
     addTriggers(pipeline, template, configuration);
+    addExpectedArtifacts(pipeline, template, configuration, request);
 
     pipeline.put(
         "stages",
@@ -94,9 +95,6 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
             .collect(Collectors.toList()));
     if (request.getTrigger() != null && !request.getTrigger().isEmpty()) {
       pipeline.put("trigger", request.getTrigger());
-    }
-    if (request.getExpectedArtifacts() != null) {
-      pipeline.put("expectedArtifacts", request.getExpectedArtifacts());
     }
 
     return pipeline;
@@ -154,5 +152,40 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
           Optional.ofNullable(configuration.getConfiguration().getTriggers())
               .orElse(Collections.emptyList()));
     }
+  }
+
+  private void addExpectedArtifacts(
+      Map<String, Object> pipeline,
+      PipelineTemplate template,
+      TemplateConfiguration configuration,
+      TemplatedPipelineRequest request) {
+
+    List<Map<String, Object>> mergedExpectedArtifacts =
+        mergeExpectedArtifact(
+            emptyListIfNull(configuration.getConfiguration().getExpectedArtifacts()),
+            emptyListIfNull(request.getExpectedArtifacts()));
+
+    if (configuration.getConfiguration().getInherit().contains("expectedArtifacts")) {
+      mergedExpectedArtifacts =
+          mergeExpectedArtifact(
+              emptyListIfNull(template.getConfiguration().getExpectedArtifacts()),
+              mergedExpectedArtifacts);
+    }
+
+    pipeline.put("expectedArtifacts", mergedExpectedArtifacts);
+  }
+
+  private List<? extends Map<String, Object>> emptyListIfNull(
+      List<? extends Map<String, Object>> eas) {
+    return Optional.ofNullable(eas).orElse(Collections.emptyList());
+  }
+
+  private List<Map<String, Object>> mergeExpectedArtifact(
+      List<? extends Map<String, Object>> eas1, List<? extends Map<String, Object>> eas2) {
+    HashMap<String, Map<String, Object>> mergedByName = new HashMap<>();
+
+    eas1.forEach(artifact -> mergedByName.put(String.valueOf(artifact.get("id")), artifact));
+    eas2.forEach(artifact -> mergedByName.put(String.valueOf(artifact.get("id")), artifact));
+    return new ArrayList<>(mergedByName.values());
   }
 }

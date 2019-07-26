@@ -33,5 +33,6 @@
   ],
   "notifications": [],
   "parameterConfig": [],
-  "triggers": []
+  "triggers": [],
+  "expectedArtifacts": []
 }

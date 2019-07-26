@@ -177,7 +177,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         job: "job",
         buildNumber: 1111
       ],
-      triggers: []
+      triggers: [],
+      expectedArtifacts: []
     ]
     assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
   }

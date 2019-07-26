@@ -13,5 +13,6 @@
       "default": 3
     }
   ],
-  "triggers": []
+  "triggers": [],
+  "expectedArtifacts": []
 }
