@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
@@ -19,6 +20,9 @@ import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
+import com.netflix.spinnaker.keel.veto.Veto
+import com.netflix.spinnaker.keel.veto.VetoEnforcer
+import com.netflix.spinnaker.keel.veto.VetoResponse
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -42,7 +46,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val plugin1 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
     val plugin2 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val subject = ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher, Clock.systemDefaultZone())
+    val vetoEnforcer = VetoEnforcer(listOf(DummyVeto()))
+    val subject = ResourceActuator(resourceRepository, listOf(plugin1, plugin2), vetoEnforcer, publisher, Clock.systemDefaultZone())
   }
 
   fun tests() = rootContext<Fixture> {
@@ -276,6 +281,33 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
           }
         }
+
+        context("the app badapp is vetoed") {
+          val badresource = Resource(
+            apiVersion = SPINNAKER_API_V1.subApi("plugin1"),
+            kind = "foo",
+            metadata = mapOf(
+              "name" to "badapp-resource",
+              "uid" to randomUID(),
+              "serviceAccount" to "keel@spinnaker"
+            ),
+            spec = DummyResourceSpec("badapp")
+          )
+          before {
+            resourceRepository.store(badresource)
+            resourceRepository.appendHistory(ResourceCreated(badresource))
+          }
+
+          test("checking skipped") {
+            with(badresource) {
+              runBlocking {
+                subject.checkResource(name, apiVersion, kind)
+              }
+            }
+
+            verify { publisher.publishEvent(ResourceCheckSkipped(SPINNAKER_API_V1.subApi("plugin1"), "foo", ResourceName("badapp-resource"))) }
+          }
+        }
       }
     }
   }
@@ -293,3 +325,20 @@ internal data class DummyResourceSpec(
   val state: String,
   val data: String = "some data"
 )
+
+internal class DummyVeto : Veto {
+  override fun check(name: ResourceName): VetoResponse {
+    if (name.toString().contains("badapp")) {
+      return VetoResponse(false, "this is a badapp and can't be checked")
+    }
+    return VetoResponse(true)
+  }
+
+  override fun messageFormat() = mapOf("no" to "format")
+
+  override fun passMessage(message: Map<String, Any>) {
+    // ignored
+  }
+
+  override fun currentRejections() = listOf("badapp")
+}

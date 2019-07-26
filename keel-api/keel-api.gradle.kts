@@ -9,6 +9,7 @@ dependencies {
   api(project(":keel-plugin"))
   api(project(":keel-eureka"))
   api(project(":keel-artifact"))
+  api(project(":keel-veto"))
 
   implementation(project(":keel-bakery-plugin"))
   implementation(project(":keel-ec2-plugin"))

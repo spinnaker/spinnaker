@@ -32,3 +32,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190627-drop-cluster-lock.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190726-create-veto-table.yml
+      relativeToChangelogFile: true

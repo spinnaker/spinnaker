@@ -1,12 +1,13 @@
 plugins {
   `java-library`
+  id("kotlin-spring")
 }
 
 dependencies {
-  implementation(project(":keel-plugin"))
-  implementation("com.netflix.spinnaker.kork:kork-core")
+  api(project(":keel-core"))
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("org.springframework.boot:spring-boot-starter-web")
 
-  testImplementation("io.strikt:strikt-core")
   testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
 }
-

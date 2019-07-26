@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
 import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
+import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -30,11 +31,21 @@ import java.time.Clock
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
+  private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   suspend fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
     try {
+      val response = vetoEnforcer.canCheck(name)
+      if (!response.allowed) {
+        log.debug("Skipping actuation for resource {} because it was vetoed: {}", name, response.message)
+        publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, name))
+        return
+      }
+
       val plugin = handlers.supporting(apiVersion, kind)
 
       if (plugin.actuationInProgress(name)) {
@@ -131,6 +142,4 @@ class ResourceActuator(
   ): List<TaskRef> =
     update(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
   // end type coercing extensions
-
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
