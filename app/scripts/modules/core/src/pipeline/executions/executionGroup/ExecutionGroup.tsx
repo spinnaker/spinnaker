@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { IPromise } from 'angular';
-import { Subscription } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { flatten, uniq, without } from 'lodash';
 
 import { Application } from 'core/application/application.model';
@@ -9,7 +9,14 @@ import { CollapsibleSectionStateCache } from 'core/cache';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { Execution } from '../execution/Execution';
 import { ExecutionAction } from '../executionAction/ExecutionAction';
-import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
+import {
+  IExecution,
+  IExecutionGroup,
+  IExecutionTrigger,
+  IPipeline,
+  IPipelineCommand,
+  IPipelineTemplateConfigV2,
+} from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
@@ -19,7 +26,7 @@ import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
-import { PipelineTemplateV2Service, ManualExecutionModal } from 'core/pipeline';
+import { ManualExecutionModal, PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
@@ -48,6 +55,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   public state: IExecutionGroupState;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
+  private destroy$ = new Subject();
 
   constructor(props: IExecutionGroupProps) {
     super(props);
@@ -128,14 +136,28 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null, config = this.state.pipelineConfig): void {
-    ManualExecutionModal.show({
-      pipeline: config,
-      application: this.props.application,
-      trigger: trigger,
-      currentlyRunningExecutions: this.props.group.runningExecutions,
-    })
-      .then(command => this.startPipeline(command))
-      .catch(() => {});
+    Observable.fromPromise(
+      new Promise(resolve => {
+        if (PipelineTemplateV2Service.isV2PipelineConfig(config)) {
+          PipelineTemplateReader.getPipelinePlan(config as IPipelineTemplateConfigV2)
+            .then(plan => resolve(plan))
+            .catch(() => resolve(config));
+        } else {
+          resolve(config);
+        }
+      }),
+    )
+      .takeUntil(this.destroy$)
+      .subscribe(pipeline =>
+        ManualExecutionModal.show({
+          pipeline,
+          application: this.props.application,
+          trigger: trigger,
+          currentlyRunningExecutions: this.props.group.runningExecutions,
+        })
+          .then(command => this.startPipeline(command))
+          .catch(() => {}),
+      );
   }
 
   public componentDidMount(): void {
@@ -167,6 +189,8 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     if (this.stateChangeSuccessSubscription) {
       this.stateChangeSuccessSubscription.unsubscribe();
     }
+
+    this.destroy$.next();
   }
 
   private handleHeadingClicked = (): void => {
