@@ -17,6 +17,15 @@ const helpContents: { [key: string]: string } = {
     '(Optional) <b>Route</b> is a URI in the form of <code>some.host.some.domain[:9999][/some/path]</code> (port and path are optional). The domain has to be a valid domain in the CloudFoundry Org (Region) that this server group runs in.',
   'cf.artifact.package': `<p>This option allows you to create a new server group from an existing Droplet. You can use this to relocate an existing Cloud Foundry application from one space to another or to launch a clone of an application with different root filesystem or resource settings.</p>`,
   'cf.artifact.trigger.account': `<p>Specify an artifact account if the trigger source produces an artifact that requires authentication credentials to retrieve. Otherwise, leave blank.</p>`,
+  'cf.runJob.logsUrl':
+    '<p>(Optional) A templated URL to an external logging system. The URL is used in the pipeline execution stage task details.</p>' +
+    '<p><a href="http://spinnaker.github.io/guides/user/pipeline-expressions" target="_blank">Pipeline expressions</a> can be used to interpolate values from the stage context, for example:' +
+    '<ul>' +
+    '<li><code>${appGuid}</code> the selected cluster CF app GUID.</li>' +
+    '<li><code>${name}</code> the task name.</li>' +
+    '</ul>' +
+    '</p>',
+  'cf.runJob.jobName': '(Optional) If left empty, a random string will be generated.',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

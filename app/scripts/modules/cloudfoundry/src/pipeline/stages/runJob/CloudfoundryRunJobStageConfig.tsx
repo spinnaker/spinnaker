@@ -6,6 +6,7 @@ import {
   IAccount,
   IStageConfigProps,
   NgReact,
+  SpelText,
   StageConfigField,
   StageConstants,
   TextInput,
@@ -52,21 +53,9 @@ export class CloudfoundryRunJobStageConfig extends React.Component<
     });
   };
 
-  private commandUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.updateStageField({ command: event.target.value });
-  };
-
-  private JobNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.updateStageField({ jobName: event.target.value });
-  };
-
-  private targetUpdated = (target: string) => {
-    this.props.updateStageField({ target });
-  };
-
   public render() {
     const { application, stage } = this.props;
-    const { command, jobName, target } = stage;
+    const { target, jobName, command, logsUrl } = stage;
     const { accounts } = this.state;
     const { TargetSelect } = NgReact;
 
@@ -81,13 +70,37 @@ export class CloudfoundryRunJobStageConfig extends React.Component<
           isSingleRegion={true}
         />
         <StageConfigField label="Target">
-          <TargetSelect model={{ target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
+          <TargetSelect
+            model={{ target }}
+            options={StageConstants.TARGET_LIST}
+            onChange={t => this.props.updateStageField({ target: t })}
+          />
+        </StageConfigField>
+        <StageConfigField label="Job Name" helpKey={'cf.runJob.jobName'}>
+          <TextInput
+            type="text"
+            className="form-control"
+            onChange={e => this.props.updateStageField({ jobName: e.target.value })}
+            value={jobName}
+            maxLength={238}
+          />
         </StageConfigField>
         <StageConfigField label="Command">
-          <TextInput type="text" className="form-control" onChange={this.commandUpdated} value={command} />
+          <TextInput
+            type="text"
+            className="form-control"
+            onChange={e => this.props.updateStageField({ command: e.target.value })}
+            value={command}
+          />
         </StageConfigField>
-        <StageConfigField label="Job Name">
-          <TextInput type="text" className="form-control" onChange={this.JobNameUpdated} value={jobName} />
+        <StageConfigField label="Logs URL" helpKey={'cf.runJob.logsUrl'}>
+          <SpelText
+            placeholder=""
+            onChange={value => this.props.updateStageField({ logsUrl: value })}
+            value={logsUrl}
+            pipeline={this.props.pipeline}
+            docLink={false}
+          />
         </StageConfigField>
       </div>
     );

@@ -1,5 +1,6 @@
 import { CloudfoundryRunJobStageConfig } from './CloudfoundryRunJobStageConfig';
-import { IStage, Registry } from '@spinnaker/core';
+import { IStage, Registry, ExecutionDetailsTasks } from '@spinnaker/core';
+import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
@@ -9,6 +10,7 @@ Registry.pipeline.registerStage({
   key: 'runJob',
   provides: 'runJob',
   restartable: true,
+  executionDetailsSections: [ExecutionDetailsTasks, RunJobExecutionDetails],
   defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
   validators: [
     { type: 'requiredField', fieldName: 'credentials' },
@@ -16,6 +18,5 @@ Registry.pipeline.registerStage({
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'target' },
     { type: 'requiredField', fieldName: 'command' },
-    { type: 'requiredField', fieldName: 'jobName' },
   ],
 });
