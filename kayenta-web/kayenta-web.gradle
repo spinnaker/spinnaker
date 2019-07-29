@@ -21,6 +21,8 @@ dependencies {
   api project(':kayenta-datadog')
   api project(':kayenta-gcs')
   api project(':kayenta-google')
+  api project(':kayenta-blobs')
+  api project(':kayenta-azure')
   api project(':kayenta-graphite')
   api project(':kayenta-influxdb')
   api project(':kayenta-judge')

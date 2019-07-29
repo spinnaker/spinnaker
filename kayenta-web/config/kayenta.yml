@@ -30,6 +30,19 @@ kayenta:
 #          - OBJECT_STORE
 #          - CONFIGURATION_STORE
 
+  azure:
+    enabled: false
+#    accounts:
+#      - name:
+#        storageAccountName:
+#        accountAccessKey:
+#        container:
+#        rootFolder: kayenta
+#        endpointSuffix: core.windows.net
+#        supportedTypes:
+#          - OBJECT_STORE
+#          - CONFIGURATION_STORE
+
   aws:
     enabled: false
 #    accounts:
@@ -101,6 +114,9 @@ kayenta:
 #          - METRICS_STORE
 
   gcs:
+    enabled: false
+
+  blobs:
     enabled: false
 
   s3:
