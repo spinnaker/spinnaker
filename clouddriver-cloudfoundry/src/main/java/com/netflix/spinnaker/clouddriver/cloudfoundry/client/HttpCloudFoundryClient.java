@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationServ
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DopplerService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
@@ -38,6 +39,9 @@ import com.squareup.okhttp.Response;
 import io.github.resilience4j.retry.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
@@ -45,19 +49,33 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
 import okio.Buffer;
 import okio.BufferedSource;
+import org.apache.commons.fileupload.MultipartStream;
+import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
+import retrofit.converter.ConversionException;
+import retrofit.converter.Converter;
 import retrofit.converter.JacksonConverter;
+import retrofit.mime.TypedInput;
+import retrofit.mime.TypedOutput;
 
+/**
+ * Waiting for this issue to be resolved before replacing this class by the CF Java Client:
+ * https://github.com/cloudfoundry/cf-java-client/issues/938
+ */
 @Slf4j
 public class HttpCloudFoundryClient implements CloudFoundryClient {
   private final String apiHost;
@@ -79,6 +97,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private ServiceInstances serviceInstances;
   private ServiceKeys serviceKeys;
   private Tasks tasks;
+  private Logs logs;
 
   private final RequestInterceptor oauthInterceptor =
       new RequestInterceptor() {
@@ -203,6 +222,16 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
         new Routes(account, createService(RouteService.class), applications, domains, spaces);
     this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
     this.tasks = new Tasks(createService(TaskService.class));
+
+    this.logs =
+        new Logs(
+            new RestAdapter.Builder()
+                .setEndpoint("https://" + apiHost.replaceAll("^api\\.", "doppler."))
+                .setClient(new OkClient(okHttpClient))
+                .setConverter(new ProtobufDopplerEnvelopeConverter())
+                .setRequestInterceptor(oauthInterceptor)
+                .build()
+                .create(DopplerService.class));
   }
 
   private static OkHttpClient createHttpClient(boolean skipSslValidation) {
@@ -308,5 +337,58 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   @Override
   public Tasks getTasks() {
     return tasks;
+  }
+
+  @Override
+  public Logs getLogs() {
+    return logs;
+  }
+
+  static class ProtobufDopplerEnvelopeConverter implements Converter {
+    @Override
+    public Object fromBody(TypedInput body, Type type) throws ConversionException {
+      try {
+        byte[] boundaryBytes = extractMultipartBoundary(body.mimeType()).getBytes();
+        MultipartStream multipartStream = new MultipartStream(body.in(), boundaryBytes, 4096, null);
+
+        List<Envelope> envelopes = new ArrayList<>();
+        ByteArrayOutputStream os = new ByteArrayOutputStream(4096);
+
+        boolean nextPart = multipartStream.skipPreamble();
+        while (nextPart) {
+          // Skipping the empty part headers
+          multipartStream.readByte(); // 0x0D
+          multipartStream.readByte(); // 0x0A
+
+          os.reset();
+          multipartStream.readBodyData(os);
+          envelopes.add(Envelope.parseFrom(os.toByteArray()));
+
+          nextPart = multipartStream.readBoundary();
+        }
+
+        return envelopes;
+      } catch (IOException e) {
+        throw new ConversionException(e);
+      }
+    }
+
+    @Override
+    public TypedOutput toBody(Object object) {
+      throw new UnsupportedOperationException("Deserializer only");
+    }
+
+    private static Pattern BOUNDARY_PATTERN = Pattern.compile("multipart/.+; boundary=(.*)");
+
+    private static String extractMultipartBoundary(String contentType) {
+      Matcher matcher = BOUNDARY_PATTERN.matcher(contentType);
+      if (matcher.matches()) {
+        return matcher.group(1);
+      } else {
+        throw new IllegalStateException(
+            String.format(
+                "Content-Type %s does not contain a valid multipart boundary", contentType));
+      }
+    }
   }
 }

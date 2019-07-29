@@ -1,0 +1,21 @@
+package events;
+
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "LogFactory";
+
+/// A LogMessage contains a "log line" and associated metadata.
+message LogMessage {
+
+    /// MessageType stores the destination of the message (corresponding to STDOUT or STDERR).
+    enum MessageType {
+        OUT = 1;
+        ERR = 2;
+    }
+
+    required bytes message = 1;            /// Bytes of the log message. (Note that it is not required to be a single line.)
+    required MessageType message_type = 2; /// Type of the message (OUT or ERR).
+    required int64 timestamp = 3;          /// UNIX timestamp (in nanoseconds) when the log was written.
+    optional string app_id = 4;            /// Application that emitted the message (or to which the application is related).
+    optional string source_type = 5;       /// Source of the message. For Cloud Foundry, this can be "APP", "RTR", "DEA", "STG", etc.
+    optional string source_instance = 6;   /// Instance that emitted the message.
+}

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.time.ZonedDateTime;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
 
@@ -31,6 +32,7 @@ public class Task {
   private State state;
   private ZonedDateTime createdAt;
   private ZonedDateTime updatedAt;
+  private Map<String, Link> links;
 
   public enum State {
     SUCCEEDED,

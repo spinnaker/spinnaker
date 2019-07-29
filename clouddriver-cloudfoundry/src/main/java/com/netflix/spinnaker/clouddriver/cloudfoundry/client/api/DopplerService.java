@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-public interface CloudFoundryClient {
-  Spaces getSpaces();
+import java.util.List;
+import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
+import retrofit.http.GET;
+import retrofit.http.Path;
 
-  Organizations getOrganizations();
-
-  Domains getDomains();
-
-  Routes getRoutes();
-
-  Applications getApplications();
-
-  ServiceInstances getServiceInstances();
-
-  ServiceKeys getServiceKeys();
-
-  Tasks getTasks();
-
-  Logs getLogs();
+public interface DopplerService {
+  @GET("/apps/{guid}/recentlogs")
+  List<Envelope> recentLogs(@Path("guid") String appGuid);
 }

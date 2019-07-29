@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.job;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.AbstractCloudFoundryDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -26,6 +27,6 @@ import lombok.EqualsAndHashCode;
 public class CloudFoundryRunJobOperationDescription extends AbstractCloudFoundryDescription {
 
   private CloudFoundryServerGroup serverGroup;
-  private String jobName;
+  @Nullable private String jobName;
   private String command;
 }

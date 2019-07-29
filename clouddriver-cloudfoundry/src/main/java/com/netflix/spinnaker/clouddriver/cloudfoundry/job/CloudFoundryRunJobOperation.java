@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @RequiredArgsConstructor
 public class CloudFoundryRunJobOperation implements AtomicOperation<DeploymentResult> {
@@ -34,10 +35,15 @@ public class CloudFoundryRunJobOperation implements AtomicOperation<DeploymentRe
   @Override
   public DeploymentResult operate(List priorOutputs) {
     CloudFoundryClient client = description.getClient();
-    String jobName = description.getJobName();
     CloudFoundryServerGroup serverGroup = description.getServerGroup();
     String applicationGuid = serverGroup.getId();
     String applicationName = serverGroup.getName();
+
+    // make the job name unique by appending to it a random string so its logs are filterable
+    String originalName = description.getJobName();
+    String randomString = Long.toHexString(Double.doubleToLongBits(Math.random()));
+    String jobName =
+        (StringUtils.isNotEmpty(originalName) ? originalName + "-" : "") + randomString;
 
     TaskRepository.threadLocalTask
         .get()

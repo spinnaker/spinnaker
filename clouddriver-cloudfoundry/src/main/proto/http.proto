@@ -1,0 +1,84 @@
+package events;
+
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "HttpFactory";
+
+import "uuid.proto";
+
+/// Type of peer handling request.
+enum PeerType {
+    Client = 1; /// Request is made by this process.
+    Server = 2; /// Request is received by this process.
+}
+
+/// HTTP method.
+enum Method {
+    GET = 1;
+    POST = 2;
+    PUT = 3;
+    DELETE = 4;
+    HEAD = 5;
+
+    ACL = 6;
+    BASELINE_CONTROL = 7;
+    BIND = 8;
+    CHECKIN = 9;
+    CHECKOUT = 10;
+    CONNECT = 11;
+    COPY = 12;
+    DEBUG = 13;
+    LABEL = 14;
+    LINK = 15;
+    LOCK = 16;
+    MERGE = 17;
+    MKACTIVITY = 18;
+    MKCALENDAR = 19;
+    MKCOL = 20;
+    MKREDIRECTREF = 21;
+    MKWORKSPACE = 22;
+    MOVE = 23;
+    OPTIONS = 24;
+    ORDERPATCH = 25;
+    PATCH = 26;
+    PRI = 27;
+    PROPFIND = 28;
+    PROPPATCH = 29;
+    REBIND = 30;
+    REPORT = 31;
+    SEARCH = 32;
+    SHOWMETHOD = 33;
+    SPACEJUMP = 34;
+    TEXTSEARCH = 35;
+    TRACE = 36;
+    TRACK = 37;
+    UNBIND = 38;
+    UNCHECKOUT = 39;
+    UNLINK = 40;
+    UNLOCK = 41;
+    UPDATE = 42;
+    UPDATEREDIRECTREF = 43;
+    VERSION_CONTROL = 44;
+}
+
+/// An HttpStartStop event represents the whole lifecycle of an HTTP request.
+message HttpStartStop {
+    required int64 startTimestamp = 1;  /// UNIX timestamp (in nanoseconds) when the request was sent (by a client) or received (by a server).
+    required int64 stopTimestamp = 2;   /// UNIX timestamp (in nanoseconds) when the request was received.
+
+    required UUID requestId = 3;        /// ID for tracking lifecycle of request.
+    required PeerType peerType = 4;     /// Role of the emitting process in the request cycle.
+    required Method method = 5;         /// Method of the request.
+    required string uri = 6;            /// Destination of the request.
+    required string remoteAddress = 7;  /// Remote address of the request. (For a server, this should be the origin of the request.)
+    required string userAgent = 8;      /// Contents of the UserAgent header on the request.
+
+    required int32 statusCode = 9;      /// Status code returned with the response to the request.
+    required int64 contentLength = 10;  /// Length of response (bytes).
+
+    /// 11 used to be ParentRequestID which has been deprecated.
+
+    optional UUID applicationId = 12;   /// If this request was made in relation to an appliciation, this field should track that application's ID.
+    optional int32 instanceIndex = 13;  /// Index of the application instance.
+    optional string instanceId = 14;    /// ID of the application instance.
+    repeated string forwarded = 15;     /// This contains http forwarded-for [x-forwarded-for] header from the request.
+}

@@ -1,0 +1,11 @@
+package events;
+
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "ErrorFactory";
+
+/// An Error event represents an error in the originating process.
+message Error {
+    required string source = 1;  /// Source of the error. This may or may not be the same as the Origin in the envelope.
+    required int32 code = 2;     /// Numeric error code. This is provided for programmatic responses to the error.
+    required string message = 3; /// Error description (preferably human-readable).
+}
