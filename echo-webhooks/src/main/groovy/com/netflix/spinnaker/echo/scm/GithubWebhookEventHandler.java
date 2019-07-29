@@ -21,8 +21,11 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.scm.github.GithubPullRequestEvent;
+import com.netflix.spinnaker.echo.scm.github.GithubPushEvent;
+import com.netflix.spinnaker.echo.scm.github.GithubWebhookEvent;
+import java.util.HashMap;
 import java.util.Map;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +45,11 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   }
 
   public boolean shouldSendEvent(Event event) {
-    return !event.content.containsKey("hook_id");
+    if (event.content.containsKey("hook_id")) {
+      return false;
+    }
+
+    return true;
   }
 
   public void handle(Event event, Map postedEvent) {
@@ -59,34 +66,35 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
       return;
     }
 
-    GithubWebhookEvent githubWebhookEvent =
-        objectMapper.convertValue(postedEvent, GithubWebhookEvent.class);
+    GithubWebhookEvent webhookEvent = null;
+    String githubEvent = "";
 
-    event.content.put("hash", githubWebhookEvent.after);
-    if (githubWebhookEvent.ref == null) {
-      event.content.put("branch", "");
+    // TODO: Detect based on header rather than body key - depends on Gate properly passing headers
+    // `x-github-event`: `push` or `pull_request`
+    if (event.content.containsKey("pull_request")) {
+      webhookEvent = objectMapper.convertValue(event.content, GithubPullRequestEvent.class);
+      githubEvent = "pull_request";
     } else {
-      event.content.put("branch", githubWebhookEvent.ref.replace("refs/heads/", ""));
+      // Default to 'Push'
+      webhookEvent = objectMapper.convertValue(event.content, GithubPushEvent.class);
+      githubEvent = "push";
     }
-    event.content.put("repoProject", githubWebhookEvent.repository.owner.name);
-    event.content.put("slug", githubWebhookEvent.repository.name);
-  }
 
-  @Data
-  private static class GithubWebhookEvent {
-    String after;
-    String ref;
-    GithubWebhookRepository repository;
-  }
+    String fullRepoName = webhookEvent.getFullRepoName(event, postedEvent);
+    Map<String, String> results = new HashMap<>();
+    results.put("repoProject", webhookEvent.getRepoProject(event, postedEvent));
+    results.put("slug", webhookEvent.getSlug(event, postedEvent));
+    results.put("hash", webhookEvent.getHash(event, postedEvent));
+    results.put("branch", webhookEvent.getBranch(event, postedEvent));
+    event.content.putAll(results);
 
-  @Data
-  private static class GithubWebhookRepository {
-    GithubOwner owner;
-    String name;
-  }
-
-  @Data
-  private static class GithubOwner {
-    String name;
+    log.info(
+        "Github Webhook event received: {} {} {} {} {} {}",
+        kv("githubEvent", githubEvent),
+        kv("repository", fullRepoName),
+        kv("project", results.get("repoProject")),
+        kv("slug", results.get("slug")),
+        kv("branch", results.get("branch")),
+        kv("hash", results.get("hash")));
   }
 }

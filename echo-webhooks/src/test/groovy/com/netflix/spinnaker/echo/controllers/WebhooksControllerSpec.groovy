@@ -364,7 +364,7 @@ class WebhooksControllerSpec extends Specification {
     response.eventId == event.eventId
   }
 
-  void 'handles Github Webhook Event'() {
+  void 'handles Github Webhook Push Event'() {
     def event
 
     given:
@@ -385,6 +385,51 @@ class WebhooksControllerSpec extends Specification {
             "name": "Hello-World",
             "owner": {
               "name": "Codertocat"
+            }
+          },
+          "commits": [
+            {
+              "id": "0000000000000000000000000000000000000000"
+            }
+          ]
+        }
+        """, new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "0000000000000000000000000000000000000000"
+    event.content.repoProject == "Codertocat"
+    event.content.slug == "Hello-World"
+    event.content.branch == "simple-tag"
+  }
+
+  void 'handles Github PR Webhook Event'() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    def response = controller.forwardEvent(
+      "git",
+      "github",
+      """{
+          "pull_request": {
+            "head": {
+              "ref": "simple-tag",
+              "sha": "0000000000000000000000000000000000000000"
+            }
+          },
+          "repository": {
+            "name": "Hello-World",
+            "owner": {
+              "login": "Codertocat"
             }
           }
         }
