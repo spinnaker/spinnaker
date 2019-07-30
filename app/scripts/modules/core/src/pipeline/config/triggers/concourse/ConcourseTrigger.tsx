@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
-import { Option } from 'react-select';
 
 import { IConcourseTrigger } from 'core/domain';
 import { BuildServiceType, IgorService } from 'core/ci';
@@ -55,8 +54,7 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
       });
   };
 
-  private onTeamChanged = (option: Option<string>) => {
-    const team = option.value;
+  private onTeamChanged = (team: string) => {
     if (this.props.trigger.team !== team) {
       const trigger = {
         ...this.props.trigger,
@@ -70,25 +68,22 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
     }
   };
 
-  private onPipelineChanged = (option: Option<string>) => {
-    const p = option.value;
+  private onPipelineChanged = (pipeline: string) => {
     const { project, team } = this.props.trigger;
 
-    if (!project || project.split('/').pop() !== p) {
+    if (!project || project.split('/').pop() !== pipeline) {
       const trigger = {
         ...this.props.trigger,
         job: '',
         jobName: '',
-        project: `${team}/${p}`,
+        project: `${team}/${pipeline}`,
       };
       this.fetchAvailableJobs(trigger);
       this.onUpdateTrigger(trigger);
     }
   };
 
-  private onJobChanged = (option: Option<string>) => {
-    const jobName = option.value;
-
+  private onJobChanged = (jobName: string) => {
     if (this.props.trigger.jobName !== jobName) {
       const { project } = this.props.trigger;
       const trigger = {
@@ -101,9 +96,7 @@ export class ConcourseTrigger extends React.Component<IConcourseTriggerConfigPro
     }
   };
 
-  private onMasterChanged = (option: Option<string>) => {
-    const master = option.value;
-
+  private onMasterChanged = (master: string) => {
     if (this.props.trigger.master !== master) {
       const trigger = {
         ...this.props.trigger,
