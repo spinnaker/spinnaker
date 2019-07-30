@@ -263,7 +263,7 @@ public class TravisService implements BuildOperations, BuildProperties {
             includeLogFetching());
     return builds.getBuilds().stream()
         .filter(build -> build.getCommit().isTag())
-        .filter(V3Build::getLogComplete)
+        .filter(this::isLogReady)
         .map(this::getGenericBuild)
         .collect(Collectors.toList());
   }
