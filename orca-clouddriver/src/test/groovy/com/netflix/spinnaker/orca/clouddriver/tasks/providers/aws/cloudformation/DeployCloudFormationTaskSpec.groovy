@@ -56,7 +56,32 @@ class DeployCloudFormationTaskSpec extends Specification {
     def result = deployCloudFormationTask.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_, _) >> Observable.just(taskId)
+    1 * katoService.requestOperations("aws", {
+      it.get(0).get("deployCloudFormation").get("templateBody").trim() == '{key: value}'
+    }) >> Observable.just(taskId)
+    result.context.'kato.result.expected' == true
+    result.context.'kato.last.task.id' == taskId
+  }
+
+  def "should put kato task information as output when templateBody is a string"() {
+    given:
+    def taskId = new TaskId(id: 'id')
+    def pipeline = Execution.newPipeline('orca')
+    def context = [
+      credentials: 'creds',
+      cloudProvider: 'aws',
+      source: 'text',
+      regions: ['eu-west-1'],
+      templateBody: 'key: "value"']
+    def stage = new Stage(pipeline, 'test', 'test', context)
+
+    when:
+    def result = deployCloudFormationTask.execute(stage)
+
+    then:
+    1 * katoService.requestOperations("aws", {
+      it.get(0).get("deployCloudFormation").get("templateBody").trim() == 'key: "value"'
+    }) >> Observable.just(taskId)
     result.context.'kato.result.expected' == true
     result.context.'kato.last.task.id' == taskId
   }
@@ -94,6 +119,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     'text'     | null            | null                 | null           | null    || IllegalArgumentException
     'text'     | null            | null                 | [] as Map      | null    || IllegalArgumentException
     'text'     | null            | null                 | [key: 'value'] | []      || IllegalArgumentException
+    'text'     | null            | null                 | ""             | null    || IllegalArgumentException
   }
 
   def "should fetch artifact if specified, and add it as a templateBody"() {
