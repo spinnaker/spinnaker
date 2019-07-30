@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,42 @@ public class AmazonImageFinder implements ImageFinder {
   @Autowired OortService oortService;
 
   @Autowired ObjectMapper objectMapper;
+
+  /**
+   * A Predicate that passes if an AmazonImage has an ami with an appversion tag matching the
+   * packageName in any requested region.
+   */
+  static class AppVersionFilter implements Predicate<AmazonImage> {
+    private final String packageName;
+    private final Set<String> regions;
+
+    public AppVersionFilter(String packageName, Collection<String> regions) {
+      this.packageName = packageName;
+      this.regions = new HashSet<>(regions);
+    }
+
+    @Override
+    public boolean test(AmazonImage amazonImage) {
+      final Map<String, Map<String, String>> tags = amazonImage.tagsByImageId;
+      if (tags == null || tags.isEmpty()) {
+        return false;
+      }
+
+      return regions.stream()
+          .anyMatch(
+              region ->
+                  amazonImage.amis.getOrDefault(region, Collections.emptyList()).stream()
+                      .anyMatch(
+                          ami ->
+                              Optional.ofNullable(
+                                      AppVersion.parseName(
+                                          tags.getOrDefault(ami, Collections.emptyMap())
+                                              .get("appversion")))
+                                  .map(AppVersion::getPackageName)
+                                  .map(packageName::equals)
+                                  .orElse(false)));
+    }
+  }
 
   @Override
   public Collection<ImageDetails> byTags(
@@ -48,6 +85,13 @@ public class AmazonImageFinder implements ImageFinder {
             .sorted()
             .collect(Collectors.toList());
 
+    AppVersionFilter filter = new AppVersionFilter(packageName, stageData.regions);
+    List<AmazonImage> appversionMatches =
+        allMatchedImages.stream().filter(filter).collect(Collectors.toList());
+
+    final List<AmazonImage> candidateImages =
+        appversionMatches.isEmpty() ? allMatchedImages : appversionMatches;
+
     List<ImageDetails> imageDetails = new ArrayList<>();
 
     /*
@@ -56,7 +100,7 @@ public class AmazonImageFinder implements ImageFinder {
      */
     stageData.regions.forEach(
         region ->
-            allMatchedImages.stream()
+            candidateImages.stream()
                 .filter(image -> image.amis.containsKey(region))
                 .findFirst()
                 .map(image -> imageDetails.add(image.toAmazonImageDetails(region))));

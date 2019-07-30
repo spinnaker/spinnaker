@@ -37,6 +37,95 @@ class AmazonImageFinderSpec extends Specification {
     amazonImageFinder.prefixTags([engine: "spinnaker"]) == ["tag:engine": "spinnaker"]
   }
 
+  def "uses appversion tag to filter image results on package name"() {
+    given:
+    def stage = new Stage(Execution.newPipeline("orca"), "", [
+      regions: ["us-west-1", "us-west-2"]
+    ])
+    def tags = [
+      appversion: "mypackage-2.79.0-h247.d14bad0/mypackage/247",
+      build_host: "http://build.host"
+    ]
+    def wrongTags = [
+      appversion: "mypackagecore-2.79.0-h247.d14bad0/mypackagecore/247",
+      build_host: "http://build.host"
+    ]
+    def noTags = [:]
+
+    when:
+    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"])
+
+    then:
+    1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {
+      [
+        [
+          imageName    : "image-0",
+          attributes   : [creationDate: bCD("2015")],
+          tagsByImageId: ["ami-0": tags, "ami-1": tags],
+          amis         : [
+            "us-west-1": ["ami-0"],
+            "us-west-2": ["ami-1"]
+          ]
+        ],
+        [
+          imageName    : "image-2",
+          attributes   : [creationDate: bCD("2016")],
+          tagsByImageId: ["ami-2": noTags],
+          amis         : [
+            "us-west-1": ["ami-2"]
+          ]
+        ],
+        [
+          imageName    : "image-3",
+          attributes   : [creationDate: bCD("2016")],
+          tagsByImageId: ["ami-3": wrongTags],
+          amis         : [
+            "us-west-2": ["ami-3"]
+          ]
+        ],
+        [
+          imageName    : "image-4",
+          attributes   : [creationDate: bCD("2017")],
+          tagsByImageId: ["ami-4": tags],
+          amis         : [
+            "us-west-2": ["ami-4"]
+          ]
+        ],
+        [
+          imageName    : "image-5",
+          attributes   : [creationDate: bCD("2017")],
+          tagsByImageId: ["ami-5": tags],
+          amis         : [
+            "us-west-1": ["ami-5"]
+          ]
+        ],
+        [
+          imageName    : "image-6",
+          attributes   : [creationDate: bCD("2018")],
+          tagsByImageId: ["ami-6": wrongTags],
+          amis         : [
+            "us-west-1": ["ami-6"]
+          ]
+        ]
+      ]
+    }
+    0 * _
+
+    imageDetails.size() == 2
+    imageDetails.every {
+      (it.jenkins as Map) == [
+        "number": "247",
+        "host"  : "http://build.host",
+        "name"  : "mypackage"
+      ]
+    }
+    imageDetails.find { it.region == "us-west-1" }.imageId == "ami-5"
+    imageDetails.find { it.region == "us-west-1" }.imageName == "image-5"
+    imageDetails.find { it.region == "us-west-2" }.imageId == "ami-4"
+    imageDetails.find { it.region == "us-west-2" }.imageName == "image-4"
+
+  }
+
   def "should match most recently created image per region"() {
     given:
     def stage = new Stage(Execution.newPipeline("orca"), "", [
