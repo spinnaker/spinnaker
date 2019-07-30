@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
+import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
@@ -49,11 +50,7 @@ class CreateWebhookTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     Map<String, ?> outputs = [webhook: [:]]
-    // TODO: The below parameter is deprecated and should be removed after some time
-    Map<String, ?> outputsDeprecated = [deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
-      "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."]
-
-    StageData stageData = stage.mapTo(StageData)
+    WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     def response
     try {
@@ -118,10 +115,8 @@ class CreateWebhookTask implements RetryableTask {
     def statusCode = response.statusCode
 
     outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
-    outputsDeprecated << [statusCode: statusCode]
     if (response.body) {
       outputs.webhook << [body: response.body]
-      outputsDeprecated << [buildInfo: response.body]
     }
 
     if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
@@ -152,34 +147,21 @@ class CreateWebhookTask implements RetryableTask {
         }
         stage.context.statusEndpoint = statusUrl
         outputs.webhook << [statusEndpoint: statusUrl]
-        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputsDeprecated + outputs).build()
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
       }
       if (stage.context.containsKey("expectedArtifacts") && !((List) stage.context.get("expectedArtifacts")).isEmpty()) {
         try {
           def artifacts = JsonPath.parse(response.body).read("artifacts")
           outputs << [artifacts: artifacts]
         } catch (Exception e) {
-          outputs.webhook << [error: "Expected artifacts in webhook response none were found"]
+          outputs.webhook << [error: "Expected artifacts in webhook response couldn't be parsed " + e.toString()]
           return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
         }
       }
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputsDeprecated + outputs).build()
+      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
     } else {
       outputs.webhook << [error: "The webhook request failed"]
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputsDeprecated + outputs).build()
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     }
-  }
-
-  private static class StageData {
-    public String url
-    public Object payload
-    public Object customHeaders
-    public List<Integer> failFastStatusCodes
-    public Boolean waitForCompletion
-    public WebhookProperties.StatusUrlResolution statusUrlResolution
-    public String statusUrlJsonPath
-
-    @JsonFormat(with = [JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES])
-    public HttpMethod method = HttpMethod.POST
   }
 }

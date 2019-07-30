@@ -24,12 +24,14 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
 
+import javax.annotation.Nonnull
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +42,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   long backoffPeriod = TimeUnit.SECONDS.toMillis(1)
   long timeout = TimeUnit.HOURS.toMillis(1)
   private static final String JSON_PATH_NOT_FOUND_ERR_FMT = "Unable to parse %s: JSON property '%s' not found in response body"
+  WebhookService webhookService
 
   @Override
   long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
@@ -52,16 +55,23 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   }
 
   @Autowired
-  WebhookService webhookService
+  MonitorWebhookTask(WebhookService webhookService) {
+    this.webhookService = webhookService
+  }
 
   @Override
   TaskResult execute(Stage stage) {
-    StageData stageData = stage.mapTo(StageData)
+    WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     if (Strings.isNullOrEmpty(stageData.statusEndpoint) || Strings.isNullOrEmpty(stageData.statusJsonPath)) {
       throw new IllegalStateException(
         "Missing required parameter(s): statusEndpoint = ${stageData.statusEndpoint}, statusJsonPath = ${stageData.statusJsonPath}")
     }
+
+    // Preserve the responses we got from createWebhookTask, but reset the monitor subkey as we will overwrite it new data
+    def originalResponse = stage.context.getOrDefault("webhook", [:])
+    originalResponse["monitor"] = [:]
+    originalResponse = [webhook: originalResponse]
 
     def response
     try {
@@ -81,7 +91,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
       String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
       log.error(errorMessage, e)
-      Map<String, ?> outputs = [webhook: [monitor: [:]]]
+      Map<String, ?> outputs = originalResponse
       outputs.webhook.monitor << [error: errorMessage]
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     } catch (HttpStatusCodeException  e) {
@@ -93,30 +103,25 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
                             ((stageData.retryStatusCodes != null) && (stageData.retryStatusCodes.contains(statusValue)))
 
       if (shouldRetry) {
-        log.warn("Failed to get webhook status from ${stageData.statusEndpoint} with statusCode=${statusCode.value()}, will retry", e)
+        log.warn("Failed to get webhook status from ${stageData.statusEndpoint} with statusCode=${statusValue}, will retry", e)
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
       String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
       log.error(errorMessage, e)
-      Map<String, ?> outputs = [webhook: [monitor: [:]]]
+      Map<String, ?> outputs = originalResponse
       outputs.webhook.monitor << [error: errorMessage]
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     }
 
     def result
-    def responsePayload = [
-      webhook: [
-        monitor: [
+    def responsePayload = originalResponse
+    responsePayload.webhook.monitor =  [
           body: response.body,
           statusCode: response.statusCode,
           statusCodeValue: response.statusCode.value()
         ]
-      ],
-      buildInfo: response.body, // TODO: deprecated
-      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
-        "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."
-    ]
+
     try {
       result = JsonPath.read(response.body, stageData.statusJsonPath)
     } catch (PathNotFoundException e) {
@@ -141,7 +146,6 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         return TaskResult.builder(ExecutionStatus.TERMINAL).context(responsePayload).build()
       }
       if (progress) {
-        responsePayload << [progressMessage: progress] // TODO: deprecated
         responsePayload.webhook.monitor << [progressMessage: progress]
       }
     }
@@ -150,14 +154,39 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
     if (result instanceof Number) {
       def status = result == 100 ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
-      responsePayload << [percentComplete: result] // TODO: deprecated
       responsePayload.webhook.monitor << [percentComplete: result]
       return TaskResult.builder(status).context(responsePayload).build()
     } else if (statusMap.containsKey(result.toString().toUpperCase())) {
       return TaskResult.builder(statusMap[result.toString().toUpperCase()]).context(responsePayload).build()
     }
 
-    return TaskResult.builder(ExecutionStatus.RUNNING).context(response ? responsePayload : [:]).build()
+    stage.context
+    return TaskResult.builder(ExecutionStatus.RUNNING).context(response ? responsePayload : originalResponse).build()
+  }
+
+  @Override void onCancel(@Nonnull Stage stage) {
+    WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
+
+    // Only do cancellation if we made the initial webhook request and the user specified a cancellation endpoint
+    if (Strings.isNullOrEmpty(stageData.webhook.statusCode) || Strings.isNullOrEmpty(stageData.cancelEndpoint)) {
+      return
+    }
+
+    try {
+      log.info("Sending best effort webhook cancellation to ${stageData.cancelEndpoint}")
+      def response = webhookService.exchange(stageData.cancelMethod, stageData.cancelEndpoint, stageData.cancelPayload, stageData.customHeaders)
+      log.debug(
+        "Received status code {} from cancel endpoint {} in execution {} in stage {}",
+        response.statusCode,
+        stageData.cancelEndpoint,
+        stage.execution.id,
+        stage.id
+      )
+    } catch (HttpStatusCodeException e) {
+      log.warn("Failed to cancel webhook ${stageData.cancelEndpoint} with statusCode=${e.getStatusCode().value()}", e)
+    } catch (Exception e) {
+      log.warn("Failed to cancel webhook ${stageData.cancelEndpoint}", e)
+    }
   }
 
   private static Map<String, ExecutionStatus> createStatusMap(String successStatuses, String canceledStatuses, String terminalStatuses) {
@@ -174,16 +203,5 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
   private static Map<String, ExecutionStatus> mapStatuses(String statuses, ExecutionStatus status) {
     statuses.split(",").collectEntries { [(it.trim().toUpperCase()): status] }
-  }
-
-  private static class StageData {
-    public String statusEndpoint
-    public String statusJsonPath
-    public String progressJsonPath
-    public String successStatuses
-    public String canceledStatuses
-    public String terminalStatuses
-    public Object customHeaders
-    public List<Integer> retryStatusCodes
   }
 }

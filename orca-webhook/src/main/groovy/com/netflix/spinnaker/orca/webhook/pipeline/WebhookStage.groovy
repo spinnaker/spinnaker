@@ -17,20 +17,36 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Slf4j
 @Component
-class WebhookStage implements StageDefinitionBuilder, CancellableStage {
+class WebhookStage implements StageDefinitionBuilder {
+
+  @Autowired
+  WebhookService webhookService
+
+  @Autowired
+  WebhookStage(WebhookService webhookService) {
+    this.webhookService = webhookService
+  }
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
@@ -51,13 +67,57 @@ class WebhookStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  CancellableStage.Result cancel(Stage stage) {
-    log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
-    return new CancellableStage.Result(stage, [:])
+  void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+    new MonitorWebhookTask(webhookService).onCancel(stage)
   }
 
   static class StageData {
-    boolean waitForCompletion
-    int waitBeforeMonitor
+    // Inputs for webhook
+    public String url
+    public Object payload
+    public Object customHeaders
+    public List<Integer> failFastStatusCodes
+    public Boolean waitForCompletion
+    public WebhookProperties.StatusUrlResolution statusUrlResolution
+    public String statusUrlJsonPath
+
+    @JsonFormat(with = [JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES])
+    public HttpMethod method = HttpMethod.POST
+
+    // Inputs for monitor
+    public String statusEndpoint
+    public String statusJsonPath
+    public String progressJsonPath
+    public String cancelEndpoint
+    @JsonFormat(with = [JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES])
+    public HttpMethod cancelMethod = HttpMethod.POST
+    public Object cancelPayload
+    public String successStatuses
+    public String canceledStatuses
+    public String terminalStatuses
+    public List<Integer> retryStatusCodes
+
+    public int waitBeforeMonitor
+
+    // Outputs
+    WebhookResponseStageData webhook
+  }
+
+  static class WebhookResponseStageData {
+    String statusEndpoint
+    Integer statusCodeValue
+    String statusCode
+    Map body
+    WebhookMonitorResponseStageData monitor
+    String error
+  }
+
+  static class WebhookMonitorResponseStageData {
+    Integer statusCodeValue
+    String statusCode
+    Map body
+    String error
+    String progressMessage
+    Number percentComplete
   }
 }

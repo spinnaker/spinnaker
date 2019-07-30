@@ -33,7 +33,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
   def builder = new TaskNode.Builder()
 
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService: webhookService)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, false, null)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:

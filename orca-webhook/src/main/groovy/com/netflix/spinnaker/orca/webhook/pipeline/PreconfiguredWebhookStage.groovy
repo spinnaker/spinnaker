@@ -32,14 +32,19 @@ import org.springframework.stereotype.Component
 @Component
 class PreconfiguredWebhookStage extends WebhookStage {
 
-  @Autowired
-  private WebhookService webhookService
-
-  @Value('${services.fiat.enabled:false}')
-  boolean fiatEnabled;
-
-  @Autowired(required = false)
+  boolean fiatEnabled
   FiatService fiatService
+
+  @Autowired
+  PreconfiguredWebhookStage(
+    WebhookService webhookService,
+    @Value('${services.fiat.enabled:false}') boolean fiatEnabled,
+    FiatService fiatService) {
+    super(webhookService)
+
+    this.fiatEnabled = fiatEnabled
+    this.fiatService = fiatService
+  }
 
   def fields = PreconfiguredWebhook.declaredFields.findAll {
     !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters'].contains(it.name)
