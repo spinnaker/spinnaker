@@ -60,7 +60,7 @@ public class V2PipelineTemplate implements VersionedSchema {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Variable implements NamedContent<Variable>, Cloneable {
-    public static final String TEMPLATE_VALID_VARIABLE_NAME_REGEX = "^[a-zA-Z0-9-_]+$";
+    public static final String TEMPLATE_VALID_VARIABLE_NAME_REGEX = "^[a-zA-Z0-9_]+$";
     private String name;
     private String description;
     private String type;
