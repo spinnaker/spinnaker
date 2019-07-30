@@ -28,7 +28,7 @@ import lombok.EqualsAndHashCode;
 public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDescription {
 
   private String stackName;
-  private Map<String, Object> templateBody = new HashMap<>();
+  private String templateBody;
   private Map<String, String> parameters = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
   private String region;

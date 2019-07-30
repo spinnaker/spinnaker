@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeployCloudFormationAtomicOperation;
@@ -35,9 +36,26 @@ public class DeployCloudFormationAtomicOperationConverter
 
   @Override
   public DeployCloudFormationDescription convertDescription(Map input) {
+    input = fixTemplateBody(input);
+
     DeployCloudFormationDescription converted =
         getObjectMapper().convertValue(input, DeployCloudFormationDescription.class);
     converted.setCredentials(getCredentialsObject((String) input.get("credentials")));
     return converted;
+  }
+
+  /** Previous implementation processed templateBody as a Map, now it is a string */
+  private Map fixTemplateBody(Map input) {
+    if (input.get("templateBody") != null && !(input.get("templateBody") instanceof String)) {
+      String template;
+      try {
+        template = getObjectMapper().writeValueAsString(input.get("templateBody"));
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException(
+            "Could not serialize CloudFormation Stack template body", e);
+      }
+      input.put("templateBody", template);
+    }
+    return input;
   }
 }

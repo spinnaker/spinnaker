@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.aws.deploy.converters.CopyLastAsgAtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeployCloudFormationDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.CopyLastAsgAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeployCloudFormationAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -43,7 +40,7 @@ class DeployCloudFormationAtomicOperationConverterSpec extends Specification {
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "DeployCloudFormationConverter returns DeployCloudFormationDescription"() {
+  void "DeployCloudFormationConverter returns DeployCloudFormationDescription with Map templateBody"() {
     setup:
     def input = [stackName      : "asgard",
                  templateBody   : [ field1: "field1" ],
@@ -60,6 +57,31 @@ class DeployCloudFormationAtomicOperationConverterSpec extends Specification {
 
     then:
     description instanceof DeployCloudFormationDescription
+    ((DeployCloudFormationDescription) description).templateBody == '{"field1":"field1"}'
+
+    when:
+    def operation = converter.convertOperation(input)
+
+    then:
+    operation instanceof DeployCloudFormationAtomicOperation
+  }
+
+  void "DeployCloudFormationConverter returns DeployCloudFormationDescription with string templateBody"() {
+    setup:
+    def input = [stackName      : "asgard",
+                 templateBody   : 'field1: "field1"',
+                 parameters     : [ param1: "param1" ],
+                 tags           : [ tag1: "tag1" ],
+                 capabilities   : [ "cap1", "cap2" ],
+                 region         : "eu-west_1",
+                 credentials    : "credentials"]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description instanceof DeployCloudFormationDescription
+    ((DeployCloudFormationDescription) description).templateBody == 'field1: "field1"'
 
     when:
     def operation = converter.convertOperation(input)

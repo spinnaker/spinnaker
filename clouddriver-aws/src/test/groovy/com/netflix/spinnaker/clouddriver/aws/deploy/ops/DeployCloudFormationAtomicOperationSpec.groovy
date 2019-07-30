@@ -53,7 +53,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
         [
           stackName: "stackTest",
           region: "eu-west-1",
-          templateBody: [ key: "value" ],
+          templateBody: '{"key":"value"}',
           parameters: [ key: "value"],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -92,7 +92,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
         [
           stackName: "stackTest",
           region: "eu-west-1",
-          templateBody: [ key: "value" ],
+          templateBody: '{"key":"value"}',
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -134,7 +134,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
         [
           stackName: "stackTest",
           region: "eu-west-1",
-          templateBody: [ key: "value" ],
+          templateBody: 'key: "value"',
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -161,7 +161,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     }
     1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
       assert request.getStackName() == "stackTest"
-      assert request.getTemplateBody() == '{"key":"value"}'
+      assert request.getTemplateBody() == 'key: "value"'
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
