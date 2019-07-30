@@ -21,6 +21,8 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,17 +34,33 @@ public class ValidatingFileReader {
           + System.getProperty("user.name")
           + ". Make sure that user can read the requested file.";
 
-  public static String contents(ConfigProblemSetBuilder ps, String path) {
-    if (PropertyUtils.isConfigServerResource(path)) {
+  public static String contents(
+      ConfigProblemSetBuilder ps, String path, SecretSessionManager secretSessionManager) {
+
+    byte[] contentBytes = contentBytes(ps, path, secretSessionManager);
+    if (contentBytes == null) {
       return null;
-    } else {
-      return readFromLocalFilesystem(ps, path);
     }
+    return new String(contentBytes);
   }
 
-  private static String readFromLocalFilesystem(ConfigProblemSetBuilder ps, String path) {
+  public static byte[] contentBytes(
+      ConfigProblemSetBuilder ps, String path, SecretSessionManager secretSessionManager) {
+
+    if (PropertyUtils.isConfigServerResource(path)) {
+      return null;
+    }
+
+    if (EncryptedSecret.isEncryptedSecret(path)) {
+      return secretSessionManager.decryptAsBytes(path);
+    }
+
+    return readFromLocalFilesystem(ps, path);
+  }
+
+  private static byte[] readFromLocalFilesystem(ConfigProblemSetBuilder ps, String path) {
     try {
-      return IOUtils.toString(new FileInputStream(path));
+      return IOUtils.toByteArray(new FileInputStream(path));
     } catch (FileNotFoundException e) {
       buildProblem(ps, "Cannot find provided path: " + e.getMessage() + ".", e);
     } catch (IOException e) {

@@ -24,11 +24,11 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CanaryAccountValidator extends Validator<AbstractCanaryAccount> {
+public class CanaryAccountValidator<T extends AbstractCanaryAccount> extends Validator<T> {
   private static final String namePattern = "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$";
 
   @Override
-  public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
+  public void validate(ConfigProblemSetBuilder p, T n) {
     if (n.getName() == null) {
       p.addProblem(Severity.FATAL, "Canary account name must be specified");
     } else if (!Pattern.matches(namePattern, n.getName())) {

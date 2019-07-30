@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
 
-import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.CanaryAccountValidator;
@@ -33,15 +32,14 @@ import org.springframework.stereotype.Component;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
+public class PrometheusCanaryAccountValidator
+    extends CanaryAccountValidator<PrometheusCanaryAccount> {
 
   @Autowired private SecretSessionManager secretSessionManager;
 
   @Override
-  public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
+  public void validate(ConfigProblemSetBuilder p, PrometheusCanaryAccount n) {
     super.validate(p, n);
-
-    PrometheusCanaryAccount canaryAccount = (PrometheusCanaryAccount) n;
 
     DaemonTaskHandler.message(
         "Validating "
@@ -49,7 +47,7 @@ public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
             + " with "
             + PrometheusCanaryAccountValidator.class.getSimpleName());
 
-    String usernamePasswordFile = canaryAccount.getUsernamePasswordFile();
+    String usernamePasswordFile = n.getUsernamePasswordFile();
 
     if (StringUtils.isNotEmpty(usernamePasswordFile)) {
       String usernamePassword = validatingFileDecrypt(p, usernamePasswordFile);

@@ -79,13 +79,13 @@ public class SamlValidator extends Validator<Saml> {
     }
 
     try {
-      String keyStore = validatingFileDecrypt(p, saml.getKeyStore());
+      byte[] keyStore = validatingFileDecryptBytes(p, saml.getKeyStore());
       if (keyStore != null) {
         val keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 
         // will throw an exception if `keyStorePassword` is invalid
         keystore.load(
-            new ByteArrayInputStream(keyStore.getBytes()),
+            new ByteArrayInputStream(keyStore),
             secretSessionManager.decrypt(saml.getKeyStorePassword()).toCharArray());
 
         Collections.list(keystore.aliases()).stream()
