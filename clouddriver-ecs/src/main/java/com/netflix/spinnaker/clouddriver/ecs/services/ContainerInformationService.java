@@ -168,12 +168,16 @@ public class ContainerInformationService {
     }
 
     String hostPrivateIpAddress = instance.getPrivateIpAddress();
+    if (hostPrivateIpAddress == null || hostPrivateIpAddress.isEmpty()) {
+      return null;
+    }
+
     return String.format("%s:%s", hostPrivateIpAddress, hostPort);
   }
 
   public String getTaskZone(String accountName, String region, Task task) {
     Instance ec2Instance = getEc2Instance(accountName, region, task);
-    if (ec2Instance != null) {
+    if (ec2Instance != null && ec2Instance.getPlacement() != null) {
       return ec2Instance.getPlacement().getAvailabilityZone();
     }
 

@@ -343,11 +343,15 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
             com.amazonaws.services.ec2.model.Instance ec2Instance =
                 containerInformationService.getEc2Instance(account, region, task);
             if (ec2Instance != null) {
-              vpcId = ec2Instance.getVpcId();
-              securityGroups =
-                  ec2Instance.getSecurityGroups().stream()
-                      .map(GroupIdentifier::getGroupId)
-                      .collect(Collectors.toSet());
+              if (ec2Instance.getVpcId() != null && !ec2Instance.getVpcId().isEmpty()) {
+                vpcId = ec2Instance.getVpcId();
+              }
+              if (ec2Instance.getSecurityGroups() != null) {
+                securityGroups =
+                    ec2Instance.getSecurityGroups().stream()
+                        .map(GroupIdentifier::getGroupId)
+                        .collect(Collectors.toSet());
+              }
               break;
             }
           }

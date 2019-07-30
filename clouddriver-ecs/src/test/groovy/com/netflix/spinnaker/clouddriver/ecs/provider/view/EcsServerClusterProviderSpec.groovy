@@ -321,7 +321,7 @@ class EcsServerClusterProviderSpec extends Specification {
     retrievedCluster == expectedCluster
   }
 
-  def 'should produce an ecs cluster with unknown VPC'() {
+  def 'should produce an ecs cluster with unknown VPC for missing EC2 instance'() {
     given:
     for (serverGroup in expectedCluster.serverGroups) {
       EcsServerGroup ecsServerGroup = serverGroup
@@ -334,6 +334,22 @@ class EcsServerClusterProviderSpec extends Specification {
 
     then:
     containerInformationService.getEc2Instance(_, _, _) >> null
+    retrievedCluster == expectedCluster
+  }
+
+  def 'should produce an ecs cluster with unknown VPC for EC2 instance missing its network config'() {
+    given:
+    for (serverGroup in expectedCluster.serverGroups) {
+      EcsServerGroup ecsServerGroup = serverGroup
+      ecsServerGroup.vpcId = 'None'
+      ecsServerGroup.securityGroups = []
+    }
+
+    when:
+    def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    containerInformationService.getEc2Instance(_, _, _) >> new Instance()
     retrievedCluster == expectedCluster
   }
 
