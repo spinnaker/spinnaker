@@ -24,7 +24,7 @@ module(DEPLOY_CLOUDFORMATION_STACK_STAGE, [])
       controllerAs: 'ctrl',
       executionDetailsSections: [ExecutionDetailsTasks],
       producesArtifacts: true,
-      defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
+      supportsCustomTimeout: true,
       validators: [],
       accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
       configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),

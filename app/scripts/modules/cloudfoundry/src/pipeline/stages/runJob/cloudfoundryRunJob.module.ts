@@ -11,7 +11,7 @@ Registry.pipeline.registerStage({
   provides: 'runJob',
   restartable: true,
   executionDetailsSections: [ExecutionDetailsTasks, RunJobExecutionDetails],
-  defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
+  supportsCustomTimeout: true,
   validators: [
     { type: 'requiredField', fieldName: 'credentials' },
     { type: 'requiredField', fieldName: 'region' },

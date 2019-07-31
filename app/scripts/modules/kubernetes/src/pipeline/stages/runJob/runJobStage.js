@@ -26,7 +26,7 @@ module.exports = angular
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
       producesArtifacts: true,
-      defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
+      supportsCustomTimeout: true,
       validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'namespace' }],
     });
   })

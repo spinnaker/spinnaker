@@ -30,7 +30,7 @@ module.exports = angular
         PipelineParametersExecutionDetails,
         ExecutionDetailsTasks,
       ],
-      defaultTimeoutMs: 12 * 60 * 60 * 1000, // 12 hours
+      supportsCustomTimeout: true,
       validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
     });
   })

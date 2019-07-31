@@ -14,7 +14,7 @@ Registry.pipeline.registerStage({
   executionDetailsSections: [RunJobExecutionDetails, ExecutionDetailsTasks],
   accountExtractor: (stage: IStage) => [stage.context.credentials],
   configAccountExtractor: (stage: IStage) => [stage.credentials],
-  defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
+  supportsCustomTimeout: true,
   validators: [
     { type: 'requiredField', fieldName: 'cluster.iamProfile' },
     { type: 'requiredField', fieldName: 'cluster.imageId' },

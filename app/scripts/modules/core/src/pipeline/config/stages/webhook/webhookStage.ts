@@ -162,7 +162,7 @@ module(WEBHOOK_STAGE, [])
       controllerAs: '$ctrl',
       templateUrl: require('./webhookStage.html'),
       executionDetailsUrl: require('./webhookExecutionDetails.html'),
-      defaultTimeoutMs: 60 * 60 * 1000, // 1 hour
+      supportsCustomTimeout: true,
       validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
     });
   })

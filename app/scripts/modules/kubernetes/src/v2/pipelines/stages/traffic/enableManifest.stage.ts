@@ -17,7 +17,7 @@ module(KUBERNETES_ENABLE_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB]).config(() => 
     cloudProvider: 'kubernetes',
     component: ManifestTrafficStageConfig,
     executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
-    defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
+    supportsCustomTimeout: true,
     accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     configAccountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     validators: manifestSelectorValidators(STAGE_NAME),

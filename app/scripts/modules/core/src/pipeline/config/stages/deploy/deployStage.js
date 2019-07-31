@@ -24,7 +24,7 @@ module.exports = angular
         executionDetailsUrl: require('./deployExecutionDetails.html'),
         controller: 'DeployStageCtrl',
         controllerAs: 'deployStageCtrl',
-        defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
+        supportsCustomTimeout: true,
         validators: [
           {
             type: 'stageBeforeType',

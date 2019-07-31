@@ -29,7 +29,7 @@ module.exports = angular
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       producesArtifacts: true,
-      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
+      supportsCustomTimeout: true,
       validators: [
         {
           type: 'anyFieldRequired',

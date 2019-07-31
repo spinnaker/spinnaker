@@ -30,7 +30,7 @@ module.exports = angular
         let lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
         return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
       },
-      defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
+      supportsCustomTimeout: true,
       validators: [{ type: 'requiredField', fieldName: 'job' }],
       strategy: true,
     });

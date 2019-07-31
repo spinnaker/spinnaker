@@ -101,7 +101,7 @@ Registry.pipeline.registerStage({
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryDeployServiceStageConfig,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
-  defaultTimeoutMs: 30 * 60 * 1000,
+  supportsCustomTimeout: true,
   description: 'Deploys services using Open Service Broker and deploys user-provided services',
   executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
   key: 'deployService',

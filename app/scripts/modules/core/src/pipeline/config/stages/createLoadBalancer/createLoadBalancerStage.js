@@ -19,7 +19,7 @@ module.exports = angular
           ' If a load balancer exists with the same name, then that will be updated.',
         templateUrl: require('./createLoadBalancerStage.html'),
         executionDetailsUrl: require('./createLoadBalancerExecutionDetails.html'),
-        defaultTimeoutMs: 5 * 60 * 1000, // 5 minutes
+        supportsCustomTimeout: true,
         validators: [],
       });
     }

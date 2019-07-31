@@ -26,7 +26,7 @@ module.exports = angular
       useCustomTooltip: true,
       markerIcon: ManualJudgmentMarkerIcon,
       strategy: true,
-      defaultTimeoutMs: 72 * 60 * 60 * 1000,
+      supportsCustomTimeout: true,
       disableNotifications: true,
     });
   })

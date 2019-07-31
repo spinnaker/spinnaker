@@ -16,7 +16,6 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   configAccountExtractor?: (stage: IStage) => string[];
   configuration?: any;
   defaults?: any;
-  defaultTimeoutMs?: number;
   disableNotifications?: boolean;
   executionConfigSections?: string[]; // angular only
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
@@ -33,6 +32,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   restartable?: boolean;
   stageFilter?: (stage: IStage) => boolean;
   strategy?: boolean;
+  supportsCustomTimeout?: boolean;
   synthetic?: boolean;
   useBaseProvider?: boolean;
   useCustomTooltip?: boolean;

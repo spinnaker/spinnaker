@@ -22,7 +22,7 @@ if (SETTINGS.feature.versionedProviders) {
     component: DeployManifestStageConfig,
     executionDetailsSections: [DeployStatus, ExecutionDetailsTasks, ExecutionArtifactTab],
     producesArtifacts: true,
-    defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
+    supportsCustomTimeout: true,
     validators: deployManifestValidators(),
     accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
     configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),

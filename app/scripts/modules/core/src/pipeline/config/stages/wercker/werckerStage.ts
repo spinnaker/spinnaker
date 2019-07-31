@@ -6,7 +6,6 @@ import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 import { WerckerExecutionLabel } from './WerckerExecutionLabel';
-import { Duration } from 'luxon';
 
 export interface IWerckerStageViewState {
   mastersLoaded: boolean;
@@ -226,7 +225,7 @@ module(WERCKER_STAGE, [])
           const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
           return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
         },
-        defaultTimeoutMs: Duration.fromObject({ hours: 2 }).as('milliseconds'),
+        supportsCustomTimeout: true,
         validators: [{ type: 'requiredField', fieldName: 'job' }],
         strategy: true,
       });

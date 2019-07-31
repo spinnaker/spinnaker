@@ -11,7 +11,7 @@ Registry.pipeline.registerStage({
   component: CloudfoundryUnshareServiceStageConfig,
   controller: 'cfUnshareServiceStageCtrl',
   executionDetailsSections: [CloudfoundryUnshareServiceExecutionDetails, ExecutionDetailsTasks],
-  defaultTimeoutMs: 30 * 60 * 1000,
+  supportsCustomTimeout: true,
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
     { type: 'requiredField', fieldName: 'serviceInstanceName', preventSave: true },

@@ -25,7 +25,7 @@ if (SETTINGS.feature.versionedProviders) {
     component: PatchManifestStageConfig,
     executionDetailsSections: [PatchStatus, ExecutionDetailsTasks, ExecutionArtifactTab],
     producesArtifacts: true,
-    defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
+    supportsCustomTimeout: true,
     validators: manifestSelectorValidators(STAGE_NAME),
     artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
     artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['manifestArtifactId', 'requiredArtifactIds']),

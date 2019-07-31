@@ -15,7 +15,7 @@ module.exports = angular
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelTemplateUrl: require('core/pipeline/config/stages/bake/BakeExecutionLabel'),
-      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
+      supportsCustomTimeout: true,
       validators: [
         { type: 'requiredField', fieldName: 'accountName' },
         { type: 'requiredField', fieldName: 'region' },

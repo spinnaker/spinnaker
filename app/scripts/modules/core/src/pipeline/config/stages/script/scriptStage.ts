@@ -12,7 +12,7 @@ module(SCRIPT_STAGE, []).config(() => {
   Registry.pipeline.registerStage({
     label: 'Script',
     description: 'Runs a script',
-    defaultTimeoutMs: 1000 * 60 * 60 * 2, // 2 hours
+    supportsCustomTimeout: true,
     key: 'script',
     restartable: true,
     defaults: {

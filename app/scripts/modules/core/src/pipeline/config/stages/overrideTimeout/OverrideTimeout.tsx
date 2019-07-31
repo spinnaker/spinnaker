@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { get } from 'lodash';
+import { Duration } from 'luxon';
 
 import { IStage } from 'core/domain';
 import { CheckboxInput, NumberInput } from 'core/presentation';
@@ -13,26 +15,35 @@ export interface IOverrideTimeoutConfigProps {
 }
 
 interface IStageConfig {
-  defaultTimeoutMs: number;
+  supportsCustomTimeout: boolean;
 }
+
+const toHoursAndMinutes = (ms: number) => {
+  if (!ms) {
+    return { hours: 0, minutes: 0 };
+  } else {
+    const { hours, minutes } = Duration.fromMillis(ms)
+      .shiftTo('hours', 'minutes')
+      .toObject();
+
+    return {
+      hours: Math.floor(hours),
+      minutes: Math.floor(minutes),
+    };
+  }
+};
 
 export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [overrideTimeout, setOverrideTimeout] = useState(false);
-  const [configurable, setConfigurable] = useState(false);
-  const [defaults, setDefaults] = useState({ hours: 0, minutes: 0 });
 
   useEffect(() => {
     stageChanged();
-  }, [props.stageConfig, props.stageTimeoutMs]);
+  }, [props.stageTimeoutMs]);
 
   const stageChanged = () => {
-    const { stageConfig, stageTimeoutMs } = props;
-    const defaultTimeoutMs = stageConfig && stageConfig.defaultTimeoutMs;
-    setConfigurable(!!defaultTimeoutMs);
-    setDefaults(toHoursAndMinutes(defaultTimeoutMs));
-    if (stageTimeoutMs !== undefined) {
+    if (props.stageTimeoutMs !== undefined) {
       enableTimeout();
     } else {
       clearTimeout();
@@ -56,28 +67,17 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
   };
 
   const enableTimeout = () => {
-    const stageDefaults = props.stageConfig ? props.stageConfig.defaultTimeoutMs : null;
     setOverrideTimeout(true);
     props.updateStageField({
-      stageTimeoutMs: props.stageTimeoutMs || stageDefaults,
+      stageTimeoutMs: props.stageTimeoutMs || null,
     });
     setHours(toHoursAndMinutes(props.stageTimeoutMs).hours);
     setMinutes(toHoursAndMinutes(props.stageTimeoutMs).minutes);
   };
 
-  function toHoursAndMinutes(ms: number) {
-    if (!ms) {
-      return { hours: 0, minutes: 0 };
-    } else {
-      const seconds = ms / 1000;
-      return {
-        hours: Math.floor(seconds / 3600),
-        minutes: Math.floor(seconds / 60) % 60,
-      };
-    }
-  }
+  const isConfigurable = !!get(props.stageConfig, 'supportsCustomTimeout');
 
-  if (configurable) {
+  if (isConfigurable) {
     return (
       <>
         <div className="form-group">
@@ -86,18 +86,8 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
               <CheckboxInput
                 text={
                   <>
-                    <strong> Override default timeout</strong> (
-                    {defaults.hours > 0 && (
-                      <span>
-                        {defaults.hours} {defaults.hours > 1 ? 'hours' : 'hour'}{' '}
-                      </span>
-                    )}
-                    {defaults.minutes > 0 && (
-                      <span>
-                        {defaults.minutes} {defaults.minutes > 1 ? 'minutes' : 'minute'}
-                      </span>
-                    )}
-                    ) <HelpField id="pipeline.config.timeout" />
+                    <strong>Fail stage after a specific amount of time</strong>{' '}
+                    <HelpField id="pipeline.config.timeout" />
                   </>
                 }
                 value={overrideTimeout}
@@ -112,7 +102,7 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
               <div className="col-md-9 col-md-offset-1 checkbox-padding">
                 Fail this stage if it takes longer than
                 <NumberInput
-                  inputClassName={'form-control input-sm inline-number with-space-before'}
+                  inputClassName="form-control input-sm inline-number with-space-before"
                   min={0}
                   onChange={(e: React.ChangeEvent<any>) => {
                     setHours(e.target.value);
@@ -122,7 +112,7 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
                 />{' '}
                 hours
                 <NumberInput
-                  inputClassName={'form-control input-sm inline-number with-space-before'}
+                  inputClassName="form-control input-sm inline-number with-space-before"
                   min={0}
                   onChange={(e: React.ChangeEvent<any>) => {
                     setMinutes(e.target.value);

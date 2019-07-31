@@ -26,7 +26,7 @@ module.exports = angular
       extraLabelLines: stage => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
-      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
+      supportsCustomTimeout: true,
       validators: [
         { type: 'requiredField', fieldName: 'package' },
         { type: 'requiredField', fieldName: 'regions' },

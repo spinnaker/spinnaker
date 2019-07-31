@@ -13,7 +13,7 @@ if (SETTINGS.feature.versionedProviders) {
     key: 'savePipelinesFromArtifact',
     component: SavePipelinesStageConfig,
     executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab, SavePipelinesResultsTab],
-    defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
+    supportsCustomTimeout: true,
     artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['pipelinesArtifactId', 'requiredArtifactIds']),
     artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['pipelinesArtifactId', 'requiredArtifactIds']),
   });
