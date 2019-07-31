@@ -83,12 +83,13 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
   private List<Map<String, Object>> getDescriptions(Stage stage, Map operation) {
     log.info("Generating descriptions (cloudProvider: ${operation.cloudProvider}, getCloudProvider: ${getCloudProvider(operation)}, credentials: ${operation.credentials}, availabilityZones: ${operation.availabilityZones})")
 
-    List<Map<String, Object>> descriptions = [[cloneServerGroup: operation]]
+    List<Map<String, Object>> descriptions = []
     cloneDescriptionDecorators.each { decorator ->
       if (decorator.shouldDecorate(operation)) {
         decorator.decorate(operation, descriptions, stage)
       }
     }
+    descriptions.add([cloneServerGroup: operation])
     descriptions
   }
 }

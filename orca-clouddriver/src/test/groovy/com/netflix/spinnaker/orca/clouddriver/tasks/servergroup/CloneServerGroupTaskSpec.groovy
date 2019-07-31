@@ -69,10 +69,10 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    operations[0].cloneServerGroup.amiName == "hodor-image"
-    operations[0].cloneServerGroup.application == "hodor"
-    operations[0].cloneServerGroup.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
-    operations[0].cloneServerGroup.credentials == "fzlem"
+    operations[2].cloneServerGroup.amiName == "hodor-image"
+    operations[2].cloneServerGroup.application == "hodor"
+    operations[2].cloneServerGroup.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+    operations[2].cloneServerGroup.credentials == "fzlem"
   }
 
   def "can include optional parameters"() {
@@ -93,7 +93,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[0].cloneServerGroup) {
+    with(operations[2].cloneServerGroup) {
       amiName == "hodor-image"
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -122,7 +122,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[0].cloneServerGroup) {
+    with(operations[2].cloneServerGroup) {
       amiName == contextAmi
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -158,7 +158,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[0].cloneServerGroup) {
+    with(operations[2].cloneServerGroup) {
       amiName == bakeAmi
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -203,7 +203,7 @@ class CloneServerGroupTaskSpec extends Specification {
     bakeAmi = "ami-bake"
   }
 
-  def "calls allowlaunch prior to copyLast"() {
+  def "calls allowlaunch prior to cloneServerGroup and copyLast"() {
     given:
     stage.context.amiName = contextAmi
 
@@ -221,11 +221,11 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    operations[0].cloneServerGroup.amiName == contextAmi
+    operations[0].allowLaunchDescription.amiName == contextAmi
+    operations[0].allowLaunchDescription.region == "us-east-1"
     operations[1].allowLaunchDescription.amiName == contextAmi
-    operations[1].allowLaunchDescription.region == "us-east-1"
-    operations[2].allowLaunchDescription.amiName == contextAmi
-    operations[2].allowLaunchDescription.region == "us-west-1"
+    operations[1].allowLaunchDescription.region == "us-west-1"
+    operations[2].cloneServerGroup.amiName == contextAmi
 
     where:
     contextAmi = "ami-ctx"
@@ -249,6 +249,6 @@ class CloneServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 2
-    operations[1].allowLaunchDescription.region == "eu-west-1"
+    operations[0].allowLaunchDescription.region == "eu-west-1"
   }
 }
