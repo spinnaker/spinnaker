@@ -85,7 +85,8 @@ class DependentPipelineStarter implements ApplicationContextAware {
       parentExecution      : parentPipeline,
       parentPipelineStageId: parentPipelineStageId,
       parameters           : [:],
-      strategy             : suppliedParameters.strategy == true
+      strategy             : suppliedParameters.strategy == true,
+      correlationId        : parentPipeline.id + "_" + pipelineConfig.id + "_" + parentPipeline.startTime
     ]
 
     if (pipelineConfig.parameterConfig || !suppliedParameters.isEmpty()) {
