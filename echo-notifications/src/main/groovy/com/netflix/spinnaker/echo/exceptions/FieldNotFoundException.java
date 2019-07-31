@@ -20,4 +20,8 @@ public class FieldNotFoundException extends RuntimeException {
   public FieldNotFoundException() {
     super("Could not find field in event");
   }
+
+  public FieldNotFoundException(String field) {
+    super(String.format("Could not find field `%s` in event", field));
+  }
 }
