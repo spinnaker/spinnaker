@@ -19,6 +19,7 @@ package com.netflix.kayenta.storage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
+import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import java.util.List;
@@ -28,13 +29,17 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ObjectType {
   CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
-  METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
-  METRIC_SET_PAIR_LIST(
-      new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
   CANARY_RESULT_ARCHIVE(
       new TypeReference<CanaryExecutionStatusResponse>() {},
       "canary_archive",
-      "canary_archive.json");
+      "canary_archive.json"),
+  METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
+  METRIC_SET_PAIR_LIST(
+      new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
+  STANDALONE_CANARY_RESULT_ARCHIVE(
+      new TypeReference<CanaryAnalysisExecutionStatusResponse>() {},
+      "standalone_canary_archive",
+      "standalone_canary_archive.json");
 
   @Getter final TypeReference typeReference;
 
