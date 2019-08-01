@@ -1,14 +1,7 @@
 import * as React from 'react';
-import { isString } from 'lodash';
-
 import { IPipeline } from 'core/domain';
-import { SpelText } from 'core/widgets';
-
-export interface IMapPair {
-  key: string;
-  value: string;
-  error?: string;
-}
+import { isString } from 'lodash';
+import { IMapPair, MapPair } from './MapPair';
 
 export interface IMapEditorProps {
   addButtonLabel?: string;
@@ -26,9 +19,6 @@ export interface IMapEditorProps {
 
 export interface IMapEditorState {
   backingModel: IMapPair[];
-  columnCount: number;
-  isParameterized: boolean;
-  tableClass: string;
 }
 
 export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState> {
@@ -44,14 +34,10 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
 
   constructor(props: IMapEditorProps) {
     super(props);
-
     const isParameterized = isString(props.model);
 
     this.state = {
       backingModel: !isParameterized ? this.mapModel(props.model as { [key: string]: string }) : null,
-      columnCount: props.labelsLeft ? 5 : 3,
-      isParameterized,
-      tableClass: props.label ? '' : 'no-border-top',
     };
   }
 
@@ -110,14 +96,6 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
     this.handleChanged();
   };
 
-  public componentWillReceiveProps(_nextProps: IMapEditorProps) {
-    // const isParameterized = isString(nextProps.model);
-    // this.setState({
-    //   backingModel: !isParameterized ? this.mapModel(nextProps.model as {[key: string]: string}) : null,
-    //   isParameterized,
-    // });
-  }
-
   public render() {
     const {
       addButtonLabel,
@@ -130,9 +108,13 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
       valueCanContainSpel,
       pipeline,
     } = this.props;
-    const { backingModel, columnCount, isParameterized, tableClass } = this.state;
+    const { backingModel } = this.state;
 
     const rowProps = { keyLabel, valueLabel, labelsLeft };
+
+    const columnCount = this.props.labelsLeft ? 5 : 3;
+    const tableClass = this.props.label ? '' : 'no-border-top';
+    const isParameterized = isString(this.props.model);
 
     return (
       <div>
@@ -185,65 +167,3 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
     );
   }
 }
-
-const MapPair = (props: {
-  keyLabel: string;
-  valueLabel: string;
-  labelsLeft: boolean;
-  pair: IMapPair;
-  onChange: (pair: IMapPair) => void;
-  onDelete: () => void;
-  valueCanContainSpel?: boolean;
-  pipeline?: IPipeline;
-}) => {
-  const { keyLabel, labelsLeft, pair, onChange, onDelete, valueLabel, valueCanContainSpel, pipeline } = props;
-
-  return (
-    <tr>
-      {labelsLeft && (
-        <td className="table-label">
-          <b>{keyLabel}</b>
-        </td>
-      )}
-      <td>
-        <input
-          className="form-control input input-sm"
-          type="text"
-          value={pair.key}
-          onChange={e => onChange({ key: e.target.value, value: pair.value })}
-        />
-        {pair.error && <div className="error-message">{pair.error}</div>}
-      </td>
-      {labelsLeft && (
-        <td className="table-label">
-          <b>{valueLabel}</b>
-        </td>
-      )}
-      <td>
-        {valueCanContainSpel ? (
-          <SpelText
-            value={pair.value}
-            pipeline={pipeline}
-            docLink={true}
-            onChange={value => onChange({ key: pair.key, value: value })}
-          />
-        ) : (
-          <input
-            className="form-control input input-sm"
-            type="text"
-            value={pair.value}
-            onChange={e => onChange({ key: pair.key, value: e.target.value })}
-          />
-        )}
-      </td>
-      <td>
-        <div className="form-control-static">
-          <a className="clickable" onClick={onDelete}>
-            <span className="glyphicon glyphicon-trash" />
-            <span className="sr-only">Remove field</span>
-          </a>
-        </div>
-      </td>
-    </tr>
-  );
-};
