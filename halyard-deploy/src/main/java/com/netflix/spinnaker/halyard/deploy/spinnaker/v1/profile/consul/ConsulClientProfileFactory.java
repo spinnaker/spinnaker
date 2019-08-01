@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
@@ -51,7 +52,9 @@ public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
 
   @Override
   protected Map<String, Object> getBindings(
-      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      DeploymentConfiguration deploymentConfiguration,
+      Profile profile,
+      SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     ServiceSettings consul = endpoints.getServiceSettings(Type.CONSUL_CLIENT);
     bindings.put("scheme", consul.getScheme());

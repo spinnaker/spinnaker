@@ -50,6 +50,9 @@ public abstract class ProfileFactory {
    * @return true if the target service supports decryption of secrets
    */
   protected boolean supportsSecretDecryption(String deploymentName) {
+    if (getArtifact().equals(SpinnakerArtifact.DECK)) {
+      return false;
+    }
     String minVersion = getMinimumSecretDecryptionVersion(deploymentName);
     if (minVersion == null) {
       return false;

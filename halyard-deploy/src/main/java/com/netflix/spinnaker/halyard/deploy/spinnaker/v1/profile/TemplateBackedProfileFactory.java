@@ -28,7 +28,9 @@ public abstract class TemplateBackedProfileFactory extends ProfileFactory {
   protected abstract String getTemplate();
 
   protected abstract Map<String, Object> getBindings(
-      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
+      DeploymentConfiguration deploymentConfiguration,
+      Profile profile,
+      SpinnakerRuntimeSettings endpoints);
 
   protected List<String> requiredFiles(DeploymentConfiguration deploymentConfiguration) {
     return new ArrayList<>();
@@ -46,7 +48,7 @@ public abstract class TemplateBackedProfileFactory extends ProfileFactory {
       SpinnakerRuntimeSettings endpoints) {
     StringResource template = new StringResource(profile.getBaseContents());
     profile.setRequiredFiles(requiredFiles(deploymentConfiguration));
-    Map<String, Object> bindings = getBindings(deploymentConfiguration, endpoints);
+    Map<String, Object> bindings = getBindings(deploymentConfiguration, profile, endpoints);
     profile.setContents(template.setBindings(bindings).toString());
   }
 }

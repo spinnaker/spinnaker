@@ -54,7 +54,9 @@ public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
 
   @Override
   protected Map<String, Object> getBindings(
-      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      DeploymentConfiguration deploymentConfiguration,
+      Profile profile,
+      SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     bindings.put("deck-host", endpoints.getServiceSettings(Type.DECK).getHost());
     bindings.put("deck-port", endpoints.getServiceSettings(Type.DECK).getPort() + "");

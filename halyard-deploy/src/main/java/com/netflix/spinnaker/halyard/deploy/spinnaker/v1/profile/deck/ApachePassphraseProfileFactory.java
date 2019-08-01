@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -52,10 +53,17 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
 
   @Override
   protected Map<String, Object> getBindings(
-      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      DeploymentConfiguration deploymentConfiguration,
+      Profile profile,
+      SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
     ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
-    bindings.put("passphrase", ssl.getSslCertificatePassphrase());
+    if (EncryptedSecret.isEncryptedSecret(ssl.getSslCertificatePassphrase())
+        && !supportsSecretDecryption(deploymentConfiguration.getName())) {
+      bindings.put("passphrase", secretSessionManager.decrypt(ssl.getSslCertificatePassphrase()));
+    } else {
+      bindings.put("passphrase", ssl.getSslCertificatePassphrase());
+    }
     return bindings;
   }
 

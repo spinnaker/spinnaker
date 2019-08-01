@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.BindingsSecretDecrypter;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -55,6 +57,8 @@ public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory 
           "  </Directory>",
           "</VirtualHost>");
 
+  @Autowired BindingsSecretDecrypter bindingsSecretDecrypter;
+
   @Override
   protected String getTemplate() {
     return SPINNAKER_TEMPLATE;
@@ -77,13 +81,35 @@ public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory 
 
   @Override
   protected Map<String, Object> getBindings(
-      DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+      DeploymentConfiguration deploymentConfiguration,
+      Profile profile,
+      SpinnakerRuntimeSettings endpoints) {
     TemplatedResource resource = new StringResource(SSL_TEMPLATE);
     Map<String, Object> bindings = new HashMap<>();
     UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
     ApacheSsl apacheSsl = uiSecurity.getSsl();
-    bindings.put("cert-file", apacheSsl.getSslCertificateFile());
-    bindings.put("key-file", apacheSsl.getSslCertificateKeyFile());
+    if (supportsSecretDecryption(deploymentConfiguration.getName())) {
+      bindings.put("cert-file", apacheSsl.getSslCertificateFile());
+      bindings.put("key-file", apacheSsl.getSslCertificateKeyFile());
+    } else {
+      bindings.put(
+          "cert-file",
+          bindingsSecretDecrypter.trackSecretFile(
+              profile,
+              halconfigDirectoryStructure.getStagingDependenciesPath(
+                  deploymentConfiguration.getName()),
+              apacheSsl.getSslCertificateFile(),
+              "sslCertificateFile"));
+      bindings.put(
+          "key-file",
+          bindingsSecretDecrypter.trackSecretFile(
+              profile,
+              halconfigDirectoryStructure.getStagingDependenciesPath(
+                  deploymentConfiguration.getName()),
+              apacheSsl.getSslCertificateKeyFile(),
+              "sslCertificateKeyFile"));
+    }
+
     String ssl = resource.setBindings(bindings).toString();
     bindings.clear();
     bindings.put("ssl", ssl);
