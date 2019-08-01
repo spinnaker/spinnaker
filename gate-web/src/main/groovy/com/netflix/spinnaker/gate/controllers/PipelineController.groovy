@@ -71,11 +71,11 @@ class PipelineController {
     def operation = [
       description: (String) "Save pipeline '${pipeline.get("name") ?: "Unknown"}'",
       application: pipeline.get('application'),
-      job: [
+      job        : [
         [
-          type: "savePipeline",
+          type    : "savePipeline",
           pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).getBytes("UTF-8")),
-          user: AuthenticatedRequest.spinnakerUser.orElse("anonymous")
+          user    : AuthenticatedRequest.spinnakerUser.orElse("anonymous")
         ]
       ]
     ]
@@ -115,11 +115,11 @@ class PipelineController {
     def operation = [
       description: (String) "Update pipeline '${pipeline.get("name") ?: 'Unknown'}'",
       application: (String) pipeline.get('application'),
-      job: [
+      job        : [
         [
-          type: 'updatePipeline',
+          type    : 'updatePipeline',
           pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
-          user: AuthenticatedRequest.spinnakerUser.orElse("anonymous")
+          user    : AuthenticatedRequest.spinnakerUser.orElse("anonymous")
         ]
       ]
     ]
@@ -134,7 +134,9 @@ class PipelineController {
       )
     }
 
-    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), true)?.find { id == (String) it.get("id") }
+    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), true)?.find {
+      id == (String) it.get("id")
+    }
   }
 
   @ApiOperation(value = "Retrieve pipeline execution logs", response = List.class)
@@ -152,8 +154,8 @@ class PipelineController {
   @ApiOperation(value = "Cancel a pipeline execution")
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   void cancelPipeline(@PathVariable("id") String id,
-                     @RequestParam(required = false) String reason,
-                     @RequestParam(defaultValue = "false") boolean force) {
+                      @RequestParam(required = false) String reason,
+                      @RequestParam(defaultValue = "false") boolean force) {
     pipelineService.cancelPipeline(id, reason, force)
   }
 
@@ -261,6 +263,20 @@ class PipelineController {
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
+      }
+    }
+  }
+
+  @ApiOperation(value = "Evaluate a pipeline expression at a sprcific stage using the provided execution as context", response = HashMap.class)
+  @RequestMapping(value = "{id}/{stageId}/evaluateExpression")
+  Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
+                                            @PathVariable("stageId") String stageId,
+                                            @RequestParam("expression") String pipelineExpression) {
+    try {
+      pipelineService.evaluateExpressionForExecutionAtStage(id, stageId, pipelineExpression)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new NotFoundException("Pipeline not found (id: ${id})", e)
       }
     }
   }

@@ -17,15 +17,7 @@
 package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.DELETE
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.PATCH
-import retrofit.http.POST
-import retrofit.http.PUT
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit.http.*
 
 interface OrcaService {
 
@@ -119,6 +111,10 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @GET("/pipelines/{id}/evaluateExpression")
   Map evaluateExpressionForExecution(@Path("id") String executionId, @Query("expression") String pipelineExpression)
+
+  @Headers("Accept: application/json")
+  @GET("/pipelines/{id}/{stageId}/evaluateExpression")
+  Map evaluateExpressionForExecutionAtStage(@Path("id") String executionId, @Path("stageId") String stageId, @Query("expression") String pipelineExpression)
 
   @Headers("Accept: application/json")
   @GET("/webhooks/preconfigured")
