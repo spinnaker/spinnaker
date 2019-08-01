@@ -54,6 +54,7 @@ import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.commons.lang3.time.DurationFormatUtils
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
@@ -310,7 +311,9 @@ class RunTaskHandler(
     try {
       MDC.put("stageType", type)
       MDC.put("taskType", taskModel.implementingClass)
-
+      if (execution.name != null) {
+        MDC.put(AuthenticatedRequest.Header.makeCustomHeader("pipeline-name"), execution.name)
+      }
       if (taskModel.startTime != null) {
         MDC.put("taskStartTime", taskModel.startTime.toString())
       }
