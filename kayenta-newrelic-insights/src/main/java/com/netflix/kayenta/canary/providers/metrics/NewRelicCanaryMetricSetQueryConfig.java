@@ -18,28 +18,44 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonTypeName("newrelic")
 public class NewRelicCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
-  @Getter private String q;
+  public static final String SERVICE_TYPE = "newrelic";
 
-  @NotNull @Getter private String select;
+  @Nullable @Getter private String q;
 
-  @Getter private String resolution;
+  @Nullable @Getter private String select;
+
+  @Nullable @Getter private String customInlineTemplate;
+
+  @Getter private String customFilterTemplate;
+
+  @Override
+  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    if (StringUtils.isEmpty(customInlineTemplate)) {
+      return this;
+    } else {
+      return this.toBuilder()
+          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
+          .build();
+    }
+  }
 
   @Override
   public String getServiceType() {
-    return "newrelic";
+    return SERVICE_TYPE;
   }
 }

@@ -27,8 +27,9 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -59,14 +60,38 @@ public class NewRelicConfiguration {
     return new NewRelicConfigurationTestControllerDefaultProperties();
   }
 
+  /**
+   * Create a map of account name to scope configurations. This allows operators to define default
+   * scope and location keys which can sometimes be the same for all users within an org.
+   *
+   * <p>For example, some companies always add the attribute region to be the current deployed
+   * region, so the defaultLocation key can be `region`
+   *
+   * @param newrelicConfigurationProperties Wrapper object around the list of configured accounts.
+   * @return map of account name to default scope configurations.
+   */
+  @Bean
+  Map<String, NewRelicScopeConfiguration> newrelicScopeConfigurationMap(
+      NewRelicConfigurationProperties newrelicConfigurationProperties) {
+    return newrelicConfigurationProperties.getAccounts().stream()
+        .collect(
+            Collectors.toMap(
+                NewRelicManagedAccount::getName,
+                accountConfig ->
+                    NewRelicScopeConfiguration.builder()
+                        .defaultScopeKey(accountConfig.getDefaultScopeKey())
+                        .defaultLocationKey(accountConfig.getDefaultLocationKey())
+                        .build()));
+  }
+
   @Bean
   MetricsService newrelicMetricsService(
       NewRelicConfigurationProperties newrelicConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
       OkHttpClient okHttpClient,
-      AccountCredentialsRepository accountCredentialsRepository)
-      throws IOException {
+      AccountCredentialsRepository accountCredentialsRepository) {
+
     NewRelicMetricsService.NewRelicMetricsServiceBuilder metricsServiceBuilder =
         NewRelicMetricsService.builder();
 
@@ -106,8 +131,11 @@ public class NewRelicConfiguration {
     }
 
     log.info(
-        "Populated NewRelicMetricsService with {} NewRelic accounts.",
-        newrelicConfigurationProperties.getAccounts().size());
+        "Configured the New Relic Metrics Service with the following accounts: {}",
+        newrelicConfigurationProperties.getAccounts().stream()
+            .map(NewRelicManagedAccount::getName)
+            .collect(Collectors.joining(",")));
+
     return metricsServiceBuilder.build();
   }
 }

@@ -16,44 +16,42 @@
 
 package com.netflix.kayenta.newrelic.canary;
 
+import static com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQueryConfig.SERVICE_TYPE;
+
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NewRelicCanaryScopeFactory implements CanaryScopeFactory {
-  private static final String SCOPE_KEY_KEY = "_scope_key";
+  public static final String SCOPE_KEY_KEY = "_scope_key";
+  public static String LOCATION_KEY_KEY = "_location_key";
 
   @Override
   public boolean handles(String serviceType) {
-    return "newrelic".equals(serviceType);
+    return SERVICE_TYPE.equals(serviceType);
   }
 
   @Override
   public CanaryScope buildCanaryScope(CanaryScope canaryScope) {
-    Map<String, String> extendedParameters =
-        Optional.ofNullable(canaryScope.getExtendedScopeParams())
-            .orElseThrow(
-                () -> new IllegalArgumentException("New Relic requires extended parameters"));
 
     NewRelicCanaryScope newRelicCanaryScope = new NewRelicCanaryScope();
     newRelicCanaryScope.setScope(canaryScope.getScope());
+    newRelicCanaryScope.setLocation(canaryScope.getLocation());
     newRelicCanaryScope.setStart(canaryScope.getStart());
     newRelicCanaryScope.setEnd(canaryScope.getEnd());
     newRelicCanaryScope.setStep(canaryScope.getStep());
-    newRelicCanaryScope.setExtendedScopeParams(extendedParameters);
-    newRelicCanaryScope.setScopeKey(getRequiredExtendedParam(SCOPE_KEY_KEY, extendedParameters));
+
+    Optional.ofNullable(canaryScope.getExtendedScopeParams())
+        .ifPresent(
+            extendedParameters -> {
+              newRelicCanaryScope.setScopeKey(extendedParameters.getOrDefault(SCOPE_KEY_KEY, null));
+              newRelicCanaryScope.setLocationKey(
+                  extendedParameters.getOrDefault(LOCATION_KEY_KEY, null));
+              newRelicCanaryScope.setExtendedScopeParams(extendedParameters);
+            });
 
     return newRelicCanaryScope;
-  }
-
-  private String getRequiredExtendedParam(String key, Map<String, String> extendedParameters) {
-    if (!extendedParameters.containsKey(key)) {
-      throw new IllegalArgumentException(
-          String.format("New Relic requires that %s is set in the extended scope params", key));
-    }
-    return extendedParameters.get(key);
   }
 }

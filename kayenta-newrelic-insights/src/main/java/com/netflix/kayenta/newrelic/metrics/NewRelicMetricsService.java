@@ -23,6 +23,7 @@ import com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQuery
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.newrelic.canary.NewRelicCanaryScope;
+import com.netflix.kayenta.newrelic.config.NewRelicScopeConfiguration;
 import com.netflix.kayenta.newrelic.security.NewRelicCredentials;
 import com.netflix.kayenta.newrelic.security.NewRelicNamedAccountCredentials;
 import com.netflix.kayenta.newrelic.service.NewRelicRemoteService;
@@ -32,7 +33,7 @@ import com.netflix.spectator.api.Registry;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,7 +43,6 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 @Builder
 @Slf4j
@@ -52,7 +52,11 @@ public class NewRelicMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
+  @Autowired private final Map<String, NewRelicScopeConfiguration> newrelicScopeConfigurationMap;
+
   @Autowired private final Registry registry;
+
+  @Autowired private final NewRelicQueryBuilderService queryBuilder;
 
   @Override
   public String getType() {
@@ -72,54 +76,16 @@ public class NewRelicMetricsService implements MetricsService {
       CanaryScope canaryScope)
       throws IOException {
 
+    NewRelicScopeConfiguration scopeConfiguration =
+        newrelicScopeConfigurationMap.get(metricsAccountName);
+
     NewRelicCanaryScope newRelicCanaryScope = (NewRelicCanaryScope) canaryScope;
 
     NewRelicCanaryMetricSetQueryConfig queryConfig =
         (NewRelicCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
 
-    // Example for a query produced by this class:
-    // SELECT count(*) FROM Transaction TIMESERIES MAX SINCE 1540382125 UNTIL 1540392125
-    // WHERE appName LIKE 'PROD - Service' AND httpResponseCode >= '500'
-
-    // we expect the full select statement to be in the config
-    StringBuilder query = new StringBuilder(queryConfig.getSelect());
-    query.append(" TIMESERIES ");
-
-    if (newRelicCanaryScope.getStep() == 0) {
-      query.append("MAX");
-    } else {
-      query.append(newRelicCanaryScope.getStep());
-      query.append(" seconds");
-    }
-
-    query.append(" SINCE ");
-    query.append(newRelicCanaryScope.getStart().getEpochSecond());
-    query.append(" UNTIL ");
-    query.append(newRelicCanaryScope.getEnd().getEpochSecond());
-    query.append(" WHERE ");
-    if (!StringUtils.isEmpty(queryConfig.getQ())) {
-      query.append(queryConfig.getQ());
-      query.append(" AND ");
-    }
-
-    for (Map.Entry<String, String> extendedParam :
-        newRelicCanaryScope.getExtendedScopeParams().entrySet()) {
-      if (extendedParam.getKey().startsWith("_")) {
-        continue;
-      }
-      query.append(extendedParam.getKey());
-      query.append(" LIKE ");
-      query.append('\'');
-      query.append(extendedParam.getValue());
-      query.append('\'');
-      query.append(" AND ");
-    }
-
-    query.append(newRelicCanaryScope.getScopeKey());
-    query.append(" LIKE '");
-    query.append(newRelicCanaryScope.getScope());
-    query.append('\'');
-    return query.toString();
+    return queryBuilder.buildQuery(
+        canaryConfig, newRelicCanaryScope, queryConfig, scopeConfiguration);
   }
 
   @Override
@@ -141,11 +107,11 @@ public class NewRelicMetricsService implements MetricsService {
     NewRelicCredentials credentials = accountCredentials.getCredentials();
     NewRelicRemoteService remoteService = accountCredentials.getNewRelicRemoteService();
 
+    String query = buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope);
+
     NewRelicTimeSeries timeSeries =
         remoteService.getTimeSeries(
-            credentials.getApiKey(),
-            credentials.getApplicationKey(),
-            buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString());
+            credentials.getApiKey(), credentials.getApplicationKey(), query);
 
     Instant begin = Instant.ofEpochMilli(timeSeries.getMetadata().getBeginTimeMillis());
     Instant end = Instant.ofEpochMilli(timeSeries.getMetadata().getEndTimeMillis());
@@ -155,7 +121,7 @@ public class NewRelicMetricsService implements MetricsService {
       stepDuration = calculateStepDuration(timeSeries);
     }
 
-    return Arrays.asList(
+    return Collections.singletonList(
         MetricSet.builder()
             .name(canaryMetricConfig.getName())
             .startTimeMillis(begin.toEpochMilli())
@@ -164,6 +130,7 @@ public class NewRelicMetricsService implements MetricsService {
             .endTimeMillis(end.toEpochMilli())
             .endTimeIso(end.toString())
             .values(timeSeries.getDataPoints().collect(Collectors.toList()))
+            .attribute("query", query)
             .build());
   }
 

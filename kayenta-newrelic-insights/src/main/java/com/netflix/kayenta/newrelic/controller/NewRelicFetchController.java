@@ -17,11 +17,11 @@
 package com.netflix.kayenta.newrelic.controller;
 
 import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefaultProperty;
+import static com.netflix.kayenta.newrelic.canary.NewRelicCanaryScopeFactory.LOCATION_KEY_KEY;
+import static com.netflix.kayenta.newrelic.canary.NewRelicCanaryScopeFactory.SCOPE_KEY_KEY;
 
-import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
+import com.netflix.kayenta.newrelic.canary.NewRelicCanaryScope;
 import com.netflix.kayenta.newrelic.config.NewRelicConfigurationTestControllerDefaultProperties;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -29,15 +29,13 @@ import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/fetch/newrelic")
@@ -65,16 +63,21 @@ public class NewRelicFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "avg:system.cpu.user") @RequestParam String metricName,
+      @ApiParam(required = true) @Valid @RequestBody NewRelicFetchRequest newRelicFetchRequest,
       @ApiParam(value = "The scope of the NewRelic query. e.g. autoscaling_group:myapp-prod-v002")
           @RequestParam(required = false)
           String scope,
+      @ApiParam(value = "The location of the NewRelic query. e.g. us-west-2")
+          @RequestParam(required = false)
+          String location,
       @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String start,
       @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String end,
       @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
+      @ApiParam(defaultValue = "0", value = "canary config metrics index")
+          @RequestParam(required = false)
+          Integer metricIndex,
       @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
       throws IOException {
 
@@ -105,25 +108,28 @@ public class NewRelicFetchController {
         CredentialsHelper.resolveAccountByNameOrType(
             storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
 
-    NewRelicCanaryMetricSetQueryConfig newrelicCanaryMetricSetQueryConfig =
-        NewRelicCanaryMetricSetQueryConfig.builder().q(metricName).build();
+    NewRelicCanaryScope canaryScope = new NewRelicCanaryScope();
+    canaryScope.setScope(scope);
 
-    CanaryMetricConfig canaryMetricConfig =
-        CanaryMetricConfig.builder()
-            .name(metricSetName)
-            .query(newrelicCanaryMetricSetQueryConfig)
-            .build();
+    Optional.ofNullable(newRelicFetchRequest.extendedScopeParams)
+        .ifPresent(
+            esp -> {
+              canaryScope.setLocationKey(esp.getOrDefault(LOCATION_KEY_KEY, null));
+              canaryScope.setScopeKey(esp.getOrDefault(SCOPE_KEY_KEY, null));
+            });
 
-    CanaryScope canaryScope =
-        new CanaryScope(
-            scope, null, Instant.parse(start), Instant.parse(end), step, Collections.emptyMap());
+    canaryScope.setLocation(location);
+    canaryScope.setStart(Instant.parse(start));
+    canaryScope.setEnd(Instant.parse(end));
+    canaryScope.setStep(step);
+    canaryScope.setExtendedScopeParams(newRelicFetchRequest.extendedScopeParams);
 
     return synchronousQueryProcessor.processQueryAndReturnMap(
         resolvedMetricsAccountName,
         resolvedStorageAccountName,
-        null,
-        canaryMetricConfig,
-        0,
+        newRelicFetchRequest.getCanaryConfig(),
+        newRelicFetchRequest.getCanaryMetricConfig(),
+        Optional.ofNullable(metricIndex).orElse(0),
         canaryScope,
         dryRun);
   }

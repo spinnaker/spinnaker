@@ -19,6 +19,7 @@ package com.netflix.kayenta.newrelic.config;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -30,6 +31,10 @@ public class NewRelicManagedAccount {
   private String applicationKey;
 
   @NotNull private RemoteService endpoint;
+
+  @Nullable private String defaultScopeKey;
+
+  @Nullable private String defaultLocationKey;
 
   private List<AccountCredentials.Type> supportedTypes;
 }

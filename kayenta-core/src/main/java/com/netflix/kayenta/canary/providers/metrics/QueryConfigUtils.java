@@ -147,7 +147,11 @@ public class QueryConfigUtils {
           }
         }
 
-        String propertyValue = (String) propertyDescriptor.get().getReadMethod().invoke(bean);
+        // Some stuff like start, end and step can't be cast to a string.
+        String propertyValue =
+            Optional.ofNullable(propertyDescriptor.get().getReadMethod().invoke(bean))
+                .map(String::valueOf)
+                .orElse(null);
 
         if (!StringUtils.isEmpty(propertyValue)) {
           templateBindings.put(baseScopeAttribute, propertyValue);
