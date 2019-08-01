@@ -10,6 +10,7 @@ export interface IWebhookStageViewState {
   statusUrlResolution: string;
   failFastStatusCodes: string;
   retryStatusCodes: string;
+  signalCancellation?: boolean;
 }
 
 export interface IWebhookStageCommand {
@@ -43,6 +44,7 @@ interface IPreconfiguredWebhook {
 
 export class WebhookStage implements IController {
   public command: IWebhookStageCommand;
+  public cancelCommand: IWebhookStageCommand;
   public viewState: IWebhookStageViewState;
   public methods: string[];
   public preconfiguredProperties: string[];
@@ -62,6 +64,10 @@ export class WebhookStage implements IController {
 
     this.command = {
       payloadJSON: JsonUtils.makeSortedStringFromObject(this.stage.payload || {}),
+    };
+
+    this.cancelCommand = {
+      payloadJSON: JsonUtils.makeSortedStringFromObject(this.stage.cancelPayload || {}),
     };
 
     this.stage.statusUrlResolution = this.viewState.statusUrlResolution;
@@ -89,18 +95,52 @@ export class WebhookStage implements IController {
   }
 
   public updatePayload(): void {
-    this.command.invalid = false;
-    this.command.errorMessage = '';
-    try {
-      this.stage.payload = this.command.payloadJSON ? JSON.parse(this.command.payloadJSON) : null;
-    } catch (e) {
-      this.command.invalid = true;
-      this.command.errorMessage = e.message;
+    const payload = WebhookStage.checkAndGetPayload(this.command);
+
+    if (payload !== undefined) {
+      this.stage.payload = payload;
     }
+  }
+
+  public updateCancelPayload(): void {
+    const payload = WebhookStage.checkAndGetPayload(this.cancelCommand);
+
+    if (payload !== undefined) {
+      this.stage.cancelPayload = payload;
+    }
+  }
+
+  private static checkAndGetPayload(command: IWebhookStageCommand): void {
+    command.invalid = false;
+    command.errorMessage = '';
+
+    try {
+      return command.payloadJSON ? JSON.parse(command.payloadJSON) : null;
+    } catch (e) {
+      command.invalid = true;
+      command.errorMessage = e.message;
+    }
+
+    return undefined;
   }
 
   public waitForCompletionChanged(): void {
     this.stage.waitForCompletion = this.viewState.waitForCompletion;
+  }
+
+  public signalCancellationChanged(): void {
+    if (!this.viewState.signalCancellation) {
+      // Reset the data to "defaults" when user disables this option
+      delete this.stage.cancelEndpoint;
+      delete this.stage.cancelMethod;
+      delete this.stage.cancelPayload;
+
+      this.cancelCommand = {
+        payloadJSON: JsonUtils.makeSortedStringFromObject(this.stage.cancelPayload || {}),
+      };
+    } else {
+      this.stage.cancelMethod = 'POST';
+    }
   }
 
   public statusUrlResolutionChanged(): void {
