@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.kork.expressions;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.expressions.whitelisting.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -30,19 +31,19 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * classes (via whitelisting)
  */
 public class ExpressionsSupport {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionsSupport.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  private final Logger LOGGER = LoggerFactory.getLogger(ExpressionsSupport.class);
-  private final Map<String, List<Class<?>>> registeredHelperFunctions = new HashMap<>();
-  private final Set<Class<?>> allowedReturnTypes;
 
-  public ExpressionsSupport(Class<?>... extraAllowedReturnTypes) {
-    this.registeredHelperFunctions.put("toJson", Collections.singletonList(Object.class));
-    Stream.of(
-            "alphanumerical", "readJson", "toInt", "toFloat", "toBoolean", "toBase64", "fromBase64")
-        .forEach(
-            fn -> {
-              this.registeredHelperFunctions.put(fn, Collections.singletonList(String.class));
-            });
+  private final Set<Class<?>> allowedReturnTypes;
+  private final List<ExpressionFunctionProvider> expressionFunctionProviders;
+
+  public ExpressionsSupport(Class<?> extraAllowedReturnType) {
+    this(new Class[] {extraAllowedReturnType}, null);
+  }
+
+  public ExpressionsSupport(
+      Class<?>[] extraAllowedReturnTypes,
+      List<ExpressionFunctionProvider> extraExpressionFunctionProviders) {
 
     this.allowedReturnTypes =
         new HashSet<>(
@@ -62,113 +63,35 @@ public class ExpressionsSupport {
                 TreeMap.class,
                 TreeSet.class));
     Collections.addAll(this.allowedReturnTypes, extraAllowedReturnTypes);
-  }
 
-  /** Internally registers a SpEL method to an evaluation context */
-  private static void registerFunction(
-      StandardEvaluationContext context, String name, Class<?>... types)
-      throws NoSuchMethodException {
-    context.registerFunction(name, ExpressionsSupport.class.getDeclaredMethod(name, types));
-  }
-
-  /**
-   * Parses a string to an integer
-   *
-   * @param str represents an int
-   * @return an integer
-   */
-  public static Integer toInt(String str) {
-    return Integer.valueOf(str);
-  }
-
-  /*
-   * HELPER FUNCTIONS: These functions are explicitly registered with each invocation To add a new
-   * helper function, append the function below and update ExpressionHelperFunctions and
-   * registeredHelperFunctions
-   */
-
-  /**
-   * Parses a string to a float
-   *
-   * @param str represents an float
-   * @return an float
-   */
-  public static Float toFloat(String str) {
-    return Float.valueOf(str);
-  }
-
-  /**
-   * Parses a string to a boolean
-   *
-   * @param str represents an boolean
-   * @return a boolean
-   */
-  public static Boolean toBoolean(String str) {
-    return Boolean.valueOf(str);
-  }
-
-  /**
-   * Encodes a string to base64
-   *
-   * @param text plain string
-   * @return converted string
-   */
-  public static String toBase64(String text) {
-    return Base64.getEncoder().encodeToString(text.getBytes());
-  }
-
-  /**
-   * Attempts to decode a base64 string
-   *
-   * @param text plain string
-   * @return decoded string
-   */
-  public static String fromBase64(String text) {
-    return new String(Base64.getDecoder().decode(text), StandardCharsets.UTF_8);
-  }
-
-  /**
-   * Converts a String to alpha numeric
-   *
-   * @param str string to convert
-   * @return converted string
-   */
-  public static String alphanumerical(String str) {
-    return str.replaceAll("[^A-Za-z0-9]", "");
-  }
-
-  /**
-   * @param o represents an object to convert to json
-   * @return json representation of the said object
-   */
-  public static String toJson(Object o) {
-    try {
-      String converted = mapper.writeValueAsString(o);
-      if (converted != null && converted.contains("${")) {
-        throw new SpelHelperFunctionException("result for toJson cannot contain an expression");
-      }
-
-      return converted;
-    } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#toJson(%s) failed", o.toString()), e);
+    this.expressionFunctionProviders =
+        new ArrayList<>(
+            Arrays.asList(
+                new JsonExpressionFunctionProvider(), new StringExpressionFunctionProvider()));
+    if (extraExpressionFunctionProviders != null) {
+      this.expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
     }
   }
 
-  /**
-   * Attemps to read json from a text String. Will throw a parsing exception on bad json
-   *
-   * @param text text to read as json
-   * @return the json representation of the text
-   */
-  public static Object readJson(String text) {
+  private static void registerFunction(
+      StandardEvaluationContext context,
+      String registrationName,
+      Class<?> cls,
+      String methodName,
+      Class<?>... types) {
     try {
-      if (text.startsWith("[")) {
-        return mapper.readValue(text, List.class);
-      }
-
-      return mapper.readValue(text, Map.class);
-    } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#readJson(%s) failed", text), e);
+      context.registerFunction(registrationName, cls.getDeclaredMethod(methodName, types));
+    } catch (NoSuchMethodException e) {
+      LOGGER.error("Failed to register helper function", e);
+      throw new RuntimeException(
+          "Failed to register helper function '"
+              + registrationName
+              + "' from '"
+              + cls.getName()
+              + "#"
+              + methodName
+              + "'",
+          e);
     }
   }
 
@@ -183,6 +106,16 @@ public class ExpressionsSupport {
       Object rootObject, boolean allowUnknownKeys) {
     ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
 
+    StandardEvaluationContext evaluationContext =
+        createEvaluationContext(rootObject, allowUnknownKeys, returnTypeRestrictor);
+
+    registerExpressionProviderFunctions(evaluationContext);
+
+    return evaluationContext;
+  }
+
+  private StandardEvaluationContext createEvaluationContext(
+      Object rootObject, boolean allowUnknownKeys, ReturnTypeRestrictor returnTypeRestrictor) {
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
     evaluationContext.setTypeLocator(new WhitelistTypeLocator());
     evaluationContext.setMethodResolvers(
@@ -191,18 +124,163 @@ public class ExpressionsSupport {
         Arrays.asList(
             new MapPropertyAccessor(allowUnknownKeys),
             new FilteredPropertyAccessor(returnTypeRestrictor)));
+    return evaluationContext;
+  }
 
-    try {
-      for (Map.Entry<String, List<Class<?>>> m : registeredHelperFunctions.entrySet()) {
-        registerFunction(evaluationContext, m.getKey(), m.getValue().toArray(new Class<?>[0]));
+  private void registerExpressionProviderFunctions(StandardEvaluationContext evaluationContext) {
+    for (ExpressionFunctionProvider p : expressionFunctionProviders) {
+      for (ExpressionFunctionProvider.FunctionDefinition function :
+          p.getFunctions().getFunctionsDefinitions()) {
+        String namespacedFunctionName = function.getName();
+        if (p.getNamespace() != null) {
+          namespacedFunctionName = format("%s_%s", p.getNamespace(), namespacedFunctionName);
+        }
+
+        Class[] functionTypes =
+            function.getParameters().stream()
+                .map(ExpressionFunctionProvider.FunctionParameter::getType)
+                .toArray(Class[]::new);
+
+        LOGGER.info(
+            "Registering Expression Function: {}({})", namespacedFunctionName, functionTypes);
+
+        registerFunction(
+            evaluationContext,
+            namespacedFunctionName,
+            p.getClass(),
+            function.getName(),
+            functionTypes);
       }
-    } catch (NoSuchMethodException e) {
-      // Indicates a function was not properly registered. This should not happen. Please fix the
-      // faulty
-      // function
-      LOGGER.error("Failed to register helper functions for rootObject {}", rootObject, e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class JsonExpressionFunctionProvider implements ExpressionFunctionProvider {
+    @Override
+    public String getNamespace() {
+      return null;
     }
 
-    return evaluationContext;
+    @Override
+    public Functions getFunctions() {
+      return new Functions(
+          new FunctionDefinition(
+              "toJson",
+              new FunctionParameter(
+                  Object.class, "value", "An Object to marshall to a JSON String")));
+    }
+
+    /**
+     * @param o represents an object to convert to json
+     * @return json representation of the said object
+     */
+    public static String toJson(Object o) {
+      try {
+        String converted = mapper.writeValueAsString(o);
+        if (converted != null && converted.contains("${")) {
+          throw new SpelHelperFunctionException("result for toJson cannot contain an expression");
+        }
+
+        return converted;
+      } catch (Exception e) {
+        throw new SpelHelperFunctionException(format("#toJson(%s) failed", o.toString()), e);
+      }
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class StringExpressionFunctionProvider implements ExpressionFunctionProvider {
+    @Override
+    public String getNamespace() {
+      return null;
+    }
+
+    @Override
+    public Functions getFunctions() {
+      return new Functions(
+          new FunctionDefinition(
+              "toInt",
+              new FunctionParameter(String.class, "value", "A String value to convert to an int")),
+          new FunctionDefinition(
+              "toFloat",
+              new FunctionParameter(String.class, "value", "A String value to convert to a float")),
+          new FunctionDefinition(
+              "toBoolean",
+              new FunctionParameter(
+                  String.class, "value", "A String value to convert to a boolean")),
+          new FunctionDefinition(
+              "toBase64",
+              new FunctionParameter(String.class, "value", "A String value to base64 encode")),
+          new FunctionDefinition(
+              "fromBase64",
+              new FunctionParameter(
+                  String.class, "value", "A base64-encoded String value to decode")),
+          new FunctionDefinition(
+              "alphanumerical",
+              new FunctionParameter(
+                  String.class,
+                  "value",
+                  "A String value to strip of all non-alphanumeric characters")));
+    }
+
+    /**
+     * Parses a string to an integer
+     *
+     * @param str represents an int
+     * @return an integer
+     */
+    public static Integer toInt(String str) {
+      return Integer.valueOf(str);
+    }
+
+    /**
+     * Parses a string to a float
+     *
+     * @param str represents an float
+     * @return an float
+     */
+    public static Float toFloat(String str) {
+      return Float.valueOf(str);
+    }
+
+    /**
+     * Parses a string to a boolean
+     *
+     * @param str represents an boolean
+     * @return a boolean
+     */
+    public static Boolean toBoolean(String str) {
+      return Boolean.valueOf(str);
+    }
+
+    /**
+     * Encodes a string to base64
+     *
+     * @param text plain string
+     * @return converted string
+     */
+    public static String toBase64(String text) {
+      return Base64.getEncoder().encodeToString(text.getBytes());
+    }
+
+    /**
+     * Attempts to decode a base64 string
+     *
+     * @param text plain string
+     * @return decoded string
+     */
+    public static String fromBase64(String text) {
+      return new String(Base64.getDecoder().decode(text), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Converts a String to alpha numeric
+     *
+     * @param str string to convert
+     * @return converted string
+     */
+    public static String alphanumerical(String str) {
+      return str.replaceAll("[^A-Za-z0-9]", "");
+    }
   }
 }
