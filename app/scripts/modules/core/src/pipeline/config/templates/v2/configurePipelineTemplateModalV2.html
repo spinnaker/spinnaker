@@ -32,7 +32,7 @@
   <div ng-if="ctrl.state.noVariables && !ctrl.state.error" class="alert alert-info">
     <p>This template has no variables to configure.</p>
   </div>
-  <div ng-if="!ctrl.state.error" class="alert alert-info">
+  <div ng-if="!ctrl.state.error && !ctrl.state.loadingError" class="alert alert-info">
     <strong>Inherit the following configuration from the template</strong>
     <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateNotifications" /> Notifications</p>
     <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateParameters" /> Parameters</p>

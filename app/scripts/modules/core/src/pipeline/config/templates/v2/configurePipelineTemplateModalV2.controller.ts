@@ -171,12 +171,22 @@ export class ConfigurePipelineTemplateModalV2Controller implements IController {
     return chain(this.variables || [])
       .cloneDeep()
       .map(v => {
-        if (v.type === 'object') {
-          v.value = JSON.parse(v.value);
-        } else if (v.type === 'int') {
-          return [v.name, parseInt(v.value, 10)];
-        } else if (v.type === 'float') {
-          return [v.name, parseFloat(v.value)];
+        switch (v.type) {
+          case 'boolean':
+            v.value = !!v.value;
+            break;
+
+          case 'object':
+            v.value = JSON.parse(v.value);
+            break;
+
+          case 'int':
+            v.value = parseInt(v.value, 10);
+            break;
+
+          case 'float':
+            v.value = parseFloat(v.value);
+            break;
         }
         return [v.name, v.value];
       })
