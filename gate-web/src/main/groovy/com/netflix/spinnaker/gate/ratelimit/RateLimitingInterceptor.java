@@ -168,6 +168,6 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     if (rate.isThrottled()) {
       registry.counter("rateLimit.principal.throttled", tags).increment();
     }
-    registry.gauge("rateLimit.principal.remaining", tags, rate.remaining);
+    registry.counter("rateLimit.principal.requests", tags).increment();
   }
 }
