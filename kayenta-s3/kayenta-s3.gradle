@@ -2,8 +2,7 @@ dependencies {
   implementation project(":kayenta-core")
   implementation project(":kayenta-aws")
 
-  api "com.amazonaws:aws-java-sdk"
-  api "com.netflix.awsobjectmapper:awsobjectmapper"
+  api "com.amazonaws:aws-java-sdk-s3"
   api "org.apache.httpcomponents:httpclient"
   api "org.apache.httpcomponents:httpcore"
 }

@@ -1,5 +1,5 @@
 dependencies {
   implementation project(":kayenta-core")
 
-  api "com.amazonaws:aws-java-sdk"
+  api "com.amazonaws:aws-java-sdk-s3"
 }

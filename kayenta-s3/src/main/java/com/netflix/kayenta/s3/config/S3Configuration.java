@@ -16,9 +16,7 @@
 
 package com.netflix.kayenta.s3.config;
 
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
 import com.netflix.kayenta.s3.storage.S3StorageService;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -43,8 +41,6 @@ public class S3Configuration {
   @DependsOn({"registerAwsCredentials"})
   public S3StorageService s3StorageService(
       AccountCredentialsRepository accountCredentialsRepository) {
-    AmazonObjectMapperConfigurer.configure(kayentaObjectMapper);
-    kayentaObjectMapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, true);
     S3StorageService.S3StorageServiceBuilder s3StorageServiceBuilder = S3StorageService.builder();
 
     accountCredentialsRepository.getAll().stream()
