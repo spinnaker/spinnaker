@@ -16,15 +16,10 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import java.nio.charset.Charset
-import java.time.Clock
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -50,6 +45,13 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+
+import java.nio.charset.Charset
+import java.time.Clock
+import java.time.ZoneOffset
+import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
@@ -514,6 +516,37 @@ class TaskController {
       true
     )
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
+  }
+
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/{id}/{stageId}/evaluateExpression", method = RequestMethod.GET)
+  Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
+                                            @PathVariable("stageId") String stageId,
+                                            @RequestParam("expression") String expression) {
+    def execution = executionRepository.retrieve(PIPELINE, id)
+    def stage = execution.stages.find{it.id == stageId}
+
+    if (stage == null) {
+      throw new NotFoundException("Stage $stageId not found in execution $id")
+    }
+
+    def evaluated = contextParameterProcessor.process(
+      [expression: expression],
+      augmentContext(stage),
+      true
+    )
+    return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
+  }
+  
+  /**
+   * Adds trigger and execution to stage context so that expression evaluation can be tested.
+   * This is not great, because it's brittle, but it's very useful to be able to test expressions.
+   */
+  private Map<String, Object> augmentContext(Stage stage) {
+    Map <String, Object> augmentedContext = stage.context
+    augmentedContext.put("trigger", stage.execution.trigger)
+    augmentedContext.put("execution", stage.execution)
+    return augmentedContext
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
