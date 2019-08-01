@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Nike, inc.
+ * Copyright 2019 Playtika
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.kayenta.utils;
 
-package com.netflix.kayenta.standalonecanaryanalysis.config;
+import java.util.Map;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+public class EnvironmentUtils {
 
-@Configuration
-@ConditionalOnProperty("kayenta.standalone-canary-analysis.enabled")
-@ComponentScan({"com.netflix.kayenta.standalonecanaryanalysis"})
-@Slf4j
-public class StandaloneCanaryAnalysisModuleConfiguration {}
+  public static void registerPropertySource(
+      String name, ConfigurableEnvironment environment, Map<String, Object> map) {
+    MapPropertySource propertySource = new MapPropertySource(name, map);
+    environment.getPropertySources().addFirst(propertySource);
+  }
+}

@@ -1,0 +1,9 @@
+kayenta:
+  prometheus:
+    enabled: true
+    accounts:
+      - name: prometheus-account
+        endpoint:
+          baseUrl: http://localhost:${embedded.prometheus.port}
+        supportedTypes:
+          - METRICS_STORE

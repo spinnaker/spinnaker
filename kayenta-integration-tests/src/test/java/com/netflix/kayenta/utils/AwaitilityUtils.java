@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Nike, inc.
+ * Copyright 2019 Playtika
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.kayenta.utils;
 
-package com.netflix.kayenta.standalonecanaryanalysis.config;
+import static org.awaitility.Awaitility.await;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import java.util.concurrent.TimeUnit;
+import org.awaitility.core.ThrowingRunnable;
 
-@Configuration
-@ConditionalOnProperty("kayenta.standalone-canary-analysis.enabled")
-@ComponentScan({"com.netflix.kayenta.standalonecanaryanalysis"})
-@Slf4j
-public class StandaloneCanaryAnalysisModuleConfiguration {}
+public class AwaitilityUtils {
+
+  public static void awaitThirtySecondsUntil(ThrowingRunnable throwingRunnable) {
+    await()
+        .atMost(30, TimeUnit.SECONDS)
+        .pollInterval(500, TimeUnit.MILLISECONDS)
+        .untilAsserted(throwingRunnable);
+  }
+}

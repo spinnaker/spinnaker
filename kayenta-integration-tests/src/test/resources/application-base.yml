@@ -1,0 +1,63 @@
+
+redis.connection: redis://${embedded.redis.user}:${embedded.redis.password}@localhost:${embedded.redis.port}
+
+kayenta:
+  standaloneCanaryAnalysis.enabled: true
+
+  aws:
+    enabled: true
+    accounts:
+      - name: minio-store-account
+        bucket: kayenta-bucket
+        rootFolder: kayenta
+        endpoint: http://${embedded.minio.host}:${embedded.minio.port}
+        explicitCredentials:
+          accessKey: ${embedded.minio.accessKey}
+          secretKey: ${embedded.minio.secretKey}
+        supportedTypes:
+          - OBJECT_STORE
+          - CONFIGURATION_STORE
+
+  memory:
+    enabled: true
+    accounts:
+      - name: in-memory-store-account
+        supportedTypes:
+          - OBJECT_STORE
+
+  s3:
+    enabled: true
+
+server:
+  port: 8080
+
+
+# Does it make sense to publish all Kayenta metrics to all datasources in integraion tests?
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration
+management:
+  metrics:
+    binders:
+      files:
+        enabled: false
+      processor:
+        enabled: false
+      uptime:
+        enabled: false
+      logback:
+        enabled: false
+      jvm:
+        enabled: false
+
+  endpoints.web:
+    base-path: /
+    exposure.include: '*'
+  endpoint.health.show-details: always
+  server:
+    port: 8081
+
+# Disable checking Auth headers to external resources (pollutes logs with lots of warnings)
+ok-http-client:
+  interceptor:
+    skip-header-check: true

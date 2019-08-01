@@ -1,0 +1,23 @@
+dependencies {
+
+    testCompile project(":kayenta-web")
+    testCompile 'io.rest-assured:rest-assured:3.1.1'
+    testCompile 'org.awaitility:awaitility:3.1.6'
+    testCompile 'io.micrometer:micrometer-registry-prometheus'
+    testCompile 'io.micrometer:micrometer-registry-graphite'
+    testCompile 'org.springframework.cloud:spring-cloud-starter:2.1.2.RELEASE'// needed for bootstrap phase when all embedded containers are setup
+    testCompile 'com.playtika.testcontainers:embedded-redis:1.25'
+    testCompile 'com.playtika.testcontainers:embedded-minio:1.25'
+}
+
+test.testLogging {
+    showStandardStreams = true
+}
+
+gradle.taskGraph.whenReady {
+    tasks.test.enabled = (
+      properties.getOrDefault('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
+        || System.getProperty('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
+        || System.getenv().getOrDefault('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
+    )
+}

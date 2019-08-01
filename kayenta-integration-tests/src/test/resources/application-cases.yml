@@ -1,0 +1,39 @@
+canary-analysis.cases:
+
+  cpu-successful-analysis-case:
+    lifetime-duration-minutes: 1
+    analysis-interval-minutes: 1
+    namespace: 'prod-namespace-1'
+    control:
+      scope: 'myapp-prod-control-1'
+      metrics:
+      - name: 'integration.test.cpu'
+        lower-bound: 40
+        upper-bound: 45
+        type: gauge
+    experiment:
+      scope: 'myapp-prod-canary-1'
+      metrics:
+      - name: 'integration.test.cpu'
+        lower-bound: 39
+        upper-bound: 46
+        type: gauge
+
+  cpu-marginal-analysis-case:
+    lifetime-duration-minutes: 1
+    analysis-interval-minutes: 1
+    namespace: 'prod-namespace-2'
+    control:
+      scope: 'myapp-prod-control-2'
+      metrics:
+        - name: 'integration.test.cpu'
+          lower-bound: 10
+          upper-bound: 20
+          type: gauge
+    experiment:
+      scope: 'myapp-prod-canary-2'
+      metrics:
+        - name: 'integration.test.cpu'
+          lower-bound: 20
+          upper-bound: 23
+          type: gauge

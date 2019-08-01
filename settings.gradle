@@ -40,6 +40,7 @@ include 'kayenta-stackdriver'
 include 'kayenta-standalone-canary-analysis'
 include 'kayenta-wavefront'
 include 'kayenta-web'
+include 'kayenta-integration-tests'
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

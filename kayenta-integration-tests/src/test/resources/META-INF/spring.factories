@@ -1,0 +1,3 @@
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+com.netflix.kayenta.configuration.EmbeddedPrometheusBootstrapConfiguration,\
+com.netflix.kayenta.configuration.EmbeddedGraphiteBootstrapConfiguration
