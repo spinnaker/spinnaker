@@ -104,10 +104,8 @@ public class ExpressionsSupport {
    */
   public StandardEvaluationContext buildEvaluationContext(
       Object rootObject, boolean allowUnknownKeys) {
-    ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
-
     StandardEvaluationContext evaluationContext =
-        createEvaluationContext(rootObject, allowUnknownKeys, returnTypeRestrictor);
+        createEvaluationContext(rootObject, allowUnknownKeys);
 
     registerExpressionProviderFunctions(evaluationContext);
 
@@ -115,7 +113,9 @@ public class ExpressionsSupport {
   }
 
   private StandardEvaluationContext createEvaluationContext(
-      Object rootObject, boolean allowUnknownKeys, ReturnTypeRestrictor returnTypeRestrictor) {
+      Object rootObject, boolean allowUnknownKeys) {
+    ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
+
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
     evaluationContext.setTypeLocator(new WhitelistTypeLocator());
     evaluationContext.setMethodResolvers(
@@ -124,6 +124,7 @@ public class ExpressionsSupport {
         Arrays.asList(
             new MapPropertyAccessor(allowUnknownKeys),
             new FilteredPropertyAccessor(returnTypeRestrictor)));
+
     return evaluationContext;
   }
 
@@ -140,9 +141,6 @@ public class ExpressionsSupport {
             function.getParameters().stream()
                 .map(ExpressionFunctionProvider.FunctionParameter::getType)
                 .toArray(Class[]::new);
-
-        LOGGER.info(
-            "Registering Expression Function: {}({})", namespacedFunctionName, functionTypes);
 
         registerFunction(
             evaluationContext,
