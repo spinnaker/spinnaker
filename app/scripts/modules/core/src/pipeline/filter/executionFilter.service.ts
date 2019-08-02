@@ -328,7 +328,10 @@ export class ExecutionFilterService {
 
   public static executionGroupSorter(a: IExecutionGroup, b: IExecutionGroup): number {
     if (ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'timeBoundary') {
-      return b.executions[0].startTime - a.executions[0].startTime;
+      return (
+        (b.executions[0].startTime || b.executions[0].buildTime) -
+        (a.executions[0].startTime || a.executions[0].buildTime)
+      );
     }
     if (a.config && b.config) {
       if (a.config.strategy === b.config.strategy) {
