@@ -65,7 +65,7 @@ class InMemoryResourceRepository(
 
   override fun store(resource: Resource<*>) {
     resources[resource.uid] = resource
-    markCheckDue(resource)
+    lastCheckTimes[resource.uid] = EPOCH
   }
 
   override fun delete(name: ResourceName) {
@@ -105,10 +105,6 @@ class InMemoryResourceRepository(
         }
       }
       .map { uid -> ResourceHeader(resources[uid]!!) }
-  }
-
-  override fun markCheckDue(resource: Resource<*>) {
-    lastCheckTimes[resource.uid] = EPOCH
   }
 
   fun dropAll() {

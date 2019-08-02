@@ -94,7 +94,6 @@ class ResourcePersister(
         .also {
           resourceRepository.store(it)
           resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(), clock))
-          resourceRepository.markCheckDue(it)
         }
     } else {
       existing

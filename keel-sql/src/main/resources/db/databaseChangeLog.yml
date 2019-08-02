@@ -35,3 +35,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190726-create-veto-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190802-separate-table-for-check-timestamp.yml
+      relativeToChangelogFile: true

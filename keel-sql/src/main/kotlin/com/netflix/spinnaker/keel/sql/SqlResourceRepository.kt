@@ -15,11 +15,13 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import java.time.Instant.EPOCH
 
 class SqlResourceRepository(
@@ -89,6 +91,12 @@ class SqlResourceRepository(
       .onDuplicateKeyUpdate()
       .set(updatePairs)
       .execute()
+    jooq.insertInto(RESOURCE_LAST_CHECKED)
+      .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+      .onDuplicateKeyUpdate()
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+      .execute()
   }
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
@@ -107,14 +115,14 @@ class SqlResourceRepository(
 
   override fun appendHistory(event: ResourceEvent) {
     jooq.insertInto(RESOURCE_EVENT)
-      .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
-      .values(
-        event.uid.toString(),
-        event.timestamp.atZone(clock.zone).toLocalDateTime(),
-        objectMapper.writeValueAsString(event)
-      )
-      .execute()
-  }
+        .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
+        .values(
+          event.uid.toString(),
+          event.timestamp.atZone(clock.zone).toLocalDateTime(),
+          objectMapper.writeValueAsString(event)
+        )
+        .execute()
+    }
 
   override fun delete(name: ResourceName) {
     val uid = jooq.select(RESOURCE.UID)
@@ -133,20 +141,23 @@ class SqlResourceRepository(
 
   override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).atZone(clock.zone).toLocalDateTime()
+    val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return jooq.inTransaction {
       select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
-        .from(RESOURCE)
-        .where(RESOURCE.LAST_CHECKED.lessOrEqual(cutoff))
-        .orderBy(RESOURCE.LAST_CHECKED)
+        .from(RESOURCE, RESOURCE_LAST_CHECKED)
+        .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
+        .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
+        .orderBy(RESOURCE_LAST_CHECKED.AT)
         .limit(limit)
         .forUpdate()
         .fetch()
         .also {
           it.forEach { (uid, _, _, _) ->
-            update(RESOURCE)
-              .set(mapOf(RESOURCE.LAST_CHECKED to now))
-              .where(RESOURCE.UID.eq(uid))
+            insertInto(RESOURCE_LAST_CHECKED)
+              .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
+              .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
+              .onDuplicateKeyUpdate()
+              .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
               .execute()
           }
         }
@@ -156,13 +167,7 @@ class SqlResourceRepository(
     }
   }
 
-  override fun markCheckDue(resource: Resource<*>) {
-    jooq.update(RESOURCE)
-      // MySQL is stupid and won't let you insert a zero valued TIMESTAMP
-      .set(mapOf(RESOURCE.LAST_CHECKED to EPOCH.plusSeconds(1).atZone(clock.zone).toLocalDateTime()))
-      .where(RESOURCE.UID.eq(resource.uid.toString()))
-      .execute()
-  }
-
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

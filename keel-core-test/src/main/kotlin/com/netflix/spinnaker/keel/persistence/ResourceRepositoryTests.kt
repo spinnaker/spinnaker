@@ -310,7 +310,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
       }
 
-      test("if a resource was explicitly marked due for checking is it returned") {
+      test("after a resource is updated is it returned") {
         val resource = subject.get(
           ResourceName("ec2:security-group:test:us-west-2:fnord-0"),
           Any::class.java
@@ -319,8 +319,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         nextResults()
         nextResults()
 
-        subject.markCheckDue(resource)
-        clock.incrementBy(Duration.ofSeconds(1))
+        subject.store(resource.copy(spec = randomData()))
 
         val results3 = nextResults()
 

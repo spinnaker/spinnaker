@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-timestamp-from-resource-table
+      author: fletch
+      changes:
+        - dropColumn:
+            tableName: resource
+            columnName: last_checked
+  - changeSet:
+      id: drop-last-checked-index-from-resource-table
+      author: fletch
+      failOnError: false # TODO: why is this happening to me?
+      changes:
+        - dropIndex:
+            tableName: resource
+            indexName: resource_last_checked_idx
+  - changeSet:
+      id: create-new-last-checked-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: resource_last_checked
+            columns:
+              - column:
+                  name: resource_uid
+                  type: char(26)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: at
+                  type: timestamp
+                  # MySQL is stupid and won't let you insert a zero valued TIMESTAMP
+                  defaultValueDate: "1970-01-01T00:00:01"
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+  - changeSet:
+      id: add-index-to-last-checked-table
+      author: fletch
+      changes:
+        - createIndex:
+            indexName: resource_last_checked_at_idx
+            tableName: resource_last_checked
+            columns:
+              - column:
+                  name: at
