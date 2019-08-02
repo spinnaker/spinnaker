@@ -20,7 +20,7 @@ publishing {
 
 ext {
   versions = [
-    aws           : "1.11.579",
+    aws           : "1.11.602",
     bouncycastle  : "1.61",
     coroutines    : "1.2.2",
     groovy        : "2.5.7", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
