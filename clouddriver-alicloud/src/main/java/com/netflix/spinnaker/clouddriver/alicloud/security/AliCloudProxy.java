@@ -13,6 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.alicloud;
+package com.netflix.spinnaker.clouddriver.alicloud.security;
 
-public class AliCloudConfigurationProperties {}
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@ConfigurationProperties(prefix = "alicloud.accounts")
+@Component
+public class AliCloudProxy {
+
+  private String ak;
+
+  private String sk;
+
+  public String getAk() {
+    return ak;
+  }
+
+  public void setAk(String ak) {
+    this.ak = ak;
+  }
+
+  public String getSk() {
+    return sk;
+  }
+
+  public void setSk(String sk) {
+    this.sk = sk;
+  }
+}

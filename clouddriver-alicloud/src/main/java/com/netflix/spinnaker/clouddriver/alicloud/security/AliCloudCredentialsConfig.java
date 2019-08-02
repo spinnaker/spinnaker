@@ -13,6 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.alicloud;
+package com.netflix.spinnaker.clouddriver.alicloud.security;
 
-public class AliCloudConfigurationProperties {}
+import java.util.List;
+import lombok.Data;
+
+@Data
+public class AliCloudCredentialsConfig {
+
+  List<Account> accounts;
+
+  @Data
+  public static class Account {
+    private String name;
+    private String aliAccount;
+  }
+}
