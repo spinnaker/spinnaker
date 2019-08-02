@@ -4,6 +4,9 @@ server:
 default:
   bake:
     account: default
+  securityGroups: []
+  vpc:
+    securityGroups: []
 
 front50:
   enabled: true
