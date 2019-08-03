@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+
+import com.google.common.hash.Hashing
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -25,20 +28,21 @@ import rx.Observable
 @Component
 class KatoService {
 
-  @Autowired
-  private KatoRestService katoRestService
+  private final KatoRestService katoRestService
+  private final CloudDriverTaskStatusService cloudDriverTaskStatusService
 
   @Autowired
-  private CloudDriverTaskStatusService cloudDriverTaskStatusService
+  KatoService(KatoRestService katoRestService, CloudDriverTaskStatusService cloudDriverTaskStatusService) {
+    this.katoRestService = katoRestService
+    this.cloudDriverTaskStatusService = cloudDriverTaskStatusService
+  }
 
   Observable<TaskId> requestOperations(Collection<? extends Map<String, Map>> operations) {
-    String clientRequestId = UUID.randomUUID().toString()
-    return Observable.from(katoRestService.requestOperations(clientRequestId, operations))
+    return Observable.from(katoRestService.requestOperations(requestHash(operations), operations))
   }
 
   Observable<TaskId> requestOperations(String cloudProvider, Collection<? extends Map<String, Map>> operations) {
-    String clientRequestId = UUID.randomUUID().toString()
-    return Observable.from(katoRestService.requestOperations(clientRequestId, cloudProvider, operations))
+    return Observable.from(katoRestService.requestOperations(requestHash(operations), cloudProvider, operations))
   }
 
   Observable<Task> lookupTask(String id, boolean skipReplica = false) {
@@ -47,5 +51,9 @@ class KatoService {
     }
 
     return Observable.from(cloudDriverTaskStatusService.lookupTask(id))
+  }
+
+  private static String requestHash(Object payload) {
+    return Hashing.sha256().hashBytes(OrcaObjectMapper.getInstance().writeValueAsBytes(payload))
   }
 }
