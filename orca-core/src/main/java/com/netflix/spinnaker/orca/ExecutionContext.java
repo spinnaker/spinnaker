@@ -25,6 +25,7 @@ public class ExecutionContext {
   private final String executionId;
   private final String stageId;
   private final String origin;
+  private final Long stageStartTime;
 
   public ExecutionContext(
       String application,
@@ -32,13 +33,15 @@ public class ExecutionContext {
       String executionType,
       String executionId,
       String stageId,
-      String origin) {
+      String origin,
+      Long stageStartTime) {
     this.application = application;
     this.authenticatedUser = authenticatedUser;
     this.executionType = executionType;
     this.executionId = executionId;
     this.stageId = stageId;
     this.origin = origin;
+    this.stageStartTime = stageStartTime;
   }
 
   public static void set(ExecutionContext executionContext) {
@@ -75,5 +78,9 @@ public class ExecutionContext {
 
   public String getStageId() {
     return stageId;
+  }
+
+  public Long getStageStartTime() {
+    return stageStartTime;
   }
 }
