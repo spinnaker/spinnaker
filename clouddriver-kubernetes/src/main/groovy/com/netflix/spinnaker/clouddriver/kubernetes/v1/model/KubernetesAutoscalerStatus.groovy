@@ -22,7 +22,6 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 class KubernetesAutoscalerStatus {
-  Integer currentCpuUtilization
   Integer currentReplicas
   Integer desiredReplicas
   Long lastScaleTime
@@ -33,7 +32,7 @@ class KubernetesAutoscalerStatus {
     if (autoscaler.status == null) {
       log.warn("Autoscaler on ${autoscaler.metadata.name} has a null status. The replicaset may be missing a CPU request.")
     } else {
-      this.currentCpuUtilization = autoscaler.status.currentCPUUtilizationPercentage
+      this.currentCpuUtilization = autoscaler.status.currentMetrics?.find { metric -> metric.resource.name == "cpu" }?.resource?.currentAverageUtilization
       this.currentReplicas = autoscaler.status.currentReplicas
       this.desiredReplicas = autoscaler.status.desiredReplicas
       this.lastScaleTime = KubernetesModelUtil.translateTime(autoscaler.status.lastScaleTime)
