@@ -13,10 +13,11 @@ import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
 import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
+import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
+import com.netflix.spinnaker.igor.build.model.JobConfiguration
 import com.netflix.spinnaker.igor.build.model.Result
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.exceptions.BuildJobError
-import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.wercker.model.Application
@@ -349,9 +350,8 @@ class WerckerService implements BuildOperations {
     }
 
     //TODO investigate if Wercker needs the JobConfig implementation
-    JobConfig getJobConfig(String jobName) {
-        return new JobConfig(
-                description: 'WerckerPipeline ' + jobName,
-                name: jobName)
+    @Override
+    JobConfiguration getJobConfig(String jobName) {
+        return new GenericJobConfiguration('WerckerPipeline ' + jobName, jobName)
     }
 }

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.igor.travis.client.model.v3.Config;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import java.time.Instant;
 import java.util.List;

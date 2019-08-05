@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Schibsted ASA.
+ * Copyright 2019 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model;
+package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.igor.travis.client.model.v3.Request;
 import org.simpleframework.xml.Default;
 
 @Default

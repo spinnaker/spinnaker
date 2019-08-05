@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
-import com.netflix.spinnaker.igor.jenkins.client.model.DownstreamProject
-import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
-import com.netflix.spinnaker.igor.jenkins.client.model.UpstreamProject
+import com.netflix.spinnaker.igor.build.model.JobConfiguration
 
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlElementWrapper
@@ -29,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement
  * Represents the basic Jenkins job configuration information
  */
 @XmlRootElement
-class JobConfig {
+class JobConfig implements JobConfiguration {
     @XmlElement(required = false)
     String description
 

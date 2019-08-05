@@ -18,16 +18,41 @@
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class V3Job {
   private Integer id;
 
-  public Integer getId() {
-    return id;
-  }
+  @JsonProperty("allow_failure")
+  private Boolean allowFailure;
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
+  private String number;
+  private TravisBuildState state;
+
+  @JsonProperty("started_at")
+  private Instant startedAt;
+
+  @JsonProperty("finished_at")
+  private Instant finishedAt;
+
+  @EqualsAndHashCode.Exclude private V3Build build;
+  private String queue;
+  private V3Repository repository;
+  private V3Commit commit;
+
+  @JsonProperty("created_at")
+  private Instant createdAt;
+
+  @JsonProperty("updated_at")
+  private Instant updatedAt;
+
+  @JsonProperty("private")
+  private Boolean isPrivate;
+
+  private Config config;
 }

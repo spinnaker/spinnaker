@@ -18,17 +18,16 @@
 package com.netflix.spinnaker.igor.travis.client;
 
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken;
-import com.netflix.spinnaker.igor.travis.client.model.Accounts;
 import com.netflix.spinnaker.igor.travis.client.model.Builds;
 import com.netflix.spinnaker.igor.travis.client.model.EmptyObject;
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth;
-import com.netflix.spinnaker.igor.travis.client.model.RepoRequest;
-import com.netflix.spinnaker.igor.travis.client.model.Repos;
-import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse;
+import com.netflix.spinnaker.igor.travis.client.model.v3.RepoRequest;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
+import com.netflix.spinnaker.igor.travis.client.model.v3.TriggerResponse;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds;
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
 import retrofit.client.Response;
 import retrofit.http.Body;
@@ -54,22 +53,11 @@ public interface TravisClient {
   @POST("/auth/github")
   public abstract AccessToken accessToken(@Body GithubAuth gitHubAuth);
 
-  @GET("/accounts")
-  public abstract Accounts accounts(@Header("Authorization") String accessToken);
-
   @GET("/builds")
   public abstract Builds builds(
       @Header("Authorization") String accessToken,
       @Query("slug") String repoSlug,
       @Query("number") int buildNumber);
-
-  @GET("/repos")
-  public abstract Repos repos(
-      @Header("Authorization") String accessToken,
-      @Query("member") String login,
-      @Query("active") boolean active,
-      @Query("limit") int limit,
-      @Query("offset") int offset);
 
   @POST("/repo/{repoSlug}/requests")
   @Headers("Travis-API-Version: 3")
@@ -144,4 +132,13 @@ public interface TravisClient {
       @Header("Authorization") String accessToken,
       @Path("repository_id") int repositoryId,
       @Path("request_id") int requestId);
+
+  @GET("/jobs")
+  @Headers("Travis-API-Version: 3")
+  public abstract V3Jobs jobs(
+      @Header("Authorization") String accessToken,
+      @Query("state") String state,
+      @Query("include") String include,
+      @Query("limit") int limit,
+      @Query("offset") int offset);
 }

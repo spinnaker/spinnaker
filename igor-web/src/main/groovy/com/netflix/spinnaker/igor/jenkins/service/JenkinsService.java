@@ -249,6 +249,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     return jenkinsClient.buildWithParameters(encode(jobName), queryParams, "", getCrumb());
   }
 
+  @Override
   public JobConfig getJobConfig(String jobName) {
     return jenkinsClient.getJobConfig(encode(jobName));
   }

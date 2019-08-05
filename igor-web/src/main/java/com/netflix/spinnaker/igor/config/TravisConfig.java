@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -93,11 +91,11 @@ public class TravisConfig {
                       } catch (Exception e) {
                         log.warn("Could not query Travis API to check API compability", e);
                       }
-                      return travisService(
+                      return new TravisService(
                           travisName,
                           host.getBaseUrl(),
                           host.getGithubToken(),
-                          host.getNumberOfRepositories(),
+                          host.getNumberOfJobs(),
                           client,
                           travisCache,
                           artifactDecorator,
@@ -110,32 +108,6 @@ public class TravisConfig {
 
     buildServices.addServices(travisMasters);
     return travisMasters;
-  }
-
-  private static TravisService travisService(
-      String travisHostId,
-      String baseUrl,
-      String githubToken,
-      int numberOfRepositories,
-      TravisClient travisClient,
-      TravisCache travisCache,
-      Optional<ArtifactDecorator> artifactDecorator,
-      Collection<String> artifactRexeges,
-      String buildMessageKey,
-      Permissions permissions,
-      boolean legacyLogFetching) {
-    return new TravisService(
-        travisHostId,
-        baseUrl,
-        githubToken,
-        numberOfRepositories,
-        travisClient,
-        travisCache,
-        artifactDecorator,
-        artifactRexeges,
-        buildMessageKey,
-        permissions,
-        legacyLogFetching);
   }
 
   public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {

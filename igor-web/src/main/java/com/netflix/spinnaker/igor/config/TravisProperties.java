@@ -20,12 +20,16 @@ package com.netflix.spinnaker.igor.config;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import javax.validation.Valid;
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "travis")
+@Data
+@Slf4j
 public class TravisProperties implements BuildServerProperties<TravisProperties.TravisHost> {
-  private long newBuildGracePeriodSeconds = 10;
+  @Deprecated private long newBuildGracePeriodSeconds;
   private boolean repositorySyncEnabled = false;
   private int cachedJobTTLDays = 60;
   @Valid private List<TravisHost> masters;
@@ -39,121 +43,33 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
    */
   private String buildMessageKey = "travis.buildMessage";
 
-  public boolean getRepositorySyncEnabled() {
-    return repositorySyncEnabled;
-  }
-
-  public boolean isRepositorySyncEnabled() {
-    return repositorySyncEnabled;
-  }
-
-  public void setRepositorySyncEnabled(boolean repositorySyncEnabled) {
-    this.repositorySyncEnabled = repositorySyncEnabled;
-  }
-
-  public int getCachedJobTTLDays() {
-    return cachedJobTTLDays;
-  }
-
-  public void setCachedJobTTLDays(int cachedJobTTLDays) {
-    this.cachedJobTTLDays = cachedJobTTLDays;
-  }
-
-  public List<TravisHost> getMasters() {
-    return masters;
-  }
-
-  public void setMasters(List<TravisHost> masters) {
-    this.masters = masters;
-  }
-
-  public List<String> getRegexes() {
-    return regexes;
-  }
-
-  public void setRegexes(List<String> regexes) {
-    this.regexes = regexes;
-  }
-
-  public String getBuildMessageKey() {
-    return buildMessageKey;
-  }
-
-  public void setBuildMessageKey(String buildMessageKey) {
-    this.buildMessageKey = buildMessageKey;
-  }
-
-  public long getNewBuildGracePeriodSeconds() {
-    return newBuildGracePeriodSeconds;
-  }
-
+  @Deprecated
   public void setNewBuildGracePeriodSeconds(long newBuildGracePeriodSeconds) {
+    log.warn(
+        "The 'travis.newBuildGracePeriodSeconds' property is no longer in use and the value will be ignored.");
     this.newBuildGracePeriodSeconds = newBuildGracePeriodSeconds;
   }
 
+  @Data
   public static class TravisHost implements BuildServerProperties.Host {
     @NotEmpty private String name;
     @NotEmpty private String baseUrl;
     @NotEmpty private String address;
     @NotEmpty private String githubToken;
-    private int numberOfRepositories = 25;
+    @Deprecated private int numberOfRepositories;
+    /** Defines how many jobs Igor should retrieve per polling cycle. Defaults to 100. */
+    private int numberOfJobs = 100;
+
     private Integer itemUpperThreshold;
     private Permissions.Builder permissions = new Permissions.Builder();
 
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public String getBaseUrl() {
-      return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-      this.baseUrl = baseUrl;
-    }
-
-    public String getAddress() {
-      return address;
-    }
-
-    public void setAddress(String address) {
-      this.address = address;
-    }
-
-    public String getGithubToken() {
-      return githubToken;
-    }
-
-    public void setGithubToken(String githubToken) {
-      this.githubToken = githubToken;
-    }
-
-    public int getNumberOfRepositories() {
-      return numberOfRepositories;
-    }
-
+    @Deprecated
     public void setNumberOfRepositories(int numberOfRepositories) {
+      log.warn(
+          "The 'travis.numberOfRepositories' property is no longer in use and the value will be ignored. "
+              + "If you want to limit the number of builds retrieved per polling cycle, you can use the property "
+              + "'travis.[master].numberOfJobs' (default: 100).");
       this.numberOfRepositories = numberOfRepositories;
-    }
-
-    public Integer getItemUpperThreshold() {
-      return itemUpperThreshold;
-    }
-
-    public void setItemUpperThreshold(Integer itemUpperThreshold) {
-      this.itemUpperThreshold = itemUpperThreshold;
-    }
-
-    public Permissions.Builder getPermissions() {
-      return permissions;
-    }
-
-    public void setPermissions(Permissions.Builder permissions) {
-      this.permissions = permissions;
     }
   }
 }

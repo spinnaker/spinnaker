@@ -19,14 +19,11 @@ package com.netflix.spinnaker.igor.travis.client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.TravisConfig
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
-import com.netflix.spinnaker.igor.travis.client.model.Account
-import com.netflix.spinnaker.igor.travis.client.model.Accounts
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
-import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
-import com.netflix.spinnaker.igor.travis.client.model.Repos
-import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.RepoRequest
+import com.netflix.spinnaker.igor.travis.client.model.v3.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
@@ -70,32 +67,6 @@ class TravisClientSpec extends Specification {
 
         then:
         accessToken.accessToken == "aCCeSSToKeN"
-    }
-
-    def "Accounts"() {
-        given:
-        setResponse '''{"accounts":[{"id":337980,"name":null,"login":"gardalize","type":"user","repos_count":1,"avatar_url":null}]}'''
-
-        when:
-        Accounts accounts = client.accounts("someToken")
-
-        then:
-        Account account = accounts.accounts.first()
-        account.id    == 337980
-        account.login == 'gardalize'
-    }
-
-    def "Repos"() {
-        given:
-        setResponse '''{"repos":[{"id":8059977,"slug":"gardalize/travistest","description":"testing travis stuff","last_build_id":118583435,"last_build_number":"5","last_build_state":"passed","last_build_duration":39,"last_build_language":null,"last_build_started_at":"2016-03-25T22:29:44Z","last_build_finished_at":"2016-03-25T22:30:23Z","active":true,"github_language":"Ruby"}]}'''
-
-        when:
-        Repos repos = client.repos("someToken", "gardalize", true, 25, 0)
-
-        then:
-        repos.repos.first().id   == 8059977
-        repos.repos.first().slug == "gardalize/travistest"
-        repos.repos.first().lastBuildId == 118583435
     }
 
     def "triggerBuild()" () {

@@ -17,7 +17,11 @@ package com.netflix.spinnaker.igor.build;
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -141,13 +145,15 @@ public class BuildCache {
   }
 
   public List<Map<String, String>> getTrackedBuilds(String master) {
-    List<Map<String, String>> builds =
-        redisClientDelegate.withMultiClient(
-            c -> {
-              return c.keys(baseKey() + ":track:" + master + ":*").stream()
-                  .map(BuildCache::getTrackedBuild)
-                  .collect(Collectors.toList());
-            });
+    List<Map<String, String>> builds = new ArrayList<>();
+    redisClientDelegate.withKeyScan(
+        baseKey() + ":track:" + master + ":*",
+        1000,
+        page ->
+            builds.addAll(
+                page.getResults().stream()
+                    .map(BuildCache::getTrackedBuild)
+                    .collect(Collectors.toList())));
     return builds;
   }
 

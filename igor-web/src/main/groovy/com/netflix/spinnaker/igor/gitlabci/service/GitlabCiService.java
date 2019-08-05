@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.gitlabci.service;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import com.netflix.spinnaker.igor.build.model.JobConfiguration;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
 import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineSummary;
@@ -75,6 +76,11 @@ public class GitlabCiService implements BuildOperations {
   @Override
   public List<GenericBuild> getBuilds(String job) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JobConfiguration getJobConfig(String jobName) {
+    throw new UnsupportedOperationException("getJobConfig is not yet implemented for Gitlab CI");
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Schibsted ASA.
+ * Copyright 2019 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model;
+package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -71,8 +71,7 @@ public class Config {
         .map(
             parts ->
                 new GenericParameterDefinition(
-                    parts.get(0),
-                    parts.subList(1, parts.size()).stream().collect(Collectors.joining("="))))
+                    parts.get(0), String.join("=", parts.subList(1, parts.size()))))
         .collect(Collectors.toList());
   }
 

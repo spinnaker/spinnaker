@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Schibsted ASA.
+ * Copyright 2019 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model;
+package com.netflix.spinnaker.igor.travis.client.model.v3;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import org.simpleframework.xml.Default;
@@ -25,16 +26,17 @@ import org.simpleframework.xml.Root;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Root(strict = false)
-public class Accounts {
-  @ElementList(required = false, name = "accounts", inline = true)
-  private List<Account> accounts;
+public class V3Jobs {
+  @ElementList(required = false, name = "jobs", inline = true)
+  private List<V3Job> jobs;
 
-  public List<Account> getAccounts() {
-    return accounts;
+  public List<V3Job> getJobs() {
+    return jobs;
   }
 
-  public void setAccounts(List<Account> accounts) {
-    this.accounts = accounts;
+  public void setJobs(List<V3Job> jobs) {
+    this.jobs = jobs;
   }
 }

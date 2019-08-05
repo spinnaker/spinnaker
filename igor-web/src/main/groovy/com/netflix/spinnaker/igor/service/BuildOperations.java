@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.service;
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import com.netflix.spinnaker.igor.build.model.JobConfiguration;
 import java.util.List;
 import java.util.Map;
 
@@ -61,4 +62,6 @@ public interface BuildOperations extends BuildService {
    * @return A list of builds
    */
   List<?> getBuilds(String job);
+
+  JobConfiguration getJobConfig(String jobName);
 }

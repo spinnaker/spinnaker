@@ -17,7 +17,8 @@ import javax.xml.bind.annotation.XmlType;
       "defaultValue",
       "defaultName"
     })
-public class ParameterDefinition {
+public class ParameterDefinition
+    implements com.netflix.spinnaker.igor.build.model.ParameterDefinition {
   @XmlElement public DefaultParameterValue defaultParameterValue;
 
   @XmlElement public String name;
@@ -32,12 +33,22 @@ public class ParameterDefinition {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public List<String> choices;
 
+  @Override
+  public String getName() {
+    return name;
+  }
+
   @XmlElement(name = "defaultValue")
   public String getDefaultValue() {
     if (defaultParameterValue == null) {
       return null;
     }
     return defaultParameterValue.getValue();
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
   }
 
   @XmlElement(name = "defaultName")

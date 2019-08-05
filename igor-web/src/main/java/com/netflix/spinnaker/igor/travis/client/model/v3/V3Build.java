@@ -21,9 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
-import com.netflix.spinnaker.igor.travis.client.model.Config;
 import java.time.Instant;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
@@ -33,6 +33,7 @@ import org.simpleframework.xml.Root;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Root(name = "builds")
 @Slf4j
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class V3Build {
   private V3Branch branch;
 
@@ -45,14 +46,14 @@ public class V3Build {
   @JsonProperty("event_type")
   private String eventType;
 
-  private int id;
+  @EqualsAndHashCode.Include private int id;
   private V3Repository repository;
 
   @JsonProperty("repository_id")
   private int repositoryId;
 
   private int number;
-  private TravisBuildState state;
+  @EqualsAndHashCode.Include private TravisBuildState state;
 
   @JsonProperty("finished_at")
   private Instant finishedAt;
@@ -61,7 +62,6 @@ public class V3Build {
   private Boolean logComplete;
 
   private List<V3Job> jobs;
-  private Config config;
 
   public long getTimestamp() {
     return finishedAt.toEpochMilli();
@@ -198,14 +198,6 @@ public class V3Build {
 
   public void setJobs(List<V3Job> jobs) {
     this.jobs = jobs;
-  }
-
-  public Config getConfig() {
-    return config;
-  }
-
-  public void setConfig(Config config) {
-    this.config = config;
   }
 
   public Boolean getLogComplete() {

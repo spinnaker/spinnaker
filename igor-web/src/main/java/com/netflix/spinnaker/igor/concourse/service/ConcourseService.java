@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toMap;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
+import com.netflix.spinnaker.igor.build.model.JobConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.ConcourseClient;
 import com.netflix.spinnaker.igor.concourse.client.model.Build;
 import com.netflix.spinnaker.igor.concourse.client.model.Event;
@@ -277,6 +278,11 @@ public class ConcourseService implements BuildOperations, BuildProperties {
         .filter(Build::isSuccessful)
         .map(build -> getGenericBuild(jobPath, build, false))
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public JobConfiguration getJobConfig(String jobName) {
+    throw new UnsupportedOperationException("getJobConfig is not yet implemented for Concourse");
   }
 
   public List<Build> getBuilds(String jobPath, @Nullable Long since) {

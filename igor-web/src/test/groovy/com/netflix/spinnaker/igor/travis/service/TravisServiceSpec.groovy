@@ -26,14 +26,15 @@ import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
-import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
-import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
+import com.netflix.spinnaker.igor.travis.client.model.v3.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import spock.lang.Shared
@@ -42,11 +43,10 @@ import spock.lang.Unroll
 
 import java.time.Instant
 
-class TravisServiceSpec extends Specification{
+class TravisServiceSpec extends Specification {
     @Shared
     TravisClient client
 
-    @Shared
     TravisService service
 
     @Shared
@@ -59,14 +59,14 @@ class TravisServiceSpec extends Specification{
         client = Mock()
         travisCache = Mock()
         artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', TravisService.TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
         service.accessToken = accessToken
     }
 
-    def "getGenericBuild(build, repoSlug)" () {
+    def "getGenericBuild(build, repoSlug)"() {
         given:
         Build build = Mock(Build)
         def v3log = new V3Log()
@@ -94,6 +94,57 @@ class TravisServiceSpec extends Specification{
         1 * build.duration >> 32
         1 * build.finishedAt >> Instant.now()
         1 * build.getTimestamp() >> 1458051084000
+    }
+
+    @Unroll
+    def "getLatestBuilds() with #numberOfJobs jobs should query Travis #expectedNumberOfPages time(s)"() {
+        given:
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', numberOfJobs, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
+        AccessToken accessToken = new AccessToken()
+        accessToken.accessToken = "someToken"
+        service.accessToken = accessToken
+
+
+        def listOfJobs = (1..numberOfJobs).collect { createJob(it) }
+        def partitionedJobs = listOfJobs.collate(TravisService.TRAVIS_BUILD_RESULT_LIMIT).collect { partition ->
+            V3Jobs jobs = new V3Jobs()
+            jobs.jobs = partition
+            return jobs
+        }
+
+        when:
+        def builds = service.getLatestBuilds()
+
+        then:
+        (1..expectedNumberOfPages).each { page ->
+            1 * client.jobs(
+                "token someToken",
+                [TravisBuildState.passed, TravisBuildState.started, TravisBuildState.errored, TravisBuildState.failed, TravisBuildState.canceled].join(","),
+                "job.build,build.log_complete",
+                service.getLimit(page, numberOfJobs),
+                (page - 1) * TravisService.TRAVIS_BUILD_RESULT_LIMIT) >> partitionedJobs[page - 1]
+        }
+        builds.size() == numberOfJobs
+
+        where:
+        numberOfJobs | expectedNumberOfPages
+        100          | 1
+        305          | 4
+        99           | 1
+        101          | 2
+    }
+
+    private static V3Job createJob(int id) {
+        def build = new V3Build([
+            id: id,
+            state: TravisBuildState.passed,
+            repository: new V3Repository([slug: "my/slug"])
+        ])
+        return new V3Job().with { v3job ->
+            v3job.id = id
+            v3job.build = build
+            return v3job
+        }
     }
 
     @Unroll
@@ -156,16 +207,34 @@ class TravisServiceSpec extends Specification{
     @Unroll
     def "calculate pagination correctly"() {
         expect:
-        service.calculatePagination(buildsToTrack) == pages
+        service.calculatePagination(numberOfJobs) == pages
 
         where:
-        buildsToTrack || pages
-        75            || 3
-        79            || 4
-        2             || 1
-        15            || 1
-        26            || 2
-        25            || 1
+        numberOfJobs || pages
+        175          || 2
+        279          || 3
+        2            || 1
+        15           || 1
+        100          || 1
+        101          || 2
+        1001         || 11
+    }
+
+    @Unroll
+    def "calculate limit correctly"() {
+        expect:
+        service.getLimit(page, numberOfJobs) == limit
+
+        where:
+        page | numberOfJobs || limit
+        1    | 100          || 100
+        1    | 200          || 100
+        2    | 200          || 100
+        1    | 150          || 100
+        2    | 150          || 50
+        1    | 99           || 99
+        2    | 201          || 100
+        3    | 201          || 1
     }
 
     @Unroll
@@ -209,56 +278,56 @@ class TravisServiceSpec extends Specification{
         buildNumber == 1
     }
 
-  @Unroll
-  def "use correct way of checking if logs are completed when legacyLogFetching is #legacyLogFetching and log_complete flag is #isLogCompleteFlag"() {
-    given:
-    def job = new V3Job().with { v3job ->
-      v3job.id = 2
-      return v3job
+    @Unroll
+    def "use correct way of checking if logs are completed when legacyLogFetching is #legacyLogFetching and log_complete flag is #isLogCompleteFlag"() {
+        given:
+        def job = new V3Job().with { v3job ->
+            v3job.id = 2
+            return v3job
+        }
+        def build = new V3Build([
+            id: 1,
+            jobs: [job],
+            state: TravisBuildState.passed,
+            repository: new V3Repository([slug: "my/slug"])
+        ])
+        if (!legacyLogFetching) {
+            build.logComplete = isLogCompleteFlag
+        }
+        def v3log = new V3Log([
+            logParts: [
+                new V3Log.V3LogPart([
+                    number: 0,
+                    content: "log",
+                    isFinal: isLogReallyComplete
+                ])],
+            content: "log"
+        ])
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, legacyLogFetching)
+        AccessToken accessToken = new AccessToken()
+        accessToken.accessToken = "someToken"
+        service.accessToken = accessToken
+
+        when:
+        def genericBuilds = service.getBuilds("my/slug")
+
+        then:
+        1 * client.v3builds("token someToken", "my/slug", TravisService.TRAVIS_BUILD_RESULT_LIMIT,
+            legacyLogFetching ? null : "build.log_complete") >> new V3Builds([builds: [build]])
+        (isLogCompleteFlag ? 0 : 1) * travisCache.getJobLog("travis-ci", 2) >> (isLogCached ? "log" : null)
+        (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> v3log
+        (!isLogCompleteFlag && !isLogCached && isLogReallyComplete ? 1 : 0) * travisCache.setJobLog("travis-ci", 2, "log")
+        genericBuilds.size() == expectedNumberOfBuilds
+
+        where:
+        legacyLogFetching | isLogCompleteFlag | isLogCached | isLogReallyComplete | expectedNumberOfBuilds
+        false             | true              | true        | true                | 1
+        false             | false             | true        | true                | 1
+        false             | false             | false       | true                | 1
+        false             | false             | false       | false               | 0
+        true              | null              | true        | true                | 1
+        true              | null              | true        | true                | 1
+        true              | null              | false       | true                | 1
+        true              | null              | false       | false               | 0
     }
-    def build = new V3Build([
-      id: 1,
-      jobs: [ job ],
-      state: TravisBuildState.passed,
-      repository: new V3Repository([slug: "my/slug"])
-    ])
-    if (!legacyLogFetching) {
-      build.logComplete = isLogCompleteFlag
-    }
-    def v3log = new V3Log([
-      logParts: [
-        new V3Log.V3LogPart([
-          number: 0,
-          content: "log",
-          isFinal: isLogReallyComplete
-        ])],
-      content: "log"
-    ])
-    service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, legacyLogFetching)
-    AccessToken accessToken = new AccessToken()
-    accessToken.accessToken = "someToken"
-    service.accessToken = accessToken
-
-    when:
-    def genericBuilds = service.getBuilds("my/slug")
-
-    then:
-    1 * client.v3builds("token someToken", "my/slug", TravisService.TRAVIS_BUILD_RESULT_LIMIT,
-      legacyLogFetching ? null : "build.log_complete") >> new V3Builds([builds: [build]])
-    (isLogCompleteFlag ? 0 : 1) * travisCache.getJobLog("travis-ci", 2) >> (isLogCached ? "log" : null)
-    (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> v3log
-    (!isLogCompleteFlag && !isLogCached && isLogReallyComplete ? 1 : 0) * travisCache.setJobLog("travis-ci", 2, "log")
-    genericBuilds.size() == expectedNumberOfBuilds
-
-    where:
-    legacyLogFetching | isLogCompleteFlag | isLogCached | isLogReallyComplete | expectedNumberOfBuilds
-    false             | true              | true        | true                | 1
-    false             | false             | true        | true                | 1
-    false             | false             | false       | true                | 1
-    false             | false             | false       | false               | 0
-    true              | null              | true        | true                | 1
-    true              | null              | true        | true                | 1
-    true              | null              | false       | true                | 1
-    true              | null              | false       | false               | 0
-  }
 }
