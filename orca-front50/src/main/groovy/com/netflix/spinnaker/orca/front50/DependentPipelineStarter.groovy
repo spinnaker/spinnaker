@@ -86,8 +86,14 @@ class DependentPipelineStarter implements ApplicationContextAware {
       parentPipelineStageId: parentPipelineStageId,
       parameters           : [:],
       strategy             : suppliedParameters.strategy == true,
-      correlationId        : parentPipeline.id + "_" + pipelineConfig.id + "_" + parentPipeline.startTime
+      correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}"
     ]
+    /* correlationId is added so that two pipelines aren't triggered when a pipeline is canceled.
+     * parentPipelineStageId is added so that a child pipeline (via pipeline stage)
+     *  is differentiated from a downstream pipeline (via pipeline trigger).
+     * pipelineConfig.id is added so that we allow two different pipelines to be triggered off the same parent.
+     * parentPipeline.startTime is added so that a restarted pipeline will trigger a new round of dependent pipelines.
+     */
 
     if (pipelineConfig.parameterConfig || !suppliedParameters.isEmpty()) {
       def pipelineParameters = suppliedParameters ?: [:]
