@@ -77,7 +77,7 @@ dependencies {
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.6.4")
     api("com.netflix.eureka:eureka-client:1.9.2")
-    api("com.netflix.frigga:frigga:0.19.1")
+    api("com.netflix.frigga:frigga:0.19.2")
     api("com.netflix.hystrix:hystrix-core:${versions.hystrix}")
     api("com.netflix.hystrix:hystrix-javanica:${versions.hystrix}")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
