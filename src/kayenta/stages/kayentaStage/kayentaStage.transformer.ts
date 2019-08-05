@@ -8,8 +8,8 @@ const stageTypesToAlwaysShow = [KAYENTA_CANARY, CREATE_SERVER_GROUP];
 
 export class KayentaStageTransformer implements ITransformer {
   public transform(_application: Application, execution: IExecution): void {
-    const kayentaStage = execution.stages.find(({ type }) => type === KAYENTA_CANARY);
-    if (!kayentaStage) {
+    const kayentaStages = execution.stages.filter(({ type }) => type === KAYENTA_CANARY);
+    if (!kayentaStages.length) {
       return;
     }
 
@@ -39,44 +39,49 @@ export class KayentaStageTransformer implements ITransformer {
 
         // For now, a 'kayentaCanary' stage should only have an 'aggregateCanaryResults' task, which should definitely go last.
         stage.tasks = [...syntheticCanaryStages, ...stage.tasks];
-      } else if (stage.type === CREATE_SERVER_GROUP && this.isDescendantOf(stage, kayentaStage, execution)) {
+      } else if (stage.type === CREATE_SERVER_GROUP && this.isDescendantOf(stage, kayentaStages, execution)) {
         OrchestratedItemTransformer.defineProperties(stage);
+        const parentKayentaStageId = this.isDescendantOf(stage, kayentaStages, execution);
         const locations = stage.context['deploy.server.groups'] && Object.keys(stage.context['deploy.server.groups']);
         stage.name = `Deploy ${stage.context.freeFormDetails}${locations ? ' in ' + locations.join(', ') : ''}`;
-        stage.parentStageId = kayentaStage.id;
+        stage.parentStageId = parentKayentaStageId;
       }
     });
 
-    const deployCanaryServerGroupsStage = execution.stages.find(
-      ({ parentStageId, type }) => parentStageId === kayentaStage.id && type === DEPLOY_CANARY_SERVER_GROUPS,
+    const kayentaStageIds = kayentaStages.map(({ id }) => id);
+    const deployCanaryServerGroupsStages = execution.stages.filter(
+      ({ parentStageId, type }) => kayentaStageIds.includes(parentStageId) && type === DEPLOY_CANARY_SERVER_GROUPS,
     );
 
-    if (deployCanaryServerGroupsStage && (deployCanaryServerGroupsStage.outputs.deployedServerGroups || []).length) {
-      const [{ controlScope, experimentScope }] = deployCanaryServerGroupsStage.outputs.deployedServerGroups;
-      kayentaStage.outputs = { ...kayentaStage.outputs, controlScope, experimentScope };
-    }
-
+    deployCanaryServerGroupsStages.forEach(deployCanaryStage => {
+      const parentKayentaStage = kayentaStages.find(({ id }) => deployCanaryStage.parentStageId === id);
+      if (parentKayentaStage && (deployCanaryStage.outputs.deployedServerGroups || []).length) {
+        const [{ controlScope, experimentScope }] = deployCanaryStage.outputs.deployedServerGroups;
+        parentKayentaStage.outputs = { ...parentKayentaStage.outputs, controlScope, experimentScope };
+      }
+    });
     execution.stages = execution.stages.filter(
       stage =>
         !stagesToRenderAsTasks.includes(stage) &&
-        (!this.isDescendantOf(stage, kayentaStage, execution) ||
+        (!this.isDescendantOf(stage, kayentaStages, execution) ||
           stageTypesToAlwaysShow.includes(stage.type) ||
           stage.status !== 'SUCCEEDED'),
     );
   }
 
-  private isDescendantOf(child: IExecutionStage, ancestor: IExecutionStage, execution: IExecution) {
+  private isDescendantOf(child: IExecutionStage, ancestors: IExecutionStage[], execution: IExecution) {
+    const ancestorIds = ancestors.map(({ id }) => id);
     let node = child;
     while (node && node.parentStageId) {
       const parentNode = execution.stages.find(({ id }) => node.parentStageId === id);
-      if (parentNode && parentNode.id === ancestor.id) {
-        return true;
+      if (parentNode && ancestorIds.includes(parentNode.id)) {
+        return parentNode.id;
       } else {
         node = parentNode;
       }
     }
 
-    return false;
+    return null;
   }
 
   // Massages each runCanary stage into what the `canaryScore` component expects.
