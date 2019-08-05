@@ -83,5 +83,7 @@ public class CanaryExecutionStatusResponse {
     return storageAccountName;
   }
 
+  protected String metricsAccountName;
+
   protected String configurationAccountName;
 }

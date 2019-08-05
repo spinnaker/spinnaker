@@ -15,6 +15,8 @@
  */
 package com.netflix.kayenta.canary;
 
+import static java.util.Optional.ofNullable;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -24,10 +26,6 @@ import com.netflix.kayenta.canary.orca.CanaryStageNames;
 import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.canary.results.CanaryResult;
-import com.netflix.kayenta.security.AccountCredentials;
-import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
-import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -54,8 +52,6 @@ public class ExecutionMapper {
 
   public static final String PIPELINE_NAME = "Standard Canary Pipeline";
 
-  private final StorageServiceRepository storageServiceRepository;
-  private final AccountCredentialsRepository accountCredentialsRepository;
   private final ObjectMapper objectMapper;
   private final Registry registry;
   private final String currentInstanceId;
@@ -68,16 +64,12 @@ public class ExecutionMapper {
 
   @Autowired
   public ExecutionMapper(
-      StorageServiceRepository storageServiceRepository,
-      AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
       Registry registry,
       String currentInstanceId,
       Optional<List<CanaryScopeFactory>> canaryScopeFactories,
       ExecutionLauncher executionLauncher,
       ExecutionRepository executionRepository) {
-    this.storageServiceRepository = storageServiceRepository;
-    this.accountCredentialsRepository = accountCredentialsRepository;
     this.objectMapper = objectMapper;
     this.registry = registry;
     this.currentInstanceId = currentInstanceId;
@@ -89,78 +81,28 @@ public class ExecutionMapper {
     this.failureId = registry.createId("canary.pipelines.startupFailed");
   }
 
+  /**
+   * Maps the Orca Pipeline Execution for a canary triggered via the /canary endpoint to the status
+   * response object.
+   *
+   * @param pipeline The Orca canary pipeline execution for the canary.
+   * @return the canary execution status response.
+   */
   public CanaryExecutionStatusResponse fromExecution(Execution pipeline) {
-    String canaryExecutionId = pipeline.getId();
+    if (!PIPELINE_NAME.equals(pipeline.getName())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Only named pipelines of '%s' can be converted to a CanaryExecutionStatusResponse object, '%s' received",
+              PIPELINE_NAME, pipeline.getName()));
+    }
 
-    Stage contextStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_SET_CONTEXT))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_SET_CONTEXT
-                            + "' in pipeline ID '"
-                            + canaryExecutionId
-                            + "'"));
-    Map<String, Object> contextContext = contextStage.getContext();
-
-    String storageAccountName = (String) contextContext.get("storageAccountName");
-    return fromExecution(storageAccountName, pipeline);
-  }
-
-  public CanaryExecutionStatusResponse fromExecution(
-      String unresolvedStorageAccountName, Execution pipeline) {
-    String storageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            unresolvedStorageAccountName,
-            AccountCredentials.Type.OBJECT_STORE,
-            accountCredentialsRepository);
-
-    String canaryExecutionId = pipeline.getId();
-
-    Stage judgeStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_JUDGE))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_JUDGE
-                            + "' in pipeline ID '"
-                            + canaryExecutionId
-                            + "'"));
+    Stage judgeStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
     Map<String, Object> judgeOutputs = judgeStage.getOutputs();
 
-    Stage contextStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_SET_CONTEXT))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_SET_CONTEXT
-                            + "' in pipeline ID '"
-                            + canaryExecutionId
-                            + "'"));
+    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> contextContext = contextStage.getContext();
 
-    Stage mixerStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_MIX_METRICS))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_MIX_METRICS
-                            + "' in pipeline ID '"
-                            + canaryExecutionId
-                            + "'"));
-    Map<String, Object> mixerContext = mixerStage.getContext();
+    Stage mixerStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_MIX_METRICS);
     Map<String, Object> mixerOutputs = mixerStage.getOutputs();
 
     CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder
@@ -168,24 +110,31 @@ public class ExecutionMapper {
             CanaryExecutionStatusResponse.builder()
                 .application((String) contextContext.get("application"))
                 .parentPipelineExecutionId((String) contextContext.get("parentPipelineExecutionId"))
-                .pipelineId(pipeline.getId())
-                .storageAccountName(storageAccountName);
-    if (contextContext.containsKey("canaryConfigId")) {
-      String canaryConfigId = (String) contextContext.get("canaryConfigId");
-      canaryExecutionStatusResponseBuilder.canaryConfigId(canaryConfigId);
-    }
-    if (contextContext.containsKey("configurationAccountName")) {
-      String configurationAccountName = (String) contextContext.get("configurationAccountName");
-      canaryExecutionStatusResponseBuilder.configurationAccountName(configurationAccountName);
-    }
+                .pipelineId(pipeline.getId());
+
+    ofNullable(contextContext.get("metricsAccountName"))
+        .map(String::valueOf)
+        .ifPresent(canaryExecutionStatusResponseBuilder::metricsAccountName);
+
+    ofNullable(contextContext.get("storageAccountName"))
+        .map(String::valueOf)
+        .ifPresent(canaryExecutionStatusResponseBuilder::storageAccountName);
+
+    ofNullable(contextContext.get("canaryConfigId"))
+        .map(String::valueOf)
+        .ifPresent(canaryExecutionStatusResponseBuilder::canaryConfigId);
+
+    ofNullable(contextContext.get("configurationAccountName"))
+        .map(String::valueOf)
+        .ifPresent(canaryExecutionStatusResponseBuilder::configurationAccountName);
+
+    ofNullable(mixerOutputs.get("metricSetPairListId"))
+        .map(String::valueOf)
+        .ifPresent(canaryExecutionStatusResponseBuilder::metricSetPairListId);
+
     canaryExecutionStatusResponseBuilder.config(getCanaryConfig(pipeline));
     CanaryExecutionRequest canaryExecutionRequest = getCanaryExecutionRequest(pipeline);
     canaryExecutionStatusResponseBuilder.canaryExecutionRequest(canaryExecutionRequest);
-
-    if (mixerOutputs.containsKey("metricSetPairListId")) {
-      canaryExecutionStatusResponseBuilder.metricSetPairListId(
-          (String) mixerOutputs.get("metricSetPairListId"));
-    }
 
     Map<String, String> stageStatus =
         pipeline.getStages().stream()
@@ -200,26 +149,26 @@ public class ExecutionMapper {
         .complete(isComplete)
         .status(pipelineStatus);
 
-    Long buildTime = pipeline.getBuildTime();
-    if (buildTime != null) {
-      canaryExecutionStatusResponseBuilder
-          .buildTimeMillis(buildTime)
-          .buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
-    }
+    ofNullable(pipeline.getBuildTime())
+        .ifPresent(
+            buildTime ->
+                canaryExecutionStatusResponseBuilder
+                    .buildTimeMillis(buildTime)
+                    .buildTimeIso(Instant.ofEpochMilli(buildTime) + ""));
 
-    Long startTime = pipeline.getStartTime();
-    if (startTime != null) {
-      canaryExecutionStatusResponseBuilder
-          .startTimeMillis(startTime)
-          .startTimeIso(Instant.ofEpochMilli(startTime) + "");
-    }
+    ofNullable(pipeline.getStartTime())
+        .ifPresent(
+            startTime ->
+                canaryExecutionStatusResponseBuilder
+                    .startTimeMillis(startTime)
+                    .startTimeIso(Instant.ofEpochMilli(startTime) + ""));
 
-    Long endTime = pipeline.getEndTime();
-    if (endTime != null) {
-      canaryExecutionStatusResponseBuilder
-          .endTimeMillis(endTime)
-          .endTimeIso(Instant.ofEpochMilli(endTime) + "");
-    }
+    ofNullable(pipeline.getEndTime())
+        .ifPresent(
+            endTime ->
+                canaryExecutionStatusResponseBuilder
+                    .endTimeMillis(endTime)
+                    .endTimeIso(Instant.ofEpochMilli(endTime) + ""));
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
       if (judgeOutputs.containsKey("result")) {
@@ -254,36 +203,14 @@ public class ExecutionMapper {
 
   // Some older (stored) results have the execution request only in the judge context.
   public String getCanaryExecutionRequestFromJudgeContext(Execution pipeline) {
-    Stage contextStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_JUDGE))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_JUDGE
-                            + "' in pipeline ID '"
-                            + pipeline.getId()
-                            + "'"));
+    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
     Map<String, Object> context = contextStage.getContext();
 
     return (String) context.get("canaryExecutionRequest");
   }
 
   public CanaryExecutionRequest getCanaryExecutionRequest(Execution pipeline) {
-    Stage contextStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_SET_CONTEXT))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_SET_CONTEXT
-                            + "' in pipeline ID '"
-                            + pipeline.getId()
-                            + "'"));
+    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> context = contextStage.getContext();
 
     String canaryExecutionRequestJSON = (String) context.get("canaryExecutionRequest");
@@ -305,22 +232,31 @@ public class ExecutionMapper {
   }
 
   public CanaryConfig getCanaryConfig(Execution pipeline) {
-    Stage contextStage =
-        pipeline.getStages().stream()
-            .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_SET_CONTEXT))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Unable to find stage '"
-                            + CanaryStageNames.REFID_SET_CONTEXT
-                            + "' in pipeline ID '"
-                            + pipeline.getId()
-                            + "'"));
+    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> context = contextStage.getContext();
 
     Map<String, Object> canaryConfigMap = (Map<String, Object>) context.get("canaryConfig");
     return objectMapper.convertValue(canaryConfigMap, CanaryConfig.class);
+  }
+
+  /**
+   * Fetches a stage via its ref id from the Orca pipeline execution.
+   *
+   * @param pipeline The Orca pipeline Execution
+   * @param refId The reference id for the stage
+   * @return The stage.
+   */
+  protected Stage getStageFromExecution(Execution pipeline, String refId) {
+    String canaryExecutionId = pipeline.getId();
+    return pipeline.getStages().stream()
+        .filter(stage -> refId.equals(stage.getRefId()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    String.format(
+                        "Unable to find stage '%s' in pipeline ID '%s'",
+                        refId, canaryExecutionId)));
   }
 
   private CanaryScopeFactory getScopeFactoryForServiceType(String serviceType) {
@@ -452,6 +388,7 @@ public class ExecutionMapper {
             .put("user", "[anonymous]")
             .put("application", application)
             .put("storageAccountName", resolvedStorageAccountName)
+            .put("metricsAccountName", resolvedMetricsAccountName)
             .put("canaryConfig", canaryConfig);
     if (parentPipelineExecutionId != null) {
       mapBuilder.put("parentPipelineExecutionId", parentPipelineExecutionId);
@@ -646,9 +583,7 @@ public class ExecutionMapper {
                 .put(
                     "requisiteStageRefIds",
                     Arrays.asList(
-                        new String[] {
-                          CanaryStageNames.REFID_JUDGE, CanaryStageNames.REFID_JUDGE + "-2"
-                        }))
+                        CanaryStageNames.REFID_JUDGE, CanaryStageNames.REFID_JUDGE + "-2"))
                 .put("user", "[anonymous]")
                 .put("storageAccountName", resolvedStorageAccountName)
                 .put(

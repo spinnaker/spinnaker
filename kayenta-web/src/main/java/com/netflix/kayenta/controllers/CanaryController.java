@@ -171,7 +171,7 @@ public class CanaryController {
     try {
       Execution pipeline =
           executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
-      return executionMapper.fromExecution(resolvedStorageAccountName, pipeline);
+      return executionMapper.fromExecution(pipeline);
     } catch (ExecutionNotFoundException e) {
       StorageService storageService =
           storageServiceRepository
@@ -233,8 +233,6 @@ public class CanaryController {
             .toBlocking()
             .single();
 
-    return executions.stream()
-        .map(execution -> executionMapper.fromExecution(resolvedStorageAccountName, execution))
-        .collect(Collectors.toList());
+    return executions.stream().map(executionMapper::fromExecution).collect(Collectors.toList());
   }
 }

@@ -28,7 +28,6 @@ import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
 import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.MonitorKayentaCanaryContext;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.Stats;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -94,18 +93,12 @@ public class MonitorCanaryTask implements Task, OverridableTimeoutRetryableTask 
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     MonitorKayentaCanaryContext context = stage.mapTo(MonitorKayentaCanaryContext.class);
-    String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            context.getStorageAccountName(),
-            AccountCredentials.Type.OBJECT_STORE,
-            accountCredentialsRepository);
 
     Execution pipeline =
         executionRepository.retrieve(
             Execution.ExecutionType.PIPELINE, context.getCanaryPipelineExecutionId());
 
-    CanaryExecutionStatusResponse statusResponse =
-        executionMapper.fromExecution(resolvedStorageAccountName, pipeline);
+    CanaryExecutionStatusResponse statusResponse = executionMapper.fromExecution(pipeline);
 
     ExecutionStatus executionStatus =
         ExecutionStatus.valueOf(statusResponse.getStatus().toUpperCase());
