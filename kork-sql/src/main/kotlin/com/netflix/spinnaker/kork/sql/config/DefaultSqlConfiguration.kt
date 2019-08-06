@@ -170,7 +170,7 @@ class DefaultSqlConfiguration {
   fun sqlHealthProvider(
     jooq: DSLContext,
     registry: Registry,
-    @Value("\${sql.readOnly:false}") readOnly: Boolean
+    @Value("\${sql.read-only:false}") readOnly: Boolean
   ): SqlHealthProvider =
     SqlHealthProvider(jooq, registry, readOnly)
 

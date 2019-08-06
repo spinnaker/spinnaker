@@ -17,4 +17,5 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly project(":kork-sql-test")
+  testRuntimeOnly project(":kork-web")
 }
