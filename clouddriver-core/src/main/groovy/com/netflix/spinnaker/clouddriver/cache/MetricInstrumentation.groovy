@@ -43,8 +43,13 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     counterId = registry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
+  private static String stripPackageName(String className) {
+    return className.substring(className.lastIndexOf(".")+1)
+  }
+
   private static String agentName(Agent agent) {
-    "$agent.providerName/$agent.agentType"
+    String simpleProviderName = stripPackageName(agent.providerName)
+    "$simpleProviderName/$agent.agentType"
   }
 
   @Override
