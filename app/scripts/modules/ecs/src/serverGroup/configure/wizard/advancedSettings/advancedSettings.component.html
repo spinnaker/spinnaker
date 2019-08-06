@@ -86,7 +86,7 @@
       <ui-select ng-model="$ctrl.command.placementStrategyName" class="form-control input-sm">
         <ui-select-match>{{ $select.selected }}</ui-select-match>
         <ui-select-choices
-          repeat="item in ['AZ Balanced Spread', 'AZ Balanced BinPack Memory', 'BinPack Memory', 'One Task Per Host', 'None'] | filter: $select.search"
+          repeat="item in ['AZ Balanced Spread', 'AZ Balanced BinPack CPU', 'AZ Balanced BinPack Memory', 'BinPack CPU', 'BinPack Memory', 'One Task Per Host', 'None'] | filter: $select.search"
         >
           <span ng-bind-html="item"></span>
         </ui-select-choices>
