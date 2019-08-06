@@ -1,6 +1,7 @@
 import * as React from 'react';
-import Select, { Option, ReactSelectProps } from 'react-select';
+import Select, { Option, OptionValues, ReactSelectProps } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
+import { isNil } from 'lodash';
 
 import { noop } from 'core/utils';
 
@@ -9,7 +10,9 @@ import { TetheredSelect } from '../../TetheredSelect';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
-export interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
+export interface IReactSelectInputProps<T = OptionValues>
+  extends IFormInputProps,
+    OmitControlledInputPropsFrom<ReactSelectProps<T>> {
   stringOptions?: string[];
   mode?: 'TETHERED' | 'VIRTUALIZED' | 'PLAIN';
 }
@@ -69,10 +72,13 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
       validation,
       stringOptions,
       options: optionOptions,
+      ignoreAccents: accents,
       inputClassName,
       ...otherProps
     } = this.props;
 
+    // Default to false because this feature is SLOW
+    const ignoreAccents = isNil(accents) ? false : accents;
     const className = orEmptyString(inputClassName);
     const style = (validation || {}).validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
     const fieldProps = {
@@ -82,7 +88,7 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
       onChange: reactSelectOnChangeAdapter(name, onChange),
     };
 
-    const commonProps = { className, style, ...fieldProps, ...otherProps };
+    const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps };
 
     const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
       mode === 'TETHERED' ? (
