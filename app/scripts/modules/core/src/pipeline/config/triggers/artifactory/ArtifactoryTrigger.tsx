@@ -9,7 +9,7 @@ export function ArtifactoryTrigger() {
 
   const validationStatus = fetchNames.status === 'REJECTED' ? 'error' : null;
   const validationMessage =
-    status === 'REJECTED'
+    fetchNames.status === 'REJECTED'
       ? `Error fetching artifactory names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`
       : null;
 
