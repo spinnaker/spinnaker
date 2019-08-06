@@ -45,7 +45,6 @@ export class DeployManifestStageForm extends React.Component<
     ArtifactTypePatterns.DOCKER_IMAGE,
     ArtifactTypePatterns.KUBERNETES,
     ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
-    ArtifactTypePatterns.EMBEDDED_BASE64,
     ArtifactTypePatterns.MAVEN_FILE,
   ];
 
