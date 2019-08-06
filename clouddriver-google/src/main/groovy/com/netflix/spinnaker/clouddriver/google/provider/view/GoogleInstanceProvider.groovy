@@ -81,7 +81,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, St
     }
   }
 
-  Collection<CacheData> getInstanceCacheData(List<String> keys) {
+  Collection<CacheData> getInstanceCacheData(Collection<String> keys) {
     cacheView.getAll(INSTANCES.ns,
                      keys,
                      RelationshipCacheFilter.include(LOAD_BALANCERS.ns,

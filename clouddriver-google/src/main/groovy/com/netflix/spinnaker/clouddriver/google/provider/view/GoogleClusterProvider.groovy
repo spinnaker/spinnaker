@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -77,26 +78,37 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   }
 
   Map<String, Set<GoogleCluster.View>> getClusters(String applicationName, boolean includeInstanceDetails) {
-    GoogleApplication.View application = applicationProvider.getApplication(applicationName)
+    GoogleApplicationProvider.ApplicationCacheData applicationCacheData = applicationProvider.getApplicationCacheData(applicationName)
 
-    def clusterKeys = []
-    application?.clusterNames?.each { String accountName, Set<String> clusterNames ->
-      clusterNames.each { String clusterName ->
-        clusterKeys << Keys.getClusterKey(accountName, applicationName, clusterName)
-      }
+    Set<String> clusterIdentifiers = applicationCacheData.getClusterIdentifiers();
+    Collection<CacheData> clusterCacheData = cacheView.getAll(
+      CLUSTERS.ns,
+      clusterIdentifiers,
+      RelationshipCacheFilter.include(SERVER_GROUPS.ns)
+    )
+
+    Set<String> instanceIdentifiers = includeInstanceDetails ?
+      applicationCacheData.getInstanceIdentifiers() :
+      Collections.<String>emptySet()
+    Collection<CacheData> instanceCacheData = instanceProvider.getInstanceCacheData(instanceIdentifiers)
+
+    Map<String, Set<GoogleCluster.View>> clustersByAccount = new HashMap<>()
+    Map<String, Set<GoogleSecurityGroup>> securityGroupsByAccount = new HashMap<>()
+
+    clusterCacheData.each { cacheData ->
+      String accountName = cacheData.getAttributes().get("accountName")
+      Set<GoogleSecurityGroup> accountSecurityGroups = securityGroupsByAccount.computeIfAbsent(
+        accountName,
+        { a -> securityGroupProvider.getAllByAccount(false, accountName) }
+      )
+      Set<GoogleCluster.View> accountClusters = clustersByAccount.computeIfAbsent(
+        accountName,
+        { a -> new HashSet<GoogleCluster.View>() }
+      )
+      accountClusters.add(clusterFromCacheData(cacheData, instanceCacheData, accountSecurityGroups))
     }
 
-    // TODO(jacobkiefer): Avoid parsing instance keys into map just to re-serialize?
-    Set<String> allApplicationInstanceKeys = includeInstanceDetails ? application?.instances?.collect { Keys.getInstanceKey(it.account, it.region, it.name) } : [] as Set
-
-    List<GoogleCluster.View> clusters = cacheView.getAll(
-        CLUSTERS.ns,
-        clusterKeys,
-        RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData cacheData ->
-      clusterFromCacheData(cacheData, allApplicationInstanceKeys)
-    }
-
-    clusters?.groupBy { it.accountName } as Map<String, Set<GoogleCluster.View>>
+    return clustersByAccount
   }
 
   @Override
@@ -167,10 +179,22 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     return false
   }
 
-  GoogleCluster.View clusterFromCacheData(CacheData cacheData, Set<String> instanceKeySuperSet) {
-    GoogleCluster.View clusterView = objectMapper.convertValue(cacheData.attributes, GoogleCluster)?.view
+  GoogleCluster.View clusterFromCacheData(CacheData clusterCacheData, Set<String> instanceKeySuperSet) {
+    return clusterFromCacheData(
+      clusterCacheData,
+      instanceProvider.getInstanceCacheData(instanceKeySuperSet),
+      securityGroupProvider.getAllByAccount(false, (String) clusterCacheData.getAttributes().get("accountName"))
+    )
+  }
 
-    def serverGroupKeys = cacheData.relationships[SERVER_GROUPS.ns]
+  GoogleCluster.View clusterFromCacheData(
+    CacheData clusterCacheData,
+    Collection<CacheData> instanceCacheDataSuperSet,
+    Set<GoogleSecurityGroup> securityGroups)
+  {
+    GoogleCluster.View clusterView = objectMapper.convertValue(clusterCacheData.attributes, GoogleCluster)?.view
+
+    def serverGroupKeys = clusterCacheData.relationships[SERVER_GROUPS.ns]
     if (serverGroupKeys) {
       log.debug("Server group keys from cluster relationships: ${serverGroupKeys}")
       def filter = RelationshipCacheFilter.include(LOAD_BALANCERS.ns)
@@ -178,9 +202,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       def serverGroupData = cacheView.getAll(SERVER_GROUPS.ns, serverGroupKeys, filter)
       log.debug("Retrieved cache data for server groups: ${serverGroupData?.collect { it?.attributes?.name }}")
 
-      def securityGroups = securityGroupProvider.getAllByAccount(false, clusterView.accountName)
-
-      def instanceCacheData = instanceProvider.getInstanceCacheData(instanceKeySuperSet as List).findAll { instance ->
+      def instanceCacheData = instanceCacheDataSuperSet.findAll { instance ->
         instance.relationships.get(CLUSTERS.ns)?.collect { Keys.parse(it).cluster }?.any { it.contains(clusterView.name) }
       }
 
