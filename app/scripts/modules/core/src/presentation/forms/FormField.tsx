@@ -3,9 +3,9 @@ import { isNil } from 'lodash';
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
-import { noop } from '../../utils';
+import { noop } from 'core/utils';
 import { LayoutContext } from './layouts';
-import { useLatestPromise } from './useLatestPromise';
+import { useLatestPromise } from '../hooks';
 import { createFieldValidator } from './FormikFormField';
 import { renderContent } from './fields/renderContent';
 import { IValidator, IValidatorResultRaw } from './validation';
@@ -55,7 +55,7 @@ export function FormField(props: IFormFieldProps) {
     [label, required, validate],
   );
 
-  const [errorMessage] = useLatestPromise(
+  const { result: errorMessage } = useLatestPromise(
     // TODO: remove the following cast when we remove async validation from our API
     () => $q.resolve((fieldValidator(value) as any) as IPromise<IValidatorResultRaw>),
     [fieldValidator, value],

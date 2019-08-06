@@ -14,6 +14,7 @@ export * from './WatchValue';
 export * from './collapsibleSection/CollapsibleSection';
 export * from './details/Details';
 export * from './forms';
+export * from './hooks';
 export * from './robotToHumanFilter/robotToHuman.filter';
 export * from './sortToggle';
 export * from './navigation';
