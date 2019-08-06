@@ -1,171 +1,82 @@
 import * as React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { FormikProps } from 'formik';
 
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
 import { IBuildTrigger } from 'core/domain';
 import { HelpField } from 'core/help';
-import { FormField, TextInput } from 'core/presentation';
+import { FormikFormField, TextInput, useLatestPromise } from 'core/presentation';
 
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 
 export interface IBaseBuildTriggerConfigProps {
+  formik: FormikProps<IBuildTrigger>;
   buildTriggerType: BuildServiceType;
-  trigger: IBuildTrigger;
-  triggerUpdated: (trigger: IBuildTrigger) => void;
 }
 
-export interface IBaseBuildTriggerState {
-  jobs: string[];
-  jobsLoaded: boolean;
-  jobsRefreshing: boolean;
-  masters: string[];
-  mastersLoaded: boolean;
-  mastersRefreshing: boolean;
-}
+export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps) {
+  const { formik, buildTriggerType } = buildTriggerProps;
+  const trigger = formik.values;
+  const { master, job, type } = trigger;
 
-export class BaseBuildTrigger extends React.Component<IBaseBuildTriggerConfigProps, IBaseBuildTriggerState> {
-  private destroy$ = new Subject();
+  const fetchMasters = useLatestPromise(() => {
+    return IgorService.listMasters(buildTriggerType);
+  }, []);
 
-  constructor(props: IBaseBuildTriggerConfigProps) {
-    super(props);
-    this.state = {
-      jobs: [],
-      jobsLoaded: false,
-      jobsRefreshing: false,
-      masters: [],
-      mastersLoaded: false,
-      mastersRefreshing: false,
-    };
-  }
+  const fetchJobs = useLatestPromise(() => {
+    return master ? IgorService.listJobsForMaster(master) : null;
+  }, [master]);
 
-  public componentDidMount() {
-    this.initializeMasters();
-  }
-
-  public componentWillUnmount() {
-    this.destroy$.next();
-  }
-
-  private refreshMasters = () => {
-    this.setState({
-      mastersRefreshing: true,
-    });
-    this.initializeMasters();
-  };
-
-  private refreshJobs = () => {
-    this.setState({
-      jobsRefreshing: true,
-    });
-    this.updateJobsList(this.props.trigger.master);
-  };
-
-  private jobsUpdated = (jobs: string[]) => {
-    this.setState({
-      jobs,
-      jobsLoaded: true,
-      jobsRefreshing: false,
-    });
-    if (jobs.length && !jobs.includes(this.props.trigger.job)) {
-      this.onUpdateTrigger({ job: '' });
+  React.useEffect(() => {
+    const jobsFetched = fetchJobs.status === 'RESOLVED';
+    const selectedJobFound = jobsFetched && fetchJobs.result && fetchJobs.result.includes(job);
+    if (job && jobsFetched && !selectedJobFound) {
+      formik.setFieldValue('job', null);
     }
-  };
+  }, [fetchJobs.result]);
 
-  private updateJobsList = (master: string) => {
-    if (master) {
-      this.setState({
-        jobsLoaded: false,
-        jobs: [],
-      });
-      Observable.fromPromise(IgorService.listJobsForMaster(master))
-        .takeUntil(this.destroy$)
-        .subscribe(this.jobsUpdated, () => this.jobsUpdated([]));
-    }
-  };
+  return (
+    <>
+      <FormikFormField
+        name="master"
+        label="Master"
+        fastField={false}
+        input={props => (
+          <RefreshableReactSelectInput
+            {...props}
+            stringOptions={fetchMasters.result}
+            disabled={fetchMasters.status !== 'RESOLVED'}
+            isLoading={fetchMasters.status === 'PENDING'}
+            onRefreshClicked={() => fetchMasters.refresh()}
+            refreshButtonTooltipText={fetchMasters.status === 'PENDING' ? 'Masters refreshing' : 'Refresh masters list'}
+            placeholder="Select a master..."
+          />
+        )}
+      />
 
-  private onMasterUpdated = (master: string) => {
-    if (this.props.trigger.master !== master) {
-      this.onUpdateTrigger({ master });
-      this.updateJobsList(master);
-    }
-  };
+      <FormikFormField
+        name="job"
+        label="Job"
+        fastField={false}
+        input={props => (
+          <RefreshableReactSelectInput
+            {...props}
+            mode="VIRTUALIZED"
+            stringOptions={fetchJobs.result}
+            disabled={!master || fetchJobs.status !== 'RESOLVED'}
+            isLoading={fetchJobs.status === 'PENDING'}
+            onRefreshClicked={() => fetchJobs.refresh()}
+            refreshButtonTooltipText={fetchJobs.status === 'PENDING' ? 'Jobs refreshing' : 'Refresh job list'}
+            placeholder={'Select a job...'}
+          />
+        )}
+      />
 
-  private initializeMasters = () => {
-    Observable.fromPromise(IgorService.listMasters(this.props.buildTriggerType))
-      .takeUntil(this.destroy$)
-      .subscribe(this.mastersUpdated, () => this.mastersUpdated([]));
-  };
-
-  private onUpdateTrigger = (update: any) => {
-    this.props.triggerUpdated &&
-      this.props.triggerUpdated({
-        ...this.props.trigger,
-        ...update,
-      });
-  };
-
-  private mastersUpdated = (masters: string[]) => {
-    this.setState({
-      masters,
-      mastersLoaded: true,
-      mastersRefreshing: false,
-    });
-    if (this.props.trigger.master) {
-      this.refreshJobs();
-    }
-  };
-
-  public render() {
-    const { master, job, propertyFile, type } = this.props.trigger;
-    const { jobsRefreshing, masters, mastersRefreshing } = this.state;
-    return (
-      <>
-        <FormField
-          label="Master"
-          value={master}
-          onChange={e => this.onMasterUpdated(e.target.value)}
-          input={props => (
-            <RefreshableReactSelectInput
-              {...props}
-              stringOptions={masters}
-              placeholder="Select a master..."
-              clearable={false}
-              isLoading={mastersRefreshing}
-              onRefreshClicked={this.refreshMasters}
-              refreshButtonTooltipText={mastersRefreshing ? 'Masters refreshing' : 'Refresh masters list'}
-            />
-          )}
-        />
-
-        <FormField
-          label="Job"
-          value={master}
-          onChange={e => this.onMasterUpdated(e.target.value)}
-          input={props => (
-            <RefreshableReactSelectInput
-              {...props}
-              mode="VIRTUALIZED"
-              value={job}
-              onChange={e => this.onUpdateTrigger({ job: e.target.value })}
-              options={this.state.jobs.map(j => ({ label: j, value: j }))}
-              disabled={!master}
-              placeholder={'Select a job...'}
-              clearable={true}
-              isLoading={mastersRefreshing || jobsRefreshing}
-              onRefreshClicked={this.refreshJobs}
-              refreshButtonTooltipText={mastersRefreshing || jobsRefreshing ? 'Jobs refreshing' : 'Refresh job list'}
-            />
-          )}
-        />
-
-        <FormField
-          label="Property File"
-          help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
-          value={propertyFile}
-          onChange={e => this.onUpdateTrigger({ propertyFile: e.target.value })}
-          input={props => <TextInput {...props} />}
-        />
-      </>
-    );
-  }
+      <FormikFormField
+        name="propertyFile"
+        label="Property File"
+        help={<HelpField id={`pipeline.config.${type}.trigger.propertyFile`} />}
+        input={props => <TextInput {...props} />}
+      />
+    </>
+  );
 }

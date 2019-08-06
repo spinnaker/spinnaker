@@ -51,10 +51,7 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
     });
     if (!this.props.trigger.cronExpression) {
       this.setState({ activeTab: 'minutes' });
-      this.props.triggerUpdated({
-        ...this.props.trigger,
-        cronExpression: '0 0 0 1W 1/1 ? *',
-      });
+      this.props.triggerUpdated({ cronExpression: '0 0 0 1W 1/1 ? *' });
     }
   }
 

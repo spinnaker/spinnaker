@@ -4,14 +4,14 @@ import { IFormInputProps, ReactSelectInput, useLatestPromise } from 'core/presen
 import { ServiceAccountReader } from 'core/serviceAccount';
 
 export function RunAsUserInput(props: IFormInputProps) {
-  const { result: serviceAccounts, status } = useLatestPromise(() => ServiceAccountReader.getServiceAccounts(), []);
-  const isLoading = status === 'PENDING';
+  const fetchServiceAccounts = useLatestPromise(() => ServiceAccountReader.getServiceAccounts(), []);
+  const isLoading = fetchServiceAccounts.status === 'PENDING';
 
   return (
     <ReactSelectInput
       {...props}
       isLoading={isLoading}
-      stringOptions={serviceAccounts || []}
+      stringOptions={fetchServiceAccounts.result || []}
       placeholder="Select Run As User"
     />
   );

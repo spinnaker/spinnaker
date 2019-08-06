@@ -1,136 +1,120 @@
+import { FormikProps } from 'formik';
 import * as React from 'react';
-import { has } from 'lodash';
 
 import { Application } from 'core/application';
-import { HelpField } from 'core/help';
-import { IGitTrigger } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
-import { FormField, ReactSelectInput, TextInput } from 'core/presentation';
+import { IGitTrigger } from 'core/domain';
+import { HelpField } from 'core/help';
+import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 
 export interface IGitTriggerConfigProps {
+  formik: FormikProps<IGitTrigger>;
   trigger: IGitTrigger;
   application: Application;
   triggerUpdated: (trigger: IGitTrigger) => void;
 }
 
-export class GitTrigger extends React.Component<IGitTriggerConfigProps> {
-  private gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'];
-  private displayText: any = {
-    bitbucket: {
-      'pipeline.config.git.project': 'Team or User',
-      'pipeline.config.git.slug': 'Repo name',
-      project: 'Team or User name, i.e. spinnaker for bitbucket.org/spinnaker/echo',
-      slug: 'Repository name (not the url), i.e, echo for bitbucket.org/spinnaker/echo',
-    },
-    github: {
-      'pipeline.config.git.project': 'Organization or User',
-      'pipeline.config.git.slug': 'Project',
-      project: 'Organization or User name, i.e. spinnaker for github.com/spinnaker/echo',
-      slug: 'Project name (not the url), i.e, echo for github.com/spinnaker/echo',
-    },
-    gitlab: {
-      'pipeline.config.git.project': 'Organization or User',
-      'pipeline.config.git.slug': 'Project',
-      project: 'Organization or User name, i.e. spinnaker for gitlab.com/spinnaker/echo',
-      slug: 'Project name (not the url), i.e. echo for gitlab.com/spinnaker/echo',
-    },
-    stash: {
-      'pipeline.config.git.project': 'Project',
-      'pipeline.config.git.slug': 'Repo name',
-      project: 'Project name, i.e. SPKR for stash.mycorp.com/projects/SPKR/repos/echo',
-      slug: 'Repository name (not the url), i.e, echo for stash.mycorp.com/projects/SPKR/repos/echo',
-    },
-  };
+const gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'];
 
-  constructor(props: IGitTriggerConfigProps) {
-    super(props);
-    this.state = {};
-  }
+const displayTexts = {
+  bitbucket: {
+    projectLabel: 'Team or User',
+    projectPlaceholder: 'Team or User name, i.e. spinnaker for bitbucket.org/spinnaker/echo',
+    slugLabel: 'Repo name',
+    slugPlaceholder: 'Repository name (not the url), i.e, echo for bitbucket.org/spinnaker/echo',
+  },
+  github: {
+    projectLabel: 'Organization or User',
+    projectPlaceholder: 'Organization or User name, i.e. spinnaker for github.com/spinnaker/echo',
+    slugLabel: 'Project',
+    slugPlaceholder: 'Project name (not the url), i.e, echo for github.com/spinnaker/echo',
+  },
+  gitlab: {
+    projectLabel: 'Organization or User',
+    projectPlaceholder: 'Organization or User name, i.e. spinnaker for gitlab.com/spinnaker/echo',
+    slugLabel: 'Project',
+    slugPlaceholder: 'Project name (not the url), i.e. echo for gitlab.com/spinnaker/echo',
+  },
+  stash: {
+    projectLabel: 'Project',
+    projectPlaceholder: 'Project name, i.e. SPKR for stash.mycorp.com/projects/SPKR/repos/echo',
+    slugLabel: 'Repo name',
+    slugPlaceholder: 'Repository name (not the url), i.e, echo for stash.mycorp.com/projects/SPKR/repos/echo',
+  },
+};
 
-  public componentDidMount() {
-    const trigger = { ...this.props.trigger };
-    const { attributes } = this.props.application;
+export function GitTrigger(gitTriggerProps: IGitTriggerConfigProps) {
+  const { formik, application } = gitTriggerProps;
+  const trigger = formik.values;
+  const { source } = formik.values;
+  const { projectLabel, projectPlaceholder, slugLabel, slugPlaceholder } = displayTexts[source || 'github'];
 
-    if (has(attributes, 'repoProjectKey') && !this.props.trigger.source) {
-      trigger.source = attributes.repoType;
-      trigger.project = attributes.repoProjectKey;
-      trigger.slug = attributes.repoSlug;
+  React.useEffect(() => {
+    // If no source is set, apply initial values
+    if (!trigger.source) {
+      const attributes = application.attributes || {};
+      const defaultSource = attributes.repoType || (gitTriggerTypes.length === 1 ? gitTriggerTypes[0] : null);
+      formik.setFieldValue('source', defaultSource);
+      formik.setFieldValue('project', attributes.repoProjectKey);
+      formik.setFieldValue('slug', attributes.repoSlug);
     }
-    if (this.gitTriggerTypes.length === 1) {
-      trigger.source = this.gitTriggerTypes[0];
+  }, []);
+
+  React.useEffect(() => {
+    if (trigger.source !== 'github') {
+      formik.setFieldValue('secret', undefined);
     }
+  }, [trigger.source]);
 
-    this.props.triggerUpdated && this.props.triggerUpdated(trigger);
-  }
-
-  private onUpdateTrigger = (update: any) => {
-    this.props.triggerUpdated &&
-      this.props.triggerUpdated({
-        ...this.props.trigger,
-        ...update,
-      });
-  };
-
-  public render() {
-    const { trigger } = this.props;
-    const { branch, project, secret, slug, source } = trigger;
-    const displayText = this.displayText[source ? source : 'github'];
-
-    return (
-      <>
-        {this.gitTriggerTypes && this.gitTriggerTypes.length > 1 && (
-          <FormField
-            label="Repo Type"
-            value={source}
-            onChange={e => this.onUpdateTrigger({ source: e.target.value })}
-            input={props => (
-              <ReactSelectInput
-                {...props}
-                placeholder="Select Repo Type"
-                stringOptions={this.gitTriggerTypes}
-                clearable={false}
-              />
-            )}
-          />
-        )}
-
-        <FormField
-          label={displayText['pipeline.config.git.project']}
-          value={project}
-          onChange={e => this.onUpdateTrigger({ project: e.target.value })}
-          required={true}
-          input={props => <TextInput {...props} placeholder={displayText['project']} />}
+  return (
+    <>
+      {gitTriggerTypes && gitTriggerTypes.length > 1 && (
+        <FormikFormField
+          name="source"
+          label="Repo Type"
+          input={props => (
+            <ReactSelectInput
+              {...props}
+              placeholder="Select Repo Type"
+              stringOptions={gitTriggerTypes}
+              clearable={false}
+            />
+          )}
         />
+      )}
 
-        <FormField
-          label={displayText['pipeline.config.git.slug']}
-          value={slug}
-          onChange={e => this.onUpdateTrigger({ slug: e.target.value })}
-          required={true}
-          validate={(value: string, label) =>
-            value && value.match(/:\/\//) && `${label} is a simple name should not contain ://`
-          }
-          input={props => <TextInput {...props} placeholder={displayText['slug']} />}
-        />
+      <FormikFormField
+        name="project"
+        label={projectLabel}
+        required={true}
+        input={props => <TextInput {...props} placeholder={projectPlaceholder} />}
+      />
 
-        <FormField
-          label="Branch"
-          help={<HelpField id="pipeline.config.git.trigger.branch" />}
-          value={branch}
-          onChange={e => this.onUpdateTrigger({ branch: e.target.value })}
+      <FormikFormField
+        name="slug"
+        label={slugLabel}
+        required={true}
+        validate={(value: string, label) =>
+          value && value.match(/:\/\//) && `${label} is a simple name should not contain ://`
+        }
+        input={props => <TextInput {...props} placeholder={slugPlaceholder} />}
+      />
+
+      <FormikFormField
+        name="branch"
+        label="Branch"
+        help={<HelpField id="pipeline.config.git.trigger.branch" />}
+        input={props => <TextInput {...props} />}
+      />
+
+      {source === 'github' && (
+        <FormikFormField
+          name="secret"
+          label="Secret"
+          help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
           input={props => <TextInput {...props} />}
         />
-
-        {'github' === source && (
-          <FormField
-            label="Secret"
-            help={<HelpField id="pipeline.config.git.trigger.githubSecret" />}
-            value={secret}
-            onChange={e => this.onUpdateTrigger({ secret: e.target.value })}
-            input={props => <TextInput {...props} />}
-          />
-        )}
-      </>
-    );
-  }
+      )}
+    </>
+  );
 }

@@ -1,221 +1,127 @@
 import * as React from 'react';
-import { Observable, Subject } from 'rxjs';
+import { uniq } from 'lodash';
+import { FormikProps } from 'formik';
 
 import { Application } from 'core/application';
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';
-import { IBaseBuildTriggerConfigProps, IBaseBuildTriggerState } from '../baseBuild/BaseBuildTrigger';
 import { IWerckerTrigger } from 'core/domain';
-import { FormField, ReactSelectInput } from 'core/presentation';
+import { FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
+import { IBaseBuildTriggerConfigProps } from '../baseBuild/BaseBuildTrigger';
 
 import { RefreshableReactSelectInput } from '../RefreshableReactSelectInput';
 
 export interface IWerckerTriggerConfigProps extends IBaseBuildTriggerConfigProps {
+  formik: FormikProps<IWerckerTrigger>;
   trigger: IWerckerTrigger;
   application: Application;
   pipelineId: string;
   triggerUpdated: (trigger: IWerckerTrigger) => void;
 }
 
-export interface IWerckerTriggerState extends IBaseBuildTriggerState {
-  apps: string[];
-  pipelines: any[];
+// given a job name i.e., "git/organization/repo/job" or "pipeline/organization/repo/jobname"
+// returns { app: 'organization/repo', pipeline: 'job' } or { app: 'organization/repo', pipeline: 'jobname' }
+function getJobParts(job: string) {
+  const firstSlash = job.indexOf('/');
+  const lastSlash = job.lastIndexOf('/');
+
+  const app = job.substring(firstSlash + 1, lastSlash);
+  const pipeline = job.substring(lastSlash + 1);
+  return { app, pipeline };
 }
 
-export class WerckerTrigger extends React.Component<IWerckerTriggerConfigProps, IWerckerTriggerState> {
-  private destroy$ = new Subject();
+export function WerckerTrigger(werckerTriggerProps: IWerckerTriggerConfigProps) {
+  const { formik } = werckerTriggerProps;
+  const { app, master, pipeline } = formik.values;
 
-  constructor(props: IWerckerTriggerConfigProps) {
-    super(props);
-    this.state = {
-      apps: [],
-      jobs: [],
-      jobsLoaded: false,
-      jobsRefreshing: false,
-      masters: [],
-      mastersLoaded: false,
-      mastersRefreshing: false,
-      pipelines: [],
-    };
-  }
+  const fetchMasters = useLatestPromise(() => IgorService.listMasters(BuildServiceType.Wercker), []);
 
-  public componentDidMount() {
-    this.refreshMasters();
-    this.updateJob(this.props.trigger.pipeline);
-  }
+  const mastersLoading = fetchMasters.status === 'PENDING';
+  const mastersLoaded = fetchMasters.status === 'RESOLVED';
 
-  public componentWillUnmount() {
-    this.destroy$.next();
-  }
+  const fetchJobs = useLatestPromise(() => {
+    return master && IgorService.listJobsForMaster(master).then(x => x.map(getJobParts));
+  }, [master]);
 
-  private initializeMasters = () => {
-    Observable.fromPromise(IgorService.listMasters(BuildServiceType.Wercker))
-      .takeUntil(this.destroy$)
-      .subscribe(this.mastersUpdated, () => this.mastersUpdated([]));
-  };
+  const jobs = fetchJobs.result;
+  const jobsLoading = fetchJobs.status === 'PENDING';
+  const jobsLoaded = fetchJobs.status === 'RESOLVED';
 
-  private onMasterUpdated = (master: string) => {
-    if (this.props.trigger.master !== master) {
-      this.onUpdateTrigger({ master });
-      this.updateJobsList(master);
+  const apps = React.useMemo(() => {
+    return jobsLoaded ? uniq(jobs.map(job => job.app)) : [];
+  }, [jobsLoaded, jobs]);
+
+  const pipelines = React.useMemo(() => {
+    return jobsLoaded ? jobs.filter(parts => parts.app === app).map(parts => parts.pipeline) : [];
+  }, [jobsLoaded, app, jobs]);
+
+  // Clear out app or pipeline if they aren't in the fetched jobs data
+  React.useEffect(() => {
+    if (jobsLoaded && !!app && !apps.includes(app)) {
+      formik.setFieldValue('app', null);
     }
-  };
-
-  private refreshMasters = () => {
-    this.setState({
-      mastersRefreshing: true,
-    });
-    this.initializeMasters();
-  };
-
-  private mastersUpdated = (masters: string[]) => {
-    this.setState({
-      masters,
-      mastersLoaded: true,
-      mastersRefreshing: false,
-    });
-    if (this.props.trigger.master) {
-      this.refreshJobs();
+    if (jobsLoaded && !!pipeline && !pipelines.includes(pipeline)) {
+      formik.setFieldValue('pipeline', null);
     }
-  };
+  }, [jobsLoaded, apps, app, pipelines, pipeline]);
 
-  private refreshJobs = () => {
-    this.setState({
-      jobsRefreshing: true,
-    });
-    this.updateJobsList(this.props.trigger.master);
-  };
+  // Update 'job' field when pipeline or app changes
+  React.useEffect(() => {
+    const hasJob = !!app && !!pipeline;
+    const job = hasJob ? `${app}/${pipeline}` : null;
+    formik.setFieldValue('job', job);
+  }, [pipeline, app]);
 
-  private jobsUpdated = (jobs: string[]) => {
-    let { app } = this.props.trigger;
-    const apps = jobs.map(job => job.substring(job.indexOf('/') + 1, job.lastIndexOf('/')));
-    this.setState({
-      apps,
-      jobs,
-      jobsLoaded: true,
-      jobsRefreshing: false,
-    });
-    if (!apps.length || !apps.includes(app)) {
-      app = '';
-      this.onUpdateTrigger({
-        app,
-        job: '',
-        pipeline: '',
-      });
-    }
-    this.updatePipelinesList(app, jobs);
-  };
+  return (
+    <>
+      <pre>{JSON.stringify(formik.values, null, 2)}</pre>
+      <FormikFormField
+        name="master"
+        label="Master"
+        fastField={false}
+        input={props => (
+          <RefreshableReactSelectInput
+            {...props}
+            stringOptions={fetchMasters.result}
+            placeholder={'Select a master...'}
+            disabled={!mastersLoaded}
+            isLoading={mastersLoading}
+            onRefreshClicked={() => fetchMasters.refresh()}
+            refreshButtonTooltipText={mastersLoading ? 'Masters refreshing' : 'Refresh masters list'}
+          />
+        )}
+      />
 
-  private updateJobsList = (master: string) => {
-    if (master) {
-      this.setState({
-        jobsRefreshing: true,
-        jobsLoaded: false,
-        jobs: [],
-      });
-      Observable.fromPromise(IgorService.listJobsForMaster(master))
-        .takeUntil(this.destroy$)
-        .subscribe(this.jobsUpdated, () => this.jobsUpdated([]));
-    }
-  };
+      <FormikFormField
+        name="app"
+        label="Application"
+        fastField={false}
+        input={props => (
+          <RefreshableReactSelectInput
+            {...props}
+            stringOptions={apps}
+            placeholder={'Select an application...'}
+            disabled={!master || !jobsLoaded}
+            isLoading={jobsLoading}
+            onRefreshClicked={() => fetchJobs.refresh()}
+            refreshButtonTooltipText={jobsLoading ? 'Apps refreshing' : 'Refresh app list'}
+          />
+        )}
+      />
 
-  private onAppUpdated = (app: string) => {
-    if (this.props.trigger.app !== app) {
-      this.onUpdateTrigger({ app });
-      this.updatePipelinesList(app, this.state.jobs);
-    }
-  };
-
-  private onPipelineUpdated = (pipeline: string) => {
-    if (this.props.trigger.pipeline !== pipeline) {
-      this.updateJob(pipeline);
-    }
-  };
-
-  private updatePipelinesList(app: string, jobs: string[]): void {
-    const { pipeline } = this.props.trigger;
-    let pipelines: string[] = [];
-
-    jobs.forEach(a => {
-      if (app === a.substring(a.indexOf('/') + 1, a.lastIndexOf('/'))) {
-        pipelines = pipelines.concat(a.substring(a.lastIndexOf('/') + 1));
-      }
-    });
-
-    this.setState({ pipelines });
-
-    if (!pipelines.length || (pipeline && !pipelines.includes(pipeline))) {
-      this.onUpdateTrigger({
-        job: '',
-        pipeline: '',
-      });
-    }
-  }
-
-  private updateJob(pipeline: string): void {
-    const { app } = this.props.trigger;
-    if (app && pipeline) {
-      this.onUpdateTrigger({ pipeline, job: app + '/' + pipeline });
-    }
-  }
-
-  private onUpdateTrigger = (update: any) => {
-    this.props.triggerUpdated && this.props.triggerUpdated(update);
-  };
-
-  public render() {
-    const { app, master, pipeline } = this.props.trigger;
-    const { apps, jobsRefreshing, masters, mastersRefreshing, pipelines } = this.state;
-    return (
-      <>
-        <FormField
-          label="Master"
-          value={master}
-          onChange={e => this.onMasterUpdated(e.target.value)}
-          input={props => (
-            <RefreshableReactSelectInput
-              {...props}
-              stringOptions={masters}
-              placeholder={'Select a master...'}
-              isLoading={mastersRefreshing}
-              onRefreshClicked={() => this.refreshMasters()}
-              refreshButtonTooltipText={jobsRefreshing ? 'Masters refreshing' : 'Refresh masters list'}
-            />
-          )}
-        />
-
-        <FormField
-          label="Application"
-          value={app}
-          onChange={e => this.onAppUpdated(e.target.value)}
-          input={props =>
-            !master ? (
-              <p className="form-control-static">(Select a master)</p>
-            ) : (
-              <RefreshableReactSelectInput
-                {...props}
-                stringOptions={apps}
-                placeholder={'Select an application...'}
-                isLoading={mastersRefreshing || jobsRefreshing}
-                onRefreshClicked={() => this.refreshJobs()}
-                refreshButtonTooltipText={jobsRefreshing ? 'Apps refreshing' : 'Refresh app list'}
-              />
-            )
-          }
-        />
-
-        <FormField
-          label="Pipeline"
-          value={pipeline}
-          onChange={e => this.onPipelineUpdated(e.target.value)}
-          input={props =>
-            !app ? (
-              <p className="form-control-static">(Select an application)</p>
-            ) : (
-              <ReactSelectInput {...props} stringOptions={pipelines} placeholder="Select a pipeline" />
-            )
-          }
-        />
-      </>
-    );
-  }
+      <FormikFormField
+        name="pipeline"
+        label="Pipeline"
+        fastField={false}
+        input={props => (
+          <ReactSelectInput
+            {...props}
+            disabled={!master || !jobsLoaded}
+            isLoading={jobsLoading}
+            stringOptions={pipelines}
+            placeholder="Select a pipeline"
+          />
+        )}
+      />
+    </>
+  );
 }

@@ -19,7 +19,7 @@ export interface IArtifactoryTrigger extends ITrigger {
 }
 
 export interface IGitTrigger extends ITrigger {
-  source: string;
+  source: 'stash' | 'github' | 'bitbucket' | 'gitlab';
   secret?: string;
   project: string;
   slug: string;

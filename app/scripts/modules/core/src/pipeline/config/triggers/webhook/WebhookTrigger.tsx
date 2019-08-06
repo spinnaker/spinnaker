@@ -1,56 +1,47 @@
 import * as React from 'react';
+import { FormikProps } from 'formik';
 
-import { HelpField } from 'core/help';
-import { MapEditor } from 'core/forms';
-import { IWebhookTrigger } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
-import { FormField, TextInput } from 'core/presentation';
+import { IWebhookTrigger } from 'core/domain';
+import { MapEditorInput } from 'core/forms';
+import { HelpField } from 'core/help';
+import { FormikFormField, TextInput } from 'core/presentation';
 
 export interface IWebhookTriggerProps {
-  trigger: IWebhookTrigger;
-  triggerUpdated: (trigger: IWebhookTrigger) => void;
+  formik: FormikProps<IWebhookTrigger>;
 }
 
-export class WebhookTrigger extends React.Component<IWebhookTriggerProps> {
-  private onUpdateTrigger = (update: any) => {
-    this.props.triggerUpdated &&
-      this.props.triggerUpdated({
-        ...this.props.trigger,
-        ...update,
-      });
-  };
+export function WebhookTrigger(webhookTriggerProps: IWebhookTriggerProps) {
+  const { formik } = webhookTriggerProps;
+  const trigger = formik.values;
+  const { source, type } = trigger;
 
-  public render() {
-    const { trigger } = this.props;
-    const { source, type } = trigger;
-    const p = trigger.payloadConstraints || {};
-    return (
-      <>
-        <FormField
-          label="Source"
-          help={<HelpField id="pipeline.config.trigger.webhook.source" />}
-          value={source}
-          onChange={e => this.onUpdateTrigger({ source: e.target.value })}
-          input={props => (
-            <>
-              <TextInput {...props} />
-              <i>{`${SETTINGS.gateUrl}/webhooks/${type}/${source || '<source>'}`}</i>
-            </>
-          )}
-        />
+  return (
+    <>
+      <FormikFormField
+        name="source"
+        label="Source"
+        help={<HelpField id="pipeline.config.trigger.webhook.source" />}
+        input={props => (
+          <div className="flex-container-v">
+            <TextInput {...props} />
+            <i>{`${SETTINGS.gateUrl}/webhooks/${type}/${source || '<source>'}`}</i>
+          </div>
+        )}
+      />
 
-        <FormField
-          label="Payload Constraints"
-          help={<HelpField id="pipeline.config.trigger.webhook.payloadConstraints" />}
-          input={() => (
-            <MapEditor
-              addButtonLabel="Add payload constraint"
-              model={p}
-              onChange={(payloadConstraints: any) => this.onUpdateTrigger({ payloadConstraints })}
-            />
-          )}
-        />
-      </>
-    );
-  }
+      <FormikFormField
+        name="payloadConstraints"
+        label="Payload Constraints"
+        help={<HelpField id="pipeline.config.trigger.webhook.payloadConstraints" />}
+        input={props => (
+          <MapEditorInput
+            {...props}
+            errors={formik.errors.payloadConstraints}
+            addButtonLabel="Add payload constraint"
+          />
+        )}
+      />
+    </>
+  );
 }
