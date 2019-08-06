@@ -80,6 +80,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   Map<String, Set<GoogleCluster.View>> getClusters(String applicationName, boolean includeInstanceDetails) {
     GoogleApplicationProvider.ApplicationCacheData applicationCacheData = applicationProvider.getApplicationCacheData(applicationName)
 
+    if (applicationCacheData == null) {
+      return new HashMap<>()
+    }
+
     Set<String> clusterIdentifiers = applicationCacheData.getClusterIdentifiers();
     Collection<CacheData> clusterCacheData = cacheView.getAll(
       CLUSTERS.ns,
