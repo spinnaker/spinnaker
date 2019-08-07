@@ -73,7 +73,6 @@ export function WerckerTrigger(werckerTriggerProps: IWerckerTriggerConfigProps) 
 
   return (
     <>
-      <pre>{JSON.stringify(formik.values, null, 2)}</pre>
       <FormikFormField
         name="master"
         label="Master"
