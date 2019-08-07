@@ -83,17 +83,6 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         stage.execution.id,
         stage.id
       )
-    } catch (IllegalArgumentException e) {
-      if (e.cause instanceof UnknownHostException) {
-        log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.statusEndpoint}, will retry.", e)
-        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
-      }
-
-      String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
-      log.error(errorMessage, e)
-      Map<String, ?> outputs = originalResponse
-      outputs.webhook.monitor << [error: errorMessage]
-      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     } catch (HttpStatusCodeException  e) {
       def statusCode = e.getStatusCode()
       def statusValue = statusCode.value()
@@ -104,6 +93,17 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
 
       if (shouldRetry) {
         log.warn("Failed to get webhook status from ${stageData.statusEndpoint} with statusCode=${statusValue}, will retry", e)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+      }
+
+      String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
+      log.error(errorMessage, e)
+      Map<String, ?> outputs = originalResponse
+      outputs.webhook.monitor << [error: errorMessage]
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
+    } catch (Exception e) {
+      if (e instanceof UnknownHostException || e.cause instanceof UnknownHostException) {
+        log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.statusEndpoint}, will retry.", e)
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 

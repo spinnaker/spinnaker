@@ -102,7 +102,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     monitorWebhookTask.webhookService = Stub(WebhookService) {
       getStatus(_, _) >> {
-        throw new IllegalArgumentException("Invalid URL", new UnknownHostException())
+        throw new Exception("Invalid URL", new UnknownHostException())
       }
     }
 

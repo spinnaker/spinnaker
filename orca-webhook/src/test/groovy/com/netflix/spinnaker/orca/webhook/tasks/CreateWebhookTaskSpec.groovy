@@ -189,7 +189,7 @@ class CreateWebhookTaskSpec extends Specification {
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(_, _, _, _) >> {
         // throwing it like UserConfiguredUrlRestrictions::validateURI does
-        throw new IllegalArgumentException("Invalid URL", new UnknownHostException("Temporary failure in name resolution"))
+        throw new Exception("Invalid URL", new UnknownHostException("Temporary failure in name resolution"))
       }
     }
 

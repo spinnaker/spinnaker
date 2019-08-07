@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
 
@@ -55,18 +53,6 @@ class CreateWebhookTask implements RetryableTask {
     def response
     try {
       response = webhookService.exchange(stageData.method, stageData.url, stageData.payload, stageData.customHeaders)
-    } catch (IllegalArgumentException e) {
-      if (e.cause instanceof UnknownHostException) {
-        String errorMessage = "name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
-        log.warn(errorMessage, e)
-        outputs.webhook << [error: errorMessage]
-        return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
-      } else {
-        String errorMessage = "an exception occurred in webhook to ${stageData.url}: ${e}"
-        log.error(errorMessage, e)
-        outputs.webhook << [error: errorMessage]
-        return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
-      }
     } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
 
@@ -110,6 +96,18 @@ class CreateWebhookTask implements RetryableTask {
       outputs.webhook << [error: errorMessage]
 
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
+    } catch (Exception e) {
+      if (e instanceof UnknownHostException || e.cause instanceof UnknownHostException) {
+        String errorMessage = "name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
+        log.warn(errorMessage, e)
+        outputs.webhook << [error: errorMessage]
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
+      } else {
+        String errorMessage = "an exception occurred in webhook to ${stageData.url}: ${e}"
+        log.error(errorMessage, e)
+        outputs.webhook << [error: errorMessage]
+        return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
+      }
     }
 
     def statusCode = response.statusCode
