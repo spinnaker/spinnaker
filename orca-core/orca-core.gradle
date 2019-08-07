@@ -28,6 +28,7 @@ dependencies {
   api("com.netflix.spinnaker.kork:kork-artifacts")
   api("com.netflix.spinnaker.kork:kork-security")
   api("com.netflix.spinnaker.kork:kork-exceptions")
+  api("com.netflix.spinnaker.kork:kork-expressions")
   api("io.reactivex:rxjava")
 
   implementation(project(":orca-extensionpoint"))

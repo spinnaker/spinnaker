@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.cf.pipeline.expressions.functions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.io.IOException;
@@ -44,17 +44,13 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
 
   @NotNull
   @Override
-  public Collection<FunctionDefinition> getFunctions() {
-    return Collections.singletonList(
+  public Functions getFunctions() {
+    return new Functions(
         new FunctionDefinition(
             "cfServiceKey",
-            Arrays.asList(
-                new FunctionParameter(
-                    Execution.class,
-                    "execution",
-                    "The execution within which to search for stages"),
-                new FunctionParameter(
-                    String.class, "idOrName", "A stage name or stage ID to match"))));
+            new FunctionParameter(
+                Execution.class, "execution", "The execution within which to search for stages"),
+            new FunctionParameter(String.class, "idOrName", "A stage name or stage ID to match")));
   }
 
   public static Map<String, Object> cfServiceKey(Execution execution, String idOrName) {

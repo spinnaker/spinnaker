@@ -23,8 +23,8 @@ import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider.FunctionDefinition;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider.FunctionDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
@@ -35,7 +35,8 @@ class ServiceKeyExpressionFunctionProviderTest {
   void getFunctionsShouldReturnOneFunctionWithTheCorrectNameWhichHasTwoParameters() {
     ServiceKeyExpressionFunctionProvider functionProvider =
         new ServiceKeyExpressionFunctionProvider();
-    Collection<FunctionDefinition> functionDefinitions = functionProvider.getFunctions();
+    Collection<FunctionDefinition> functionDefinitions =
+        functionProvider.getFunctions().getFunctionsDefinitions();
 
     assertThat(functionDefinitions.size()).isEqualTo(1);
     functionDefinitions.stream()

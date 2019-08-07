@@ -18,14 +18,12 @@ package com.netflix.spinnaker.orca.pipeline.expressions.functions;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.orca.ExecutionContext;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -40,24 +38,30 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
 
   @NotNull
   @Override
-  public Collection<FunctionDefinition> getFunctions() {
-    return Arrays.asList(
+  public Functions getFunctions() {
+    FunctionParameter[] stageParameters = {
+      new FunctionParameter(Execution.class, "execution", "The execution for the stage"),
+      new FunctionParameter(String.class, "idOrName", "The name or id of the stage to find")
+    };
+
+    return new Functions(
         new FunctionDefinition(
             "currentStage",
-            Collections.singletonList(
-                new FunctionParameter(
-                    Execution.class,
-                    "execution",
-                    "The execution containing the currently executing stage"))),
+            new FunctionParameter(
+                Execution.class,
+                "execution",
+                "The execution containing the currently executing stage")),
         new FunctionDefinition(
             "stageByRefId",
-            Arrays.asList(
-                new FunctionParameter(
-                    Execution.class,
-                    "execution",
-                    "The execution containing the currently executing stage"),
-                new FunctionParameter(
-                    String.class, "refId", "A valid stage reference identifier"))));
+            new FunctionParameter(
+                Execution.class,
+                "execution",
+                "The execution containing the currently executing stage"),
+            new FunctionParameter(String.class, "refId", "A valid stage reference identifier")),
+        new FunctionDefinition("stage", stageParameters),
+        new FunctionDefinition("stageExists", stageParameters),
+        new FunctionDefinition("judgment", stageParameters),
+        new FunctionDefinition("judgement", stageParameters));
   }
 
   /**
@@ -102,5 +106,72 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
                     format(
                         "Unable to locate [%1$s] using #stageByRefId(%1$s) in execution %2$s",
                         refId, execution.getId())));
+  }
+
+  /**
+   * Finds a Stage by id
+   *
+   * @param execution #root.execution
+   * @param id the name or id of the stage to find
+   * @return a stage specified by id
+   */
+  public static Object stage(Execution execution, String id) {
+    return execution.getStages().stream()
+        .filter(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new SpelHelperFunctionException(
+                    format(
+                        "Unable to locate [%s] using #stage(%s) in execution %s",
+                        id, id, execution.getId())));
+  }
+
+  /**
+   * Checks existence of a Stage by id
+   *
+   * @param execution #root.execution
+   * @param id the name or id of the stage to check existence
+   * @return W
+   */
+  public static boolean stageExists(Execution execution, String id) {
+    return execution.getStages().stream()
+        .anyMatch(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())));
+  }
+
+  /**
+   * Finds a stage by id and returns the judgment input text
+   *
+   * @param execution #root.execution
+   * @param id the name of the stage to find
+   * @return the judgment input text
+   */
+  public static String judgment(Execution execution, String id) {
+    Stage stageWithJudgmentInput =
+        execution.getStages().stream()
+            .filter(isManualStageWithManualInput(id))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new SpelHelperFunctionException(
+                        format(
+                            "Unable to locate manual Judgment stage [%s] using #judgment(%s) in execution %s. "
+                                + "Stage doesn't exist or doesn't contain judgmentInput in its context ",
+                            id, id, execution.getId())));
+
+    return (String) stageWithJudgmentInput.getContext().get("judgmentInput");
+  }
+
+  /** Alias to judgment */
+  public static String judgement(Execution execution, String id) {
+    return judgment(execution, id);
+  }
+
+  private static Predicate<Stage> isManualStageWithManualInput(String id) {
+    return i ->
+        (id != null && id.equals(i.getName()))
+            && (i.getContext() != null
+                && i.getType().equals("manualJudgment")
+                && i.getContext().get("judgmentInput") != null);
   }
 }

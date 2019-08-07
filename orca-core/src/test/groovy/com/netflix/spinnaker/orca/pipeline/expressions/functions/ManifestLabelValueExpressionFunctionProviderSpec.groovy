@@ -15,8 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.expressions.functions
 
-
-import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
+import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll

@@ -19,9 +19,9 @@ import static java.lang.String.format;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
@@ -39,17 +39,16 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
 
   @NotNull
   @Override
-  public Collection<FunctionDefinition> getFunctions() {
-    return Collections.singletonList(
+  public Functions getFunctions() {
+    return new Functions(
         new FunctionDefinition(
             "manifestLabelValue",
-            Arrays.asList(
-                new FunctionParameter(
-                    Execution.class, "execution", "The execution to search for stages within"),
-                new FunctionParameter(
-                    String.class, "stageName", "Name of a deployManifest stage to find"),
-                new FunctionParameter(String.class, "kind", "The kind of manifest to find"),
-                new FunctionParameter(String.class, "labelKey", "The key of the label to find"))));
+            new FunctionParameter(
+                Execution.class, "execution", "The execution to search for stages within"),
+            new FunctionParameter(
+                String.class, "stageName", "Name of a deployManifest stage to find"),
+            new FunctionParameter(String.class, "kind", "The kind of manifest to find"),
+            new FunctionParameter(String.class, "labelKey", "The key of the label to find")));
   }
 
   /**

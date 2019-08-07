@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipeline.expressions.functions;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
@@ -43,15 +43,14 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
 
   @NotNull
   @Override
-  public Collection<FunctionDefinition> getFunctions() {
-    return singletonList(
+  public Functions getFunctions() {
+    return new Functions(
         new FunctionDefinition(
             "deployedServerGroups",
-            Arrays.asList(
-                new FunctionParameter(
-                    Execution.class, "execution", "The execution to search for stages within"),
-                new FunctionParameter(
-                    String[].class, "ids", "A list of stage name or stage IDs to search"))));
+            new FunctionParameter(
+                Execution.class, "execution", "The execution to search for stages within"),
+            new FunctionParameter(
+                String[].class, "ids", "A list of stage name or stage IDs to search")));
   }
 
   public static List<Map<String, Object>> deployedServerGroups(Execution execution, String... id) {

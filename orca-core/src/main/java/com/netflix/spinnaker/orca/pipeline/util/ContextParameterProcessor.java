@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
-import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.emptyList;
@@ -24,15 +23,21 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.DeployedServerGroupsExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.ManifestLabelValueExpressionFunctionProvider;
+import com.netflix.spinnaker.orca.pipeline.expressions.functions.StageExpressionFunctionProvider;
+import com.netflix.spinnaker.orca.pipeline.expressions.functions.UrlExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.model.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,20 +50,20 @@ public class ContextParameterProcessor {
 
   private static final ObjectMapper mapper = OrcaObjectMapper.getInstance();
 
-  private ExpressionEvaluator expressionEvaluator;
+  private PipelineExpressionEvaluator expressionEvaluator;
 
   public ContextParameterProcessor() {
     this(
-        new ContextFunctionConfiguration(
-            new UserConfiguredUrlRestrictions.Builder().build(),
-            Arrays.asList(
-                new DeployedServerGroupsExpressionFunctionProvider(),
-                new ManifestLabelValueExpressionFunctionProvider()),
-            V2));
+        Arrays.asList(
+            new DeployedServerGroupsExpressionFunctionProvider(),
+            new ManifestLabelValueExpressionFunctionProvider(),
+            new StageExpressionFunctionProvider(),
+            new UrlExpressionFunctionProvider(
+                new UserConfiguredUrlRestrictions.Builder().build())));
   }
 
-  public ContextParameterProcessor(ContextFunctionConfiguration contextFunctionConfiguration) {
-    expressionEvaluator = new PipelineExpressionEvaluator(contextFunctionConfiguration);
+  public ContextParameterProcessor(List<ExpressionFunctionProvider> expressionFunctionProviders) {
+    this.expressionEvaluator = new PipelineExpressionEvaluator(expressionFunctionProviders);
   }
 
   public Map<String, Object> process(

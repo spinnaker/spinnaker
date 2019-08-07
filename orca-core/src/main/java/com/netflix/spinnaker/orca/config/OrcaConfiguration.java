@@ -21,6 +21,7 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResolver;
@@ -35,18 +36,13 @@ import com.netflix.spinnaker.orca.listeners.*;
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
-import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -59,7 +55,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -101,7 +96,7 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  @Order(Ordered.LOWEST_PRECEDENCE)
+  @Order
   public DefaultExceptionHandler defaultExceptionHandler() {
     return new DefaultExceptionHandler();
   }
@@ -136,20 +131,9 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public ContextFunctionConfiguration contextFunctionConfiguration(
-      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
-      Optional<List<ExpressionFunctionProvider>> expressionFunctionProviders,
-      @Value("${spel-evaluator:v2}") String spelEvaluator) {
-    return new ContextFunctionConfiguration(
-        userConfiguredUrlRestrictions,
-        expressionFunctionProviders.orElse(Collections.emptyList()),
-        spelEvaluator);
-  }
-
-  @Bean
   public ContextParameterProcessor contextParameterProcessor(
-      ContextFunctionConfiguration contextFunctionConfiguration) {
-    return new ContextParameterProcessor(contextFunctionConfiguration);
+      List<ExpressionFunctionProvider> expressionFunctionProviders) {
+    return new ContextParameterProcessor(expressionFunctionProviders);
   }
 
   @Bean
