@@ -399,21 +399,19 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
                 </button>
               </Tooltip>
             )}
+            {(!execution.isActive || application.attributes.enableRerunActiveExecutions) && this.props.onRerun && (
+              <Tooltip value="Re-run execution with same parameters">
+                <button className="link" onClick={this.handleRerunClick}>
+                  <i className="fa fa-redo" />
+                </button>
+              </Tooltip>
+            )}
             {!execution.isActive && (
-              <span>
-                {this.props.onRerun && (
-                  <Tooltip value="Re-run execution with same parameters">
-                    <button className="link" onClick={this.handleRerunClick}>
-                      <i className="fa fa-redo" />
-                    </button>
-                  </Tooltip>
-                )}
-                <Tooltip value="Delete execution">
-                  <button className="link" onClick={this.handleDeleteClick}>
-                    <span className="glyphicon glyphicon-trash" />
-                  </button>
-                </Tooltip>
-              </span>
+              <Tooltip value="Delete execution">
+                <button className="link" onClick={this.handleDeleteClick}>
+                  <span className="glyphicon glyphicon-trash" />
+                </button>
+              </Tooltip>
             )}
             {execution.isActive && (
               <Tooltip value={cancelHelpText}>

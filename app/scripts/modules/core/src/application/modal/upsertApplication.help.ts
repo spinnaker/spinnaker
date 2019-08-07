@@ -19,6 +19,9 @@ const helpContents: { [key: string]: string } = {
   'application.enableRestartRunningExecutions': `
         When this option is enabled, users will be able to restart pipeline stages while a pipeline is still running.
         This behavior can have varying unexpected results and is <b>not recommended</b> to enable.`,
+  'application.enableRerunActiveExecutions': `
+        When this option is enabled, the re-run option also appears on active executions. This is usually not needed
+        but may sometimes be useful for submitting multiple executions with identical parameters.`,
   'application.instance.port': `
      <p>This field is only used to generate links within Spinnaker to a running instance when viewing an
      instance's details.</p> The instance port can be used or overridden for specific links configured for your
