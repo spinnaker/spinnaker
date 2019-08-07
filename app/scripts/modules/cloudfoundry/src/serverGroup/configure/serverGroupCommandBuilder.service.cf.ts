@@ -66,7 +66,7 @@ export class CloudFoundryServerGroupCommandBuilder {
             ? serverGroup.droplet.buildpacks.map(item => item.name)
             : [],
         instances: serverGroup.instances ? serverGroup.instances.length : 1,
-        routes: serverGroup.loadBalancers,
+        routes: serverGroup.loadBalancers || [],
         environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
         services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
         healthCheckType: 'port',
