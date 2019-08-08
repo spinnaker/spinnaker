@@ -8,12 +8,14 @@ import { SETTINGS } from 'core/config';
 
 import { BakeManifestConfig } from './BakeManifestConfig';
 import { BakeManifestDetailsTab } from './BakeManifestDetailsTab';
+import { ManualExecutionBakeManifest } from './ManualExecutionBakeManifest';
 
+export const BAKE_MANIFEST_STAGE_KEY = 'bakeManifest';
 if (SETTINGS.feature.versionedProviders) {
   Registry.pipeline.registerStage({
     label: 'Bake (Manifest)',
     description: 'Bake a manifest (or multi-doc manifest set) using a template renderer such as Helm.',
-    key: 'bakeManifest',
+    key: BAKE_MANIFEST_STAGE_KEY,
     component: BakeManifestConfig,
     producesArtifacts: true,
     cloudProvider: 'kubernetes',
@@ -28,5 +30,6 @@ if (SETTINGS.feature.versionedProviders) {
       stage.inputArtifacts = get(stage, 'inputArtifacts', []).filter(a => !artifactMatches(a));
     },
     validators: [{ type: 'requiredField', fieldName: 'outputName', fieldLabel: 'Name' }],
+    manualExecutionComponent: ManualExecutionBakeManifest,
   });
 }
