@@ -37,7 +37,10 @@ dependencies {
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-core-test"))
-  testImplementation(project(":keel-api"))
+  testImplementation(project(":keel-api")) {
+    // avoid circular dependency which breaks Liquibase
+    exclude(module = "keel-sql")
+  }
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
