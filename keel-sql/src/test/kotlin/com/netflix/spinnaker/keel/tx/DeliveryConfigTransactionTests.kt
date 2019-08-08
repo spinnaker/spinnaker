@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -96,7 +97,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("test", "resource in test")
+            spec = DummyResourceSpec("test", "resource in test", "keel")
           ))
         ),
         SubmittedEnvironment(
@@ -105,7 +106,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("prod", "resource in prod")
+            spec = DummyResourceSpec("prod", "resource in prod", "keel")
           ))
         )
       )
@@ -225,5 +226,6 @@ internal object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
 
 internal data class DummyResourceSpec(
   val state: String,
-  val data: String = "some data"
-)
+  val data: String = "some data",
+  override val application: String = "someapp"
+) : HasApplication

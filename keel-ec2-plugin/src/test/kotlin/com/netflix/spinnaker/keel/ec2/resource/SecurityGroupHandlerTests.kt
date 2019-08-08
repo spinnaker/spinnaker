@@ -505,7 +505,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           "ec2.SecurityGroup:${moniker.app}:$accountName:$region:${moniker.name}"
         },
         "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker"
+        "serviceAccount" to "keel@spinnaker",
+        "application" to securityGroup.moniker.app
       ),
       kind = "ec2.SecurityGroup",
       spec = securityGroup

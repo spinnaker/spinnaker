@@ -30,7 +30,8 @@ internal class KeelTagSpecTests : JUnit5Minutests {
               valueType = "object",
               name = KEEL_TAG_NAME
             )
-          )
+          ),
+          "keel"
         )
         ResourceDiff(
           resource,

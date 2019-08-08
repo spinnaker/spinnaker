@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -74,7 +75,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         metadata = mapOf(
           "name" to "resource1",
           "uid" to randomUID(),
-          "serviceAccount" to "keel@spinnaker"
+          "serviceAccount" to "keel@spinnaker",
+          "application" to "app"
         ),
         spec = DummyResourceSpec("whatever")
       )
@@ -289,7 +291,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             metadata = mapOf(
               "name" to "badapp-resource",
               "uid" to randomUID(),
-              "serviceAccount" to "keel@spinnaker"
+              "serviceAccount" to "keel@spinnaker",
+              "application" to "badapp"
             ),
             spec = DummyResourceSpec("badapp")
           )
@@ -323,8 +326,9 @@ internal data class DummyResource(
 
 internal data class DummyResourceSpec(
   val state: String,
-  val data: String = "some data"
-)
+  val data: String = "some data",
+  override val application: String = "someapp"
+) : HasApplication
 
 internal class DummyVeto : Veto {
   override fun check(name: ResourceName): VetoResponse {

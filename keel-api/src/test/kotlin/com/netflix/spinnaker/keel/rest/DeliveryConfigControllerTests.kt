@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -19,8 +20,8 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepos
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -97,7 +98,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = "resource in test"
+                  spec = DummyResource("resource in test")
                 ))
               ),
               SubmittedEnvironment(
@@ -106,7 +107,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = "resource in prod"
+                  spec = DummyResource("resource in prod")
                 ))
               )
             )
@@ -149,14 +150,18 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |    kind: whatever
         |    metadata:
         |      serviceAccount: keel@spinnaker
-        |    spec: resource in test
+        |    spec:
+        |      data: resource in test
+        |      application: someapp
         |- name: prod
         |  resources:
         |  - apiVersion: test.spinnaker.netflix.com/v1
         |    kind: whatever
         |    metadata:
         |      serviceAccount: keel@spinnaker
-        |    spec: resource in prod
+        |    spec:
+        |      data: resource in prod
+        |      application: someapp
         |"""
           .trimMargin()
 
@@ -180,7 +185,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |          "metadata": {
         |            "serviceAccount": "keel@spinnaker"
         |          },
-        |          "spec": "resource in test"
+        |          "spec": {
+        |            "data": "resource in test",
+        |            "application": "someapp"
+        |          }
         |        }
         |      ]
         |    },
@@ -193,7 +201,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |          "metadata": {
         |            "serviceAccount": "keel@spinnaker"
         |          },
-        |          "spec": "resource in prod"
+        |          "spec": {
+        |            "data": "resource in prod",
+        |            "application": "someapp"
+        |          }
         |        }
         |      ]
         |    }
@@ -233,26 +244,31 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   }
 }
 
+internal data class DummyResource(
+  val data: String = "some data",
+  override val application: String = "someapp"
+) : HasApplication
+
 private class TestConfiguration {
   @Bean
-  fun whateverResourceHandler() = object : ResourceHandler<String> {
+  fun whateverResourceHandler() = object : ResourceHandler<DummyResource> {
     override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
-    override val supportedKind: Pair<ResourceKind, Class<String>> =
-      ResourceKind("test", "whatever", "whatevers") to String::class.java
+    override val supportedKind: Pair<ResourceKind, Class<DummyResource>> =
+      ResourceKind("test", "whatever", "whatevers") to DummyResource::class.java
 
     override val objectMapper: ObjectMapper = configuredObjectMapper()
 
     override val normalizers: List<ResourceNormalizer<*>> = emptyList()
 
-    override fun generateName(spec: String): ResourceName =
-      ResourceName("test:whatever:${spec.hashCode()}")
+    override fun generateName(spec: DummyResource): ResourceName =
+      ResourceName("test:whatever:${spec.data.hashCode()}")
 
-    override suspend fun current(resource: Resource<String>): String? {
+    override suspend fun current(resource: Resource<DummyResource>): DummyResource? {
       TODO("not implemented")
     }
 
-    override suspend fun delete(resource: Resource<String>) {
+    override suspend fun delete(resource: Resource<DummyResource>) {
       TODO("not implemented")
     }
 

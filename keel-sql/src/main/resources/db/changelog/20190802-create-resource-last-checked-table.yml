@@ -1,21 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: drop-timestamp-from-resource-table
-      author: fletch
-      changes:
-        - dropColumn:
-            tableName: resource
-            columnName: last_checked
-  - changeSet:
-      id: drop-last-checked-index-from-resource-table
-      author: fletch
-      failOnError: false # TODO: why is this happening to me?
-      changes:
-        - dropIndex:
-            tableName: resource
-            indexName: resource_last_checked_idx
-  - changeSet:
-      id: create-new-last-checked-table
+      id: create-resource-last-checked-table
       author: fletch
       changes:
         - createTable:
@@ -38,8 +23,11 @@ databaseChangeLog:
             dbms: mysql
             append:
               value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resources_last_checked
   - changeSet:
-      id: add-index-to-last-checked-table
+      id: create-resource-last-checked-indicies
       author: fletch
       changes:
         - createIndex:

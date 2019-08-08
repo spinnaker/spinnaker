@@ -15,19 +15,17 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.cluster
+package com.netflix.spinnaker.keel.api
 
-import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.model.Moniker
 
-data class Cluster(
-  override val moniker: Moniker,
-  val location: Location,
-  val launchConfiguration: LaunchConfiguration,
-  val capacity: Capacity = Capacity(1, 1, 1),
-  val dependencies: Dependencies = Dependencies(),
-  val health: Health = Health(),
-  val scaling: Scaling = Scaling(),
-  val tags: Map<String, String> = emptyMap()
-) : Monikered
+/**
+ * An object which has a moniker
+ */
+interface Monikered : HasApplication {
+  val moniker: Moniker
+
+  override val application: String
+    @JsonIgnore get() = moniker.app
+}

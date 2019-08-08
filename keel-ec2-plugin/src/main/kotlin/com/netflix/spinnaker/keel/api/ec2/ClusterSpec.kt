@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
@@ -25,7 +26,7 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ClusterSpec(
-  val moniker: Moniker,
+  override val moniker: Moniker,
   val location: Location,
   val launchConfiguration: LaunchConfigurationSpec,
   val capacity: Capacity = Capacity(1, 1, 1),
@@ -33,4 +34,4 @@ data class ClusterSpec(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
-)
+) : Monikered

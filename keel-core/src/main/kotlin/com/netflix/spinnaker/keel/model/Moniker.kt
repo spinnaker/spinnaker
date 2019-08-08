@@ -16,7 +16,10 @@
 package com.netflix.spinnaker.keel.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 
+@JsonInclude(NON_NULL)
 data class Moniker(
   val app: String,
   val stack: String? = null,
@@ -38,5 +41,5 @@ data class Moniker(
       stack == null && detail == null -> "$app-$sequence"
       detail == null && sequence != null -> "$app-$stack-$sequence"
       else -> "$app-${stack.orEmpty()}-$detail-$sequence"
-  }
+    }
 }

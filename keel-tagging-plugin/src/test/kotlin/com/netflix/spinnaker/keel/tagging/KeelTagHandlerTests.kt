@@ -90,7 +90,8 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     entityRef = entityRef,
     tagState = TagDesired(
       tag = managedByKeelTag
-    )
+    ),
+    application = entityRef.application
   )
 
   val specWithoutTag = specWithTag.copy(tagState = TagNotDesired(clock.millis()))
@@ -109,7 +110,8 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     mapOf(
       "name" to keelId,
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "keel"
     ),
     specWithTag
   )

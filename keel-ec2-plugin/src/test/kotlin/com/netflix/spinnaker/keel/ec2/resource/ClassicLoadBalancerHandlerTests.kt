@@ -79,7 +79,8 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     mapOf(
       "name" to "my-clb",
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "testapp"
     ),
     spec
   )

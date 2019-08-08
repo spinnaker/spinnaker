@@ -14,8 +14,8 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -75,7 +75,8 @@ internal class EventControllerTests : JUnit5Minutests {
       metadata = mapOf(
         "name" to "ec2:securityGroup:test:ap-south-1:keel",
         "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker"
+        "serviceAccount" to "keel@spinnaker",
+        "application" to "keel"
       ),
       spec = "mockingThis"
     )

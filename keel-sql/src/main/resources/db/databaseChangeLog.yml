@@ -1,40 +1,22 @@
 databaseChangeLog:
   - include:
-      file: changelog/20190227-initial-schema.yml
+      file: changelog/20190801-create-resource-table.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190313-add-instance-to-resource-status.yml
+      file: changelog/20190802-create-resource-event-table.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190320-create-lock-table.yml
+      file: changelog/20190802-create-resource-last-checked-table.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190321-persist-metadata.yml
+      file: changelog/20190803-create-delivery-config-tables.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190412-resource-events.yml
+      file: changelog/20190803-create-delivery-artifact-table.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190418-delivery-artifact.yml
+      file: changelog/20190803-create-delivery-artifact-version-table.yml
       relativeToChangelogFile: true
   - include:
-      file: changelog/20190424-drop-resource-version.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190426-drop-artifact-provenance.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190515-add-last-checked-timestamp.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190626-delivery-config-tables.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190627-drop-cluster-lock.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190726-create-veto-table.yml
-      relativeToChangelogFile: true
-  - include:
-      file: changelog/20190802-separate-table-for-check-timestamp.yml
+      file: changelog/20190804-create-application-veto-table.yml
       relativeToChangelogFile: true

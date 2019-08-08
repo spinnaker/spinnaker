@@ -74,7 +74,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     mapOf(
       "name" to "my-alb",
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "testapp"
     ),
     spec
   )

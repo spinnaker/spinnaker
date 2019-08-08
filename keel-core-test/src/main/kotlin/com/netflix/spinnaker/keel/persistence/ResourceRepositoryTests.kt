@@ -96,8 +96,21 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         metadata = mapOf(
           "name" to "ec2:security-group:test:us-west-2:fnord",
           "uid" to randomUID().toString(),
-          "serviceAccount" to "keel@spinnaker"
+          "serviceAccount" to "keel@spinnaker",
+          "application" to "fnord"
         ) + randomData(),
+        kind = "security-group",
+        spec = randomData()
+      )
+
+      val anotherResource = Resource(
+        metadata = mapOf(
+          "name" to "ec2:security-group:test:us-east-1:wow",
+          "uid" to randomUID(),
+          "serviceAccount" to "keel@spinnaker",
+          "application" to "wow"
+        ) + randomData(),
+        apiVersion = SPINNAKER_API_V1,
         kind = "security-group",
         spec = randomData()
       )
@@ -126,17 +139,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       context("storing another resource with a different name") {
-        val anotherResource = Resource(
-          metadata = mapOf(
-            "name" to "ec2:security-group:test:us-east-1:fnord",
-            "uid" to randomUID(),
-            "serviceAccount" to "keel@spinnaker"
-          ) + randomData(),
-          apiVersion = SPINNAKER_API_V1,
-          kind = "security-group",
-          spec = randomData()
-        )
-
         before {
           subject.store(anotherResource)
           subject.appendHistory(ResourceCreated(resource, clock))
@@ -149,6 +151,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             callback(match { it.uid == resource.uid })
             callback(match { it.uid == anotherResource.uid })
           }
+        }
+
+        test("one resource is returned for each application") {
+          expectThat(subject.getByApplication("fnord")).hasSize(1)
+          expectThat(subject.getByApplication("wow")).hasSize(1)
         }
       }
 
@@ -257,7 +264,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             metadata = mapOf(
               "name" to "ec2:security-group:test:us-west-2:fnord-$it",
               "uid" to randomUID(),
-              "serviceAccount" to "keel@spinnaker"
+              "serviceAccount" to "keel@spinnaker",
+              "application" to "fnord"
             ) + randomData(),
             kind = "security-group",
             spec = randomData()

@@ -60,14 +60,16 @@ internal class ImageHandlerTests : JUnit5Minutests {
       metadata = mapOf(
         "uid" to randomUID(),
         "name" to "bakery:image:keel",
-        "serviceAccount" to "keel@spinnaker"
+        "serviceAccount" to "keel@spinnaker",
+        "application" to "keel"
       ),
       spec = ImageSpec(
         artifactName = "keel",
         baseLabel = RELEASE,
         baseOs = "xenial",
         regions = setOf("us-west-2", "us-east-1"),
-        storeType = EBS
+        storeType = EBS,
+        application = "keel"
       )
     )
     val image = Image(

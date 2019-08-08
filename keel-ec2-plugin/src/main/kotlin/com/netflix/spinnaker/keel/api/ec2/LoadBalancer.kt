@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.model.Moniker
 
-interface LoadBalancer {
-  val moniker: Moniker
+interface LoadBalancer : Monikered {
   val location: Location
   val loadBalancerType: LoadBalancerType
   val internal: Boolean

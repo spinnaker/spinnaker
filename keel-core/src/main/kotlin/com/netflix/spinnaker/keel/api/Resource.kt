@@ -31,6 +31,7 @@ data class Resource<T : Any>(
     require(metadata["uid"].isValidULID()) { "resource uid must be a valid ULID" }
     require(metadata["name"].isValidName()) { "resource name must be a valid name" }
     require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
+    require(metadata["application"].isValidApplication()) { "application must be a valid application" }
   }
 
   constructor(resource: SubmittedResource<T>, metadata: Map<String, Any?>) :
@@ -63,6 +64,9 @@ val <T : Any> Resource<T>.name: ResourceName
 val <T : Any> Resource<T>.serviceAccount: String
   get() = metadata.getValue("serviceAccount").toString()
 
+val <T : Any> Resource<T>.application: String
+  get() = metadata.getValue("application").toString()
+
 private fun Any?.isValidULID() =
   when (this) {
     is UID -> true
@@ -79,6 +83,12 @@ private fun Any?.isValidName() =
   }
 
 private fun Any?.isValidServiceAccount() =
+  when (this) {
+    is String -> isNotBlank()
+    else -> false
+  }
+
+private fun Any?.isValidApplication() =
   when (this) {
     is String -> isNotBlank()
     else -> false

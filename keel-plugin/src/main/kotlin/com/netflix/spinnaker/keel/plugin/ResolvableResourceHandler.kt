@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.exceptions.InvalidResourceFormatException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import org.slf4j.Logger
 
@@ -60,10 +62,16 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
         e
       )
     }
+    val app = when (spec) {
+      is HasApplication -> spec.application
+      else -> throw InvalidResourceFormatException(this.apiVersion.toString(), "Spec has no application association.")
+    }
+
     val metadata = mapOf(
       "name" to generateName(spec).toString(),
       "uid" to randomUID().toString(),
-      "serviceAccount" to resource.metadata.serviceAccount
+      "serviceAccount" to resource.metadata.serviceAccount,
+      "application" to app
     )
     val hydratedResource = Resource(
       apiVersion = resource.apiVersion,

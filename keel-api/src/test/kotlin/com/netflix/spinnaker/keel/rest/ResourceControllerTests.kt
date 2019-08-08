@@ -65,7 +65,8 @@ internal class ResourceControllerTests {
     metadata = mapOf(
       "name" to "ec2:securityGroup:test:us-west-2:keel",
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "keel"
     ),
     spec = "mockingThis"
   )

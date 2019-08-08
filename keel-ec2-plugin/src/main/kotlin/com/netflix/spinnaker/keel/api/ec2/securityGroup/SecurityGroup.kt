@@ -15,16 +15,17 @@
  */
 package com.netflix.spinnaker.keel.api.ec2.securityGroup
 
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.model.Moniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 data class SecurityGroup(
-  val moniker: Moniker,
+  override val moniker: Moniker,
   val accountName: String,
   val region: String,
   val vpcName: String?,
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet()
-)
+) : Monikered

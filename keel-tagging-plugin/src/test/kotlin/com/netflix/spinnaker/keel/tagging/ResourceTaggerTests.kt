@@ -73,7 +73,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     metadata = mapOf(
       "name" to clusterName.toString(),
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "keel"
     ),
     kind = "cluster",
     spec = mapOf("fake" to "data")
@@ -84,13 +85,14 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     metadata = mapOf(
       "name" to clusterTagName.toString(),
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "keel"
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      clusterName.toString(),
-      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
-      TagDesired(tag = EntityTag(
+      keelId = clusterName.toString(),
+      entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
+      tagState = TagDesired(tag = EntityTag(
         value = TagValue(
           message = KEEL_TAG_MESSAGE,
           keelResourceId = clusterName.toString(),
@@ -100,7 +102,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         valueType = "object",
         name = KEEL_TAG_NAME
       )
-      )
+      ),
+      application = "keel"
     )
   )
 
@@ -109,13 +112,15 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     metadata = mapOf(
       "name" to clusterTagName.toString(),
       "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker"
+      "serviceAccount" to "keel@spinnaker",
+      "application" to "keel"
     ),
     kind = "keel-tag",
     spec = KeelTagSpec(
       clusterName.toString(),
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
-      TagNotDesired(clock.millis())
+      TagNotDesired(clock.millis()),
+      application = "keel"
     )
   )
 
@@ -163,7 +168,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           mapOf(
             "name" to clusterTagName.value,
             "uid" to randomUID(),
-            "serviceAccount" to "keel@spinnaker"
+            "serviceAccount" to "keel@spinnaker",
+            "application" to "keel"
           )
         )
       }

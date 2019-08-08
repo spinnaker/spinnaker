@@ -63,7 +63,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
             metadata = mapOf(
               "name" to "ec2:security-group:test:us-west-2:fnord-$it",
               "uid" to randomUID(),
-              "serviceAccount" to "keel@spinnaker"
+              "serviceAccount" to "keel@spinnaker",
+              "application" to "fnord"
             ) + randomData(),
             kind = "security-group",
             spec = randomData()
@@ -89,7 +90,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
           metadata = mapOf(
             "name" to "ec2:security-group:test:us-west-2:fnord",
             "uid" to randomUID(),
-            "serviceAccount" to "keel@spinnaker"
+            "serviceAccount" to "keel@spinnaker",
+            "application" to "fnord"
           ) + randomData(),
           kind = "security-group",
           spec = randomData()

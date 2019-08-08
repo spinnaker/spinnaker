@@ -122,7 +122,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                     metadata = mapOf(
                       "uid" to randomUID().toString(),
                       "name" to "test:cluster:whatever",
-                      "serviceAccount" to "keel@spinnaker"
+                      "serviceAccount" to "keel@spinnaker",
+                      "application" to "whatever"
                     ),
                     spec = randomData()
                   ),
@@ -132,7 +133,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                     metadata = mapOf(
                       "uid" to randomUID().toString(),
                       "name" to "test:security-group:whatever",
-                      "serviceAccount" to "keel@spinnaker"
+                      "serviceAccount" to "keel@spinnaker",
+                      "application" to "whatever"
                     ),
                     spec = randomData()
                   )

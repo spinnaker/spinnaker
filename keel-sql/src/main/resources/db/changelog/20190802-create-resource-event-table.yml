@@ -1,19 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: drop-resource-state-table
-      author: fletch
-      changes:
-        - dropIndex:
-            indexName: resource_state_uid_idx
-            tableName: resource_state
-        - dropIndex:
-            indexName: resource_state_timestamp_idx
-            tableName: resource_state
-        - dropTable:
-            tableName: resource_state
-  - changeSet:
       id: create-resource-event-table
-      author: fletch
+      author: emjburns
       changes:
         - createTable:
             tableName: resource_event
@@ -41,8 +29,8 @@ databaseChangeLog:
         - dropTable:
             tableName: resource_event
   - changeSet:
-      id: create-resource-event-indexes
-      author: fletch
+      id: create-resource-event-table-indicies
+      author: emjburns
       changes:
         - createIndex:
             indexName: resource_event_uid_idx
@@ -58,10 +46,3 @@ databaseChangeLog:
                   name: uid
               - column:
                   name: timestamp
-      rollback:
-        - dropIndex:
-            indexName: resource_event_uid_idx
-            tableName: resource_event
-        - dropIndex:
-            indexName: resource_event_uid_timestamp_idx
-            tableName: resource_event
