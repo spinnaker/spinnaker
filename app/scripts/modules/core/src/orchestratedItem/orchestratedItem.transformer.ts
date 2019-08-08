@@ -39,6 +39,15 @@ export class OrchestratedItemTransformer {
       return match ? match.value : null;
     };
 
+    item.getDisplayUser = (): string => {
+      const authenticatedUser = get(item, 'execution.authentication.user', 'unknown user');
+      const user = item.getValueFor('user');
+      if (user === null || user === authenticatedUser) {
+        return authenticatedUser;
+      }
+      return `${user} (${authenticatedUser})`;
+    };
+
     item.originalStatus = item.status;
 
     Object.defineProperties(item, {
