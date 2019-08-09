@@ -52,11 +52,15 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       "in ${description.region}...")
 
     def errList = new ArrayList<String>()
-    String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
+    String resourceGroupName = null
 
     try {
 
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
+
+      resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
+      // Create corresponding ResourceGroup if it's not created already
+      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, null, description.region)
 
       if(description.dnsName) {
         if(description.dnsName.isBlank()){
