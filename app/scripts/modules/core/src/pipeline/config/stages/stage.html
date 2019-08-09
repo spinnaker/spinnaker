@@ -10,7 +10,7 @@
       <p class="small" ng-if="!stage.type">No stage type selected</p>
     </div>
     <div class="col-md-7 form-horizontal">
-      <stage-config-field label="Type" field-columns="9" ng-if="stage.isNew">
+      <stage-config-field label="Type" field-columns="9" ng-if="stage.isNew || !stage.type">
         <ui-select
           ng-model="options.selectedStageType"
           style="width: 250px"

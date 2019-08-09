@@ -375,7 +375,11 @@ module.exports = angular
       };
 
       this.isValid = () => {
-        return _.every($scope.pipeline.stages, 'name') && !ctrl.preventSave;
+        return (
+          _.every($scope.pipeline.stages, function(item) {
+            return item['name'] && item['type'];
+          }) && !ctrl.preventSave
+        );
       };
 
       this.configureTemplate = () => {
