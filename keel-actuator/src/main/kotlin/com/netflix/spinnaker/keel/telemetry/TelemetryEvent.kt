@@ -34,13 +34,6 @@ data class ResourceCheckSkipped(
   )
 }
 
-data class LockAttempt(
-  val success: Boolean
-) : TelemetryEvent()
-
-val LockAttemptSucceeded = LockAttempt(true)
-val LockAttemptFailed = LockAttempt(false)
-
 data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType

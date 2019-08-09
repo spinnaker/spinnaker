@@ -57,7 +57,7 @@ class SqlArtifactRepository(
         .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
         .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .orderBy(DELIVERY_ARTIFACT_VERSION.VERSION.desc())
+        .orderBy(DELIVERY_ARTIFACT_VERSION.VERSION.desc()) // TODO: this is not going to work
         .fetch()
         .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
     } else {

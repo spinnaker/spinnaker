@@ -17,6 +17,11 @@
  */
 package com.netflix.spinnaker.keel.api
 
-class NoImageFound(artifactName: String) : RuntimeException("No image found for artifact $artifactName")
+class NoImageFound(artifactName: String) :
+  RuntimeException("No image found for artifact $artifactName")
 
-class NoImageFoundForRegion(artifactName: String, region: String) : RuntimeException("No image found for artifact $artifactName in region $region")
+class NoImageFoundForRegion(artifactName: String, region: String) :
+  RuntimeException("No image found for artifact $artifactName in region $region")
+
+class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
+  RuntimeException("No image found for artifact $artifactName in $environment")

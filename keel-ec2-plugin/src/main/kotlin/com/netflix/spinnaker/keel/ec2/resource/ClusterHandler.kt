@@ -1,13 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.NoImageFound
-import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -20,15 +17,10 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.JenkinsJobImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.LatestFromPackageImageProvider
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -43,7 +35,6 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -57,8 +48,7 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val imageService: ImageService,
-  private val dynamicConfigService: DynamicConfigService,
+  private val imageResolver: ImageResolver,
   private val clock: Clock,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
@@ -68,55 +58,18 @@ class ClusterHandler(
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
-    apiVersion.group,
-    "cluster",
-    "clusters"
+    group = apiVersion.group,
+    singular = "cluster",
+    plural = "clusters"
   ) to ClusterSpec::class.java
 
   override fun generateName(spec: ClusterSpec) = ResourceName(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.name}"
   )
 
-  private suspend fun resolveImageId(imageProvider: ImageProvider, region: String): String {
-    when (imageProvider) {
-      is IdImageProvider -> {
-        return imageProvider.imageId
-      }
-      is LatestFromPackageImageProvider -> {
-        val artifactName = imageProvider.deliveryArtifact.name
-        val namedImage = imageService.getLatestNamedImage(
-          artifactName,
-          dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test")
-        ) ?: throw NoImageFound(artifactName)
-
-        log.info("Image found for {}: {}", artifactName, namedImage)
-
-        val amis = namedImage.amis[region] ?: throw NoImageFoundForRegion(artifactName, region)
-        return amis.first() // todo eb: when are there multiple?
-      }
-      is JenkinsJobImageProvider -> {
-        val namedImage = imageService.getNamedImageFromJenkinsInfo(
-          imageProvider.packageName,
-          dynamicConfigService.getConfig<String>(String::class.java, "images.default-account", "test"),
-          imageProvider.buildHost,
-          imageProvider.buildName,
-          imageProvider.buildNumber
-        ) ?: throw NoImageFound(imageProvider.packageName)
-
-        log.info("Image found for {}: {}", imageProvider.packageName, namedImage)
-        val amis = namedImage.amis[region]
-          ?: throw NoImageFoundForRegion(imageProvider.packageName, region)
-        return amis.first() // todo eb: when are there multiple?
-      }
-      else -> {
-        throw UnsupportedStrategy(imageProvider::class.simpleName.orEmpty(), ImageProvider::class.simpleName.orEmpty())
-      }
-    }
-  }
-
   override suspend fun desired(resource: Resource<ClusterSpec>): Cluster =
     with(resource.spec) {
-      val imageId = resolveImageId(launchConfiguration.imageProvider, location.region)
+      val imageId = imageResolver.resolveImageId(resource)
       Cluster(
         moniker = moniker,
         location = location,

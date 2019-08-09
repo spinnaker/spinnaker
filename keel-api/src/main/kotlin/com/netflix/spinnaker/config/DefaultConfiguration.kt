@@ -6,10 +6,12 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryPromotionRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
@@ -55,6 +57,10 @@ class DefaultConfiguration {
     artifactRepository: ArtifactRepository
   ): DeliveryConfigRepository =
     InMemoryDeliveryConfigRepository()
+
+  @Bean
+  @ConditionalOnMissingBean
+  fun promotionRepository(): PromotionRepository = InMemoryPromotionRepository()
 
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)

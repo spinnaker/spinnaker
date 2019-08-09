@@ -12,7 +12,7 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
   private val jooq = testDatabase.context
 
   override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
-    SqlDeliveryConfigRepository(jooq, resourceTypeIdentifier)
+    SqlDeliveryConfigRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier)
 
   override fun createResourceRepository(): SqlResourceRepository =
     SqlResourceRepository(jooq, Clock.systemDefaultZone(), configuredObjectMapper())

@@ -109,7 +109,7 @@ internal class EventControllerTests : JUnit5Minutests {
           clock.incrementBy(Duration.ofMinutes(10))
           appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(TaskRef(randomUID().toString())), clock))
           clock.incrementBy(Duration.ofMinutes(10))
-          appendHistory(ResourceDeltaResolved(resource, clock))
+          appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
           clock.incrementBy(Duration.ofMinutes(10))
         }
       }

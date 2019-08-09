@@ -4,10 +4,13 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.resources
+import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -16,6 +19,7 @@ import strikt.assertions.failed
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.succeeded
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
@@ -66,6 +70,14 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       deliveryConfig.artifacts.forEach {
         artifactRepository.register(it)
       }
+    }
+
+    fun getEnvironment(resource: Resource<*>) = expectCatching {
+      repository.environmentFor(resource.uid)
+    }
+
+    fun getDeliveryConfig(resource: Resource<*>) = expectCatching {
+      repository.deliveryConfigFor(resource.uid)
     }
   }
 
@@ -139,6 +151,38 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                     spec = randomData()
                   )
                 )
+              ),
+              Environment(
+                name = "staging",
+                constraints = setOf(
+                  DependsOnConstraint(
+                    environment = "test"
+                  )
+                ),
+                resources = setOf(
+                  Resource(
+                    apiVersion = SPINNAKER_API_V1.subApi("test"),
+                    kind = "cluster",
+                    metadata = mapOf(
+                      "uid" to randomUID().toString(),
+                      "name" to "staging:cluster:whatever",
+                      "serviceAccount" to "keel@spinnaker",
+                      "application" to "whatever"
+                    ),
+                    spec = randomData()
+                  ),
+                  Resource(
+                    apiVersion = SPINNAKER_API_V1.subApi("test"),
+                    kind = "security-group",
+                    metadata = mapOf(
+                      "uid" to randomUID().toString(),
+                      "name" to "staging:security-group:whatever",
+                      "serviceAccount" to "keel@spinnaker",
+                      "application" to "whatever"
+                    ),
+                    spec = randomData()
+                  )
+                )
               )
             )
           )
@@ -170,7 +214,27 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         test("environments are attached") {
           getByName()
             .succeeded()
-            .get { environments }.isEqualTo(deliveryConfig.environments)
+            .get { environments }
+            .isEqualTo(deliveryConfig.environments)
+        }
+
+        test("can retrieve the environment for the resources") {
+          val environment = deliveryConfig.environments.first { it.name == "test" }
+          val resource = environment.resources.random()
+
+          getEnvironment(resource)
+            .succeeded()
+            .isNotNull()
+            .isEqualTo(environment)
+        }
+
+        test("can retrieve the manifest for the resources") {
+          val resource = deliveryConfig.resources.random()
+
+          getDeliveryConfig(resource)
+            .succeeded()
+            .isNotNull()
+            .isEqualTo(deliveryConfig)
         }
       }
 

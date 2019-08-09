@@ -25,7 +25,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
 
-class SqlResourceRepository(
+open class SqlResourceRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val objectMapper: ObjectMapper
@@ -158,7 +158,7 @@ class SqlResourceRepository(
       .execute()
   }
 
-  override fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return jooq.inTransaction {

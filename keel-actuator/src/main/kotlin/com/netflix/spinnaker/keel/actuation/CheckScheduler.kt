@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.PeriodicallyCheckedRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +19,11 @@ import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
 @Component
-class ResourceCheckScheduler(
+class CheckScheduler(
   private val resourceRepository: ResourceRepository,
+  private val deliveryConfigRepository: DeliveryConfigRepository,
   private val resourceActuator: ResourceActuator,
+  private val environmentPromotionChecker: EnvironmentPromotionChecker,
   @Value("\${keel.resource-check.min-age-minutes:1}") private val resourceCheckMinAgeMinutes: Long,
   @Value("\${keel.resource-check.batch-size:1}") private val resourceCheckBatchSize: Int,
   private val publisher: ApplicationEventPublisher
@@ -43,24 +47,48 @@ class ResourceCheckScheduler(
   @Scheduled(fixedDelayString = "\${keel.resource-check.frequency:PT1S}")
   fun checkResources() {
     if (enabled) {
-      log.debug("Starting scheduled validation…")
-      publisher.publishEvent(ScheduledCheckStarting)
+      log.debug("Starting scheduled resource validation…")
+      publisher.publishEvent(ScheduledResourceCheckStarting)
 
       val job = launch {
         resourceRepository
-          .nextResourcesDueForCheck(Duration.ofMinutes(resourceCheckMinAgeMinutes), resourceCheckBatchSize)
-          .forEach { (_, name, apiVersion, kind) ->
-            launch {
-              resourceActuator.checkResource(name, apiVersion, kind)
-            }
+          .launchForEachItem {
+            resourceActuator.checkResource(it.name, it.apiVersion, it.kind)
           }
       }
 
       runBlocking { job.join() }
-      log.debug("Scheduled validation complete")
+      log.debug("Scheduled resource validation complete")
     } else {
-      log.debug("Scheduled validation disabled")
+      log.debug("Scheduled resource validation disabled")
     }
+  }
+
+  @Scheduled(fixedDelayString = "\${keel.environment-check.frequency:PT1S}")
+  fun checkEnvironments() {
+    if (enabled) {
+      log.debug("Starting scheduled environment validation…")
+      publisher.publishEvent(ScheduledEnvironmentCheckStarting)
+
+      val job = launch {
+        deliveryConfigRepository
+          .launchForEachItem {
+            environmentPromotionChecker.checkEnvironments(it)
+          }
+      }
+
+      runBlocking { job.join() }
+      log.debug("Scheduled environment validation complete")
+    } else {
+      log.debug("Scheduled environment validation disabled")
+    }
+  }
+
+  private fun <T : Any> PeriodicallyCheckedRepository<T>.launchForEachItem(block: suspend CoroutineScope.(T) -> Unit) {
+    itemsDueForCheck(Duration.ofMinutes(resourceCheckMinAgeMinutes), resourceCheckBatchSize)
+      .forEach {
+        launch { block(it) }
+      }
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

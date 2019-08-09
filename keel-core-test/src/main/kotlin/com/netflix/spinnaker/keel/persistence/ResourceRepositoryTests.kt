@@ -33,18 +33,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
 import strikt.api.Assertion
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.all
-import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotEqualTo
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
@@ -227,112 +221,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           expectThrows<NoSuchResourceException>() {
             subject.eventHistory(resource.uid)
           }
-        }
-      }
-    }
-  }
-
-  data class CheckLockFixture<T : ResourceRepository>(
-    val subject: T,
-    val ifNotCheckedInLast: Duration = Duration.ofMinutes(30),
-    val limit: Int = 2
-  ) {
-    fun nextResults(): Collection<ResourceHeader> =
-      subject.nextResourcesDueForCheck(ifNotCheckedInLast, limit)
-  }
-
-  fun checkLockTests() = rootContext<CheckLockFixture<T>> {
-    fixture {
-      CheckLockFixture(
-        subject = factory(clock)
-      )
-    }
-
-    after { flush() }
-
-    context("no resources exist") {
-      test("returns an empty collection") {
-        expectThat(nextResults()).isEmpty()
-      }
-    }
-
-    context("multiple resources exist") {
-      before {
-        repeat(4) {
-          val resource = Resource(
-            apiVersion = SPINNAKER_API_V1,
-            metadata = mapOf(
-              "name" to "ec2:security-group:test:us-west-2:fnord-$it",
-              "uid" to randomUID(),
-              "serviceAccount" to "keel@spinnaker",
-              "application" to "fnord"
-            ) + randomData(),
-            kind = "security-group",
-            spec = randomData()
-          )
-          subject.store(resource)
-        }
-      }
-
-      test("next resources returns at most 2 resources") {
-        expectThat(nextResults()).hasSize(limit)
-      }
-
-      test("multiple calls to next resources return different results") {
-        val results1 = nextResults()
-        val results2 = nextResults()
-        expect {
-          that(results1)
-            .hasSize(2)
-            .isNotEqualTo(results2)
-            .all {
-              isNotIn(results2)
-            }
-          that(results2).hasSize(2)
-        }
-      }
-
-      test("once all resources are exhausted no more results are returned") {
-        val results1 = nextResults()
-        val results2 = nextResults()
-        val results3 = nextResults()
-        expect {
-          that(results1).isNotEmpty().hasSize(2)
-          that(results2).isNotEmpty().hasSize(2)
-          that(results3).isEmpty()
-        }
-      }
-
-      test("once time passes the same resources are returned again") {
-        val results1 = nextResults()
-        clock.incrementBy(ifNotCheckedInLast / 2)
-        clock.incrementBy(Duration.ofSeconds(1))
-        val results2 = nextResults()
-        clock.incrementBy(ifNotCheckedInLast / 2)
-        clock.incrementBy(Duration.ofSeconds(1))
-        val results3 = nextResults()
-        expect {
-          that(results1).isNotEmpty()
-          that(results2).isNotEmpty().isNotEqualTo(results1)
-          that(results3).isNotEmpty().isEqualTo(results1)
-        }
-      }
-
-      test("after a resource is updated is it returned") {
-        val resource = subject.get(
-          ResourceName("ec2:security-group:test:us-west-2:fnord-0"),
-          Any::class.java
-        )
-
-        nextResults()
-        nextResults()
-
-        subject.store(resource.copy(spec = randomData()))
-
-        val results3 = nextResults()
-
-        expect {
-          that(results3).hasSize(1).contains(ResourceHeader(resource))
         }
       }
     }

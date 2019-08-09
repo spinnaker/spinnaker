@@ -38,7 +38,7 @@ data class ResourceHeader(
   )
 }
 
-interface ResourceRepository {
+interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   /**
    * Invokes [callback] once with each registered resource.
    */
@@ -96,7 +96,7 @@ interface ResourceRepository {
    * This method is _not_ intended to be idempotent, subsequent calls are expected to return
    * different values.
    */
-  fun nextResourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)

@@ -191,17 +191,23 @@ data class ResourceDeltaResolved(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
-  override val timestamp: Instant
+  override val timestamp: Instant,
+  val desired: Any,
+  val current: Any
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, clock: Clock) : this(
-    resource.uid,
-    resource.apiVersion,
-    resource.kind,
-    resource.name.value,
-    clock.instant()
-  )
+  constructor(resource: Resource<*>, current: Any, clock: Clock) :
+    this(
+      resource.uid,
+      resource.apiVersion,
+      resource.kind,
+      resource.name.value,
+      clock.instant(),
+      resource.spec,
+      current
+    )
 
-  constructor(resource: Resource<*>) : this(resource, clock)
+  constructor(resource: Resource<*>, current: Any) :
+    this(resource, current, clock)
 }
 
 /**

@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -14,15 +15,21 @@ import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.Instant.EPOCH
 
 class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
+  private val clock: Clock,
   private val resourceTypeIdentifier: ResourceTypeIdentifier
 ) : DeliveryConfigRepository {
 
@@ -61,6 +68,9 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT.UID, it)
               .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
               .set(ENVIRONMENT.NAME, environment.name)
+              .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
+              .onDuplicateKeyUpdate()
+              .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
               .execute()
           }
         environment.resources.forEach { resource ->
@@ -71,6 +81,12 @@ class SqlDeliveryConfigRepository(
             .execute()
         }
       }
+      jooq.insertInto(DELIVERY_CONFIG_LAST_CHECKED)
+        .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .onDuplicateKeyUpdate()
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .execute()
     }
   }
 
@@ -98,42 +114,100 @@ class SqlDeliveryConfigRepository(
           .toSet()
           .let { artifacts ->
             jooq
-              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME)
+              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS)
               .from(ENVIRONMENT)
               .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
-              .fetch { (environmentUid, name) ->
-                environmentUid to Environment(name, emptySet())
-              }
-              .mapTo(mutableSetOf()) { (environmentUid, environment) ->
-                jooq
-                  .select(
-                    RESOURCE.API_VERSION,
-                    RESOURCE.KIND,
-                    RESOURCE.METADATA,
-                    RESOURCE.SPEC
-                  )
-                  .from(RESOURCE, ENVIRONMENT_RESOURCE)
-                  .where(RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
-                  .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(environmentUid))
-                  .fetch { (apiVersion, kind, metadata, spec) ->
-                    Resource(
-                      ApiVersion(apiVersion),
-                      kind,
-                      mapper.readValue(metadata),
-                      mapper.readValue(spec, resourceTypeIdentifier.identify(ApiVersion(apiVersion), kind))
-                    )
-                  }
-                  .let { resources ->
-                    environment.copy(resources = resources.toSet())
-                  }
+              .fetch { (environmentUid, name, constraintsJson) ->
+                Environment(
+                  name = name,
+                  resources = resourcesForEnvironment(environmentUid),
+                  constraints = mapper.readValue(constraintsJson)
+                )
               }
               .let { environments ->
                 deliveryConfig.copy(
                   artifacts = artifacts,
-                  environments = environments
+                  environments = environments.toSet()
                 )
               }
           }
       }
       ?: throw NoSuchDeliveryConfigName(name)
+
+  override fun environmentFor(resourceUID: UID): Environment? =
+    jooq
+      .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS)
+      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE)
+      .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceUID.toString()))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+      .fetchOne { (uid, name, constraintsJson) ->
+        Environment(
+          name = name,
+          resources = resourcesForEnvironment(uid),
+          constraints = mapper.readValue(constraintsJson)
+        )
+      }
+
+  override fun deliveryConfigFor(resourceUID: UID): DeliveryConfig? =
+    // TODO: this implementation could be more efficient by sharing code with get(name)
+    jooq
+      .select(DELIVERY_CONFIG.NAME)
+      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, DELIVERY_CONFIG)
+      .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceUID.toString()))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+      .fetchOne { (name) ->
+        get(name)
+      }
+
+  private fun resourcesForEnvironment(uid: String) =
+    jooq
+      .select(
+        RESOURCE.API_VERSION,
+        RESOURCE.KIND,
+        RESOURCE.METADATA,
+        RESOURCE.SPEC
+      )
+      .from(RESOURCE, ENVIRONMENT_RESOURCE)
+      .where(RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
+      .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
+      .fetch { (apiVersion, kind, metadata, spec) ->
+        Resource(
+          ApiVersion(apiVersion),
+          kind,
+          mapper.readValue(metadata),
+          mapper.readValue(spec, resourceTypeIdentifier.identify(ApiVersion(apiVersion), kind))
+        )
+      }
+      .toSet()
+
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
+    val now = clock.instant()
+    val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
+    return jooq.inTransaction {
+      select(DELIVERY_CONFIG.UID, DELIVERY_CONFIG.NAME)
+        .from(DELIVERY_CONFIG, DELIVERY_CONFIG_LAST_CHECKED)
+        .where(DELIVERY_CONFIG.UID.eq(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID))
+        .and(DELIVERY_CONFIG_LAST_CHECKED.AT.lessOrEqual(cutoff))
+        .orderBy(DELIVERY_CONFIG_LAST_CHECKED.AT)
+        .limit(limit)
+        .forUpdate()
+        .fetch()
+        .also {
+          it.forEach { (uid, _) ->
+            insertInto(DELIVERY_CONFIG_LAST_CHECKED)
+              .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
+              .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toLocal())
+              .onDuplicateKeyUpdate()
+              .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toLocal())
+              .execute()
+          }
+        }
+        .map { (_, name) ->
+          get(name)
+        }
+    }
+  }
+
+  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

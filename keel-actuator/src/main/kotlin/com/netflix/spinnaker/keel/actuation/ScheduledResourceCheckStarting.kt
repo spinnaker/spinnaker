@@ -1,0 +1,5 @@
+package com.netflix.spinnaker.keel.actuation
+
+object ScheduledResourceCheckStarting
+
+object ScheduledEnvironmentCheckStarting

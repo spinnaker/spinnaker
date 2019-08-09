@@ -3,21 +3,24 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coVerify
+import io.mockk.coVerifyAll
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 
-internal object ResourceCheckSchedulerTests : JUnit5Minutests {
+internal object CheckSchedulerTests : JUnit5Minutests {
 
   private val resourceRepository = mockk<ResourceRepository>()
+  private val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
   private val resourceActuator = mockk<ResourceActuator>(relaxUnitFun = true)
+  private val environmentPromotionChecker = mockk<EnvironmentPromotionChecker>()
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
   private val resources = listOf(
     ResourceHeader(
@@ -34,11 +37,13 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
     )
   )
 
-  fun tests() = rootContext<ResourceCheckScheduler> {
+  fun tests() = rootContext<CheckScheduler> {
     fixture {
-      ResourceCheckScheduler(
+      CheckScheduler(
         resourceRepository = resourceRepository,
+        deliveryConfigRepository = deliveryConfigRepository,
         resourceActuator = resourceActuator,
+        environmentPromotionChecker = environmentPromotionChecker,
         resourceCheckMinAgeMinutes = 5,
         resourceCheckBatchSize = 2,
         publisher = publisher
@@ -58,7 +63,7 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
         onApplicationUp()
 
         every {
-          resourceRepository.nextResourcesDueForCheck(any(), any())
+          resourceRepository.itemsDueForCheck(any(), any())
         } returns resources
       }
 
@@ -69,8 +74,11 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
       test("all resources are checked") {
         checkResources()
 
-        resources.forEach { (_, name, apiVersion, kind) ->
-          coVerify {
+        coVerifyAll {
+          with(resources.first()) {
+            resourceActuator.checkResource(name, apiVersion, kind)
+          }
+          with(resources.last()) {
             resourceActuator.checkResource(name, apiVersion, kind)
           }
         }

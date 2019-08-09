@@ -20,3 +20,12 @@ databaseChangeLog:
   - include:
       file: changelog/20190804-create-application-veto-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190808-environment-constraints.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20190808-artifact-versions-in-environments.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20190808-delivery-config-check-timestamp.yml
+      relativeToChangelogFile: true

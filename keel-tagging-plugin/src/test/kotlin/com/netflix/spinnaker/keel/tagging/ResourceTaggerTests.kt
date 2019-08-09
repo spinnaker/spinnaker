@@ -164,7 +164,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         resourcePersister.update(clusterTagName, any())
       } answers {
         Resource(
-          arg(1),
+          secondArg(),
           mapOf(
             "name" to clusterTagName.value,
             "uid" to randomUID(),

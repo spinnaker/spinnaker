@@ -83,7 +83,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     }
 
     fun resourcesDueForCheck() =
-      resourceRepository.nextResourcesDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
+      resourceRepository.itemsDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
 
     fun eventHistory() =
       resourceRepository.eventHistory(resource.uid)

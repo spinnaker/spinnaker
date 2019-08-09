@@ -23,9 +23,12 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
+import com.netflix.spinnaker.keel.ec2.resource.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.NamedImageHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -40,22 +43,38 @@ import java.time.Clock
 class EC2Config {
 
   @Bean
+  fun imageResolver(
+    dynamicConfigService: DynamicConfigService,
+    cloudDriverService: CloudDriverService,
+    deliveryConfigRepository: DeliveryConfigRepository,
+    promotionRepository: PromotionRepository,
+    imageService: ImageService
+  ): ImageResolver =
+    ImageResolver(
+      dynamicConfigService,
+      cloudDriverService,
+      deliveryConfigRepository,
+      promotionRepository,
+      imageService
+    )
+
+  @Bean
   fun clusterHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    imageService: ImageService,
-    dynamicConfigService: DynamicConfigService,
+    imageResolver: ImageResolver,
     clock: Clock,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<ResourceNormalizer<*>>,
+    promotionRepository: PromotionRepository,
+    deliveryConfigRepository: DeliveryConfigRepository
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      imageService,
-      dynamicConfigService,
+      imageResolver,
       clock,
       objectMapper,
       normalizers

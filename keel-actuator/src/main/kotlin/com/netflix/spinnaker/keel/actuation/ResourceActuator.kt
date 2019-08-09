@@ -64,12 +64,10 @@ class ResourceActuator(
 
       when {
         current == null -> {
-          with(resource) {
-            log.warn("Resource {} is missing", name)
-            publisher.publishEvent(ResourceChecked(resource, Missing))
+          log.warn("Resource {} is missing", name)
+          publisher.publishEvent(ResourceChecked(resource, Missing))
 
-            resourceRepository.appendHistory(ResourceMissing(resource, clock))
-          }
+          resourceRepository.appendHistory(ResourceMissing(resource, clock))
 
           plugin.create(resource, diff)
             .also { tasks ->
@@ -77,13 +75,11 @@ class ResourceActuator(
             }
         }
         diff.hasChanges() -> {
-          with(resource) {
-            log.warn("Resource {} is invalid", name)
-            log.info("Resource {} delta: {}", name, diff.toDebug())
-            publisher.publishEvent(ResourceChecked(resource, Diff))
+          log.warn("Resource {} is invalid", name)
+          log.info("Resource {} delta: {}", name, diff.toDebug())
+          publisher.publishEvent(ResourceChecked(resource, Diff))
 
-            resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
-          }
+          resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
           plugin.update(resource, diff)
             .also { tasks ->
@@ -91,14 +87,18 @@ class ResourceActuator(
             }
         }
         else -> {
-          with(resource) {
-            log.info("Resource {} is valid", name)
-            val lastEvent = resourceRepository.eventHistory(resource.uid).first()
-            if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
-              resourceRepository.appendHistory(ResourceDeltaResolved(resource, clock))
-            }
-            publisher.publishEvent(ResourceChecked(resource, Ok))
+          log.info("Resource {} is valid", name)
+          val lastEvent = resourceRepository.eventHistory(resource.uid).first()
+          if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
+            val event = ResourceDeltaResolved(
+              resource = resource,
+              current = current,
+              clock = clock
+            )
+            resourceRepository.appendHistory(event)
+            publisher.publishEvent(event) // TODO: refactor pending to unify how all this stuff with events works
           }
+          publisher.publishEvent(ResourceChecked(resource, Ok))
         }
       }
     } catch (e: Exception) {

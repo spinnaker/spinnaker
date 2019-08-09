@@ -18,10 +18,10 @@
 package com.netflix.spinnaker.keel.api.ec2.jackson
 
 import com.netflix.spinnaker.keel.api.InvalidPayload
+import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.JenkinsJobImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.LatestFromPackageImageProvider
+import com.netflix.spinnaker.keel.api.ec2.image.JenkinsImageProvider
 import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
 internal class ImageProviderDeserializer :
@@ -29,8 +29,8 @@ internal class ImageProviderDeserializer :
   override fun identifySubType(fieldNames: Collection<String>): Class<out ImageProvider> =
     when {
       "imageId" in fieldNames -> IdImageProvider::class.java
-      "deliveryArtifact" in fieldNames -> LatestFromPackageImageProvider::class.java
-      "buildHost" in fieldNames -> JenkinsJobImageProvider::class.java
+      "deliveryArtifact" in fieldNames -> ArtifactImageProvider::class.java
+      "buildHost" in fieldNames -> JenkinsImageProvider::class.java
       else -> throw InvalidPayload("ImageProvider")
     }
 }

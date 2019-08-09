@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.actuation.ScheduledCheckStarting
+import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -54,14 +54,6 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
-  @EventListener(LockAttempt::class)
-  fun onLockAttempt(event: LockAttempt) {
-    spectator.counter(
-      LOCK_ATTEMPT_COUNTER_ID,
-      listOf(BasicTag("success", event.success.toString()))
-    ).safeIncrement()
-  }
-
   @EventListener(ArtifactVersionUpdated::class)
   fun onArtifactVersionUpdated(event: ArtifactVersionUpdated) {
     spectator.counter(
@@ -73,8 +65,8 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
-  @EventListener(ScheduledCheckStarting::class)
-  fun onScheduledCheckStarting(event: ScheduledCheckStarting) {
+  @EventListener(ScheduledResourceCheckStarting::class)
+  fun onScheduledCheckStarting(event: ScheduledResourceCheckStarting) {
     lastResourceCheck = clock.instant()
   }
 
@@ -90,7 +82,6 @@ class TelemetryListener(
   companion object {
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
-    private const val LOCK_ATTEMPT_COUNTER_ID = "keel.lock.attempt"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
   }

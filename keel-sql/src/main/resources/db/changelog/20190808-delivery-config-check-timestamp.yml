@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-last-checked-table-for-delivery-config
+      author: fletch
+      changes:
+        - createTable:
+            tableName: delivery_config_last_checked
+            columns:
+              - column:
+                  name: delivery_config_uid
+                  type: char(26)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: at
+                  type: timestamp
+                  # MySQL is stupid and won't let you insert a zero valued TIMESTAMP
+                  defaultValueDate: "1970-01-01T00:00:01"
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+  - changeSet:
+      id: add-index-to-delivery-config-last-checked-table
+      author: fletch
+      changes:
+        - createIndex:
+            indexName: delivery_config_last_checked_at_idx
+            tableName: delivery_config_last_checked
+            columns:
+              - column:
+                  name: at

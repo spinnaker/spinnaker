@@ -18,7 +18,6 @@ import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
@@ -36,7 +35,6 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -141,10 +139,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
-  val imageService = mockk<ImageService>()
-  val dynamicConfigService = mockk<DynamicConfigService>()
+  val imageResolver = mockk<ImageResolver>()
   val objectMapper = ObjectMapper().registerKotlinModule()
-
   val normalizers = emptyList<ResourceNormalizer<Cluster>>()
 
   fun tests() = rootContext<ClusterHandler> {
@@ -153,8 +149,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         cloudDriverService,
         cloudDriverCache,
         orcaService,
-        imageService,
-        dynamicConfigService,
+        imageResolver,
         Clock.systemDefaultZone(),
         objectMapper,
         normalizers
