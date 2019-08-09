@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ImageResult
 import com.netflix.spinnaker.keel.api.ec2.NamedImage
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
@@ -40,11 +41,11 @@ class NamedImageHandler(
 
   override suspend fun current(resource: Resource<NamedImage>): NamedImage? =
     resource.spec.copy(
-      currentImage = resource.spec.currentState()
+      currentImage = resource.spec.currentState(resource.serviceAccount)
     )
 
-  private suspend fun NamedImage.currentState(): ImageResult? =
-    cloudDriverService.namedImages(name, account).sortedByDescending {
+  private suspend fun NamedImage.currentState(serviceAccount: String): ImageResult? =
+    cloudDriverService.namedImages(serviceAccount, name, account).sortedByDescending {
       it.attributes["creationDate"]?.toString() ?: "0000-00-00T00:00:00.000Z"
     }.firstOrNull()?.let {
       objectMapper.convertValue<ImageResult>(it)

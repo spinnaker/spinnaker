@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
+import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
@@ -26,14 +26,18 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
+
+const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
 
 interface CloudDriverService {
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   suspend fun getSecurityGroup(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Path("account") account: String,
     @Path("type") type: String,
     @Path("securityGroupName") securityGroupName: String,
@@ -45,26 +49,41 @@ interface CloudDriverService {
   suspend fun getSecurityGroupSummaries(
     @Path("account") account: String,
     @Path("provider") provider: String,
-    @Query("region") region: String
+    @Query("region") region: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
   ): Collection<SecurityGroupSummary>
 
   @GET("/networks")
-  suspend fun listNetworks(): Map<String, Set<Network>>
+  suspend fun listNetworks(
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Map<String, Set<Network>>
 
   @GET("/networks/{cloudProvider}")
-  suspend fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Set<Network>
+  suspend fun listNetworksByCloudProvider(
+    @Path("cloudProvider") cloudProvider: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Set<Network>
 
   @GET("/subnets/{cloudProvider}")
-  suspend fun listSubnets(@Path("cloudProvider") cloudProvider: String): Set<Subnet>
+  suspend fun listSubnets(
+    @Path("cloudProvider") cloudProvider: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Set<Subnet>
 
   @GET("/credentials")
-  suspend fun listCredentials(): Set<Credential>
+  suspend fun listCredentials(
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Set<Credential>
 
   @GET("/credentials/{account}")
-  suspend fun getCredential(@Path("account") account: String): Credential
+  suspend fun getCredential(
+    @Path("account") account: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Credential
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getClassicLoadBalancer(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
@@ -73,6 +92,7 @@ interface CloudDriverService {
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getApplicationLoadBalancer(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
@@ -81,6 +101,7 @@ interface CloudDriverService {
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
@@ -90,6 +111,7 @@ interface CloudDriverService {
 
   @GET("/aws/images/find")
   suspend fun namedImages(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Query("q") imageName: String,
     @Query("account") account: String?,
     @Query("region") region: String? = null
@@ -98,14 +120,19 @@ interface CloudDriverService {
   @GET("/images/find")
   suspend fun images(
     @Query("provider") provider: String,
-    @Query("q") name: String
+    @Query("q") name: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
   ): List<NamedImage>
 
   @GET("/tags/{entityId}")
   suspend fun getTagsForEntity(
-    @Path("entityId") entityId: String
+    @Path("entityId") entityId: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
   ): EntityTags
 
   @GET("/tags")
-  suspend fun getTagsForParams(@QueryMap allParameters: Map<String, String>): EntityTags
+  suspend fun getTagsForParams(
+    @QueryMap allParameters: Map<String, String>,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): EntityTags
 }

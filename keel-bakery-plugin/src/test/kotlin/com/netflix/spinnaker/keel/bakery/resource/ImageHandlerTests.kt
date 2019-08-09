@@ -95,7 +95,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
           } returns "xenialbase-x86_64-201904291721-ebs"
 
-          coEvery { theCloudDriver.namedImages("xenialbase-x86_64-201904291721-ebs", "test") } returns
+          coEvery { theCloudDriver.namedImages("keel@spinnaker", "xenialbase-x86_64-201904291721-ebs", "test") } returns
             listOf(
               NamedImage(
                 imageName = "xenialbase-x86_64-201904291721-ebs",
@@ -192,7 +192,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
           } returns "xenialbase-x86_64-201904291721-ebs"
 
           coEvery {
-            theCloudDriver.namedImages("xenialbase-x86_64-201904291721-ebs", "test")
+            theCloudDriver.namedImages("keel@spinnaker", "xenialbase-x86_64-201904291721-ebs", "test")
           } returns emptyList()
         }
 
@@ -228,7 +228,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       test("artifact is attached to the trigger") {
         val request = slot<OrchestrationRequest>()
-        coEvery { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
+        coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
 
         runBlocking {
           handler.upsert(resource, ResourceDiff(image, null))

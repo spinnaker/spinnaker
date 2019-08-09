@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -48,7 +49,7 @@ class ApplicationLoadBalancerHandler(
   )
 
   override suspend fun current(resource: Resource<ApplicationLoadBalancer>): ApplicationLoadBalancer? =
-    cloudDriverService.getApplicationLoadBalancer(resource.spec)
+    cloudDriverService.getApplicationLoadBalancer(resource.spec, resource.serviceAccount)
 
   override suspend fun upsert(
     resource: Resource<ApplicationLoadBalancer>,
@@ -67,6 +68,7 @@ class ApplicationLoadBalancerHandler(
 
         orcaService
           .orchestrate(
+            resource.serviceAccount,
             OrchestrationRequest(
               description,
               spec.moniker.app,
@@ -89,6 +91,7 @@ class ApplicationLoadBalancerHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(
+            resource.serviceAccount,
             OrchestrationRequest(
               description,
               spec.moniker.app,
@@ -105,10 +108,11 @@ class ApplicationLoadBalancerHandler(
   override suspend fun actuationInProgress(name: ResourceName) =
     orcaService.getCorrelatedExecutions(name.value).isNotEmpty()
 
-  private suspend fun CloudDriverService.getApplicationLoadBalancer(spec: ApplicationLoadBalancer):
+  private suspend fun CloudDriverService.getApplicationLoadBalancer(spec: ApplicationLoadBalancer, serviceAccount: String):
     ApplicationLoadBalancer? =
     try {
       getApplicationLoadBalancer(
+        serviceAccount,
         CLOUD_PROVIDER,
         spec.location.accountName,
         spec.location.region,

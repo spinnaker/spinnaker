@@ -53,7 +53,6 @@ class KeelRetrofitConfiguration {
           chain.proceed(
             chain.request().newBuilder()
               .header("User-Agent", retrofitProperties.userAgent)
-              .header("X-SPINNAKER-USER", retrofitProperties.spinnakerUser)
               .build()
           )
         })

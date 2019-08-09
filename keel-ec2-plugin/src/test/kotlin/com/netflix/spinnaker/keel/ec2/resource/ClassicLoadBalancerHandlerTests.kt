@@ -148,7 +148,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         every { securityGroupByName(vpc.account, vpc.region, sg3.name) } returns sg3
       }
 
-      coEvery { orcaService.orchestrate(any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
     }
 
     after {
@@ -157,7 +157,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("the CLB does not exist") {
       before {
-        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any()) } returns emptyList()
+        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns emptyList()
       }
 
       test("the current model is null") {
@@ -175,7 +175,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
@@ -194,7 +194,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("securityGroups").isEqualTo(setOf("nondefault-elb"))
@@ -204,7 +204,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("deployed CLB with a default security group") {
       before {
-        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any()) } returns listOf(model)
+        coEvery { cloudDriverService.getClassicLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
       }
 
       test("computed diff removes the default security group if the spec only specifies another") {
@@ -226,7 +226,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
       }
     }
   }

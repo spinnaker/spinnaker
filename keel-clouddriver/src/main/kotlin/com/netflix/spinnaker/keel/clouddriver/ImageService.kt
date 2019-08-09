@@ -29,7 +29,7 @@ class ImageService(
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   suspend fun getLatestImage(artifactName: String, account: String): Image? {
-    return cloudDriverService.namedImages(artifactName, account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
       .sortedWith(NamedImageComparator)
       .lastOrNull()
       ?.let { namedImage ->
@@ -58,13 +58,13 @@ class ImageService(
    * Get the latest named image for a package
    */
   suspend fun getLatestNamedImage(packageName: String, account: String): NamedImage? {
-    return cloudDriverService.namedImages(packageName, account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
       .sortedWith(NamedImageComparator)
       .lastOrNull()
   }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? {
-    return cloudDriverService.namedImages(packageName, account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
       .sortedWith(NamedImageComparator)
       .lastOrNull { namedImage ->
         val allTags = getAllTags(namedImage)

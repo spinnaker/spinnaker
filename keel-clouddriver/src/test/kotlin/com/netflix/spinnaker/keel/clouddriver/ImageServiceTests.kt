@@ -111,7 +111,7 @@ internal class ImageServiceTests {
   @Test
   fun `get latest image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages("my-package", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
     } returns listOf(image2, image3, image1)
 
     runBlocking {
@@ -126,7 +126,7 @@ internal class ImageServiceTests {
   @Test
   fun `get latest named image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages("my-package", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
     } returns listOf(image2, image3, image1)
 
     runBlocking {
@@ -141,7 +141,7 @@ internal class ImageServiceTests {
   @Test
   fun `no image provided if image not found for latest from artifact`() {
     coEvery {
-      cloudDriver.namedImages("my-package", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
     } returns emptyList()
 
     runBlocking {
@@ -154,7 +154,7 @@ internal class ImageServiceTests {
   @Test
   fun `get named image from jenkins info works`() {
     coEvery {
-      cloudDriver.namedImages("my-package", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
     } returns listOf(image2, image3, image1)
 
     runBlocking {

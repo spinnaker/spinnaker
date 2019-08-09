@@ -8,7 +8,7 @@ object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityG
   override val json = javaClass.getResource("/vpc-sg.json")
 
   override suspend fun CloudDriverService.call(): SecurityGroup? =
-    getSecurityGroup("account", "type", "name", "region")
+    getSecurityGroup("keel@spinnaker", "account", "type", "name", "region")
 
   override val expected = SecurityGroup(
     type = "aws",

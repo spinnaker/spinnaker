@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.TaskRef
@@ -114,13 +115,15 @@ class KeelTagHandler(
       else -> desired.removeTagJob()
     }
 
-    val taskResponse = orcaService.orchestrate(OrchestrationRequest(
-      "Upsert entity tag for resource ${resource.spec.keelId}",
-      desired.entityRef.application,
-      "Upsert entity tag for resource ${resource.spec.keelId}",
-      listOf(Job(job["type"].toString(), job)),
-      OrchestrationTrigger(resource.name.toString())
-    ))
+    val taskResponse = orcaService.orchestrate(
+      resource.serviceAccount,
+      OrchestrationRequest(
+        "Upsert entity tag for resource ${resource.spec.keelId}",
+        desired.entityRef.application,
+        "Upsert entity tag for resource ${resource.spec.keelId}",
+        listOf(Job(job["type"].toString(), job)),
+        OrchestrationTrigger(resource.name.toString())
+      ))
     log.info("Started task {} to upsert entity tags", taskResponse.ref)
     return listOf(TaskRef(taskResponse.ref))
   }
@@ -154,8 +157,8 @@ class KeelTagHandler(
   }
 
   private fun EntityTags.containsTag(requestedTag: EntityTag): Boolean = tags
-      .filter { it.namespace == KEEL_TAG_NAMESPACE }
-      .any { it.name == requestedTag.name }
+    .filter { it.namespace == KEEL_TAG_NAMESPACE }
+    .any { it.name == requestedTag.name }
 
   private fun EntityTags.containsKeelTag(): Boolean =
     tags.any { it.namespace == KEEL_TAG_NAMESPACE && it.name == KEEL_TAG_NAME }

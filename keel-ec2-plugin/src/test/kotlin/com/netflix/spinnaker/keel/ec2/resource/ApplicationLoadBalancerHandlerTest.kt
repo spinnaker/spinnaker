@@ -159,7 +159,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         every { securityGroupByName(vpc.account, vpc.region, sg1.name) } returns sg1
       }
 
-      coEvery { orcaService.orchestrate(any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
     }
 
     after {
@@ -168,7 +168,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("the ALB does not exist") {
       before {
-        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any()) } returns emptyList()
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns emptyList()
       }
 
       test("the ALB is created with a generated defaultAction as none are in the spec") {
@@ -179,7 +179,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
@@ -195,7 +195,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("the ALB has been created") {
       before {
-        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any()) } returns listOf(model)
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
       }
 
       test("the diff is clean") {
@@ -211,7 +211,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
     context("the ALB spec has been updated") {
       before {
-        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any()) } returns listOf(model)
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
       }
 
       test("the diff reflects the new spec and is upserted") {
@@ -229,7 +229,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")

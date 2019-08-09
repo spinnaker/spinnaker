@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.orca
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -29,7 +30,7 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json")
-  suspend fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
+  suspend fun orchestrate(@Header("X-SPINNAKER-USER") serviceAccount: String, @Body request: OrchestrationRequest): TaskRefResponse
 
   @GET("/tasks/{id}")
   suspend fun getTask(@Path("id") id: String): TaskDetailResponse

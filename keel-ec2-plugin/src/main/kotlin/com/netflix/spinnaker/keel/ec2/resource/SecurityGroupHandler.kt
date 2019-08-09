@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
 import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -67,7 +68,7 @@ class SecurityGroupHandler(
   )
 
   override suspend fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
-    cloudDriverService.getSecurityGroup(resource.spec)
+    cloudDriverService.getSecurityGroup(resource.spec, resource.serviceAccount)
 
   override suspend fun create(
     resource: Resource<SecurityGroup>,
@@ -75,13 +76,15 @@ class SecurityGroupHandler(
   ): List<TaskRef> {
     val taskRef = resource.spec.let { spec ->
       orcaService
-        .orchestrate(OrchestrationRequest(
-          "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          spec.moniker.app,
-          "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          listOf(spec.toCreateJob()),
-          OrchestrationTrigger(resource.name.toString())
-        ))
+        .orchestrate(
+          resource.serviceAccount,
+          OrchestrationRequest(
+            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            listOf(spec.toCreateJob()),
+            OrchestrationTrigger(resource.name.toString())
+          ))
     }
     log.info("Started task {} to create security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
@@ -93,13 +96,15 @@ class SecurityGroupHandler(
   ): List<TaskRef> {
     val taskRef = resource.spec.let { spec ->
       orcaService
-        .orchestrate(OrchestrationRequest(
-          "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          spec.moniker.app,
-          "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          listOf(spec.toUpdateJob()),
-          OrchestrationTrigger(resource.name.toString())
-        ))
+        .orchestrate(
+          resource.serviceAccount,
+          OrchestrationRequest(
+            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            listOf(spec.toUpdateJob()),
+            OrchestrationTrigger(resource.name.toString())
+          ))
     }
     log.info("Started task {} to update security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
@@ -108,13 +113,15 @@ class SecurityGroupHandler(
   override suspend fun delete(resource: Resource<SecurityGroup>) {
     val taskRef = resource.spec.let { spec ->
       orcaService
-        .orchestrate(OrchestrationRequest(
-          "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          spec.moniker.app,
-          "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-          listOf(spec.toDeleteJob()),
-          OrchestrationTrigger(resource.name.toString())
-        ))
+        .orchestrate(
+          resource.serviceAccount,
+          OrchestrationRequest(
+            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            spec.moniker.app,
+            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            listOf(spec.toDeleteJob()),
+            OrchestrationTrigger(resource.name.toString())
+          ))
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
@@ -124,9 +131,10 @@ class SecurityGroupHandler(
       .getCorrelatedExecutions(name.value)
       .isNotEmpty()
 
-  private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
+  private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup, serviceAccount: String): SecurityGroup? =
     try {
       getSecurityGroup(
+        serviceAccount,
         spec.accountName,
         CLOUD_PROVIDER,
         spec.moniker.name,

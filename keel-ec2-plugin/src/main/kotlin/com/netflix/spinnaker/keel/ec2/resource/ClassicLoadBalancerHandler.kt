@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerListener
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -50,7 +51,7 @@ class ClassicLoadBalancerHandler(
   )
 
   override suspend fun current(resource: Resource<ClassicLoadBalancer>): ClassicLoadBalancer? =
-    cloudDriverService.getClassicLoadBalancer(resource.spec)
+    cloudDriverService.getClassicLoadBalancer(resource.spec, resource.serviceAccount)
 
   override suspend fun upsert(
     resource: Resource<ClassicLoadBalancer>,
@@ -68,6 +69,7 @@ class ClassicLoadBalancerHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(
+            resource.serviceAccount,
             OrchestrationRequest(
               description,
               spec.moniker.app,
@@ -90,6 +92,7 @@ class ClassicLoadBalancerHandler(
       resource.spec.let { spec ->
         orcaService
           .orchestrate(
+            resource.serviceAccount,
             OrchestrationRequest(
               description,
               spec.moniker.app,
@@ -106,10 +109,11 @@ class ClassicLoadBalancerHandler(
   override suspend fun actuationInProgress(name: ResourceName) =
     orcaService.getCorrelatedExecutions(name.value).isNotEmpty()
 
-  private fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancer): ClassicLoadBalancer? =
+  private fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancer, serviceAccount: String): ClassicLoadBalancer? =
     runBlocking {
       try {
         getClassicLoadBalancer(
+          serviceAccount,
           CLOUD_PROVIDER,
           spec.location.accountName,
           spec.location.region,

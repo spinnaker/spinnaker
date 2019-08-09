@@ -9,7 +9,7 @@ object ClusterActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService
   override val json = javaClass.getResource("/cluster.json")
 
   override suspend fun CloudDriverService.call(): ClusterActiveServerGroup? =
-    this.activeServerGroup("keel", "mgmttest", "keel-test", "eu-west-1", "aws")
+    this.activeServerGroup("keel@spinnaker", "keel", "mgmttest", "keel-test", "eu-west-1", "aws")
 
   override val expected = ClusterActiveServerGroup(
     name = "fletch_test-v000",
