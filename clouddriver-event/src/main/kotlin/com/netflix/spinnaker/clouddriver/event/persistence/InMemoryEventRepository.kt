@@ -1,0 +1,165 @@
+/*
+ * Copyright 2019 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.netflix.spinnaker.clouddriver.event.persistence
+
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.event.Aggregate
+import com.netflix.spinnaker.clouddriver.event.EventMetadata
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
+import com.netflix.spinnaker.clouddriver.event.config.MemoryEventRepositoryConfigProperties
+import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.scheduling.annotation.Scheduled
+import java.time.Duration
+import java.time.Instant
+import kotlin.math.max
+
+/**
+ * An in-memory only [EventRepository]. This implementation should only be used for testing.
+ */
+class InMemoryEventRepository(
+  private val config: MemoryEventRepositoryConfigProperties,
+  private val applicationEventPublisher: ApplicationEventPublisher,
+  private val registry: Registry
+) : EventRepository {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  private val aggregateCountId = registry.createId("eventing.aggregates")
+  private val aggregateWriteCountId = registry.createId("eventing.aggregates.writes")
+  private val aggregateReadCountId = registry.createId("eventing.aggregates.reads")
+  private val eventCountId = registry.createId("eventing.events")
+  private val eventWriteCountId = registry.createId("eventing.events.writes")
+  private val eventReadCountId = registry.createId("eventing.events.reads")
+
+  private val events: MutableMap<Aggregate, MutableList<SpinnakerEvent>> = mutableMapOf()
+
+  @Synchronized
+  override fun save(
+    aggregateType: String,
+    aggregateId: String,
+    originatingVersion: Long,
+    newEvents: List<SpinnakerEvent>
+  ) {
+    registry.counter(aggregateWriteCountId).increment()
+
+    val aggregate = getAggregate(aggregateType, aggregateId)
+
+    if (aggregate.version != originatingVersion) {
+      // If this is being thrown, ensure that the originating process is retried on the latest aggregate version
+      // by re-reading the newEvents list.
+      throw AggregateChangeRejectedException(
+        "Attempting to save newEvents against an old aggregate version " +
+        "(version: ${aggregate.version}, originatingVersion: $originatingVersion)")
+    }
+
+    val currentSequence = this.events[aggregate]!!.map { it.metadata.sequence }.max() ?: 0
+    newEvents.forEachIndexed { index, sagaEvent ->
+      // TODO(rz): Plugin more metadata (provenance, serviceVersion, etc)
+      sagaEvent.metadata = EventMetadata(
+        sequence = currentSequence + (index + 1),
+        originatingVersion = originatingVersion
+      )
+    }
+
+    registry.counter(eventWriteCountId).increment(newEvents.size.toLong())
+    this.events[aggregate]!!.addAll(newEvents)
+    aggregate.version = aggregate.version + 1
+
+    log.debug("Saved $aggregateType/$aggregateId@${aggregate.version}: " +
+      "[${newEvents.joinToString(",") { it.javaClass.simpleName }}]")
+
+    newEvents.forEach { applicationEventPublisher.publishEvent(it) }
+  }
+
+  override fun list(aggregateType: String, aggregateId: String): List<SpinnakerEvent> {
+    registry.counter(eventReadCountId).increment()
+
+    return getAggregate(aggregateType, aggregateId)
+      .let {
+        events[it]?.toList()
+      }
+      ?: throw MissingAggregateEventsException(aggregateType, aggregateId)
+  }
+
+  override fun listAggregates(aggregateType: String?): List<Aggregate> {
+    val aggregates = events.keys
+    return if (aggregateType != null) {
+      aggregates.filter { it.type == aggregateType }
+    } else {
+      aggregates.toList()
+    }
+  }
+
+  private fun getAggregate(aggregateType: String, aggregateId: String): Aggregate {
+    registry.counter(aggregateReadCountId).increment()
+
+    val aggregate = Aggregate(
+      aggregateType,
+      aggregateId,
+      0L
+    )
+    events.putIfAbsent(aggregate, mutableListOf())
+    return events.keys.first { it == aggregate }
+  }
+
+  @Scheduled(fixedDelayString = "\${spinnaker.clouddriver.eventing.memory-repository.cleanup-job-delay-ms:60000}")
+  private fun cleanup() {
+    registry.counter(eventReadCountId).increment()
+
+    config.maxAggregateAgeMs
+      ?.let { Duration.ofMillis(it) }
+      ?.let { maxAge ->
+        val horizon = Instant.now().minus(maxAge)
+        log.info("Cleaning up aggregates last updated earlier than $maxAge ($horizon)")
+        events.entries
+          .filter { it.value.any { event -> event.metadata.timestamp.isBefore(horizon) } }
+          .map { it.key }
+          .forEach {
+            log.trace("Cleaning up $it")
+            events.remove(it)
+          }
+      }
+
+    config.maxAggregatesCount
+      ?.let { maxCount ->
+        log.info("Cleaning up aggregates to max $maxCount items, pruning by earliest updated")
+        events.entries
+          // Flatten into pairs of List<Aggregate, SpinnakerEvent>
+          .flatMap { entry ->
+            entry.value.map { Pair(entry.key, it) }
+          }
+          .sortedBy { it.second.metadata.timestamp }
+          .subList(0, max(events.size - maxCount, 0))
+          .forEach {
+            log.trace("Cleaning up ${it.first}")
+            events.remove(it.first)
+          }
+      }
+  }
+
+  @Scheduled(fixedRate = 1_000)
+  private fun recordMetrics() {
+    registry.gauge(aggregateCountId).set(events.size.toDouble())
+    registry.gauge(eventCountId).set(events.flatMap { it.value }.size.toDouble())
+  }
+
+  inner class MissingAggregateEventsException(aggregateType: String, aggregateId: String) : SystemException(
+    "Aggregate $aggregateType/$aggregateId is missing its internal events list store"
+  )
+}

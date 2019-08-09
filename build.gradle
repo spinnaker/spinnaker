@@ -40,7 +40,7 @@ buildscript {
     }
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.junit.platform:junit-platform-gradle-plugin:${junitPlatformVersion}"
-
+    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
   }
 }
 
@@ -55,6 +55,7 @@ allprojects {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
     apply plugin: 'nebula.kotlin'
+    apply plugin: "kotlin-allopen"
 
     sourceSets.main.java.srcDirs = []
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
