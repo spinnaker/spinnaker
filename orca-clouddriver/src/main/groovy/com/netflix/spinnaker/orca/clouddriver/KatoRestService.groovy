@@ -48,8 +48,7 @@ interface KatoRestService {
   Response collectJob(@Path("app") String app,
                       @Path("account") String account,
                       @Path("region") String region,
-                      @Path("id") String id,
-                      @Body String details)
+                      @Path("id") String id)
 
   @DELETE("/applications/{app}/jobs/{account}/{location}/{id}")
   Response cancelJob(@Path("app") String app,
