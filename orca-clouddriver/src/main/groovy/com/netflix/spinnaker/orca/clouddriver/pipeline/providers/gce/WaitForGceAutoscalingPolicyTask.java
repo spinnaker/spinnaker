@@ -70,7 +70,6 @@ public class WaitForGceAutoscalingPolicyTask implements RetryableTask {
   enum AutoscalingMode {
     ON,
     OFF,
-    ONLY_DOWN,
     ONLY_UP
   }
 
