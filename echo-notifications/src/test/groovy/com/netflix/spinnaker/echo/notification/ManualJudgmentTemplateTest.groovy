@@ -122,4 +122,37 @@ class ManualJudgmentTemplateTest extends Specification {
         return notification
     }
 
+  void "should not word wrap (used for slack)"() {
+    given:
+    Notification notif = buildFullNotification()
+    notif.additionalContext["instructions"]= '''\
+      This is an example message from spinnaker that's more than 80 characters to make sure that we won't wrap it. Note the extra whitespace at the end here:
+      <p />
+      ```
+      This test was added was because code blocks in Slack would word wrap at 80 characters and inject newlines in codeblocks. Note the extra whitespaces after each original newline.
+      ```
+      '''.stripIndent()
+
+    when:
+    def rendered = notificationTemplateEngine.build(notif, NotificationTemplateEngine.Type.BODY)
+
+    then:
+    rendered == expected
+
+    where:
+
+    // Note, there's a whitespace after each new line of the `instructions` because of `Jsoup.parse(...)`.
+    // This is because the field is HTML parsed to plaintext. Which also can contain Slack's psudo-markdown flavor.
+    expected = '''\
+        Stage stage-name for testapp's exe-name pipeline build 12345 is awaiting manual judgment.
+
+        *Instructions:*
+        This is an example message from spinnaker that's more than 80 characters to make sure that we won't wrap it. Note the extra whitespace at the end here: 
+
+         ``` This test was added was because code blocks in Slack would word wrap at 80 characters and inject newlines in codeblocks. Note the extra whitespaces after each original newline. ``` 
+
+        For more details, please visit:
+        SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1
+        '''.stripIndent()
+  }
 }
