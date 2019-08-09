@@ -95,9 +95,12 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     moniker.setApp(description.getApplication());
 
     deployManifestDescription.setManifests(manifests);
+    deployManifestDescription.setRequiredArtifacts(description.getRequiredArtifacts());
+    deployManifestDescription.setOptionalArtifacts(description.getOptionalArtifacts());
     deployManifestDescription.setSource(KubernetesDeployManifestDescription.Source.text);
-    deployManifestDescription.setMoniker(moniker);
     deployManifestDescription.setCredentials(description.getCredentials());
+    deployManifestDescription.setAccount(description.getAccount());
+    deployManifestDescription.setMoniker(moniker);
 
     KubernetesDeployManifestOperation deployManifestOperation =
         new KubernetesDeployManifestOperation(deployManifestDescription, registry, provider);

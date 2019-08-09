@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.job;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,4 +29,6 @@ public class KubernetesRunJobOperationDescription extends KubernetesAtomicOperat
   String application;
   String namespace = "";
   KubernetesManifest manifest;
+  List<Artifact> requiredArtifacts;
+  List<Artifact> optionalArtifacts;
 }
