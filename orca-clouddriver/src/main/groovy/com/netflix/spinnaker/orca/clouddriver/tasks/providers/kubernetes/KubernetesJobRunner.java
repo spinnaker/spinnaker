@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RunJobManifestContext;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import java.util.*;
@@ -33,10 +36,15 @@ public class KubernetesJobRunner implements JobRunner {
 
   private ArtifactResolver artifactResolver;
   private ObjectMapper objectMapper;
+  private ManifestEvaluator manifestEvaluator;
 
-  public KubernetesJobRunner(ArtifactResolver artifactResolver, ObjectMapper objectMapper) {
+  public KubernetesJobRunner(
+      ArtifactResolver artifactResolver,
+      ObjectMapper objectMapper,
+      ManifestEvaluator manifestEvaluator) {
     this.artifactResolver = artifactResolver;
     this.objectMapper = objectMapper;
+    this.manifestEvaluator = manifestEvaluator;
   }
 
   public List<Map> getOperations(Stage stage) {
@@ -46,6 +54,21 @@ public class KubernetesJobRunner implements JobRunner {
       operation.putAll((Map) stage.getContext().get("cluster"));
     } else {
       operation.putAll(stage.getContext());
+    }
+
+    RunJobManifestContext runJobManifestContext = stage.mapTo(RunJobManifestContext.class);
+    if (runJobManifestContext.getSource().equals(ManifestContext.Source.Artifact)) {
+      ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, runJobManifestContext);
+
+      List<Map<Object, Object>> manifests = result.getManifests();
+      if (manifests.size() != 1) {
+        throw new IllegalArgumentException("Run Job only supports manifests with a single Job.");
+      }
+
+      operation.put("source", "text");
+      operation.put("manifest", manifests.get(0));
+      operation.put("requiredArtifacts", result.getRequiredArtifacts());
+      operation.put("optionalArtifacts", result.getOptionalArtifacts());
     }
 
     KubernetesContainerFinder.populateFromStage(operation, stage, artifactResolver);
