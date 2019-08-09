@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -22,14 +21,12 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
       name = "test"
     )
   ) {
-    val artifactRepository = mockk<ArtifactRepository>()
-    val promotionRepository = mockk<PromotionRepository>(relaxUnitFun = true)
+    val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
     val constraintEvaluator = mockk<ConstraintEvaluator<*>>() {
       every { constraintType } returns DependsOnConstraint::class.java
     }
     val subject = EnvironmentPromotionChecker(
       artifactRepository,
-      promotionRepository,
       listOf(constraintEvaluator)
     )
 
@@ -66,7 +63,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
         test("the environment is assigned the latest version of an artifact") {
           verify {
-            promotionRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
           }
         }
       }
@@ -97,7 +94,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
         test("the environment is assigned the latest version of an artifact that passes the constraint") {
           verify {
-            promotionRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
           }
         }
       }

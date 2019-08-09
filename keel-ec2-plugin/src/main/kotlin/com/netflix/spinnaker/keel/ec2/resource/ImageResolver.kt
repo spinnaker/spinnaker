@@ -15,8 +15,8 @@ import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.LoggerFactory
 
@@ -24,7 +24,7 @@ class ImageResolver(
   private val dynamicConfigService: DynamicConfigService,
   private val cloudDriverService: CloudDriverService,
   private val deliveryConfigRepository: DeliveryConfigRepository,
-  private val promotionRepository: PromotionRepository,
+  private val promotionRepository: ArtifactRepository,
   private val imageService: ImageService
 ) {
 

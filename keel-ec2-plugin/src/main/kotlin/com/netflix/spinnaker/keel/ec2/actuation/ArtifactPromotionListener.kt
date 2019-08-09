@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnBean(CloudDriverService::class)
 class ArtifactPromotionListener(
   private val deliveryConfigRepository: DeliveryConfigRepository,
-  private val promotionRepository: PromotionRepository,
+  private val artifactRepository: ArtifactRepository,
   private val cloudDriverService: CloudDriverService
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -44,7 +44,7 @@ class ArtifactPromotionListener(
       if (deliveryConfig == null || environment == null) {
         log.warn("Resource ${event.name} is not part of a delivery environment")
       } else {
-        promotionRepository.markAsSuccessfullyDeployedTo(
+        artifactRepository.markAsSuccessfullyDeployedTo(
           deliveryConfig,
           desired.launchConfiguration.imageProvider.deliveryArtifact,
           appVersion,

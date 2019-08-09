@@ -4,13 +4,11 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import org.springframework.stereotype.Component
 
 @Component
 class EnvironmentPromotionChecker(
   private val artifactRepository: ArtifactRepository,
-  private val promotionRepository: PromotionRepository,
   private val constraints: List<ConstraintEvaluator<*>>
 ) {
 
@@ -29,7 +27,7 @@ class EnvironmentPromotionChecker(
               }
             }
           }
-          promotionRepository.approveVersionFor(deliveryConfig, artifact, version, environment.name)
+          artifactRepository.approveVersionFor(deliveryConfig, artifact, version, environment.name)
         }
       }
   }

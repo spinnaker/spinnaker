@@ -2,22 +2,36 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.AfterAll
+import java.time.Clock
 
-internal object SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository>() {
+class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
-
   private val jooq = testDatabase.context
 
-  override fun factory() = SqlArtifactRepository(jooq)
+  private val deliveryConfigRepository = SqlDeliveryConfigRepository(
+    jooq,
+    Clock.systemDefaultZone(),
+    DummyResourceTypeIdentifier
+  )
 
-  override fun flush() {
+  override fun factory(): SqlArtifactRepository =
+    SqlArtifactRepository(jooq, Clock.systemDefaultZone())
+
+  override fun SqlArtifactRepository.flush() {
     cleanupDb(jooq)
   }
 
-  @JvmStatic
-  @AfterAll
-  fun shutdown() {
-    testDatabase.dataSource.close()
+  override fun Fixture<SqlArtifactRepository>.persist() {
+    with(subject) {
+      register(artifact1)
+      setOf(version1_0, version1_1, version1_2).forEach {
+        store(artifact1, it)
+      }
+      register(artifact2)
+      setOf(version1_0, version1_1, version1_2).forEach {
+        store(artifact2, it)
+      }
+    }
+    deliveryConfigRepository.store(manifest)
   }
 }

@@ -27,8 +27,8 @@ import com.netflix.spinnaker.keel.ec2.resource.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.NamedImageHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -47,14 +47,14 @@ class EC2Config {
     dynamicConfigService: DynamicConfigService,
     cloudDriverService: CloudDriverService,
     deliveryConfigRepository: DeliveryConfigRepository,
-    promotionRepository: PromotionRepository,
+    artifactRepository: ArtifactRepository,
     imageService: ImageService
   ): ImageResolver =
     ImageResolver(
       dynamicConfigService,
       cloudDriverService,
       deliveryConfigRepository,
-      promotionRepository,
+      artifactRepository,
       imageService
     )
 
@@ -66,9 +66,7 @@ class EC2Config {
     imageResolver: ImageResolver,
     clock: Clock,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>,
-    promotionRepository: PromotionRepository,
-    deliveryConfigRepository: DeliveryConfigRepository
+    normalizers: List<ResourceNormalizer<*>>
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,

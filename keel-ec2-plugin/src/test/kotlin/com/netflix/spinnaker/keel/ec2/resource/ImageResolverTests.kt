@@ -21,8 +21,8 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryPromotionRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -50,14 +50,14 @@ internal class ImageResolverTests : JUnit5Minutests {
       } returns account
     }
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
-    val promotionRepository = InMemoryPromotionRepository()
+    val artifactRepository = InMemoryArtifactRepository()
     val imageService = mockk<ImageService>()
     val cloudDriverService = mockk<CloudDriverService>()
     private val subject = ImageResolver(
       dynamicConfigService,
       cloudDriverService,
       deliveryConfigRepository,
-      promotionRepository,
+      artifactRepository,
       imageService
     )
     val images = listOf(
@@ -181,7 +181,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
       context("a version of the artifact has been approved for the environment") {
         before {
-          promotionRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
           coEvery {
             cloudDriverService.namedImages(any(), any(), any())
           } answers {
@@ -206,7 +206,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
       context("no image is found for the artifact version") {
         before {
-          promotionRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
           coEvery {
             cloudDriverService.namedImages(any(), any(), any())
           } returns emptyList()
@@ -225,7 +225,7 @@ internal class ImageResolverTests : JUnit5Minutests {
         }
 
         before {
-          promotionRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
           coEvery {
             cloudDriverService.namedImages(any(), any(), any())
           } answers {

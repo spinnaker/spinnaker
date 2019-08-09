@@ -3,11 +3,9 @@ package com.netflix.spinnaker.keel.sql.spring
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
-import com.netflix.spinnaker.keel.sql.SqlPromotionRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -40,9 +38,6 @@ internal class SpringStartupTests {
   @Autowired
   lateinit var deliveryConfigRepository: DeliveryConfigRepository
 
-  @Autowired
-  lateinit var promotionRepository: PromotionRepository
-
   @Test
   fun `uses SqlArtifactRepository`() {
     expectThat(artifactRepository).isA<SqlArtifactRepository>()
@@ -56,10 +51,5 @@ internal class SpringStartupTests {
   @Test
   fun `uses SqlDeliveryConfigRepository`() {
     expectThat(deliveryConfigRepository).isA<SqlDeliveryConfigRepository>()
-  }
-
-  @Test
-  fun `uses SqlPromotionRepository`() {
-    expectThat(promotionRepository).isA<SqlPromotionRepository>()
   }
 }

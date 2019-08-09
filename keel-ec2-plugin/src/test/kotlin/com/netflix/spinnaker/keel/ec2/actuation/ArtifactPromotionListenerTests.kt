@@ -19,7 +19,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -49,11 +49,11 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     )
 
     private val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
-    val promotionRepository = mockk<PromotionRepository>(relaxUnitFun = true)
+    val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
     private val cloudDriverService = mockk<CloudDriverService>() {
       coEvery { namedImages(imageId, "test", "ap-south-1") } returns listOf(ami)
     }
-    private val subject = ArtifactPromotionListener(deliveryConfigRepository, promotionRepository, cloudDriverService)
+    private val subject = ArtifactPromotionListener(deliveryConfigRepository, artifactRepository, cloudDriverService)
 
     val artifact = DeliveryArtifact(
       name = "fnord",
@@ -170,7 +170,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       }
 
       test("nothing is done with artifact promotion") {
-        verify { promotionRepository wasNot Called }
+        verify { artifactRepository wasNot Called }
       }
     }
 
@@ -180,7 +180,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       }
 
       test("nothing is done with artifact promotion") {
-        verify { promotionRepository wasNot Called }
+        verify { artifactRepository wasNot Called }
       }
     }
 
@@ -191,7 +191,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
 
       test("the artifact version is marked as deployed") {
         verify {
-          promotionRepository.markAsSuccessfullyDeployedTo(
+          artifactRepository.markAsSuccessfullyDeployedTo(
             deliveryConfig,
             artifact,
             appVersion,

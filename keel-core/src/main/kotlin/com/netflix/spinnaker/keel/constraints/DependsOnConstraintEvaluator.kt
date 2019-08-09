@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.springframework.stereotype.Component
 
 @Component
 class DependsOnConstraintEvaluator(
-  private val promotionRepository: PromotionRepository
+  private val artifactRepository: ArtifactRepository
 ) : ConstraintEvaluator<DependsOnConstraint> {
 
   override val constraintType = DependsOnConstraint::class.java
@@ -35,7 +35,7 @@ class DependsOnConstraintEvaluator(
     requireNotNull(requiredEnvironment) {
       "No environment named ${constraint.environment} exists in the configuration ${deliveryConfig.name}"
     }
-    return promotionRepository.wasSuccessfullyDeployedTo(
+    return artifactRepository.wasSuccessfullyDeployedTo(
       deliveryConfig,
       artifact,
       version,

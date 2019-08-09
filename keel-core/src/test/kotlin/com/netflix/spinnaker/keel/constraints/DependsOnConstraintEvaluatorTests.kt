@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.persistence.PromotionRepository
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -37,9 +37,9 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
       environments = setOf(previousEnvironment, constrainedEnvironment)
     )
 
-    val promotionRepository: PromotionRepository = mockk(relaxUnitFun = true)
+    val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
 
-    val subject = DependsOnConstraintEvaluator(promotionRepository)
+    val subject = DependsOnConstraintEvaluator(artifactRepository)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -61,7 +61,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     context("the requested version is not in the required environment") {
       before {
         every {
-          promotionRepository.wasSuccessfullyDeployedTo(manifest, artifact, "1.1", previousEnvironment.name)
+          artifactRepository.wasSuccessfullyDeployedTo(manifest, artifact, "1.1", previousEnvironment.name)
         } returns false
       }
 
@@ -74,7 +74,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     context("the requested version is in the required environment") {
       before {
         every {
-          promotionRepository.wasSuccessfullyDeployedTo(manifest, artifact, "1.1", previousEnvironment.name)
+          artifactRepository.wasSuccessfullyDeployedTo(manifest, artifact, "1.1", previousEnvironment.name)
         } returns true
       }
 

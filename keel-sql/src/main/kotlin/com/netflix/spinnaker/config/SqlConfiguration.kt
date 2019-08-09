@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
-import com.netflix.spinnaker.keel.sql.SqlPromotionRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import org.jooq.DSLContext
@@ -39,14 +38,10 @@ class SqlConfiguration {
     SqlResourceRepository(jooq, clock, objectMapper)
 
   @Bean
-  fun artifactRepository(jooq: DSLContext) =
-    SqlArtifactRepository(jooq)
+  fun artifactRepository(jooq: DSLContext, clock: Clock) =
+    SqlArtifactRepository(jooq, clock)
 
   @Bean
   fun deliveryConfigRepository(jooq: DSLContext, clock: Clock, resourceTypeIdentifier: ResourceTypeIdentifier) =
     SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier)
-
-  @Bean
-  fun promotionRepository(jooq: DSLContext, clock: Clock) =
-    SqlPromotionRepository(jooq, clock)
 }
