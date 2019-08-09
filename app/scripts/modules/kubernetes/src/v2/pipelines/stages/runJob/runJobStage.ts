@@ -25,7 +25,7 @@ module(KUBERNETES_V2_RUN_JOB_STAGE, [])
       addAliasToConfig: true,
       cloudProvider: 'kubernetes',
       component: KubernetesV2RunJobStageConfig,
-      executionDetailsSections: [ExecutionDetailsTasks, RunJobExecutionDetails],
+      executionDetailsSections: [RunJobExecutionDetails, ExecutionDetailsTasks],
       supportsCustomTimeout: true,
       producesArtifacts: true,
       validators: [

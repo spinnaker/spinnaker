@@ -8,6 +8,7 @@ import {
   JobStageExecutionLogs,
   DefaultPodNameProvider,
   IJobOwnedPodStatus,
+  StageFailureMessage,
 } from '@spinnaker/core';
 
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
@@ -31,6 +32,7 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
 
     return (
       <ExecutionDetailsSection name={name} current={current}>
+        <StageFailureMessage stage={stage} message={stage.failureMessage} />
         <div className="row">
           <div className="col-md-9">
             <dl className="dl-narrow dl-horizontal">
