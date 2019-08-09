@@ -31,8 +31,8 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCach
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApi
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
-import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
 import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
@@ -50,6 +50,7 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
   final String healthId = "Discovery"
   private final long pollIntervalMillis
   private final long timeoutMillis
+  private final RetrySupport retry = new RetrySupport()
 
   private List<EurekaAwareProvider> eurekaAwareProviderList
 
@@ -92,7 +93,7 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    EurekaApplications disco = eurekaApi.loadEurekaApplications()
+    EurekaApplications disco = retry.retry({ eurekaApi.loadEurekaApplications() }, 3, 100, false)
 
     Map<String, Set<String>> instanceHealthRelationships = [:].withDefault { new HashSet<String>() }
     Map<String, List<CacheData>> eurekaInstances = [:].withDefault { [] }
