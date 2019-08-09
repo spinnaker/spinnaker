@@ -48,6 +48,7 @@ export function PipelineTrigger(pipelineTriggerProps: IPipelineTriggerConfigProp
         name="application"
         label="Application"
         fastField={false}
+        required={true}
         input={props => (
           <ReactSelectInput
             {...props}
@@ -64,6 +65,7 @@ export function PipelineTrigger(pipelineTriggerProps: IPipelineTriggerConfigProp
         name="pipeline"
         label="Pipeline"
         fastField={false}
+        required={true}
         input={props => (
           <ReactSelectInput
             {...props}
@@ -79,6 +81,7 @@ export function PipelineTrigger(pipelineTriggerProps: IPipelineTriggerConfigProp
       <FormikFormField
         name="status"
         label="Pipeline Status"
+        required={true}
         input={props => <ChecklistInput {...props} stringOptions={statusOptions} inline={true} />}
       />
     </>
