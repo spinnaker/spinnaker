@@ -4,6 +4,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
+import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -29,12 +30,12 @@ class TelemetryListener(
     }
   }
 
-  @EventListener(ResourceChecked::class)
-  fun onResourceChecked(event: ResourceChecked) {
+  @EventListener(ResourceCheckResult::class)
+  fun onResourceChecked(event: ResourceCheckResult) {
     spectator.counter(
       RESOURCE_CHECKED_COUNTER_ID,
       listOf(
-        BasicTag("resourceName", event.name.value),
+        BasicTag("resourceName", event.name),
         BasicTag("apiVersion", event.apiVersion.toString()),
         BasicTag("resourceKind", event.kind),
         BasicTag("resourceState", event.state.name)

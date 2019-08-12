@@ -9,9 +9,8 @@ import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.events.CreateEvent
-import com.netflix.spinnaker.keel.events.DeleteEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -75,8 +74,7 @@ class ResourcePersister(
       .also {
         log.debug("Creating $it")
         resourceRepository.store(it)
-        resourceRepository.appendHistory(ResourceCreated(it, clock))
-        publisher.publishEvent(CreateEvent(it.name))
+        publisher.publishEvent(ResourceCreated(it, clock))
       }
 
   fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out Any> {
@@ -93,7 +91,7 @@ class ResourcePersister(
       normalized
         .also {
           resourceRepository.store(it)
-          resourceRepository.appendHistory(ResourceUpdated(it, diff.toUpdateJson(), clock))
+          publisher.publishEvent(ResourceUpdated(it, diff.toUpdateJson(), clock))
         }
     } else {
       existing
@@ -105,7 +103,7 @@ class ResourcePersister(
       .get<Any>(name)
       .also {
         resourceRepository.delete(name)
-        publisher.publishEvent(DeleteEvent(name))
+        publisher.publishEvent(ResourceDeleted(it, clock))
       }
 
   private fun ResourceName.isRegistered(): Boolean =

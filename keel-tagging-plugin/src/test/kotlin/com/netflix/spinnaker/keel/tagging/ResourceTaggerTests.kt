@@ -25,8 +25,8 @@ import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.netflix.spinnaker.keel.events.CreateEvent
-import com.netflix.spinnaker.keel.events.DeleteEvent
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.tags.EntityRef
@@ -149,7 +149,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       test("cluster is tagged") {
-        onCreateEvent(CreateEvent(clusterName))
+        onCreateEvent(ResourceCreated(rCluster))
         verify { resourcePersister.create(any()) }
       }
     }
@@ -179,7 +179,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       test("removes cluster tag on delete") {
-        onDeleteEvent(DeleteEvent(clusterName))
+        onDeleteEvent(ResourceDeleted(rCluster, clock))
 
         verify { resourcePersister.update(clusterTagName, any()) }
       }
@@ -218,31 +218,37 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       test("we don't tag named images") {
-        onCreateEvent(CreateEvent(ResourceName("bakery:image:keel")))
+        onCreateEvent(ResourceCreated(
+          randomUID(),
+          SPINNAKER_API_V1.subApi("bakery"),
+          "image",
+          "bakery:image:keel",
+          clock.instant()
+        ))
         verify { resourcePersister.create(any()) wasNot Called }
       }
       test("we don't tag tags") {
-        onCreateEvent(CreateEvent(ResourceName("tag:keel-tag:ec2:cluster:test:us-west-2:keeldemo-test")))
+        onCreateEvent(ResourceCreated(rClusterTag))
         verify { resourcePersister.create(any()) wasNot Called }
       }
 
       test("we tag clbs") {
-        onCreateEvent(CreateEvent(ResourceName("ec2:classic-load-balancer:test:us-east-1:keel-managed")))
+        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "classic-load-balancer", "ec2:classic-load-balancer:test:us-east-1:keel-managed", clock.instant()))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag albs") {
-        onCreateEvent(CreateEvent(ResourceName("ec2:application-load-balancer:test:us-east-1:keel-managed")))
+        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "application-load-balancer", "ec2:application-load-balancer:test:us-east-1:keel-managed", clock.instant()))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag security groups") {
-        onCreateEvent(CreateEvent(ResourceName("ec2:securityGroup:test:us-west-2:keel-managed")))
+        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "securityGroup", "ec2:securityGroup:test:us-west-2:keel-managed", clock.instant()))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag clusters") {
-        onCreateEvent(CreateEvent(ResourceName("ec2:cluster:test:us-west-2:keeldemo-test")))
+        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "cluster", "ec2:cluster:test:us-west-2:keeldemo-test", clock.instant()))
         verify { resourcePersister.create(any()) }
       }
     }

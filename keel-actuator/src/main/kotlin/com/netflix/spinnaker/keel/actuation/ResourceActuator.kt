@@ -9,16 +9,13 @@ import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckError
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
-import com.netflix.spinnaker.keel.telemetry.ResourceChecked
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -65,45 +62,37 @@ class ResourceActuator(
       when {
         current == null -> {
           log.warn("Resource {} is missing", name)
-          publisher.publishEvent(ResourceChecked(resource, Missing))
-
-          resourceRepository.appendHistory(ResourceMissing(resource, clock))
+          publisher.publishEvent(ResourceMissing(resource, clock))
 
           plugin.create(resource, diff)
             .also { tasks ->
-              resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+              publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
         }
         diff.hasChanges() -> {
           log.warn("Resource {} is invalid", name)
           log.info("Resource {} delta: {}", name, diff.toDebug())
-          publisher.publishEvent(ResourceChecked(resource, Diff))
-
-          resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
+          publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
           plugin.update(resource, diff)
             .also { tasks ->
-              resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+              publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
         }
         else -> {
           log.info("Resource {} is valid", name)
+          // TODO: not sure this logic belongs here
           val lastEvent = resourceRepository.eventHistory(resource.uid).first()
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
-            val event = ResourceDeltaResolved(
-              resource = resource,
-              current = current,
-              clock = clock
-            )
-            resourceRepository.appendHistory(event)
-            publisher.publishEvent(event) // TODO: refactor pending to unify how all this stuff with events works
+            publisher.publishEvent(ResourceDeltaResolved(resource, current, clock))
+          } else {
+            publisher.publishEvent(ResourceValid(resource, clock))
           }
-          publisher.publishEvent(ResourceChecked(resource, Ok))
         }
       }
     } catch (e: Exception) {
       log.error("Resource check for {} failed due to \"{}\"", name, e.message)
-      publisher.publishEvent(ResourceChecked(apiVersion, kind, name, Error))
+      publisher.publishEvent(ResourceCheckError(apiVersion, kind, name, e))
     }
   }
 

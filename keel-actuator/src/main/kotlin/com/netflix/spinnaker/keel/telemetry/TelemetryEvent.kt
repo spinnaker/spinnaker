@@ -8,20 +8,6 @@ import com.netflix.spinnaker.keel.api.name
 
 sealed class TelemetryEvent
 
-data class ResourceChecked(
-  val apiVersion: ApiVersion,
-  val kind: String,
-  val name: ResourceName,
-  val state: ResourceState
-) : TelemetryEvent() {
-  constructor(resource: Resource<*>, state: ResourceState) : this(
-    resource.apiVersion,
-    resource.kind,
-    resource.name,
-    state
-  )
-}
-
 data class ResourceCheckSkipped(
   val apiVersion: ApiVersion,
   val kind: String,
@@ -31,6 +17,20 @@ data class ResourceCheckSkipped(
     resource.apiVersion,
     resource.kind,
     resource.name
+  )
+}
+
+data class ResourceCheckError(
+  val apiVersion: ApiVersion,
+  val kind: String,
+  val name: ResourceName,
+  val exception: Throwable
+) : TelemetryEvent() {
+  constructor(resource: Resource<*>, exception: Throwable) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.name,
+    exception
   )
 }
 

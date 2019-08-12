@@ -25,8 +25,9 @@ import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.netflix.spinnaker.keel.events.CreateEvent
-import com.netflix.spinnaker.keel.events.DeleteEvent
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeleted
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.tags.EntityRef
@@ -80,8 +81,8 @@ class ResourceTagger(
     "application-load-balancer"
   )
 
-  @EventListener(CreateEvent::class)
-  fun onCreateEvent(event: CreateEvent) {
+  @EventListener(ResourceCreated::class)
+  fun onCreateEvent(event: ResourceCreated) {
     if (event.resourceName.shouldTag()) {
       log.debug("Persisting tag desired for resource {} because it exists now", event.resourceName.toString())
       val spec = event.resourceName.generateKeelTagSpec()
@@ -89,13 +90,13 @@ class ResourceTagger(
     }
   }
 
-  @EventListener(DeleteEvent::class)
-  fun onDeleteEvent(event: DeleteEvent) {
+  @EventListener(ResourceDeleted::class)
+  fun onDeleteEvent(event: ResourceDeleted) {
     if (event.resourceName.shouldTag()) {
       log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceName.toString())
       val entityRef = event.resourceName.toEntityRef()
       val spec = KeelTagSpec(
-        keelId = event.resourceName.toString(),
+        keelId = event.name,
         entityRef = entityRef,
         tagState = TagNotDesired(startTime = clock.millis())
       )
@@ -114,14 +115,13 @@ class ResourceTagger(
     }
   }
 
-  private fun tagExists(tagResourceName: ResourceName): Boolean {
+  private fun tagExists(tagResourceName: ResourceName): Boolean =
     try {
       resourceRepository.get(tagResourceName, KeelTagSpec::class.java)
-      return true
+      true
     } catch (e: NoSuchResourceException) {
-      return false
+      false
     }
-  }
 
   @Scheduled(fixedDelayString = "\${keel.resource-tagger.tag-cleanup-frequency:P1D}")
   fun removeTags() {
@@ -158,6 +158,9 @@ class ResourceTagger(
       kind = "keel-tag",
       spec = this
     ) as SubmittedResource<Any>
+
+  private val ResourceEvent.resourceName: ResourceName
+    get() = ResourceName(name)
 
   private fun ResourceName.generateKeelTagSpec() =
     KeelTagSpec(

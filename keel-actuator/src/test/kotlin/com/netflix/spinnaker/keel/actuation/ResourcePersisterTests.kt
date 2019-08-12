@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.verify
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -54,7 +55,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     val deliveryConfigRepository: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
   ) {
     private val clock: Clock = Clock.systemDefaultZone()
-    private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val subject: ResourcePersister = ResourcePersister(
       deliveryConfigRepository,
       artifactRepository,
@@ -124,10 +125,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           }
 
           test("records that the resource was created") {
-            expectThat(eventHistory())
-              .hasSize(1)
-              .first()
-              .isA<ResourceCreated>()
+            verify {
+              publisher.publishEvent(ofType<ResourceCreated>())
+            }
           }
 
           test("will check the resource") {
@@ -155,10 +155,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             }
 
             test("records that the resource was updated") {
-              expectThat(eventHistory())
-                .hasSize(2)
-                .first()
-                .isA<ResourceUpdated>()
+              verify {
+                publisher.publishEvent(ofType<ResourceUpdated>())
+              }
             }
 
             test("will check the resource again") {
@@ -176,8 +175,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             }
 
             test("does not record that the resource was updated") {
-              expectThat(eventHistory())
-                .hasSize(1)
+              verify(exactly = 0) {
+                publisher.publishEvent(ofType<ResourceUpdated>())
+              }
             }
 
             test("will not check the resource again") {

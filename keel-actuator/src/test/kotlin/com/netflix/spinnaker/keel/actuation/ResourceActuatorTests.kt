@@ -7,20 +7,17 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckError
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
-import com.netflix.spinnaker.keel.telemetry.ResourceChecked
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Error
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Missing
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Ok
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -31,13 +28,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
-import strikt.api.expectThat
-import strikt.assertions.first
-import strikt.assertions.hasSize
-import strikt.assertions.isA
 import java.time.Clock
 
 internal class ResourceActuatorTests : JUnit5Minutests {
@@ -86,13 +80,6 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         resourceRepository.appendHistory(ResourceCreated(resource))
       }
 
-      test("before the actuator checks the resource the only event in its history is creation") {
-        expectThat(resourceRepository.eventHistory(resource.uid))
-          .hasSize(1)
-          .first()
-          .isA<ResourceCreated>()
-      }
-
       context("the plugin is already actuating this resource") {
         before {
           coEvery { plugin1.actuationInProgress(resource.name) } returns true
@@ -115,11 +102,6 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           coVerify(exactly = 0) { plugin1.delete(any()) }
         }
 
-        test("nothing is added to the resource history") {
-          expectThat(resourceRepository.eventHistory(resource.uid))
-            .hasSize(1)
-        }
-
         test("a telemetry event is published") {
           verify { publisher.publishEvent(ResourceCheckSkipped(resource)) }
         }
@@ -138,33 +120,58 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             coEvery {
               plugin1.current(resource)
             } returns DummyResource(resource.spec.state)
+          }
 
-            with(resource) {
-              runBlocking {
-                subject.checkResource(name, apiVersion, kind)
+          context("the resource previously had a delta") {
+            before {
+              resourceRepository.appendHistory(ResourceDeltaDetected(resource, emptyMap()))
+
+              with(resource) {
+                runBlocking {
+                  subject.checkResource(name, apiVersion, kind)
+                }
               }
+            }
+
+            test("the resource is not updated") {
+              coVerify(exactly = 0) { plugin1.create(any(), any()) }
+              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+              coVerify(exactly = 0) { plugin1.delete(any()) }
+            }
+
+            test("only the relevant plugin is queried") {
+              coVerify(exactly = 0) { plugin2.desired(any()) }
+              coVerify(exactly = 0) { plugin2.current(any()) }
+            }
+
+            test("a telemetry event is published") {
+              verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
             }
           }
 
-          test("the resource is not updated") {
-            coVerify(exactly = 0) { plugin1.create(any(), any()) }
-            coVerify(exactly = 0) { plugin1.update(any(), any()) }
-            coVerify(exactly = 0) { plugin1.delete(any()) }
-          }
+          context("the resource was already valid") {
+            before {
+              with(resource) {
+                runBlocking {
+                  subject.checkResource(name, apiVersion, kind)
+                }
+              }
+            }
 
-          test("only the relevant plugin is queried") {
-            coVerify(exactly = 0) { plugin2.desired(any()) }
-            coVerify(exactly = 0) { plugin2.current(any()) }
-          }
+            test("the resource is not updated") {
+              coVerify(exactly = 0) { plugin1.create(any(), any()) }
+              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+              coVerify(exactly = 0) { plugin1.delete(any()) }
+            }
 
-          test("nothing is added to the resource history") {
-            expectThat(resourceRepository.eventHistory(resource.uid))
-              .hasSize(1)
-          }
+            test("only the relevant plugin is queried") {
+              coVerify(exactly = 0) { plugin2.desired(any()) }
+              coVerify(exactly = 0) { plugin2.current(any()) }
+            }
 
-          test("a telemetry event is published") {
-            // TODO: this is wrong
-            verify { publisher.publishEvent(ResourceChecked(resource, Ok)) }
+            test("a telemetry event is published") {
+              verify { publisher.publishEvent(ofType<ResourceValid>()) }
+            }
           }
         }
 
@@ -185,16 +192,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             coVerify { plugin1.create(resource, any()) }
           }
 
-          test("the resource state is recorded") {
-            expectThat(resourceRepository.eventHistory(resource.uid)) {
-              hasSize(3)
-              first().isA<ResourceActuationLaunched>()
-              second().isA<ResourceMissing>()
-            }
-          }
-
           test("a telemetry event is published") {
-            verify { publisher.publishEvent(ResourceChecked(resource, Missing)) }
+            verifySequence {
+              publisher.publishEvent(ofType<ResourceMissing>())
+              publisher.publishEvent(ofType<ResourceActuationLaunched>())
+            }
           }
         }
 
@@ -215,16 +217,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             coVerify { plugin1.update(eq(resource), any()) }
           }
 
-          test("the resource state is recorded") {
-            expectThat(resourceRepository.eventHistory(resource.uid)) {
-              hasSize(3)
-              first().isA<ResourceActuationLaunched>()
-              second().isA<ResourceDeltaDetected>()
-            }
-          }
-
           test("a telemetry event is published") {
-            verify { publisher.publishEvent(ResourceChecked(resource, Diff)) }
+            verify {
+              publisher.publishEvent(ofType<ResourceDeltaDetected>())
+              publisher.publishEvent(ofType<ResourceActuationLaunched>())
+            }
           }
         }
 
@@ -244,16 +241,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             coVerify(exactly = 0) { plugin1.update(any(), any()) }
           }
 
-          // TODO: do we want to track the error in the resource history?
-          test("the resource state is not affected") {
-            expectThat(resourceRepository.eventHistory(resource.uid)) {
-              hasSize(1)
-              first().isA<ResourceCreated>()
-            }
-          }
-
           test("a telemetry event is published") {
-            verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
+            verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
           }
         }
 
@@ -272,15 +261,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           // TODO: do we want to track the error in the resource history?
           test("detection of the delta is tracked in resource history") {
-            expectThat(resourceRepository.eventHistory(resource.uid)) {
-              hasSize(2)
-              first().isA<ResourceDeltaDetected>()
-              second().isA<ResourceCreated>()
-            }
+            verify { publisher.publishEvent(ofType<ResourceDeltaDetected>()) }
           }
 
           test("a telemetry event is published") {
-            verify { publisher.publishEvent(ResourceChecked(resource, Error)) }
+            verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
           }
         }
 

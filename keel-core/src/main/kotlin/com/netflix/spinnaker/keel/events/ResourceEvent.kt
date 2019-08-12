@@ -32,6 +32,9 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.uid
+import com.netflix.spinnaker.keel.events.ResourceState.Diff
+import com.netflix.spinnaker.keel.events.ResourceState.Missing
+import com.netflix.spinnaker.keel.events.ResourceState.Ok
 import java.time.Clock
 import java.time.Instant
 
@@ -44,6 +47,7 @@ import java.time.Instant
 @JsonSubTypes(
   Type(value = ResourceCreated::class, name = "ResourceCreated"),
   Type(value = ResourceUpdated::class, name = "ResourceUpdated"),
+  Type(value = ResourceDeleted::class, name = "ResourceDeleted"),
   Type(value = ResourceMissing::class, name = "ResourceMissing"),
   Type(value = ResourceActuationLaunched::class, name = "ResourceActuationLaunched"),
   Type(value = ResourceDeltaDetected::class, name = "ResourceDeltaDetected"),
@@ -70,17 +74,16 @@ data class ResourceCreated @JsonCreator constructor(
   override val kind: String,
   override val name: String,
   override val timestamp: Instant
-) : ResourceEvent()
+) : ResourceEvent() {
 
-fun ResourceCreated(resource: Resource<*>, clock: Clock) = ResourceCreated(
-  resource.uid,
-  resource.apiVersion,
-  resource.kind,
-  resource.name.value,
-  clock.instant()
-)
-
-fun ResourceCreated(resource: Resource<*>) = ResourceCreated(resource, ResourceEvent.clock)
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
+    resource.uid,
+    resource.apiVersion,
+    resource.kind,
+    resource.name.value,
+    clock.instant()
+  )
+}
 
 /**
  * The desired state of a resource was updated.
@@ -96,7 +99,7 @@ data class ResourceUpdated(
   val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
+  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
     resource.uid,
     resource.apiVersion,
     resource.kind,
@@ -104,8 +107,26 @@ data class ResourceUpdated(
     delta,
     clock.instant()
   )
+}
 
-  constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
+data class ResourceDeleted(
+  override val uid: UID,
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val name: String,
+  override val timestamp: Instant
+) : ResourceEvent() {
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
+    resource.uid,
+    resource.apiVersion,
+    resource.kind,
+    resource.name.value,
+    clock.instant()
+  )
+}
+
+abstract class ResourceCheckResult : ResourceEvent() {
+  abstract val state: ResourceState
 }
 
 /**
@@ -117,16 +138,16 @@ data class ResourceMissing(
   override val kind: String,
   override val name: String,
   override val timestamp: Instant
-) : ResourceEvent() {
-  constructor(resource: Resource<*>, clock: Clock) : this(
+) : ResourceCheckResult() {
+  override val state = Missing
+
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.name.value,
     clock.instant()
   )
-
-  constructor(resource: Resource<*>) : this(resource, clock)
 }
 
 /**
@@ -141,8 +162,10 @@ data class ResourceDeltaDetected(
   override val name: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
-) : ResourceEvent() {
-  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
+) : ResourceCheckResult() {
+  override val state = Diff
+
+  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
     resource.uid,
     resource.apiVersion,
     resource.kind,
@@ -150,8 +173,6 @@ data class ResourceDeltaDetected(
     delta,
     clock.instant()
   )
-
-  constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
 }
 
 /**
@@ -167,7 +188,7 @@ data class ResourceActuationLaunched(
   val tasks: List<TaskRef>,
   override val timestamp: Instant
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>, clock: Clock) :
+  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>, clock: Clock = Companion.clock) :
     this(
       resource.uid,
       resource.apiVersion,
@@ -177,9 +198,6 @@ data class ResourceActuationLaunched(
       tasks,
       clock.instant()
     )
-
-  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>) :
-    this(resource, plugin, tasks, clock)
 }
 
 /**
@@ -194,8 +212,10 @@ data class ResourceDeltaResolved(
   override val timestamp: Instant,
   val desired: Any,
   val current: Any
-) : ResourceEvent() {
-  constructor(resource: Resource<*>, current: Any, clock: Clock) :
+) : ResourceCheckResult() {
+  override val state = Ok
+
+  constructor(resource: Resource<*>, current: Any, clock: Clock = Companion.clock) :
     this(
       resource.uid,
       resource.apiVersion,
@@ -205,9 +225,25 @@ data class ResourceDeltaResolved(
       resource.spec,
       current
     )
+}
 
-  constructor(resource: Resource<*>, current: Any) :
-    this(resource, current, clock)
+data class ResourceValid(
+  override val uid: UID,
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val name: String,
+  override val timestamp: Instant
+) : ResourceCheckResult() {
+  override val state = Ok
+
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
+    this(
+      resource.uid,
+      resource.apiVersion,
+      resource.kind,
+      resource.name.value,
+      clock.instant()
+    )
 }
 
 /**

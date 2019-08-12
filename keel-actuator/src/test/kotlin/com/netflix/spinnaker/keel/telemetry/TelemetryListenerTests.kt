@@ -4,9 +4,9 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.telemetry.ResourceState.Diff
+import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.events.ResourceValid
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -19,16 +19,18 @@ import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.isEqualTo
 import java.time.Clock
+import java.time.Instant
 
 internal object TelemetryListenerTests : JUnit5Minutests {
 
   private val registry = mockk<Registry>()
   private val counter = mockk<Counter>(relaxUnitFun = true)
-  private val event = ResourceChecked(
+  private val event = ResourceValid(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
-    name = ResourceName("ec2:cluster:prod:ap-south-1:keel-main"),
-    state = Diff
+    name = "ec2:cluster:prod:ap-south-1:keel-main",
+    uid = randomUID(),
+    timestamp = Instant.now()
   )
 
   fun tests() = rootContext<TelemetryListener> {
@@ -69,7 +71,7 @@ internal object TelemetryListenerTests : JUnit5Minutests {
           }
           any {
             key().isEqualTo("resourceName")
-            value().isEqualTo(event.name.value)
+            value().isEqualTo(event.name)
           }
           any {
             key().isEqualTo("resourceState")
