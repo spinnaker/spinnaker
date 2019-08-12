@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
@@ -51,6 +53,9 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("runJob", RunJobTask.class).withTask("monitorDeploy", MonitorJobTask.class);
 
+    // TODO(ethanfrogers): abstract this out into a provider specific job runner
+    injectManifestForceCacheRefresh(stage, builder);
+
     if (!stage
         .getContext()
         .getOrDefault("waitForCompletion", "true")
@@ -69,6 +74,19 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
         .toString()
         .equalsIgnoreCase("artifact")) {
       builder.withTask(ConsumeArtifactTask.TASK_NAME, ConsumeArtifactTask.class);
+    }
+  }
+
+  private void injectManifestForceCacheRefresh(Stage stage, TaskNode.Builder builder) {
+    Map<String, Object> context = stage.getContext();
+    String cloudProvider = (String) context.getOrDefault("cloudProvider", "");
+    boolean manifestBasedRunJob =
+        (cloudProvider.equalsIgnoreCase("kubernetes")
+            && (context.containsKey("source") || context.containsKey("manifest")));
+    if (manifestBasedRunJob) {
+      builder
+          .withTask("promoteOutputs", PromoteManifestKatoOutputsTask.class)
+          .withTask("forceCacheRefresh", ManifestForceCacheRefreshTask.class);
     }
   }
 

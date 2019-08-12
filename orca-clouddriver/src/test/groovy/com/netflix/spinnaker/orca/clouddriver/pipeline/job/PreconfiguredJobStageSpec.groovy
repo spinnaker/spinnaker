@@ -69,6 +69,7 @@ class PreconfiguredJobStageSpec extends Specification {
       enabled: true,
       label: "test",
       type: "test",
+      cloudProvider: "kubernetes",
       parameters: [
         new PreconfiguredJobStageParameter(
           mapping: "manifest.metadata.name",
