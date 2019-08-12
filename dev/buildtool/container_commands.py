@@ -45,39 +45,14 @@ class BuildContainerCommand(GradleCommandProcessor):
         source_repository_names=source_repository_names, **kwargs)
 
   def _do_can_skip_repository(self, repository):
-    if self.options.container_builder == 'gcb':
-      build_version = self.scm.get_repository_service_build_version(repository)
-      return self.__check_gcb_image(repository, build_version)
-    return False
+    build_version = self.scm.get_repository_service_build_version(repository)
+    return self.__check_gcb_image(repository, build_version)
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
-    options = self.options
-
-    builder_methods = {
-        'docker': self.__build_with_docker,
-        'gcb': self.__build_with_gcb
-    }
     scm = self.source_code_manager
     build_version = scm.get_repository_service_build_version(repository)
-    builder_methods[options.container_builder](repository, build_version)
-
-  def __build_with_docker(self, repository, build_version):
-    logging.warning('DOCKER builds are still under development')
-    name = repository.name
-    docker_tag = '{reg}/{name}:{build_version}'.format(
-        reg=self.options.docker_registry,
-        name=name, build_version=build_version)
-
-    cmds = [
-        'docker build -f Dockerfile -t %s .' % docker_tag,
-        'docker push %s' % docker_tag
-    ]
-
-    gradle_dir = repository.gradle_dir
-    logfile = self.get_logfile_path(name + '-docker-build')
-    check_subprocesses_to_logfile(
-        name + ' docker build', logfile, cmds, cwd=gradle_dir)
+    self.__build_with_gcb(repository, build_version)
 
   def __check_gcb_image(self, repository, version):
     """Determine if gcb image already exists."""
@@ -91,46 +66,14 @@ class BuildContainerCommand(GradleCommandProcessor):
     got = check_subprocess(' '.join(command))
     if got.strip() != '[]':
       labels = {'repository': repository.name, 'artifact': 'gcr-container'}
-      if self.options.skip_existing:
-        logging.info('Already have %s -- skipping build', image_name)
-        self.metrics.inc_counter('ReuseArtifact', labels)
-        return True
-      if self.options.delete_existing:
-        self.__delete_gcb_image(repository, image_name, version)
-      else:
-        raise_and_log_error(
-            ConfigError('Already have {name} version {version}'.format(
-                name=image_name, version=version)))
+      logging.info('Already have %s -- skipping build', image_name)
+      self.metrics.inc_counter('ReuseArtifact', labels)
+      return True
     return False
-
-  def __delete_gcb_image(self, repository, image_name, version):
-    """Delete the gcb image if it already exists."""
-    options = self.options
-    command = ['gcloud', '--account', options.gcb_service_account,
-               'container', 'images', 'delete',
-               '%s/%s:%s' % (options.docker_registry, image_name, version),
-               '--quiet']
-    labels = {'repository': repository.name, 'artifact': 'gcr-container'}
-    self.metrics.count_call(
-        'DeleteArtifact', labels,
-        check_subprocess, ' '.join(command))
 
   def __build_with_gcb(self, repository, build_version):
     name = repository.name
-    gcb_config = self.__derive_gcb_config(repository, build_version)
-    if gcb_config is None:
-      logging.info('Skipping GCB for %s because there is config for it',
-                   name)
-      return
-
     options = self.options
-
-    # Use an absolute path here because we're going to
-    # pass this to the gcloud command, which will be running
-    # in a different directory so relative paths wont hold.
-    config_dir = os.path.abspath(self.get_output_dir())
-    config_path = os.path.join(config_dir, name + '-gcb.yml')
-    write_to_path(gcb_config, config_path)
 
     # Local .gradle dir stomps on GCB's .gradle directory when the gradle
     # wrapper is installed, so we need to delete the local one.
@@ -140,25 +83,22 @@ class BuildContainerCommand(GradleCommandProcessor):
     # This can still be shared among components as long as the
     # output directory remains around.
     git_dir = repository.git_dir
-    if options.force_clean_gradle_cache:
-      # If we're going to delete existing ones, then keep each component
-      # separate so they dont stomp on one another
-      gradle_cache = os.path.abspath(os.path.join(git_dir, '.gradle'))
-    else:
-      # Otherwise allow all the components to share a common gradle directory
-      gradle_cache = os.path.abspath(
-          os.path.join(options.output_dir, '.gradle'))
+    # If we're going to delete existing ones, then keep each component
+    # separate so they dont stomp on one another
+    gradle_cache = os.path.abspath(os.path.join(git_dir, '.gradle'))
 
-    if options.force_clean_gradle_cache and os.path.isdir(gradle_cache):
+    if os.path.isdir(gradle_cache):
       shutil.rmtree(gradle_cache)
 
     # Note this command assumes a cwd of git_dir
     command = ('gcloud builds submit '
                ' --account={account} --project={project}'
-               ' --config="{config_path}" .'
+               ' --substitutions=TAG_NAME={tag_name}'
+               ' --config=cloudbuild.yaml .'
                .format(account=options.gcb_service_account,
                        project=options.gcb_project,
-                       config_path=config_path))
+                       repo_name=repository.name,
+                       tag_name=build_version))
 
     logfile = self.get_logfile_path(name + '-gcb-build')
     labels = {'repository': repository.name}
@@ -166,77 +106,6 @@ class BuildContainerCommand(GradleCommandProcessor):
         'GcrBuild', labels, self.metrics.default_determine_outcome_labels,
         check_subprocesses_to_logfile,
         name + ' container build', logfile, [command], cwd=git_dir)
-
-  def __make_gradle_gcb_step(self, name, env_vars_list):
-    command_sequence = ['git rev-parse HEAD | xargs git checkout']
-    if name == 'deck':
-      command_sequence.append('./gradlew build -PskipTests')
-    else:
-      command_sequence.append('./gradlew %s-web:installDist -x test' % name)
-
-    return {
-        'args': ['bash', '-c', ';'.join(command_sequence)],
-        'env': env_vars_list,
-        'name': self.options.container_base_image
-    }
-
-  def __derive_gcb_config(self, repository, build_version):
-    """Helper function for repository_main."""
-    options = self.options
-    name = repository.name
-
-    if name == 'spinnaker-monitoring':
-      has_gradle_step = False
-      name = 'monitoring-daemon'
-      dirname = 'spinnaker-monitoring-daemon'
-    else:
-      has_gradle_step = True
-      dirname = '.'
-
-    dockerfile_path = os.path.join(
-        repository.git_dir, dirname, 'Dockerfile.slim')
-    if not os.path.exists(dockerfile_path) or repository.name in ['echo']:
-      # Exclude echo from the slim docker builds since the alpine base image
-      # (which is used in the slim builds) is missing a package gRPC needs to
-      # establish pub/sub listeners.
-      dockerfile_path = os.path.join(repository.git_dir, dirname, 'Dockerfile')
-      if not os.path.exists(dockerfile_path):
-        logging.warning('No GCB config for %s because there is no Dockerfile',
-                        repository.name)
-        return None
-
-    env_vars_list = [env
-                     for env in options.container_env_vars.split(',')
-                     if env]
-    versioned_image = '{reg}/{repo}:{build_version}'.format(
-        reg=options.docker_registry, repo=name,
-        build_version=build_version)
-    steps = ([self.__make_gradle_gcb_step(name, env_vars_list)]
-             if has_gradle_step
-             else [])
-
-    dockerfile = os.path.basename(dockerfile_path)
-    build_step = {
-        'args': ['build', '-t', versioned_image, '-f', dockerfile, '.'],
-        'env': env_vars_list,
-        'name': 'gcr.io/cloud-builders/docker'
-    }
-    if dirname and dirname != '.':
-      build_step['dir'] = dirname
-
-    steps.append(build_step)
-
-    config = {
-        'images': [versioned_image],
-        'options': {
-            'machineType': 'N1_HIGHCPU_8'
-        },
-        'timeout': '3600s',
-        'steps': steps
-    }
-
-    return yaml.safe_dump(config, default_flow_style=True)
-
 
 class BuildContainerFactory(GradleCommandFactory):
   @staticmethod
@@ -256,29 +125,12 @@ class BuildContainerFactory(GradleCommandFactory):
 
     self.add_bom_parser_args(parser, defaults)
     self.add_argument(
-        parser, 'container_env_vars', defaults,
-        'GRADLE_USER_HOME=/gradle_cache/.gradle',
-        help='Comma-separated list of environment variable bindings'
-        ' to set when performing container builds.')
-    self.add_argument(
-        parser, 'container_builder', defaults, 'gcb',
-        choices=['docker', 'gcb', 'gcb-trigger'],
-        help='Type of builder to use.')
-    self.add_argument(
         parser, 'gcb_project', defaults, None,
         help='The GCP project ID to publish containers to when'
         ' using Google Container Builder.')
     self.add_argument(
         parser, 'gcb_service_account', defaults, None,
         help='Google Service Account when using the GCP Container Builder.')
-
-    self.add_argument(
-        parser, 'container_base_image', defaults, None,
-        help='Base image to start from in the container builds.')
-    self.add_argument(
-        parser, 'force_clean_gradle_cache', defaults, True,
-        help='Force a fresh new component-specific gradle cache for'
-        ' each component build')
 
 
 def add_bom_parser_args(parser, defaults):
