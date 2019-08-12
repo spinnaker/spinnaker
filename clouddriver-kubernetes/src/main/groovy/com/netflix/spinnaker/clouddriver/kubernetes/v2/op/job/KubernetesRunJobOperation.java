@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job;
 
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.job.KubernetesRunJobOperationDescription;
@@ -37,7 +36,8 @@ import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResult> {
+public class KubernetesRunJobOperation
+    implements AtomicOperation<KubernetesRunJobDeploymentResult> {
   private static final String OP_NAME = "RUN_KUBERNETES_JOB";
   private final KubernetesRunJobOperationDescription description;
   private final KubernetesV2Credentials credentials;
@@ -64,7 +64,7 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     return TaskRepository.threadLocalTask.get();
   }
 
-  public DeploymentResult operate(List _unused) {
+  public KubernetesRunJobDeploymentResult operate(List _unused) {
     getTask().updateStatus(OP_NAME, "Running Kubernetes job...");
     KubernetesManifest jobSpec = this.description.getManifest();
     KubernetesKind kind = jobSpec.getKind();
@@ -105,7 +105,8 @@ public class KubernetesRunJobOperation implements AtomicOperation<DeploymentResu
     KubernetesDeployManifestOperation deployManifestOperation =
         new KubernetesDeployManifestOperation(deployManifestDescription, registry, provider);
     OperationResult operationResult = deployManifestOperation.operate(new ArrayList());
-    DeploymentResult deploymentResult = new DeploymentResult();
+    KubernetesRunJobDeploymentResult deploymentResult =
+        new KubernetesRunJobDeploymentResult(operationResult);
     Map<String, List<String>> deployedNames = deploymentResult.getDeployedNamesByLocation();
     for (Map.Entry<String, Set<String>> e :
         operationResult.getManifestNamesByNamespace().entrySet()) {
