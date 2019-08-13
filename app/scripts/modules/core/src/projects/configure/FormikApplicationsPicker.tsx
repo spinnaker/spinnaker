@@ -54,7 +54,7 @@ export class FormikApplicationsPicker extends React.Component<IFormikApplication
                   key={app}
                   name={`${name}[${index}]`}
                   label={label}
-                  input={ReadOnlyApplicationInput}
+                  input={props => <ReadOnlyApplicationInput {...props} />}
                   actions={<TrashButton onClick={() => arrayHelpers.remove(index)} />}
                   touched={true}
                 />

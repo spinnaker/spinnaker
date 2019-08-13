@@ -72,7 +72,7 @@ export class Parameters extends React.Component<IParametersProps> {
                     <FormikFormField
                       name={'parameters.' + parameter.name}
                       fastField={false}
-                      input={(props: any) => <TextInput {...props} inputClassName={'form-control input-sm'} />}
+                      input={props => <TextInput {...props} inputClassName={'form-control input-sm'} />}
                       required={parameter.required}
                     />
                   </div>
@@ -82,7 +82,7 @@ export class Parameters extends React.Component<IParametersProps> {
                     <FormikFormField
                       name={'parameters.' + parameter.name}
                       fastField={false}
-                      input={(props: any) => (
+                      input={props => (
                         <ReactSelectInput
                           {...props}
                           clearable={false}

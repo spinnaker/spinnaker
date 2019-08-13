@@ -38,8 +38,8 @@ export class FormikExpressionRegexField extends React.Component<
     spelError: null,
   };
 
-  private renderRegexFields(props: IFormikExpressionRegexFieldProps, defaultExpanded: boolean) {
-    const { RegexHelp, regexName, replaceName } = props;
+  private renderRegexFields(fieldProps: IFormikExpressionRegexFieldProps, defaultExpanded: boolean) {
+    const { RegexHelp, regexName, replaceName } = fieldProps;
 
     const sectionHeading = ({ chevron }: { chevron: JSX.Element }) => (
       <span>
@@ -71,12 +71,16 @@ export class FormikExpressionRegexField extends React.Component<
           <FormikFormField
             name={regexName}
             validate={validateRegexString}
-            layout={RegexLayout}
-            input={TextInput}
+            layout={props => <RegexLayout {...props} />}
+            input={props => <TextInput {...props} />}
             touched={true}
           />
           <code>/</code>
-          <FormikFormField name={replaceName} layout={RegexLayout} input={TextInput} />
+          <FormikFormField
+            name={replaceName}
+            layout={props => <RegexLayout {...props} />}
+            input={props => <TextInput {...props} />}
+          />
           <code>/g</code>
         </div>
       </CollapsibleSection>

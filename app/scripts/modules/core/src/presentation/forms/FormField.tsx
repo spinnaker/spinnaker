@@ -4,6 +4,7 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
 import { noop } from 'core/utils';
+
 import { LayoutContext } from './layouts';
 import { useLatestPromise } from '../hooks';
 import { createFieldValidator } from './FormikFormField';
@@ -12,6 +13,7 @@ import { IValidator, IValidatorResultRaw } from './validation';
 import {
   ICommonFormFieldProps,
   IControlledInputProps,
+  IFieldLayoutProps,
   IFieldLayoutPropsWithoutInput,
   IValidationProps,
 } from './interface';
@@ -47,8 +49,6 @@ export function FormField(props: IFormFieldProps) {
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
-  const fieldLayoutFromContext = useContext(LayoutContext);
-
   const validate = useMemo(() => props.validate, []);
   const fieldValidator = useMemo(
     () => createFieldValidator(label, required, [].concat(validate || noop).concat(internalValidators)),
@@ -67,6 +67,11 @@ export function FormField(props: IFormFieldProps) {
   const [hasBlurred, setHasBlurred] = useState(false);
 
   const touched = firstDefined(touchedProp, hasBlurred);
+
+  const FieldLayoutFromContext = useContext(LayoutContext);
+  const inputRenderPropOrNode = firstDefined(input, noop);
+  const layoutFromContext = (layoutProps: IFieldLayoutProps) => <FieldLayoutFromContext {...layoutProps} />;
+  const layoutRenderPropOrNode = firstDefined(layout, layoutFromContext);
 
   const validationProps: IValidationProps = {
     touched,
@@ -87,12 +92,12 @@ export function FormField(props: IFormFieldProps) {
   };
 
   // Render the input
-  const inputElement = renderContent(input, { ...controlledInputProps, validation: validationProps });
+  const inputElement = renderContent(inputRenderPropOrNode, { ...controlledInputProps, validation: validationProps });
 
   // Render the layout passing the rendered input in
   return (
     <>
-      {renderContent(layout || fieldLayoutFromContext, {
+      {renderContent(layoutRenderPropOrNode, {
         ...fieldLayoutPropsWithoutInput,
         ...validationProps,
         input: inputElement,

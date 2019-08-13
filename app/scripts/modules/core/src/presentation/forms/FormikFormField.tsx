@@ -2,7 +2,9 @@ import * as React from 'react';
 import { isNil, isString } from 'lodash';
 import { Field, FastField, FieldProps, getIn, FormikContext, FormikConsumer } from 'formik';
 
-import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from './interface';
+import { noop } from 'core/utils';
+
+import { ICommonFormFieldProps, IFieldLayoutProps, IFieldLayoutPropsWithoutInput, IValidationProps } from './interface';
 import { WatchValue } from '../WatchValue';
 import { LayoutContext } from './layouts/index';
 import { composeValidators, IValidator, Validators } from './validation';
@@ -55,11 +57,10 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const fastField = firstDefined(fastFieldProp, true);
 
   const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
-  const fieldLayoutFromContext = useContext(LayoutContext);
-
   const [internalValidators, setInternalValidators] = useState([]);
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
+  const FieldLayoutFromContext = useContext(LayoutContext);
 
   const renderField = ({ field }: FieldProps<any>) => {
     const validationProps: IValidationProps = {
@@ -70,11 +71,14 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
       removeValidator,
     };
 
-    const inputElement = renderContent(input, { ...field, validation: validationProps });
+    const inputRenderPropOrNode = firstDefined(input, noop);
+    const layoutFromContext = (layoutProps: IFieldLayoutProps) => <FieldLayoutFromContext {...layoutProps} />;
+    const layoutRenderPropOrNode = firstDefined(layout, layoutFromContext);
+    const inputElement = renderContent(inputRenderPropOrNode, { ...field, validation: validationProps });
 
     return (
       <WatchValue onChange={onChange} value={field.value}>
-        {renderContent(layout || fieldLayoutFromContext, {
+        {renderContent(layoutRenderPropOrNode, {
           ...fieldLayoutPropsWithoutInput,
           ...validationProps,
           input: inputElement,

@@ -68,7 +68,7 @@ export class ApplyEntityTagsStageConfig extends React.Component<IApplyEntityTags
           <>
             <StageConfigField label="Name">
               <FormField
-                input={TextInput}
+                input={props => <TextInput {...props} />}
                 value={entityRef.entityId || ''}
                 onChange={(e: any) => this.entityRefFieldChanged('entityId', e.target.value)}
               />
@@ -91,14 +91,14 @@ export class ApplyEntityTagsStageConfig extends React.Component<IApplyEntityTags
                 </StageConfigField>
                 <StageConfigField label="Account">
                   <FormField
-                    input={TextInput}
+                    input={props => <TextInput {...props} />}
                     value={entityRef.account || ''}
                     onChange={(e: any) => this.entityRefFieldChanged('account', e.target.value)}
                   />
                 </StageConfigField>
                 <StageConfigField label="Region" helpKey="pipeline.config.entitytags.region">
                   <FormField
-                    input={TextInput}
+                    input={props => <TextInput {...props} />}
                     value={entityRef.region || ''}
                     onChange={(e: any) => this.entityRefFieldChanged('region', e.target.value)}
                   />
@@ -106,7 +106,7 @@ export class ApplyEntityTagsStageConfig extends React.Component<IApplyEntityTags
                 {entityRef.entityType === 'securitygroup' && (
                   <StageConfigField label="VPC Id">
                     <FormField
-                      input={TextInput}
+                      input={props => <TextInput {...props} />}
                       value={entityRef.vpcId || ''}
                       onChange={(e: any) => this.entityRefFieldChanged('vpcId', e.target.value)}
                     />

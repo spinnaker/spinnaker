@@ -21,14 +21,14 @@ It has a submit button which is disabled when the form is invalid or being submi
         <FormikFormField
           name="name"
           label="Your Name"
-          input={TextInput}
+          input={props => <TextInput {...props} />}
           validate={value => (!value ? 'Please enter your name' : undefined)}
         />
 
         <FormikFormField
           name="email"
           label="Your Email"
-          input={TextInput}
+          input={props => <TextInput {...props} />}
           validate={value => {
             if (!value) return 'Please enter your email';
             if (!/[^@]+@[^@]+/.exec(value)) return 'Please enter a valid email';
@@ -47,9 +47,9 @@ It has a submit button which is disabled when the form is invalid or being submi
 The `FormikFormField` component should be a descendent of a `Formik` component.
 It accepts "all the props", organizes them, and passes them down to the Input and Layout in the correct spots.
 
-- `input`: the Input component to use (see Input section below for details)
-- `layout`: the (optional) Layout component to use. (see Layout section for details. `StandardFieldLayout` is used by default)
-- `validate`: the (optional) formik [field validation function](https://jaredpalmer.com/formik/docs/api/field#validate) which receives the value and should return an error message, or a promise (for async)
+- `input`: a render prop used to render an Input component (see Input section below for details)
+- `layout`: an (optional) render propu sed to render a Layout component (see Layout section for details. `StandardFieldLayout` is used by default)
+- `validate`: an (optional) formik [field validation function](https://jaredpalmer.com/formik/docs/api/field#validate) which receives the value and should return an error message
 - `name`: the path to the field's value in the formik `values`
 - `label`, `help`, `required`, `actions` (see `IFieldLayoutPropsWithoutInput`)
 - `touched`, `validationMessage`, `validationStatus` (see: `IValidationProps`)
@@ -61,25 +61,24 @@ In addition to the `validate` prop, the field can also be validated at the form 
 This example shows validation of a formik field using the `Formik` component's `validate` prop.
 
 ```js
+import { buildValidators } from 'core/presentation';
+
 <Formik
   initialValues={{ email: '' }}
   validate={values => {
-    const errors = {};
-    if (!value) {
-      errors.email = 'Please enter your email';
-    } else if (!/[^@]+@[^@]+/.exec(value)) {
-      errors.email = 'Please enter a valid email';
-    }
-    return errors;
+    const emailRegexp = /[^@]+@[^@]+/;
+    const validator = buildValidators(values);
+    validator.field('email').required([value => (emailRegexp.exec(value) ? null : 'Please enter a valid email')]);
+    return validator.result();
   }}
   render={formik => {
     return (
       <Form>
-        <FormikFormField name="email" label="Your Email" input={TextInput} />
+        <FormikFormField name="email" label="Your Email" input={props => <TextInput {...props} />} />
       </Form>
     );
   }}
-/>
+/>;
 ```
 
 # FormField
@@ -104,7 +103,7 @@ It has a submit button which is disabled when the form is being submitted.
   <FormField
     name="name"
     label="your name"
-    input={TextInput}
+    input={props => <TextInput {...props} />}
     value={this.state.name}
     onChange={evt => this.setState({ name: evt.target.value })}
     validate={val => !val && <span>Please enter your name</span>}
@@ -112,7 +111,7 @@ It has a submit button which is disabled when the form is being submitted.
   <FormField
     name="email"
     label="email address"
-    input={TextInput}
+    input={props => <TextInput {...props} />}
     value={this.state.email}
     onChange={evt => this.setState({ email: evt.target.value })}
     validate={val => val && val.indexOf('@') === -1 && <span>Please enter a valid email</span>}
@@ -158,7 +157,7 @@ This example uses a custom layout to render the error above the input
 <FormField
   name="email"
   label="email address"
-  input={TextInput}
+  input={props => <TextInput {...props} />}
   layout={({ error, input }) => (
     <div>
       <div style={{ background: 'red' }}>{error}</div>

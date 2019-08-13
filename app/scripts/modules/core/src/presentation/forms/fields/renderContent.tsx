@@ -1,25 +1,18 @@
 import * as React from 'react';
+import { isFunction } from 'lodash';
 
 /**
  * A helper for rendering "render prop" contents
  *
  * Supports:
- *
- * - React Class
- * - Arrow Function
  * - Render Function
- * - JSX.Element or string
+ * - ReactNode (JSX.Element or string)
  */
-export function renderContent<T>(Content: string | JSX.Element | React.ComponentType<T>, props: T): React.ReactNode {
-  const prototype = typeof Content === 'function' && Content.prototype;
-
-  if (prototype && (prototype.isReactComponent || typeof prototype.render === 'function')) {
-    const ClassComponent = Content as React.ComponentType<T>;
-    return <ClassComponent {...props} />;
-  } else if (typeof Content === 'function') {
-    const arrowOrSFC = Content as (props: T) => JSX.Element;
-    return arrowOrSFC(props);
-  } else {
-    return Content;
+export function renderContent<T>(Content: React.ReactNode | React.FunctionComponent<T>, props: T): React.ReactNode {
+  if (isFunction(Content)) {
+    const renderFunction = Content;
+    return renderFunction(props);
   }
+
+  return Content;
 }
