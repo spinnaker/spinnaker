@@ -151,6 +151,10 @@ public class SelectableService<T> {
     return new SelectedService<>(defaultService, defaultConfig, null);
   }
 
+  public Map<BaseUrl, T> getServices() {
+    return services;
+  }
+
   /**
    * Represents a selected service
    *
