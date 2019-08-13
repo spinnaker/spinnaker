@@ -29,6 +29,11 @@ public interface Task {
   String getId()
 
   /**
+   * A client-provided ID used for de-duplication.
+   */
+  String getRequestId()
+
+  /**
    * A list of result objects that are serialized back to the caller
    */
   List<Object> getResultObjects()

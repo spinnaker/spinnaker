@@ -46,6 +46,7 @@ class SqlTask(
   override fun getId() = id
   override fun getOwnerId() = ownerId
   override fun getStartTimeMs() = startTimeMs
+  override fun getRequestId() = requestId
 
   override fun getResultObjects(): MutableList<Any> {
     refresh()

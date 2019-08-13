@@ -70,6 +70,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     def tasksId = registry.createId('tasks')
     def existingTask = taskRepository.getByClientRequestId(clientRequestId)
     if (existingTask) {
+      // TODO(rz): This branch will need some love for Sagas: If the task exists but the Saga has not been completed,
+      // we'll want to resume. This work will be handled in a separate PR when Orca is wired up to understand Sagas.
       return existingTask
     }
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...", clientRequestId)

@@ -31,6 +31,7 @@ class JedisTask implements Task {
   final String id
   final long startTimeMs
   final String ownerId
+  final String requestId
 
   @JsonIgnore
   final boolean previousRedis

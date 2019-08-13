@@ -31,6 +31,7 @@ public class DefaultTask implements Task {
 
   final String id
   final String ownerId = ClouddriverHostname.ID
+  final String requestId = null
   private final Deque<Status> statusHistory = new ConcurrentLinkedDeque<Status>()
   private final Deque<Object> resultObjects = new ConcurrentLinkedDeque<Object>()
   final long startTimeMs = System.currentTimeMillis()
