@@ -52,6 +52,10 @@ class DockerRegistryCredentials {
     return trackDigests
   }
 
+  boolean getSortTagsByDate() {
+    return sortTagsByDate
+  }
+
   List<String> getSkip(){
     return skip
   }
