@@ -1,7 +1,11 @@
-Spinnaker Application & Project Metadata Repository
+Spinnaker Metadata Repository
 ------------------------------------
 [![Build Status](https://api.travis-ci.org/spinnaker/front50.svg?branch=master)](https://travis-ci.org/spinnaker/front50)
-This service fronts a Spinnaker datastore. It's intended that any datastore could work, there are a number of current storage providers. Front50 written using [Spring Boot][0].
+
+Front50 is the system of record for all Spinnaker metadata, including: application, pipeline and service account configurations.
+
+All metadata is durably stored and served out of an in-memory cache.
+
 
 ### Debugging
 
