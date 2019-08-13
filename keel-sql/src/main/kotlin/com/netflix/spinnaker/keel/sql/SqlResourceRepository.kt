@@ -133,6 +133,23 @@ open class SqlResourceRepository(
       }
 
   override fun appendHistory(event: ResourceEvent) {
+    if (event.ignoreInHistory) return
+
+    if (event.ignoreRepeatedInHistory) {
+      val previousEvent = jooq
+        .select(RESOURCE_EVENT.JSON)
+        .from(RESOURCE_EVENT)
+        .where(RESOURCE_EVENT.UID.eq(event.uid.toString()))
+        .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
+        .limit(1)
+        .fetchOne()
+        ?.let { (json) ->
+          objectMapper.readValue<ResourceEvent>(json)
+        }
+
+      if (event.javaClass == previousEvent?.javaClass) return
+    }
+
     jooq.insertInto(RESOURCE_EVENT)
       .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
       .values(

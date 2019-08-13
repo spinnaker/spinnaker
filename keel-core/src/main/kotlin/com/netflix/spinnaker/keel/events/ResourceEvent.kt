@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.keel.events
 
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -60,6 +60,18 @@ sealed class ResourceEvent {
   abstract val name: String
   abstract val timestamp: Instant
 
+  /**
+   * Should the event be recorded in a resource's history?
+   */
+  @JsonIgnore
+  open val ignoreInHistory: Boolean = false
+
+  /**
+   * Should repeated events of the same type
+   */
+  @JsonIgnore
+  open val ignoreRepeatedInHistory: Boolean = false
+
   companion object {
     val clock: Clock = Clock.systemDefaultZone()
   }
@@ -68,7 +80,7 @@ sealed class ResourceEvent {
 /**
  * A new resource was registered for management.
  */
-data class ResourceCreated @JsonCreator constructor(
+data class ResourceCreated(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
@@ -127,6 +139,7 @@ data class ResourceDeleted(
 
 abstract class ResourceCheckResult : ResourceEvent() {
   abstract val state: ResourceState
+  override val ignoreRepeatedInHistory = true
 }
 
 /**
@@ -235,6 +248,8 @@ data class ResourceValid(
   override val timestamp: Instant
 ) : ResourceCheckResult() {
   override val state = Ok
+
+  override val ignoreInHistory = true
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
     this(

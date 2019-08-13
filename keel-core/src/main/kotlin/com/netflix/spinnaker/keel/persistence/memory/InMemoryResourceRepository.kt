@@ -94,11 +94,15 @@ class InMemoryResourceRepository(
     events[uid] ?: throw NoSuchResourceUID(uid)
 
   override fun appendHistory(event: ResourceEvent) {
+    if (event.ignoreInHistory) return
+
     events.computeIfAbsent(event.uid) {
       mutableListOf()
     }
       .let {
-        it.add(0, event)
+        if (!event.ignoreRepeatedInHistory || event.javaClass != it.firstOrNull()?.javaClass) {
+          it.add(0, event)
+        }
       }
   }
 

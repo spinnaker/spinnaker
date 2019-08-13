@@ -9,7 +9,6 @@ class ResourceHistoryListener(private val resourceRepository: ResourceRepository
 
   @EventListener(ResourceEvent::class)
   fun onResourceEvent(event: ResourceEvent) {
-    // TODO: don't record ResourceValid
     resourceRepository.appendHistory(event)
   }
 }

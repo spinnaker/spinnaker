@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -39,6 +40,7 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.none
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
@@ -159,7 +161,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         )
 
         before {
-          clock.incrementBy(ONE_SECOND)
+          tick()
           subject.store(updatedResource)
         }
 
@@ -171,31 +173,76 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       context("updating the state of the resource") {
-        before {
-          clock.incrementBy(ONE_SECOND)
-          // TODO: ensure persisting a map with actual data
-          subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
-        }
-
-        test("the new state is included in the history") {
-          expectThat(subject.eventHistory(resource.uid))
-            .hasSize(2)
-            .first()
-            .isA<ResourceUpdated>()
-        }
-
-        context("updating the state again") {
+        context("an event that should be ignored in history") {
           before {
-            clock.incrementBy(ONE_SECOND)
-            // TODO: ensure persisting a map with actual data
-            subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
           }
 
-          test("the new state is included in the history") {
+          test("the event is not included in the history") {
             expectThat(subject.eventHistory(resource.uid))
-              .hasSize(3)
+              .none { isA<ResourceValid>() }
+          }
+        }
+
+        context("an event that should be persisted in history") {
+          before {
+            tick()
+            // TODO: ensure persisting a map with actual data
+            subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+          }
+
+          test("the event is included in the history") {
+            expectThat(subject.eventHistory(resource.uid))
+              .hasSize(2)
               .first()
-              .isA<ResourceDeltaDetected>()
+              .isA<ResourceUpdated>()
+          }
+
+          context("updating the state again") {
+            before {
+              tick()
+              // TODO: ensure persisting a map with actual data
+              subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+            }
+
+            test("the event is included in the history") {
+              expectThat(subject.eventHistory(resource.uid))
+                .hasSize(3)
+                .first()
+                .isA<ResourceDeltaDetected>()
+            }
+
+            context("a subsequent identical event that should be ignored") {
+              before {
+                tick()
+                subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+              }
+
+              test("the event is not included in the history") {
+                expectThat(subject.eventHistory(resource.uid))
+                  .and {
+                    first().isA<ResourceDeltaDetected>()
+                    second().not().isA<ResourceDeltaDetected>()
+                  }
+              }
+            }
+          }
+
+          context("a subsequent identical event") {
+            before {
+              tick()
+              subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+            }
+
+            test("the new state is included in the history") {
+              expectThat(subject.eventHistory(resource.uid))
+                .hasSize(3)
+                .and {
+                  first().isA<ResourceUpdated>()
+                  second().isA<ResourceUpdated>()
+                }
+            }
           }
         }
       }
@@ -226,6 +273,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     }
   }
 
+  private fun tick() {
+    clock.incrementBy(ONE_SECOND)
+  }
+
   companion object {
     val ONE_SECOND: Duration = Duration.ofSeconds(1)
   }
@@ -237,6 +288,9 @@ fun <T : Any> Assertion.Builder<T>.isNotIn(expected: Collection<T>) =
   assert("is not in $expected") {
     if (!expected.contains(it)) pass() else fail()
   }
+
+fun <T : List<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
+  get("second element %s") { this[1] }
 
 fun randomData(length: Int = 4): Map<String, Any> {
   val map = mutableMapOf<String, Any>()
