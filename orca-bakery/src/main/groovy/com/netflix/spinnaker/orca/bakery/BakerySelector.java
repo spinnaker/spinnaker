@@ -34,6 +34,7 @@ public class BakerySelector {
   private SelectableService<BakeryService> selectableService;
   private final BakeryService defaultService;
   private final Map<String, Object> defaultConfig;
+  private final boolean selectBakery;
 
   public BakerySelector(
       BakeryService defaultBakeryService,
@@ -43,6 +44,7 @@ public class BakerySelector {
     this.defaultConfig = getDefaultConfig(bakeryConfigurationProperties);
     this.selectableService =
         getSelectableService(bakeryConfigurationProperties.getBaseUrls(), getBakeryServiceByUrlFx);
+    this.selectBakery = bakeryConfigurationProperties.isSelectorEnabled();
   }
 
   /**
@@ -52,9 +54,7 @@ public class BakerySelector {
    * @return a bakery service with associated configuration
    */
   public SelectableService.SelectedService<BakeryService> select(Stage stage) {
-    if (selectableService == null
-        || stage.getContext().get(SELECT_BAKERY) == null
-        || !(Boolean) stage.getContext().get(SELECT_BAKERY)) {
+    if (!shouldSelect(stage)) {
       return new SelectableService.SelectedService<>(defaultService, defaultConfig, null);
     }
 
@@ -107,6 +107,18 @@ public class BakerySelector {
 
     return new SelectableService<>(
         baseUrls, defaultService, defaultConfig, getBakeryServiceByUrlFx);
+  }
+
+  private boolean shouldSelect(Stage stage) {
+    if (selectableService == null || selectableService.getServices().size() < 2) {
+      return false;
+    }
+
+    if (selectBakery) {
+      return true;
+    }
+
+    return (Boolean) stage.getContext().getOrDefault(SELECT_BAKERY, false);
   }
 
   interface SelectableFields {

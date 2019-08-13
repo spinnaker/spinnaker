@@ -30,6 +30,11 @@ public class BakeryConfigurationProperties {
   private boolean allowMissingPackageInstallation = false;
   private List<SelectableService.BaseUrl> baseUrls;
 
+  // Temporary config that, if true, overrides the need for setting BakerySelector.SELECT_BAKERY in
+  // stage.context
+  // to enable bakery service selection.
+  private boolean selectorEnabled = false;
+
   public String getBaseUrl() {
     return baseUrl;
   }
@@ -68,5 +73,13 @@ public class BakeryConfigurationProperties {
 
   public void setAllowMissingPackageInstallation(boolean allowMissingPackageInstallation) {
     this.allowMissingPackageInstallation = allowMissingPackageInstallation;
+  }
+
+  public boolean isSelectorEnabled() {
+    return selectorEnabled;
+  }
+
+  public void setSelectorEnabled(boolean selectorEnabled) {
+    this.selectorEnabled = selectorEnabled;
   }
 }
