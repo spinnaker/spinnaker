@@ -18,8 +18,8 @@ package com.netflix.spinnaker.igor.scm.bitbucket.client.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
+
+import java.time.ZonedDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class Commit {
@@ -37,6 +37,6 @@ class Commit {
 
   @JsonProperty(value = "date")
   public void setDate(String utctimestamp) {
-    date = DateTime.parse(utctimestamp, ISODateTimeFormat.dateTimeNoMillis()).toDate();
+    date = ZonedDateTime.parse(utctimestamp).toDate()
   }
 }

@@ -21,11 +21,11 @@ import static java.util.stream.Collectors.toList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.igor.polling.PollingMonitor;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-import org.joda.time.DateTimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -99,13 +99,13 @@ public class PollingMonitorHealth implements HealthIndicator {
     return i ->
         i.getLastPoll() != null
             && (System.currentTimeMillis() - i.getLastPoll())
-                > 5 * i.getPollInterval() * DateTimeConstants.MILLIS_PER_SECOND;
+                > 5 * Duration.ofSeconds(i.getPollInterval()).toMillis();
   }
 
   private Health getPollingMonitorHealth(PollingMonitor pollingMonitor) {
     final long elapsed = System.currentTimeMillis() - pollingMonitor.getLastPoll();
     // has it been 5 x pollInterval since last poll?
-    if (elapsed > 5 * pollingMonitor.getPollInterval() * DateTimeConstants.MILLIS_PER_SECOND) {
+    if (elapsed > 5 * Duration.ofSeconds(pollingMonitor.getPollInterval()).toMillis()) {
       log.warn("{} {}msec since last poll, this poller is DOWN", pollingMonitor.getName(), elapsed);
       return Health.down()
           .withDetail(String.format("%s.status", pollingMonitor.getName()), "stopped")
