@@ -469,33 +469,33 @@ module.exports = angular
       };
 
       this.revertPipelineChanges = () => {
-        let original = getOriginal();
-        Object.keys($scope.pipeline).forEach(key => {
-          delete $scope.pipeline[key];
-        });
-        Object.assign($scope.pipeline, original);
+        $scope.$applyAsync(() => {
+          const original = getOriginal();
+          $scope.pipeline = _.clone(original);
+          $scope.renderablePipeline = $scope.pipeline;
 
-        if ($scope.isTemplatedPipeline) {
-          const originalRenderablePipeline = getOriginalRenderablePipeline();
-          Object.assign($scope.renderablePipeline, originalRenderablePipeline);
-          Object.keys($scope.renderablePipeline).forEach(key => {
-            if (!originalRenderablePipeline.hasOwnProperty(key)) {
-              delete $scope.renderablePipeline[key];
+          if ($scope.isTemplatedPipeline) {
+            const originalRenderablePipeline = getOriginalRenderablePipeline();
+            Object.assign($scope.renderablePipeline, originalRenderablePipeline);
+            Object.keys($scope.renderablePipeline).forEach(key => {
+              if (!originalRenderablePipeline.hasOwnProperty(key)) {
+                delete $scope.renderablePipeline[key];
+              }
+            });
+          }
+
+          // if we were looking at a stage that no longer exists, move to the last stage
+          if ($scope.viewState.section === 'stage') {
+            var lastStage = $scope.renderablePipeline.stages.length - 1;
+            if ($scope.viewState.stageIndex > lastStage) {
+              this.setViewState({ stageIndex: lastStage });
             }
-          });
-        }
-
-        // if we were looking at a stage that no longer exists, move to the last stage
-        if ($scope.viewState.section === 'stage') {
-          var lastStage = $scope.renderablePipeline.stages.length - 1;
-          if ($scope.viewState.stageIndex > lastStage) {
-            this.setViewState({ stageIndex: lastStage });
+            if (!$scope.renderablePipeline.stages.length) {
+              this.navigateTo({ section: 'triggers' });
+            }
           }
-          if (!$scope.renderablePipeline.stages.length) {
-            this.navigateTo({ section: 'triggers' });
-          }
-        }
-        $scope.$broadcast('pipeline-reverted');
+          $scope.$broadcast('pipeline-reverted');
+        });
       };
 
       var markDirty = () => {
@@ -571,6 +571,16 @@ module.exports = angular
             throw err;
           },
         );
+      };
+
+      //update pipeline through a callback for React
+      this.updatePipelineConfig = changes => {
+        $scope.$applyAsync(() => {
+          $scope.pipeline = _.cloneDeep($scope.pipeline);
+          _.extend($scope.pipeline, changes);
+          $scope.renderablePipeline = $scope.pipeline;
+          markDirty();
+        });
       };
     },
   ]);

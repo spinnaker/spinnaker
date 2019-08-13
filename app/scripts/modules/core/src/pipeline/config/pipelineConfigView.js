@@ -14,6 +14,7 @@ module.exports = angular
         viewState: '=',
         pipelineConfig: '=',
         stageFieldUpdated: '<',
+        updatePipelineConfig: '<',
       },
       templateUrl: require('./pipelineConfigView.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {

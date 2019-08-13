@@ -11,7 +11,7 @@ import { AppNotificationsService } from './AppNotificationsService';
 import { NotificationTransformer } from './notification.transformer';
 import { EditNotificationModal } from './modal/EditNotificationModal';
 
-export interface INotificationListProps {
+export interface INotificationsListProps {
   application?: Application;
   level: string;
   stageType?: string;
@@ -21,15 +21,15 @@ export interface INotificationListProps {
   updateNotifications: (notifications: INotification[]) => void;
 }
 
-export interface INotificationListState {
+export interface INotificationsListState {
   isNotificationsDirty: boolean;
   supportedNotificationTypes: string[];
 }
 
-export class NotificationList extends React.Component<INotificationListProps, INotificationListState> {
+export class NotificationsList extends React.Component<INotificationsListProps, INotificationsListState> {
   private destroy$ = new Subject();
 
-  constructor(props: INotificationListProps) {
+  constructor(props: INotificationsListProps) {
     super(props);
     this.state = {
       isNotificationsDirty: false,

@@ -1,22 +1,11 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
+import { IParameter } from 'core/domain';
 import { HelpField } from 'core/help';
 import { Tooltip } from 'core/presentation';
 import { StageConfigField } from 'core/pipeline';
 import { SortableHandle } from 'react-sortable-hoc';
-
-export interface IParameter {
-  name: string;
-  label: string;
-  required: boolean;
-  pinned: boolean;
-  description: string;
-  default: string;
-  hasOptions: boolean;
-  options: IParameterOption[];
-  inherited: boolean;
-}
 
 export interface IParameterOption {
   value: string;

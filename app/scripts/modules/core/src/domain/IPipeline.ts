@@ -25,6 +25,7 @@ export interface IPipeline {
   parameterConfig: IParameter[];
   disabled?: boolean;
   expectedArtifacts?: IExpectedArtifact[];
+  roles?: any[];
   source?: {
     id: string;
     type: string;
@@ -39,6 +40,7 @@ export interface IParameter extends ITemplateInheritable {
   description: string;
   default: string;
   hasOptions: boolean;
+  label?: string;
   pinned: boolean;
   options: IParameterOption[];
   condition?: IParameterCondition;

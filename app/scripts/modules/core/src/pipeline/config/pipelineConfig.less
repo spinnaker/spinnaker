@@ -194,7 +194,8 @@ pipeline-configurer {
   }
 }
 
-triggers {
+triggers,
+.triggers {
   .add-new {
     margin: 0;
   }
@@ -212,6 +213,14 @@ triggers {
     border: 1px solid var(--color-cirrus);
     margin-bottom: 15px;
   }
+}
+
+.expected-artifact {
+  display: block;
+  padding: 10px 20px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-cirrus);
+  margin-bottom: 15px;
 }
 
 .config-section {
