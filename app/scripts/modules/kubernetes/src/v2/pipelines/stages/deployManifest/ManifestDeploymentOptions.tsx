@@ -1,7 +1,7 @@
 import * as DOMPurify from 'dompurify';
 import * as React from 'react';
 import { cloneDeep, map, set, split } from 'lodash';
-import Select, { Option } from 'react-select';
+import Select, { Creatable, Option } from 'react-select';
 
 import { IAccountDetails, IDeploymentStrategy, StageConfigField } from '@spinnaker/core';
 
@@ -67,6 +67,16 @@ export class ManifestDeploymentOptions extends React.Component<
     });
   };
 
+  private getServiceOptions = (): Array<Option<string>> => {
+    const options = this.state.services.map(service => ({ label: split(service, ' ')[1], value: service }));
+    (this.props.config.options.services || []).forEach(service => {
+      if (!this.state.services.includes(service)) {
+        options.push({ label: service, value: service });
+      }
+    });
+    return options;
+  };
+
   private strategyOptionRenderer = (option: IDeploymentStrategy) => {
     return (
       <div className="body-regular">
@@ -120,18 +130,19 @@ export class ManifestDeploymentOptions extends React.Component<
           <>
             <StageConfigField fieldColumns={8} label="Service(s) Namespace">
               <NamespaceSelector
+                createable={true}
                 onChange={(namespace: string): void => this.onConfigChange('options.namespace', namespace)}
                 accounts={this.props.accounts}
                 selectedAccount={this.props.selectedAccount}
-                selectedNamespace={config.options.namespace}
+                selectedNamespace={config.options.namespace || ''}
               />
             </StageConfigField>
             <StageConfigField fieldColumns={8} label="Service(s)">
-              <Select
+              <Creatable
                 clearable={false}
                 multi={true}
                 onChange={options => this.onConfigChange('options.services', map(options, 'value'))}
-                options={map(this.state.services, s => ({ label: split(s, ' ')[1], value: s }))}
+                options={this.getServiceOptions()}
                 value={config.options.services}
               />
             </StageConfigField>
