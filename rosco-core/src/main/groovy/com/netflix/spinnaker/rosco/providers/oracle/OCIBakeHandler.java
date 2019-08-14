@@ -9,7 +9,6 @@
 
 package com.netflix.spinnaker.rosco.providers.oracle;
 
-import com.amazonaws.util.StringUtils;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.rosco.api.Bake;
 import com.netflix.spinnaker.rosco.api.BakeOptions;
@@ -122,11 +121,11 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
           }
         };
 
-    if (!StringUtils.isNullOrEmpty(bakeRequest.getBuild_info_url())) {
+    if (!Strings.isNullOrEmpty(bakeRequest.getBuild_info_url())) {
       parameterMap.put("build_info_url", bakeRequest.getBuild_info_url());
     }
 
-    if (!StringUtils.isNullOrEmpty(appVersionStr)) {
+    if (!Strings.isNullOrEmpty(appVersionStr)) {
       parameterMap.put("appversion", appVersionStr);
     }
 
@@ -170,7 +169,7 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
   private ManagedOracleAccount resolveAccount(BakeRequest bakeRequest) {
     ManagedOracleAccount managedAccount = null;
 
-    if (StringUtils.isNullOrEmpty(bakeRequest.getAccount_name())) {
+    if (Strings.isNullOrEmpty(bakeRequest.getAccount_name())) {
       if (oracleConfigurationProperties != null
           && oracleConfigurationProperties.getAccounts() != null
           && oracleConfigurationProperties.getAccounts().size() > 0) {

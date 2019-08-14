@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.rosco.manifests;
 
-import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -18,6 +17,7 @@ import javax.xml.bind.DatatypeConverter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
