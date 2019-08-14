@@ -89,7 +89,12 @@ export class Triggers extends React.Component<ITriggersProps> {
 
         {triggerComponent && (
           <div className={'trigger-template'}>
-            <TriggerTemplate updateCommand={this.updateCommand} component={triggerComponent} command={formik.values} />
+            <TriggerTemplate
+              key={formik.values.trigger.description}
+              updateCommand={this.updateCommand}
+              component={triggerComponent}
+              command={formik.values}
+            />
           </div>
         )}
       </div>
