@@ -13,6 +13,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-security")
 
+  testImplementation(project(":keel-test"))
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))

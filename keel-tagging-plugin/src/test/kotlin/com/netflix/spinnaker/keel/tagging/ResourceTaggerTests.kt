@@ -27,12 +27,12 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagValue
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -46,7 +46,7 @@ import java.time.Duration
 
 internal class ResourceTaggerTests : JUnit5Minutests {
 
-  private val resourceRepository: ResourceRepository = InMemoryResourceRepository()
+  private val resourceRepository = InMemoryResourceRepository()
 
   // lazy so we don't have to give an unused response for every call
   private val resourcePersister = mockk<ResourcePersister>(relaxed = true)
@@ -68,26 +68,14 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     )
   )
 
-  private val rCluster = Resource(
+  private val rCluster = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-    metadata = mapOf(
-      "name" to clusterName.toString(),
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
     kind = "cluster",
-    spec = mapOf("fake" to "data")
+    name = { "test:ap-south-1:keel" }
   )
 
-  private val rClusterTag = Resource(
+  private val rClusterTag = resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
-    metadata = mapOf(
-      "name" to clusterTagName.toString(),
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
     kind = "keel-tag",
     spec = KeelTagSpec(
       keelId = clusterName.toString(),
@@ -104,24 +92,20 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       )
       ),
       application = "keel"
-    )
+    ),
+    name = KeelTagSpec::keelId
   )
 
-  private val rClusterTagNotDesired = Resource(
+  private val rClusterTagNotDesired = resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
-    metadata = mapOf(
-      "name" to clusterTagName.toString(),
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
     kind = "keel-tag",
     spec = KeelTagSpec(
       clusterName.toString(),
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis()),
       application = "keel"
-    )
+    ),
+    name = KeelTagSpec::keelId
   )
 
   fun tests() = rootContext<ResourceTagger> {
@@ -145,7 +129,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       after {
-        (resourceRepository as InMemoryResourceRepository).dropAll()
+        resourceRepository.dropAll()
       }
 
       test("cluster is tagged") {
@@ -175,7 +159,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       after {
-        (resourceRepository as InMemoryResourceRepository).dropAll()
+        resourceRepository.dropAll()
       }
 
       test("removes cluster tag on delete") {
@@ -195,7 +179,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       } returns rClusterTagNotDesired
 
       after {
-        (resourceRepository as InMemoryResourceRepository).dropAll()
+        resourceRepository.dropAll()
       }
 
       test("they're not removed if they're new") {

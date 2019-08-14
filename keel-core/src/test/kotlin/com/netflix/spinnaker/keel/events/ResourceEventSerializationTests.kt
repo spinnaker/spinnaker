@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -24,7 +22,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
 
   data class Fixture(
     val mapper: ObjectMapper = configuredObjectMapper(),
-    val resource: Resource<Any>,
+    val resource: Resource<*>,
     val clock: Clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
   )
 
@@ -56,17 +54,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture(
-        resource = Resource(
-          apiVersion = SPINNAKER_API_V1,
-          kind = "ec2:whatever",
-          metadata = mapOf(
-            "uid" to randomUID(),
-            "name" to "ec2:prod:ap-south-1:a-thing",
-            "serviceAccount" to "keel@spinnaker",
-            "application" to "a"
-          ),
-          spec = randomData()
-        )
+        resource = resource()
       )
     }
 

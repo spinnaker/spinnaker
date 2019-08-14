@@ -12,6 +12,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.springframework:spring-tx")
 
+  testImplementation(project(":keel-test"))
   testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")

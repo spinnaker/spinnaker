@@ -2,14 +2,12 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -59,17 +57,7 @@ internal class ResourceControllerTests {
   @MockkBean
   lateinit var resourcePersister: ResourcePersister
 
-  var resource = Resource(
-    apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
-    kind = "securityGroup",
-    metadata = mapOf(
-      "name" to "ec2:securityGroup:test:us-west-2:keel",
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
-    spec = "mockingThis"
-  )
+  var resource = resource()
 
   @AfterEach
   fun clearRepository() {

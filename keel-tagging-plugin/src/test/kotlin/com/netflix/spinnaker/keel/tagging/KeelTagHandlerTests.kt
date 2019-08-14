@@ -19,9 +19,6 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -33,6 +30,7 @@ import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagsMetadata
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -104,16 +102,10 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
 
   val taggedResourceWithoutTag = taggedResourceWithKeelTag.copy(relevantTag = null)
 
-  val resourceWithTag = Resource(
-    SPINNAKER_API_V1,
-    "keel-tag",
-    mapOf(
-      "name" to keelId,
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
-    specWithTag
+  val resourceWithTag = resource(
+    kind = "keel-tag",
+    spec = specWithTag,
+    name = { keelId }
   )
 
   val resourceWithoutTag = resourceWithTag.copy(spec = specWithoutTag)

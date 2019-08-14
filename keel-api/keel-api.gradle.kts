@@ -29,6 +29,7 @@ dependencies {
   implementation("net.logstash.logback:logstash-logback-encoder")
 
   testImplementation("io.strikt:strikt-jackson")
+  testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-retrofit"))

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -15,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
@@ -35,6 +33,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -91,16 +90,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     dependencies = spec.dependencies
   )
 
-  val resource = Resource(
-    SPINNAKER_API_V1,
-    "cluster",
-    mapOf(
-      "name" to "my-cluster",
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "keel"
-    ),
-    spec
+  val resource = resource(
+    apiVersion = SPINNAKER_API_V1,
+    kind = "cluster",
+    spec = spec
   )
   val activeServerGroupResponse = ClusterActiveServerGroup(
     "keel-test-v069",

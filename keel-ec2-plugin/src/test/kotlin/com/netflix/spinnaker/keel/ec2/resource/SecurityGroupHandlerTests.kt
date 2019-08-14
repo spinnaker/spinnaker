@@ -24,7 +24,6 @@ import com.netflix.spinnaker.keel.api.ec2.securityGroup.PortRange
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -498,16 +498,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   val Fixture.resource: Resource<SecurityGroup>
-    get() = Resource(
+    get() = resource(
       apiVersion = SPINNAKER_API_V1,
-      metadata = mapOf(
-        "name" to with(securityGroup) {
-          "ec2.SecurityGroup:${moniker.app}:$accountName:$region:${moniker.name}"
-        },
-        "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker",
-        "application" to securityGroup.moniker.app
-      ),
       kind = "ec2.SecurityGroup",
       spec = securityGroup
     )

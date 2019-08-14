@@ -1,13 +1,10 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
-import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.rootContext
 import kotlinx.coroutines.GlobalScope
@@ -53,18 +50,8 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
      */
     context("many threads are checking simultaneously") {
       before {
-        repeat(1000) {
-          val resource = Resource(
-            apiVersion = SPINNAKER_API_V1,
-            metadata = mapOf(
-              "name" to "ec2:security-group:test:us-west-2:fnord-$it",
-              "uid" to randomUID(),
-              "serviceAccount" to "keel@spinnaker",
-              "application" to "fnord"
-            ) + randomData(),
-            kind = "security-group",
-            spec = randomData()
-          )
+        repeat(1000) { i ->
+          val resource = resource(name = { "fnord-$i" })
           subject.store(resource)
         }
       }
@@ -81,17 +68,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
     context("database schema consistency") {
       before {
-        val resource = Resource(
-          apiVersion = SPINNAKER_API_V1,
-          metadata = mapOf(
-            "name" to "ec2:security-group:test:us-west-2:fnord",
-            "uid" to randomUID(),
-            "serviceAccount" to "keel@spinnaker",
-            "application" to "fnord"
-          ) + randomData(),
-          kind = "security-group",
-          spec = randomData()
-        )
+        val resource = resource()
         subject.store(resource)
       }
 

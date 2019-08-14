@@ -36,6 +36,7 @@ dependencies {
   testImplementation("com.netflix.spinnaker.kork:kork-sql-test")
   testImplementation("io.strikt:strikt-core")
   testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation(project(":keel-api")) {
     // avoid circular dependency which breaks Liquibase

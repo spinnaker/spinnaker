@@ -14,6 +14,7 @@ dependencies {
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
+  testImplementation(project(":keel-test"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")

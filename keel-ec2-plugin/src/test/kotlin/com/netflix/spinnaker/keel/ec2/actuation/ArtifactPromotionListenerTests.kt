@@ -14,13 +14,13 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -60,15 +60,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       type = DEB
     )
 
-    val securityGroup = Resource(
+    val securityGroup = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "security-group",
-      metadata = mapOf(
-        "name" to "ec2:securityGroup:test:ap-south-1:fnord",
-        "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "fnord"
-      ),
       spec = SecurityGroup(
         moniker = Moniker("fnord"),
         accountName = "test",
@@ -78,15 +72,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       )
     )
 
-    val nonArtifactCluster = Resource(
+    val nonArtifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      metadata = mapOf(
-        "name" to "ec2:cluster:test:ap-south-1:fnord-api",
-        "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "fnord"
-      ),
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
@@ -102,15 +90,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       )
     )
 
-    val artifactCluster = Resource(
+    val artifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      metadata = mapOf(
-        "name" to "ec2:cluster:test:ap-south-1:fnord-api",
-        "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "fnord"
-      ),
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),

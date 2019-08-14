@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
@@ -20,6 +19,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.resource
 import de.danielbechler.diff.node.DiffNode
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -68,16 +68,10 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     """.trimMargin()
 
   private val spec = yamlMapper.readValue(yaml, ApplicationLoadBalancer::class.java)
-  private val resource = Resource(
-    SPINNAKER_API_V1.subApi("ec2"),
-    "application-load-balancer",
-    mapOf(
-      "name" to "my-alb",
-      "uid" to randomUID(),
-      "serviceAccount" to "keel@spinnaker",
-      "application" to "testapp"
-    ),
-    spec
+  private val resource = resource(
+    apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+    kind = "application-load-balancer",
+    spec = spec
   )
 
   private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")

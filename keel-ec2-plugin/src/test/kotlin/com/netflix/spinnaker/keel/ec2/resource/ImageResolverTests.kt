@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
@@ -15,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -23,6 +21,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -104,15 +103,9 @@ internal class ImageResolverTests : JUnit5Minutests {
 
     val artifact = DeliveryArtifact("fnord", DEB)
 
-    val resource = Resource(
+    val resource = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      metadata = mapOf(
-        "uid" to randomUID(),
-        "name" to "ec2:cluster:fnord:$account:$resourceRegion:fnord",
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "fnord"
-      ),
       spec = ClusterSpec(
         moniker = Moniker("fnord"),
         location = Location(

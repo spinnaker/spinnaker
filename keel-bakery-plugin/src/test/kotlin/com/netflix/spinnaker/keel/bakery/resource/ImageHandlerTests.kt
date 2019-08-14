@@ -4,8 +4,6 @@ import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.RELEASE
@@ -21,6 +19,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -54,15 +53,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
       imageService,
       emptyList()
     )
-    val resource = Resource(
+    val resource = resource(
       apiVersion = handler.apiVersion,
       kind = handler.supportedKind.first.singular,
-      metadata = mapOf(
-        "uid" to randomUID(),
-        "name" to "bakery:image:keel",
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "keel"
-      ),
       spec = ImageSpec(
         artifactName = "keel",
         baseLabel = RELEASE,
@@ -70,7 +63,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
         regions = setOf("us-west-2", "us-east-1"),
         storeType = EBS,
         application = "keel"
-      )
+      ),
+      name = ImageSpec::artifactName
     )
     val image = Image(
       baseAmiVersion = "nflx-base-5.378.0-h1230.8808866",

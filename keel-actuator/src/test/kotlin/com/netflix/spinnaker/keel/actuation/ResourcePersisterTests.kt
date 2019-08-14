@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
@@ -65,12 +66,12 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       publisher
     )
 
-    lateinit var resource: Resource<*>
+    lateinit var resource: Resource<DummyResourceSpec>
     lateinit var deliveryConfig: DeliveryConfig
 
     @Suppress("UNCHECKED_CAST")
-    fun create(submittedResource: SubmittedResource<*>) {
-      resource = subject.upsert(submittedResource)
+    fun create(submittedResource: SubmittedResource<DummyResourceSpec>) {
+      resource = subject.upsert(submittedResource) as Resource<DummyResourceSpec>
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -112,15 +113,15 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               metadata = SubmittedMetadata("keel@spinnaker"),
               apiVersion = SPINNAKER_API_V1.subApi("test"),
               kind = "whatever",
-              spec = DummyResourceSpec("o hai")
+              spec = DummyResourceSpec(data = "o hai")
             ))
           }
 
           test("stores the normalized resource") {
             val persistedResource = resourceRepository.get<DummyResourceSpec>(resource.name)
             expectThat(persistedResource) {
-              get { name.value }.isEqualTo("test:whatever:o hai")
-              get { spec.state }.isEqualTo("o hai")
+              get { name }.isEqualTo(resource.name)
+              get { spec.data }.isEqualTo("o hai")
             }
           }
 
@@ -144,7 +145,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                 metadata = SubmittedMetadata("keel@spinnaker"),
                 apiVersion = resource.apiVersion,
                 kind = resource.kind,
-                spec = DummyResourceSpec("o hai", "kthxbye")
+                spec = DummyResourceSpec(name = resource.spec.name, data = "kthxbye")
               ))
             }
 
@@ -333,7 +334,7 @@ internal object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
   override val normalizers: List<ResourceNormalizer<*>> = emptyList()
 
   override fun generateName(spec: DummyResourceSpec): ResourceName =
-    ResourceName("test:whatever:${spec.state}")
+    ResourceName("test:whatever:${spec.name}")
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

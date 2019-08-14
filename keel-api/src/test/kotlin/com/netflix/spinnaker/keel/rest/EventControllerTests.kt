@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
@@ -16,6 +15,7 @@ import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -68,26 +68,13 @@ internal class EventControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var clock: MutableClock
 
-  data class Fixture(
-    val resource: Resource<String> = Resource(
-      apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
-      kind = "securityGroup",
-      metadata = mapOf(
-        "name" to "ec2:securityGroup:test:ap-south-1:keel",
-        "uid" to randomUID(),
-        "serviceAccount" to "keel@spinnaker",
-        "application" to "keel"
-      ),
-      spec = "mockingThis"
-    )
-  ) {
+  object Fixture {
+    val resource: Resource<*> = resource()
     val eventsUri: URI = URI.create("/resources/events/${resource.name}")
   }
 
   fun tests() = rootContext<Fixture> {
-    fixture {
-      Fixture()
-    }
+    fixture { Fixture }
 
     context("no resource exists") {
       test("event eventHistory endpoint responds with 404") {

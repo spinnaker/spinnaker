@@ -29,6 +29,7 @@ dependencies {
   api("org.springframework:spring-context")
   api("org.springframework.boot:spring-boot-autoconfigure")
 
+  testImplementation(project(":keel-test"))
   testImplementation(project (":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
