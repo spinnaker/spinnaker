@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.OrcaProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.PluginProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ import retrofit.http.*;
 @Component
 public abstract class OrcaService extends SpringService<OrcaService.Orca> {
   @Autowired OrcaProfileFactory orcaProfileFactory;
+
+  @Autowired PluginProfileFactory pluginProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -72,6 +75,14 @@ public abstract class OrcaService extends SpringService<OrcaService.Orca> {
     appendReadonlyClouddriver(profile, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
+
+    // Plugins
+    String pluginFilename = "plugins.yml";
+    String pluginPath = Paths.get(getConfigOutputPath(), pluginFilename).toString();
+    Profile pluginProfile =
+        pluginProfileFactory.getProfile(
+            pluginFilename, pluginPath, deploymentConfiguration, endpoints);
+    profiles.add(pluginProfile);
     return profiles;
   }
 

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import java.util.ArrayList;
@@ -328,6 +329,23 @@ public class NodeFilter implements Cloneable {
   public NodeFilter setArtifactTemplate(String name) {
     matchers.add(Node.thisNodeAcceptor(Artifacts.class));
     matchers.add(Node.namedNodeAcceptor(ArtifactTemplate.class, name));
+    return this;
+  }
+
+  public NodeFilter setPlugin() {
+    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    return this;
+  }
+
+  public NodeFilter setPlugin(String name) {
+    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.namedNodeAcceptor(Plugin.class, name));
+    return this;
+  }
+
+  public NodeFilter withAnyPlugin() {
+    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.thisNodeAcceptor(Plugin.class));
     return this;
   }
 

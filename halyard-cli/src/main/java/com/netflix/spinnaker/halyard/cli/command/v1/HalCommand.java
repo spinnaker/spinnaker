@@ -58,6 +58,7 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new TaskCommand());
     registerSubcommand(new VersionCommand());
     registerSubcommand(new SpinCommand());
+    registerSubcommand(new PluginCommand());
   }
 
   static String getVersion() {

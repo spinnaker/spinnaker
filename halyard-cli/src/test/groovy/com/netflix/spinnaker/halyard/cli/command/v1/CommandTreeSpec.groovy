@@ -37,6 +37,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.saml.S
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.x509.X509Command
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AuthzCommand
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui.UiSecurityCommand
+import com.netflix.spinnaker.halyard.cli.command.v1.plugins.AddPluginCommand
+import com.netflix.spinnaker.halyard.cli.command.v1.plugins.DeletePluginCommand
+import com.netflix.spinnaker.halyard.cli.command.v1.plugins.EditPluginCommand
+import com.netflix.spinnaker.halyard.cli.command.v1.plugins.ListPluginsCommand
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -117,6 +121,11 @@ class CommandTreeSpec extends Specification {
     LdapCommand     | "disable"       | AuthnMethodEnableDisableCommand
     LdapCommand     | "enable"        | AuthnMethodEnableDisableCommand
     LdapCommand     | "edit"          | EditLdapCommand
+
+    PluginCommand   | "list"          | ListPluginsCommand
+    PluginCommand   | "edit"          | EditPluginCommand
+    PluginCommand   | "delete"        | DeletePluginCommand
+    PluginCommand   | "add"           | AddPluginCommand
   }
 
 }

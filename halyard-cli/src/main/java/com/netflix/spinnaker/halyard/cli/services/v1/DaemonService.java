@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -883,6 +884,41 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> deleteArtifactTemplate(
       @Path("deploymentName") String deploymentName,
       @Path("templateName") String templateName,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/plugins/")
+  DaemonTask<Halconfig, Void> addPlugin(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Plugin plugin);
+
+  @GET("/v1/config/deployments/{deploymentName}/plugins/")
+  DaemonTask<Halconfig, Object> getPlugins(
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/plugins/{pluginName}/")
+  DaemonTask<Halconfig, Object> getPlugin(
+      @Path("deploymentName") String deploymentName,
+      @Path("pluginName") String pluginName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/plugins/{pluginName}/")
+  DaemonTask<Halconfig, Void> setPlugin(
+      @Path("deploymentName") String deploymentName,
+      @Path("pluginName") String pluginName,
+      @Query("validate") boolean validate,
+      @Body Plugin plugin);
+
+  @PUT("/v1/config/deployments/{deploymentName}/plugins/enabled/")
+  DaemonTask<Halconfig, Void> setPluginsEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/plugins/{pluginName}/")
+  DaemonTask<Halconfig, Void> deletePlugin(
+      @Path("deploymentName") String deploymentName,
+      @Path("pluginName") String pluginName,
       @Query("validate") boolean validate);
 
   @GET("/v1/spin/install/latest")

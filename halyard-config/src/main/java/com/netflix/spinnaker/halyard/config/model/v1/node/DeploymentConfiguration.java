@@ -86,6 +86,8 @@ public class DeploymentConfiguration extends Node {
 
   Canary canary = new Canary();
 
+  Plugins plugins = new Plugins();
+
   Webhook webhook = new Webhook();
 
   @Override

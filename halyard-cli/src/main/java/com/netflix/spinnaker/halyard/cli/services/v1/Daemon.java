@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.ci.CiType;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -1308,6 +1309,53 @@ public class Daemon {
     return () -> {
       ResponseUnwrapper.get(
           getService().deleteArtifactTemplate(deploymentName, templateName, validate));
+      return null;
+    };
+  }
+
+  public static Supplier<List<Plugin>> getPlugins(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawPlugin = ResponseUnwrapper.get(getService().getPlugins(deploymentName, validate));
+      return getObjectMapper().convertValue(rawPlugin, new TypeReference<List<Plugin>>() {});
+    };
+  }
+
+  public static Supplier<Plugin> getPlugin(
+      String deploymentName, String pluginName, boolean validate) {
+    return () -> {
+      Object rawPlugin =
+          ResponseUnwrapper.get(getService().getPlugin(deploymentName, pluginName, validate));
+      return getObjectMapper().convertValue(rawPlugin, Plugin.class);
+    };
+  }
+
+  public static Supplier<Void> addPlugin(String deploymentName, boolean validate, Plugin plugin) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addPlugin(deploymentName, validate, plugin));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setPlugin(
+      String deploymentName, String pluginName, boolean validate, Plugin plugin) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPlugin(deploymentName, pluginName, validate, plugin));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deletePlugin(
+      String deploymentName, String pluginName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deletePlugin(deploymentName, pluginName, validate));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setPluginEnableDisable(
+      String deploymentName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPluginsEnabled(deploymentName, validate, enable));
       return null;
     };
   }
