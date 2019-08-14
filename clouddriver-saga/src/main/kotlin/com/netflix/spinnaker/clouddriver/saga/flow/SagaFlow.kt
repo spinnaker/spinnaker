@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.saga.flow
 
 import com.google.common.annotations.Beta
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import java.util.function.Consumer
 import java.util.function.Predicate
 
 /**
@@ -48,6 +49,14 @@ class SagaFlow {
    */
   fun on(condition: Class<out Predicate<Saga>>, builder: (SagaFlow) -> Unit): SagaFlow {
     steps.add(ConditionStep(condition, SagaFlow().also(builder)))
+    return this
+  }
+
+  /**
+   * Java-compatible interface.
+   */
+  fun on(condition: Class<out Predicate<Saga>>, builder: Consumer<SagaFlow>): SagaFlow {
+    steps.add(ConditionStep(condition, SagaFlow().also { builder.accept(this) }))
     return this
   }
 

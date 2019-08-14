@@ -24,16 +24,46 @@ import com.google.protobuf.Empty;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.TitusException;
-import com.netflix.spinnaker.clouddriver.titus.client.model.*;
+import com.netflix.spinnaker.clouddriver.titus.client.model.ActivateJobRequest;
+import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudgetHelper;
+import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
+import com.netflix.spinnaker.clouddriver.titus.client.model.JobDescription;
+import com.netflix.spinnaker.clouddriver.titus.client.model.JobDisruptionBudgetUpdateRequest;
+import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest;
+import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task;
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest;
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateTasksAndShrinkJobRequest;
+import com.netflix.spinnaker.clouddriver.titus.client.model.TitusHealth;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.titus.grpc.protogen.*;
+import com.netflix.titus.grpc.protogen.Capacity;
+import com.netflix.titus.grpc.protogen.JobCapacityUpdate;
+import com.netflix.titus.grpc.protogen.JobChangeNotification;
+import com.netflix.titus.grpc.protogen.JobDisruptionBudget;
+import com.netflix.titus.grpc.protogen.JobDisruptionBudgetUpdate;
+import com.netflix.titus.grpc.protogen.JobId;
+import com.netflix.titus.grpc.protogen.JobManagementServiceGrpc;
+import com.netflix.titus.grpc.protogen.JobProcessesUpdate;
+import com.netflix.titus.grpc.protogen.JobQuery;
+import com.netflix.titus.grpc.protogen.JobQueryResult;
+import com.netflix.titus.grpc.protogen.JobStatusUpdate;
+import com.netflix.titus.grpc.protogen.ObserveJobsQuery;
+import com.netflix.titus.grpc.protogen.Page;
+import com.netflix.titus.grpc.protogen.ServiceJobSpec;
+import com.netflix.titus.grpc.protogen.TaskKillRequest;
+import com.netflix.titus.grpc.protogen.TaskQuery;
+import com.netflix.titus.grpc.protogen.TaskQueryResult;
 import io.grpc.Status;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -184,6 +214,7 @@ public class RegionScopedTitusClient implements TitusClient {
         int sequence = Names.parseName(jobDescription.getName()).getSequence();
         jobDescription.setJobGroupSequence(String.format("v%03d", sequence));
       } catch (Exception e) {
+        log.error("Cannot get job group sequence", e);
         // fail silently if we can't get a job group sequence
       }
     }
@@ -200,7 +231,6 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public Task getTask(String taskId) {
-    // new Task(grpcBlockingStub.findTask(taskId));
     // return new
     // Task(grpcBlockingStub.findTask(com.netflix.titus.grpc.protogen.TaskId.newBuilder().setId(taskId).build()));
     return null;

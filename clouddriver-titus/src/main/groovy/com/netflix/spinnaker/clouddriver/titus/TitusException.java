@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus;
 
-public class TitusException extends RuntimeException {
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+
+public class TitusException extends IntegrationException {
   public TitusException(String message) {
     super(message);
   }
@@ -27,5 +29,13 @@ public class TitusException extends RuntimeException {
 
   public TitusException(Throwable cause) {
     super(cause);
+  }
+
+  public TitusException(String message, String userMessage) {
+    super(message, userMessage);
+  }
+
+  public TitusException(String message, Throwable cause, String userMessage) {
+    super(message, cause, userMessage);
   }
 }

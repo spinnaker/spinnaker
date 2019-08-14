@@ -12,7 +12,7 @@ buildscript {
 
 ext {
   protobufVersion = '3.2.+'
-  grpcVersion = '1.9.+'
+  grpcVersion = '1.10.+'
 }
 
 repositories {
@@ -26,6 +26,7 @@ dependencies {
   implementation project(":clouddriver-aws")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-eureka")
+  implementation project(":clouddriver-saga")
   implementation project(":clouddriver-security")
 
   annotationProcessor "org.projectlombok:lombok"

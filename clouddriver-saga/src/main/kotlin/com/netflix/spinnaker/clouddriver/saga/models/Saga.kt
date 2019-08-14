@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.saga.SagaEvent
 import com.netflix.spinnaker.clouddriver.saga.SagaRollbackStarted
 import com.netflix.spinnaker.clouddriver.saga.SagaLogAppended
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaSystemException
+import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaStateIntegrationException
 import org.slf4j.LoggerFactory
 
 /**
@@ -67,6 +68,32 @@ class Saga(
 
   fun addEvent(event: SagaEvent) {
     this.pendingEvents.add(event)
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  fun <T : SagaEvent> getEvent(clazz: Class<T>): T {
+    return events.reversed()
+      .filter { clazz.isAssignableFrom(it.javaClass) }
+      .let {
+        when (it.size) {
+          0 -> throw SagaStateIntegrationException.typeNotFound(clazz, this)
+          1 -> it.first() as T
+          else -> throw SagaStateIntegrationException.tooManyResults(clazz, this)
+        }
+      }
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  fun <T : SagaEvent> getEvent(clazz: Class<T>, reducer: (List<T>) -> T): T {
+    return events.reversed()
+      .filter { clazz.isAssignableFrom(it.javaClass) }
+      .let {
+        when (it.size) {
+          0 -> throw SagaStateIntegrationException.typeNotFound(clazz, this)
+          1 -> it.first()
+          else -> reducer(it as List<T>)
+        } as T
+      }
   }
 
   internal fun completed(command: Class<SagaCommand>): Boolean {
