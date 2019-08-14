@@ -54,7 +54,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
   private final ObjectMapper objectMapper
   private final Logger log = LoggerFactory.getLogger(getClass())
 
-  private final AwsLookupUtil awsLookupUtil
+  private final Provider<AwsLookupUtil> awsLookupUtil
   private final Provider<CachingSchemaUtil> cachingSchemaUtil
 
   @Autowired
@@ -62,7 +62,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
                        TitusCachingProvider titusCachingProvider,
                        Cache cacheView,
                        ObjectMapper objectMapper,
-                       AwsLookupUtil awsLookupUtil,
+                       Provider<AwsLookupUtil> awsLookupUtil,
                        Provider<CachingSchemaUtil> cachingSchemaUtil) {
     this.titusCloudProvider = titusCloudProvider
     this.cacheView = cacheView
@@ -191,11 +191,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     if (includeDetails) {
       serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns), Collections.singletonList(serverGroupData)).values()
       if (serverGroup.targetGroups) {
-        awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
+        awsLookupUtil.get().lookupTargetGroupHealth(job, serverGroup.instances)
       }
     }
-    serverGroup.accountId = awsLookupUtil.awsAccountId(account, region)
-    serverGroup.awsAccount = awsLookupUtil.lookupAccount(account, region)?.awsAccount
+    serverGroup.accountId = awsLookupUtil.get().awsAccountId(account, region)
+    serverGroup.awsAccount = awsLookupUtil.get().lookupAccount(account, region)?.awsAccount
     serverGroup
   }
 
@@ -278,9 +278,9 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
       serverGroup.instances = serverGroup.instances ?: []
       serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
       if (serverGroup.targetGroups) {
-        awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
+        awsLookupUtil.get().lookupTargetGroupHealth(job, serverGroup.instances)
       }
-      serverGroup.awsAccount = awsLookupUtil.lookupAccount(serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)?.awsAccount
+      serverGroup.awsAccount = awsLookupUtil.get().lookupAccount(serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)?.awsAccount
       [(serverGroupEntry.id): serverGroup]
     }
     return serverGroups
