@@ -26,7 +26,7 @@ public class GoogleChatMessage {
       "https://avatars0.githubusercontent.com/u/7634182?s=200&v=4";
   static transient String SPINNAKER_FRONT_PAGE_URL = "https://www.spinnaker.io/";
 
-  Card cards;
+  public Card cards;
 
   transient String message;
 
@@ -37,7 +37,7 @@ public class GoogleChatMessage {
 
   /** Classes below are used to build the JSON object for the Chat API. * */
   class Card {
-    List<Section> sections = new ArrayList<>();
+    public List<Section> sections = new ArrayList<>();
 
     public Card() {
       sections.add(new Section());
@@ -45,7 +45,7 @@ public class GoogleChatMessage {
   }
 
   class Section {
-    List<Object> widgets = new ArrayList<>();
+    public List<Object> widgets = new ArrayList<>();
 
     public Section() {
       widgets.add(new TextParagraphWidget());
@@ -54,7 +54,7 @@ public class GoogleChatMessage {
   }
 
   class TextParagraphWidget {
-    HashMap<String, String> textParagraph = new HashMap<>();
+    public HashMap<String, String> textParagraph = new HashMap<>();
 
     public TextParagraphWidget() {
       textParagraph.put("text", message);
@@ -62,7 +62,7 @@ public class GoogleChatMessage {
   }
 
   class ButtonWidget {
-    List<Object> buttons = new ArrayList<>();
+    public List<Object> buttons = new ArrayList<>();
 
     public ButtonWidget() {
       buttons.add(new ImageButtonWidget());
@@ -71,25 +71,25 @@ public class GoogleChatMessage {
   }
 
   class ImageButtonWidget {
-    ImageButton imageButton = new ImageButton();
+    public ImageButton imageButton = new ImageButton();
   }
 
   class ImageButton {
-    String iconUrl = SPINNAKER_ICON_URL;
-    OnClick onClick = new OnClick(SPINNAKER_FRONT_PAGE_URL);
+    public String iconUrl = SPINNAKER_ICON_URL;
+    public OnClick onClick = new OnClick(SPINNAKER_FRONT_PAGE_URL);
   }
 
   class TextButtonWidget {
-    TextButton textButton = new TextButton();
+    public TextButton textButton = new TextButton();
   }
 
   class TextButton {
-    String text = "From Spinnaker";
-    OnClick onClick = new OnClick(SPINNAKER_FRONT_PAGE_URL);
+    public String text = "From Spinnaker";
+    public OnClick onClick = new OnClick(SPINNAKER_FRONT_PAGE_URL);
   }
 
   class OnClick {
-    OpenLink openLink;
+    public OpenLink openLink;
 
     public OnClick(String link) {
       openLink = new OpenLink(link);
@@ -97,7 +97,7 @@ public class GoogleChatMessage {
   }
 
   class OpenLink {
-    String url;
+    public String url;
 
     public OpenLink(String link) {
       url = link;
