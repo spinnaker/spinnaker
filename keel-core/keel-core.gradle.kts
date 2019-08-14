@@ -26,6 +26,8 @@ dependencies {
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
   api("com.netflix.spinnaker.kork:kork-artifacts")
   api("de.danielbechler:java-object-diff")
+  api("org.springframework:spring-context")
+  api("org.springframework.boot:spring-boot-autoconfigure")
 
   testImplementation(project (":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")

@@ -8,6 +8,7 @@ dependencies {
   api(project(":keel-plugin"))
   api(project(":keel-veto"))
 
+  implementation("com.netflix.spectator:spectator-api")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.springframework:spring-tx")
 

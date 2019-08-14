@@ -10,7 +10,6 @@ dependencies {
   implementation(project(":keel-igor"))
   implementation(project(":keel-mahe"))
   implementation(project(":keel-orca"))
-  implementation("org.springframework:spring-context")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-security")
 
