@@ -1,10 +1,10 @@
 import { duration } from 'core/utils/timeFormatters';
-import { find, findLast, get, has, maxBy, uniq, sortBy } from 'lodash';
+import { find, findLast, get, has, maxBy, uniq, sortBy, Dictionary } from 'lodash';
 
 import { Application } from 'core/application';
 import { ExecutionBarLabel } from 'core/pipeline/config/stages/common/ExecutionBarLabel';
 import { ExecutionMarkerIcon } from 'core/pipeline/config/stages/common/ExecutionMarkerIcon';
-import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem } from 'core/domain';
+import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem, IStage } from 'core/domain';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { Registry } from 'core/registry';
 
@@ -151,17 +151,27 @@ export class ExecutionsTransformer {
     stage.stages = stages;
   }
 
-  private static applyPhasesAndLink(execution: IExecution): void {
-    const stages = execution.stages;
-    let allPhasesResolved = true;
+  private static cleanRequisiteStageRefIds(execution: IExecution, stageMap: Dictionary<IStage>): void {
+    const { stages } = execution;
     // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
     stages.forEach(stage => {
-      if (has(stage, 'context.requisiteIds')) {
+      if (stage.context && stage.context.requisiteIds) {
         stage.context.requisiteIds = uniq(stage.context.requisiteIds);
       }
       stage.requisiteStageRefIds = uniq(stage.requisiteStageRefIds || []);
-      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(parentId => find(stages, { refId: parentId }));
+      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(parentId => !!stageMap[parentId]);
     });
+  }
+
+  private static getStagesMappedByRefId(execution: IExecution): Dictionary<IStage> {
+    const map: Dictionary<IStage> = {};
+    execution.stages.forEach(s => (map[s.refId] = s));
+    return map;
+  }
+
+  private static applyPhasesAndLink(execution: IExecution, stageMap: Dictionary<IStage>): void {
+    const stages = execution.stages;
+    let allPhasesResolved = true;
 
     stages.forEach(stage => {
       let phaseResolvable = true;
@@ -171,7 +181,7 @@ export class ExecutionsTransformer {
         stage.phase = phase;
       } else {
         stage.requisiteStageRefIds.forEach(parentId => {
-          const parent = find(stages, { refId: parentId });
+          const parent = stageMap[parentId];
           if (!parent || parent.phase === undefined) {
             phaseResolvable = false;
           } else {
@@ -185,9 +195,10 @@ export class ExecutionsTransformer {
         }
       }
     });
-    execution.stages = sortBy(stages, 'phase', 'refId');
     if (!allPhasesResolved) {
-      this.applyPhasesAndLink(execution);
+      this.applyPhasesAndLink(execution, stageMap);
+    } else {
+      execution.stages = sortBy(stages, 'phase', 'refId');
     }
   }
 
@@ -285,7 +296,9 @@ export class ExecutionsTransformer {
     if (execution.trigger) {
       execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
     }
-    this.applyPhasesAndLink(execution);
+    const stageRefIdsMap = this.getStagesMappedByRefId(execution);
+    this.cleanRequisiteStageRefIds(execution, stageRefIdsMap);
+    this.applyPhasesAndLink(execution, stageRefIdsMap);
     Registry.pipeline.getExecutionTransformers().forEach(transformer => {
       transformer.transform(application, execution);
     });
