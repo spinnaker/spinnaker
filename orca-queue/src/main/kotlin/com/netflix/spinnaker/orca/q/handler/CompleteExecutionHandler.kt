@@ -69,7 +69,8 @@ class CompleteExecutionHandler(
           registry.counter(completedId.withTags(
             "status", status.name,
             "executionType", execution.type.name,
-            "application", execution.application
+            "application", execution.application,
+            "origin", execution.origin ?: "unknown"
           )).increment()
           if (status != SUCCEEDED) {
             execution.topLevelStages.filter { it.status == RUNNING }.forEach {
