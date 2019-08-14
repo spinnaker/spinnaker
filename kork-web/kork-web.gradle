@@ -1,5 +1,6 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
@@ -7,7 +8,6 @@ dependencies {
   api project(":kork-core")
   api project(":kork-security")
   api project(":kork-exceptions")
-  api "org.codehaus.groovy:groovy-all"
   api "org.springframework.boot:spring-boot-starter-web"
   api "org.springframework.boot:spring-boot-starter-security"
   api "org.springframework.security:spring-security-core"
@@ -17,7 +17,6 @@ dependencies {
     transitive = false
   }
   api "com.fasterxml.jackson.core:jackson-annotations"
-  api "com.hubspot.jinjava:jinjava"
   api "com.squareup.okhttp:okhttp"
   api "com.squareup.okhttp3:okhttp"
   api "com.squareup.retrofit:retrofit"
