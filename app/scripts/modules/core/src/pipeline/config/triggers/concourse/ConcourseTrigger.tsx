@@ -1,12 +1,10 @@
 import * as React from 'react';
-import { IPromise } from 'angular';
 import { FormikProps } from 'formik';
-import { $q } from 'ngimport';
 import { Option } from 'react-select';
 
 import { BuildServiceType, IgorService } from 'core/ci';
 import { IConcourseTrigger } from 'core/domain';
-import { FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
+import { FormikFormField, ReactSelectInput, useData } from 'core/presentation';
 
 import { ConcourseService } from './concourse.service';
 
@@ -36,22 +34,15 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
     formik.setFieldValue('jobName', jobName);
   };
 
-  // Fetches data when anything in the dependencies list changes
-  // Returns an empty array if any dependencies are falsey
-  function useData<T>(callback: () => IPromise<T>, deps: any[]) {
-    const anyDepsMissing = deps.some(dep => !dep);
-    const defaultValueCallback = () => $q.resolve(([] as any) as T);
-    return useLatestPromise(anyDepsMissing ? defaultValueCallback : callback, deps);
-  }
-
-  const fetchMasters = useData(() => IgorService.listMasters(BuildServiceType.Concourse), []);
-  const fetchTeams = useData(() => ConcourseService.listTeamsForMaster(master), [master]);
-  const fetchPipelines = useData(() => ConcourseService.listPipelinesForTeam(master, team), [master, team]);
+  const fetchMasters = useData(() => IgorService.listMasters(BuildServiceType.Concourse), [], []);
+  const fetchTeams = useData(() => ConcourseService.listTeamsForMaster(master), [], [master]);
+  const fetchPipelines = useData(() => ConcourseService.listPipelinesForTeam(master, team), [], [master, team]);
   const fetchJobs = useData(
     () =>
       ConcourseService.listJobsForPipeline(master, team, pipeline).then(jobs =>
         jobs.map(job => `${team}/${pipeline}/${job}`),
       ),
+    [],
     [master, team, pipeline],
   );
 
