@@ -3,6 +3,7 @@ import { IOrchestratedItem } from './IOrchestratedItem';
 import { ITaskStep } from './ITaskStep';
 
 export interface ITask extends IOrchestratedItem {
+  application: string;
   id: string;
   name?: string;
   steps?: ITaskStep[];

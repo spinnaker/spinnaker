@@ -110,8 +110,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
           return undefined;
         }
 
-        return Promise.resolve()
-          .then(() => executionService.getExecution(executionId))
+        return Promise.resolve(executionService.getExecution(executionId))
           .then(execution =>
             transition.router.stateService.target(
               'home.applications.application.pipelines.executionDetails.execution',
