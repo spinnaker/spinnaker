@@ -87,23 +87,23 @@ export class Parameters extends React.Component<IParametersProps> {
                           {...props}
                           clearable={false}
                           inputClassName={'parameter-option-select'}
-                          options={parameter.options.map(o => ({ label: o.value, value: o.value }))}
+                          options={parameter.options.map(o => ({ label: `${o.value}`, value: o.value }))}
                         />
                       )}
                       required={parameter.required}
                     />
                   </div>
                 )}
-                {hasRequiredParameters && (
-                  <div className="form-group">
-                    <div className="col-md-4 col-md-offset-4">
-                      <em>* Required</em>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
+        {hasRequiredParameters && (
+          <div className="form-group sp-margin-l-top">
+            <div className="col-md-4 col-md-offset-4">
+              <em>* Required</em>
+            </div>
+          </div>
+        )}
       </>
     );
   }
