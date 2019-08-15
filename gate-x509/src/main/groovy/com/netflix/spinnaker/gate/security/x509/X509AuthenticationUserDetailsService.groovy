@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -76,6 +77,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
   @Autowired
   FiatClientConfigurationProperties fiatClientConfigurationProperties
+
+  @Autowired
+  FiatStatus fiatStatus
 
   @Autowired
   Registry registry
@@ -198,11 +202,13 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
         }
       }
 
-      def permission = fiatPermissionEvaluator.getPermission(email)
-      def roleNames = permission?.getRoles()?.collect { it -> it.getName() }
-      log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
-      if (roleNames) {
-        roles.addAll(roleNames)
+      if (fiatStatus.isEnabled()) {
+        def permission = fiatPermissionEvaluator.getPermission(email)
+        def roleNames = permission?.getRoles()?.collect { it -> it.getName() }
+        log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
+        if (roleNames) {
+          roles.addAll(roleNames)
+        }
       }
 
       return roles.unique(/* mutate = */false)

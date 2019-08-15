@@ -4,6 +4,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
@@ -33,11 +34,14 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     def cert = Mock(X509Certificate)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
     def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    def fiatStatus = Mock(FiatStatus)
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
     userDetails.registry = registry
+    userDetails.setFiatStatus(fiatStatus)
     fiatPermissionEvaluator.getPermission(email) >> view
+    fiatStatus.isEnabled() >> true
 
     when: "initial login"
     userDetails.handleLogin(email, cert)
@@ -76,9 +80,11 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     def cert = Mock(X509Certificate)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
     def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    def fiatStatus = Mock(FiatStatus)
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
+    userDetails.setFiatStatus(fiatStatus)
     userDetails.registry = registry
 
     when:
@@ -114,25 +120,42 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     def rolesExtractor = Mock(X509RolesExtractor)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
     def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    def fiatStatus = Mock(FiatStatus)
+    def roles
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setRolesExtractor(rolesExtractor)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
+    userDetails.setFiatStatus(fiatStatus)
     userDetails.registry = registry
 
     def view = new UserPermission(id: email, roles: [new Role('bish')]).view
-    fiatPermissionEvaluator.getPermission(email) >> view
 
     when:
-    def roles = userDetails.handleLogin(email, cert)
+    fiatStatus.isEnabled() >> true
+    roles = userDetails.handleLogin(email, cert)
 
     then:
     1 * rolesExtractor.fromCertificate(cert) >> ['foo', 'bar']
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.loginWithRoles(email, [email, 'foo', 'bar'])
+    1 * fiatPermissionEvaluator.getPermission(email) >> view
 
     and: 'the roles retrieved from fiatPermissionEvaluator are also added to the list of returned roles'
     roles == [email, 'foo', 'bar', 'bish']
+
+    when:
+    fiatStatus.isEnabled() >> false
+    roles = userDetails.handleLogin(email, cert)
+
+    then:
+    1 * rolesExtractor.fromCertificate(cert) >> ['foo', 'bar']
+    1 * config.isEnabled('x509.loginDebounce', _) >> false
+    1 * perms.loginWithRoles(email, [email, 'foo', 'bar'])
+    0 * fiatPermissionEvaluator.getPermission(email) >> view
+
+    and: 'no roles are retrieved from fiatPermissionEvaluator when fiat is disabled'
+    roles == [email, 'foo', 'bar']
   }
 
 
