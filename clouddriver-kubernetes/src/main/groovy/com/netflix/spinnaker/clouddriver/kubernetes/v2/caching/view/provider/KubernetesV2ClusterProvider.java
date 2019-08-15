@@ -184,7 +184,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public String getCloudProviderId() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   @Override

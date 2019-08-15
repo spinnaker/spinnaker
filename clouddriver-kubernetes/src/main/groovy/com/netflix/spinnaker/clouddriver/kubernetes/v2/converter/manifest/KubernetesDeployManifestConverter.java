@@ -21,7 +21,7 @@ import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.D
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
@@ -72,9 +72,8 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
   @Override
   public KubernetesDeployManifestDescription convertDescription(Map input) {
     KubernetesDeployManifestDescription mainDescription =
-        (KubernetesDeployManifestDescription)
-            KubernetesAtomicOperationConverterHelper.convertDescription(
-                input, this, KubernetesDeployManifestDescription.class);
+        KubernetesAtomicOperationConverterHelper.convertDescription(
+            input, this, KubernetesDeployManifestDescription.class);
     return convertListDescription(mainDescription);
   }
 

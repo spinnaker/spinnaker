@@ -149,8 +149,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
           managedAccount.getCluster(),
           managedAccount.getUser(),
           userAgent,
-          managedAccount.getServiceAccount(),
-          managedAccount.getConfigureImagePullSecrets(),
+          managedAccount.isServiceAccount(),
+          managedAccount.isConfigureImagePullSecrets(),
           managedAccount.getNamespaces(),
           managedAccount.getOmitNamespaces(),
           managedAccount.getDockerRegistries(),
@@ -162,7 +162,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
       validateAccount(managedAccount);
       NamerRegistry.lookup()
-          .withProvider(KubernetesCloudProvider.getID())
+          .withProvider(KubernetesCloudProvider.ID)
           .withAccount(managedAccount.getName())
           .setNamer(
               KubernetesManifest.class,

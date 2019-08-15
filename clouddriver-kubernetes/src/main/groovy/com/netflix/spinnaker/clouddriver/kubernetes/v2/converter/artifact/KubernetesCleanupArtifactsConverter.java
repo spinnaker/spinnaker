@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.artifact;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.artifact.KubernetesCleanupArtifactsOperation;
@@ -48,9 +48,8 @@ public class KubernetesCleanupArtifactsConverter
 
   @Override
   public KubernetesCleanupArtifactsDescription convertDescription(Map input) {
-    return (KubernetesCleanupArtifactsDescription)
-        KubernetesAtomicOperationConverterHelper.convertDescription(
-            input, this, KubernetesCleanupArtifactsDescription.class);
+    return KubernetesAtomicOperationConverterHelper.convertDescription(
+        input, this, KubernetesCleanupArtifactsDescription.class);
   }
 
   @Override

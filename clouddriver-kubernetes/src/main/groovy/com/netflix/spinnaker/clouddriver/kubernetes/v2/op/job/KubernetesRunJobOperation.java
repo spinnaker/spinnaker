@@ -55,7 +55,7 @@ public class KubernetesRunJobOperation
     this.provider = provider;
     this.namer =
         NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.getID())
+            .withProvider(KubernetesCloudProvider.ID)
             .withAccount(description.getCredentials().getName())
             .withResource(KubernetesManifest.class);
   }

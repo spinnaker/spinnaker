@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESUME_ROLLOUT_MANIFEST;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesResumeRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesResumeRolloutManifestOperation;
@@ -44,9 +44,8 @@ public class KubernetesResumeRolloutManifestConverter
 
   @Override
   public KubernetesResumeRolloutManifestDescription convertDescription(Map input) {
-    return (KubernetesResumeRolloutManifestDescription)
-        KubernetesAtomicOperationConverterHelper.convertDescription(
-            input, this, KubernetesResumeRolloutManifestDescription.class);
+    return KubernetesAtomicOperationConverterHelper.convertDescription(
+        input, this, KubernetesResumeRolloutManifestDescription.class);
   }
 
   @Override

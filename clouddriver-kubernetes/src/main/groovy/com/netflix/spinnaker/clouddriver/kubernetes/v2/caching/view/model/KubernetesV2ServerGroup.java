@@ -247,7 +247,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .name(getName())
         .region(getRegion())
         .isDisabled(isDisabled())
-        .cloudProvider(KubernetesCloudProvider.getID())
+        .cloudProvider(KubernetesCloudProvider.ID)
         .build();
   }
 

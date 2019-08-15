@@ -33,7 +33,7 @@ import lombok.Data;
 public class KubernetesV2Cluster implements Cluster {
   String name;
   Moniker moniker;
-  String type = KubernetesCloudProvider.getID();
+  String type = KubernetesCloudProvider.ID;
   String accountName;
   Set<ServerGroup> serverGroups = new HashSet<>();
   Set<LoadBalancer> loadBalancers = new HashSet<>();

@@ -144,21 +144,21 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.kubectlRequestTimeoutSeconds = managedAccount.getKubectlRequestTimeoutSeconds();
     this.kubeconfigFile = kubeconfigFile;
     this.kubeconfigFileHash = KubeconfigFileHasher.hashKubeconfigFile(kubeconfigFile);
-    this.serviceAccount = managedAccount.getServiceAccount();
+    this.serviceAccount = managedAccount.isServiceAccount();
     this.context = managedAccount.getContext();
 
-    this.onlySpinnakerManaged = managedAccount.getOnlySpinnakerManaged();
-    this.liveManifestCalls = managedAccount.getLiveManifestCalls();
-    this.checkPermissionsOnStartup = managedAccount.getCheckPermissionsOnStartup();
+    this.onlySpinnakerManaged = managedAccount.isOnlySpinnakerManaged();
+    this.liveManifestCalls = managedAccount.isLiveManifestCalls();
+    this.checkPermissionsOnStartup = managedAccount.isCheckPermissionsOnStartup();
     this.cachingPolicies = managedAccount.getCachingPolicies();
 
-    this.oAuthServiceAccount = managedAccount.getoAuthServiceAccount();
-    this.oAuthScopes = managedAccount.getoAuthScopes();
+    this.oAuthServiceAccount = managedAccount.getOAuthServiceAccount();
+    this.oAuthScopes = managedAccount.getOAuthScopes();
 
-    this.metrics = managedAccount.getMetrics();
-    this.metricsComputed = managedAccount.getMetrics();
+    this.metrics = managedAccount.isMetrics();
+    this.metricsComputed = managedAccount.isMetrics();
 
-    this.debug = managedAccount.getDebug();
+    this.debug = managedAccount.isDebug();
 
     this.liveNamespaceSupplier =
         Memoizer.memoizeWithExpiration(

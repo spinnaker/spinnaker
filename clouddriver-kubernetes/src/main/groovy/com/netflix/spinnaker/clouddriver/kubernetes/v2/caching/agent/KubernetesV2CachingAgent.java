@@ -50,7 +50,7 @@ public abstract class KubernetesV2CachingAgent
     extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
   protected KubectlJobExecutor jobExecutor;
 
-  @Getter protected String providerName = KubernetesCloudProvider.getID();
+  @Getter protected String providerName = KubernetesCloudProvider.ID;
 
   @Getter protected final Long agentInterval;
 

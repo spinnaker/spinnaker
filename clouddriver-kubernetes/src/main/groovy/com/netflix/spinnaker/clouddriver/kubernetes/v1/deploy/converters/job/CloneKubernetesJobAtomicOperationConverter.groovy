@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.job
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.job.CloneKubernetesJobAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.ops.job.CloneKubernetesJobAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation

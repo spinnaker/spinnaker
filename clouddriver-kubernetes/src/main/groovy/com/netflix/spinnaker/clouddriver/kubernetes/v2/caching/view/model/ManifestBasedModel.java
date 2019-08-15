@@ -51,20 +51,20 @@ public abstract class ManifestBasedModel {
   }
 
   public String getType() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   public String getCloudProvider() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   public String getProviderType() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   public Moniker getMoniker() {
     return NamerRegistry.lookup()
-        .withProvider(KubernetesCloudProvider.getID())
+        .withProvider(KubernetesCloudProvider.ID)
         .withAccount(getAccountName())
         .withResource(KubernetesManifest.class)
         .deriveMoniker(getManifest());

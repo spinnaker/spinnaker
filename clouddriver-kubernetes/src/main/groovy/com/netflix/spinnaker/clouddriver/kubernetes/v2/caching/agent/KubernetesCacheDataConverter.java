@@ -178,7 +178,7 @@ public class KubernetesCacheDataConverter {
         account == null
             ? new KubernetesManifestNamer()
             : NamerRegistry.lookup()
-                .withProvider(KubernetesCloudProvider.getID())
+                .withProvider(KubernetesCloudProvider.ID)
                 .withAccount(account)
                 .withResource(KubernetesManifest.class);
     Moniker moniker = namer.deriveMoniker(manifest);

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonpatch.diff.JsonDiff
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesApiClientConfig
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesClientOperationException
 import groovy.util.logging.Slf4j

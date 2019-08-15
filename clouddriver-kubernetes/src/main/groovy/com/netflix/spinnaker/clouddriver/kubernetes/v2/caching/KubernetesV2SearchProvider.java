@@ -83,7 +83,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
 
   @Override
   public String getPlatform() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   @Override

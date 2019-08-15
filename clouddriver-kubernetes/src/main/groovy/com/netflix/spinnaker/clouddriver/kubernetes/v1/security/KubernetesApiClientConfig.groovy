@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.security
+package com.netflix.spinnaker.clouddriver.kubernetes.v1.security
 
 import groovy.util.logging.Slf4j
 import io.kubernetes.client.ApiClient

@@ -81,13 +81,12 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
         agentInterval);
     namer =
         NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.getID())
+            .withProvider(KubernetesCloudProvider.ID)
             .withAccount(namedAccountCredentials.getName())
             .withResource(KubernetesManifest.class);
 
     metricsSupport =
-        new OnDemandMetricsSupport(
-            registry, this, KubernetesCloudProvider.getID() + ":" + Manifest);
+        new OnDemandMetricsSupport(registry, this, KubernetesCloudProvider.ID + ":" + Manifest);
   }
 
   @Override
@@ -351,7 +350,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public boolean handles(OnDemandType type, String cloudProvider) {
-    return type == Manifest && cloudProvider.equals(KubernetesCloudProvider.getID());
+    return type == Manifest && cloudProvider.equals(KubernetesCloudProvider.ID);
   }
 
   @Override

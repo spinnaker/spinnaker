@@ -34,7 +34,7 @@ public abstract class KubernetesArtifactConverter {
   public abstract String getDeployedName(Artifact artifact);
 
   protected String getType(KubernetesManifest manifest) {
-    return String.join("/", KubernetesCloudProvider.getID(), manifest.getKind().toString());
+    return String.join("/", KubernetesCloudProvider.ID, manifest.getKind().toString());
   }
 
   protected KubernetesKind getKind(Artifact artifact) {
@@ -43,7 +43,7 @@ public abstract class KubernetesArtifactConverter {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
     }
 
-    if (!split[0].equals(KubernetesCloudProvider.getID())) {
+    if (!split[0].equals(KubernetesCloudProvider.ID)) {
       throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
     }
 

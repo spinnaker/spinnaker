@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.PATCH_MANIFEST;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesPatchManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesPatchManifestOperation;
@@ -42,9 +42,8 @@ public class KubernetesPatchManifestConverter extends AbstractAtomicOperationsCr
 
   @Override
   public KubernetesPatchManifestDescription convertDescription(Map input) {
-    return (KubernetesPatchManifestDescription)
-        KubernetesAtomicOperationConverterHelper.convertDescription(
-            input, this, KubernetesPatchManifestDescription.class);
+    return KubernetesAtomicOperationConverterHelper.convertDescription(
+        input, this, KubernetesPatchManifestDescription.class);
   }
 
   @Override

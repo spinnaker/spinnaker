@@ -63,7 +63,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     this.accountName = description.getCredentials().getName();
     this.namer =
         NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.getID())
+            .withProvider(KubernetesCloudProvider.ID)
             .withAccount(accountName)
             .withResource(KubernetesManifest.class);
   }

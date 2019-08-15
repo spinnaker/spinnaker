@@ -25,7 +25,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubeconfigFileHasher;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesClientApiAdapter;

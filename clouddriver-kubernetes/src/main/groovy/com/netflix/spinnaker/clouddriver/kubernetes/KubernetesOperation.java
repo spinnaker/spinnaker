@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.kubernetes;
 
-package com.netflix.spinnaker.clouddriver.kubernetes
-
-import com.netflix.spinnaker.clouddriver.core.CloudProvider
-import org.springframework.stereotype.Component
-
-import java.lang.annotation.Annotation
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Kubernetes declaration as a {@link CloudProvider}.
+ * {@code KubernetesOperation}s specify implementation classes of Spinnaker AtomicOperations for
+ * Kubernetes.
  */
-@Component
-class KubernetesCloudProvider implements CloudProvider {
-  static final String ID = "kubernetes"
-  final String id = ID
-  final String displayName = "Kubernetes"
-  final Class<Annotation> operationAnnotationType = KubernetesOperation
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface KubernetesOperation {
+  String value();
 }

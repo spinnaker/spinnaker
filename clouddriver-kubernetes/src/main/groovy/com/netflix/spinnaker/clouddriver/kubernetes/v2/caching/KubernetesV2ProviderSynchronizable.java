@@ -139,8 +139,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
     List<String> existingNames =
         accountCredentialsRepository.getAll().stream()
             .filter(
-                (AccountCredentials c) ->
-                    KubernetesCloudProvider.getID().equals(c.getCloudProvider()))
+                (AccountCredentials c) -> KubernetesCloudProvider.ID.equals(c.getCloudProvider()))
             .filter((AccountCredentials c) -> ProviderVersion.v2.equals(c.getProviderVersion()))
             .map(AccountCredentials::getName)
             .collect(Collectors.toList());

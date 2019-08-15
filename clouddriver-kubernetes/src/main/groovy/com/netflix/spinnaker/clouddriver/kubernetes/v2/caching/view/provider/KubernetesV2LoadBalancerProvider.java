@@ -62,7 +62,7 @@ public class KubernetesV2LoadBalancerProvider
 
   @Override
   public String getCloudProvider() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   @Override

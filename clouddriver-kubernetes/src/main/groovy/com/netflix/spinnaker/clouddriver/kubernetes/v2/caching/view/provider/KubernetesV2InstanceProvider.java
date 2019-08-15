@@ -65,7 +65,7 @@ public class KubernetesV2InstanceProvider
 
   @Override
   public String getCloudProvider() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   @Override

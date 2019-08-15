@@ -48,7 +48,7 @@ public class KubernetesV2SecurityGroupProvider
 
   @Override
   public String getCloudProvider() {
-    return KubernetesCloudProvider.getID();
+    return KubernetesCloudProvider.ID;
   }
 
   @Override

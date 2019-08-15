@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials>
     implements AgentIntervalAware {
-  @Getter protected String providerName = KubernetesCloudProvider.getID();
+  @Getter protected String providerName = KubernetesCloudProvider.ID;
 
   @Getter private final Long agentInterval;
 
