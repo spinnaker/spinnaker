@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
@@ -71,6 +72,24 @@ class HttpArtifactCredentialsTest {
     account.setName("my-http-account");
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
+  }
+
+  @Test
+  void throwExceptionOnNonSuccessfulResponse(@WiremockResolver.Wiremock WireMockServer server) {
+    HttpArtifactAccount account = new HttpArtifactAccount();
+    HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
+    Artifact artifact =
+        Artifact.builder().reference(server.baseUrl() + URL).type("http/file").build();
+    account.setName("my-http-account");
+    server.stubFor(any(urlPathEqualTo(URL)).willReturn(aResponse().withStatus(404)));
+
+    Throwable thrown = catchThrowable(() -> credentials.download(artifact));
+
+    assertThat(thrown)
+        .isInstanceOf(IOException.class)
+        .hasMessageContaining("404")
+        .hasMessageContaining(server.baseUrl());
+    assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
   private void runTestCase(

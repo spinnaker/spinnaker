@@ -76,6 +76,10 @@ public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
     Request request = new Request.Builder().headers(headers).url(url).build();
 
     Response downloadResponse = okHttpClient.newCall(request).execute();
+    if (!downloadResponse.isSuccessful()) {
+      throw new IOException(
+          String.format("Received %d status code from %s", downloadResponse.code(), url.host()));
+    }
     return downloadResponse.body();
   }
 }
