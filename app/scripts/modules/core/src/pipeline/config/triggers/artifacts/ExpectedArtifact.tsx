@@ -44,14 +44,14 @@ export function ExpectedArtifact(props: IExpectedArtifactProps) {
               Match against
               <HelpField id="pipeline.config.expectedArtifact.matchArtifact" />
             </div>
-            <div className="col-md-1 col-md-offset-8">
+            <div className="col-md-2 col-md-offset-7">
               <Tooltip value="Remove expected artifact">
                 <button
                   className="btn btn-sm btn-default"
                   onClick={() => removeExpectedArtifact(pipeline, expectedArtifact)}
                 >
                   <span className="glyphicon glyphicon-trash" />
-                  <span className="visible-xl-inline">Remove artifact</span>
+                  <span>Remove artifact</span>
                 </button>
               </Tooltip>
             </div>
