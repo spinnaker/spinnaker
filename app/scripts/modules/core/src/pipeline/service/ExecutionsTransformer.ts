@@ -195,10 +195,9 @@ export class ExecutionsTransformer {
         }
       }
     });
+    execution.stages = sortBy(stages, 'phase', 'refId');
     if (!allPhasesResolved) {
       this.applyPhasesAndLink(execution, stageMap);
-    } else {
-      execution.stages = sortBy(stages, 'phase', 'refId');
     }
   }
 
