@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, head } from 'lodash';
 import { IArtifactAccount } from 'core/account';
 import { ArtifactAccountSelector } from 'core/artifact';
 import { IArtifact, IPipeline } from 'core/domain';
@@ -35,7 +35,9 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
   private defaultArtifactAccountIfNecessary(): void {
     const { artifact, artifactAccounts } = this.props;
     if (!artifact.artifactAccount && artifactAccounts.length > 0) {
-      this.onArtifactAccountChanged(artifactAccounts[0]);
+      this.onArtifactAccountChanged(
+        head(artifactAccounts.filter(a => a.types.includes(artifact.type))) || head(artifactAccounts),
+      );
     }
   }
 
