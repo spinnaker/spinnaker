@@ -24,9 +24,15 @@ public class SpringBoot1CompatibilityApplicationListener
   @Override
   public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
     // Allow extensions to override bean definitions in OSS projects.
-    System.setProperty("spring.main.allow-bean-definition-overriding", "true");
+    setIfMissing("spring.main.allow-bean-definition-overriding", "true");
 
     // Put spring endpoints on / instead of /actuator (for /health backwards compat).
-    System.setProperty("management.endpoints.web.base-path", "/");
+    setIfMissing("management.endpoints.web.base-path", "/");
+  }
+
+  private void setIfMissing(String property, String value) {
+    if (System.getProperty(property) == null) {
+      System.setProperty(property, value);
+    }
   }
 }

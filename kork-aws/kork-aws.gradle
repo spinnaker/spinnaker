@@ -20,6 +20,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "org.springframework.boot:spring-boot-autoconfigure"
+  api "com.netflix.spectator:spectator-api"
   api "com.amazonaws:aws-java-sdk-core"
   api "com.amazonaws:aws-java-sdk-sns"
   api "com.amazonaws:aws-java-sdk-sqs"
@@ -28,6 +29,8 @@ dependencies {
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"
   api "com.aestasit.infrastructure.sshoogr:sshoogr"
+
+  implementation "com.netflix.spectator:spectator-ext-aws"
 
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"

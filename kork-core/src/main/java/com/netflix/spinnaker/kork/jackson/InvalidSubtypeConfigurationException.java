@@ -15,10 +15,12 @@
  */
 package com.netflix.spinnaker.kork.jackson;
 
+import com.netflix.spinnaker.kork.exceptions.SystemException;
+
 /**
  * Thrown when an ObjectMapperSubtypeConfigurer finds a subtype without a JsonTypeName annotation.
  */
-public class InvalidSubtypeConfigurationException extends IllegalStateException {
+public class InvalidSubtypeConfigurationException extends SystemException {
 
   public InvalidSubtypeConfigurationException(String s) {
     super(s);

@@ -20,6 +20,7 @@ import com.netflix.config.AbstractPollingScheduler;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicConfiguration;
 import com.netflix.config.FixedDelayPollingScheduler;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -108,7 +109,7 @@ public class ArchaiusConfiguration {
         try {
           return Optional.of(new ResourcePropertySource(name, r));
         } catch (IOException ioe) {
-          throw new RuntimeException("Error loading property source [" + name + "]: " + res, ioe);
+          throw new SystemException("Error loading property source [" + name + "]: " + res, ioe);
         }
       }
       return Optional.empty();

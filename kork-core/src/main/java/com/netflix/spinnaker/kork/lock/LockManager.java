@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kork.lock;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -310,7 +312,7 @@ public interface LockManager {
 
     public void validateInputs() {
       if (!this.lockName.matches("^[a-zA-Z0-9.-]+$")) {
-        throw new IllegalArgumentException("Lock name must be alphanumeric, may contain dots");
+        throw new ConstraintViolationException("Lock name must be alphanumeric, may contain dots");
       }
 
       Objects.requireNonNull(this.lockName, "Lock name must be provided");
@@ -337,11 +339,7 @@ public interface LockManager {
     }
   }
 
-  class LockException extends RuntimeException {
-    public LockException() {
-      super();
-    }
-
+  class LockException extends SystemException {
     public LockException(String message) {
       super(message);
     }

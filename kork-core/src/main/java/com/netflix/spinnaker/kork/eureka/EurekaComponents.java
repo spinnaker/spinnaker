@@ -26,6 +26,7 @@ import com.netflix.eventbus.impl.EventBusImpl;
 import com.netflix.eventbus.spi.EventBus;
 import com.netflix.eventbus.spi.InvalidSubscriberException;
 import com.netflix.eventbus.spi.Subscribe;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.PreDestroy;
@@ -138,7 +139,7 @@ public class EurekaComponents {
       try {
         eventBus.registerSubscriber(this);
       } catch (InvalidSubscriberException ise) {
-        throw new RuntimeException(ise);
+        throw new SystemException(ise);
       }
     }
 

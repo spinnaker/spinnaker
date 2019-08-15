@@ -5,8 +5,7 @@ apply from: "$rootDir/gradle/lombok.gradle"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
-  api project(":kork-core")
-  api "commons-io:commons-io"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
   api "com.hubspot.jinjava:jinjava"
 
   testImplementation "org.codehaus.groovy:groovy-all"

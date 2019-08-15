@@ -20,15 +20,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /** Translates String messages into Spinnaker artifacts using a supplied Jinja template */
@@ -105,8 +103,17 @@ public class JinjaArtifactExtractor implements ArtifactExtractor {
       if (templateStream == null) {
         return "";
       } else {
-        try {
-          return IOUtils.toString(templateStream, Charset.forName("UTF-8"));
+
+        try (InputStreamReader isr =
+                new InputStreamReader(
+                    new BufferedInputStream(templateStream), Charset.forName("UTF-8"));
+            StringWriter sw = new StringWriter()) {
+          int charsRead;
+          final char[] buf = new char[4096];
+          while ((charsRead = isr.read(buf)) != -1) {
+            sw.write(buf, 0, charsRead);
+          }
+          return sw.toString();
         } catch (IOException ioe) {
           throw new RuntimeException(ioe);
         }

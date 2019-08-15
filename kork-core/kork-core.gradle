@@ -5,20 +5,19 @@ apply from: "$rootDir/gradle/lombok.gradle"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
+  api project(":kork-exceptions")
   api "org.springframework.boot:spring-boot-autoconfigure"
   api "org.springframework.boot:spring-boot-starter-actuator"
-  api "com.netflix.archaius:archaius-core"
   api "com.netflix.eureka:eureka-client"
-  api "com.amazonaws:aws-java-sdk-core"
   api "com.netflix.spectator:spectator-api"
-  api "com.netflix.spectator:spectator-ext-aws"
-  api "com.netflix.spectator:spectator-ext-gc"
-  api "com.netflix.spectator:spectator-ext-jvm"
-  api "com.netflix.spectator:spectator-web-spring"
   api "com.google.code.findbugs:jsr305"
-  api "com.netflix.netflix-commons:netflix-eventbus"
   api "javax.inject:javax.inject:1"
-  api "commons-configuration:commons-configuration"
+
+  implementation "com.netflix.netflix-commons:netflix-eventbus"
+  implementation "com.netflix.archaius:archaius-core"
+  implementation "commons-configuration:commons-configuration"
+  implementation "com.netflix.spectator:spectator-ext-gc"
+  implementation "com.netflix.spectator:spectator-ext-jvm"
 
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation("org.mockito:mockito-core")
