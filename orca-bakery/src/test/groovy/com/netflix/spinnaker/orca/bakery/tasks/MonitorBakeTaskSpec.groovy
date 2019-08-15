@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -42,10 +44,22 @@ class MonitorBakeTaskSpec extends Specification {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
     def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def bakery = Mock(BakeryService) {
+      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState, result: bakeResult))
+    }
 
     and:
-    task.bakery = Stub(BakeryService) {
-      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState, result: bakeResult))
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: true
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     expect:
@@ -69,13 +83,26 @@ class MonitorBakeTaskSpec extends Specification {
     def id = randomUUID().toString()
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
     def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
-
-    and:
-    task.bakery = Stub(BakeryService) {
+    def bakery = Mock(BakeryService) {
       lookupStatus(stage.context.region, id) >> Observable.from(
         new BakeStatus(id: id, state: state, result: null)
       )
     }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: true
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
+
     task.createBakeTask = Mock(CreateBakeTask) {
       1 * execute(_) >> { return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([stage: 1]).outputs([global: 2]).build() }
     }
@@ -96,10 +123,22 @@ class MonitorBakeTaskSpec extends Specification {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
     def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def bakery = Mock(BakeryService) {
+      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
+    }
 
     and:
-    task.bakery = Stub(BakeryService) {
-      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+        extractBuildDetails: false,
+        allowMissingPackageInstallation: false,
+        roscoApisEnabled: true
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
     }
 
     when:

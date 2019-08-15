@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -36,19 +37,25 @@ class MonitorBakeTask implements OverridableTimeoutRetryableTask {
   long backoffPeriod = 30000
   long timeout = 3600000 // 1hr
 
-  @Autowired
-  BakeryService bakery
+  @Autowired(required = false)
+  BakerySelector bakerySelector
 
   @Autowired
   CreateBakeTask createBakeTask
 
   @Override
   TaskResult execute(Stage stage) {
+    if (!bakerySelector) {
+      throw new UnsupportedOperationException(
+        "You have not enabled baking for this orca instance. Set bakery.enabled: true")
+    }
+
     def region = stage.context.region as String
     def previousStatus = stage.context.status as BakeStatus
 
     try {
-      def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
+      def bakery = bakerySelector.select(stage)
+      def newStatus = bakery.service.lookupStatus(region, previousStatus.id).toBlocking().single()
       if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
         log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)
@@ -68,7 +75,7 @@ class MonitorBakeTask implements OverridableTimeoutRetryableTask {
     return [BakeStatus.State.CANCELED, BakeStatus.State.CANCELLED].contains(state)
   }
 
-  private ExecutionStatus mapStatus(BakeStatus newStatus) {
+  private static ExecutionStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
         return newStatus.result == BakeStatus.Result.SUCCESS ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
