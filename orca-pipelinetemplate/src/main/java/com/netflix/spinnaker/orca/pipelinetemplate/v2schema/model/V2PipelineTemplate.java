@@ -118,9 +118,13 @@ public class V2PipelineTemplate implements VersionedSchema {
   }
 
   public List<V2StageDefinition> getStages() {
+    Object pipelineStages = pipeline.get("stages");
+    if (pipelineStages == null) {
+      return Collections.emptyList();
+    }
     ObjectMapper oj = new ObjectMapper();
     TypeReference v2StageDefTypeRef = new TypeReference<List<V2StageDefinition>>() {};
-    return oj.convertValue(pipeline.get("stages"), v2StageDefTypeRef);
+    return oj.convertValue(pipelineStages, v2StageDefTypeRef);
   }
 
   public void setStages(List<V2StageDefinition> stages) {
