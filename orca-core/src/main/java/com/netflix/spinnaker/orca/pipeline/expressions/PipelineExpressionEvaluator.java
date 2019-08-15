@@ -21,12 +21,7 @@ import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
 import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.BuildInfo;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsArtifact;
-import com.netflix.spinnaker.orca.pipeline.model.SourceControl;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.Trigger;
+import com.netflix.spinnaker.orca.pipeline.model.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +49,8 @@ public class PipelineExpressionEvaluator {
         Trigger.class,
         BuildInfo.class,
         JenkinsArtifact.class,
+        JenkinsBuildInfo.class,
+        ConcourseBuildInfo.class,
         SourceControl.class,
         ExecutionStatus.class,
         Execution.AuthenticationDetails.class,
