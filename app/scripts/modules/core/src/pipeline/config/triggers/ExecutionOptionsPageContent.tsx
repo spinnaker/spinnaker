@@ -33,7 +33,7 @@ export function ExecutionOptionsPageContent(props: IExecutionOptionsPageContentP
                 {...inputProps}
                 text={
                   <>
-                    <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
+                    <strong>Do not automatically cancel pipelines waiting in queue. </strong>
                     <HelpField id={'pipeline.config.parallel.cancel.queue'} />
                   </>
                 }
