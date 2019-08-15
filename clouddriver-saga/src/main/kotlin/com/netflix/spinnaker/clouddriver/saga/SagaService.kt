@@ -21,13 +21,14 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaMissingRequiredCommandException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaNotFoundException
+import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaSystemException
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlowIterator
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.ResolvableType
@@ -55,8 +56,6 @@ import org.springframework.core.ResolvableType
  *
  * val result = sagaService.applyBlocking(flow, DoMyAction())
  * ```
- *
- * TODO(rz): SagaAction timing metrics?
  */
 @Beta
 class SagaService(
@@ -66,13 +65,17 @@ class SagaService(
 
   private lateinit var applicationContext: ApplicationContext
 
-  private val sagaInvocationId = registry.createId("sagas.invocations")
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   private val actionInvocationsId = registry.createId("sagas.actions.invocations")
 
   fun <T> applyBlocking(flow: SagaFlow, startingCommand: SagaCommand): T? {
     val initialSaga = initializeSaga(startingCommand)
 
+    log.info("Applying saga: ${initialSaga.name}/${initialSaga.id}")
+
     if (initialSaga.isComplete()) {
+      log.info("Saga already complete, exiting early: ${initialSaga.name}/${initialSaga.id}")
       return invokeCompletionHandler(initialSaga, flow)
     }
 
@@ -82,12 +85,13 @@ class SagaService(
       val saga = flowState.saga
       val action = flowState.action
 
+      log.debug("Applying saga action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}")
+
       val requiredCommand: Class<SagaCommand> = getRequiredCommand(action)
       if (!saga.completed(requiredCommand)) {
         val stepCommand = saga.getNextCommand(requiredCommand)
           ?: throw SagaMissingRequiredCommandException("Missing required command ${requiredCommand.simpleName}")
 
-        // TODO(rz): error handling
         val result = try {
           action.apply(stepCommand, saga).also {
             registry
@@ -95,6 +99,8 @@ class SagaService(
               .increment()
           }
         } catch (e: Exception) {
+          log.error(
+            "Encountered error while applying action '${action.javaClass.simpleName}' on ${saga.name}/${saga.id}", e)
           saga.addEvent(SagaActionErrorOccurred(
             sagaName = saga.name,
             sagaId = saga.id,
@@ -149,6 +155,7 @@ class SagaService(
     return sagaRepository.get(command.sagaName, command.sagaId)
       ?: Saga(command.sagaName, command.sagaId)
         .also {
+          log.debug("Initializing new saga: ${it.name}/${it.id}")
           it.addEvent(command)
           sagaRepository.save(it)
         }
@@ -184,7 +191,7 @@ class SagaService(
       @Suppress("UNCHECKED_CAST")
       return rawClass as Class<SagaCommand>
     }
-    throw SystemException("not a command")
+    throw SagaSystemException("Resolved next action is not a SagaCommand: ${rawClass.simpleName}")
   }
 
   /**
