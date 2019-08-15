@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.TimeUnit
 
 import static java.util.Collections.unmodifiableSet
@@ -128,11 +129,11 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
   private CacheResult buildCacheResult(Map<String, Set<String>> tagMap) {
     log.info("Describing items in ${agentType}")
 
-    Map<String, DefaultCacheDataBuilder> cachedTags = DefaultCacheDataBuilder.defaultCacheDataBuilderMap()
-    Map<String, DefaultCacheDataBuilder> cachedIds = DefaultCacheDataBuilder.defaultCacheDataBuilderMap()
+    ConcurrentMap<String, DefaultCacheDataBuilder> cachedTags = DefaultCacheDataBuilder.defaultCacheDataBuilderMap()
+    ConcurrentMap<String, DefaultCacheDataBuilder> cachedIds = DefaultCacheDataBuilder.defaultCacheDataBuilderMap()
 
     tagMap.forEach { repository, tags ->
-      tags.forEach { tag ->
+      tags.parallelStream().forEach { tag ->
         if (!tag) {
           log.warn("Empty tag encountered for $accountName/$repository, not caching")
           return
@@ -158,23 +159,26 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
             }
           }
         }
-        try {
-          creationDate = credentials.client.getCreationDate(repository, tag)
-        } catch (Exception e) {
-          log.warn("Unable to fetch tag creation date, reason: {} (tag: {}, repository: {})", e.message, tag, repository)
+
+        if (credentials.sortTagsByDate) {
+          try {
+            creationDate = credentials.client.getCreationDate(repository, tag)
+          } catch (Exception e) {
+            log.warn("Unable to fetch tag creation date, reason: {} (tag: {}, repository: {})", e.message, tag, repository)
+          }
         }
 
-        cachedTags[tagKey].with {
-          attributes.name = "${repository}:${tag}".toString()
-          attributes.account = accountName
-          attributes.digest = digest
-          attributes.date = creationDate
-        }
+        def tagData = new DefaultCacheDataBuilder()
+        tagData.attributes.put("name", "${repository}:${tag}".toString())
+        tagData.attributes.put("account", accountName)
+        tagData.attributes.put("digest", digest)
+        tagData.attributes.put("date", creationDate)
+        cachedTags.put(tagKey, tagData)
 
-        cachedIds[imageIdKey].with {
-          attributes.tagKey = tagKey
-          attributes.account = accountName
-        }
+        def idData = new DefaultCacheDataBuilder()
+        idData.attributes.put("tagKey", tagKey)
+        idData.attributes.put("account", accountName)
+        cachedIds.put(imageIdKey, idData)
       }
 
       null
