@@ -260,6 +260,7 @@ class AmazonReservationReport implements ReservationReport {
      */
     static String normalizeInstanceType(String instanceType) {
       def instanceClassRankings = [
+        'metal' : 9, // highest priority
         'xlarge': 6,
         'large' : 5,
         'medium': 4,

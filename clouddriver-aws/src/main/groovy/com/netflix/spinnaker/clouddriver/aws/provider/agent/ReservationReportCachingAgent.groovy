@@ -234,7 +234,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       objectMapper
         .writerWithView(AmazonReservationReport.Views.V3.class)
         .writeValueAsString(
-        new AmazonReservationReportBuilder.V3().build(objectMapper.convertValue(v2, AmazonReservationReport))
+        new AmazonReservationReportBuilder.V3().build(registry, objectMapper.convertValue(v2, AmazonReservationReport))
       ),
       Map
     )

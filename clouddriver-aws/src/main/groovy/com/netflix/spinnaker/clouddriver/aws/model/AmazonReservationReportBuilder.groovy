@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.model.DataProvider
@@ -44,19 +45,30 @@ interface AmazonReservationReportBuilder {
       "m3.large" : 0.5,
       "m4.large" : 0.5,
       "m5.large" : 0.5,
+      "m5.metal" : 24,
+
+      "m5d.large": 0.5,
+      "m5d.metal": 24,
 
       "c1.medium": 0.25,
       "c3.large" : 0.5,
       "c4.large" : 0.5,
       "c5.large" : 0.5,
+      "c5.metal" : 24,
 
       "r3.large" : 0.5,
       "r4.large" : 0.5,
+      "r5.large" : 0.5,
+      "r5.metal" : 24,
 
-      "i3.large" : 0.5
+      "r5d.metal": 24,
+
+      "i3.large" : 0.5,
+      "i3.metal" : 16
     ]
 
-    List<OverallReservationDetail> aggregateRegionalReservations(List<OverallReservationDetail> reservations) {
+    List<OverallReservationDetail> aggregateRegionalReservations(Registry registry,
+                                                                 List<OverallReservationDetail> reservations) {
       def regionalReservations = filterRegionalReservations(reservations)
 
       regionalReservations.groupBy { "${it.region}-${it.instanceFamily()}-${it.os}" }.collect {
@@ -72,6 +84,8 @@ interface AmazonReservationReportBuilder {
           double multiplier = getMultiplier(o.instanceType)
           if (!multiplier) {
             log.warn("Unable to determine multiplier for instance type '${o.instanceType}'")
+            registry.counter("reservedInstances.unsupportedType").increment()
+
             return
           }
 
@@ -156,13 +170,13 @@ interface AmazonReservationReportBuilder {
   class V3 implements AmazonReservationReportBuilder {
     private final Support support = new Support()
 
-    AmazonReservationReport build(AmazonReservationReport source) {
+    AmazonReservationReport build(Registry registry, AmazonReservationReport source) {
       def reservations = source.reservations.sort(
         false, new AmazonReservationReport.DescendingOverallReservationDetailComparator()
       )
 
       // aggregate all regional reservations for each instance family
-      def regionalReservations = support.aggregateRegionalReservations(reservations)
+      def regionalReservations = support.aggregateRegionalReservations(registry, reservations)
 
       // remove any regional reservations that have been fully utilized (ie. they've all been converted to xlarge)
       reservations.removeAll { it.availabilityZone == "*" }
