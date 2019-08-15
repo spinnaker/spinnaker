@@ -9,6 +9,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.google.guava:guava"
   implementation "com.google.code.findbugs:jsr305"
+  implementation "org.springframework:spring-web"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "javax.validation:validation-api"
