@@ -308,6 +308,10 @@
  * [**hal config metric-stores stackdriver edit**](#hal-config-metric-stores-stackdriver-edit)
  * [**hal config metric-stores stackdriver enable**](#hal-config-metric-stores-stackdriver-enable)
  * [**hal config notification**](#hal-config-notification)
+ * [**hal config notification github-status**](#hal-config-notification-github-status)
+ * [**hal config notification github-status disable**](#hal-config-notification-github-status-disable)
+ * [**hal config notification github-status edit**](#hal-config-notification-github-status-edit)
+ * [**hal config notification github-status enable**](#hal-config-notification-github-status-enable)
  * [**hal config notification pubsub**](#hal-config-notification-pubsub)
  * [**hal config notification pubsub google**](#hal-config-notification-pubsub-google)
  * [**hal config notification pubsub google add**](#hal-config-notification-pubsub-google-add)
@@ -5950,9 +5954,75 @@ hal config notification [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
+ * `github-status`: Manage and view Spinnaker configuration for the github-status notification
  * `pubsub`: Configure, validate, and view the specified pubsub.
  * `slack`: Manage and view Spinnaker configuration for the slack notification
  * `twilio`: Manage and view Spinnaker configuration for the twilio notification
+
+---
+## hal config notification github-status
+
+Manage and view Spinnaker configuration for the github-status notification
+
+#### Usage
+```
+hal config notification github-status [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the github-status notification as disabled
+ * `edit`: Edit the github-status notification type
+ * `enable`: Set the github-status notification as enabled
+
+---
+## hal config notification github-status disable
+
+Set the github-status notification as disabled
+
+#### Usage
+```
+hal config notification github-status disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification github-status edit
+
+Edit the github-status notification type
+
+#### Usage
+```
+hal config notification github-status edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Your github account token.
+
+
+---
+## hal config notification github-status enable
+
+Set the github-status notification as enabled
+
+#### Usage
+```
+hal config notification github-status enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config notification pubsub

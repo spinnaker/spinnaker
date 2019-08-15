@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
+import com.netflix.spinnaker.halyard.config.model.v1.notifications.GithubStatusNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
@@ -207,6 +208,9 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
     TwilioNotification twilioNotification = notifications.getTwilio();
     bindings.put("notifications.twilio.enabled", twilioNotification.isEnabled() + "");
+
+    GithubStatusNotification githubStatusNotification = notifications.getGithubStatus();
+    bindings.put("notifications.github-status.enabled", githubStatusNotification.isEnabled() + "");
 
     // Configure canary
     Canary canary = deploymentConfiguration.getCanary();

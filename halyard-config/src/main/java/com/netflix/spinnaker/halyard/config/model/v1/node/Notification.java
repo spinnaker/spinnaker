@@ -43,7 +43,8 @@ public abstract class Notification extends Node implements Cloneable {
 
   public enum NotificationType {
     SLACK("slack"),
-    TWILIO("twilio");
+    TWILIO("twilio"),
+    GITHUB_STATUS("github-status");
 
     private final String name;
 
