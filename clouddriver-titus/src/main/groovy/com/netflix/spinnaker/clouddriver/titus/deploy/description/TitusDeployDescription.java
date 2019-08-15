@@ -3,7 +3,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.description;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
-import com.netflix.spinnaker.clouddriver.titus.JobType;
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs;
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy;
@@ -129,15 +128,6 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
       if (softConstraints != null) {
         softConstraints.forEach(
             c -> submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(c)));
-      }
-
-      if (JobType.isEqual(jobType, JobType.SERVICE)
-          && (hardConstraints == null
-              || !hardConstraints.contains(SubmitJobRequest.Constraint.ZONE_BALANCE))
-          && (softConstraints == null
-              || !softConstraints.contains(SubmitJobRequest.Constraint.ZONE_BALANCE))) {
-        submitJobRequest.withConstraint(
-            SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE));
       }
     }
 

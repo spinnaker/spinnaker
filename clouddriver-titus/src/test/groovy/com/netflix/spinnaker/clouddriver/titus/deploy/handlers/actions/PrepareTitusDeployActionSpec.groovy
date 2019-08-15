@@ -100,7 +100,11 @@ class PrepareTitusDeployActionSpec extends Specification {
         environment: ["HI": "hello"],
         containerAttributes: [sourceAttr: "sourceVal"],
         softConstraints: [],
-        hardConstraints: []
+        hardConstraints: [],
+        serviceJobProcesses: [
+          disableIncreaseDesired: true,
+          disableDecreaseDesired: true
+        ]
       )
     }
     awsLookupUtil.securityGroupIdExists(_, _, _) >> true
@@ -108,13 +112,17 @@ class PrepareTitusDeployActionSpec extends Specification {
     result.events.isEmpty() == true
     result.nextCommand instanceof SubmitTitusJob.SubmitTitusJobCommand
     result.nextCommand.description.with {
-        securityGroups == ["hello"]
-        capacity.min == 10
-        capacity.max == 10
-        capacity.desired == 10
-        labels == [sourceLabel: "sourceVal"]
-        containerAttributes == [sourceAttr: "sourceVal"]
-        env == ["HI": "hello"]
+      securityGroups == ["hello"]
+      capacity.min == 10
+      capacity.max == 10
+      capacity.desired == 10
+      labels == [sourceLabel: "sourceVal"]
+      containerAttributes == [sourceAttr: "sourceVal"]
+      env == ["HI": "hello"]
+      serviceJobProcesses == [
+        disableIncreaseDesired: true,
+        disableDecreaseDesired: true
+      ]
     }
   }
 
