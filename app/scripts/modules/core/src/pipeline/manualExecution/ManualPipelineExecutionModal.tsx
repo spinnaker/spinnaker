@@ -137,7 +137,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
   }
 
   private submit = (values: IPipelineCommand): void => {
-    const selectedTrigger: { [key: string]: any } = values.trigger || {};
+    const selectedTrigger: { [key: string]: any } = clone(values.trigger || {});
     const command: { [key: string]: any } = {
       trigger: selectedTrigger,
     };
