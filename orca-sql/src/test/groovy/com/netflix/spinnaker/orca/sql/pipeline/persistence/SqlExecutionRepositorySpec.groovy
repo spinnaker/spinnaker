@@ -134,6 +134,28 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
     pipelines[0].stages[0].context.foo == 'FOO'
   }
 
+  def "can store a pipeline with cyclic reference"() {
+    given:
+    def id = UUID.randomUUID().toString()
+    ExecutionRepository repo = createExecutionRepository()
+    Execution e = new Execution(PIPELINE, id, "myapp")
+    Stage s = new Stage(e, "wait", "wait stage", [foo: 2])
+    // try to create cyclic reference
+    s.context.foo = s
+    e.stages.add(s)
+
+    when:
+    repo.store(e)
+
+    then:
+    def pipelines = repo.retrieve(PIPELINE).toList().toBlocking().single()
+    pipelines.size() == 1
+    pipelines[0].id == id
+    pipelines[0].stages.size() == 1
+    pipelines[0].stages[0].id == e.stages[0].id
+    pipelines[0].stages[0].context.foo == e.stages[0].id
+  }
+
   def "can load a pipeline by ULID"() {
     given:
     def id = ulid.nextULID()
