@@ -102,7 +102,8 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       conch,
       true,
       Optional.of(Schedulers.immediate()),
-      10
+      10,
+      queueEnabled = true
     )
   }
 

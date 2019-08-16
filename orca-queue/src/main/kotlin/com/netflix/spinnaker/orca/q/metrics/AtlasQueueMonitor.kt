@@ -78,9 +78,10 @@ class AtlasQueueMonitor
   private val repository: ExecutionRepository,
   private val clock: Clock,
   private val conch: NotificationClusterLock,
-  @Value("\${queue.zombie-check.enabled:false}")private val zombieCheckEnabled: Boolean,
+  @Value("\${queue.zombie-check.enabled:false}") private val zombieCheckEnabled: Boolean,
   @Qualifier("scheduler") private val zombieCheckScheduler: Optional<Scheduler>,
-  @Value("\${queue.zombie-check.cutoff-minutes:10}") private val zombieCheckCutoffMinutes: Long
+  @Value("\${queue.zombie-check.cutoff-minutes:10}") private val zombieCheckCutoffMinutes: Long,
+  @Value("\${keiko.queue.enabled:true}") private val queueEnabled: Boolean
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -106,11 +107,17 @@ class AtlasQueueMonitor
 
   @Scheduled(fixedDelayString = "\${queue.depth.metric.frequency:30000}")
   fun pollQueueState() {
-    _lastState.set(queue.readState())
+    if (queueEnabled) {
+      _lastState.set(queue.readState())
+    }
   }
 
   @Scheduled(fixedDelayString = "\${queue.zombie-check.interval-ms:3600000}")
   fun checkForZombies() {
+    if (!queueEnabled) {
+      return
+    }
+
     val lockAcquired = conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))
 
     if (!zombieCheckEnabled || !lockAcquired) {
@@ -145,12 +152,16 @@ class AtlasQueueMonitor
           registry.counter("queue.zombies", tags).increment()
         }
     } finally {
-        MDC.remove(AGENT_MDC_KEY)
+      MDC.remove(AGENT_MDC_KEY)
     }
   }
 
   @PostConstruct
   fun registerGauges() {
+    if (!queueEnabled) {
+      return
+    }
+
     log.info("Monitorable queue implementation $queue found. Exporting metrics to Atlas.")
 
     registry.gauge("queue.depth", this, {
