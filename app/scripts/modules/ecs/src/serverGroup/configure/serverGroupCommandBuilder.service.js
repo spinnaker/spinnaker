@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
@@ -17,8 +17,6 @@ module.exports = angular
     'instanceTypeService',
     'ecsServerGroupConfigurationService',
     function($q, instanceTypeService, ecsServerGroupConfigurationService) {
-      const CLOUD_PROVIDER = 'ecs';
-
       function reconcileUpstreamImages(image, upstreamImages) {
         if (image.fromContext) {
           let matchingImage = upstreamImages.find(otherImage => image.stageId === otherImage.stageId);
@@ -253,84 +251,21 @@ module.exports = angular
       }
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-        var preferredZonesLoader = AccountService.getPreferredZonesByAccount('ecs');
+        var commandOptions = { account: serverGroup.account, region: serverGroup.region };
+        var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-        // TODO: not set when called w/ existing template, might need to call buildUpdateServerGroupCommand?
-        var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
-
-        var asyncLoader = $q.all({
-          preferredZones: preferredZonesLoader,
-        });
-
+        // do NOT copy: deployment strategy. DO copy: account, region, cluster name, stack
+        // TODO: query for & pull in ECS-specific data that would be useful, e.g, network mode, launch type
         return asyncLoader.then(function(asyncData) {
-          var zones = serverGroup.asg.availabilityZones.sort();
-          var usePreferredZones = false;
-          var preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
-          if (preferredZonesForAccount) {
-            var preferredZones = preferredZonesForAccount[serverGroup.region].sort();
-            usePreferredZones = zones.join(',') === preferredZones.join(',');
-          }
+          var command = asyncData.command;
 
-          // These processes should never be copied over, as the affect launching instances and enabling traffic
-          let enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
-
-          var command = {
-            application: application.name,
-            strategy: '',
-            stack: serverGroupName.stack,
-            freeFormDetails: serverGroupName.freeFormDetails,
-            credentials: serverGroup.account,
-            healthCheckType: serverGroup.asg.healthCheckType,
-            loadBalancers: serverGroup.asg.loadBalancerNames,
-            region: serverGroup.region,
-            useSourceCapacity: true,
-            capacity: {
-              min: serverGroup.asg.minSize,
-              max: serverGroup.asg.maxSize,
-              desired: serverGroup.asg.desiredCapacity,
-            },
-            availabilityZones: zones,
-            selectedProvider: CLOUD_PROVIDER,
-            source: {
-              account: serverGroup.account,
-              region: serverGroup.region,
-              asgName: serverGroup.asg.autoScalingGroupName,
-            },
-            suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
-              .map(process => process.processName)
-              .filter(name => !enabledProcesses.includes(name)),
-            targetGroup: serverGroup.targetGroup,
-            taskDefinitionArtifact: {},
-            taskDefinitionArtifactAccount: '',
-            useTaskDefinitionArtifact: false,
-            containerMappings: [],
-            loadBalancedContainer: '',
-            copySourceScalingPoliciesAndActions: true,
-            viewState: {
-              instanceProfile: asyncData.instanceProfile,
-              useAllImageSelection: false,
-              useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
-              usePreferredZones: usePreferredZones,
-              mode: mode,
-              isNew: false,
-              dirty: {},
-            },
-          };
-
-          if (mode === 'editPipeline') {
-            command.strategy = 'redblack';
-            command.suspendedProcesses = [];
-          }
-
-          if (serverGroup.launchConfig) {
-            angular.extend(command, {
-              iamRole: serverGroup.launchConfig.iamInstanceProfile,
-            });
-            if (serverGroup.launchConfig.userData) {
-              command.base64UserData = serverGroup.launchConfig.userData;
-            }
-            command.viewState.imageId = serverGroup.launchConfig.imageId;
-          }
+          command.credentials = serverGroup.account;
+          command.app = serverGroup.moniker.app;
+          command.stack = serverGroup.moniker.stack;
+          command.region = serverGroup.region;
+          command.ecsClusterName = serverGroup.ecsCluster;
+          command.capacity = serverGroup.capacity;
+          command.viewState.mode = mode;
 
           return command;
         });

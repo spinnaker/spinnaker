@@ -102,14 +102,8 @@ module.exports = angular
       };
 
       this.templateSelectionText = {
-        copied: [
-          'account, region, subnet, cluster name (stack, details)',
-          'load balancers',
-          'all fields on the Advanced Settings page',
-        ],
-        notCopied: ['the following suspended scaling processes: Launch, Terminate, AddToLoadBalancer'],
-        additionalCopyText:
-          'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.',
+        copied: ['account, region, ecs cluster, stack', 'capacity'],
+        notCopied: ['launch type, target group, network mode'],
       };
       if (!$scope.command.viewState.disableStrategySelection) {
         this.templateSelectionText.notCopied.push(
