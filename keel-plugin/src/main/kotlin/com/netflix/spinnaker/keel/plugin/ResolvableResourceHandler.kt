@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceFormatException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import org.slf4j.Logger
@@ -138,7 +138,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   suspend fun create(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
-  ): List<TaskRef> =
+  ): List<Task> =
     upsert(resource, resourceDiff)
 
   /**
@@ -154,7 +154,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   suspend fun update(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
-  ): List<TaskRef> =
+  ): List<Task> =
     upsert(resource, resourceDiff)
 
   /**
@@ -168,7 +168,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   suspend fun upsert(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
-  ): List<TaskRef> {
+  ): List<Task> {
     TODO("Not implemented")
   }
 

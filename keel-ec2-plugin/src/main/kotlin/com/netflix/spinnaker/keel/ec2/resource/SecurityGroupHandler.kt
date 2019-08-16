@@ -34,7 +34,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -73,41 +73,45 @@ class SecurityGroupHandler(
   override suspend fun create(
     resource: Resource<SecurityGroup>,
     resourceDiff: ResourceDiff<SecurityGroup>
-  ): List<TaskRef> {
+  ): List<Task> {
+    val description: String
     val taskRef = resource.spec.let { spec ->
+      description = "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}"
       orcaService
         .orchestrate(
           resource.serviceAccount,
           OrchestrationRequest(
-            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            description,
             spec.moniker.app,
-            "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            description,
             listOf(spec.toCreateJob()),
             OrchestrationTrigger(resource.name.toString())
           ))
     }
     log.info("Started task {} to create security group", taskRef.ref)
-    return listOf(TaskRef(taskRef.ref))
+    return listOf(Task(id = taskRef.taskId, name = description))
   }
 
   override suspend fun update(
     resource: Resource<SecurityGroup>,
     resourceDiff: ResourceDiff<SecurityGroup>
-  ): List<TaskRef> {
+  ): List<Task> {
+    val description: String
     val taskRef = resource.spec.let { spec ->
+      description = "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}"
       orcaService
         .orchestrate(
           resource.serviceAccount,
           OrchestrationRequest(
-            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            description,
             spec.moniker.app,
-            "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
+            description,
             listOf(spec.toUpdateJob()),
             OrchestrationTrigger(resource.name.toString())
           ))
     }
     log.info("Started task {} to update security group", taskRef.ref)
-    return listOf(TaskRef(taskRef.ref))
+    return listOf(Task(id = taskRef.taskId, name = description))
   }
 
   override suspend fun delete(resource: Resource<SecurityGroup>) {

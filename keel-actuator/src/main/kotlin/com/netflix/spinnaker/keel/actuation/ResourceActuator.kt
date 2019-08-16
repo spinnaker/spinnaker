@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
@@ -121,14 +121,14 @@ class ResourceActuator(
   private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
-  ): List<TaskRef> =
+  ): List<Task> =
     create(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.update(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
-  ): List<TaskRef> =
+  ): List<Task> =
     update(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
   // end type coercing extensions
 }

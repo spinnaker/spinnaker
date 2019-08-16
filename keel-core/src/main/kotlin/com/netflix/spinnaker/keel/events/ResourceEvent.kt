@@ -198,10 +198,10 @@ data class ResourceActuationLaunched(
   override val kind: String,
   override val name: String,
   val plugin: String,
-  val tasks: List<TaskRef>,
+  val tasks: List<Task>,
   override val timestamp: Instant
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>, clock: Clock = Companion.clock) :
+  constructor(resource: Resource<*>, plugin: String, tasks: List<Task>, clock: Clock = Companion.clock) :
     this(
       resource.uid,
       resource.apiVersion,
@@ -270,6 +270,11 @@ data class ResourceValid(
 data class TaskRef(val value: String) {
   override fun toString(): String = value
 }
+
+data class Task(
+  val id: String,
+  val name: String
+)
 
 class TaskRefDeserializer : StdDeserializer<TaskRef>(TaskRef::class.java) {
   override fun deserialize(parser: JsonParser, context: DeserializationContext): TaskRef =

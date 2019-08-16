@@ -25,7 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -88,7 +88,7 @@ class ClusterHandler(
   override suspend fun upsert(
     resource: Resource<ClusterSpec>,
     resourceDiff: ResourceDiff<Cluster>
-  ): List<TaskRef> {
+  ): List<Task> {
     val spec = resourceDiff.desired
     val job = when {
       resourceDiff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
@@ -96,20 +96,21 @@ class ClusterHandler(
     }
 
     log.info("Upserting cluster using task: {}", job)
+    val description = "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
 
     return orcaService
       .orchestrate(
         resource.serviceAccount,
         OrchestrationRequest(
-          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
+          description,
           spec.moniker.app,
-          "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}",
+          description,
           listOf(Job(job["type"].toString(), job)),
           OrchestrationTrigger(resource.name.toString())
         ))
       .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee
-      .let { listOf(TaskRef(it.ref)) }
+      .let { listOf(Task(id = it.taskId, name = description)) }
   }
 
   override suspend fun actuationInProgress(name: ResourceName) =

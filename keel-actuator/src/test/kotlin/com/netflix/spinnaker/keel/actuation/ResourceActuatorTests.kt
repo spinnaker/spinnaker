@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckError
@@ -179,7 +179,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           before {
             coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
             coEvery { plugin1.current(resource) } returns null
-            coEvery { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+            coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
             with(resource) {
               runBlocking {
@@ -204,7 +204,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           before {
             coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
             coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
-            coEvery { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+            coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
             with(resource) {
               runBlocking {

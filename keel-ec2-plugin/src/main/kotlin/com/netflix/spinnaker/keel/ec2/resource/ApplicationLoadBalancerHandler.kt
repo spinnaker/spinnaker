@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -54,7 +54,7 @@ class ApplicationLoadBalancerHandler(
   override suspend fun upsert(
     resource: Resource<ApplicationLoadBalancer>,
     resourceDiff: ResourceDiff<ApplicationLoadBalancer>
-  ): List<TaskRef> {
+  ): List<Task> {
     val action = when {
       resourceDiff.current == null -> "Creating"
       else -> "Upserting"
@@ -80,7 +80,7 @@ class ApplicationLoadBalancerHandler(
       }
 
     log.info("Started task ${taskRef.ref} to $description")
-    return listOf(TaskRef(taskRef.ref))
+    return listOf(Task(id = taskRef.taskId, name = description))
   }
 
   override suspend fun delete(resource: Resource<ApplicationLoadBalancer>) {

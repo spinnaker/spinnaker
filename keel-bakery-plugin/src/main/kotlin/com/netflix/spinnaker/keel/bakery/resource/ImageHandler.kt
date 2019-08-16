@@ -18,7 +18,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -76,7 +76,7 @@ class ImageHandler(
   override suspend fun upsert(
     resource: Resource<ImageSpec>,
     resourceDiff: ResourceDiff<Image>
-  ): List<TaskRef> {
+  ): List<Task> {
     val (_, application, version) = resourceDiff.desired.appVersion.let { appVersion ->
       Regex("([\\w_]+)-(.+)")
         .find(appVersion)
@@ -85,12 +85,13 @@ class ImageHandler(
     }
     val artifact = igorService.getArtifact(application, version)
     log.info("baking new image for {}", resource.spec.artifactName)
+    val description = "Bake ${resourceDiff.desired.appVersion}"
     val taskRef = orcaService.orchestrate(
       resource.serviceAccount,
       OrchestrationRequest(
-        name = "Bake ${resourceDiff.desired.appVersion}",
+        name = description,
         application = resource.application,
-        description = "Bake ${resourceDiff.desired.appVersion}",
+        description = description,
         job = listOf(
           Job(
             "bake",
@@ -113,7 +114,7 @@ class ImageHandler(
         )
       )
     )
-    return listOf(TaskRef(taskRef.ref)) // TODO: wow, this is ugly
+    return listOf(Task(id = taskRef.taskId, name = description)) // TODO: wow, this is ugly
   }
 
   override suspend fun delete(resource: Resource<ImageSpec>) {

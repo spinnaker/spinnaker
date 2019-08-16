@@ -26,7 +26,7 @@ import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -105,7 +105,7 @@ class KeelTagHandler(
   override suspend fun upsert(
     resource: Resource<KeelTagSpec>,
     resourceDiff: ResourceDiff<TaggedResource>
-  ): List<TaskRef> {
+  ): List<Task> {
     val desired = resourceDiff.desired
     val current = resourceDiff.current
 
@@ -115,17 +115,18 @@ class KeelTagHandler(
       else -> desired.removeTagJob()
     }
 
+    val description = "Upsert entity tag for resource ${resource.spec.keelId}"
     val taskResponse = orcaService.orchestrate(
       resource.serviceAccount,
       OrchestrationRequest(
-        "Upsert entity tag for resource ${resource.spec.keelId}",
+        description,
         desired.entityRef.application,
-        "Upsert entity tag for resource ${resource.spec.keelId}",
+        description,
         listOf(Job(job["type"].toString(), job)),
         OrchestrationTrigger(resource.name.toString())
       ))
     log.info("Started task {} to upsert entity tags", taskResponse.ref)
-    return listOf(TaskRef(taskResponse.ref))
+    return listOf(Task(id = taskResponse.taskId, name = description))
   }
 
   private fun ResourceDiff<TaggedResource>.needsTag(): Boolean {

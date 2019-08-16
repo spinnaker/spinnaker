@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.events.TaskRef
+import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
@@ -107,7 +107,7 @@ internal class EventControllerTests : JUnit5Minutests {
           clock.incrementBy(Duration.ofMinutes(10))
           appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
           clock.incrementBy(Duration.ofMinutes(10))
-          appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(TaskRef(randomUID().toString())), clock))
+          appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(Task(id = randomUID().toString(), name = "i did a thing")), clock))
           clock.incrementBy(Duration.ofMinutes(10))
           appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
           clock.incrementBy(Duration.ofMinutes(10))
