@@ -110,6 +110,7 @@ public class ResourceEvent {
     List<Task> tasks;
   }
 
+  @Data
   public static class Task {
     String id;
     String name;
