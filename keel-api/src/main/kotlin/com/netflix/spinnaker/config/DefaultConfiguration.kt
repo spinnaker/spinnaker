@@ -18,8 +18,10 @@ import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
+import org.springframework.beans.factory.getBeansOfType
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
@@ -66,9 +68,14 @@ class DefaultConfiguration {
 
   @Bean
   fun resourceTypeIdentifier(
-    handlers: List<ResolvableResourceHandler<*, *>>
+    applicationContext: ApplicationContext
   ): ResourceTypeIdentifier =
     object : ResourceTypeIdentifier {
+      // because otherwise we get a circular dependency
+      private val handlers by lazy {
+        applicationContext.getBeansOfType<ResolvableResourceHandler<*, *>>().values
+      }
+
       override fun identify(apiVersion: ApiVersion, kind: String): Class<*> {
         return handlers.supporting(apiVersion, kind).supportedKind.second
       }

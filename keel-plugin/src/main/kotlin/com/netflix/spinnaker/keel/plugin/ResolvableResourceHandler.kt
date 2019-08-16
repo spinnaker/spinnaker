@@ -189,7 +189,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
  *
  * @throws UnsupportedKind if no appropriate handlers are found in the list.
  */
-fun List<ResolvableResourceHandler<*, *>>.supporting(
+fun Collection<ResolvableResourceHandler<*, *>>.supporting(
   apiVersion: ApiVersion,
   kind: String
 ): ResolvableResourceHandler<*, *> =
