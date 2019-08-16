@@ -915,6 +915,12 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
+  @PUT("/v1/config/deployments/{deploymentName}/plugins/downloadingEnabled/")
+  DaemonTask<Halconfig, Void> setPluginsDownloadingEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
   @DELETE("/v1/config/deployments/{deploymentName}/plugins/{pluginName}/")
   DaemonTask<Halconfig, Void> deletePlugin(
       @Path("deploymentName") String deploymentName,

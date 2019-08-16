@@ -37,7 +37,8 @@ public class PluginProfileFactory extends StringBackedProfileFactory {
       SpinnakerRuntimeSettings endpoints) {
     final Plugins plugins = deploymentConfiguration.getPlugins();
 
-    Map<String, List<Map<String, Object>>> fullyRenderedYaml = new HashMap<>();
+    Map<String, Object> pluginsYaml = new HashMap<>();
+    Map<String, Object> fullyRenderedYaml = new HashMap<>();
 
     List<Map<String, Object>> pluginMetadata =
         plugins.getPlugins().stream()
@@ -46,7 +47,9 @@ public class PluginProfileFactory extends StringBackedProfileFactory {
             .map(p -> composeMetadata(p, p.generateManifest()))
             .collect(Collectors.toList());
 
-    fullyRenderedYaml.put("plugins", pluginMetadata);
+    pluginsYaml.put("pluginConfigurations", pluginMetadata);
+    pluginsYaml.put("downloadingEnabled", plugins.isDownloadingEnabled());
+    fullyRenderedYaml.put("plugins", pluginsYaml);
 
     profile.appendContents(
         yamlToString(deploymentConfiguration.getName(), profile, fullyRenderedYaml));

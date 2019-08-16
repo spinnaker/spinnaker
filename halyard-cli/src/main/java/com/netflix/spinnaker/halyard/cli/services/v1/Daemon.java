@@ -1360,6 +1360,15 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> setPluginDownloadingEnableDisable(
+      String deploymentName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(
+          getService().setPluginsDownloadingEnabled(deploymentName, validate, enable));
+      return null;
+    };
+  }
+
   private static DaemonService service;
   private static ObjectMapper objectMapper;
 

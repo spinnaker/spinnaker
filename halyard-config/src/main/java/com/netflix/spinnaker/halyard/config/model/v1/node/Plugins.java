@@ -40,4 +40,5 @@ public class Plugins extends Node {
 
   private List<Plugin> plugins = new ArrayList<>();
   private boolean enabled;
+  private boolean downloadingEnabled;
 }
