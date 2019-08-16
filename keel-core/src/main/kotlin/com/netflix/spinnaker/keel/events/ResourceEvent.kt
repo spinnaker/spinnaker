@@ -139,6 +139,8 @@ data class ResourceDeleted(
 
 abstract class ResourceCheckResult : ResourceEvent() {
   abstract val state: ResourceState
+
+  @JsonIgnore
   override val ignoreRepeatedInHistory = true
 }
 
@@ -152,6 +154,7 @@ data class ResourceMissing(
   override val name: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
+  @JsonIgnore
   override val state = Missing
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
@@ -176,6 +179,7 @@ data class ResourceDeltaDetected(
   val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
+  @JsonIgnore
   override val state = Diff
 
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
@@ -226,6 +230,7 @@ data class ResourceDeltaResolved(
   val desired: Any,
   val current: Any
 ) : ResourceCheckResult() {
+  @JsonIgnore
   override val state = Ok
 
   constructor(resource: Resource<*>, current: Any, clock: Clock = Companion.clock) :
@@ -247,8 +252,10 @@ data class ResourceValid(
   override val name: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
+  @JsonIgnore
   override val state = Ok
 
+  @JsonIgnore
   override val ignoreInHistory = true
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
