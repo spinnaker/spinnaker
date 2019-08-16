@@ -168,7 +168,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     // Only do cancellation if we made the initial webhook request and the user specified a cancellation endpoint
-    if (Strings.isNullOrEmpty(stageData.webhook.statusCode) || Strings.isNullOrEmpty(stageData.cancelEndpoint)) {
+    if (Strings.isNullOrEmpty(stageData.cancelEndpoint) || Strings.isNullOrEmpty(stageData.webhook?.statusCode)) {
       return
     }
 
