@@ -50,7 +50,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
     }
 
     const pages = React.Children.map(children, (child: any) => {
-      if (child.type && child.type.name === 'PageSection') {
+      if (child.props.pageKey && child.props.label) {
         return {
           key: child.props.pageKey,
           label: child.props.label,
