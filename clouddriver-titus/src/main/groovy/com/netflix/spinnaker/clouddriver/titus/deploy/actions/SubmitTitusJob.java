@@ -167,7 +167,7 @@ public class SubmitTitusJob implements SagaAction<SubmitTitusJob.SubmitTitusJobC
     @Nonnull private final SubmitJobRequest submitJobRequest;
     @Nonnull private final String nextServerGroupName;
     @Nullable private final TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
-    @NonFinal private LoadFront50App.Front50App front50App;
+    @Nullable @NonFinal private LoadFront50App.Front50App front50App;
 
     public SubmitTitusJobCommand(
         @NotNull String sagaName,
@@ -184,7 +184,7 @@ public class SubmitTitusJob implements SagaAction<SubmitTitusJob.SubmitTitusJobC
     }
 
     @Override
-    public void setFront50App(@Nonnull LoadFront50App.Front50App app) {
+    public void setFront50App(LoadFront50App.Front50App app) {
       this.front50App = app;
     }
   }

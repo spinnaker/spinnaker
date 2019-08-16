@@ -67,7 +67,8 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
                 sagaName,
                 sagaId,
                 inputDescription.getApplication(),
-                new PrepareTitusDeployCommand(sagaName, sagaId, inputDescription)));
+                new PrepareTitusDeployCommand(sagaName, sagaId, inputDescription),
+                true));
 
     if (result == null) {
       // "This should never happen"

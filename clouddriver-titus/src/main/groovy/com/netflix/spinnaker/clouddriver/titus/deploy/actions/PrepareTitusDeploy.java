@@ -460,7 +460,7 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
     }
 
     @Override
-    public void setFront50App(@Nonnull LoadFront50App.Front50App app) {
+    public void setFront50App(LoadFront50App.Front50App app) {
       this.front50App = app;
     }
   }

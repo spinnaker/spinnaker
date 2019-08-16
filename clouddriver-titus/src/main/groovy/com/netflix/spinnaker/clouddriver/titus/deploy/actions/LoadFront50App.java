@@ -118,6 +118,10 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
       }
     } catch (Exception e) {
       log.error("Failed to load front50 application attributes for {}", command.getAppName(), e);
+      if (command.isAllowMissing()) {
+        // It's ok to not load the front50 application
+        return new Result();
+      }
       throw new SystemException(
           format("Failed to load front50 application: %s", command.getAppName()), e);
     }
@@ -128,25 +132,24 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
   public static class LoadFront50AppCommand extends SagaCommand {
     @Nonnull private final String appName;
     @Nonnull private final SagaCommand nextCommand;
+    @Nonnull private final boolean allowMissing;
 
     public LoadFront50AppCommand(
         @NotNull String sagaName,
         @NotNull String sagaId,
         @Nonnull String appName,
-        @Nonnull SagaCommand nextCommand) {
+        @Nonnull SagaCommand nextCommand,
+        boolean allowMissing) {
       super(sagaName, sagaId);
       this.appName = appName;
       this.nextCommand = nextCommand;
+      this.allowMissing = allowMissing;
     }
   }
 
-  /**
-   * Marks a SagaCommand as being aware of the result of the LoadFront50App SagaAction.
-   *
-   * <p>TODO(rz): Refactor SagaCommand (and by proxy, SpinnakerEvent) to be an interface
-   */
+  /** Marks a SagaCommand as being aware of the result of the LoadFront50App SagaAction. */
   interface Front50AppAware {
-    void setFront50App(@Nonnull Front50App app);
+    void setFront50App(Front50App app);
   }
 
   @Value
