@@ -54,7 +54,7 @@ class ImageResolver(
         val namedImage = cloudDriverService
           .namedImages(resource.serviceAccount, artifactName, account)
           .sortedWith(NamedImageComparator)
-          .firstOrNull() ?: throw NoImageFound(artifactName)
+          .lastOrNull() ?: throw NoImageFound(artifactName)
 
         log.info("Image found for {}: {}", artifactName, namedImage)
 

@@ -32,12 +32,12 @@ class InMemoryDeliveryConfigRepository(
     configs
       .values
       .flatMap { it.environments }
-      .first { it.resourceUids.contains(resourceUID) }
+      .firstOrNull { it.resourceUids.contains(resourceUID) }
 
   override fun deliveryConfigFor(resourceUID: UID): DeliveryConfig? =
     configs
       .values
-      .first { it.resourceUids.contains(resourceUID) }
+      .firstOrNull { it.resourceUids.contains(resourceUID) }
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)

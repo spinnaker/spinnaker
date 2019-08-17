@@ -136,14 +136,9 @@ internal class ImageResolverTests : JUnit5Minutests {
       "fnord",
       setOf(artifact),
       setOf(
-        Environment(
-          "test",
-          setOf(resource)
-        )
+        Environment("test", setOf(resource))
       )
-    ).also {
-      deliveryConfigRepository.store(it)
-    }
+    )
 
     fun resolve(): String = runBlocking {
       subject.resolveImageId(resource)
@@ -156,10 +151,6 @@ internal class ImageResolverTests : JUnit5Minutests {
         Fixture(
           IdImageProvider("ami-12345678")
         )
-      }
-
-      after {
-        deliveryConfigRepository.dropAll()
       }
 
       test("just returns the image id") {
@@ -175,69 +166,112 @@ internal class ImageResolverTests : JUnit5Minutests {
         )
       }
 
-      after {
-        deliveryConfigRepository.dropAll()
-      }
-
-      context("a version of the artifact has been approved for the environment") {
+      context("the resource is not in an environment") {
         before {
-          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
           coEvery {
             cloudDriverService.namedImages(any(), any(), any())
           } answers {
             val name = secondArg<String>()
-            images.filter { it.appVersion == name }
+            images.filter { it.appVersion.startsWith(name) }
           }
         }
 
-        test("returns the image id of the approved version") {
+        test("returns the most recent version of the artifact") {
           expectThat(resolve())
-            .isEqualTo("ami-2") // TODO: false moniker
+            .isEqualTo("ami-3")
         }
       }
 
-      context("no artifact version has been approved for the environment") {
-        test("throws an exception") {
-          expectCatching { resolve() }
-            .failed()
-            .isA<NoImageSatisfiesConstraints>()
-        }
-      }
-
-      context("no image is found for the artifact version") {
+      context("the resource is part of an environment in a delivery config manifest") {
         before {
-          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
-          coEvery {
-            cloudDriverService.namedImages(any(), any(), any())
-          } returns emptyList()
+          deliveryConfigRepository.store(deliveryConfig)
         }
 
-        test("throws an exception") {
-          expectCatching { resolve() }
-            .failed()
-            .isA<NoImageFound>()
-        }
-      }
-
-      context("no image is found for the artifact in the desired region") {
-        deriveFixture {
-          copy(resourceRegion = "cn-north-1")
+        after {
+          deliveryConfigRepository.dropAll()
         }
 
-        before {
-          artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
-          coEvery {
-            cloudDriverService.namedImages(any(), any(), any())
-          } answers {
-            val name = secondArg<String>()
-            images.filter { it.appVersion == name }
+        context("a version of the artifact has been approved for the environment") {
+          before {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            coEvery {
+              cloudDriverService.namedImages(any(), any(), any())
+            } answers {
+              val name = secondArg<String>()
+              images.filter { it.appVersion == name }
+            }
+          }
+
+          after {
+            artifactRepository.dropAll()
+          }
+
+          test("returns the image id of the approved version") {
+            expectThat(resolve())
+              .isEqualTo("ami-2") // TODO: false moniker
           }
         }
 
-        test("throws an exception") {
-          expectCatching { resolve() }
-            .failed()
-            .isA<NoImageFoundForRegion>()
+        context("no artifact version has been approved for the environment") {
+          test("throws an exception") {
+            expectCatching { resolve() }
+              .failed()
+              .isA<NoImageSatisfiesConstraints>()
+          }
+        }
+
+        context("no image is found for the artifact version") {
+          before {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            coEvery {
+              cloudDriverService.namedImages(any(), any(), any())
+            } returns emptyList()
+          }
+
+          after {
+            artifactRepository.dropAll()
+          }
+
+          test("throws an exception") {
+            expectCatching { resolve() }
+              .failed()
+              .isA<NoImageFound>()
+          }
+        }
+
+        context("no image is found for the artifact in the desired region") {
+          deriveFixture {
+            copy(resourceRegion = "cn-north-1")
+          }
+
+          // TODO: because it's a derived fixture we have to do this again, ugh
+          before {
+            deliveryConfigRepository.store(deliveryConfig)
+          }
+
+          after {
+            deliveryConfigRepository.dropAll()
+          }
+
+          before {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            coEvery {
+              cloudDriverService.namedImages(any(), any(), any())
+            } answers {
+              val name = secondArg<String>()
+              images.filter { it.appVersion == name }
+            }
+          }
+
+          after {
+            artifactRepository.dropAll()
+          }
+
+          test("throws an exception") {
+            expectCatching { resolve() }
+              .failed()
+              .isA<NoImageFoundForRegion>()
+          }
         }
       }
     }
