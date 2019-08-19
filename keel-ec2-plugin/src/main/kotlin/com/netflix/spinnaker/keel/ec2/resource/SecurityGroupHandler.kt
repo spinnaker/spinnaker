@@ -63,10 +63,6 @@ class SecurityGroupHandler(
     "security-groups"
   ) to SecurityGroup::class.java
 
-  override fun generateName(spec: SecurityGroup) = ResourceName(
-    "ec2:securityGroup:${spec.accountName}:${spec.region}:${spec.moniker.name}"
-  )
-
   override suspend fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec, resource.serviceAccount)
 

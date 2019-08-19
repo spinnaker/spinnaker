@@ -20,7 +20,6 @@ package com.netflix.spinnaker.keel.tagging
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -60,8 +59,6 @@ class KeelTagHandler(
     "keel-tag",
     "keel-tags"
   ) to KeelTagSpec::class.java
-
-  override fun generateName(spec: KeelTagSpec) = ResourceName("tag:keel-tag:${spec.keelId}")
 
   override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource {
     when (resource.spec.tagState) {

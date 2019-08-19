@@ -63,10 +63,6 @@ class ClusterHandler(
     plural = "clusters"
   ) to ClusterSpec::class.java
 
-  override fun generateName(spec: ClusterSpec) = ResourceName(
-    "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.name}"
-  )
-
   override suspend fun desired(resource: Resource<ClusterSpec>): Cluster =
     with(resource.spec) {
       val imageId = imageResolver.resolveImageId(resource)

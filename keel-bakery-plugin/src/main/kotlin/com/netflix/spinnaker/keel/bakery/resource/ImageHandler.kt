@@ -47,9 +47,6 @@ class ImageHandler(
     "images"
   ) to ImageSpec::class.java
 
-  override fun generateName(spec: ImageSpec): ResourceName =
-    ResourceName("bakery:image:${spec.artifactName}")
-
   override suspend fun desired(resource: Resource<ImageSpec>): Image =
     with(resource) {
       val artifact = DeliveryArtifact(spec.artifactName, DEB)

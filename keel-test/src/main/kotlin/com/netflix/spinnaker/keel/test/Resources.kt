@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -96,9 +95,6 @@ object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
   override val objectMapper: ObjectMapper = configuredObjectMapper()
 
   override val normalizers: List<ResourceNormalizer<*>> = emptyList()
-
-  override fun generateName(spec: DummyResourceSpec): ResourceName =
-    ResourceName("test:whatever:${spec.name}")
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

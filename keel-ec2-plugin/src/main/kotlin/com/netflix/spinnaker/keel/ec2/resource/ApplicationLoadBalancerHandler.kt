@@ -43,11 +43,6 @@ class ApplicationLoadBalancerHandler(
     "application-load-balancers"
   ) to ApplicationLoadBalancer::class.java
 
-  override fun generateName(spec: ApplicationLoadBalancer) = ResourceName(
-    "ec2:application-load-balancer:${spec.location.accountName}:${spec.location.region}:" +
-      spec.moniker.name
-  )
-
   override suspend fun current(resource: Resource<ApplicationLoadBalancer>): ApplicationLoadBalancer? =
     cloudDriverService.getApplicationLoadBalancer(resource.spec, resource.serviceAccount)
 

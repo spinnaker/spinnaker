@@ -40,7 +40,8 @@ interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
   /**
    * Generate a unique name for a resource based on its spec.
    */
-  fun generateName(spec: S): ResourceName
+  fun generateName(apiVersion: ApiVersion, kind: String, spec: S): ResourceName =
+    "${apiVersion.prefix}:$kind:${spec.name}".let(::ResourceName)
 
   /**
    * Validates the resource spec, and generates a metadata header, and applies any defaults /
@@ -69,7 +70,7 @@ interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
     }
 
     val metadata = mapOf(
-      "name" to generateName(spec).toString(),
+      "name" to generateName(resource.apiVersion, resource.kind, spec).toString(),
       "uid" to randomUID().toString(),
       "serviceAccount" to resource.metadata.serviceAccount,
       "application" to app

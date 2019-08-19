@@ -45,11 +45,6 @@ class ClassicLoadBalancerHandler(
     "classic-load-balancers"
   ) to ClassicLoadBalancer::class.java
 
-  override fun generateName(spec: ClassicLoadBalancer) = ResourceName(
-    "ec2:classic-load-balancer:${spec.location.accountName}:${spec.location.region}:" +
-      spec.moniker.name
-  )
-
   override suspend fun current(resource: Resource<ClassicLoadBalancer>): ClassicLoadBalancer? =
     cloudDriverService.getClassicLoadBalancer(resource.spec, resource.serviceAccount)
 
