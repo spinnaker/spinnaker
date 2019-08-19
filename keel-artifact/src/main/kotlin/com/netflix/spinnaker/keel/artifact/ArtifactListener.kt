@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
@@ -18,8 +19,11 @@ class ArtifactListener(
   @EventListener(ArtifactEvent::class)
   fun onArtifactEvent(event: ArtifactEvent) {
     log.info("Received artifact event: {}", event)
-    event.artifacts.forEach {
-      val artifact = DeliveryArtifact(it.name, ArtifactType.valueOf(it.type.toUpperCase()))
+    event
+      .artifacts
+      .filter { it.type.toUpperCase() in artifactTypeNames }
+      .forEach {
+        val artifact = it.toDeliveryArtifact()
       // TODO: should be able to construct this with Frigga or something, apparently, also it might
       //  make sense to have a method that does this on the Kork class rather than here
       val version = "${it.name}-${it.version}"
@@ -34,6 +38,11 @@ class ArtifactListener(
       }
     }
   }
+
+  private val artifactTypeNames by lazy { ArtifactType.values().map(ArtifactType::name) }
+
+  private fun Artifact.toDeliveryArtifact(): DeliveryArtifact =
+    DeliveryArtifact(name, ArtifactType.valueOf(type.toUpperCase()))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
