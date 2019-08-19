@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
@@ -23,12 +24,15 @@ class TelemetryListener(
 
   @PostConstruct
   fun registerMeters() {
-    spectator.gauge(RESOURCE_CHECK_DRIFT_GAUGE, this) {
-      Duration
-        .between(lastResourceCheck, clock.instant())
-        .toMillis()
-        .toDouble()
-    }
+    PolledMeter
+      .using(spectator)
+      .withName(RESOURCE_CHECK_DRIFT_GAUGE)
+      .monitorValue(lastResourceCheck) {
+        Duration
+          .between(it, clock.instant())
+          .toMillis()
+          .toDouble()
+      }
   }
 
   @EventListener(ResourceCheckResult::class)
