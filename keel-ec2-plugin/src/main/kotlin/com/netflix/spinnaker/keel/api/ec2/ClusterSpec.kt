@@ -17,7 +17,9 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
@@ -34,4 +36,7 @@ data class ClusterSpec(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
-) : Monikered
+) : Monikered, Named {
+  @JsonIgnore
+  override val name: String = "${location.accountName}:${location.region}:${moniker.name}"
+}

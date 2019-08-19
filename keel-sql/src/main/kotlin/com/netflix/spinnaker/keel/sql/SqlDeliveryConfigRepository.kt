@@ -175,7 +175,7 @@ class SqlDeliveryConfigRepository(
         Resource(
           ApiVersion(apiVersion),
           kind,
-          mapper.readValue(metadata),
+          mapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
           mapper.readValue(spec, resourceTypeIdentifier.identify(ApiVersion(apiVersion), kind))
         )
       }

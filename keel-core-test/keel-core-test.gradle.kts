@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
   implementation(project(":keel-core"))
+  implementation(project(":keel-test"))
   implementation("org.junit.jupiter:junit-jupiter-api")
   implementation("io.strikt:strikt-core")
   implementation("io.mockk:mockk")

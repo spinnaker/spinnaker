@@ -2,11 +2,13 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
@@ -35,7 +37,7 @@ import strikt.assertions.isNotNull
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082",
@@ -66,7 +68,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -78,19 +80,20 @@ internal class ResourceControllerTests {
           |metadata:
           |  serviceAccount: keel@spinnaker
           |kind: whatever
-          |spec: o hai"""
+          |spec:
+          |  data: o hai"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "o hai" }) }
+    verify { resourcePersister.upsert(match<SubmittedResource<DummyResourceSpec>> { it.spec.data == "o hai" }) }
   }
 
   @Test
   fun `can create a resource as JSON`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<DummyResourceSpec>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -101,9 +104,11 @@ internal class ResourceControllerTests {
           |  "apiVersion": "test.spinnaker.netflix.com/v1",
           |  "kind": "whatever",
           |  "metadata": {
-          |  "serviceAccount": "keel@spinnaker"
+          |    "serviceAccount": "keel@spinnaker"
           |  },
-          |  "spec": "o hai"
+          |  "spec": {
+          |    "data": "o hai"
+          |  }
           |}"""
           .trimMargin()
       )
@@ -111,7 +116,11 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "o hai" }) }
+    verify {
+      resourcePersister.upsert(match<SubmittedResource<out Named>> {
+        (it.spec as? DummyResourceSpec)?.data == "o hai"
+      })
+    }
   }
 
   @Test
@@ -128,7 +137,9 @@ internal class ResourceControllerTests {
           |  "metadata": {
           |  "serviceAccount": "keel@spinnaker"
           |  },
-          |  "spec": "o hai"
+          |  "spec": {
+          |    "data": "o hai"
+          |  }
           |}"""
           .trimMargin()
       )
@@ -139,7 +150,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can update a resource`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -151,19 +162,20 @@ internal class ResourceControllerTests {
           |metadata:
           |  serviceAccount: keel@spinnaker
           |kind: whatever
-          |spec: kthxbye"""
+          |spec:
+          |  data: kthxbye"""
           .trimMargin()
       )
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.upsert(match<SubmittedResource<Any>> { it.spec == "kthxbye" }) }
+    verify { resourcePersister.upsert(match<SubmittedResource<DummyResourceSpec>> { it.spec.data == "kthxbye" }) }
   }
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Any>>()) } throws NoSuchResourceName(resource.name)
+    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } throws NoSuchResourceName(resource.name)
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -175,7 +187,8 @@ internal class ResourceControllerTests {
           |metadata:
           |  serviceAccount: keel@spinnaker
           |kind: whatever
-          |spec: kthxbye"""
+          |spec:
+          |  data: kthxbye"""
           .trimMargin()
       )
     mvc
@@ -196,7 +209,8 @@ internal class ResourceControllerTests {
           |metadata:
           |  serviceAccount: keel@spinnaker
           |  name: i-should-not-be-naming-my-resources-that-is-keels-job
-          |spec: o hai"""
+          |spec:
+          |  data: o hai"""
           .trimMargin()
       )
     mvc

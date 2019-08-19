@@ -88,8 +88,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
     entityRef = entityRef,
     tagState = TagDesired(
       tag = managedByKeelTag
-    ),
-    application = entityRef.application
+    )
   )
 
   val specWithoutTag = specWithTag.copy(tagState = TagNotDesired(clock.millis()))
@@ -129,7 +128,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
-  val normalizers = emptyList<ResourceNormalizer<TaggedResource>>()
+  val normalizers = emptyList<ResourceNormalizer<KeelTagSpec>>()
 
   fun tests() = rootContext<KeelTagHandler> {
     fixture {

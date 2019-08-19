@@ -19,12 +19,13 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 
 /**
  * A resource normalizer throws a [FailedValidationException] when a resource is invalid
  */
-interface ResourceNormalizer<T : Any> {
+interface ResourceNormalizer<T : Named> {
 
   val apiVersion: ApiVersion
   val supportedKind: String

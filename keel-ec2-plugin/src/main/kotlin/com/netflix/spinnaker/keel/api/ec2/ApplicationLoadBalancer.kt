@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Rule
@@ -24,6 +25,9 @@ data class ApplicationLoadBalancer(
       "load balancer names have a 32 character limit"
     }
   }
+
+  @JsonIgnore
+  override val name: String = "${location.accountName}:${location.region}:${moniker.name}"
 
   data class Listener(
     val port: Int,

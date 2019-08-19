@@ -30,4 +30,6 @@ data class Cluster(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
-) : Monikered
+) : Monikered {
+  override val name = "${location.accountName}:${location.region}:${moniker.name}"
+}

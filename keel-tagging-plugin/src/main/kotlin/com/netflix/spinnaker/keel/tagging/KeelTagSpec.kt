@@ -17,9 +17,11 @@
  */
 package com.netflix.spinnaker.keel.tagging
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.HasApplication
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 
@@ -35,9 +37,14 @@ import com.netflix.spinnaker.keel.tags.EntityTag
 data class KeelTagSpec(
   val keelId: String,
   val entityRef: EntityRef,
-  val tagState: TagState,
+  val tagState: TagState
+) : Named, HasApplication {
+  @JsonIgnore
+  override val name: String = keelId
+
+  @JsonIgnore
   override val application: String = entityRef.application
-) : HasApplication
+}
 
 data class TaggedResource(
   val keelId: String,

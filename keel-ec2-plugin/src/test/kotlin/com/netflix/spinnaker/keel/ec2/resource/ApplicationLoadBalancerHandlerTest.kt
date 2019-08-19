@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -168,8 +167,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the ALB is created with a generated defaultAction as none are in the spec") {
         runBlocking {
           val current = current(resource)
-          val desired = desired(normalize(resource as Resource<Any>))
-          upsert(normalize(resource as Resource<Any>), ResourceDiff(desired = desired, current = current))
+          val desired = desired(normalize(resource))
+          upsert(normalize(resource), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -195,7 +194,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the diff is clean") {
         val diff = runBlocking {
           val current = current(resource)
-          val desired = desired(normalize(resource as Resource<Any>))
+          val desired = desired(normalize(resource))
           ResourceDiff(desired, current)
         }
 
@@ -214,12 +213,12 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
         val diff = runBlocking {
           val current = current(newResource)
-          val desired = desired(normalize(newResource as Resource<Any>))
+          val desired = desired(normalize(newResource))
           ResourceDiff(desired, current)
         }
 
         runBlocking {
-          upsert(normalize(newResource as Resource<Any>), diff)
+          upsert(normalize(newResource), diff)
         }
 
         val slot = slot<OrchestrationRequest>()

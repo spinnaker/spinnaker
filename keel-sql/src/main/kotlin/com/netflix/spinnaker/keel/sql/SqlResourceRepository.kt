@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
@@ -42,7 +43,7 @@ open class SqlResourceRepository(
       .forEach(callback)
   }
 
-  override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
+  override fun <T : Named> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
@@ -52,13 +53,13 @@ open class SqlResourceRepository(
         Resource(
           ApiVersion(apiVersion),
           kind,
-          objectMapper.readValue(metadata),
+          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
           objectMapper.readValue(spec, specType)
         )
       } ?: throw NoSuchResourceUID(uid)
   }
 
-  override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
+  override fun <T : Named> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
@@ -68,7 +69,7 @@ open class SqlResourceRepository(
         Resource(
           ApiVersion(apiVersion),
           kind,
-          objectMapper.readValue(metadata),
+          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
           objectMapper.readValue(spec, specType)
         )
       } ?: throw NoSuchResourceName(name)

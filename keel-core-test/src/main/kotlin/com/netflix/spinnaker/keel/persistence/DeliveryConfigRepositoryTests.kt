@@ -6,12 +6,13 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -39,10 +40,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
       object : ResourceTypeIdentifier {
-        override fun identify(apiVersion: ApiVersion, kind: String): Class<*> {
+        override fun identify(apiVersion: ApiVersion, kind: String): Class<out Named> {
           return when (kind) {
-            "security-group" -> Map::class.java
-            "cluster" -> Map::class.java
+            "security-group" -> DummyResourceSpec::class.java
+            "cluster" -> DummyResourceSpec::class.java
             else -> error("unsupported kind $kind")
           }
         }
@@ -128,28 +129,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
               Environment(
                 name = "test",
                 resources = setOf(
-                  Resource(
-                    apiVersion = SPINNAKER_API_V1.subApi("test"),
-                    kind = "cluster",
-                    metadata = mapOf(
-                      "uid" to randomUID().toString(),
-                      "name" to "test:cluster:whatever",
-                      "serviceAccount" to "keel@spinnaker",
-                      "application" to "whatever"
-                    ),
-                    spec = randomData()
-                  ),
-                  Resource(
-                    apiVersion = SPINNAKER_API_V1.subApi("test"),
-                    kind = "security-group",
-                    metadata = mapOf(
-                      "uid" to randomUID().toString(),
-                      "name" to "test:security-group:whatever",
-                      "serviceAccount" to "keel@spinnaker",
-                      "application" to "whatever"
-                    ),
-                    spec = randomData()
-                  )
+                  resource(kind = "cluster"),
+                  resource(kind = "security-group")
                 )
               ),
               Environment(
@@ -160,28 +141,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                   )
                 ),
                 resources = setOf(
-                  Resource(
-                    apiVersion = SPINNAKER_API_V1.subApi("test"),
-                    kind = "cluster",
-                    metadata = mapOf(
-                      "uid" to randomUID().toString(),
-                      "name" to "staging:cluster:whatever",
-                      "serviceAccount" to "keel@spinnaker",
-                      "application" to "whatever"
-                    ),
-                    spec = randomData()
-                  ),
-                  Resource(
-                    apiVersion = SPINNAKER_API_V1.subApi("test"),
-                    kind = "security-group",
-                    metadata = mapOf(
-                      "uid" to randomUID().toString(),
-                      "name" to "staging:security-group:whatever",
-                      "serviceAccount" to "keel@spinnaker",
-                      "application" to "whatever"
-                    ),
-                    spec = randomData()
-                  )
+                  resource(kind = "cluster"),
+                  resource(kind = "security-group")
                 )
               )
             )

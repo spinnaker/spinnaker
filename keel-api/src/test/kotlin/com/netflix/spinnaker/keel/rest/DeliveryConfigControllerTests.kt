@@ -1,15 +1,10 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.HasApplication
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
@@ -18,21 +13,16 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.junit.jupiter.api.extension.ExtendWith
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -48,7 +38,7 @@ import strikt.assertions.succeeded
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class, TestConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082",
@@ -98,7 +88,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = DummyResource("resource in test")
+                  spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
               SubmittedEnvironment(
@@ -107,7 +97,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = DummyResource("resource in prod")
+                  spec = DummyResourceSpec(data = "resource in prod")
                 ))
               )
             )
@@ -248,30 +238,3 @@ internal data class DummyResource(
   val data: String = "some data",
   override val application: String = "someapp"
 ) : HasApplication
-
-private class TestConfiguration {
-  @Bean
-  fun whateverResourceHandler() = object : ResourceHandler<DummyResource> {
-    override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
-
-    override val supportedKind: Pair<ResourceKind, Class<DummyResource>> =
-      ResourceKind("test", "whatever", "whatevers") to DummyResource::class.java
-
-    override val objectMapper: ObjectMapper = configuredObjectMapper()
-
-    override val normalizers: List<ResourceNormalizer<*>> = emptyList()
-
-    override fun generateName(spec: DummyResource): ResourceName =
-      ResourceName("test:whatever:${spec.data.hashCode()}")
-
-    override suspend fun current(resource: Resource<DummyResource>): DummyResource? {
-      TODO("not implemented")
-    }
-
-    override suspend fun delete(resource: Resource<DummyResource>) {
-      TODO("not implemented")
-    }
-
-    override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
-  }
-}

@@ -90,8 +90,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         valueType = "object",
         name = KEEL_TAG_NAME
       )
-      ),
-      application = "keel"
+      )
     ),
     name = KeelTagSpec::keelId
   )
@@ -102,8 +101,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     spec = KeelTagSpec(
       clusterName.toString(),
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
-      TagNotDesired(clock.millis()),
-      application = "keel"
+      TagNotDesired(clock.millis())
     ),
     name = KeelTagSpec::keelId
   )

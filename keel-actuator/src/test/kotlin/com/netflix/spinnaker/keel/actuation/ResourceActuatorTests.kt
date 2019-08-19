@@ -173,11 +173,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
           }
 
-        context("the current state is missing") {
-          before {
-            coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
-            coEvery { plugin1.current(resource) } returns null
-            coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+          context("the current state is missing") {
+            before {
+              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+              coEvery { plugin1.current(resource) } returns null
+              coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
               with(resource) {
                 runBlocking {
@@ -198,11 +198,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
           }
 
-        context("the current state is wrong") {
-          before {
-            coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
-            coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
-            coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+          context("the current state is wrong") {
+            before {
+              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+              coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
+              coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
               with(resource) {
                 runBlocking {

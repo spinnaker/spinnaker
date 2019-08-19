@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.keel.rest
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -24,6 +26,9 @@ import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.UnsupportedKind
+import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
@@ -46,7 +51,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/resources"])
 class ResourceController(
   private val resourceRepository: ResourceRepository,
-  private val resourcePersister: ResourcePersister
+  private val resourcePersister: ResourcePersister,
+  private val handlers: List<ResolvableResourceHandler<*, *>>,
+  private val objectMapper: ObjectMapper
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -55,7 +62,7 @@ class ResourceController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun get(@PathVariable("name") name: ResourceName): Resource<Any> {
+  fun get(@PathVariable("name") name: ResourceName): Resource<out Named> {
     log.debug("Getting: $name")
     return resourceRepository.get(name)
   }
@@ -65,9 +72,15 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
-  fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out Any> {
-    log.debug("Upserting: $resource")
-    return resourcePersister.upsert(resource)
+  fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out Named> {
+    val handler = handlers.supporting(resource.apiVersion, resource.kind)
+    val specType = handler.supportedKind.second
+    val parsedSpec = objectMapper.convertValue(resource.spec, specType)
+
+    resource.copy(spec = parsedSpec).let {
+      log.debug("Upserting: $it")
+      return resourcePersister.upsert(it)
+    }
   }
 
   @DeleteMapping(
@@ -108,5 +121,12 @@ class ResourceController(
       "message" to e.message,
       "cause" to e.cause.message
     )
+  }
+
+  @ExceptionHandler(UnsupportedKind::class)
+  @ResponseStatus(UNPROCESSABLE_ENTITY)
+  fun onUnsupportedKind(e: UnsupportedKind): Map<String, Any?> {
+    log.error(e.message)
+    return mapOf("message" to e.message)
   }
 }

@@ -15,9 +15,10 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 
-interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
+interface ResourceHandler<T : Named> : ResolvableResourceHandler<T, T> {
 
   /**
    * Don't override this method, just implement [current]. If you need to do any resolution of the

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.plugin
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.HasApplication
+import com.netflix.spinnaker.keel.api.Named
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -21,7 +22,7 @@ import org.slf4j.Logger
  *
  * If those two are the same, use [ResourceHandler] instead.
  */
-interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
+interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
 
   val log: Logger
 
@@ -92,7 +93,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
   @Suppress("UNCHECKED_CAST")
   fun normalize(resource: Resource<*>): Resource<S> {
     val spec = objectMapper.convertValue(resource.spec, supportedKind.second)
-    var normalizedResource = (resource as Resource<Any>).copy(spec = spec) as Resource<S>
+    var normalizedResource = (resource as Resource<Named>).copy(spec = spec) as Resource<S>
     for (normalizer in normalizers) {
       if (normalizer.handles(resource.apiVersion, resource.kind)) {
         log.debug("Normalizing ${resource.name} with ${normalizer.javaClass}")
@@ -196,5 +197,5 @@ fun Collection<ResolvableResourceHandler<*, *>>.supporting(
   find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
     ?: throw UnsupportedKind(apiVersion, kind)
 
-internal class UnsupportedKind(apiVersion: ApiVersion, kind: String) :
+class UnsupportedKind(apiVersion: ApiVersion, kind: String) :
   IllegalStateException("No resource handler supporting \"$kind\" in \"$apiVersion\" is available")

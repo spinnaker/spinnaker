@@ -17,7 +17,6 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
@@ -25,6 +24,8 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -87,29 +88,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     }
 
     context("a resource exists") {
-      val resource = Resource(
-        apiVersion = SPINNAKER_API_V1,
-        metadata = mapOf(
-          "name" to "ec2:security-group:test:us-west-2:fnord",
-          "uid" to randomUID().toString(),
-          "serviceAccount" to "keel@spinnaker",
-          "application" to "fnord"
-        ) + randomData(),
-        kind = "security-group",
-        spec = randomData()
-      )
-
-      val anotherResource = Resource(
-        metadata = mapOf(
-          "name" to "ec2:security-group:test:us-east-1:wow",
-          "uid" to randomUID(),
-          "serviceAccount" to "keel@spinnaker",
-          "application" to "wow"
-        ) + randomData(),
-        apiVersion = SPINNAKER_API_V1,
-        kind = "security-group",
-        spec = randomData()
-      )
+      val resource = resource()
+      val anotherResource = resource(application = "wow")
 
       before {
         subject.store(resource)
@@ -125,12 +105,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("it can be retrieved by name") {
-        val retrieved = subject.get<Map<String, Any>>(resource.name)
+        val retrieved = subject.get<DummyResourceSpec>(resource.name)
         expectThat(retrieved).isEqualTo(resource)
       }
 
       test("it can be retrieved by uid") {
-        val retrieved = subject.get<Map<String, Any>>(resource.uid)
+        val retrieved = subject.get<DummyResourceSpec>(resource.uid)
         expectThat(retrieved).isEqualTo(resource)
       }
 
@@ -157,7 +137,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("storing a new version of the resource") {
         val updatedResource = resource.copy(
-          spec = randomData()
+          spec = resource.spec.copy(data = randomString())
         )
 
         before {
@@ -166,7 +146,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("it replaces the original resource") {
-          expectThat(subject.get<Map<String, Any>>(resource.name))
+          expectThat(subject.get<DummyResourceSpec>(resource.name))
             .get(Resource<*>::spec)
             .isEqualTo(updatedResource.spec)
         }
@@ -260,7 +240,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("the resource can no longer be retrieved by name") {
           expectThrows<NoSuchResourceException> {
-            subject.get<Map<String, Any>>(resource.name)
+            subject.get<DummyResourceSpec>(resource.name)
           }
         }
 

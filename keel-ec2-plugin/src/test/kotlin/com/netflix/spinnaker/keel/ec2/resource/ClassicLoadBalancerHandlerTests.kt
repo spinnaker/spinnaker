@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -156,16 +155,16 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       test("the current model is null") {
         val current = runBlocking {
-          current(normalize(resource as Resource<Any>))
+          current(normalize(resource))
         }
         expectThat(current).isNull()
       }
 
       test("the CLB is created with a default security group as none are specified in spec") {
         runBlocking {
-          val current = current(normalize(resource as Resource<Any>))
-          val desired = desired(normalize(resource as Resource<Any>))
-          upsert(normalize(resource as Resource<Any>), ResourceDiff(desired = desired, current = current))
+          val current = current(normalize(resource))
+          val desired = desired(normalize(resource))
+          upsert(normalize(resource), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -184,7 +183,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         val modResource = resource.copy(spec = modSpec)
 
         runBlocking {
-          upsert(normalize(modResource as Resource<Any>), ResourceDiff(spec, modSpec))
+          upsert(normalize(modResource), ResourceDiff(spec, modSpec))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -216,7 +215,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 
         runBlocking {
-          upsert(normalize(newResource as Resource<Any>), diff)
+          upsert(normalize(newResource), diff)
         }
 
         val slot = slot<OrchestrationRequest>()

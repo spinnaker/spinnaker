@@ -28,4 +28,6 @@ data class SecurityGroup(
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet()
-) : Monikered
+) : Monikered {
+  override val name = "$accountName:$region:${moniker.name}"
+}

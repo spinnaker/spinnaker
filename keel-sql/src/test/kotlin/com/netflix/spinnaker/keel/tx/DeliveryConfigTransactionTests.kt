@@ -1,14 +1,9 @@
 package com.netflix.spinnaker.keel.tx
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.HasApplication
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
@@ -20,9 +15,8 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.DummyResourceHandler
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import com.ninjasquad.springmockk.SpykBean
 import dev.minutest.junit.JUnit5Minutests
@@ -32,8 +26,6 @@ import io.mockk.every
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.extension.ExtendWith
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -199,33 +191,3 @@ internal class TestConfiguration {
   @Bean
   fun dummyResourceHandler() = DummyResourceHandler
 }
-
-internal object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
-  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
-
-  override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =
-    ResourceKind("test", "whatever", "whatevers") to DummyResourceSpec::class.java
-
-  override val objectMapper: ObjectMapper = configuredObjectMapper()
-
-  override val normalizers: List<ResourceNormalizer<*>> = emptyList()
-
-  override fun generateName(spec: DummyResourceSpec): ResourceName =
-    ResourceName("test:whatever:${spec.state}")
-
-  override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
-    TODO("not implemented")
-  }
-
-  override suspend fun delete(resource: Resource<DummyResourceSpec>) {
-    TODO("not implemented")
-  }
-
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
-}
-
-internal data class DummyResourceSpec(
-  val state: String,
-  val data: String = "some data",
-  override val application: String = "someapp"
-) : HasApplication
