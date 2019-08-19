@@ -86,7 +86,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       parentPipelineStageId: parentPipelineStageId,
       parameters           : [:],
       strategy             : suppliedParameters.strategy == true,
-      correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}"
+      correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}".toString()
     ]
     /* correlationId is added so that two pipelines aren't triggered when a pipeline is canceled.
      * parentPipelineStageId is added so that a child pipeline (via pipeline stage)
