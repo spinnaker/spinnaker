@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -62,7 +62,7 @@ class ResourceController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun get(@PathVariable("name") name: ResourceName): Resource<out Named> {
+  fun get(@PathVariable("name") name: ResourceName): Resource<out ResourceSpec> {
     log.debug("Getting: $name")
     return resourceRepository.get(name)
   }
@@ -72,7 +72,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
-  fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out Named> {
+  fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out ResourceSpec> {
     val handler = handlers.supporting(resource.apiVersion, resource.kind)
     val specType = handler.supportedKind.second
     val parsedSpec = objectMapper.convertValue(resource.spec, specType)

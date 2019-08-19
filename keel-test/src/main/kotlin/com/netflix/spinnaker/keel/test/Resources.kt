@@ -2,9 +2,8 @@ package com.netflix.spinnaker.keel.test
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
@@ -47,7 +46,7 @@ fun <T : Monikered> resource(
   application = spec.application
 )
 
-fun <T : Named> resource(
+fun <T : ResourceSpec> resource(
   apiVersion: ApiVersion = TEST_API,
   kind: String = "whatever",
   spec: T,
@@ -70,7 +69,7 @@ data class DummyResourceSpec(
   override val name: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord"
-) : Named, HasApplication
+) : ResourceSpec
 
 data class DummyResource(
   val name: String = randomString(),

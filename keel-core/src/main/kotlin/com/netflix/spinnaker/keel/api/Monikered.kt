@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.model.Moniker
 /**
  * An object which has a moniker
  */
-interface Monikered : Named, HasApplication {
+interface Monikered : ResourceSpec {
   val moniker: Moniker
 
   override val application: String

@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.bakery.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.api.HasApplication
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 
 data class ImageSpec(
   val artifactName: String,
@@ -11,7 +10,7 @@ data class ImageSpec(
   val regions: Set<String>,
   val storeType: StoreType,
   override val application: String // the application an image is baked in
-) : Named, HasApplication {
+) : ResourceSpec {
   @JsonIgnore
   override val name: String = artifactName
 }

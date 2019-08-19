@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
@@ -68,7 +68,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<ResourceSpec>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -117,7 +117,7 @@ internal class ResourceControllerTests {
       .andExpect(status().isOk)
 
     verify {
-      resourcePersister.upsert(match<SubmittedResource<out Named>> {
+      resourcePersister.upsert(match<SubmittedResource<out ResourceSpec>> {
         (it.spec as? DummyResourceSpec)?.data == "o hai"
       })
     }
@@ -150,7 +150,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can update a resource`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } returns resource
+    every { resourcePersister.upsert(any<SubmittedResource<ResourceSpec>>()) } returns resource
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -175,7 +175,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.upsert(any<SubmittedResource<Named>>()) } throws NoSuchResourceName(resource.name)
+    every { resourcePersister.upsert(any<SubmittedResource<ResourceSpec>>()) } throws NoSuchResourceName(resource.name)
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")

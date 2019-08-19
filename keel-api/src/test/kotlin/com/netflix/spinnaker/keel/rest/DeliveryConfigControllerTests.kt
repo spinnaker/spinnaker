@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.HasApplication
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
@@ -233,8 +232,3 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
     }
   }
 }
-
-internal data class DummyResource(
-  val data: String = "some data",
-  override val application: String = "someapp"
-) : HasApplication

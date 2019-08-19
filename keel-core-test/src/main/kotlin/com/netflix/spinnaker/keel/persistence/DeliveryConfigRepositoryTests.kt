@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.api.uid
@@ -40,7 +40,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
       object : ResourceTypeIdentifier {
-        override fun identify(apiVersion: ApiVersion, kind: String): Class<out Named> {
+        override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {
           return when (kind) {
             "security-group" -> DummyResourceSpec::class.java
             "cluster" -> DummyResourceSpec::class.java

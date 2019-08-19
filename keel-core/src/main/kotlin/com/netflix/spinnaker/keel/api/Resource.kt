@@ -20,7 +20,7 @@ import de.huxhorn.sulky.ulid.ULID
 /**
  * Internal representation of a resource.
  */
-data class Resource<T : Named>(
+data class Resource<T : ResourceSpec>(
   val apiVersion: ApiVersion,
   val kind: String, // TODO: create a type
   val metadata: Map<String, Any?>,
@@ -55,16 +55,16 @@ data class SubmittedMetadata(
   val serviceAccount: String
 )
 
-val <T : Named> Resource<T>.uid: UID
+val <T : ResourceSpec> Resource<T>.uid: UID
   get() = metadata.getValue("uid").toString().let(ULID::parseULID)
 
-val <T : Named> Resource<T>.name: ResourceName
+val <T : ResourceSpec> Resource<T>.name: ResourceName
   get() = metadata.getValue("name").toString().let(::ResourceName)
 
-val <T : Named> Resource<T>.serviceAccount: String
+val <T : ResourceSpec> Resource<T>.serviceAccount: String
   get() = metadata.getValue("serviceAccount").toString()
 
-val <T : Named> Resource<T>.application: String
+val <T : ResourceSpec> Resource<T>.application: String
   get() = metadata.getValue("application").toString()
 
 private fun Any?.isValidULID() =

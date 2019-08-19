@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
@@ -58,7 +58,7 @@ class ResourcePersister(
         deliveryConfigRepository.store(it)
       }
 
-  fun upsert(resource: SubmittedResource<*>): Resource<out Named> =
+  fun upsert(resource: SubmittedResource<*>): Resource<out ResourceSpec> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .let {
@@ -69,7 +69,7 @@ class ResourcePersister(
         }
       }
 
-  fun create(resource: SubmittedResource<*>): Resource<out Named> =
+  fun create(resource: SubmittedResource<*>): Resource<out ResourceSpec> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .also {
@@ -78,11 +78,11 @@ class ResourcePersister(
         publisher.publishEvent(ResourceCreated(it, clock))
       }
 
-  fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out Named> {
+  fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out ResourceSpec> {
     log.debug("Updating $name")
     val handler = handlers.supporting(updated.apiVersion, updated.kind)
-    val existing = resourceRepository.get(name, Named::class.java)
-    val resource = existing.copy(spec = updated.spec as Named)
+    val existing = resourceRepository.get(name, ResourceSpec::class.java)
+    val resource = existing.copy(spec = updated.spec as ResourceSpec)
     val normalized = handler.normalize(resource)
 
     val diff = ResourceDiff(normalized.spec, existing.spec)
@@ -99,9 +99,9 @@ class ResourcePersister(
     }
   }
 
-  fun delete(name: ResourceName): Resource<out Named> =
+  fun delete(name: ResourceName): Resource<out ResourceSpec> =
     resourceRepository
-      .get<Named>(name)
+      .get<ResourceSpec>(name)
       .also {
         resourceRepository.delete(name)
         publisher.publishEvent(ResourceDeleted(it, clock))
@@ -109,7 +109,7 @@ class ResourcePersister(
 
   private fun ResourceName.isRegistered(): Boolean =
     try {
-      resourceRepository.get(this, Named::class.java)
+      resourceRepository.get(this, ResourceSpec::class.java)
       true
     } catch (e: NoSuchResourceException) {
       false

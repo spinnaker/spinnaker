@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
@@ -49,19 +49,19 @@ class InMemoryResourceRepository(
   private val mapper = configuredObjectMapper()
 
   @Suppress("UNCHECKED_CAST")
-  override fun <T : Named> get(name: ResourceName, specType: Class<T>): Resource<T> =
+  override fun <T : ResourceSpec> get(name: ResourceName, specType: Class<T>): Resource<T> =
     resources.values.find { it.name == name }?.let {
       get(it.uid, specType)
     } ?: throw NoSuchResourceName(name)
 
   @Suppress("UNCHECKED_CAST")
-  override fun <T : Named> get(uid: UID, specType: Class<T>): Resource<T> =
+  override fun <T : ResourceSpec> get(uid: UID, specType: Class<T>): Resource<T> =
     resources[uid]?.let {
       if (specType.isAssignableFrom(it.spec.javaClass)) {
         it as Resource<T>
       } else {
         val convertedSpec = mapper.convertValue(it.spec, specType)
-        (it as Resource<Named>).copy(spec = convertedSpec) as Resource<T>
+        (it as Resource<ResourceSpec>).copy(spec = convertedSpec) as Resource<T>
       }
     } ?: throw NoSuchResourceUID(uid)
 

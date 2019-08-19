@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -77,7 +77,7 @@ class DefaultConfiguration {
         applicationContext.getBeansOfType<ResolvableResourceHandler<*, *>>().values
       }
 
-      override fun identify(apiVersion: ApiVersion, kind: String): Class<out Named> {
+      override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {
         return handlers.supporting(apiVersion, kind).supportedKind.second
       }
     }

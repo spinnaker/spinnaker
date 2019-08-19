@@ -2,8 +2,7 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.HasApplication
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -12,7 +11,6 @@ import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.exceptions.InvalidResourceFormatException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import org.slf4j.Logger
 
@@ -22,7 +20,7 @@ import org.slf4j.Logger
  *
  * If those two are the same, use [ResourceHandler] instead.
  */
-interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
+interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
 
   val log: Logger
 
@@ -64,16 +62,12 @@ interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
         e
       )
     }
-    val app = when (spec) {
-      is HasApplication -> spec.application
-      else -> throw InvalidResourceFormatException(this.apiVersion.toString(), "Spec has no application association.")
-    }
 
     val metadata = mapOf(
       "name" to generateName(resource.apiVersion, resource.kind, spec).toString(),
       "uid" to randomUID().toString(),
       "serviceAccount" to resource.metadata.serviceAccount,
-      "application" to app
+      "application" to spec.application
     )
     val hydratedResource = Resource(
       apiVersion = resource.apiVersion,
@@ -94,7 +88,7 @@ interface ResolvableResourceHandler<S : Named, R : Any> : KeelPlugin {
   @Suppress("UNCHECKED_CAST")
   fun normalize(resource: Resource<*>): Resource<S> {
     val spec = objectMapper.convertValue(resource.spec, supportedKind.second)
-    var normalizedResource = (resource as Resource<Named>).copy(spec = spec) as Resource<S>
+    var normalizedResource = (resource as Resource<ResourceSpec>).copy(spec = spec) as Resource<S>
     for (normalizer in normalizers) {
       if (normalizer.handles(resource.apiVersion, resource.kind)) {
         log.debug("Normalizing ${resource.name} with ${normalizer.javaClass}")

@@ -19,7 +19,7 @@
 package com.netflix.spinnaker.keel.tagging
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
@@ -159,7 +159,7 @@ class ResourceTagger(
       apiVersion = SPINNAKER_API_V1.subApi("tag"),
       kind = "keel-tag",
       spec = this
-    ) as SubmittedResource<Named>
+    ) as SubmittedResource<ResourceSpec>
 
   private val ResourceEvent.resourceName: ResourceName
     get() = ResourceName(name)

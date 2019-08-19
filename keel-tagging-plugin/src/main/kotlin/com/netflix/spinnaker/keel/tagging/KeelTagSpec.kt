@@ -20,8 +20,7 @@ package com.netflix.spinnaker.keel.tagging
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.netflix.spinnaker.keel.api.HasApplication
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 
@@ -38,7 +37,7 @@ data class KeelTagSpec(
   val keelId: String,
   val entityRef: EntityRef,
   val tagState: TagState
-) : Named, HasApplication {
+) : ResourceSpec {
   @JsonIgnore
   override val name: String = keelId
 

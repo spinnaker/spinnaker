@@ -59,7 +59,6 @@ class KeelTagHandler(
     "keel-tag",
     "keel-tags"
   ) to KeelTagSpec::class.java
-
   override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource {
     when (resource.spec.tagState) {
       is TagDesired -> {

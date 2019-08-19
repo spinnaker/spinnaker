@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Named
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
@@ -75,7 +75,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun update(updatedSpec: Named) {
+    fun update(updatedSpec: ResourceSpec) {
       resource = subject.upsert(SubmittedResource(
         metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
@@ -310,7 +310,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
         test("resources are updated") {
           deliveryConfig.resources.forEach { resource ->
-            expectThat(resourceRepository.get<Named>(resource.uid))
+            expectThat(resourceRepository.get<ResourceSpec>(resource.uid))
               .get { spec }
               .isEqualTo(resource.spec)
               .isA<DummyResourceSpec>()
