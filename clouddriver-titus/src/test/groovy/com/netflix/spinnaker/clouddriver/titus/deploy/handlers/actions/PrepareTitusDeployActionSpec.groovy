@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDes
 import com.netflix.spinnaker.config.AwsConfiguration
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class PrepareTitusDeployActionSpec extends Specification {
 
@@ -126,6 +127,45 @@ class PrepareTitusDeployActionSpec extends Specification {
     }
   }
 
+  def "security groups are resolved"() {
+    given:
+    TitusDeployDescription description = createTitusDeployDescription()
+    description.securityGroups = ["sg-1", "fancyname"]
+
+    when:
+    subject.resolveSecurityGroups(saga, description)
+
+    then:
+    awsLookupUtil.securityGroupIdExists(_, _, "sg-1") >> true
+    awsLookupUtil.securityGroupIdExists(_, _, "fancyname") >> false
+    awsLookupUtil.convertSecurityGroupNameToId(_, _, "fancyname") >> "sg-2"
+
+    description.securityGroups == ["sg-2", "sg-1"]
+  }
+
+  @Unroll
+  def "security groups include app security group (defaultAppSg=#useFlag)"() {
+    given:
+    TitusDeployDescription description = createTitusDeployDescription()
+    description.labels[PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL] = useFlag.toString()
+
+    when:
+    subject.resolveSecurityGroups(saga, description)
+
+    then:
+    awsLookupUtil.securityGroupIdExists(_, _, "sg-abcd1234") >> true
+    awsLookupUtil.convertSecurityGroupNameToId(_, _, "spindemo") >> "sg-spindemo"
+
+    if (useFlag) {
+      description.securityGroups == ["sg-abcd1234", "sg-spindemo"]
+    } else {
+      description.securityGroups == ["sg-abcd1234"]
+    }
+
+    where:
+    useFlag << [true, false]
+  }
+
   private TitusDeployDescription createTitusDeployDescription() {
     return new TitusDeployDescription(
       application: "spindemo",
@@ -157,7 +197,9 @@ class PrepareTitusDeployActionSpec extends Specification {
         memory: 5_000,
         networkMbps: 128
       ),
-      securityGroups: [],
+      securityGroups: [
+        "sg-abcd1234"
+      ],
       softConstraints: [],
       stack: "staging",
     )

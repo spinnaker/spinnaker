@@ -36,8 +36,14 @@ public enum JobType {
     return JobType.valueOf(value.toUpperCase());
   }
 
+  /** Use {@code isEqual(String)} instead. */
+  @Deprecated
   public static boolean isEqual(@Nullable String value, @Nonnull JobType expectedType) {
     return from(value).equals(expectedType);
+  }
+
+  public boolean isEqual(@Nullable String value) {
+    return from(value).equals(this);
   }
 
   @Nonnull

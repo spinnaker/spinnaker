@@ -49,7 +49,6 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   private String jobType;
   private int retries;
   private int runtimeLimitSecs;
-  private Boolean useApplicationDefaultSecurityGroup = true;
   private List<String> interestingHealthProviderNames = new ArrayList<>();
   private MigrationPolicy migrationPolicy;
   private Boolean copySourceScalingPoliciesAndActions = true;
@@ -104,6 +103,10 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
             .withContainerAttributes(containerAttributes)
             .withDisruptionBudget(disruptionBudget)
             .withServiceJobProcesses(serviceJobProcesses);
+
+    if (!securityGroups.isEmpty()) {
+      submitJobRequest.withSecurityGroups(securityGroups);
+    }
 
     if (dockerImage.getImageDigest() != null) {
       submitJobRequest.withDockerDigest(dockerImage.getImageDigest());
