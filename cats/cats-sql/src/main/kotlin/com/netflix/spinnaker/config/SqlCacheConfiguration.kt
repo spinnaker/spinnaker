@@ -19,7 +19,6 @@ import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
-import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
@@ -131,9 +130,6 @@ class SqlCacheConfiguration {
       dynamicConfigService
     )
   }
-
-  @Bean
-  fun coreProvider(): CoreProvider = CoreProvider(emptyList())
 
   @Bean
   fun agentIntervalProvider(sqlAgentProperties: SqlAgentProperties): AgentIntervalProvider {
