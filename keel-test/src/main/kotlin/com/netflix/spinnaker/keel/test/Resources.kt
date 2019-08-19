@@ -22,15 +22,19 @@ val TEST_API = SPINNAKER_API_V1.subApi("test")
 fun resource(
   apiVersion: ApiVersion = TEST_API,
   kind: String = "whatever",
-  name: (DummyResourceSpec) -> String = DummyResourceSpec::name,
+  name: String = randomString(),
   application: String = "fnord"
-): Resource<DummyResourceSpec> = resource(
-  apiVersion = apiVersion,
-  kind = kind,
-  spec = DummyResourceSpec(application = application),
-  name = name,
-  application = application
-)
+): Resource<DummyResourceSpec> =
+  DummyResourceSpec(name = name, application = application)
+    .let { spec ->
+      resource(
+        apiVersion = apiVersion,
+        kind = kind,
+        spec = spec,
+        name = spec.name,
+        application = application
+      )
+    }
 
 fun <T : Monikered> resource(
   apiVersion: ApiVersion = TEST_API,
@@ -40,7 +44,7 @@ fun <T : Monikered> resource(
   apiVersion = apiVersion,
   kind = kind,
   spec = spec,
-  name = { it.moniker.name },
+  name = spec.moniker.name,
   application = spec.application
 )
 
@@ -48,7 +52,7 @@ fun <T : Named> resource(
   apiVersion: ApiVersion = TEST_API,
   kind: String = "whatever",
   spec: T,
-  name: (T) -> String,
+  name: String = spec.name,
   application: String = "fnord"
 ): Resource<T> =
   Resource(
@@ -57,7 +61,7 @@ fun <T : Named> resource(
     spec = spec,
     metadata = mapOf(
       "uid" to randomUID(),
-      "name" to "${apiVersion.prefix}:$kind:${name(spec)}",
+      "name" to "${apiVersion.prefix}:$kind:$name",
       "application" to application,
       "serviceAccount" to "keel@spinnaker"
     )

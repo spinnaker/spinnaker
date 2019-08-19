@@ -63,8 +63,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         regions = setOf("us-west-2", "us-east-1"),
         storeType = EBS,
         application = "keel"
-      ),
-      name = ImageSpec::artifactName
+      )
     )
     val image = Image(
       baseAmiVersion = "nflx-base-5.378.0-h1230.8808866",

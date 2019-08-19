@@ -12,11 +12,7 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
   override val createAndStore: Fixture<ResourceHeader, S>.(Int) -> Collection<ResourceHeader> = { count ->
     (1..count)
       .map { i ->
-        resource(
-          spec = DummyResourceSpec(name = "fnord-$i"),
-          name = DummyResourceSpec::name
-        )
-          .also(subject::store)
+        resource(name = "fnord-$i").also(subject::store)
       }
       .map(::ResourceHeader)
   }

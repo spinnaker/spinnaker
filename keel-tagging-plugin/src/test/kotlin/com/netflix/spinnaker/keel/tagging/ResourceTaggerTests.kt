@@ -71,7 +71,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rCluster = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
-    name = { "test:ap-south-1:keel" }
+    name = "test:ap-south-1:keel"
   )
 
   private val rClusterTag = resource(
@@ -89,10 +89,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         namespace = KEEL_TAG_NAMESPACE,
         valueType = "object",
         name = KEEL_TAG_NAME
-      )
-      )
-    ),
-    name = KeelTagSpec::keelId
+      ))
+    )
   )
 
   private val rClusterTagNotDesired = resource(
@@ -102,8 +100,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       clusterName.toString(),
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
-    ),
-    name = KeelTagSpec::keelId
+    )
   )
 
   fun tests() = rootContext<ResourceTagger> {

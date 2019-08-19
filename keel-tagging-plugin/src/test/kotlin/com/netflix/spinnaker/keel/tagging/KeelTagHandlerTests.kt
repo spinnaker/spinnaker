@@ -103,8 +103,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
 
   val resourceWithTag = resource(
     kind = "keel-tag",
-    spec = specWithTag,
-    name = { keelId }
+    spec = specWithTag
   )
 
   val resourceWithoutTag = resourceWithTag.copy(spec = specWithoutTag)
