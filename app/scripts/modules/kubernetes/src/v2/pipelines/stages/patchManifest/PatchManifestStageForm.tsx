@@ -115,7 +115,6 @@ export class PatchManifestStageForm extends React.Component<
             options={this.getSourceOptions()}
             onChange={(e: any) => this.props.formik.setFieldValue('source', e.target.value)}
             value={stage.source || 'text'}
-            inline={true}
           />
         </StageConfigField>
         {stage.source === this.textSource && (

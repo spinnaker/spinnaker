@@ -148,7 +148,6 @@ export class DeployManifestStageForm extends React.Component<
         <h4>Manifest Configuration</h4>
         <StageConfigField label="Manifest Source" helpKey="kubernetes.manifest.source">
           <RadioButtonInput
-            inline={true}
             options={this.getSourceOptions()}
             onChange={(e: any) => this.props.formik.setFieldValue('source', e.target.value)}
             value={stage.source}

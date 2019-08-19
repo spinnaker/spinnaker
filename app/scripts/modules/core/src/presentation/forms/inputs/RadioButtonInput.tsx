@@ -36,12 +36,10 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
   );
 
   const VerticalRadioButtons = ({ opts }: { opts: IRadioButtonOptions[] }) => (
-    <div className="vertical left">
-      <div className={elementClassName}>
-        {opts.map(option => (
-          <RadioButton key={option.label} option={option} />
-        ))}
-      </div>
+    <div className={`${elementClassName} vertical left`}>
+      {opts.map(option => (
+        <RadioButton key={option.label} option={option} />
+      ))}
     </div>
   );
 
